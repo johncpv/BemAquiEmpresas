@@ -1,0 +1,44 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+TestResults/
+*.trx
+coverage*/
+
+# Node / front
+node_modules/
+dist/
+dev-dist/
+.pnpm-store/
+*.tsbuildinfo
+playwright-report/
+test-results/
+
+# Ambiente e segredos
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
+*.pem
+*.key
+secrets/
+
+# Dados locais
+data/
+storage/
+*.log
+logs/
+
+# IDE / SO
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+
+# Claude Code (local)
+.claude/settings.local.json
