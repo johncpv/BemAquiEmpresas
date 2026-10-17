@@ -81,13 +81,15 @@ O protótipo aprovado é a referência de layout, hierarquia e comportamento. Ab
 - **Estado visível na forma:** chips de status (ok, alerta, crítico, informativo), faixa lateral vermelha em cartão atrasado, âmbar em risco. Cor semântica separada da cor de acento.
 - **Toda tela** tem estados de carregando, vazio (com ação para começar) e erro (o que houve e como resolver). Ações com verbo claro ("Aprovar", "Salvar grupo") e confirmação com o mesmo verbo ("Aprovada").
 - **Telas dedicadas:** PWA do operador (botões ≥ 56px, checklist, cronômetro) e Painel da TV (fonte grande, sem login) têm layout próprio, sem o dock.
+- **Ajuda contextual (padrão NSHome, PRD §5.15a):** toda tela, e cada aba, tem ajuda em `Ajuda/<chave>.md` (cabeçalho `titulo`, `rota`, `aba`, `padrao`, `modulo`). O botão "Ajuda" da topbar acha a ajuda pela rota e pela aba, e abre sozinho na primeira visita. O "Pergunte ao BemAqui" responde só com esses textos e cita a fonte. Termo ou campo que confunde ganha `<Dica texto="..." />`. **Mudou a tela, mude a ajuda no mesmo commit.** O teste de cobertura falha se uma rota ficar sem ajuda.
+- **Propositivo:** o sistema antecipa o próximo passo e evita ação desnecessária. Formulário vem preenchido com o mais provável, toda conclusão oferece o próximo passo, nada é digitado duas vezes e alerta leva direto à ação. O sistema sugere, mas não decide: efeito financeiro, fiscal ou de estoque sempre exige confirmação.
 - **Módulo não liberado:** tela padrão `ModuleNotReleased` com o nome do módulo, a mensagem "Funcionalidade não liberada nessa versão do sistema." e uma linha explicando o que o módulo fará.
 
 ## Como trabalhar
 1. Pegue a próxima story do `docs/05-backlog.md` na fase atual. Uma story por branch/PR.
 2. Antes de codar: releia as regras do módulo no PRD e as entidades no modelo de dados.
 3. Escreva testes de regra de negócio (unidade) e de integração com Testcontainers para todo caso de uso que movimenta estoque, financeiro ou fiscal.
-4. Critério de pronto: critérios de aceite atendidos, testes passando, migration criada, permissão registrada no seed, tela com estados de vazio/carregando/erro, auditoria ligada.
+4. Critério de pronto: critérios de aceite atendidos, testes passando, migration criada, permissão registrada no seed, tela com estados de vazio/carregando/erro, ajuda da tela escrita ou atualizada, padrões e próximo passo propositivos avaliados, auditoria ligada.
 5. Marque a story como concluída no backlog e registre decisões em ADR.
 
 ## Comandos

@@ -271,6 +271,32 @@ Cada card leva ao detalhe (drill-down).
 
 **Painel do supervisor:** Kanban + capacidade + não conformidades abertas + faltas de material.
 
+### 5.15a Ajuda no produto e experiência propositiva
+Mecanismo igual ao do NSHome (`D:\GIT\NSHome`): **ajuda contextual** por tela, **dicas** em campos e **assistente de perguntas com IA (RAG)** que responde só com base nos textos de ajuda, citando a fonte.
+
+| ID | Requisito | Pri |
+|---|---|---|
+| AJD-1 | **Ajuda contextual:** toda tela, e cada aba nas telas com abas, tem um texto de ajuda em Markdown versionado com o código (`Ajuda/<chave>.md`, cabeçalho com `titulo`, `rota`, `aba`, `padrao`, `modulo`). Seções padrão: Para que serve · Como usar · Perguntas frequentes | M |
+| AJD-2 | **Botão "Ajuda" (?)** na barra superior abre um painel lateral com a ajuda da tela atual (resolvida pela rota e pela aba), o índice de todas as ajudas e a busca | M |
+| AJD-3 | **Primeira visita:** na primeira vez que o usuário abre uma tela, a ajuda abre sozinha uma vez. O registro de "já vista" fica no perfil do usuário | M |
+| AJD-4 | **Dica (`<Dica>`):** um "?" ao lado de termo, campo ou botão que confunde; explica ao passar o mouse, ao focar com o teclado ou ao tocar | M |
+| AJD-5 | **"Pergunte ao BemAqui":** o usuário pergunta em linguagem natural e o sistema busca as seções de ajuda mais próximas (priorizando a tela atual) e pede à IA uma resposta **só com elas**, sempre citando a fonte (link para a seção). Sem IA disponível ou sem citação válida, devolve os trechos encontrados. Nunca envia dado de negócio do tenant à IA; só textos de ajuda | M |
+| AJD-6 | A ajuda respeita o acesso: o usuário só vê, e a IA só usa, ajudas dos módulos liberados e habilitados para ele | M |
+| AJD-7 | **Cobertura obrigatória:** um teste automatizado falha se alguma rota do front não tiver ajuda. Mudou a tela, muda a ajuda no mesmo commit | M |
+| AJD-8 | Provedor de IA atrás de uma interface (`IAiProvider`), com chave e modelo configurados pela plataforma, nunca em código ou log; uso e custo registrados por tenant | M |
+
+**Princípio propositivo (vale para todo módulo):** o sistema antecipa o próximo passo e evita ação desnecessária.
+
+| ID | Requisito | Pri |
+|---|---|---|
+| PRP-1 | **Padrões inteligentes:** formulários vêm preenchidos com o mais provável (condição de pagamento e endereço padrão do terceiro, último fornecedor e preço do item, conta e centro de custo mais usados, roteiro do tipo de produto). O usuário só confirma ou ajusta | M |
+| PRP-2 | **Próximo passo sugerido:** ao concluir uma ação, a tela oferece a continuação natural. Exemplos: orçamento aprovado → "Ver projeto criado"; BOM liberada com falta → "Gerar solicitação de compra"; recebimento → "Conferir título a pagar" | M |
+| PRP-3 | **Nada digitado duas vezes:** dado que já existe no sistema ou em fonte pública é reaproveitado (CNPJ preenche cadastro, XML preenche recebimento, orçamento copia de anterior, contrato copia do orçamento) | M |
+| PRP-4 | **Minha pauta:** uma lista por usuário com "o que precisa de você hoje" (OP para aprovar, títulos vencendo, OS atrasadas, orçamentos expirando, faltas de material), em ordem do que mais destrava, com link direto para resolver | M |
+| PRP-5 | **Alertas acionáveis:** toda notificação ou alerta leva direto à tela e à ação que resolve, nunca só a uma lista genérica | M |
+| PRP-6 | **Ações em lote** onde o volume justifica: aprovar várias OP, baixar vários títulos, imprimir várias etiquetas | D |
+| PRP-7 | O sistema **sugere, mas não decide**: ação com efeito financeiro, fiscal ou de estoque sempre exige confirmação explícita do usuário | M |
+
 ### 5.15 Portal do cliente (pós-MVP, Fase 8)
 Acesso do cliente ao andamento do(s) projeto(s) (etapa atual, previsão de entrega), documentos (contrato, NF, manuais), boletos em aberto e, futuramente, aprovação online de orçamento.
 
