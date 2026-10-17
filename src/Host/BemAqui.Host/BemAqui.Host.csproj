@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <RootNamespace>BemAqui.Host</RootNamespace>
+    <UserSecretsId>bemaqui-empresas-host</UserSecretsId>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Npgsql" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\BuildingBlocks\BemAqui.BuildingBlocks\BemAqui.BuildingBlocks.csproj" />
+    <ProjectReference Include="..\..\Modules\Assets\BemAqui.Assets.Endpoints\BemAqui.Assets.Endpoints.csproj" />
+    <ProjectReference Include="..\..\Modules\Commercial\BemAqui.Commercial.Endpoints\BemAqui.Commercial.Endpoints.csproj" />
+    <ProjectReference Include="..\..\Modules\Engineering\BemAqui.Engineering.Endpoints\BemAqui.Engineering.Endpoints.csproj" />
+    <ProjectReference Include="..\..\Modules\Finance\BemAqui.Finance.Endpoints\BemAqui.Finance.Endpoints.csproj" />
+    <ProjectReference Include="..\..\Modules\Fiscal\BemAqui.Fiscal.Endpoints\BemAqui.Fiscal.Endpoints.csproj" />
+    <ProjectReference Include="..\..\Modules\HR\BemAqui.HR.Endpoints\BemAqui.HR.Endpoints.csproj" />
+    <ProjectReference Include="..\..\Modules\Identity\BemAqui.Identity.Endpoints\BemAqui.Identity.Endpoints.csproj" />
+    <ProjectReference Include="..\..\Modules\Inventory\BemAqui.Inventory.Endpoints\BemAqui.Inventory.Endpoints.csproj" />
+    <ProjectReference Include="..\..\Modules\Parties\BemAqui.Parties.Endpoints\BemAqui.Parties.Endpoints.csproj" />
+    <ProjectReference Include="..\..\Modules\Platform\BemAqui.Platform.Endpoints\BemAqui.Platform.Endpoints.csproj" />
+    <ProjectReference Include="..\..\Modules\Portal\BemAqui.Portal.Endpoints\BemAqui.Portal.Endpoints.csproj" />
+    <ProjectReference Include="..\..\Modules\Production\BemAqui.Production.Endpoints\BemAqui.Production.Endpoints.csproj" />
+    <ProjectReference Include="..\..\Modules\Purchasing\BemAqui.Purchasing.Endpoints\BemAqui.Purchasing.Endpoints.csproj" />
+  </ItemGroup>
+</Project>

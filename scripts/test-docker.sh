@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+# Roda build + testes .NET num container Linux (mesmo ambiente do CI).
+# Útil no Windows com Smart App Control ativo, que bloqueia DLLs recém-compiladas.
+# Uso: sh scripts/test-docker.sh [argumentos extras do dotnet test]
+set -eu
+ROOT=$(cd "$(dirname "$0")/.." && pwd -W 2>/dev/null || pwd)
+MSYS_NO_PATHCONV=1 docker run --rm \
+  -v "$ROOT:/src" \
+  -v bemaqui-nuget:/root/.nuget/packages \
+  -v //var/run/docker.sock:/var/run/docker.sock \
+  -e TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal \
+  -w /src mcr.microsoft.com/dotnet/sdk:10.0 \
+  dotnet test --solution BemAquiEmpresas.slnx --artifacts-path /tmp/artifacts "$@"
