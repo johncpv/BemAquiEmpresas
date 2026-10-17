@@ -21,7 +21,7 @@ Se uma tarefa conflitar com esses documentos, pare e pergunte. Decisões novas v
 - **Backend:** .NET 10 (LTS), ASP.NET Core, EF Core 10 + Npgsql, PostgreSQL 17
 - **Frontend:** React 19 + Vite + TypeScript, shadcn/ui + Tailwind, TanStack Query, TanStack Router, React Hook Form + Zod, dnd-kit (Kanban), Recharts (gráficos), vite-plugin-pwa
 - **Tempo real:** SignalR · **Jobs:** Hangfire (storage PostgreSQL) · **PDF:** QuestPDF · **Logs:** Serilog
-- **Testes:** xUnit + FluentAssertions + Testcontainers (PostgreSQL real), Playwright (E2E)
+- **Validação:** FluentValidation · **Testes:** xUnit v3 + FluentAssertions **7.2.2 (fixo; 8+ é comercial)** + NetArchTest + Testcontainers (PostgreSQL real), Vitest, Playwright (E2E) — ADR 0009
 - **Infra:** Docker Compose na VPS Hostinger compartilhada (2.25.82.127, acesso em `D:\GIT\Konebras\CLAUDE.md`), atrás do `stack-nginx` + certbot já existentes. Sem Caddy (ADR 0004)
 - **Não usar:** MediatR/AutoMapper (licença comercial). Usar handlers simples injetados e mapeamento manual.
 
@@ -66,7 +66,8 @@ Cada módulo: `Domain` (entidades, regras), `Application` (casos de uso, valida�
   - Grupo **Proprietário** é do sistema: tem tudo, não pode ser editado nem ficar sem membros.
   - Permissões efetivas ficam em cache por usuário e são invalidadas quando o grupo ou o vínculo muda.
   - Novos módulos e ações entram no catálogo por seed (`ModuleCatalog`); nunca escreva código de permissão "solto" fora do catálogo.
-  - Sem rota anônima, exceto login, convite, quiosque (token de tela) e webhooks (assinatura validada).
+  - Sem rota anônima, exceto login, convite, recuperação de senha, quiosque (token de tela), webhooks (assinatura validada), `GET /api/v1/public/tenant-context` (nome/logo para o login) e `/health/live|ready` — ADR 0009.
+  - Delegação: ninguém concede o que não tem; JWT só com identidade (`sub`, `tid`, `aud`, `sstamp`), permissões vêm do cache versionado — ADR 0008.
 - **Erros:** padrão Result + ProblemDetails (RFC 9457). Mensagens de validação em PT-BR.
 - **Idioma:** código e nomes de tabela em inglês; textos de UI, mensagens e docs em português.
 - **API:** REST, versionada (`/api/v1`), OpenAPI gerado; cliente TS gerado com Orval — não escrever chamadas fetch à mão.

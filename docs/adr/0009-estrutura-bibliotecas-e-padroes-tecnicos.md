@@ -1,0 +1,57 @@
+# ADR 0009 — Bibliotecas e padrões técnicos da Fase 0
+
+- Status: Aceito (16/10/2026)
+- Responde aos pontos técnicos em aberto 15 a 28 de `docs/stories/README.md`.
+- Regra geral: na dúvida, vale o padrão mais seguro e mais simples.
+
+## Bibliotecas e CI
+- **Testes:** xUnit v3, NetArchTest e Testcontainers.
+  - **FluentAssertions fixado em 7.2.2**, a última versão Apache 2.0. A partir da 8, a licença é comercial e paga, o que vai contra o "Não usar licença comercial" do CLAUDE.md. Se um dia o 7.x não servir, a alternativa é o fork AwesomeAssertions.
+- **Validação:** FluentValidation.
+- **QuestPDF Community:** gratuita para empresa com receita bruta anual abaixo de US$ 1 milhão. A Konebras (ME) e o titular do BemAqui se enquadram hoje. Reavaliar a cada novo tenant ou se a receita mudar. O pacote só entra na Fase 2.
+- **Runner do CI:** hospedado pelo GitHub (`ubuntu-latest`), com Docker disponível para o Testcontainers.
+- **Registry de imagens:** GHCR privado.
+
+## Autenticação e sessão
+- **Cookie de refresh:** `__Host-bq_rt`, com `Secure`, `HttpOnly`, `SameSite=Strict` e `Path=/`.
+  - O prefixo `__Host-` exige `Path=/`, o que derruba o "Path restrito" proposto na revisão.
+  - A proteção do refresh e do logout fica no servidor: exigem `Origin` igual ao host do tenant e o header `X-CSRF: 1`.
+- **Rotas anônimas:** além de login, convite, quiosque e webhooks, ficam anônimas:
+  - `GET /api/v1/public/tenant-context`, que devolve só o nome e o logo para a tela de login;
+  - `/health/live` e `/health/ready`, sem detalhes.
+- **Cache de tenant:** o cache em memória é invalidado por `LISTEN/NOTIFY` do PostgreSQL no catálogo (canal `tenant_changed`), com TTL de reserva de 60 s. Suspender um tenant vale em menos de 10 s.
+
+## Anexos e LGPD
+- **Tipos permitidos:** pdf, png, jpg, webp, xml, xlsx, docx, csv, dwg, dxf e zip.
+  - Limite de 25 MB por arquivo.
+  - Validação de extensão e de magic bytes.
+- **Antivírus (ClamAV):** se estiver fora do ar, o arquivo fica "aguardando verificação" e o download é bloqueado até a varredura.
+- **`[PersonalData]` na Fase 0:** nome, e-mail e telefone do usuário, e IP na auditoria. O diff da auditoria mascara esses campos para quem não tem `identity.view`.
+
+## Tempo real, e-mail e ajuda
+- **Sino de notificações:** SignalR, com polling de 60 s como reserva.
+- **E-mail:**
+  - Fluid para todos os templates, inclusive os do sistema.
+  - SMTP da plataforma por padrão, com SMTP próprio opcional por tenant, cifrado conforme a ADR 0007.
+  - SPF e DKIM do domínio remetente são configurados antes do go-live.
+- **Ajuda:**
+  - Arquivos `Ajuda/*.md` embutidos no projeto `Endpoints` de cada módulo. As telas do shell e da plataforma ficam no Host.
+  - No cabeçalho, `padrao: sim` marca a aba padrão da tela.
+  - A busca do "Pergunte ao BemAqui" usa termos normalizados, como no NSHome.
+  - O teste de cobertura inclui as rotas públicas e as da plataforma.
+
+## Infra de homologação
+- Host `homolog.konebras.com.br`, com DNS pelo PO, no diretório `/opt/projetos/bemaqui-empresas-homolog/`.
+- **Backup:**
+  - cifrado com `age`; a chave pública fica na VPS e a privada fica offline, com o PO;
+  - armazenado em bucket S3-compatível, com o provedor escolhido na FND-10b;
+  - credencial com permissão só de `PutObject`.
+
+## Modelo de dados
+- O `03-modelo-dados.md` recebe, na story que criar cada uma:
+  - `user_preferences` (tema, ajudas vistas);
+  - `platform_audit_log`;
+  - `ai_settings` e `ai_usage_logs`;
+  - `inbox_messages`;
+  - `platform_alerts`;
+  - `data_protection_keys`.
