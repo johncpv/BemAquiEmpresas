@@ -23,6 +23,7 @@ public class HostSmokeTests(PostgresFixture postgres)
             b.UseSetting("DataProtection:AutoMigrate", "true");
             b.UseSetting("Catalog:AutoMigrate", "true");
             b.UseSetting("Jobs:ServerEnabled", "false");
+            b.UseSetting("Auth:SigningKey", BemAqui.Integration.Tests.Tenancy.TestTokens.SigningKeyBase64);
         });
 
     [Fact]

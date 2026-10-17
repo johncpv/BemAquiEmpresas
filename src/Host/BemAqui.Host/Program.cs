@@ -9,8 +9,10 @@ using BemAqui.BuildingBlocks.Web;
 using BemAqui.Host;
 using BemAqui.Host.Health;
 using BemAqui.Host.Persistence;
+using BemAqui.Host.Security;
 using BemAqui.Host.Tenancy;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.HttpOverrides;
 using Serilog;
 
 // Logger de bootstrap: erro antes do Serilog configurado (ex.: certificado do key ring ausente) ainda vai para o log.
@@ -47,6 +49,13 @@ try
     builder.Services.AddTenantPersistence();
     builder.Services.AddBemAquiMessaging(builder.Configuration);
 
+    // Endurecimento HTTP (FND-02b): proxy confiável, JWT preso ao tenant e ao host, SignalR. Sem CORS (mesma origem).
+    var proxy = builder.Configuration.GetSection(ReverseProxyOptions.Section).Get<ReverseProxyOptions>() ?? new ReverseProxyOptions();
+    builder.Services.Configure<ReverseProxyOptions>(builder.Configuration.GetSection(ReverseProxyOptions.Section));
+    builder.Services.Configure<ForwardedHeadersOptions>(o => ReverseProxySetup.Configure(o, proxy));
+    builder.Services.AddTenantJwtAuthentication(builder.Configuration, builder.Environment);
+    builder.Services.AddSignalR();
+
     foreach (var module in ModuleRegistry.All)
     {
         module.AddServices(builder.Services, builder.Configuration);
@@ -54,20 +63,32 @@ try
 
     var app = builder.Build();
 
+    app.UseMiddleware<TrustedProxyMiddleware>();
+    app.UseForwardedHeaders();
+    app.UseMiddleware<SecurityHeadersMiddleware>();
     app.UseExceptionHandler();
     app.UseStatusCodePages();
     app.UseMiddleware<TenantResolutionMiddleware>();
+    app.UseAuthentication();
+    app.UseAuthorization();
 
     if (app.Environment.IsDevelopment())
     {
         // OpenAPI só fora de produção (ADR 0009 / revisão §2.3).
-        app.MapOpenApi();
+        app.MapOpenApi().AllowAnonymous();
+    }
+    else
+    {
+        // Fora de Development a documentação não existe (FND-02 CA 12): 404, não 401.
+        app.MapGet("/openapi/{**rest}", () => Results.NotFound()).AllowAnonymous().ExcludeFromDescription();
+        app.MapGet("/swagger/{**rest}", () => Results.NotFound()).AllowAnonymous().ExcludeFromDescription();
     }
 
     // Vivo: o processo responde. Pronto: dependências (banco) acessíveis.
-    app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false });
-    app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = c => c.Tags.Contains("ready") });
-    app.MapHealthChecks("/health", new HealthCheckOptions { Predicate = c => c.Tags.Contains("ready") });
+    app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false }).AllowAnonymous();
+    app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = c => c.Tags.Contains("ready") }).AllowAnonymous();
+    app.MapHealthChecks("/health", new HealthCheckOptions { Predicate = c => c.Tags.Contains("ready") }).AllowAnonymous();
+    app.MapHub<PingHub>(PingHub.Path);
 
     var api = app.MapGroup("/api/v1");
     api.MapAuditEndpoints();
