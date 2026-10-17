@@ -1,8 +1,7 @@
 using BemAqui.BuildingBlocks.Security;
-using BemAqui.Host.Persistence;
+using BemAqui.Platform.Application.Provisioning;
 using BemAqui.Platform.Domain;
 using BemAqui.Platform.Infrastructure.Catalog;
-using BemAqui.SharedKernel;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -11,9 +10,11 @@ using Npgsql;
 
 namespace BemAqui.Integration.Tests.Tenancy;
 
-/// <summary>Catálogo + tenants A e B (bancos e roles próprios) + o Host real apontando para esse catálogo.</summary>
+/// <summary>Catálogo + tenants A e B criados pelo provisionamento real (role bemaqui_provisioner, sem superuser).</summary>
 public sealed class TenancyFixture : IAsyncLifetime
 {
+    public const string ProvisionerPassword = "provisionador-teste";
+
     private readonly PostgresFixture _postgres = new();
 
     public WebApplicationFactory<Program> Factory { get; private set; } = null!;
@@ -24,31 +25,52 @@ public sealed class TenancyFixture : IAsyncLifetime
 
     public string CatalogConnection { get; private set; } = string.Empty;
 
+    public string ProvisionerConnection { get; private set; } = string.Empty;
+
     public string RoleAConnectionToB { get; private set; } = string.Empty;
 
     public async ValueTask InitializeAsync()
     {
         await _postgres.InitializeAsync();
         CatalogConnection = await _postgres.CreateDatabaseAsync("catalog");
-        var dbA = await CreateTenantDatabaseAsync("tenant_a", "role_a", "senha_a");
-        var dbB = await CreateTenantDatabaseAsync("tenant_b", "role_b", "senha_b");
-        RoleAConnectionToB = new NpgsqlConnectionStringBuilder(dbB) { Username = "role_a", Password = "senha_a" }.ConnectionString;
-
-        Factory = HostSmokeTests.Factory(CatalogConnection).WithWebHostBuilder(b =>
+        await using (var admin = new NpgsqlConnection(_postgres.ConnectionString))
         {
-            b.UseSetting("Catalog:AutoMigrate", "true");
-            b.UseSetting("Jobs:ServerEnabled", "false");
-        });
-        _ = Factory.Server; // sobe o Host: migra catálogo e key ring
+            await admin.OpenAsync();
+            await using var command = new NpgsqlCommand($"CREATE ROLE bemaqui_provisioner LOGIN CREATEDB CREATEROLE NOSUPERUSER PASSWORD '{ProvisionerPassword}'", admin);
+            await command.ExecuteNonQueryAsync();
+        }
 
-        var protector = Factory.Services.GetRequiredService<ISecretProtector>();
-        await using var scope = Factory.Services.CreateAsyncScope();
-        var catalog = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
-        TenantA = NewTenant("empresa-a", "Empresa A Ltda", "a.localhost", new NpgsqlConnectionStringBuilder(dbA) { Username = "role_a", Password = "senha_a" }.ConnectionString, protector);
-        TenantB = NewTenant("empresa-b", "Empresa B Ltda", "b.localhost", new NpgsqlConnectionStringBuilder(dbB) { Username = "role_b", Password = "senha_b" }.ConnectionString, protector);
-        catalog.Tenants.AddRange(TenantA, TenantB);
-        await catalog.SaveChangesAsync();
+        ProvisionerConnection = new NpgsqlConnectionStringBuilder(_postgres.ConnectionString) { Database = "postgres", Username = "bemaqui_provisioner", Password = ProvisionerPassword }.ConnectionString;
+        Factory = HostSmokeTests.Factory(CatalogConnection).WithWebHostBuilder(b => b.UseSetting("ConnectionStrings:Provisioner", ProvisionerConnection));
+        _ = Factory.Server;
+
+        TenantA = await ProvisionAsync("empresa-a", "Empresa A Ltda", "a.localhost");
+        TenantB = await ProvisionAsync("empresa-b", "Empresa B Ltda", "b.localhost");
+        var connectionA = Decrypt(TenantA);
+        RoleAConnectionToB = new NpgsqlConnectionStringBuilder(connectionA) { Database = TenantB.DbName }.ConnectionString;
     }
+
+    public async Task<Tenant> ProvisionAsync(string key, string name, string host, IServiceProvider? services = null)
+    {
+        await using var scope = (services ?? Factory.Services).CreateAsyncScope();
+        var result = await scope.ServiceProvider.GetRequiredService<ProvisioningService>()
+            .ProvisionAsync(new ProvisionRequest(key, name, "47.225.005/0001-86", host, "dono@" + host, null));
+        if (!result.Success)
+        {
+            throw new InvalidOperationException("Provisionamento de teste falhou: " + result.Error);
+        }
+
+        return await FindAsync(key);
+    }
+
+    public async Task<Tenant> FindAsync(string key)
+    {
+        await using var scope = Factory.Services.CreateAsyncScope();
+        return await scope.ServiceProvider.GetRequiredService<CatalogDbContext>().Tenants.AsNoTracking().Include(t => t.Domains).SingleAsync(t => t.Key == key);
+    }
+
+    public string Decrypt(Tenant tenant) =>
+        Factory.Services.GetRequiredService<ISecretProtector>().Unprotect(SecretScope.ForTenant(tenant.Id), SecretKind.TenantConnection, tenant.ConnectionSecret).Reveal();
 
     public HttpClient ClientFor(string host)
     {
@@ -57,22 +79,28 @@ public sealed class TenancyFixture : IAsyncLifetime
         return client;
     }
 
-    public async Task SetStatusAsync(Guid tenantId, bool suspended)
+    public async Task UpdateTenantAsync(Guid tenantId, Action<Tenant> change)
     {
         await using var scope = Factory.Services.CreateAsyncScope();
         var catalog = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
-        var tenant = await catalog.Tenants.SingleAsync(t => t.Id == tenantId);
-        if (suspended)
-        {
-            tenant.Suspend();
-        }
-        else
-        {
-            tenant.Activate();
-        }
-
+        change(await catalog.Tenants.SingleAsync(t => t.Id == tenantId));
         await catalog.SaveChangesAsync();
     }
+
+    public Task SetStatusAsync(Guid tenantId, bool suspended) =>
+        UpdateTenantAsync(tenantId, t =>
+        {
+            if (suspended)
+            {
+                t.Suspend();
+            }
+            else
+            {
+                t.Activate();
+            }
+        });
+
+    public Task<NpgsqlConnection> AdminAsync() => OpenAsync(_postgres.ConnectionString);
 
     public async ValueTask DisposeAsync()
     {
@@ -84,45 +112,10 @@ public sealed class TenancyFixture : IAsyncLifetime
         await _postgres.DisposeAsync();
     }
 
-    private static Tenant NewTenant(string key, string name, string host, string connection, ISecretProtector protector)
+    private static async Task<NpgsqlConnection> OpenAsync(string connectionString)
     {
-        var id = Guid.CreateVersion7();
-        var tenant = new Tenant
-        {
-            Key = key,
-            LegalName = name,
-            DbName = key,
-            CreatedAt = DateTimeOffset.UtcNow,
-            ConnectionSecret = protector.Protect(BemAqui.BuildingBlocks.Security.SecretScope.ForTenant(id), SecretKind.TenantConnection, new Secret(connection)),
-        };
-        typeof(Entity).GetProperty(nameof(Entity.Id))!.SetValue(tenant, id);
-        tenant.Activate();
-        tenant.Domains.Add(new TenantDomain { TenantId = id, Host = host, IsPrimary = true });
-        return tenant;
-    }
-
-    /// <summary>Banco do tenant migrado, com role próprio e REVOKE CONNECT FROM PUBLIC (simula a FND-03a).</summary>
-    private async Task<string> CreateTenantDatabaseAsync(string prefix, string role, string password)
-    {
-        var connection = await _postgres.CreateDatabaseAsync(prefix);
-        var database = new NpgsqlConnectionStringBuilder(connection).Database!;
-        await using (var db = new TenantDbContext(new DbContextOptionsBuilder<TenantDbContext>().UseNpgsql(connection).UseSnakeCaseNamingConvention().Options))
-        {
-            await db.Database.MigrateAsync();
-        }
-
-        await using var admin = new NpgsqlConnection(connection);
-        await admin.OpenAsync();
-        var sql = $"""
-            CREATE ROLE {role} LOGIN PASSWORD '{password}';
-            REVOKE CONNECT ON DATABASE "{database}" FROM PUBLIC;
-            GRANT CONNECT ON DATABASE "{database}" TO {role};
-            GRANT USAGE ON SCHEMA shared, audit TO {role};
-            GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA shared TO {role};
-            GRANT SELECT, INSERT ON ALL TABLES IN SCHEMA audit TO {role};
-            """;
-        await using var command = new NpgsqlCommand(sql, admin);
-        await command.ExecuteNonQueryAsync();
+        var connection = new NpgsqlConnection(connectionString);
+        await connection.OpenAsync();
         return connection;
     }
 }

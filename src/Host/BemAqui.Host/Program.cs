@@ -7,6 +7,7 @@ using BemAqui.BuildingBlocks.Notifications;
 using BemAqui.BuildingBlocks.Security;
 using BemAqui.BuildingBlocks.Web;
 using BemAqui.Host;
+using BemAqui.Host.Cli;
 using BemAqui.Host.Health;
 using BemAqui.Host.Persistence;
 using BemAqui.Host.Security;
@@ -14,6 +15,12 @@ using BemAqui.Host.Tenancy;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.HttpOverrides;
 using Serilog;
+
+// Modo CLI da imagem: migrate (antes da subida) e tenant provision (ADR 0006, FND-03a).
+if (CliCommand.IsCli(args))
+{
+    return await CliCommand.RunAsync(args);
+}
 
 // Logger de bootstrap: erro antes do Serilog configurado (ex.: certificado do key ring ausente) ainda vai para o log.
 Log.Logger = new LoggerConfiguration().WriteTo.Console(formatProvider: System.Globalization.CultureInfo.InvariantCulture).CreateLogger();
@@ -47,6 +54,7 @@ try
     builder.Services.Configure<ClamAvOptions>(builder.Configuration.GetSection(ClamAvOptions.Section));
     builder.Services.AddScoped<ICurrentUser, HttpCurrentUser>();
     builder.Services.AddTenantPersistence();
+    builder.Services.AddSingleton<BemAqui.Platform.Application.Provisioning.ITenantDatabaseMigrator, TenantDatabaseMigrator>();
     builder.Services.AddBemAquiMessaging(builder.Configuration);
 
     // Endurecimento HTTP (FND-02b): proxy confiável, JWT preso ao tenant e ao host, SignalR. Sem CORS (mesma origem).
@@ -110,6 +118,8 @@ finally
 {
     await Log.CloseAndFlushAsync();
 }
+
+return 0;
 
 /// <summary>Exposto para os testes de integração (WebApplicationFactory).</summary>
 public partial class Program;

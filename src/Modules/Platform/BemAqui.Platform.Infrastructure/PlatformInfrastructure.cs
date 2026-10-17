@@ -1,6 +1,8 @@
 using BemAqui.BuildingBlocks.Persistence;
 using BemAqui.BuildingBlocks.Tenancy;
+using BemAqui.Platform.Application.Provisioning;
 using BemAqui.Platform.Infrastructure.Catalog;
+using BemAqui.Platform.Infrastructure.Provisioning;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,6 +30,11 @@ public static class PlatformInfrastructure
         services.TryAddScoped<TenantContextHolder>();
         services.TryAddScoped<ITenantContext>(sp => sp.GetRequiredService<TenantContextHolder>());
         services.TryAddSingleton<ITenantScopeFactory, TenantScopeFactory>();
+
+        services.TryAddScoped<IProvisioningCatalog, EfProvisioningCatalog>();
+        services.TryAddSingleton<ITenantDatabaseAdmin, PostgresTenantDatabaseAdmin>();
+        services.TryAddScoped<ITenantOwnerOnboarding, PendingOwnerOnboarding>();
+        services.TryAddScoped<ProvisioningService>();
 
         services.AddHostedService<CatalogMigrationService>();
         services.AddHostedService<CatalogChangeListener>();

@@ -85,7 +85,7 @@ public sealed class CatalogTenantResolver(IServiceScopeFactory scopes, TimeProvi
             TenantLifecycle.Suspended => TenantStatus.Suspended,
             _ => TenantStatus.Provisioning,
         };
-        return new ResolvedTenant(new TenantInfo(tenant.Id, tenant.Key, status), tenant.LegalName, tenant.TradeName, primary, tenant.ConnectionSecret);
+        return new ResolvedTenant(new TenantInfo(tenant.Id, tenant.Key, status), tenant.LegalName, tenant.TradeName, primary, tenant.ConnectionSecret, tenant.SchemaVersion);
     }
 
     private void Remember<TKey>(ConcurrentDictionary<TKey, (ResolvedTenant? Tenant, DateTimeOffset Expires)> cache, TKey key, ResolvedTenant? tenant, DateTimeOffset now)
