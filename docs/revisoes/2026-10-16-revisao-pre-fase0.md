@@ -1,0 +1,186 @@
+# Revisão pré-Fase 0: relatório consolidado
+
+- Data: 16/10/2026
+- Revisores: AIOX architect · AIOX po + pm · design-squad (audit-design) · cybersecurity (audit-app-security)
+- Escopo: CLAUDE.md, docs/01–06, ADRs 0001–0004 e o protótipo, só em leitura (ainda não há código).
+- Total: 80 achados brutos, consolidados aqui sem duplicatas. Fonte de cada achado: A = arquitetura, P = PO/PM, D = design, S = segurança.
+- **As decisões do PO sobre D1–D10 estão no ADR 0005.**
+
+## 1. Decisões do PO (resolvidas no ADR 0005)
+- **D1:** troca de host só no go-live; homologação durante o desenvolvimento.
+- **D2:** host da plataforma.
+- **D3:** go-live único.
+- **D4:** OS de serviço e venda avulsa na Fase 10.
+- **D5:** aprovação e assinatura no mesmo evento.
+- **D6:** backup com perda máxima de 24 h.
+- **D7:** risco da VPS compartilhada aceito.
+- **D8:** dock com 7 áreas.
+- **D9:** prefixo `R-` nos requisitos.
+- **D10:** pendências com prazo.
+
+## 2. Correções sem decisão do PO (a aplicar antes ou durante a Fase 0)
+
+### 2.1 Consistência dos docs
+- O modelo de dados (03) ainda descreve `tenants.key` como subdomínio e não tem `tenant_domains`. A ADR 0001 diz "resolvido por subdomínio". **Ação:** marcar a 0001 como alterada pela 0004 e atualizar o 03. (A, P, S)
+- **Modelo de dados** (A, P):
+  - `approval_rules.approver_role_id` passa a ser `approver_group_id`/`user_id`.
+  - `payable_ids` e `receivable_ids` deixam de ser arrays e viram tabelas de junção.
+  - Criar as tabelas `shipments`/`shipment_lines` (romaneio), `sales_targets` (meta), `module_actions` (ADR 0003), `webhook_events` (idempotência) e `devices` (PWA).
+  - Remover `kiosk_token_index`.
+  - Em `stock_balances`, usar `UNIQUE NULLS NOT DISTINCT`.
+- **Custo do projeto** (A): tabela append-only `project_cost_entries`, com chave única por origem e estorno como lançamento negativo. A regra de reconhecimento fica para a contadora (P-17).
+- **Máquinas de estado** (A):
+  - a BOM liberada passa a ser condição da primeira etapa produtiva, e não da OS, porque hoje a regra é circular;
+  - o status do Payable passa a ser derivado da OP, e `Overdue` é calculado;
+  - o pedido de compra ganha o estado `Closed`;
+  - a NF-e ganha o estado `Denied` e a inutilização de número;
+  - `Installing` passa a valer por item.
+
+### 2.2 ADRs técnicas novas
+- **ADR 0006, persistência e mensageria** (A, S):
+  - TenantDbContext único, mas cada módulo acessa só a sua interface (`IFinanceDb`) e as configurações ficam `internal`;
+  - entre módulos, referência só por Id; NetArchTest garante "só `*.Contracts`";
+  - outbox com retry, backoff e dead-letter, mais `inbox` por handler para idempotência; dispatcher como BackgroundService com `SKIP LOCKED`;
+  - Hangfire com storage no catálogo; `TenantJob<T>` obrigatório e um recorrente global por tipo que percorre os tenants ativos; fuso America/Sao_Paulo; filas separadas;
+  - migrator como container próprio, com advisory lock e versão de schema por tenant (503 se defasado); migrations expand/contract;
+  - Dapper só pela conexão do TenantDbContext, no módulo `Reporting`; views comuns primeiro e materialized view só se a medição pedir.
+- **ADR 0007, chaves e segredos** (A, S, **crítico**):
+  - key ring do Data Protection persistido e protegido por certificado, com cópia offline guardada com o PO;
+  - propósito de proteção separado por tenant e por tipo de segredo;
+  - segredos write-only na API e nunca logados;
+  - backup da chave em trilha separada.
+- **ADR 0008, delegação de permissões** (S):
+  - ninguém concede ação ou grupo que não possui;
+  - só o Proprietário adiciona alguém ao Proprietário ou concede `*.approve`, `*.pay` e `hr.view_sensitive`;
+  - o JWT carrega só identidade (`tid`, `aud` e security stamp); as permissões vêm de um cache versionado.
+
+### 2.3 Backlog da Fase 0
+- **Ordem:** FND-01 → FND-07 → FND-02 → FND-03 → FND-08 → FND-04 → FND-05 → FND-06/06b/06c/06d → FND-10. A FND-09 corre em paralelo desde a FND-01. (A)
+- **Novas stories:**
+  - FND-11, segredos e Data Protection;
+  - FND-12, observabilidade;
+  - FND-13, autenticação do super admin;
+  - homologação publicada já na 1ª semana.
+- **Quebrar stories G:**
+  - FND-09 em três (tokens/tema · shell/navegação · DataTable/estados);
+  - FND-03 em duas (CLI · tela).
+- **Definition of Ready:** story sem CA testável não entra em execução. Hoje 37 das 79 stories não têm CA. (P)
+- **CAs de segurança** (S):
+  - **FND-01:**
+    - `dotnet list package --vulnerable` e `pnpm audit` no CI;
+    - actions fixadas por SHA;
+    - Dependabot ativo.
+  - **FND-02:**
+    - token emitido em `a.localhost` é rejeitado em `b.localhost`, no REST e no hub;
+    - Host e X-Forwarded-For forjados direto no container são ignorados;
+    - suspensão de tenant vale em menos de 10 s;
+    - a credencial do tenant A não conecta no banco de B;
+    - mesma origem, sem CORS;
+    - HSTS, CSP e frame-ancestors ativos;
+    - Swagger desligado em prod.
+  - **FND-03:**
+    - role do Postgres por tenant, com `REVOKE CONNECT FROM PUBLIC`;
+    - role dedicado para o provisionamento;
+    - painel da plataforma e `/hangfire` respondem 404 em host de tenant.
+  - **FND-04:**
+    - cookie `__Host-` com Path restrito;
+    - anti-CSRF por Origin + header;
+    - access token só em memória;
+    - respostas uniformes (sem enumerar e-mails);
+    - reset de senha de uso único, que revoga as sessões e não desliga o 2FA;
+    - desativar um usuário vale no próximo request;
+    - tolerância a refresh concorrente;
+    - rate limit por IP real + tenant + usuário;
+    - links de e-mail montados com o host primário do catálogo.
+  - **FND-05:**
+    - anti-replay de TOTP;
+    - 5 tentativas por desafio;
+    - token intermediário só com escopo de 2FA;
+    - 2FA obrigatório por padrão para o Proprietário e para quem aprova ou paga.
+  - **FND-06b/06c:**
+    - regra de delegação (ADR 0008);
+    - revogar módulo ou grupo vale no próximo request.
+  - **FND-07:**
+    - `audit_log` só aceita INSERT;
+    - o diff mascara PII e omite segredos;
+    - download de anexo valida a permissão do documento dono;
+    - allowlist de tipo + magic bytes;
+    - SVG/HTML nunca inline;
+    - varredura com ClamAV;
+    - job de tenant suspenso não roda.
+  - **FND-08:**
+    - templates do tenant só em Fluid sandboxed;
+    - nunca buscar URL fornecida pelo tenant.
+  - **FND-10:**
+    - Postgres em rede interna, sem `ports:`;
+    - containers não-root, `read_only` e `cap_drop`;
+    - dump cifrado;
+    - credencial de backup sem permissão de delete;
+    - logs do nginx mascaram tokens;
+    - WebSocket com `proxy_read_timeout` ≥ 120 s.
+
+### 2.4 Design (FND-09; a identidade é mantida)
+- **Contraste:**
+  - **Crítico:** botões verdes no tema escuro dão 2,12:1. Criar `--success-foreground`.
+  - Chips warn/ok/crit no tema claro ficam abaixo de 4,5:1. Criar tokens `*-ink`.
+  - Bordas de input dão ~1,3:1. Criar `--input` com ≥ 3:1.
+  - Anel de foco sobre o trilho dá 2,11:1.
+- **Âmbar com dois papéis:** `--led` e `--warn` são iguais no tema escuro. Renomear `--led` para `--signal`, só para marca, item ativo e indicador de etapa. Criar `--info` separado do acento.
+- **Estados:** Skeleton, EmptyState, ErrorState e InlineError, ligados ao TanStack Query.
+- **Topbar a 400px:** o seletor de tema vai para o menu do usuário e a busca vira um ícone.
+- **Acessibilidade:**
+  - usar `<nav>`;
+  - rótulos de "não liberado" e de contadores para leitor de tela;
+  - foco e título da página na troca de rota;
+  - link "pular para o conteúdo";
+  - Kanban operável por teclado e toque, com "Mover para…" (WCAG 2.5.7);
+  - Switch e ToggleGroup do Radix.
+- **PWA do operador:**
+  - linhas do checklist com ≥ 56px;
+  - pausa pede motivo;
+  - "Finalizar" desabilitado enquanto o checklist estiver incompleto;
+  - chip de sincronização;
+  - texto ≥ 16px.
+- **TV:**
+  - escopo `.theme-tv`, sem cor literal;
+  - corpo de texto ≥ 24px;
+  - faixa "sem conexão desde…".
+- **Fonte, tema e formatação:**
+  - Archivo self-hosted (`@fontsource-variable`);
+  - tema salvo no perfil, sem flash na carga;
+  - `Money` com e sem centavos;
+  - lint que proíbe cor hex fora do arquivo de tokens.
+- **Mapeamento para o shadcn:** o `--accent` do protótipo vira `--primary`, e o `--muted` do protótipo vira `--muted-foreground`.
+
+## 3. Antes das Fases 2 e 3 (não bloqueia a Fase 0)
+- **Orçado × realizado v0** já na Fase 2: orçado vem do contrato; realizado vem dos CP com projeto e da mão de obra manual. (P)
+- **Fluxo de caixa:**
+  - folha prevista entra como despesa recorrente manual na Fase 2;
+  - a MIG-01 importa os títulos pagos que existirem no Dolibarr, para alimentar a pontualidade dos clientes. (P)
+- **PWA offline** (A, S):
+  - o cliente gera Guid v7 e chave de idempotência;
+  - conflitos voltam ao operador;
+  - sessão por dispositivo + PIN de ≥ 6 dígitos.
+- **Webhook do Inter** (S):
+  - o webhook só dispara uma reconsulta da cobrança via mTLS, nunca a baixa direta;
+  - URL com segredo;
+  - chave única para idempotência.
+- **NF de entrada** (S):
+  - XML com `DtdProcessing.Prohibit`, validação de XSD e de assinatura, conferência do CNPJ do destinatário;
+  - leitura de PDF e OCR isoladas, com timeout.
+- **OP por link de e-mail** (S):
+  - o GET só abre a tela;
+  - a aprovação é um POST com step-up de 2FA;
+  - editar uma OP aprovada zera as aprovações.
+- **Quiosque** (A, S):
+  - cookie `__Host-kiosk` no lugar do token na URL;
+  - o hub deriva o grupo das claims;
+  - revalidação em até 60 s.
+- **Auditoria e LGPD** (A, S):
+  - atributo `[Sensitive]`;
+  - registrar a leitura de dado sensível;
+  - retenção definida e particionamento mensal.
+- **Métricas de sucesso** com linha de base e acurácia, por exemplo: erro do caixa em D+30 ≤ 10%; ≥ 90% das horas apontadas no PWA. (P)
+- **Licenças** (A):
+  - confirmar a faixa de receita da licença QuestPDF Community;
+  - incluir FluentValidation na stack.
