@@ -112,7 +112,28 @@ Checklist do @po (Pax), 16/10/2026.
 | 16/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 
 ## Dev Agent Record
-_A preencher pelo @dev._
+- **Data e branch:** 17/10/2026, `feat/fnd-11-segredos`.
+- **Implementação:**
+  - `Secret` (SharedKernel), com conversor JSON e igualdade em tempo constante.
+  - `ISecretProtector` / `SecretProtector`, com propósitos fixos `bemaqui/{escopo}/{tipo}/v1` e teste golden.
+  - `DataProtectionKeysDbContext` (`security.data_protection_keys`), com a migration `InitialDataProtectionKeys`.
+  - `ProtectionCertificate`, que exige chave privada e RSA de pelo menos 3072 bits e lê a senha de arquivo.
+  - `SecretsStartupCheck`, com fail fast em `StartingAsync`.
+  - `SecretDestructuringPolicy` no Serilog.
+  - Logger de bootstrap no Host.
+  - Runbook em `docs/operacao/segredos-e-chaves.md`.
+- **Critérios de aceite:**
+  - **CA 1 a 7:** atendidos, com testes de unidade, de integração (Testcontainers) e de arquitetura.
+  - **CA 4:** a rotação foi testada expirando a chave no key ring persistido. Não dava para simular a passagem do tempo, porque o Data Protection não usa `TimeProvider`. E uma chave recém-criada não vira a chave padrão enquanto está na janela de propagação.
+  - **CA 8: parcial.** O runbook está escrito, mas o destino da trilha separada fica para a FND-10b.
+- **Revisão de segurança** (cybersecurity, 17/10/2026): aprovada com ajustes.
+  - **Ajustes obrigatórios (os 4 foram aplicados):**
+    - procedimento de revogação e de troca do certificado;
+    - recusa da máscara `***`;
+    - propósitos fixos;
+    - opt-in para o certificado de desenvolvimento e aviso quando a flag de criação estiver ligada.
+  - **Também entraram:** senha do certificado lida de arquivo, validação do certificado, contagem só de chaves ativas, logger de bootstrap, igualdade em tempo constante e limpeza dos certificados de teste.
+- **Pendências herdadas:** estão em `docs/stories/README.md` (FND-12, FND-10b e FND-03a).
 
 ## QA Results
 _A preencher pelo @qa._
