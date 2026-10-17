@@ -34,7 +34,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md), com critérios de ac
 - Requisitos: R-PLT-1, R-PLT-3.
 - CA: provisionar tenant novo em < 1 min; falha em uma etapa registra log e permite retomar; migrations aplicadas a todos os tenants no deploy com relatório, advisory lock e 503 para schema defasado; role do Postgres por tenant com `REVOKE CONNECT FROM PUBLIC`; role dedicado ao provisionamento.
 
-**FND-08 [ ] E-mail (M)** — [story](stories/FND-08-email.md)
+**FND-08 [x] E-mail (M)** — [story](stories/FND-08-email.md)
 - Requisitos: R-COM-1.
 - CA: falha de envio faz retry 3×, depois marca falha visível no log; templates do tenant só em Fluid sandboxed; nunca buscar URL fornecida pelo tenant; links com o host primário do catálogo.
 

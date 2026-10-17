@@ -7,7 +7,9 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="EFCore.NamingConventions" />
+    <PackageReference Include="Fluid.Core" />
     <PackageReference Include="FluentValidation" />
+    <PackageReference Include="MailKit" />
     <PackageReference Include="Hangfire.AspNetCore" />
     <PackageReference Include="Hangfire.Core" />
     <PackageReference Include="Hangfire.PostgreSql" />
@@ -25,5 +27,8 @@
   <ItemGroup>
     <InternalsVisibleTo Include="BemAqui.BuildingBlocks.Tests" />
     <InternalsVisibleTo Include="BemAqui.Integration.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Email/Templates/*.liquid" />
   </ItemGroup>
 </Project>

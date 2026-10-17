@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using BemAqui.BuildingBlocks.Attachments;
+using BemAqui.BuildingBlocks.Email;
 using BemAqui.BuildingBlocks.Messaging;
 using BemAqui.BuildingBlocks.Notifications;
 using BemAqui.BuildingBlocks.Persistence.Auditing;
@@ -29,6 +30,8 @@ public abstract class BemAquiDbContext(DbContextOptions options) : DbContext(opt
     public DbSet<Attachment> Attachments => Set<Attachment>();
 
     public DbSet<Notification> Notifications => Set<Notification>();
+
+    public DbSet<EmailLog> EmailLogs => Set<EmailLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -92,6 +95,21 @@ public abstract class BemAquiDbContext(DbContextOptions options) : DbContext(opt
             b.Property(e => e.Title).HasMaxLength(200);
             b.Property(e => e.Link).HasMaxLength(512);
             b.HasIndex(e => new { e.UserId, e.ReadAt, e.CreatedAt });
+        });
+
+        modelBuilder.Entity<EmailLog>(b =>
+        {
+            b.ToTable("email_logs", SharedSchema);
+            b.HasKey(e => e.Id);
+            b.Property(e => e.To).HasMaxLength(320);
+            b.Property(e => e.Template).HasMaxLength(64);
+            b.Property(e => e.Subject).HasMaxLength(300);
+            b.Property(e => e.Model).HasColumnType("jsonb");
+            b.Property(e => e.Status).HasConversion<string>().HasMaxLength(16);
+            b.Property(e => e.Error).HasMaxLength(1000);
+            b.Property(e => e.RelatedType).HasMaxLength(64);
+            b.HasIndex(e => new { e.Status, e.CreatedAt });
+            b.HasIndex(e => new { e.RelatedType, e.RelatedId });
         });
 
         ConfigureModules(modelBuilder);

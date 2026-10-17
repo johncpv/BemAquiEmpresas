@@ -21,12 +21,21 @@ public abstract partial class TenantJob<TArgs>(ITenantDirectory directory, ITena
         if (tenant is null || tenant.Status != TenantStatus.Active)
         {
             LogSkipped(logger, GetType().Name, tenantId, tenant?.Status);
+            if (tenant is not null)
+            {
+                await using var skippedScope = await scopes.CreateScopeAsync(tenant, cancellationToken);
+                await OnSkippedAsync(skippedScope.ServiceProvider, tenant, args, cancellationToken);
+            }
+
             return;
         }
 
         await using var scope = await scopes.CreateScopeAsync(tenant, cancellationToken);
         await RunAsync(scope.ServiceProvider, tenant, args, cancellationToken);
     }
+
+    /// <summary>Tenant existe mas não está ativo: o job não roda; aqui ele pode só registrar o motivo (ex.: e-mail Skipped).</summary>
+    protected virtual Task OnSkippedAsync(IServiceProvider services, TenantInfo tenant, TArgs args, CancellationToken cancellationToken) => Task.CompletedTask;
 
     /// <summary>Trabalho do job, já dentro do escopo do tenant.</summary>
     protected abstract Task RunAsync(IServiceProvider services, TenantInfo tenant, TArgs args, CancellationToken cancellationToken);

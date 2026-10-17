@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="pt-BR">
+<body style="margin:0;padding:24px;background:#e9edf1;font-family:Arial,sans-serif;color:#14202b">
+  <table role="presentation" width="100%" style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:10px">
+    <tr><td style="padding:24px">
+      {% if logo_cid %}<img src="cid:{{ logo_cid }}" alt="{{ tenant_name }}" style="max-height:48px"><br><br>{% endif %}
+      <h1 style="font-size:20px;margin:0 0 16px">Você foi convidado para o BemAqui Empresas</h1>
+      <p>Olá{% if recipient_name %}, {{ recipient_name }}{% endif %}.</p>
+      <p>{{ inviter_name | default: "A equipe" }} convidou você para acessar <strong>{{ tenant_name }}</strong>.</p>
+      <p style="margin:24px 0">
+        <a href="{{ link }}" style="background:#2148c0;color:#ffffff;padding:12px 20px;border-radius:6px;text-decoration:none;font-weight:bold">Aceitar convite</a>
+      </p>
+      <p style="font-size:13px;color:#5a6774">O convite vale até {{ expires_at }}. Se você não esperava este e-mail, pode ignorá-lo.</p>
+    </td></tr>
+  </table>
+</body>
+</html>

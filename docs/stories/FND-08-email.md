@@ -5,7 +5,7 @@
 | ID | FND-08 |
 | Título | `IEmailSender` (SMTP/SES), templates, fila Hangfire e log de envio |
 | Tamanho | M (re-estimada: o backlog dizia P; os CAs de sandbox e de links ampliaram o escopo) |
-| Status | Draft |
+| Status | Done |
 | Requisitos | R-COM-1 |
 | Dependências | FND-07 (Hangfire, `TenantJob`), FND-11 (senha SMTP cifrada), FND-02 (host primário do tenant) |
 | Bloqueia | FND-04 (convite e recuperação de senha), FND-03a (etapa `SendInvite`), FND-12 (alerta por e-mail) |
@@ -112,7 +112,28 @@ Checklist do @po (Pax), 16/10/2026.
 | 16/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 
 ## Dev Agent Record
-_A preencher pelo @dev._
+- **18/10/2026, branch `feat/fnd-08-email`.**
+  - **Enfileirar:**
+    - `IEmailSender.Enqueue` grava `shared.email_logs` com status `Queued` e publica `EmailQueued` no outbox, na mesma transação do comando.
+    - O `EmailQueuedConsumer` cria o `SendEmailJob` na fila `email` do Hangfire, passando o `tenantId`.
+    - Esse caminho garante que o job nunca roda antes do commit.
+  - **Enviar:**
+    - `SendEmailJob` é um `TenantJob` e envia por SMTP (MailKit). O AWS SES usa o mesmo caminho, pela interface SMTP dele.
+    - São 3 tentativas, com intervalos de 30 s e 2 min. Depois da 3ª falha, o status vira `Failed`, o erro fica no log e é registrado para o alerta (FND-12).
+    - Reentrega de um e-mail já `Sent` não envia de novo.
+    - Tenant suspenso: o status vira `Skipped`, pelo novo gancho `TenantJob.OnSkippedAsync`.
+  - **Templates:**
+    - Fluid em sandbox: o modelo é só um dicionário de valores simples, sem objetos .NET; `NullFileProvider` bloqueia include; `MaxSteps` e `MaxRecursion` limitam a execução; o HTML usa `HtmlEncoder`.
+    - Templates padrão `invite` e `password-reset`, em PT-BR, com versão HTML e texto. Datas em America/Sao_Paulo.
+  - **Links e logo:**
+    - `TenantLinks` monta todo link com o host primário do catálogo, nunca com o `Host` da requisição.
+    - O logo do tenant vai inline (cid), a partir do armazenamento, e nunca é buscado por URL. O logo em si chega na CAD-06.
+  - **Ambiente local:** Mailpit no `docker-compose.yml`, com interface em http://localhost:8025.
+  - **Dependências:** `System.Security.Cryptography.Pkcs` foi fixado em 10.0.13. A versão 10.0.0, que o MailKit puxava, é vulnerável.
+  - **CAs:** 1 a 9 atendidos. Os testes usam PostgreSQL real e o Mailpit como SMTP real.
+  - **Pendências:**
+    - SMTP próprio por tenant, com a senha cifrada (`SecretKind.SmtpPassword`): CAD-06.
+    - O canal do alerta de falha de envio: FND-12.
 
 ## QA Results
 _A preencher pelo @qa._

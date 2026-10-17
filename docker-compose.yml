@@ -28,6 +28,14 @@ services:
     volumes:
       - clamdb:/var/lib/clamav
 
+  # SMTP de desenvolvimento (FND-08): veja os e-mails enviados em http://localhost:8025.
+  mailpit:
+    image: axllent/mailpit:v1.21
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
+
 volumes:
   pgdata:
   clamdb:
