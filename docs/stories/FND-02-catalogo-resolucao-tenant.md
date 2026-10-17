@@ -5,7 +5,7 @@
 | ID | FND-02 |
 | Título | Catálogo, `tenant_domains`, middleware por host, `TenantDbContext` dinâmico e endurecimento HTTP |
 | Tamanho | G |
-| Status | In Progress (02a pronta; 02b a seguir) |
+| Status | Done (02a #6, 02b; página do front na FND-09b) |
 | Requisitos | R-PLT-1 · R-PLT-2 · PRD §6 Segurança (HTTPS, OWASP) |
 | Dependências | FND-01, FND-11, FND-07; a página "Acesso suspenso" usa os tokens da FND-09a |
 | Bloqueia | FND-03a, FND-12, FND-04 e todas as stories com dados de tenant |
@@ -154,5 +154,30 @@ Checklist do @po (Pax), 16/10/2026.
     - O PostgreSQL de teste sobe com `max_connections=500`, por causa dos vários bancos e pools.
     - O servidor do Hangfire fica desligado nos smoke tests, e um teste próprio confere que ele sobe e cria o schema.
 
+- **Parte B (FND-02b), 18/10/2026, branch `feat/fnd-02b-endurecimento-http`:**
+  - **Proxy confiável:**
+    - Os cabeçalhos `X-Forwarded-For` e `X-Forwarded-Proto` só são aceitos vindos das redes em `ReverseProxy:KnownNetworks`. O `Host` nunca vem de cabeçalho, porque o nginx já envia o host real.
+    - Com `ReverseProxy:RequireTrustedProxy=true`, que fica ligado em homologação e produção (FND-10a), quem não vem do proxy recebe 404. Acesso direto ao container não resolve tenant. Só `/health` responde nesse caso.
+  - **Cabeçalhos em toda resposta:**
+    - HSTS (fora de Development);
+    - CSP `default-src 'self'; ... connect-src 'self' wss:; object-src 'none'; frame-ancestors 'none'`;
+    - `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy`, `Permissions-Policy` (câmera e geolocalização só `self`) e COOP.
+    - Respostas que já definem CSP, como o download em sandbox, mantêm a delas.
+  - **Sem CORS:** API e front ficam na mesma origem; o CORS nunca é registrado.
+  - **JWT:**
+    - Validação de assinatura, emissor e validade.
+    - No `OnTokenValidated`, `tid` precisa ser o tenant resolvido pelo host e `aud` precisa conter o host da requisição.
+    - O token do hub vem na query, só para `/hubs`.
+    - Política de fallback: toda rota exige autenticação, salvo as marcadas como anônimas (`/health`, contexto público e OpenAPI em dev).
+  - **Hub:** `PingHub` (`/hubs/ping`), com grupos `{tenantId}:{painel}` montados no servidor a partir da claim.
+  - **Sessão:** `GET /api/v1/me`, que a FND-04 completa.
+  - **Chave de assinatura:**
+    - `Auth:SigningKey` fica num secret e é obrigatória fora de Development. Em Development é aleatória por subida.
+    - A emissão real dos tokens e a gestão da chave entram na FND-04.
+  - **OpenAPI:** fora de Development, `/openapi` e `/swagger` respondem 404, e não 401. Em Development ficam disponíveis para o Orval, fora da resolução de tenant.
+  - **CAs atendidos:** 6, 9, 10, 11 e 12.
+  - **Página "Acesso suspenso" (CA 3, parte do front): fica para a FND-09b.**
+    - O CLAUDE.md proíbe `fetch` escrito à mão, e o cliente gerado pelo Orval só chega na FND-09c.
+    - A API já entrega o necessário: 403 `tenant_suspended`, e `GET /api/v1/public/tenant-context` com `status: Suspended`.
 ## QA Results
 _A preencher pelo @qa._

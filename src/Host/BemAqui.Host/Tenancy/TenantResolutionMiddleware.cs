@@ -24,7 +24,9 @@ public sealed class TenantResolutionMiddleware(RequestDelegate next, ITenantReso
     public async Task InvokeAsync(HttpContext context, TenantContextHolder holder)
     {
         ArgumentNullException.ThrowIfNull(context);
-        if (context.Request.Path.StartsWithSegments("/health", StringComparison.OrdinalIgnoreCase))
+        // /health para o healthcheck da infra; /openapi só existe em Development (geração do cliente pelo Orval).
+        if (context.Request.Path.StartsWithSegments("/health", StringComparison.OrdinalIgnoreCase)
+            || context.Request.Path.StartsWithSegments("/openapi", StringComparison.OrdinalIgnoreCase))
         {
             await next(context);
             return;

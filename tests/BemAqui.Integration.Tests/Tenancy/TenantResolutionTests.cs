@@ -74,7 +74,7 @@ public class TenantResolutionTests(TenancyFixture tenancy) : IClassFixture<Tenan
     public async Task Suspensao_vale_em_menos_de_10_segundos_e_reativacao_tambem()
     {
         var client = tenancy.ClientFor("b.localhost");
-        (await JsonAsync(await client.GetAsync("/api/v1/notifications"))).GetProperty("code").GetString().Should().NotBe("tenant_suspended");
+        (await client.GetAsync("/api/v1/notifications")).StatusCode.Should().Be(HttpStatusCode.Unauthorized, "ativo: chega na autenticação");
 
         await tenancy.SetStatusAsync(tenancy.TenantB.Id, suspended: true);
         var watch = Stopwatch.StartNew();
@@ -99,7 +99,7 @@ public class TenantResolutionTests(TenancyFixture tenancy) : IClassFixture<Tenan
         await tenancy.SetStatusAsync(tenancy.TenantB.Id, suspended: false);
         watch.Restart();
         while (watch.Elapsed < TimeSpan.FromSeconds(10)
-               && (await JsonAsync(await client.GetAsync("/api/v1/notifications"))).GetProperty("code").GetString() == "tenant_suspended")
+               && (await client.GetAsync("/api/v1/notifications")).StatusCode == HttpStatusCode.Forbidden)
         {
             await Task.Delay(200);
         }

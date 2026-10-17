@@ -141,3 +141,5 @@ Ver a seção "Pontos em aberto" de cada story para o detalhe.
   - `DataProtection:PreviousCertificates`, para continuar decifrando com o certificado antigo;
   - job de recifração antes de qualquer revogação de chave ou troca de certificado.
 - **FND-11 → FND-03a:** a criação inicial do key ring passa a ser um passo explícito do provisionamento, recusado quando o catálogo já tiver tenants.
+- **FND-02 → FND-09b:** página pública "Acesso suspenso", exibida quando `GET /api/v1/public/tenant-context` devolve `status: Suspended` ou quando a API responde 403 `tenant_suspended`. Texto definido na FND-02.
+- **FND-02 → FND-10a:** em homologação e produção, configurar `ReverseProxy:KnownNetworks` com a sub-rede da `stack_stack`, `ReverseProxy:RequireTrustedProxy=true` e `Auth:SigningKey` como secret.
