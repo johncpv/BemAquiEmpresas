@@ -1,0 +1,16 @@
+/*
+ * Único arquivo onde cor literal é permitida (CLAUDE.md: toda cor vem de tokens).
+ * Os tokens definitivos (claro/escuro/automático, mapeamento shadcn) chegam na FND-09a.
+ */
+:root {
+  color-scheme: light dark;
+  --background: #e9edf1;
+  --foreground: #14202b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0e1419;
+    --foreground: #e4eaf0;
+  }
+}

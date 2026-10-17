@@ -14,7 +14,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md), com critérios de ac
 
 **Definition of Ready:** story sem CA testável não entra em execução.
 
-**FND-01 [ ] Estrutura da solução, CI e cadeia de suprimentos (M)** — [story](stories/FND-01-estrutura-solucao.md)
+**FND-01 [x] Estrutura da solução, CI e cadeia de suprimentos (M)** — [story](stories/FND-01-estrutura-solucao.md)
 - Requisitos: PRD §6 (Segurança).
 - CA: `dotnet test` e `pnpm build` passam no CI; NetArchTest impede módulo referenciar outro que não pelo `*.Contracts`; `dotnet list package --vulnerable` e `pnpm audit` no CI; actions fixadas por SHA; Dependabot ativo.
 

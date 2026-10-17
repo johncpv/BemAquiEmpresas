@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\BemAqui.BuildingBlocks\BemAqui.BuildingBlocks.csproj" />
+    <ProjectReference Include="..\BemAqui.Purchasing.Application\BemAqui.Purchasing.Application.csproj" />
+  </ItemGroup>
+</Project>

@@ -5,7 +5,7 @@
 | ID | FND-01 |
 | Título | Estrutura da solução, CI e cadeia de suprimentos |
 | Tamanho | M |
-| Status | Draft |
+| Status | Done (PR #1) |
 | Requisitos | PRD §6 (Segurança: OWASP Top 10) · base técnica de todos os R-PLT e R-SEC |
 | Dependências | Nenhuma. **Pré-condição:** ADR 0006 redigida e aceita pelo PO (ver Pontos em aberto) |
 | Bloqueia | Todas as demais stories da Fase 0 |
@@ -120,7 +120,20 @@ Checklist do @po (Pax), 16/10/2026.
 | 16/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 
 ## Dev Agent Record
-_A preencher pelo @dev._
+- **Data:** 17/10/2026 · **Branch/PR:** `feat/fnd-01-estrutura` / #1 · CI verde (cadeia de suprimentos, backend, frontend).
+- **Estrutura:** `BemAquiEmpresas.slnx` com 72 projetos: Host, SharedKernel (`Result`, `Error`), BuildingBlocks (`IModule`), 13 módulos × 5 camadas e 3 projetos de teste.
+- **CAs:**
+  - **1 a 8:** atendidos. Detalhes:
+    - CA 4–6: regras verificadas no csproj e com NetArchTest. `RulesTests` prova que cada regra falha; houve também uma prova manual (Finance.Application → Inventory.Domain fez o teste falhar).
+    - CA 7: `/health`, `/health/live` e `/health/ready`, testados no Windows e com Testcontainers.
+  - **9 a 12:** atendidos, no CI e no `dependabot.yml`. O Dependabot não sobe o FluentAssertions para a major 8.
+  - **13:** atendido por `scripts/no-hex-colors.mjs` + Vitest.
+- **Desvios:**
+  - **Lint:** oxlint, que já vem no template atual do Vite, no lugar de ESLint.
+  - **pnpm:** `node-linker=hoisted`, por causa de falha de symlink no Windows.
+  - **Testes:** runner Microsoft.Testing.Platform (`global.json`), porque o VSTest não é mais suportado no .NET 10.
+  - **Raiz do repositório:** gravada no assembly de testes (`AssemblyMetadata`), para funcionar com `--artifacts-path`.
+- **Ambiente:** o Smart App Control do Windows bloqueia DLLs recém-compiladas quando os testes de arquitetura as carregam. Nesse caso, use `scripts/test-docker.sh`. Está documentado no CLAUDE.md.
 
 ## QA Results
 _A preencher pelo @qa._

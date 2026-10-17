@@ -1,0 +1,29 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = true
+
+[*.cs]
+indent_size = 4
+csharp_style_namespace_declarations = file_scoped:warning
+dotnet_sort_system_directives_first = true
+
+# Error/Result são o padrão do projeto (CLAUDE.md): "Error" conflita só com palavra-chave do VB,
+# e Result<T>.Success/Failure são fábricas estáticas intencionais.
+dotnet_diagnostic.CA1716.severity = none
+dotnet_diagnostic.CA1000.severity = none
+# Mensagens em PT-BR são literais de domínio, não recursos localizáveis.
+dotnet_diagnostic.CA1303.severity = none
+
+[tests/**.cs]
+# Nomes de teste em frases PT-BR com sublinhado; tipos de teste públicos para o xUnit.
+dotnet_diagnostic.CA1707.severity = none
+dotnet_diagnostic.CA1515.severity = none
+dotnet_diagnostic.CA2007.severity = none
+dotnet_diagnostic.CA1861.severity = none
+dotnet_diagnostic.CA2000.severity = none

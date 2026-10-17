@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\BemAqui.BuildingBlocks\BemAqui.BuildingBlocks.csproj" />
+    <ProjectReference Include="..\BemAqui.HR.Domain\BemAqui.HR.Domain.csproj" />
+    <ProjectReference Include="..\BemAqui.HR.Contracts\BemAqui.HR.Contracts.csproj" />
+  </ItemGroup>
+</Project>

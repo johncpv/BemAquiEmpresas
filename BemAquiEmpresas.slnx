@@ -1,0 +1,107 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/BuildingBlocks/">
+    <Project Path="src/BuildingBlocks/BemAqui.BuildingBlocks/BemAqui.BuildingBlocks.csproj" />
+    <Project Path="src/BuildingBlocks/BemAqui.SharedKernel/BemAqui.SharedKernel.csproj" />
+  </Folder>
+  <Folder Name="/src/Host/">
+    <Project Path="src/Host/BemAqui.Host/BemAqui.Host.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/" />
+  <Folder Name="/src/Modules/Assets/">
+    <Project Path="src/Modules/Assets/BemAqui.Assets.Application/BemAqui.Assets.Application.csproj" />
+    <Project Path="src/Modules/Assets/BemAqui.Assets.Contracts/BemAqui.Assets.Contracts.csproj" />
+    <Project Path="src/Modules/Assets/BemAqui.Assets.Domain/BemAqui.Assets.Domain.csproj" />
+    <Project Path="src/Modules/Assets/BemAqui.Assets.Endpoints/BemAqui.Assets.Endpoints.csproj" />
+    <Project Path="src/Modules/Assets/BemAqui.Assets.Infrastructure/BemAqui.Assets.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Commercial/">
+    <Project Path="src/Modules/Commercial/BemAqui.Commercial.Application/BemAqui.Commercial.Application.csproj" />
+    <Project Path="src/Modules/Commercial/BemAqui.Commercial.Contracts/BemAqui.Commercial.Contracts.csproj" />
+    <Project Path="src/Modules/Commercial/BemAqui.Commercial.Domain/BemAqui.Commercial.Domain.csproj" />
+    <Project Path="src/Modules/Commercial/BemAqui.Commercial.Endpoints/BemAqui.Commercial.Endpoints.csproj" />
+    <Project Path="src/Modules/Commercial/BemAqui.Commercial.Infrastructure/BemAqui.Commercial.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Engineering/">
+    <Project Path="src/Modules/Engineering/BemAqui.Engineering.Application/BemAqui.Engineering.Application.csproj" />
+    <Project Path="src/Modules/Engineering/BemAqui.Engineering.Contracts/BemAqui.Engineering.Contracts.csproj" />
+    <Project Path="src/Modules/Engineering/BemAqui.Engineering.Domain/BemAqui.Engineering.Domain.csproj" />
+    <Project Path="src/Modules/Engineering/BemAqui.Engineering.Endpoints/BemAqui.Engineering.Endpoints.csproj" />
+    <Project Path="src/Modules/Engineering/BemAqui.Engineering.Infrastructure/BemAqui.Engineering.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Finance/">
+    <Project Path="src/Modules/Finance/BemAqui.Finance.Application/BemAqui.Finance.Application.csproj" />
+    <Project Path="src/Modules/Finance/BemAqui.Finance.Contracts/BemAqui.Finance.Contracts.csproj" />
+    <Project Path="src/Modules/Finance/BemAqui.Finance.Domain/BemAqui.Finance.Domain.csproj" />
+    <Project Path="src/Modules/Finance/BemAqui.Finance.Endpoints/BemAqui.Finance.Endpoints.csproj" />
+    <Project Path="src/Modules/Finance/BemAqui.Finance.Infrastructure/BemAqui.Finance.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Fiscal/">
+    <Project Path="src/Modules/Fiscal/BemAqui.Fiscal.Application/BemAqui.Fiscal.Application.csproj" />
+    <Project Path="src/Modules/Fiscal/BemAqui.Fiscal.Contracts/BemAqui.Fiscal.Contracts.csproj" />
+    <Project Path="src/Modules/Fiscal/BemAqui.Fiscal.Domain/BemAqui.Fiscal.Domain.csproj" />
+    <Project Path="src/Modules/Fiscal/BemAqui.Fiscal.Endpoints/BemAqui.Fiscal.Endpoints.csproj" />
+    <Project Path="src/Modules/Fiscal/BemAqui.Fiscal.Infrastructure/BemAqui.Fiscal.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/HR/">
+    <Project Path="src/Modules/HR/BemAqui.HR.Application/BemAqui.HR.Application.csproj" />
+    <Project Path="src/Modules/HR/BemAqui.HR.Contracts/BemAqui.HR.Contracts.csproj" />
+    <Project Path="src/Modules/HR/BemAqui.HR.Domain/BemAqui.HR.Domain.csproj" />
+    <Project Path="src/Modules/HR/BemAqui.HR.Endpoints/BemAqui.HR.Endpoints.csproj" />
+    <Project Path="src/Modules/HR/BemAqui.HR.Infrastructure/BemAqui.HR.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Identity/">
+    <Project Path="src/Modules/Identity/BemAqui.Identity.Application/BemAqui.Identity.Application.csproj" />
+    <Project Path="src/Modules/Identity/BemAqui.Identity.Contracts/BemAqui.Identity.Contracts.csproj" />
+    <Project Path="src/Modules/Identity/BemAqui.Identity.Domain/BemAqui.Identity.Domain.csproj" />
+    <Project Path="src/Modules/Identity/BemAqui.Identity.Endpoints/BemAqui.Identity.Endpoints.csproj" />
+    <Project Path="src/Modules/Identity/BemAqui.Identity.Infrastructure/BemAqui.Identity.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Inventory/">
+    <Project Path="src/Modules/Inventory/BemAqui.Inventory.Application/BemAqui.Inventory.Application.csproj" />
+    <Project Path="src/Modules/Inventory/BemAqui.Inventory.Contracts/BemAqui.Inventory.Contracts.csproj" />
+    <Project Path="src/Modules/Inventory/BemAqui.Inventory.Domain/BemAqui.Inventory.Domain.csproj" />
+    <Project Path="src/Modules/Inventory/BemAqui.Inventory.Endpoints/BemAqui.Inventory.Endpoints.csproj" />
+    <Project Path="src/Modules/Inventory/BemAqui.Inventory.Infrastructure/BemAqui.Inventory.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Parties/">
+    <Project Path="src/Modules/Parties/BemAqui.Parties.Application/BemAqui.Parties.Application.csproj" />
+    <Project Path="src/Modules/Parties/BemAqui.Parties.Contracts/BemAqui.Parties.Contracts.csproj" />
+    <Project Path="src/Modules/Parties/BemAqui.Parties.Domain/BemAqui.Parties.Domain.csproj" />
+    <Project Path="src/Modules/Parties/BemAqui.Parties.Endpoints/BemAqui.Parties.Endpoints.csproj" />
+    <Project Path="src/Modules/Parties/BemAqui.Parties.Infrastructure/BemAqui.Parties.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Platform/">
+    <Project Path="src/Modules/Platform/BemAqui.Platform.Application/BemAqui.Platform.Application.csproj" />
+    <Project Path="src/Modules/Platform/BemAqui.Platform.Contracts/BemAqui.Platform.Contracts.csproj" />
+    <Project Path="src/Modules/Platform/BemAqui.Platform.Domain/BemAqui.Platform.Domain.csproj" />
+    <Project Path="src/Modules/Platform/BemAqui.Platform.Endpoints/BemAqui.Platform.Endpoints.csproj" />
+    <Project Path="src/Modules/Platform/BemAqui.Platform.Infrastructure/BemAqui.Platform.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Portal/">
+    <Project Path="src/Modules/Portal/BemAqui.Portal.Application/BemAqui.Portal.Application.csproj" />
+    <Project Path="src/Modules/Portal/BemAqui.Portal.Contracts/BemAqui.Portal.Contracts.csproj" />
+    <Project Path="src/Modules/Portal/BemAqui.Portal.Domain/BemAqui.Portal.Domain.csproj" />
+    <Project Path="src/Modules/Portal/BemAqui.Portal.Endpoints/BemAqui.Portal.Endpoints.csproj" />
+    <Project Path="src/Modules/Portal/BemAqui.Portal.Infrastructure/BemAqui.Portal.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Production/">
+    <Project Path="src/Modules/Production/BemAqui.Production.Application/BemAqui.Production.Application.csproj" />
+    <Project Path="src/Modules/Production/BemAqui.Production.Contracts/BemAqui.Production.Contracts.csproj" />
+    <Project Path="src/Modules/Production/BemAqui.Production.Domain/BemAqui.Production.Domain.csproj" />
+    <Project Path="src/Modules/Production/BemAqui.Production.Endpoints/BemAqui.Production.Endpoints.csproj" />
+    <Project Path="src/Modules/Production/BemAqui.Production.Infrastructure/BemAqui.Production.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Purchasing/">
+    <Project Path="src/Modules/Purchasing/BemAqui.Purchasing.Application/BemAqui.Purchasing.Application.csproj" />
+    <Project Path="src/Modules/Purchasing/BemAqui.Purchasing.Contracts/BemAqui.Purchasing.Contracts.csproj" />
+    <Project Path="src/Modules/Purchasing/BemAqui.Purchasing.Domain/BemAqui.Purchasing.Domain.csproj" />
+    <Project Path="src/Modules/Purchasing/BemAqui.Purchasing.Endpoints/BemAqui.Purchasing.Endpoints.csproj" />
+    <Project Path="src/Modules/Purchasing/BemAqui.Purchasing.Infrastructure/BemAqui.Purchasing.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/BemAqui.Architecture.Tests/BemAqui.Architecture.Tests.csproj" />
+    <Project Path="tests/BemAqui.BuildingBlocks.Tests/BemAqui.BuildingBlocks.Tests.csproj" />
+    <Project Path="tests/BemAqui.Integration.Tests/BemAqui.Integration.Tests.csproj" />
+  </Folder>
+</Solution>
