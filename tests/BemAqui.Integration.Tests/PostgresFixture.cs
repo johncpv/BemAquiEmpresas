@@ -1,3 +1,4 @@
+using Npgsql;
 using Testcontainers.PostgreSql;
 
 namespace BemAqui.Integration.Tests;
@@ -10,6 +11,17 @@ public sealed class PostgresFixture : IAsyncLifetime
         .Build();
 
     public string ConnectionString => _container.GetConnectionString();
+
+    /// <summary>Cria um banco vazio só para o teste e devolve a connection string dele.</summary>
+    public async Task<string> CreateDatabaseAsync(string prefix)
+    {
+        var name = $"{prefix}_{Guid.CreateVersion7():N}";
+        await using var connection = new NpgsqlConnection(ConnectionString);
+        await connection.OpenAsync();
+        await using var command = new NpgsqlCommand($"CREATE DATABASE \"{name}\"", connection);
+        await command.ExecuteNonQueryAsync();
+        return new NpgsqlConnectionStringBuilder(ConnectionString) { Database = name }.ConnectionString;
+    }
 
     public async ValueTask InitializeAsync() => await _container.StartAsync();
 

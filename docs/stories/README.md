@@ -133,3 +133,11 @@ Ver a seção "Pontos em aberto" de cada story para o detalhe.
 26. Se rotas públicas e da superfície Plataforma entram na cobertura obrigatória de ajuda (FND-02, 13, 14).
 27. Hosts e diretório de homologação, host da plataforma em homologação, storage S3, ferramenta de cifragem dos dumps e registry das imagens (FND-10).
 28. Runner do CI e licença QuestPDF (FND-01).
+
+## Pendências herdadas de stories concluídas
+- **FND-11 → FND-12:** ao ligar o request logging (Serilog ou HttpLogging), mascarar `Authorization`, cookies e tokens, e as propriedades com nome `password`, `secret`, `token` ou `apikey`.
+- **FND-11 → FND-10b:**
+  - trilha separada do backup do key ring, com destino e credencial próprios;
+  - `DataProtection:PreviousCertificates`, para continuar decifrando com o certificado antigo;
+  - job de recifração antes de qualquer revogação de chave ou troca de certificado.
+- **FND-11 → FND-03a:** a criação inicial do key ring passa a ser um passo explícito do provisionamento, recusado quando o catálogo já tiver tenants.

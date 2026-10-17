@@ -43,3 +43,6 @@ Thumbs.db
 # Claude Code (local)
 .claude/settings.local.json
 .claude/worktrees/
+
+# Certificado de Data Protection gerado em desenvolvimento
+.local/

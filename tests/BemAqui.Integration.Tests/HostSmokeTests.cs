@@ -1,7 +1,10 @@
 using System.Net;
+using BemAqui.Host.Health;
 using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Npgsql;
 
 namespace BemAqui.Integration.Tests;
@@ -9,11 +12,15 @@ namespace BemAqui.Integration.Tests;
 [Collection(PostgresTestGroup.Name)]
 public class HostSmokeTests(PostgresFixture postgres)
 {
-    private static WebApplicationFactory<Program> Factory(string connectionString) =>
+    internal static WebApplicationFactory<Program> Factory(string connectionString, bool allowKeyRingCreation = true) =>
         new WebApplicationFactory<Program>().WithWebHostBuilder(b =>
         {
             b.UseEnvironment("Testing");
             b.UseSetting("ConnectionStrings:Catalog", connectionString);
+            b.UseSetting("DataProtection:CertificatePath", TestCertificates.Primary);
+            b.UseSetting("DataProtection:CertificatePassword", TestCertificates.Password);
+            b.UseSetting("DataProtection:AllowKeyRingCreation", allowKeyRingCreation.ToString());
+            b.UseSetting("DataProtection:AutoMigrate", "true");
         });
 
     [Fact]
@@ -32,21 +39,33 @@ public class HostSmokeTests(PostgresFixture postgres)
         using var client = factory.CreateClient();
 
         var response = await client.GetAsync(new Uri("/health", UriKind.Relative), TestContext.Current.CancellationToken);
+        var live = await client.GetAsync(new Uri("/health/live", UriKind.Relative), TestContext.Current.CancellationToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
+        live.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
-    public async Task Health_responde_503_sem_banco_e_live_continua_200()
+    public async Task Host_nao_sobe_sem_o_key_ring()
     {
-        await using var factory = Factory("Host=127.0.0.1;Port=1;Database=x;Username=x;Password=x;Timeout=2");
-        using var client = factory.CreateClient();
+        var db = await postgres.CreateDatabaseAsync("host_sem_keys");
+        await using var factory = Factory(db, allowKeyRingCreation: false);
 
-        var ready = await client.GetAsync(new Uri("/health/ready", UriKind.Relative), TestContext.Current.CancellationToken);
-        var live = await client.GetAsync(new Uri("/health/live", UriKind.Relative), TestContext.Current.CancellationToken);
+        var subir = () => factory.CreateClient();
 
-        ready.StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
-        live.StatusCode.Should().Be(HttpStatusCode.OK);
+        subir.Should().Throw<InvalidOperationException>().WithMessage("*Key ring*vazio*");
+    }
+
+    [Fact]
+    public async Task Health_check_do_catalogo_acusa_banco_indisponivel()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?> { ["ConnectionStrings:Catalog"] = "Host=127.0.0.1;Port=1;Database=x;Username=x;Password=x;Timeout=2" })
+            .Build();
+
+        var result = await new PostgresHealthCheck(configuration).CheckHealthAsync(new HealthCheckContext(), TestContext.Current.CancellationToken);
+
+        result.Status.Should().Be(HealthStatus.Unhealthy);
     }
 
     [Fact]
