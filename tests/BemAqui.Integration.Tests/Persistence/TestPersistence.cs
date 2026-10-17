@@ -60,9 +60,10 @@ public sealed class AllowAllPermissionChecker : IPermissionChecker
 
 public static class TestPersistence
 {
-    public static async Task<ServiceProvider> CreateAsync(string connectionString, TimeProvider? clock = null, ICurrentUser? user = null, IPermissionChecker? permissions = null)
+    public static async Task<ServiceProvider> CreateAsync(string connectionString, TimeProvider? clock = null, ICurrentUser? user = null, IPermissionChecker? permissions = null, Action<IServiceCollection>? configure = null)
     {
         var services = new ServiceCollection();
+        services.AddLogging();
         services.AddSingleton(clock ?? TimeProvider.System);
         services.AddScoped(_ => user ?? new FixedUser(Guid.CreateVersion7(), "203.0.113.10"));
         if (permissions is not null)
@@ -74,6 +75,7 @@ public static class TestPersistence
         services.AddDbContext<SampleDbContext>((sp, o) => o.UseBemAquiDefaults(connectionString, sp));
         services.AddScoped<BemAquiDbContext>(sp => sp.GetRequiredService<SampleDbContext>());
         services.AddSingleton(new AuditableEntityRegistry().Register<SampleCustomer>("parties"));
+        configure?.Invoke(services);
 
         var provider = services.BuildServiceProvider();
         await using var scope = provider.CreateAsyncScope();

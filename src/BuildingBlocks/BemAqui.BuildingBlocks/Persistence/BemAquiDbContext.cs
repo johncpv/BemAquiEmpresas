@@ -1,5 +1,7 @@
 using System.Linq.Expressions;
+using BemAqui.BuildingBlocks.Attachments;
 using BemAqui.BuildingBlocks.Messaging;
+using BemAqui.BuildingBlocks.Notifications;
 using BemAqui.BuildingBlocks.Persistence.Auditing;
 using BemAqui.BuildingBlocks.Persistence.Numbering;
 using BemAqui.SharedKernel;
@@ -23,6 +25,10 @@ public abstract class BemAquiDbContext(DbContextOptions options) : DbContext(opt
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
+
+    public DbSet<Attachment> Attachments => Set<Attachment>();
+
+    public DbSet<Notification> Notifications => Set<Notification>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -62,6 +68,30 @@ public abstract class BemAquiDbContext(DbContextOptions options) : DbContext(opt
             b.ToTable("inbox_messages", SharedSchema);
             b.HasKey(e => new { e.MessageId, e.Handler });
             b.Property(e => e.Handler).HasMaxLength(256);
+        });
+
+        modelBuilder.Entity<Attachment>(b =>
+        {
+            b.ToTable("attachments", SharedSchema);
+            b.HasKey(e => e.Id);
+            b.Property(e => e.OwnerType).HasMaxLength(64);
+            b.Property(e => e.FileName).HasMaxLength(200);
+            b.Property(e => e.ContentType).HasMaxLength(128);
+            b.Property(e => e.Sha256).HasMaxLength(64);
+            b.Property(e => e.StoragePath).HasMaxLength(256);
+            b.Property(e => e.ScanStatus).HasConversion<string>().HasMaxLength(16);
+            b.HasIndex(e => new { e.OwnerType, e.OwnerId });
+            b.HasIndex(e => e.ScanStatus);
+        });
+
+        modelBuilder.Entity<Notification>(b =>
+        {
+            b.ToTable("notifications", SharedSchema);
+            b.HasKey(e => e.Id);
+            b.Property(e => e.Type).HasMaxLength(64);
+            b.Property(e => e.Title).HasMaxLength(200);
+            b.Property(e => e.Link).HasMaxLength(512);
+            b.HasIndex(e => new { e.UserId, e.ReadAt, e.CreatedAt });
         });
 
         ConfigureModules(modelBuilder);

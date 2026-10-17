@@ -5,7 +5,7 @@
 | ID | FND-07 |
 | Título | Building blocks (Result/ProblemDetails, paginação, numeração, auditoria, soft delete, outbox/inbox, `TenantJob`, anexos, notificações) |
 | Tamanho | G (re-estimada: o backlog dizia M; os CAs de segurança e a ADR 0006 ampliaram o escopo) |
-| Status | In Progress (07a e 07b prontas; 07c a seguir) |
+| Status | Done (07a #3, 07b #4, 07c) |
 | Requisitos | R-SEC-5 (auditoria) · R-COM-2 (notificações) · R-COM-3 (anexos) · R-COM-4 (numeração) · R-PRP-5 (alerta leva à ação) |
 | Dependências | FND-01, FND-11. **Pré-condição:** ADR 0006 aceita |
 | Bloqueia | FND-02, FND-03a, FND-08, FND-12, FND-09c (componente de histórico), FND-09b (sino) e todas as stories que gravam dados |
@@ -189,5 +189,25 @@ Checklist do @po (Pax), 16/10/2026.
     - registrar `AddBemAquiMessaging` (com o dispatcher) no Host;
     - mapear o endpoint de histórico de auditoria.
   - **CAs atendidos:** 11 a 17. Os testes de SKIP LOCKED e de idempotência passaram estáveis em 10 execuções seguidas.
+- **Parte C (FND-07c), 17/10/2026, branch `feat/fnd-07c-anexos-notificacoes`:**
+  - **Anexos:** `AttachmentService` em `shared.attachments`, com `sha256` e `scan_status`.
+    - **Validação:** allowlist (ADR 0009), magic bytes e limite de 25 MB. SVG, HTML e script são recusados até com extensão de texto.
+    - **Nome e caminho:** o nome enviado serve só para exibição. O arquivo é gravado em caminho aleatório no `LocalFileStorage`, com proteção contra path traversal.
+    - **Permissão:** usa a do módulo dono, via `AttachmentOwnerRegistry`. Upload exige `edit` e download exige `view`.
+    - **Download:** sempre com `Content-Disposition: attachment`, `nosniff`, CSP `sandbox` e `no-store`.
+  - **Antivírus:** `ClamAvScanner` (clamd via INSTREAM), com falha fechada.
+    - Com o ClamAV fora do ar, o anexo fica `Pending` e o download é bloqueado até `RescanPendingAttachmentsJob` rodar. É um `TenantJob` com recorrente global a cada 10 min.
+    - Ameaça detectada descarta o arquivo e recusa o envio.
+    - ClamAV adicionado ao `docker-compose.yml` local.
+  - **Notificações:** `NotificationService` em `shared.notifications`.
+    - O link é obrigatório e precisa ser rota relativa do app, o que também evita open redirect.
+    - O usuário lista só as suas, com contagem de não lidas, e só marca as suas. A de outro usuário responde como inexistente.
+  - **Endpoints:** `MapAttachmentEndpoints` e `MapNotificationEndpoints` estão prontos. Serão mapeados no Host na FND-02, junto com o de auditoria.
+  - **CAs:** 18 a 23 atendidos. O CA 19 tem teste com o ClamAV real em container: EICAR é detectado e arquivo comum passa.
+  - **Pontos em aberto, resolvidos pela ADR 0009:**
+    - allowlist e tamanho dos anexos;
+    - falha fechada quando o ClamAV estiver fora do ar;
+    - `[PersonalData]`;
+    - sino com SignalR e polling como reserva, previsto para a FND-09b.
 ## QA Results
 _A preencher pelo @qa._

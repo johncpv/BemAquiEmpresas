@@ -1,5 +1,7 @@
+using BemAqui.BuildingBlocks.Attachments;
 using BemAqui.BuildingBlocks.Authorization;
 using BemAqui.BuildingBlocks.Identity;
+using BemAqui.BuildingBlocks.Notifications;
 using BemAqui.BuildingBlocks.Persistence.Auditing;
 using BemAqui.BuildingBlocks.Persistence.Numbering;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +22,12 @@ public static class PersistenceServiceCollectionExtensions
         services.TryAddSingleton<AuditableEntityRegistry>();
         services.TryAddScoped<IPermissionChecker, DenyAllPermissionChecker>();
         services.TryAddScoped<AuditHistory>();
+        services.TryAddSingleton<AttachmentOwnerRegistry>();
+        services.TryAddSingleton<IFileStorage, LocalFileStorage>();
+        services.TryAddSingleton<IVirusScanner, ClamAvScanner>();
+        services.TryAddScoped<AttachmentService>();
+        services.TryAddScoped<NotificationService>();
+        services.TryAddScoped<INotificationService>(sp => sp.GetRequiredService<NotificationService>());
         return services;
     }
 
