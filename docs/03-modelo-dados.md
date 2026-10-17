@@ -26,9 +26,9 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 - **tenant_settings**: chave/valor (2FA obrigatório, logo, dados da empresa, numeração)
 
 ## shared
-- **number_sequences**: doc_type, prefix, year, next_value
+- **number_sequences** (schema `shared`, FND-07a): doc_type, year (0 = sem ano), last_value; único por (doc_type, year). Prefixo e dígitos vêm de `NumberFormats` (padrão de `04-fluxos` §4, editável por tenant na CAD-06)
 - **attachments**: owner_type, owner_id, file_name, content_type, size, storage_path
-- **audit_log** (schema audit): entity, entity_id, action, user_id, at, changes (jsonb), ip
+- **audit_log** (schema `audit`, FND-07a): entity, entity_id, action (Created/Updated/Deleted), user_id, at, changes (jsonb, só campos alterados; `[PersonalData]` mascarado, `[ProtectedSecret]` só `changed`), ip. **Imutável**: trigger recusa UPDATE/DELETE/TRUNCATE
 - **outbox_messages**: type, payload (jsonb), occurred_at, processed_at, error
 - **notifications**: user_id, type, title, link, read_at
 - **email_logs**: to, subject, template, status, error, related_type, related_id

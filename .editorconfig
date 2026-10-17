@@ -27,6 +27,8 @@ dotnet_diagnostic.CA1515.severity = none
 dotnet_diagnostic.CA2007.severity = none
 dotnet_diagnostic.CA1861.severity = none
 dotnet_diagnostic.CA2000.severity = none
+# Token de cancelamento do xUnit em cada chamada: recomendável, não obrigatório nos testes.
+dotnet_diagnostic.xUnit1051.severity = suggestion
 
 [**/Migrations/*.cs]
 generated_code = true

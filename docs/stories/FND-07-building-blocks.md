@@ -5,7 +5,7 @@
 | ID | FND-07 |
 | Título | Building blocks (Result/ProblemDetails, paginação, numeração, auditoria, soft delete, outbox/inbox, `TenantJob`, anexos, notificações) |
 | Tamanho | G (re-estimada: o backlog dizia M; os CAs de segurança e a ADR 0006 ampliaram o escopo) |
-| Status | Draft |
+| Status | In Progress (07a pronta; 07b e 07c a seguir) |
 | Requisitos | R-SEC-5 (auditoria) · R-COM-2 (notificações) · R-COM-3 (anexos) · R-COM-4 (numeração) · R-PRP-5 (alerta leva à ação) |
 | Dependências | FND-01, FND-11. **Pré-condição:** ADR 0006 aceita |
 | Bloqueia | FND-02, FND-03a, FND-08, FND-12, FND-09c (componente de histórico), FND-09b (sino) e todas as stories que gravam dados |
@@ -150,7 +150,26 @@ Checklist do @po (Pax), 16/10/2026.
 | 16/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 
 ## Dev Agent Record
-_A preencher pelo @dev._
+- **Parte A (FND-07a), 17/10/2026, branch `feat/fnd-07a-building-blocks`.** A story foi entregue em três PRs: 07a (esta), 07b (outbox, inbox, jobs) e 07c (anexos e notificações).
+  - **Erros:**
+    - `Error` passou a ter erros por campo e os códigos reservados.
+    - `ResultHttpExtensions` converte o resultado em ProblemDetails RFC 9457. Mapeamento de status: Validation 422, NotFound 404, Conflict 409, Forbidden 403, Unavailable 503.
+    - Os títulos são em PT-BR e a resposta traz as extensões `code` e `errors`.
+    - `ValidationResult.ToError()` faz a integração com o FluentValidation, com os nomes de campo em camelCase.
+  - **Paginação:** `PageRequest` (normaliza e limita o tamanho a 100, aceita `sort` com `-` para ordem decrescente), `PagedList<T>` e `ToPagedListAsync`.
+  - **Numeração:**
+    - `INumberSequence`/`NumberSequenceService` incrementa de forma atômica (`INSERT ... ON CONFLICT DO UPDATE ... RETURNING`) na transação do documento.
+    - Os formatos padrão seguem `04-fluxos` §4. O ano é o de America/Sao_Paulo (`BusinessTime`). O PAT não reinicia por ano.
+  - **Auditoria:**
+    - `AuditSaveChangesInterceptor` grava o diff só dos campos alterados, no mesmo SaveChanges, com usuário, IP e data em UTC.
+    - `[PersonalData]` aparece mascarado; `[ProtectedSecret]` registra apenas `changed`.
+    - O `audit.audit_log` é imutável: um trigger recusa UPDATE, DELETE e TRUNCATE, e há `REVOKE` de PUBLIC. Isso fica na migration.
+  - **Histórico:**
+    - O serviço `AuditHistory` fica atrás de `IPermissionChecker` (padrão `DenyAll`, falha fechada até a FND-06c) e de `AuditableEntityRegistry` (entidade → módulo dono).
+    - O endpoint `GET /api/v1/audit/{entity}/{id}` está pronto, mas só será mapeado no Host na FND-02, quando existir tenant no request.
+  - **Soft delete:** `ISoftDeletable` com filtro global. O Delete é convertido em exclusão lógica e auditado como `Deleted`.
+  - **Base:** `BemAquiDbContext` (base) e `TenantDbContext` (Host), com a migration `InitialSharedAndAudit`.
+  - **CAs atendidos:** 1 a 10, com testes de unidade e de integração em PostgreSQL real. O CA 4 (50 numerações em paralelo) foi estável em 10 execuções seguidas.
 
 ## QA Results
 _A preencher pelo @qa._
