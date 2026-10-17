@@ -95,12 +95,19 @@ O protótipo aprovado é a referência de layout, hierarquia e comportamento. Ab
 
 ## Comandos
 ```bash
-docker compose up -d postgres        # banco local
-dotnet build && dotnet test
-dotnet run --project src/Host
-cd src/Web && pnpm i && pnpm dev
-pnpm gen:api                         # regenera cliente TS a partir do OpenAPI
+docker compose up -d postgres                     # banco local (PostgreSQL 17)
+dotnet build BemAquiEmpresas.slnx
+dotnet test --solution BemAquiEmpresas.slnx       # runner Microsoft.Testing.Platform (global.json)
+sh scripts/test-docker.sh                         # mesma suíte num container Linux (igual ao CI)
+dotnet run --project src/Host/BemAqui.Host        # API em http://localhost:5080 (/health)
+cd src/Web && pnpm i && pnpm dev                  # front em http://localhost:5173
+pnpm lint && pnpm test && pnpm build              # dentro de src/Web
+pnpm gen:api                                      # regenera o cliente TS a partir do OpenAPI (a partir da FND-09c)
 ```
+- **Windows com Smart App Control ativo:** ele bloqueia DLLs recém-compiladas quando os testes de arquitetura as carregam (erro `0x800711C7`). Nesse caso, rode a suíte com `sh scripts/test-docker.sh`. O Host roda normalmente.
+- **RTK:** o hook reescreve `pnpm lint` como eslint. Use `rtk proxy pnpm lint` para rodar o script real (oxlint + regra de cor literal).
+- **pnpm:** `node-linker=hoisted` (`src/Web/.npmrc`), porque o modo com symlinks quebra no Windows.
+- **Projeto novo** em `src/Modules/<M>/` segue as 5 camadas. A regra de referências entre módulos está nos testes de arquitetura (ADR 0006).
 
 ## Integrações externas
 - **EmissorFiscal** (projeto existente em `D:\GIT\EmissorFiscal`): analisar ANTES de implementar o módulo Fiscal (story FIS-01). Integrar via adaptador `IFiscalEmitter`; não copiar código sem ADR.
