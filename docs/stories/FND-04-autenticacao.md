@@ -5,7 +5,7 @@
 | ID | FND-04 |
 | Título | Identity por tenant: login, refresh rotativo em cookie, recuperação de senha, bloqueio e aceite de convite |
 | Tamanho | G |
-| Status | Draft |
+| Status | In Progress (04a pronta; 04b e telas a seguir) |
 | Requisitos | R-SEC-1 · R-SEC-3 · R-SEC-4 (aceite de convite) · R-SEC-5 (login, logout e falhas auditados) · R-PLT-3 (proprietário e convite no provisionamento) |
 | Dependências | FND-02, FND-03a, FND-07, FND-08, FND-11; telas dependem de FND-09a e FND-09c |
 | Bloqueia | FND-05, FND-06c, FND-13 (reaproveita o mecanismo) e todas as rotas autenticadas |
@@ -146,7 +146,24 @@ Checklist do @po (Pax), 16/10/2026.
 | 16/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 
 ## Dev Agent Record
-_A preencher pelo @dev._
+- **Parte A (FND-04a), 18/10/2026, branch `feat/fnd-04a-autenticacao`.** A FND-04 foi dividida em 04a (sessão), 04b (recuperação de senha, convite, proprietário no provisionamento e rate limit) e as telas, que entram depois do shell do front (FND-09a/b/c). A decisão de usar só o hash do Identity está na ADR 0011.
+  - **Entidades:** `identity.users`, `refresh_tokens`, `user_invites` e `password_resets`.
+  - **Senhas:** hash PBKDF2 com o `PasswordHasher` do Identity. `PasswordPolicy` exige 12 ou mais caracteres e recusa senhas óbvias ou que contêm o e-mail.
+  - **`AuthService`:**
+    - login com resposta e tempo uniformes (CA 10);
+    - bloqueio na 5ª falha seguida, por 15 min (CA 9);
+    - refresh rotativo com `replaced_by` (CA 4). Um refresh já substituído é aceito dentro da tolerância de 10 s (CA 6); fora dela, a família inteira é revogada (CA 5);
+    - logout revoga a família (CA 8);
+    - todos esses eventos entram na auditoria, com IP.
+  - **`JwtAccessTokenIssuer`:** JWT de 15 min só com `sub`, `tid`, `aud`, `sstamp`, `iat`, `exp`, `jti`, `iss` e `nbf` (CA 2). A chave é compartilhada pela `TokenSigning`.
+  - **Endpoints:**
+    - `POST /auth/login`, `/auth/refresh` e `/auth/logout`;
+    - o refresh vai num cookie `__Host-bq_rt` HttpOnly, Secure, SameSite=Strict, Path=/ e sem Domain (CA 1);
+    - refresh e logout exigem `Origin` do próprio host e o cabeçalho `X-CSRF: 1` (CA 7).
+  - **Security stamp por request** (`CachedSecurityStampValidator`, cache de 30 s): `UserLifecycle.DeactivateAsync` invalida o cache e revoga as sessões, então o usuário desativado recebe 401 no próximo request (CA 16).
+  - **Pendente nas partes seguintes:**
+    - CA 3 (access token só em memória no front): telas do front;
+    - CA 11 a 15 e 17 a 19: FND-04b.
 
 ## QA Results
 _A preencher pelo @qa._

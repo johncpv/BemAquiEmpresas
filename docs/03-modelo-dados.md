@@ -15,7 +15,7 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 - **security.data_protection_keys** (FND-11, ADR 0007): id, friendly_name, xml. É o key ring do Data Protection. Cada chave é gravada cifrada pelo certificado de proteção, que fica fora do banco.
 
 ## identity
-- **users**: name, email, password_hash, totp_enabled, totp_secret (cifrado), recovery_codes (hash), lockout_end, last_login_at, employee_id → hr.employees (opcional), is_active
+- **users** (FND-04a, ADR 0011): name, email, normalized_email (único), password_hash (PBKDF2 do Identity), security_stamp, status (Invited/Active/Inactive), access_failed_count, lockout_end, last_login_at, totp_enabled; employee_id opcional entra com o RH
 - **modules** (seed do catálogo de funcionalidades, igual em todos os tenants): code (`finance`), name, area (Comercial/Fábrica/...), phase, applicable_actions (`view,create,edit,approve,delete`), approve_meaning, sort
 - **groups**: name, description, is_system (Proprietário), is_active
 - **group_modules**: group_id, module_code, enabled
@@ -23,7 +23,8 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 - **user_groups**: user_id, group_id (N:N)
 - **user_invites**: email, group_ids, token_hash, expires_at, accepted_at, invited_by
 - Permissão efetiva (calculada e em cache): ∪ group_permissions dos grupos ativos do usuário, com módulo habilitado, ∩ módulos liberados do tenant
-- **refresh_tokens**: user_id, token_hash, family_id, expires_at, revoked_at, replaced_by
+- **refresh_tokens** (FND-04a): user_id, token_hash (SHA-256, único), family_id, created_at, expires_at, replaced_at, replaced_by_id, revoked_at, created_by_ip
+- **password_resets** (FND-04): user_id, token_hash, expires_at (1 h), used_at, created_at
 - **kiosk_tokens**: name, token_hash, scope (painel + filtros JSON), last_seen_at, revoked_at
 - **tenant_settings**: chave/valor (2FA obrigatório, logo, dados da empresa, numeração)
 

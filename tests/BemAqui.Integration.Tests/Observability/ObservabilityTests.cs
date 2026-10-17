@@ -76,7 +76,7 @@ public class ObservabilityTests(TenancyFixture tenancy) : IClassFixture<TenancyF
         await using var factory = tenancy.Factory.WithWebHostBuilder(b => b.ConfigureTestServices(s => s.AddSingleton<ILogEventSink>(sink)));
         var client = factory.CreateClient();
         client.DefaultRequestHeaders.Host = "a.localhost";
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", TestTokens.Create(tenancy.TenantA.Id, "a.localhost"));
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await tenancy.TokenAsync(tenancy.TenantA, "a.localhost"));
 
         (await client.GetAsync("/api/v1/me")).StatusCode.Should().Be(HttpStatusCode.OK);
 

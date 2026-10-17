@@ -1,4 +1,6 @@
 using BemAqui.BuildingBlocks.Persistence;
+using BemAqui.Identity.Application;
+using BemAqui.Identity.Domain;
 using Microsoft.EntityFrameworkCore;
 
 namespace BemAqui.Host.Persistence;
@@ -7,13 +9,24 @@ namespace BemAqui.Host.Persistence;
 /// DbContext único do banco de tenant (ADR 0006): tabelas compartilhadas da base e, conforme as stories
 /// avançam, as configurações de cada módulo. A conexão por tenant chega na FND-02.
 /// </summary>
-public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) : BemAquiDbContext(options)
+public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) : BemAquiDbContext(options), IIdentityDb
 {
+    public DbSet<User> Users => Set<User>();
+
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+
+    public DbSet<UserInvite> UserInvites => Set<UserInvite>();
+
+    public DbSet<PasswordReset> PasswordResets => Set<PasswordReset>();
+
     protected override void ConfigureModules(ModelBuilder modelBuilder)
     {
         foreach (var module in ModuleRegistry.All)
         {
-            modelBuilder.ApplyConfigurationsFromAssembly(module.GetType().Assembly);
+            if (module.PersistenceAssembly is { } assembly)
+            {
+                modelBuilder.ApplyConfigurationsFromAssembly(assembly);
+            }
         }
     }
 }

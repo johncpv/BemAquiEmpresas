@@ -1,5 +1,7 @@
+using System.Reflection;
 using System.Security.Claims;
 using BemAqui.BuildingBlocks.Modules;
+using BemAqui.Identity.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -12,15 +14,19 @@ public sealed class IdentityModule : IModule
 {
     public string Code => "identity";
 
-    public void AddServices(IServiceCollection services, IConfiguration configuration)
-    {
-    }
+    public Assembly? PersistenceAssembly => typeof(IdentityInfrastructure).Assembly;
 
-    public void MapEndpoints(IEndpointRouteBuilder endpoints) =>
-        // Sessão atual (a FND-04 completa com nome, grupos e permissões efetivas).
+    public void AddServices(IServiceCollection services, IConfiguration configuration) => services.AddIdentityInfrastructure();
+
+    public void MapEndpoints(IEndpointRouteBuilder endpoints)
+    {
+        endpoints.MapAuthEndpoints();
+
+        // Sessão atual (a FND-06c completa com nome, grupos e permissões efetivas).
         endpoints.MapGet("/me", (ClaimsPrincipal user) => Results.Ok(new CurrentSession(user.FindFirstValue("sub"), user.FindFirstValue("tid"))))
             .WithName("GetCurrentSession")
             .WithTags("Identidade");
+    }
 }
 
 public sealed record CurrentSession(string? UserId, string? TenantId);
