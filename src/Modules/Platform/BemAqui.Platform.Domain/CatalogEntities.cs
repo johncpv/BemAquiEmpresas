@@ -1,0 +1,71 @@
+using BemAqui.SharedKernel;
+
+namespace BemAqui.Platform.Domain;
+
+public enum TenantLifecycle
+{
+    Provisioning,
+    Active,
+    Suspended,
+}
+
+/// <summary>Cliente do SaaS (<c>catalog.tenants</c>). A conexão do banco dele fica cifrada (FND-11).</summary>
+public sealed class Tenant : Entity, IAuditable
+{
+    public required string Key { get; init; }
+
+    public required string LegalName { get; set; }
+
+    public string? TradeName { get; set; }
+
+    public string? Document { get; set; }
+
+    public TenantLifecycle Status { get; private set; } = TenantLifecycle.Provisioning;
+
+    public Guid? PlanId { get; set; }
+
+    public required string DbName { get; init; }
+
+    [ProtectedSecret]
+    public required string ConnectionSecret { get; set; }
+
+    public DateTimeOffset CreatedAt { get; init; }
+
+    public List<TenantDomain> Domains { get; } = [];
+
+    public void Activate() => Status = TenantLifecycle.Active;
+
+    public void Suspend() => Status = TenantLifecycle.Suspended;
+}
+
+/// <summary>Host que resolve o tenant (<c>catalog.tenant_domains</c>), ex.: <c>app.konebras.com.br</c> (ADR 0004).</summary>
+public sealed class TenantDomain : Entity
+{
+    public Guid TenantId { get; init; }
+
+    /// <summary>Host normalizado: minúsculas, sem porta.</summary>
+    public required string Host { get; init; }
+
+    public bool IsPrimary { get; set; }
+
+    public DateTimeOffset? VerifiedAt { get; set; }
+
+    public static string Normalize(string host)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(host);
+        var value = host.Trim().TrimEnd('.').ToLowerInvariant();
+        var colon = value.LastIndexOf(':');
+        return colon > 0 && !value.EndsWith(']') ? value[..colon] : value;
+    }
+}
+
+/// <summary>Plano/versão contratada (<c>catalog.plans</c>); os módulos liberados chegam na FND-06.</summary>
+public sealed class Plan : Entity
+{
+    public required string Name { get; set; }
+
+    /// <summary>JSONB: limites (usuários, armazenamento).</summary>
+    public string Limits { get; set; } = "{}";
+
+    public decimal Price { get; set; }
+}

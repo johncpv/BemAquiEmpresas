@@ -5,7 +5,7 @@
 | ID | FND-02 |
 | Título | Catálogo, `tenant_domains`, middleware por host, `TenantDbContext` dinâmico e endurecimento HTTP |
 | Tamanho | G |
-| Status | Draft |
+| Status | In Progress (02a pronta; 02b a seguir) |
 | Requisitos | R-PLT-1 · R-PLT-2 · PRD §6 Segurança (HTTPS, OWASP) |
 | Dependências | FND-01, FND-11, FND-07; a página "Acesso suspenso" usa os tokens da FND-09a |
 | Bloqueia | FND-03a, FND-12, FND-04 e todas as stories com dados de tenant |
@@ -127,7 +127,32 @@ Checklist do @po (Pax), 16/10/2026.
 | 16/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 
 ## Dev Agent Record
-_A preencher pelo @dev._
+- **Parte A (FND-02a), 18/10/2026, branch `feat/fnd-02a-catalogo-tenant`.** A story foi dividida em 02a (catálogo e resolução) e 02b (endurecimento HTTP, `tid` e `aud` do token no REST e no hub, e página "Acesso suspenso").
+  - **Catálogo:**
+    - `CatalogDbContext` (módulo Platform) com `catalog.tenants`, `catalog.tenant_domains` (host único) e `catalog.plans`.
+    - Auditoria própria e imutável em `audit.audit_log` do catálogo.
+    - Trigger `pg_notify('tenant_changed')` e a migration `InitialCatalog`.
+    - Auto-migração só em desenvolvimento e testes (`Catalog:AutoMigrate`).
+  - **Resolução de tenant:**
+    - `CatalogTenantResolver` resolve por host normalizado (minúsculas, sem porta) ou por id.
+    - O cache é positivo por 5 min e negativo por 30 s, com limite de 1000 entradas.
+    - O `CatalogChangeListener` (LISTEN) invalida o cache, e a suspensão vale em menos de 10 s (CA 4 testado).
+  - **`TenantResolutionMiddleware`:**
+    - host desconhecido → 404 genérico;
+    - host da plataforma (`Platform:Host`) → 404 nas rotas de tenant;
+    - tenant suspenso → 403 `tenant_suspended`;
+    - em provisionamento → 503;
+    - `/health` e `/api/v1/public/tenant-context` respondem em qualquer estado.
+  - **Persistência e mensageria:**
+    - O `TenantDbContext` usa a conexão do tenant do escopo, decifrada pelo `ISecretProtector`. Sem tenant no escopo ele falha, em vez de cair num banco padrão.
+    - `TenantScopeFactory` atende jobs e outbox (CA 8).
+    - Dispatcher do outbox e endpoints de auditoria, anexos e notificações ligados no Host.
+  - **Contexto público:** `GET /api/v1/public/tenant-context`, anônimo (ADR 0009), devolve nome e status para a tela de login e para a página de suspensão.
+  - **CAs atendidos:** 1, 2, 3 (API; a página do front fica na 02b), 4, 5, 7, 8 e 13.
+    - O CA 7 é simulado no fixture: role por tenant com `REVOKE CONNECT FROM PUBLIC`. O provisionamento real é a FND-03a.
+  - **Testes:**
+    - O PostgreSQL de teste sobe com `max_connections=500`, por causa dos vários bancos e pools.
+    - O servidor do Hangfire fica desligado nos smoke tests, e um teste próprio confere que ele sobe e cria o schema.
 
 ## QA Results
 _A preencher pelo @qa._

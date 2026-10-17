@@ -3,12 +3,12 @@
 Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated_*`), `is_deleted` em cadastros. `→` indica FK. Nomes em inglês (código); descrição em português.
 
 ## catalog (banco de plataforma)
-- **tenants**: key (subdomínio), legal_name, trade_name, document, status (Provisioning/Active/Suspended), plan_id, db_name, connection_secret (cifrado), created_at
+- **tenants** (FND-02a): key (identificador curto, único), legal_name, trade_name, document, status (Provisioning/Active/Suspended), plan_id, db_name, connection_secret (cifrado, FND-11), created_at — auditado em `audit.audit_log` do catálogo
+- **tenant_domains** (FND-02a, ADR 0004): tenant_id, host (normalizado, **único**), is_primary, verified_at — o tenant é resolvido pelo host completo; o host da plataforma nunca entra aqui
 - **plans**: name, limits (JSON: usuários, armazenamento), price
 - **plan_modules**: plan_id, module_code — módulos que a versão/plano libera
 - **tenant_modules**: tenant_id, module_code, enabled, released_at — liberação efetiva por tenant (herda do plano, com exceções manuais do super admin)
 - **platform_admins**: email, password_hash, totp_secret
-- **kiosk_token_index**: token_hash, tenant_id (para resolver o tenant de uma TV sem subdomínio, se necessário)
 - **provisioning_logs**: tenant_id, step, status, message
 - **security.data_protection_keys** (FND-11, ADR 0007): id, friendly_name, xml. É o key ring do Data Protection. Cada chave é gravada cifrada pelo certificado de proteção, que fica fora do banco.
 
