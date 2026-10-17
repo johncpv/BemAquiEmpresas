@@ -16,13 +16,13 @@ Regra: item pendente não é implementado até ter decisão registrada aqui (dat
 | P-08 | Conta PJ no Banco Inter com API habilitada | BNK-01 | Konebras | Pedir já | 16/10/2026 (John): **OK, será providenciada** |
 | P-09 | Domínio do SaaS e nome do produto | FND-10 | PO | — | 16/10/2026 (John): **BemAqui Empresas**, tenant Konebras em `app.konebras.com.br` (mesma VPS, troca de conteúdo no go-live) — ADR 0004 |
 | P-10 | Contratos de manutenção recorrente / OS de serviço / venda avulsa | Escopo | PO | — | 16/10/2026 (John): **entram no produto como Fase 10, planejada depois de todo o restante executado** |
-| P-11 | Políticas de garantia e assistência técnica pós-entrega | PRJ-7 | PO/Konebras | Fase 2 | |
-| P-12 | Dispositivos do chão de fábrica (tablets) e TV | PRD-03, PNL-01 | Konebras | Fase 3 | |
-| P-13 | Impressora de etiquetas para QR code | PAT-01 | Konebras | Fase 6 | |
-| P-14 | Precificação: markup sobre custo ou margem sobre preço | COM-01 | PO | Antes da Fase 2 | |
-| P-15 | Retenções (ISS/INSS/IR) sobre serviço tomado de instalador terceirizado | COM-06, FIN-02 | Contadora | Fase 2 | |
-| P-16 | Rateio de frete/IPI/ICMS-ST no custo de entrada do material | EST-01, CMP-04 | Contadora | Fase 3 | |
-| P-17 | DRE gerencial por competência ou por caixa | FIN-08 | Contadora/PO | Fase 4 | |
+| P-11 | Políticas de garantia e assistência técnica pós-entrega | PRJ-7 | PO/Konebras | Fase 2 | 16/10/2026 (John): **parâmetro na tela de Configurações** (meses padrão por tipo de item, sobrescrevível no item/produto; o campo `elev_garantia` do Dolibarr entra na migração) |
+| P-12 | Dispositivos do chão de fábrica (tablets) e TV | PRD-03, PNL-01 | Konebras | Fase 3 | 16/10/2026 (John): OK, a Konebras providencia; PWA mira tablet Android de entrada |
+| P-13 | Impressora de etiquetas para QR code | PAT-01 | Konebras | Fase 6 | 16/10/2026 (John): OK, a Konebras providencia; o modelo define o tamanho da etiqueta na PAT-01 |
+| P-14 | Precificação: markup sobre custo ou margem sobre preço | COM-01 | PO | Antes da COM-01 | 16/10/2026 (John): **os dois modos, escolhidos em Configurações** (preço = custo × (1+markup) ou custo ÷ (1−margem)); a regra detalhada será aprofundada com o PO antes da COM-01 |
+| P-15 | Retenções (ISS/INSS/IR) sobre serviço tomado de instalador terceirizado | COM-06, FIN-02 | Contadora | Fase 2 | 16/10/2026 (John): **opcional**. O título a pagar tem campos de retenção, preenchidos quando aplicável, sem cálculo automático no MVP |
+| P-16 | Rateio de frete/IPI/ICMS-ST no custo de entrada do material | EST-01, CMP-04 | Contadora | Fase 3 | 16/10/2026 (John): **sim**, frete e IPI entram no custo de entrada (rateio proporcional ao valor dos itens) |
+| P-17 | DRE gerencial por competência ou por caixa | FIN-08 | Contadora/PO | Fase 4 | 16/10/2026 (John): **competência, pela data da venda** (receita na data da venda/emissão, despesa na data do documento) |
 
 ## Riscos
 
