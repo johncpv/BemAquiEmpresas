@@ -8,53 +8,97 @@ Regra: não comece uma fase sem a anterior concluída, exceto quando indicado.
 
 ## Fase 0 — Fundação
 
-**FND-01 [ ] Estrutura da solução (M)** — Criar a solução conforme CLAUDE.md (Host, BuildingBlocks, módulos vazios, Web, tests), Docker Compose local, CI de build/teste.
-- CA: `dotnet test` e `pnpm build` passam no CI; teste de arquitetura (NetArchTest) impede módulo referenciar Infrastructure de outro módulo.
+Stories detalhadas em [`docs/stories/`](stories/README.md), com critérios de aceite completos, ordem de execução, Definition of Ready e pontos em aberto. A linha `Requisitos:` usa o prefixo `R-` (ADR 0005 D9). Aqui fica o resumo de cada uma.
 
-**FND-02 [ ] Catálogo e resolução de tenant (G)** — Banco `catalog`, `tenant_domains`, middleware por host (ADR 0004), `TenantDbContext` com conexão dinâmica, cache.
-- CA: dois tenants de teste com dados isolados; requisição a host inexistente → 404; tenant suspenso → 403 com página amigável; teste de integração prova que um tenant não lê dados do outro.
+**Ordem de execução** (revisão pré-Fase 0 §2.3 + stories novas): FND-01 → FND-11 → FND-07 → FND-02 → FND-03a → FND-08 → FND-12 → FND-04 → FND-05 → FND-13 → FND-03b → FND-06 → FND-06b → FND-06c → FND-06d → FND-10 → FND-14 → FND-15. Em paralelo desde a FND-01: FND-09a → FND-09b e FND-09c.
 
-**FND-03 [ ] Migrator multi-tenant e provisionamento (G)** — `TenantMigrator`, comando de provisionamento (cria banco, migra, semeia, cria proprietário, envia convite) e tela do super admin.
-- CA: provisionar tenant novo em < 1 min; falha em uma etapa registra log e permite retomar; migrations aplicadas a todos os tenants no deploy com relatório.
+**Definition of Ready:** story sem CA testável não entra em execução.
 
-**FND-04 [ ] Autenticação (G)** — Identity por tenant, login, refresh rotativo em cookie, recuperação de senha, bloqueio, convite de usuário.
-- CA: access 15 min / refresh 7 dias; reuso de refresh revoga a família; 5 tentativas erradas bloqueiam 15 min; e-mail de recuperação expira em 1 h.
+**FND-01 [ ] Estrutura da solução, CI e cadeia de suprimentos (M)** — [story](stories/FND-01-estrutura-solucao.md)
+- Requisitos: PRD §6 (Segurança).
+- CA: `dotnet test` e `pnpm build` passam no CI; NetArchTest impede módulo referenciar outro que não pelo `*.Contracts`; `dotnet list package --vulnerable` e `pnpm audit` no CI; actions fixadas por SHA; Dependabot ativo.
 
-**FND-05 [ ] 2FA TOTP (M)** — Ativar com QR code, códigos de recuperação, exigência por tenant/perfil.
-- CA: login com 2FA pede código; código de recuperação usável uma vez; proprietário obriga 2FA e usuários sem 2FA são levados à configuração no próximo login.
+**FND-11 [ ] Segredos e Data Protection (M)** — nova — [story](stories/FND-11-segredos-data-protection.md)
+- Requisitos: R-PLT-1, PRD §6 (Segurança).
+- CA: key ring protegido por certificado e com cópia offline; propósito por tenant e por tipo de segredo; segredos write-only e nunca logados; backup da chave em trilha separada (ADR 0007).
 
-**FND-06 [ ] Catálogo de módulos e liberação por tenant (M)** — `ModuleCatalog` (seed com módulos, ações aplicáveis e significado de "aprovar"), `plan_modules`/`tenant_modules` no catálogo, tela do super admin para liberar módulos.
-- CA: endpoint de módulo não liberado → 403 `module_not_released`; seed idempotente; liberar um módulo reflete no tenant sem deploy.
+**FND-07 [ ] Building blocks (G)** — [story](stories/FND-07-building-blocks.md)
+- Requisitos: R-SEC-5, R-COM-2, R-COM-3, R-COM-4, R-PRP-5.
+- CA: diff gravado na mesma transação, `audit_log` só INSERT, PII mascarada e segredos omitidos; outbox transacional com retry, dead-letter e inbox idempotente; numeração sem duplicidade com 50 chamadas paralelas; anexos com allowlist, magic bytes, ClamAV e permissão do documento dono; job de tenant suspenso não roda.
 
-**FND-06b [ ] Grupos de usuários e permissões (G)** — Grupos (CRUD, duplicar, inativar), matriz módulo × ação com chave "habilitado" por módulo, grupos iniciais por seed, grupo Proprietário de sistema. Tela conforme protótipo (Acessos → Grupos).
-- CA: habilitar módulo marca "ver"; desmarcar "ver" limpa o módulo; marcar outra ação marca "ver"; módulos não liberados aparecem desabilitados com "Não liberado"; Proprietário não editável e nunca sem membro; alterações auditadas.
+**FND-02 [ ] Catálogo e resolução de tenant (G)** — [story](stories/FND-02-catalogo-resolucao-tenant.md)
+- Requisitos: R-PLT-1, R-PLT-2.
+- CA: dois tenants isolados; host inexistente → 404; tenant suspenso → 403 com página amigável, valendo em < 10 s; token de `a.localhost` rejeitado em `b.localhost` (REST e hub); Host/X-Forwarded-For forjados ignorados; credencial de A não conecta em B; sem CORS; HSTS, CSP e frame-ancestors; Swagger desligado em prod.
 
-**FND-06c [ ] Usuários, convite e permissão efetiva (M)** — Cadastro de usuário com vários grupos, convite por e-mail (escolhe senha, oferece 2FA), desativação, policy dinâmica `perm:{modulo}.{acao}`, cache de permissões, endpoint `/me/permissions`, `<Can>` no front.
-- CA: usuário em dois grupos recebe a união; remover do grupo tira o acesso no próximo request; rota sem permissão → 403 `forbidden`; teste de integração cobrindo as três camadas.
+**FND-03a [ ] Migrator multi-tenant e provisionamento por serviço/CLI (G)** — quebra da FND-03 — [story](stories/FND-03a-migrator-provisionamento.md)
+- Requisitos: R-PLT-1, R-PLT-3.
+- CA: provisionar tenant novo em < 1 min; falha em uma etapa registra log e permite retomar; migrations aplicadas a todos os tenants no deploy com relatório, advisory lock e 503 para schema defasado; role do Postgres por tenant com `REVOKE CONNECT FROM PUBLIC`; role dedicado ao provisionamento.
 
-**FND-06d [ ] Menu por permissão e tela de módulo não liberado (P)** — Dock monta os botões a partir de `/me/permissions`: não liberado = cadeado e tela padrão "Funcionalidade não liberada nessa versão do sistema."; sem permissão = oculto.
-- CA: acessar a URL de um módulo bloqueado mostra a tela padrão, nunca uma tela quebrada ou em branco.
+**FND-08 [ ] E-mail (M)** — [story](stories/FND-08-email.md)
+- Requisitos: R-COM-1.
+- CA: falha de envio faz retry 3×, depois marca falha visível no log; templates do tenant só em Fluid sandboxed; nunca buscar URL fornecida pelo tenant; links com o host primário do catálogo.
 
-**FND-07 [ ] Building blocks (M)** — Result/ProblemDetails, paginação, numeração, auditoria (interceptor + tela de histórico por registro), soft delete, outbox + dispatcher, anexos, notificações.
-- CA: alteração em entidade auditável grava diff; evento publicado na mesma transação do comando e processado por job; numeração sem duplicidade sob concorrência (teste com 50 chamadas paralelas).
+**FND-12 [ ] Observabilidade (M)** — nova — [story](stories/FND-12-observabilidade.md)
+- Requisitos: PRD §6 (Observabilidade, Disponibilidade).
+- CA: logs JSON com tenant, usuário e correlação, sem segredos; `/health/live` e `/health/ready`; alerta de job esgotado, dead-letter, falha de migração e de integração.
 
-**FND-08 [ ] E-mail (P)** — `IEmailSender` SMTP/SES, templates (Razor/Fluid), fila Hangfire, log de envio.
-- CA: falha de envio faz retry 3×, depois marca falha visível no log.
+**FND-04 [ ] Autenticação (G)** — [story](stories/FND-04-autenticacao.md)
+- Requisitos: R-SEC-1, R-SEC-3, R-SEC-4, R-SEC-5, R-PLT-3.
+- CA: access 15 min / refresh 7 dias; reuso de refresh revoga a família, com tolerância a refresh concorrente; 5 tentativas erradas bloqueiam 15 min; recuperação expira em 1 h, é de uso único, revoga as sessões e não desliga o 2FA; access token só em memória; anti-CSRF por Origin + header; respostas uniformes; desativar vale no próximo request; rate limit por IP real + tenant + usuário. Inclui as telas de login, recuperação e aceite de convite.
 
-**FND-09 [ ] Shell do front (G)** — Login, 2FA, layout conforme protótipo (`docs/prototipo/`): dock inferior por área, barra superior com marca, trilha, busca, seletor de tema (claro/escuro/automático salvo no perfil) e usuário; tokens de design; componentes base (chips de status, indicador de etapa, tabela padrão, painéis); cliente Orval.
-- CA: telas comparadas com o protótipo nos dois temas e em 400px de largura; tabela padrão com filtro, ordenação e paginação server-side; estados de carregando, vazio e erro em todos os componentes de lista.
+**FND-05 [ ] 2FA TOTP (M)** — [story](stories/FND-05-2fa-totp.md)
+- Requisitos: R-SEC-2.
+- CA: login com 2FA pede código; código de recuperação usável uma vez; proprietário obriga 2FA e usuários sem 2FA são levados à configuração no próximo login; anti-replay; 5 tentativas por desafio; token intermediário só com escopo de 2FA. Inclui as telas de 2FA.
 
-**FND-14 [ ] Ajuda contextual e Dica (M)** — Requisitos: AJD-1, AJD-2, AJD-3, AJD-4, AJD-6, AJD-7. Catálogo de ajudas em Markdown embutido no assembly, endpoints `/ajuda` (índice filtrado por permissão) e `/ajuda/{chave}`, painel lateral, abertura na primeira visita (registrada no perfil), componente `<Dica>`.
+**FND-13 [ ] Autenticação do super admin (M)** — nova — [story](stories/FND-13-autenticacao-super-admin.md)
+- Requisitos: R-PLT-4.
+- CA: login em `plataforma.bemaquiapp.com.br` com 2FA obrigatório e allowlist de IP (ADR 0005 D2); tokens da plataforma e do tenant não valem um no outro; painel da plataforma e `/hangfire` respondem 404 em host de tenant.
+
+**FND-03b [ ] Tela do super admin: tenants (M)** — quebra da FND-03 — [story](stories/FND-03b-tela-super-admin-tenants.md)
+- Requisitos: R-PLT-4, R-PLT-3.
+- CA: listar, provisionar com progresso por etapa, retomar, suspender (com motivo) e reativar tenants; ações auditadas; 404 em host de tenant.
+
+**FND-06 [ ] Catálogo de módulos e liberação por tenant (M)** — [story](stories/FND-06-catalogo-modulos-liberacao.md)
+- Requisitos: R-SEC-11, R-SEC-10, R-SEC-12.
+- CA: endpoint de módulo não liberado → 403 `module_not_released`; seed idempotente com `module_actions` (ADR 0003); liberar ou bloquear um módulo reflete no tenant no próximo request, sem deploy.
+
+**FND-06b [ ] Grupos de usuários e permissões (G)** — [story](stories/FND-06b-grupos-permissoes.md)
+- Requisitos: R-SEC-9, R-SEC-10, R-SEC-12, R-SEC-5.
+- CA: habilitar módulo marca "ver"; desmarcar "ver" limpa o módulo; marcar outra ação marca "ver"; módulos não liberados aparecem desabilitados com "Não liberado"; Proprietário não editável e nunca sem membro; ninguém concede ação ou grupo que não possui, e só o Proprietário concede `*.approve`, `*.pay`, `hr.view_sensitive` e o grupo Proprietário (ADR 0008); revogar vale no próximo request; serviço de permissão efetiva e policy `perm:{modulo}.{acao}`; alterações auditadas.
+
+**FND-06c [ ] Usuários, convite e permissão efetiva (M)** — [story](stories/FND-06c-usuarios-convite-permissao-efetiva.md)
+- Requisitos: R-SEC-4, R-SEC-12, R-SEC-2.
+- CA: usuário em dois grupos recebe a união; remover do grupo tira o acesso no próximo request; rota sem permissão → 403 `forbidden`; teste de integração cobrindo as três camadas; convite respeita a delegação; 2FA obrigatório para o Proprietário e para quem aprova ou paga; tela Configurações → Segurança (exigir 2FA para todos, `settings.edit`).
+
+**FND-06d [ ] Menu por permissão e tela de módulo não liberado (P)** — [story](stories/FND-06d-menu-permissao-modulo-nao-liberado.md)
+- Requisitos: R-SEC-11, R-SEC-12.
+- CA: acessar a URL de um módulo bloqueado mostra a tela padrão "Funcionalidade não liberada nessa versão do sistema.", nunca uma tela quebrada ou em branco; módulo sem permissão some do dock e da paleta.
+
+**FND-09a [ ] Tokens, tema e componentes visuais base (M)** — quebra da FND-09 — [story](stories/FND-09a-tokens-tema.md)
+- Requisitos: PRD §6 (Usabilidade).
+- CA: tokens do protótipo mapeados para o shadcn, com as correções de contraste da revisão (§2.4); `--signal` separado de `--warn`; tema claro/escuro/automático salvo no perfil, sem flash; Archivo self-hosted; chips, indicador de etapa e `Money`; lint proíbe cor literal.
+
+**FND-09b [ ] Shell do backoffice e navegação (M)** — quebra da FND-09 — [story](stories/FND-09b-shell-navegacao.md)
+- Requisitos: PRD §6 (Usabilidade), R-COM-2.
+- CA: dock com as 7 áreas, cada uma abrindo popover (desktop) ou sheet (celular) com os módulos (ADR 0005 D8); sub-telas em abas na topbar; Ctrl K abre a paleta; topbar a 400px com busca em ícone e tema no menu do usuário; `<nav>`, skip link, foco e título na troca de rota.
+
+**FND-09c [ ] DataTable, estados e formulário base (M)** — quebra da FND-09 — [story](stories/FND-09c-datatable-estados-formulario.md)
+- Requisitos: PRD §6 (Desempenho), R-SEC-5, R-PRP-2.
+- CA: tabela padrão com filtro, ordenação e paginação server-side; Skeleton, EmptyState, ErrorState e InlineError ligados ao TanStack Query; formulário RHF + Zod com mensagens PT-BR e erros do ProblemDetails; cliente Orval sem `fetch` à mão; histórico por registro.
+
+**FND-10 [ ] Deploy em homologação (G)** — [story](stories/FND-10-deploy-homologacao.md)
+- Requisitos: PRD §6 (Backup, Disponibilidade, Segurança).
+- CA: push na main publica na homologação (host sugerido `homolog.konebras.com.br`) atrás do `stack-nginx`; `app.konebras.com.br` continua com o Dolibarr até a GOL-01 (ADR 0005 D1); Postgres em rede interna, sem `ports:`; containers não-root, `read_only` e `cap_drop`; WebSocket com `proxy_read_timeout` ≥ 120 s; logs do nginx mascaram tokens; backup diário cifrado fora da VPS (RPO 24 h, D6), credencial sem delete; restauração de um tenant testada e documentada.
+
+**FND-14 [ ] Ajuda contextual e Dica (M)** — [story](stories/FND-14-ajuda-contextual-dica.md)
+- Requisitos: R-AJD-1, R-AJD-2, R-AJD-3, R-AJD-4, R-AJD-6, R-AJD-7.
 - CA: toda rota do front tem ajuda (o teste falha se faltar); a ajuda de um módulo sem permissão não aparece no índice; a primeira visita abre a ajuda uma vez por usuário e por tela, em qualquer dispositivo.
 
-**FND-15 [ ] Pergunte ao BemAqui (M)** — Requisitos: AJD-5, AJD-8. Busca das seções relevantes, resposta da IA restrita aos trechos com citação obrigatória, fallback por regra, tela de configuração do provedor de IA (provedor, modelo, chave, "Testar conexão"), `IAiProvider` com adaptadores Claude, Gemini e OpenAI, registro de uso por tenant.
+**FND-15 [ ] Pergunte ao BemAqui (G)** — [story](stories/FND-15-pergunte-ao-bemaqui.md)
+- Requisitos: R-AJD-5, R-AJD-8, R-AJD-6.
 - CA: a resposta sempre cita a seção usada; sem provedor configurado, sem IA ou com citação inválida, devolve os trechos encontrados; trocar de provedor na tela vale na próxima pergunta, sem deploy; a chave nunca volta na API nem aparece em log; teste prova que nenhum dado de negócio do tenant entra no prompt.
 
-**FND-10 [ ] Deploy (M)** — Compose de produção em `/opt/projetos/bemaqui-empresas/` na VPS compartilhada, vhost `app.konebras.com.br` no `stack-nginx` + certbot (ADR 0004), Dolibarr movido para `adm.konebras.com.br`, CI/CD por SSH, backup diário por banco, health check.
-- CA: push na main publica em homolog; tag publica em prod; restauração de backup de um tenant testada e documentada.
-
 ---
-
 ## Fase 1 — Cadastros e migração
 
 **CAD-01 [ ] Terceiros (M)** — CRUD com papéis, endereços, contatos, consulta CNPJ.
