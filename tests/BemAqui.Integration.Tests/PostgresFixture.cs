@@ -7,6 +7,7 @@ namespace BemAqui.Integration.Tests;
 public sealed class PostgresFixture : IAsyncLifetime
 {
     private readonly PostgreSqlContainer _container = new PostgreSqlBuilder("postgres:17-alpine")
+        .WithCommand("-c", "max_connections=500")
         .WithDatabase("catalog")
         .Build();
 

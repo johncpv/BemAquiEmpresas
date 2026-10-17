@@ -1,0 +1,26 @@
+using BemAqui.BuildingBlocks.Persistence;
+using BemAqui.BuildingBlocks.Security;
+using BemAqui.BuildingBlocks.Tenancy;
+
+namespace BemAqui.Host.Persistence;
+
+public static class TenantPersistence
+{
+    /// <summary>
+    /// TenantDbContext com a conexão do tenant do escopo, decifrada só aqui (FND-11). Sem tenant no escopo
+    /// (request sem host resolvido, job sem TenantJob) a criação falha: nunca cai num banco padrão.
+    /// </summary>
+    public static IServiceCollection AddTenantPersistence(this IServiceCollection services)
+    {
+        services.AddDbContext<TenantDbContext>((sp, options) =>
+        {
+            var tenant = sp.GetRequiredService<TenantContextHolder>().Resolved
+                ?? throw new InvalidOperationException("TenantDbContext usado fora de um escopo de tenant.");
+            var connection = sp.GetRequiredService<ISecretProtector>()
+                .Unprotect(SecretScope.ForTenant(tenant.Tenant.Id), SecretKind.TenantConnection, tenant.ConnectionCipher);
+            options.UseBemAquiDefaults(connection.Reveal(), sp);
+        });
+        services.AddScoped<BemAquiDbContext>(sp => sp.GetRequiredService<TenantDbContext>());
+        return services;
+    }
+}

@@ -21,6 +21,8 @@ public class HostSmokeTests(PostgresFixture postgres)
             b.UseSetting("DataProtection:CertificatePassword", TestCertificates.Password);
             b.UseSetting("DataProtection:AllowKeyRingCreation", allowKeyRingCreation.ToString());
             b.UseSetting("DataProtection:AutoMigrate", "true");
+            b.UseSetting("Catalog:AutoMigrate", "true");
+            b.UseSetting("Jobs:ServerEnabled", "false");
         });
 
     [Fact]
@@ -43,6 +45,21 @@ public class HostSmokeTests(PostgresFixture postgres)
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         live.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task Host_sobe_com_o_servidor_de_jobs_e_cria_o_schema_do_Hangfire_no_catalogo()
+    {
+        var db = await postgres.CreateDatabaseAsync("host_jobs");
+        await using var factory = Factory(db).WithWebHostBuilder(b => b.UseSetting("Jobs:ServerEnabled", "true"));
+        using var client = factory.CreateClient();
+
+        (await client.GetAsync(new Uri("/health", UriKind.Relative), TestContext.Current.CancellationToken)).StatusCode.Should().Be(HttpStatusCode.OK);
+
+        await using var connection = new NpgsqlConnection(db);
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
+        await using var command = new NpgsqlCommand("SELECT count(*) FROM information_schema.schemata WHERE schema_name = 'hangfire'", connection);
+        ((long)(await command.ExecuteScalarAsync(TestContext.Current.CancellationToken))!).Should().Be(1);
     }
 
     [Fact]

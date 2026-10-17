@@ -1,8 +1,15 @@
+using BemAqui.BuildingBlocks.Attachments;
+using BemAqui.BuildingBlocks.Identity;
 using BemAqui.BuildingBlocks.Jobs;
 using BemAqui.BuildingBlocks.Logging;
+using BemAqui.BuildingBlocks.Messaging;
+using BemAqui.BuildingBlocks.Notifications;
 using BemAqui.BuildingBlocks.Security;
+using BemAqui.BuildingBlocks.Web;
 using BemAqui.Host;
 using BemAqui.Host.Health;
+using BemAqui.Host.Persistence;
+using BemAqui.Host.Tenancy;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Serilog;
 
@@ -21,6 +28,7 @@ try
 
     builder.Services.AddProblemDetails();
     builder.Services.AddOpenApi();
+    builder.Services.AddHttpContextAccessor();
     builder.Services
         .AddHealthChecks()
         .AddCheck<PostgresHealthCheck>("catalog-db", tags: ["ready"]);
@@ -31,6 +39,14 @@ try
     // Jobs com storage no catálogo (schema hangfire) e filas separadas; dashboard só no host da plataforma (FND-13).
     builder.Services.AddBemAquiJobs(builder.Configuration);
 
+    // Tenant pelo host (ADR 0004), banco do tenant por escopo e outbox por tenant ativo (ADR 0006).
+    builder.Services.Configure<PlatformHostOptions>(builder.Configuration.GetSection(PlatformHostOptions.Section));
+    builder.Services.Configure<FileStorageOptions>(builder.Configuration.GetSection(FileStorageOptions.Section));
+    builder.Services.Configure<ClamAvOptions>(builder.Configuration.GetSection(ClamAvOptions.Section));
+    builder.Services.AddScoped<ICurrentUser, HttpCurrentUser>();
+    builder.Services.AddTenantPersistence();
+    builder.Services.AddBemAquiMessaging(builder.Configuration);
+
     foreach (var module in ModuleRegistry.All)
     {
         module.AddServices(builder.Services, builder.Configuration);
@@ -40,6 +56,7 @@ try
 
     app.UseExceptionHandler();
     app.UseStatusCodePages();
+    app.UseMiddleware<TenantResolutionMiddleware>();
 
     if (app.Environment.IsDevelopment())
     {
@@ -53,6 +70,9 @@ try
     app.MapHealthChecks("/health", new HealthCheckOptions { Predicate = c => c.Tags.Contains("ready") });
 
     var api = app.MapGroup("/api/v1");
+    api.MapAuditEndpoints();
+    api.MapAttachmentEndpoints();
+    api.MapNotificationEndpoints();
     foreach (var module in ModuleRegistry.All)
     {
         module.MapEndpoints(api);
