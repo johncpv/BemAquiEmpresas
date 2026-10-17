@@ -9,6 +9,7 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 - **plan_modules**: plan_id, module_code — módulos que a versão/plano libera
 - **tenant_modules**: tenant_id, module_code, enabled, released_at — liberação efetiva por tenant (herda do plano, com exceções manuais do super admin)
 - **platform_admins**: email, password_hash, totp_secret
+- **platform_alerts** (FND-12): key (tipo:tenant, único), last_sent_at, occurrences, last_summary — deduplicação de alertas
 - **provisioning_logs** (FND-03a): tenant_id, step (Register/CreateRole/CreateDatabase/Migrate/Seed/CreateOwner/SendInvite/Activate), status (Started/Succeeded/Failed), message (nunca com segredo), at
 - **tenants** recebe também `schema_version` (última migration aplicada no banco do tenant) e `migrated_at` (FND-03a)
 - **security.data_protection_keys** (FND-11, ADR 0007): id, friendly_name, xml. É o key ring do Data Protection. Cada chave é gravada cifrada pelo certificado de proteção, que fica fora do banco.

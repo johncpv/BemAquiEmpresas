@@ -23,6 +23,8 @@ public class HostSmokeTests(PostgresFixture postgres)
             b.UseSetting("DataProtection:AutoMigrate", "true");
             b.UseSetting("Catalog:AutoMigrate", "true");
             b.UseSetting("Jobs:ServerEnabled", "false");
+            b.UseSetting("Health:ClamAv", "false");
+            b.UseSetting("Storage:Root", Path.Combine(Path.GetTempPath(), "bemaqui-test-files"));
             b.UseSetting("Auth:SigningKey", BemAqui.Integration.Tests.Tenancy.TestTokens.SigningKeyBase64);
         });
 
@@ -55,7 +57,16 @@ public class HostSmokeTests(PostgresFixture postgres)
         await using var factory = Factory(db).WithWebHostBuilder(b => b.UseSetting("Jobs:ServerEnabled", "true"));
         using var client = factory.CreateClient();
 
-        (await client.GetAsync(new Uri("/health", UriKind.Relative), TestContext.Current.CancellationToken)).StatusCode.Should().Be(HttpStatusCode.OK);
+        // O servidor de jobs aparece no primeiro heartbeat: o ready fica 503 até lá.
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+        HttpStatusCode status;
+        do
+        {
+            status = (await client.GetAsync(new Uri("/health", UriKind.Relative), TestContext.Current.CancellationToken)).StatusCode;
+        }
+        while (status != HttpStatusCode.OK && watch.Elapsed < TimeSpan.FromSeconds(20) && await Task.Delay(300).ContinueWith(_ => true));
+
+        status.Should().Be(HttpStatusCode.OK);
 
         await using var connection = new NpgsqlConnection(db);
         await connection.OpenAsync(TestContext.Current.CancellationToken);

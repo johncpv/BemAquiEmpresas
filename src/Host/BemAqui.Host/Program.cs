@@ -10,6 +10,7 @@ using BemAqui.BuildingBlocks.Web;
 using BemAqui.Host;
 using BemAqui.Host.Cli;
 using BemAqui.Host.Health;
+using BemAqui.Host.Observability;
 using BemAqui.Host.Persistence;
 using BemAqui.Host.Security;
 using BemAqui.Host.Tenancy;
@@ -30,18 +31,34 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    builder.Services.AddSerilog(lc => lc
-        .ReadFrom.Configuration(builder.Configuration)
-        .Destructure.With<SecretDestructuringPolicy>()
-        .Enrich.FromLogContext()
-        .WriteTo.Console(formatProvider: System.Globalization.CultureInfo.InvariantCulture));
+    builder.Services.AddSerilog((sp, lc) =>
+    {
+        LoggingSetup.Configure(lc, builder.Configuration, builder.Environment);
+        foreach (var sink in sp.GetServices<Serilog.Core.ILogEventSink>())
+        {
+            lc.WriteTo.Sink(sink); // sinks extras registrados na DI (ex.: testes)
+        }
+    });
 
     builder.Services.AddProblemDetails();
     builder.Services.AddOpenApi();
     builder.Services.AddHttpContextAccessor();
-    builder.Services
-        .AddHealthChecks()
-        .AddCheck<PostgresHealthCheck>("catalog-db", tags: ["ready"]);
+    var health = builder.Configuration.GetSection(HealthOptions.Section).Get<HealthOptions>() ?? new HealthOptions();
+    var checks = builder.Services.AddHealthChecks().AddCheck<PostgresHealthCheck>("catalog-db", tags: ["ready"]);
+    if (health.ClamAv)
+    {
+        checks.AddCheck<ClamAvHealthCheck>("clamav", tags: ["ready"]);
+    }
+
+    if (health.Storage)
+    {
+        checks.AddCheck<StorageHealthCheck>("storage", tags: ["ready"]);
+    }
+
+    if (health.Hangfire && builder.Configuration.GetValue("Jobs:ServerEnabled", true))
+    {
+        checks.AddCheck<HangfireHealthCheck>("jobs", tags: ["ready"]);
+    }
 
     // Key ring no catálogo protegido por certificado; o Host não sobe sem ele (ADR 0007).
     builder.Services.AddBemAquiSecrets(builder.Configuration, builder.Environment);
@@ -80,6 +97,8 @@ try
     app.UseStatusCodePages();
     app.UseMiddleware<TenantResolutionMiddleware>();
     app.UseAuthentication();
+    app.UseRequestLogContext();
+    app.UseBemAquiRequestLogging();
     app.UseAuthorization();
 
     if (app.Environment.IsDevelopment())

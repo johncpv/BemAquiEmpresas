@@ -57,7 +57,7 @@ public static class MessagingHarness
 {
     public static TenantInfo Tenant { get; } = new(Guid.CreateVersion7(), "konebras", TenantStatus.Active);
 
-    public static async Task<ServiceProvider> CreateAsync(string connectionString, TimeProvider? clock = null, int maxAttempts = 10)
+    public static async Task<ServiceProvider> CreateAsync(string connectionString, TimeProvider? clock = null, int maxAttempts = 10, BemAqui.BuildingBlocks.Observability.IAlertSink? alerts = null)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -67,6 +67,11 @@ public static class MessagingHarness
         services.AddSingleton(directory);
         services.AddSingleton<ITenantDirectory>(directory);
         services.AddSingleton<ITenantScopeFactory>(sp => new SameDatabaseScopeFactory(sp));
+        if (alerts is not null)
+        {
+            services.AddSingleton(alerts);
+        }
+
         services.AddBemAquiPersistenceCore();
         services.AddDbContext<SampleDbContext>((sp, o) => o.UseBemAquiDefaults(connectionString, sp));
         services.AddScoped<BemAquiDbContext>(sp => sp.GetRequiredService<SampleDbContext>());

@@ -18,6 +18,8 @@ public sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options)
 
     public DbSet<ProvisioningLog> ProvisioningLogs => Set<ProvisioningLog>();
 
+    public DbSet<PlatformAlert> PlatformAlerts => Set<PlatformAlert>();
+
     /// <summary>Auditoria das alterações do catálogo (ex.: suspensão de tenant), imutável como a dos tenants.</summary>
     public DbSet<AuditEntry> AuditEntries => Set<AuditEntry>();
 
@@ -59,6 +61,14 @@ public sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options)
             b.Property(e => e.Changes).HasColumnType("jsonb");
             b.Property(e => e.Ip).HasMaxLength(64);
             b.HasIndex(e => new { e.Entity, e.EntityId, e.At });
+        });
+
+        modelBuilder.Entity<PlatformAlert>(b =>
+        {
+            b.ToTable("platform_alerts");
+            b.Property(e => e.Key).HasMaxLength(200);
+            b.HasIndex(e => e.Key).IsUnique();
+            b.Property(e => e.LastSummary).HasMaxLength(500);
         });
 
         modelBuilder.Entity<ProvisioningLog>(b =>

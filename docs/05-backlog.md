@@ -38,7 +38,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md), com critérios de ac
 - Requisitos: R-COM-1.
 - CA: falha de envio faz retry 3×, depois marca falha visível no log; templates do tenant só em Fluid sandboxed; nunca buscar URL fornecida pelo tenant; links com o host primário do catálogo.
 
-**FND-12 [ ] Observabilidade (M)** — nova — [story](stories/FND-12-observabilidade.md)
+**FND-12 [x] Observabilidade (M)** — nova — [story](stories/FND-12-observabilidade.md)
 - Requisitos: PRD §6 (Observabilidade, Disponibilidade).
 - CA: logs JSON com tenant, usuário e correlação, sem segredos; `/health/live` e `/health/ready`; alerta de job esgotado, dead-letter, falha de migração e de integração.
 

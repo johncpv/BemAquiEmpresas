@@ -20,6 +20,15 @@ public static class EmailServiceCollectionExtensions
         return services;
     }
 
+    /// <summary>Só o transporte SMTP (CLI e alertas da plataforma, sem fila de tenant).</summary>
+    public static IServiceCollection AddBemAquiEmailTransportOnly(this IServiceCollection services, IConfiguration configuration)
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+        services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.Section));
+        services.TryAddSingleton<IEmailTransport, SmtpEmailTransport>();
+        return services;
+    }
+
     /// <summary>Registra o consumer que transforma EmailQueued em job do Hangfire.</summary>
     public static IntegrationEventRegistry AddEmailEvents(this IntegrationEventRegistry registry)
     {

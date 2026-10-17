@@ -1,4 +1,5 @@
 using System.Text.Json;
+using BemAqui.BuildingBlocks.Observability;
 using BemAqui.BuildingBlocks.Persistence;
 using BemAqui.BuildingBlocks.Tenancy;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +21,7 @@ public sealed partial class OutboxProcessor(
     IntegrationEventRegistry registry,
     TimeProvider clock,
     IOptions<OutboxOptions> options,
+    IAlertSink alerts,
     ILogger<OutboxProcessor> logger)
 {
     /// <summary>Processa até BatchSize mensagens; devolve quantas pegou.</summary>
@@ -50,6 +52,7 @@ public sealed partial class OutboxProcessor(
             {
                 message.DeadLetteredAt = clock.GetUtcNow();
                 LogDeadLettered(logger, message.Id, message.Type, tenant.Key, message.Attempts, error);
+                await alerts.RaiseAsync(new Alert(AlertKinds.OutboxDeadLetter, tenant.Key, "Evento " + message.Type + " foi para dead-letter", error), cancellationToken);
             }
             else
             {
@@ -99,6 +102,9 @@ public sealed partial class OutboxProcessor(
 
     private async Task RunHandlerAsync(TenantInfo tenant, Guid messageId, RegisteredHandler handler, object integrationEvent, CancellationToken cancellationToken)
     {
+        using var tenantLog = Serilog.Context.LogContext.PushProperty("TenantId", tenant.Id);
+        using var messageLog = Serilog.Context.LogContext.PushProperty("MessageId", messageId);
+        using var handlerLog = Serilog.Context.LogContext.PushProperty("Handler", handler.Name);
         await using var scope = await scopes.CreateScopeAsync(tenant, cancellationToken);
         var handlerDb = scope.ServiceProvider.GetRequiredService<BemAquiDbContext>();
         await using var transaction = await handlerDb.Database.BeginTransactionAsync(cancellationToken);

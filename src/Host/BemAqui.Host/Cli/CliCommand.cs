@@ -1,4 +1,7 @@
+using BemAqui.BuildingBlocks.Email;
 using BemAqui.BuildingBlocks.Logging;
+using BemAqui.BuildingBlocks.Observability;
+using BemAqui.Host.Observability;
 using BemAqui.BuildingBlocks.Security;
 using BemAqui.Host.Persistence;
 using BemAqui.Platform.Application.Provisioning;
@@ -33,8 +36,8 @@ public static class CliCommand
         }
 
         configure?.Invoke(builder.Configuration);
-        builder.Services.AddSerilog(lc => lc.ReadFrom.Configuration(builder.Configuration).Destructure.With<SecretDestructuringPolicy>()
-            .WriteTo.Console(formatProvider: System.Globalization.CultureInfo.InvariantCulture));
+        builder.Services.AddSerilog(lc => LoggingSetup.Configure(lc, builder.Configuration, builder.Environment));
+        builder.Services.AddBemAquiEmailTransportOnly(builder.Configuration);
         builder.Services.AddBemAquiSecrets(builder.Configuration, builder.Environment);
         new PlatformModule().AddServices(builder.Services, builder.Configuration);
         builder.Services.AddTenantPersistence();
@@ -68,6 +71,12 @@ public static class CliCommand
         }
 
         var failed = reports.Count(r => !r.Success);
+        if (failed > 0)
+        {
+            var details = string.Join(Environment.NewLine, reports.Select(r => (r.Success ? "OK     " : "FALHOU ") + r.Tenant + " " + (r.Error ?? r.To)));
+            await services.GetRequiredService<IAlertSink>().RaiseAsync(new Alert(AlertKinds.MigrationFailed, null, "Migração falhou em " + failed + " de " + reports.Count + " tenant(s)", details));
+        }
+
         await output.WriteLineAsync(failed == 0
             ? $"Migração concluída: {reports.Count} tenant(s)."
             : $"Migração com falha em {failed} de {reports.Count} tenant(s). A API responde 503 para eles até migrar.");

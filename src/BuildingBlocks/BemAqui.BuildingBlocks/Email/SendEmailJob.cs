@@ -1,6 +1,7 @@
 using System.Text.Json;
 using BemAqui.BuildingBlocks.Jobs;
 using BemAqui.BuildingBlocks.Messaging;
+using BemAqui.BuildingBlocks.Observability;
 using BemAqui.BuildingBlocks.Persistence;
 using BemAqui.BuildingBlocks.Tenancy;
 using Hangfire;
@@ -57,15 +58,22 @@ public sealed partial class SendEmailJob(ITenantDirectory directory, ITenantScop
             log.SentAt = clock.GetUtcNow();
             log.Error = null;
             await db.SaveChangesAsync(cancellationToken);
+            services.GetService<IntegrationHealthTracker>()?.RecordSuccess("smtp");
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             log.Error = ex.Message.Length > 1000 ? ex.Message[..1000] : ex.Message;
+            if (services.GetService<IntegrationHealthTracker>() is { } integrations)
+            {
+                await integrations.RecordFailureAsync("smtp", tenant.Key, log.Error, cancellationToken);
+            }
+
             if (log.Attempts >= MaxAttempts)
             {
                 log.Status = EmailStatus.Failed;
                 await db.SaveChangesAsync(cancellationToken);
                 LogFailed(logger, ex, log.Id, tenant.Key, log.Attempts);
+                await services.GetRequiredService<IAlertSink>().RaiseAsync(new Alert(AlertKinds.EmailFailed, tenant.Key, "E-mail " + log.Template + " não foi enviado após " + log.Attempts + " tentativas", log.Error), cancellationToken);
                 return;
             }
 
