@@ -104,6 +104,47 @@ namespace BemAqui.Platform.Infrastructure.Catalog.Migrations
                     b.ToTable("plans", "catalog");
                 });
 
+            modelBuilder.Entity("BemAqui.Platform.Domain.ProvisioningLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("At")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("at");
+
+                    b.Property<string>("Message")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("message");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.Property<string>("Step")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("step");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_provisioning_logs");
+
+                    b.HasIndex("TenantId", "At")
+                        .HasDatabaseName("ix_provisioning_logs_tenant_id_at");
+
+                    b.ToTable("provisioning_logs", "catalog");
+                });
+
             modelBuilder.Entity("BemAqui.Platform.Domain.Tenant", b =>
                 {
                     b.Property<Guid>("Id")
@@ -143,9 +184,18 @@ namespace BemAqui.Platform.Infrastructure.Catalog.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("legal_name");
 
+                    b.Property<DateTimeOffset?>("MigratedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("migrated_at");
+
                     b.Property<Guid?>("PlanId")
                         .HasColumnType("uuid")
                         .HasColumnName("plan_id");
+
+                    b.Property<string>("SchemaVersion")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("schema_version");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -207,6 +257,16 @@ namespace BemAqui.Platform.Infrastructure.Catalog.Migrations
                         .HasDatabaseName("ix_tenant_domains_tenant_id");
 
                     b.ToTable("tenant_domains", "catalog");
+                });
+
+            modelBuilder.Entity("BemAqui.Platform.Domain.ProvisioningLog", b =>
+                {
+                    b.HasOne("BemAqui.Platform.Domain.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_provisioning_logs_tenants_tenant_id");
                 });
 
             modelBuilder.Entity("BemAqui.Platform.Domain.Tenant", b =>

@@ -1,0 +1,102 @@
+using BemAqui.BuildingBlocks.Logging;
+using BemAqui.BuildingBlocks.Security;
+using BemAqui.Host.Persistence;
+using BemAqui.Platform.Application.Provisioning;
+using BemAqui.Platform.Endpoints;
+using Serilog;
+
+namespace BemAqui.Host.Cli;
+
+/// <summary>
+/// Modo CLI da imagem (ADR 0006): <c>migrate</c> (catálogo e todos os tenants, antes da subida da API) e
+/// <c>tenant provision</c> (FND-03a). Saída em PT-BR; código de saída 0 = sucesso.
+/// </summary>
+public static class CliCommand
+{
+    public static bool IsCli(string[] args) => args is ["migrate", ..] or ["tenant", "provision", ..];
+
+    public static async Task<int> RunAsync(string[] args, Action<IConfigurationBuilder>? configure = null, TextWriter? output = null)
+    {
+        ArgumentNullException.ThrowIfNull(args);
+        output ??= Console.Out;
+        var migrate = args[0] == "migrate";
+        var builder = Microsoft.Extensions.Hosting.Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
+        {
+            Args = [],
+            ContentRootPath = AppContext.BaseDirectory,
+            EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? Environments.Production,
+        });
+        if (migrate)
+        {
+            // O migrator é quem migra catálogo e key ring; a API em homolog/prod não migra sozinha.
+            builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?> { ["Catalog:AutoMigrate"] = "true", ["DataProtection:AutoMigrate"] = "true" });
+        }
+
+        configure?.Invoke(builder.Configuration);
+        builder.Services.AddSerilog(lc => lc.ReadFrom.Configuration(builder.Configuration).Destructure.With<SecretDestructuringPolicy>()
+            .WriteTo.Console(formatProvider: System.Globalization.CultureInfo.InvariantCulture));
+        builder.Services.AddBemAquiSecrets(builder.Configuration, builder.Environment);
+        new PlatformModule().AddServices(builder.Services, builder.Configuration);
+        builder.Services.AddTenantPersistence();
+        builder.Services.AddSingleton<ITenantDatabaseMigrator, TenantDatabaseMigrator>();
+        builder.Services.AddScoped<TenantMigrationRunner>();
+
+        using var host = builder.Build();
+        await host.StartAsync();
+        try
+        {
+            await using var scope = host.Services.CreateAsyncScope();
+            return migrate
+                ? await MigrateAsync(scope.ServiceProvider, output)
+                : await ProvisionAsync(scope.ServiceProvider, new CliArguments(args.Skip(2).ToList()), output);
+        }
+        finally
+        {
+            await host.StopAsync();
+        }
+    }
+
+    private static async Task<int> MigrateAsync(IServiceProvider services, TextWriter output)
+    {
+        await output.WriteLineAsync("Catálogo e key ring migrados. Migrando os bancos de tenant...");
+        var reports = await services.GetRequiredService<TenantMigrationRunner>().MigrateAllAsync(CancellationToken.None);
+        foreach (var r in reports)
+        {
+            await output.WriteLineAsync(r.Success
+                ? $"  OK     {r.Tenant,-20} {r.From ?? "(vazio)"} -> {r.To}  ({r.Duration.TotalSeconds:0.0}s)"
+                : $"  FALHOU {r.Tenant,-20} {r.Error}");
+        }
+
+        var failed = reports.Count(r => !r.Success);
+        await output.WriteLineAsync(failed == 0
+            ? $"Migração concluída: {reports.Count} tenant(s)."
+            : $"Migração com falha em {failed} de {reports.Count} tenant(s). A API responde 503 para eles até migrar.");
+        return failed == 0 ? 0 : 2;
+    }
+
+    private static async Task<int> ProvisionAsync(IServiceProvider services, CliArguments args, TextWriter output)
+    {
+        var request = new ProvisionRequest(
+            args.Get("key") ?? string.Empty,
+            args.Get("legal-name") ?? string.Empty,
+            args.Get("document"),
+            args.Get("host") ?? string.Empty,
+            args.Get("owner-email") ?? string.Empty,
+            args.Get("plan"),
+            args.Has("resume"));
+
+        var result = await services.GetRequiredService<ProvisioningService>().ProvisionAsync(request);
+        foreach (var step in result.Steps)
+        {
+            await output.WriteLineAsync($"  {step.Status,-12} {step.Step,-15} {step.Duration.TotalSeconds:0.0}s {step.Message}");
+        }
+
+        await output.WriteLineAsync(result.Success ? "Tenant provisionado." : "Provisionamento não concluído: " + result.Error);
+        if (result.NextStep is not null)
+        {
+            await output.WriteLineAsync(result.NextStep);
+        }
+
+        return result.Success ? 0 : 1;
+    }
+}

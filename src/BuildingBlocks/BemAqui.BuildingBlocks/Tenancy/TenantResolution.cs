@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace BemAqui.BuildingBlocks.Tenancy;
 
 /// <summary>Tenant resolvido: dados públicos, host primário (para links absolutos) e a conexão ainda cifrada.</summary>
-public sealed record ResolvedTenant(TenantInfo Tenant, string LegalName, string? TradeName, string PrimaryHost, string ConnectionCipher);
+public sealed record ResolvedTenant(TenantInfo Tenant, string LegalName, string? TradeName, string PrimaryHost, string ConnectionCipher, string? SchemaVersion = null);
 
 /// <summary>Resolve o tenant pelo host ou pelo id, com cache; <see cref="Invalidate"/> é chamado ao mudar o catálogo.</summary>
 public interface ITenantResolver

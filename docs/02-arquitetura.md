@@ -97,7 +97,7 @@ Em ambos os casos o módulo Fiscal só conhece a interface `IFiscalEmitter` (Emi
 ## 7. Infra e deploy
 - Docker Compose próprio em `/opt/projetos/bemaqui-empresas/`: `api`, `web` (nginx estático), `postgres` (17), `backup`; rede externa `stack_stack`.
 - Borda: `stack-nginx` compartilhado da VPS, vhost por host (`app.konebras.com.br`), certificado Let's Encrypt por host via certbot existente. Sem Caddy/wildcard (ADR 0004).
-- CI no GitHub Actions: build, testes (Testcontainers), imagem Docker, deploy por SSH com `docker compose pull && up -d`; migrations aplicadas na subida do `api` (com flag).
+- CI no GitHub Actions: build, testes (Testcontainers), imagem Docker, deploy por SSH: `docker compose run --rm api migrate` (catálogo + todos os tenants, advisory lock, relatório, saída ≠ 0 se algum falhar) e só então `docker compose up -d`. A API não migra sozinha em homologação/produção (ADR 0006; runbook `docs/operacao/provisionamento.md`).
 - Ambientes: `dev` (local), `homolog` (host a definir), `prod` (`app.konebras.com.br`).
 - Backup: `pg_dump` por banco diário → bucket S3 compatível; retenção 30 dias; restauração testada mensalmente.
 - Monitoramento: health checks `/health`, Uptime Kuma (já pode rodar na VPS), logs Serilog em arquivo + Seq opcional.

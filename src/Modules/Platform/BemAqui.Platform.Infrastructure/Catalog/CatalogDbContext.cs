@@ -16,6 +16,8 @@ public sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options)
 
     public DbSet<Plan> Plans => Set<Plan>();
 
+    public DbSet<ProvisioningLog> ProvisioningLogs => Set<ProvisioningLog>();
+
     /// <summary>Auditoria das alterações do catálogo (ex.: suspensão de tenant), imutável como a dos tenants.</summary>
     public DbSet<AuditEntry> AuditEntries => Set<AuditEntry>();
 
@@ -42,6 +44,7 @@ public sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options)
             b.Property(e => e.Document).HasMaxLength(18);
             b.Property(e => e.Status).HasConversion<string>().HasMaxLength(16);
             b.Property(e => e.DbName).HasMaxLength(63);
+            b.Property(e => e.SchemaVersion).HasMaxLength(150);
             b.HasOne<Plan>().WithMany().HasForeignKey(e => e.PlanId).OnDelete(DeleteBehavior.Restrict);
             b.HasMany(e => e.Domains).WithOne().HasForeignKey(d => d.TenantId).OnDelete(DeleteBehavior.Cascade);
         });
@@ -56,6 +59,16 @@ public sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options)
             b.Property(e => e.Changes).HasColumnType("jsonb");
             b.Property(e => e.Ip).HasMaxLength(64);
             b.HasIndex(e => new { e.Entity, e.EntityId, e.At });
+        });
+
+        modelBuilder.Entity<ProvisioningLog>(b =>
+        {
+            b.ToTable("provisioning_logs");
+            b.Property(e => e.Step).HasMaxLength(32);
+            b.Property(e => e.Status).HasConversion<string>().HasMaxLength(16);
+            b.Property(e => e.Message).HasMaxLength(2000);
+            b.HasIndex(e => new { e.TenantId, e.At });
+            b.HasOne<Tenant>().WithMany().HasForeignKey(e => e.TenantId).OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<TenantDomain>(b =>

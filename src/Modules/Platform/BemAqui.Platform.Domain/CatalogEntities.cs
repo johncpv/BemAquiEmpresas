@@ -31,7 +31,16 @@ public sealed class Tenant : Entity, IAuditable
 
     public DateTimeOffset CreatedAt { get; init; }
 
+    /// <summary>Última migration aplicada no banco do tenant (o migrator grava; a API compara com a do build).</summary>
+    public string? SchemaVersion { get; set; }
+
+    public DateTimeOffset? MigratedAt { get; set; }
+
     public List<TenantDomain> Domains { get; } = [];
+
+    /// <summary>Tenant novo, em Provisioning, com o id já definido (o id entra no propósito do segredo).</summary>
+    public static Tenant Create(Guid id, string key, string legalName, string dbName, string connectionSecret, DateTimeOffset createdAt) =>
+        new() { Id = id, Key = key, LegalName = legalName, DbName = dbName, ConnectionSecret = connectionSecret, CreatedAt = createdAt };
 
     public void Activate() => Status = TenantLifecycle.Active;
 
@@ -68,4 +77,25 @@ public sealed class Plan : Entity
     public string Limits { get; set; } = "{}";
 
     public decimal Price { get; set; }
+}
+
+public enum ProvisioningStatus
+{
+    Started,
+    Succeeded,
+    Failed,
+}
+
+/// <summary>Uma linha por etapa e tentativa do provisionamento (<c>catalog.provisioning_logs</c>). Nunca contém segredo.</summary>
+public sealed class ProvisioningLog : Entity
+{
+    public Guid TenantId { get; init; }
+
+    public required string Step { get; init; }
+
+    public ProvisioningStatus Status { get; init; }
+
+    public string? Message { get; init; }
+
+    public DateTimeOffset At { get; init; }
 }

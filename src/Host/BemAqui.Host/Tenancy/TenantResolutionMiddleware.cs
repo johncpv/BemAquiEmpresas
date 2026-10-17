@@ -1,5 +1,6 @@
 using BemAqui.BuildingBlocks.Tenancy;
 using BemAqui.BuildingBlocks.Web;
+using BemAqui.Host.Persistence;
 using BemAqui.Platform.Domain;
 using BemAqui.SharedKernel;
 
@@ -58,6 +59,15 @@ public sealed class TenantResolutionMiddleware(RequestDelegate next, ITenantReso
         if (tenant.Tenant.Status == TenantStatus.Provisioning && !publicContext)
         {
             await Error.Unavailable("tenant_provisioning", "Este ambiente ainda está sendo preparado. Tente de novo em alguns minutos.")
+                .ToProblem().ExecuteAsync(context);
+            return;
+        }
+
+        // Schema abaixo do que este build espera: 503 até o migrator rodar (FND-03a CA 12). Schema mais novo é
+        // aceito (expand/contract: a versão anterior da API continua compatível).
+        if (!publicContext && string.CompareOrdinal(tenant.SchemaVersion ?? string.Empty, TenantSchema.ExpectedVersion) < 0)
+        {
+            await Error.Unavailable(Error.Codes.TenantSchemaOutdated, "O sistema está sendo atualizado. Tente de novo em alguns minutos.")
                 .ToProblem().ExecuteAsync(context);
             return;
         }

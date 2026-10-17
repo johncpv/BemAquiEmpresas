@@ -5,7 +5,7 @@
 | ID | FND-03a |
 | Título | `TenantMigrator` (container próprio) e provisionamento de tenant por serviço e CLI |
 | Tamanho | G |
-| Status | Draft |
+| Status | Done |
 | Requisitos | R-PLT-1 · R-PLT-3 |
 | Dependências | FND-02, FND-07, FND-11 |
 | Bloqueia | FND-03b, FND-04 (passo "criar proprietário e convidar"), FND-06 (seed de liberação), FND-10 |
@@ -123,7 +123,23 @@ Checklist do @po (Pax), 16/10/2026.
 | 16/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 
 ## Dev Agent Record
-_A preencher pelo @dev._
+- **18/10/2026, branch `feat/fnd-03a-provisionamento`.**
+  - **CLI no executável da API** (ADR 0006), com dois comandos: `tenant provision` e `migrate`. O uso está em `docs/operacao/provisionamento.md`.
+  - **`ProvisioningService`** (Platform.Application):
+    - roda as etapas Register, CreateRole, CreateDatabase, Migrate, Seed, CreateOwner, SendInvite e Activate;
+    - grava log em `catalog.provisioning_logs` e retoma com `--resume`, pulando as etapas já concluídas (idempotente);
+    - valida chave, host, e-mail e CPF/CNPJ, e recusa chave ou host repetidos antes de criar qualquer recurso.
+  - **`PostgresTenantDatabaseAdmin`** usa o role `bemaqui_provisioner`, que tem CREATEDB e CREATEROLE e não é superuser.
+    - Cria o role `tenant_<key>` sem privilégios extras, com senha de 32 bytes aleatórios. A senha vai como literal pelo `quote_literal` e só é gravada cifrada.
+    - Cria o banco com esse role como dono e aplica `REVOKE CONNECT, TEMPORARY FROM PUBLIC`.
+  - **`TenantDatabaseMigrator`** (Host) usa advisory lock por banco.
+    - `TenantMigrationRunner` migra todos os tenants e grava `schema_version` e `migrated_at` no catálogo. O relatório mostra cada tenant, e a saída é 2 quando algum falha.
+  - **Middleware:** responde 503 `tenant_schema_outdated` quando o schema do tenant está abaixo do esperado pelo build. Um schema mais novo é aceito, por causa do expand/contract.
+  - **Teste de arquitetura:** migration destrutiva sem ADR referenciada reprova o CI (CA 13).
+  - **Fixture de tenancy:** passou a usar o provisionamento real.
+  - **Etapas provisórias:** `CreateOwner` e `SendInvite` usam `PendingOwnerOnboarding`. As versões reais chegam na FND-04/06c e na FND-08, e o CA 1 será verificado de ponta a ponta na FND-04.
+  - **Plano:** "Piloto" é o padrão, criado se ainda não existir. Os módulos de cada plano chegam na FND-06.
+  - **CAs:** 1 a 13 atendidos, com testes de integração no PostgreSQL real.
 
 ## QA Results
 _A preencher pelo @qa._
