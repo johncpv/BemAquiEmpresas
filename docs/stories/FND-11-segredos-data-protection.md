@@ -5,7 +5,7 @@
 | ID | FND-11 |
 | Título | Segredos e Data Protection (key ring, propósito por tenant, write-only) |
 | Tamanho | M |
-| Status | Draft |
+| Status | Done |
 | Requisitos | R-PLT-1 (conexões criptografadas no catálogo) · PRD §6 Segurança (segredos criptografados por tenant) · base de R-SEC-2 (segredo TOTP cifrado) e R-AJD-8 (chave de IA cifrada) |
 | Dependências | FND-01. **Pré-condição:** ADR 0007 redigida e aceita pelo PO |
 | Bloqueia | FND-02 (connection string cifrada), FND-05 (segredo TOTP), FND-08 (senha SMTP), FND-13, FND-15 (chave de IA), FND-10 (backup do key ring) |

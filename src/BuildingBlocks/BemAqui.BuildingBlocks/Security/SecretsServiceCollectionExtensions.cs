@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 
 namespace BemAqui.BuildingBlocks.Security;
@@ -41,6 +42,8 @@ public static class SecretsServiceCollectionExtensions
             .UnprotectKeysWithAnyCertificate(certificate)
             .SetDefaultKeyLifetime(KeyLifetime);
 
+        services.AddSingleton(new ProtectionCertificateInfo(certificate.Subject, certificate.Thumbprint, certificate.NotAfter.ToUniversalTime()));
+        services.TryAddSingleton(TimeProvider.System);
         services.AddSingleton<ISecretProtector, SecretProtector>();
         services.AddHostedService<SecretsStartupCheck>();
         return services;

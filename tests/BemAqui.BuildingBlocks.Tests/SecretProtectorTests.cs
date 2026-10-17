@@ -54,6 +54,38 @@ public class SecretProtectorTests
         decifrar.Should().Throw<CryptographicException>();
     }
 
+    /// <summary>Golden: estas cadeias nunca mudam, senão todos os segredos gravados ficam ilegíveis.</summary>
+    [Theory]
+    [InlineData(SecretKind.TenantConnection, "connection")]
+    [InlineData(SecretKind.SmtpPassword, "smtp")]
+    [InlineData(SecretKind.TotpSecret, "totp")]
+    [InlineData(SecretKind.AiApiKey, "ai-key")]
+    public void Proposito_de_cada_tipo_e_fixo(SecretKind kind, string expected)
+    {
+        var tenant = Guid.Parse("0199f1a2-0000-7000-8000-000000000001");
+
+        SecretProtector.Purposes(SecretScope.ForTenant(tenant), kind)
+            .Should().Equal("bemaqui", "tenant:0199f1a2000070008000000000000001", expected, "v1");
+        SecretProtector.Purposes(SecretScope.Platform, kind).Should().Equal("bemaqui", "platform", expected, "v1");
+    }
+
+    [Fact]
+    public void Todo_tipo_tem_proposito_definido()
+    {
+        foreach (var kind in Enum.GetValues<SecretKind>())
+        {
+            SecretProtector.Purposes(SecretScope.Platform, kind).Should().HaveCount(4);
+        }
+    }
+
+    [Fact]
+    public void Escopo_nao_inicializado_e_recusado()
+    {
+        var usar = () => _protector.Protect(default, SecretKind.SmtpPassword, new Secret("x"));
+
+        usar.Should().Throw<ArgumentException>();
+    }
+
     [Fact]
     public void Tenant_vazio_e_recusado()
     {

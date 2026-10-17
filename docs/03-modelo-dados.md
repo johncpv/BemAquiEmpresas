@@ -10,6 +10,7 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 - **platform_admins**: email, password_hash, totp_secret
 - **kiosk_token_index**: token_hash, tenant_id (para resolver o tenant de uma TV sem subdomínio, se necessário)
 - **provisioning_logs**: tenant_id, step, status, message
+- **security.data_protection_keys** (FND-11, ADR 0007): id, friendly_name, xml. É o key ring do Data Protection. Cada chave é gravada cifrada pelo certificado de proteção, que fica fora do banco.
 
 ## identity
 - **users**: name, email, password_hash, totp_enabled, totp_secret (cifrado), recovery_codes (hash), lockout_end, last_login_at, employee_id → hr.employees (opcional), is_active

@@ -10,8 +10,8 @@ using Microsoft.Extensions.Options;
 namespace BemAqui.BuildingBlocks.Security;
 
 /// <summary>
-/// Antes de o Host aceitar requisições (StartingAsync): o key ring precisa estar acessível, não vazio
-/// (salvo na criação autorizada) e decifrável pelo certificado. Assim o Host nunca cria um key ring
+/// Antes de o Host aceitar requisições (StartingAsync): o key ring precisa estar acessível, ter chave válida
+/// (salvo na criação autorizada) e ser decifrável pelo certificado. Assim o Host nunca cria um key ring
 /// novo em silêncio, o que deixaria todos os segredos ilegíveis (ADR 0007).
 /// </summary>
 internal sealed partial class SecretsStartupCheck(
@@ -19,20 +19,30 @@ internal sealed partial class SecretsStartupCheck(
     IOptions<SecretsOptions> options,
     IKeyManager keyManager,
     IDataProtectionProvider provider,
+    ProtectionCertificateInfo certificate,
+    TimeProvider clock,
     ILogger<SecretsStartupCheck> logger) : IHostedLifecycleService
 {
+    public static readonly TimeSpan ExpiryWarning = TimeSpan.FromDays(180);
+
     public async Task StartingAsync(CancellationToken cancellationToken)
     {
-        var count = await CountKeysAsync(cancellationToken);
+        await EnsureKeyRingReachableAsync(cancellationToken);
 
-        if (count == 0 && !options.Value.AllowKeyRingCreation)
+        var activeKeys = keyManager.GetAllKeys().Where(k => !k.IsRevoked).ToList();
+        if (activeKeys.Count == 0 && !options.Value.AllowKeyRingCreation)
         {
             throw new InvalidOperationException(
-                "Key ring do Data Protection vazio e DataProtection:AllowKeyRingCreation=false. Restaure o backup do key ring " +
-                "(docs/operacao/segredos-e-chaves.md) ou, só no primeiro provisionamento, ligue a flag.");
+                "Key ring do Data Protection vazio (sem chave não revogada) e DataProtection:AllowKeyRingCreation=false. Restaure o backup " +
+                "do key ring (docs/operacao/segredos-e-chaves.md) ou, só no primeiro provisionamento, ligue a flag.");
         }
 
-        foreach (var key in keyManager.GetAllKeys().Where(k => !k.IsRevoked))
+        if (options.Value.AllowKeyRingCreation)
+        {
+            LogCreationAllowed(logger, activeKeys.Count);
+        }
+
+        foreach (var key in activeKeys)
         {
             try
             {
@@ -48,7 +58,13 @@ internal sealed partial class SecretsStartupCheck(
 
         var probe = provider.CreateProtector(SecretProtector.RootPurpose, "startup-check");
         _ = probe.Unprotect(probe.Protect("ok"));
-        LogKeyRingReady(logger, count);
+
+        if (certificate.NotAfter - clock.GetUtcNow() < ExpiryWarning)
+        {
+            LogCertificateExpiring(logger, certificate.Subject, certificate.Thumbprint, certificate.NotAfter);
+        }
+
+        LogKeyRingReady(logger, activeKeys.Count, certificate.Thumbprint);
     }
 
     public Task StartAsync(CancellationToken cancellationToken) => Task.CompletedTask;
@@ -61,7 +77,7 @@ internal sealed partial class SecretsStartupCheck(
 
     public Task StoppedAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
-    private async Task<int> CountKeysAsync(CancellationToken cancellationToken)
+    private async Task EnsureKeyRingReachableAsync(CancellationToken cancellationToken)
     {
         await using var scope = scopes.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<DataProtectionKeysDbContext>();
@@ -72,7 +88,7 @@ internal sealed partial class SecretsStartupCheck(
                 await db.Database.MigrateAsync(cancellationToken);
             }
 
-            return await db.DataProtectionKeys.CountAsync(cancellationToken);
+            _ = await db.DataProtectionKeys.AnyAsync(cancellationToken);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -82,6 +98,12 @@ internal sealed partial class SecretsStartupCheck(
         }
     }
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "Key ring do Data Protection pronto ({Count} chave(s) antes da subida).")]
-    private static partial void LogKeyRingReady(ILogger logger, int count);
+    [LoggerMessage(Level = LogLevel.Information, Message = "Key ring do Data Protection pronto ({Count} chave(s) ativa(s) na subida, certificado {Thumbprint}).")]
+    private static partial void LogKeyRingReady(ILogger logger, int count, string thumbprint);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "DataProtection:AllowKeyRingCreation está ligada ({Count} chave(s) ativa(s)). Desligue depois do primeiro provisionamento.")]
+    private static partial void LogCreationAllowed(ILogger logger, int count);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Certificado de proteção do key ring {Subject} ({Thumbprint}) vence em {NotAfter:yyyy-MM-dd}: planeje a troca (docs/operacao/segredos-e-chaves.md).")]
+    private static partial void LogCertificateExpiring(ILogger logger, string subject, string thumbprint, DateTimeOffset notAfter);
 }
