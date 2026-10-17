@@ -104,6 +104,42 @@ namespace BemAqui.Platform.Infrastructure.Catalog.Migrations
                     b.ToTable("plans", "catalog");
                 });
 
+            modelBuilder.Entity("BemAqui.Platform.Domain.PlatformAlert", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("key");
+
+                    b.Property<DateTimeOffset>("LastSentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_sent_at");
+
+                    b.Property<string>("LastSummary")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("last_summary");
+
+                    b.Property<int>("Occurrences")
+                        .HasColumnType("integer")
+                        .HasColumnName("occurrences");
+
+                    b.HasKey("Id")
+                        .HasName("pk_platform_alerts");
+
+                    b.HasIndex("Key")
+                        .IsUnique()
+                        .HasDatabaseName("ix_platform_alerts_key");
+
+                    b.ToTable("platform_alerts", "catalog");
+                });
+
             modelBuilder.Entity("BemAqui.Platform.Domain.ProvisioningLog", b =>
                 {
                     b.Property<Guid>("Id")

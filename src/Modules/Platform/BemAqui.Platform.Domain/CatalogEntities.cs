@@ -99,3 +99,16 @@ public sealed class ProvisioningLog : Entity
 
     public DateTimeOffset At { get; init; }
 }
+
+/// <summary>Deduplicação de alertas (<c>catalog.platform_alerts</c>): um envio por chave (tipo + tenant) por janela.</summary>
+public sealed class PlatformAlert : Entity
+{
+    public required string Key { get; init; }
+
+    public DateTimeOffset LastSentAt { get; set; }
+
+    /// <summary>Ocorrências desde o último envio (inclusive as suprimidas pela janela).</summary>
+    public int Occurrences { get; set; }
+
+    public string? LastSummary { get; set; }
+}

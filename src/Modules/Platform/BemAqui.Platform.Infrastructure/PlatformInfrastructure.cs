@@ -1,6 +1,8 @@
 using BemAqui.BuildingBlocks.Persistence;
 using BemAqui.BuildingBlocks.Tenancy;
+using BemAqui.BuildingBlocks.Observability;
 using BemAqui.Platform.Application.Provisioning;
+using BemAqui.Platform.Infrastructure.Alerts;
 using BemAqui.Platform.Infrastructure.Catalog;
 using BemAqui.Platform.Infrastructure.Provisioning;
 using Microsoft.EntityFrameworkCore;
@@ -35,6 +37,10 @@ public static class PlatformInfrastructure
         services.TryAddSingleton<ITenantDatabaseAdmin, PostgresTenantDatabaseAdmin>();
         services.TryAddScoped<ITenantOwnerOnboarding, PendingOwnerOnboarding>();
         services.TryAddScoped<ProvisioningService>();
+
+        services.Configure<AlertOptions>(configuration.GetSection(AlertOptions.Section));
+        services.AddSingleton<IAlertSink, CatalogAlertSink>(); // substitui o LogOnlyAlertSink padrão
+        services.TryAddSingleton<IntegrationHealthTracker>();
 
         services.AddHostedService<CatalogMigrationService>();
         services.AddHostedService<CatalogChangeListener>();

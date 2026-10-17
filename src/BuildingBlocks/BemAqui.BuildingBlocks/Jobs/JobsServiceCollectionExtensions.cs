@@ -2,6 +2,7 @@ using Hangfire;
 using Hangfire.PostgreSql;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace BemAqui.BuildingBlocks.Jobs;
 
@@ -28,11 +29,14 @@ public static class JobsServiceCollectionExtensions
             ?? throw new InvalidOperationException("ConnectionStrings:Catalog não configurada: o storage do Hangfire fica no catálogo.");
         var options = configuration.GetSection(JobsOptions.Section).Get<JobsOptions>() ?? new JobsOptions();
 
-        services.AddHangfire(c => c
+        services.TryAddSingleton<Observability.IAlertSink, Observability.LogOnlyAlertSink>();
+        services.AddHangfire((sp, c) => c
             .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
             .UseSimpleAssemblyNameTypeSerializer()
             .UseRecommendedSerializerSettings()
-            .UsePostgreSqlStorage(o => o.UseNpgsqlConnection(catalog), new PostgreSqlStorageOptions { SchemaName = Schema, PrepareSchemaIfNecessary = true }));
+            .UsePostgreSqlStorage(o => o.UseNpgsqlConnection(catalog), new PostgreSqlStorageOptions { SchemaName = Schema, PrepareSchemaIfNecessary = true })
+            .UseFilter(new JobLogContextFilter())
+            .UseFilter(new JobFailureAlertFilter(sp.GetRequiredService<Observability.IAlertSink>(), sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<Observability.AlertOptions>>().Value)));
 
         if (options.ServerEnabled)
         {

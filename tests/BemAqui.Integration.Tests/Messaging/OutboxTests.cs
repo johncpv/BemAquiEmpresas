@@ -144,3 +144,21 @@ public class OutboxTests(PostgresFixture postgres)
         (await MessagingHarness.EffectsAsync(provider, id)).Should().Be(1);
     }
 }
+
+/// <summary>FND-12 CA 6: mensagem que vai para dead-letter gera alerta.</summary>
+[Collection(PostgresTestGroup.Name)]
+public class OutboxAlertTests(PostgresFixture postgres)
+{
+    [Fact]
+    public async Task Dead_letter_gera_alerta_com_tenant_e_tipo()
+    {
+        var alerts = new BemAqui.Integration.Tests.Observability.CapturingAlertSink();
+        await using var provider = await MessagingHarness.CreateAsync(await postgres.CreateDatabaseAsync("ob_alert"), maxAttempts: 1, alerts: alerts);
+        await MessagingHarness.PublishAsync(provider, new AlwaysFails("alerta"));
+
+        await MessagingHarness.ProcessAsync(provider);
+
+        alerts.Raised.Should().ContainSingle().Which.Should().Match<BemAqui.BuildingBlocks.Observability.Alert>(a =>
+            a.Kind == BemAqui.BuildingBlocks.Observability.AlertKinds.OutboxDeadLetter && a.Tenant == MessagingHarness.Tenant.Key && a.Summary.Contains(nameof(AlwaysFails)));
+    }
+}

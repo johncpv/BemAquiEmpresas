@@ -135,7 +135,7 @@ Ver a seção "Pontos em aberto" de cada story para o detalhe.
 28. Runner do CI e licença QuestPDF (FND-01).
 
 ## Pendências herdadas de stories concluídas
-- **FND-11 → FND-12:** ao ligar o request logging (Serilog ou HttpLogging), mascarar `Authorization`, cookies e tokens, e as propriedades com nome `password`, `secret`, `token` ou `apikey`.
+- ~~**FND-11 → FND-12:**~~ (resolvido na FND-12: cabeçalhos e corpo nunca são logados; máscara por nome de propriedade) ao ligar o request logging (Serilog ou HttpLogging), mascarar `Authorization`, cookies e tokens, e as propriedades com nome `password`, `secret`, `token` ou `apikey`.
 - **FND-11 → FND-10b:**
   - trilha separada do backup do key ring, com destino e credencial próprios;
   - `DataProtection:PreviousCertificates`, para continuar decifrando com o certificado antigo;

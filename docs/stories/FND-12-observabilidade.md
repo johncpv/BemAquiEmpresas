@@ -5,7 +5,7 @@
 | ID | FND-12 |
 | Título | Serilog com tenant/usuário/correlação, `/health`, alertas de jobs, integrações e migração |
 | Tamanho | M |
-| Status | Draft |
+| Status | Done |
 | Requisitos | PRD §6 Observabilidade (logs estruturados com tenant e usuário; health checks; alerta de falha em jobs e integrações) · PRD §6 Disponibilidade (99,5%) |
 | Dependências | FND-02 (tenant no contexto), FND-07 (jobs e dead-letter), FND-08 (e-mail de alerta), FND-11 (máscara de segredos) |
 | Bloqueia | FND-10 (monitoramento em homologação) |
@@ -112,7 +112,24 @@ Checklist do @po (Pax), 16/10/2026.
 | 16/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 
 ## Dev Agent Record
-_A preencher pelo @dev._
+- **18/10/2026, branch `feat/fnd-12-observabilidade`.** Runbook em `docs/operacao/monitoramento.md`.
+  - **Logs (`LoggingSetup`):**
+    - JSON (Compact) fora de Development, no console e num arquivo opcional;
+    - o arquivo roda por dia e por tamanho (100 MB) e guarda 30 dias;
+    - `SensitivePropertyMask` mascara pelo nome da propriedade, inclusive dentro de objetos e listas; `SecretDestructuringPolicy` mascara pelo tipo.
+  - **Contexto de cada log:**
+    - request: `TenantId`, `UserId` e `CorrelationId`, mais uma linha por request com caminho, status e tempo (o logger é o do próprio host, não o estático);
+    - Hangfire (filtro): `JobId`, `JobType` e `TenantId`;
+    - outbox: `MessageId` e `Handler`.
+  - **Health:**
+    - `/health/live`: sem dependências;
+    - `/health/ready`: catálogo, ClamAV (PING), escrita no storage e servidor do Hangfire, cada um podendo ser desligado em `Health`;
+    - os dois respondem sem detalhe por componente.
+  - **Alertas:**
+    - `IAlertSink`, implementado por `CatalogAlertSink` no módulo Platform: e-mail aos super admins (`Alerts:Recipients`), com deduplicação de 30 min por tipo e tenant em `catalog.platform_alerts`;
+    - disparam em: job que esgota as tentativas (`JobFailureAlertFilter`), dead-letter do outbox, e-mail `Failed`, migrator com falha (vai o relatório) e integração com N falhas seguidas (`IntegrationHealthTracker`, que já monitora o SMTP).
+  - **CAs:** 1 a 9 atendidos. O CA 10 (monitor externo) está documentado no runbook; a configuração do UptimeRobot é manual e fica com o PO.
+  - **Pendência herdada da FND-11 resolvida:** cabeçalhos e corpo do request não são logados.
 
 ## QA Results
 _A preencher pelo @qa._

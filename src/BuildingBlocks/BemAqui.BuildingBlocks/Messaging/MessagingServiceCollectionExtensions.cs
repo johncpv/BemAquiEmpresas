@@ -25,6 +25,7 @@ public static class MessagingServiceCollectionExtensions
 
         services.TryAddSingleton(TimeProvider.System);
         services.TryAddSingleton<OutboxSignal>();
+        services.TryAddSingleton<Observability.IAlertSink, Observability.LogOnlyAlertSink>();
         services.TryAddScoped<IEventPublisher, OutboxEventPublisher>();
         services.TryAddScoped<OutboxProcessor>();
         if (runDispatcher)
