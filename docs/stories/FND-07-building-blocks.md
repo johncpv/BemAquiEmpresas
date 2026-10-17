@@ -5,7 +5,7 @@
 | ID | FND-07 |
 | Título | Building blocks (Result/ProblemDetails, paginação, numeração, auditoria, soft delete, outbox/inbox, `TenantJob`, anexos, notificações) |
 | Tamanho | G (re-estimada: o backlog dizia M; os CAs de segurança e a ADR 0006 ampliaram o escopo) |
-| Status | In Progress (07a pronta; 07b e 07c a seguir) |
+| Status | In Progress (07a e 07b prontas; 07c a seguir) |
 | Requisitos | R-SEC-5 (auditoria) · R-COM-2 (notificações) · R-COM-3 (anexos) · R-COM-4 (numeração) · R-PRP-5 (alerta leva à ação) |
 | Dependências | FND-01, FND-11. **Pré-condição:** ADR 0006 aceita |
 | Bloqueia | FND-02, FND-03a, FND-08, FND-12, FND-09c (componente de histórico), FND-09b (sino) e todas as stories que gravam dados |
@@ -171,5 +171,23 @@ Checklist do @po (Pax), 16/10/2026.
   - **Base:** `BemAquiDbContext` (base) e `TenantDbContext` (Host), com a migration `InitialSharedAndAudit`.
   - **CAs atendidos:** 1 a 10, com testes de unidade e de integração em PostgreSQL real. O CA 4 (50 numerações em paralelo) foi estável em 10 execuções seguidas.
 
+- **Parte B (FND-07b), 17/10/2026, branch `feat/fnd-07b-outbox-jobs`:**
+  - **Outbox:**
+    - `IEventPublisher` (`OutboxEventPublisher`) grava `shared.outbox_messages` no SaveChanges do comando, na mesma transação.
+    - `OutboxProcessor` pega o lote com `FOR UPDATE SKIP LOCKED` e roda cada consumer em escopo e transação próprios, junto com `shared.inbox_messages` (PK mensagem + handler, idempotente).
+    - Backoff de 5 s × 2^(n−1), com teto de 1 h. Depois de `MaxAttempts` (10), a mensagem vai para dead-letter, sem bloquear as seguintes.
+  - **Dispatcher:** `OutboxDispatcher`, um BackgroundService único que percorre só os tenants ativos (tenant suspenso não roda) e acorda pelo `OutboxSignal` ou a cada 5 s.
+  - **Contratos:** `IIntegrationEvent` (SharedKernel) e `IIntegrationEventConsumer<T>`, com o registro em `IntegrationEventRegistry`. O nome "consumer" vem da regra de análise CA1711.
+  - **Jobs:**
+    - `TenantJob<TArgs>`: o único ponto de entrada recebe o tenantId; o job não roda para tenant suspenso ou inexistente e abre um escopo novo do tenant.
+    - `GlobalRecurringJob<TJob,TArgs>`: enfileira uma execução por tenant ativo, numa fila separada (`JobQueues`).
+    - Teste de arquitetura: todo `*Job` deriva de uma dessas duas bases.
+  - **Hangfire:** storage no catálogo (schema `hangfire`), filas `default`/`outbox`/`email`/`fiscal`/`maintenance` e 2 workers. Já está ligado no Host. O dashboard fica só no host da plataforma (FND-13).
+  - **Segurança:** o `Newtonsoft.Json` 13.0.4 foi fixado por pinagem transitiva; o Hangfire puxava a 11.0.1, que tem vulnerabilidade alta.
+  - **Pendente para a FND-02:**
+    - implementar de verdade `ITenantDirectory`, `ITenantScopeFactory` e `ITenantContext`;
+    - registrar `AddBemAquiMessaging` (com o dispatcher) no Host;
+    - mapear o endpoint de histórico de auditoria.
+  - **CAs atendidos:** 11 a 17. Os testes de SKIP LOCKED e de idempotência passaram estáveis em 10 execuções seguidas.
 ## QA Results
 _A preencher pelo @qa._

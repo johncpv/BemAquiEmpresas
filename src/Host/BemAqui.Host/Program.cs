@@ -1,3 +1,4 @@
+using BemAqui.BuildingBlocks.Jobs;
 using BemAqui.BuildingBlocks.Logging;
 using BemAqui.BuildingBlocks.Security;
 using BemAqui.Host;
@@ -26,6 +27,9 @@ try
 
     // Key ring no catálogo protegido por certificado; o Host não sobe sem ele (ADR 0007).
     builder.Services.AddBemAquiSecrets(builder.Configuration, builder.Environment);
+
+    // Jobs com storage no catálogo (schema hangfire) e filas separadas; dashboard só no host da plataforma (FND-13).
+    builder.Services.AddBemAquiJobs(builder.Configuration);
 
     foreach (var module in ModuleRegistry.All)
     {
