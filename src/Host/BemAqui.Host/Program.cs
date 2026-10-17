@@ -1,14 +1,26 @@
+using BemAqui.BuildingBlocks.Logging;
+using BemAqui.BuildingBlocks.Security;
 using BemAqui.Host;
 using BemAqui.Host.Health;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddSerilog(lc => lc
+    .ReadFrom.Configuration(builder.Configuration)
+    .Destructure.With<SecretDestructuringPolicy>()
+    .Enrich.FromLogContext()
+    .WriteTo.Console(formatProvider: System.Globalization.CultureInfo.InvariantCulture));
 
 builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
 builder.Services
     .AddHealthChecks()
     .AddCheck<PostgresHealthCheck>("catalog-db", tags: ["ready"]);
+
+// Key ring no catálogo protegido por certificado; o Host não sobe sem ele (ADR 0007).
+builder.Services.AddBemAquiSecrets(builder.Configuration, builder.Environment);
 
 foreach (var module in ModuleRegistry.All)
 {

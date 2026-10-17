@@ -4,7 +4,7 @@ using Npgsql;
 namespace BemAqui.Host.Health;
 
 /// <summary>Prontidão: abre conexão com o banco de catálogo e executa <c>SELECT 1</c>.</summary>
-internal sealed class PostgresHealthCheck(IConfiguration configuration) : IHealthCheck
+public sealed class PostgresHealthCheck(IConfiguration configuration) : IHealthCheck
 {
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
