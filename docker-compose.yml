@@ -1,4 +1,4 @@
-# Ambiente LOCAL de desenvolvimento. Produção/homologação: deploy/ (FND-10a).
+# Ambiente LOCAL de desenvolvimento. Homologação e produção ficam em deploy/ (FND-10a).
 name: bemaqui-empresas-dev
 
 services:
@@ -19,5 +19,15 @@ services:
       timeout: 3s
       retries: 10
 
+  # Antivírus dos anexos (FND-07c). Na primeira subida, carregar as assinaturas leva de 1 a 2 minutos.
+  clamav:
+    image: clamav/clamav:1.4
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3310:3310" # só na máquina local
+    volumes:
+      - clamdb:/var/lib/clamav
+
 volumes:
   pgdata:
+  clamdb:

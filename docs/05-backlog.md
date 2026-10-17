@@ -22,7 +22,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md), com critérios de ac
 - Requisitos: R-PLT-1, PRD §6 (Segurança).
 - CA: key ring protegido por certificado e com cópia offline; propósito por tenant e por tipo de segredo; segredos write-only e nunca logados; backup da chave em trilha separada (ADR 0007).
 
-**FND-07 [ ] Building blocks (G)** — [story](stories/FND-07-building-blocks.md)
+**FND-07 [x] Building blocks (G)** — [story](stories/FND-07-building-blocks.md)
 - Requisitos: R-SEC-5, R-COM-2, R-COM-3, R-COM-4, R-PRP-5.
 - CA: diff gravado na mesma transação, `audit_log` só INSERT, PII mascarada e segredos omitidos; outbox transacional com retry, dead-letter e inbox idempotente; numeração sem duplicidade com 50 chamadas paralelas; anexos com allowlist, magic bytes, ClamAV e permissão do documento dono; job de tenant suspenso não roda.
 
