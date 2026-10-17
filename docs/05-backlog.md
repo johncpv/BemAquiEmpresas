@@ -47,8 +47,8 @@ Regra: não comece uma fase sem a anterior concluída, exceto quando indicado.
 **FND-14 [ ] Ajuda contextual e Dica (M)** — Requisitos: AJD-1, AJD-2, AJD-3, AJD-4, AJD-6, AJD-7. Catálogo de ajudas em Markdown embutido no assembly, endpoints `/ajuda` (índice filtrado por permissão) e `/ajuda/{chave}`, painel lateral, abertura na primeira visita (registrada no perfil), componente `<Dica>`.
 - CA: toda rota do front tem ajuda (o teste falha se faltar); a ajuda de um módulo sem permissão não aparece no índice; a primeira visita abre a ajuda uma vez por usuário e por tela, em qualquer dispositivo.
 
-**FND-15 [ ] Pergunte ao BemAqui (M)** — Requisitos: AJD-5, AJD-8. Busca das seções relevantes, resposta da IA restrita aos trechos com citação obrigatória, fallback por regra, `IAiProvider` configurável na plataforma, registro de uso e custo por tenant.
-- CA: a resposta sempre cita a seção usada; sem IA ou com citação inválida, devolve os trechos encontrados; teste prova que nenhum dado de negócio do tenant entra no prompt; chave de IA nunca aparece em log.
+**FND-15 [ ] Pergunte ao BemAqui (M)** — Requisitos: AJD-5, AJD-8. Busca das seções relevantes, resposta da IA restrita aos trechos com citação obrigatória, fallback por regra, tela de configuração do provedor de IA (provedor, modelo, chave, "Testar conexão"), `IAiProvider` com adaptadores Claude, Gemini e OpenAI, registro de uso por tenant.
+- CA: a resposta sempre cita a seção usada; sem provedor configurado, sem IA ou com citação inválida, devolve os trechos encontrados; trocar de provedor na tela vale na próxima pergunta, sem deploy; a chave nunca volta na API nem aparece em log; teste prova que nenhum dado de negócio do tenant entra no prompt.
 
 **FND-10 [ ] Deploy (M)** — Compose de produção em `/opt/projetos/bemaqui-empresas/` na VPS compartilhada, vhost `app.konebras.com.br` no `stack-nginx` + certbot (ADR 0004), Dolibarr movido para `adm.konebras.com.br`, CI/CD por SSH, backup diário por banco, health check.
 - CA: push na main publica em homolog; tag publica em prod; restauração de backup de um tenant testada e documentada.

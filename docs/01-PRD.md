@@ -283,7 +283,7 @@ Mecanismo igual ao do NSHome (`D:\GIT\NSHome`): **ajuda contextual** por tela, *
 | AJD-5 | **"Pergunte ao BemAqui":** o usuário pergunta em linguagem natural e o sistema busca as seções de ajuda mais próximas (priorizando a tela atual) e pede à IA uma resposta **só com elas**, sempre citando a fonte (link para a seção). Sem IA disponível ou sem citação válida, devolve os trechos encontrados. Nunca envia dado de negócio do tenant à IA; só textos de ajuda | M |
 | AJD-6 | A ajuda respeita o acesso: o usuário só vê, e a IA só usa, ajudas dos módulos liberados e habilitados para ele | M |
 | AJD-7 | **Cobertura obrigatória:** um teste automatizado falha se alguma rota do front não tiver ajuda. Mudou a tela, muda a ajuda no mesmo commit | M |
-| AJD-8 | Provedor de IA atrás de uma interface (`IAiProvider`), com chave e modelo configurados pela plataforma, nunca em código ou log; uso e custo registrados por tenant | M |
+| AJD-8 | **Provedor de IA configurável em tela** (Configurações → Inteligência artificial, permissão `settings.edit`): provedor (Anthropic Claude, Google Gemini, OpenAI, …), modelo, chave de API (cifrada por tenant, write-only, nunca em código ou log) e botão "Testar conexão". Sem configuração, o "Pergunte ao BemAqui" funciona só por busca (trechos). Implementação atrás de `IAiProvider`, com um adaptador por provedor; uso registrado por tenant | M |
 
 **Princípio propositivo (vale para todo módulo):** o sistema antecipa o próximo passo e evita ação desnecessária.
 
