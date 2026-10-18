@@ -106,7 +106,7 @@ public static class CliCommand
 
         var host = services.GetRequiredService<Microsoft.Extensions.Options.IOptions<BemAqui.Host.Tenancy.PlatformHostOptions>>().Value.Host;
         await output.WriteLineAsync("Super admin criado. Abra o link abaixo para definir a senha (vale até " + result.Value.ExpiresAt.ToString("u", System.Globalization.CultureInfo.InvariantCulture) + " e não aparece de novo):");
-        await output.WriteLineAsync("https://" + host + "/definir-senha?token=" + Uri.EscapeDataString(result.Value.SetPasswordToken));
+        await output.WriteLineAsync("https://" + host + "/plataforma/definir-senha?token=" + Uri.EscapeDataString(result.Value.SetPasswordToken));
         await output.WriteLineAsync("No primeiro login, a configuração do 2FA é obrigatória.");
         return 0;
     }

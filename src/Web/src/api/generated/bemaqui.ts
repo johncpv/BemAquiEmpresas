@@ -41,25 +41,36 @@ import type {
   InviteTokenRequest,
   InviteUserRequest,
   ListMyNotificationsParams,
+  ListTenantsParams,
   LoginRequest,
   LoginResponse,
   MessageResponse,
+  ModuleRelease,
   ModuleSummary,
   MyPermissionsResponse,
   NotificationPage,
   PagedListOfAuditEntryDto,
+  PagedListOfTenantRow,
   PlatformChallengeRequest,
+  PlatformChallengeResponse,
   PlatformConfirmRequest,
+  PlatformCurrentAdmin,
   PlatformLoginRequest,
+  PlatformRecoveryCodesResponse,
   PlatformSetPasswordRequest,
+  PlatformTotpSetup,
   PlatformVerifyRequest,
   PreferencesDto,
+  ProvisionAccepted,
+  ProvisionTenantRequest,
   ResetPasswordRequest,
   SaveGroupRequest,
   SaveModuleReleaseRequest,
   SecuritySettingsDto,
   SetGroupMembersRequest,
   SetUserGroupsRequest,
+  SuspendTenantRequest,
+  TenantDetail,
   TenantPublicContext,
   TotpSetup,
   TwoFactorActivatedResponse,
@@ -1214,7 +1225,7 @@ export const getPlatformLoginUrl = () => {
   return `/api/v1/platform/auth/login`
 }
 
-export const platformLogin = async (platformLoginRequest: PlatformLoginRequest, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+export const platformLogin = async (platformLoginRequest: PlatformLoginRequest, options?: Parameters<typeof apiFetch>[1]): Promise<PlatformChallengeResponse> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -1230,7 +1241,7 @@ export const platformLogin = async (platformLoginRequest: PlatformLoginRequest, 
     }
     return headers;
   };
-return apiFetch<void>(getPlatformLoginUrl(),
+return apiFetch<PlatformChallengeResponse>(getPlatformLoginUrl(),
   {
     ...options,
     method: 'POST',
@@ -1378,7 +1389,7 @@ export const getPlatformBeginTwoFactorSetupUrl = () => {
   return `/api/v1/platform/auth/2fa/setup`
 }
 
-export const platformBeginTwoFactorSetup = async (platformChallengeRequest: PlatformChallengeRequest, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+export const platformBeginTwoFactorSetup = async (platformChallengeRequest: PlatformChallengeRequest, options?: Parameters<typeof apiFetch>[1]): Promise<PlatformTotpSetup> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -1394,7 +1405,7 @@ export const platformBeginTwoFactorSetup = async (platformChallengeRequest: Plat
     }
     return headers;
   };
-return apiFetch<void>(getPlatformBeginTwoFactorSetupUrl(),
+return apiFetch<PlatformTotpSetup>(getPlatformBeginTwoFactorSetupUrl(),
   {
     ...options,
     method: 'POST',
@@ -1460,7 +1471,7 @@ export const getPlatformConfirmTwoFactorSetupUrl = () => {
   return `/api/v1/platform/auth/2fa/confirm`
 }
 
-export const platformConfirmTwoFactorSetup = async (platformConfirmRequest: PlatformConfirmRequest, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+export const platformConfirmTwoFactorSetup = async (platformConfirmRequest: PlatformConfirmRequest, options?: Parameters<typeof apiFetch>[1]): Promise<PlatformRecoveryCodesResponse> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -1476,7 +1487,7 @@ export const platformConfirmTwoFactorSetup = async (platformConfirmRequest: Plat
     }
     return headers;
   };
-return apiFetch<void>(getPlatformConfirmTwoFactorSetupUrl(),
+return apiFetch<PlatformRecoveryCodesResponse>(getPlatformConfirmTwoFactorSetupUrl(),
   {
     ...options,
     method: 'POST',
@@ -1692,9 +1703,9 @@ export const getGetPlatformCurrentAdminUrl = () => {
   return `/api/v1/platform/me`
 }
 
-export const getPlatformCurrentAdmin = async ( options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+export const getPlatformCurrentAdmin = async ( options?: Parameters<typeof apiFetch>[1]): Promise<PlatformCurrentAdmin> => {
 
-  return apiFetch<void>(getGetPlatformCurrentAdminUrl(),
+  return apiFetch<PlatformCurrentAdmin>(getGetPlatformCurrentAdminUrl(),
   {
     ...options,
     method: 'GET'
@@ -1787,9 +1798,9 @@ export const getGetTenantModulesUrl = (tenantId: string,) => {
   return `/api/v1/platform/tenants/${tenantId}/modules`
 }
 
-export const getTenantModules = async (tenantId: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+export const getTenantModules = async (tenantId: string, options?: Parameters<typeof apiFetch>[1]): Promise<ModuleRelease[]> => {
 
-  return apiFetch<void>(getGetTenantModulesUrl(tenantId),
+  return apiFetch<ModuleRelease[]>(getGetTenantModulesUrl(tenantId),
   {
     ...options,
     method: 'GET'
@@ -1955,6 +1966,599 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getSaveTenantModulesMutationOptions(options), queryClient);
+    }
+
+export const getListPlansUrl = () => {
+
+
+
+
+  return `/api/v1/platform/plans`
+}
+
+export const listPlans = async ( options?: Parameters<typeof apiFetch>[1]): Promise<string[]> => {
+
+  return apiFetch<string[]>(getListPlansUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListPlansQueryKey = () => {
+    return [
+    `/api/v1/platform/plans`
+    ] as const;
+    }
+
+
+export const getListPlansQueryOptions = <TData = Awaited<ReturnType<typeof listPlans>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPlans>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListPlansQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPlans>>> = ({ signal }) => listPlans({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPlans>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListPlansQueryResult = NonNullable<Awaited<ReturnType<typeof listPlans>>>
+export type ListPlansQueryError = unknown
+
+
+export function useListPlans<TData = Awaited<ReturnType<typeof listPlans>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPlans>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPlans>>,
+          TError,
+          Awaited<ReturnType<typeof listPlans>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPlans<TData = Awaited<ReturnType<typeof listPlans>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPlans>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPlans>>,
+          TError,
+          Awaited<ReturnType<typeof listPlans>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPlans<TData = Awaited<ReturnType<typeof listPlans>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPlans>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListPlans<TData = Awaited<ReturnType<typeof listPlans>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPlans>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListPlansQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListTenantsUrl = (params?: ListTenantsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/platform/tenants?${stringifiedParams}` : `/api/v1/platform/tenants`
+}
+
+export const listTenants = async (params?: ListTenantsParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfTenantRow> => {
+
+  return apiFetch<PagedListOfTenantRow>(getListTenantsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListTenantsQueryKey = (params?: ListTenantsParams,) => {
+    return [
+    `/api/v1/platform/tenants`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListTenantsQueryOptions = <TData = Awaited<ReturnType<typeof listTenants>>, TError = unknown>(params?: ListTenantsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTenants>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListTenantsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listTenants>>> = ({ signal }) => listTenants(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listTenants>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListTenantsQueryResult = NonNullable<Awaited<ReturnType<typeof listTenants>>>
+export type ListTenantsQueryError = unknown
+
+
+export function useListTenants<TData = Awaited<ReturnType<typeof listTenants>>, TError = unknown>(
+ params: undefined |  ListTenantsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTenants>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listTenants>>,
+          TError,
+          Awaited<ReturnType<typeof listTenants>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListTenants<TData = Awaited<ReturnType<typeof listTenants>>, TError = unknown>(
+ params?: ListTenantsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTenants>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listTenants>>,
+          TError,
+          Awaited<ReturnType<typeof listTenants>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListTenants<TData = Awaited<ReturnType<typeof listTenants>>, TError = unknown>(
+ params?: ListTenantsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTenants>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListTenants<TData = Awaited<ReturnType<typeof listTenants>>, TError = unknown>(
+ params?: ListTenantsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTenants>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListTenantsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getProvisionTenantUrl = () => {
+
+
+
+
+  return `/api/v1/platform/tenants`
+}
+
+export const provisionTenant = async (provisionTenantRequest: ProvisionTenantRequest, options?: Parameters<typeof apiFetch>[1]): Promise<ProvisionAccepted> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ProvisionAccepted>(getProvisionTenantUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(provisionTenantRequest)
+  }
+);}
+
+
+
+
+
+export const getProvisionTenantMutationKey = () => ['provisionTenant'] as const;
+
+export const getProvisionTenantMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof provisionTenant>>, TError,ProvisionTenantMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof provisionTenant>>, TError,ProvisionTenantMutationVariables, TContext> => {
+
+const mutationKey = getProvisionTenantMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof provisionTenant>>, ProvisionTenantMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  provisionTenant(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ProvisionTenantMutationResult = NonNullable<Awaited<ReturnType<typeof provisionTenant>>>
+    export type ProvisionTenantMutationBody = ProvisionTenantRequest
+    export type ProvisionTenantMutationError = unknown
+    export type ProvisionTenantMutationVariables = {data: ProvisionTenantRequest}
+
+    export const useProvisionTenant = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof provisionTenant>>, TError,ProvisionTenantMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof provisionTenant>>,
+        TError,
+        ProvisionTenantMutationVariables,
+        TContext
+      > => {
+      return useMutation(getProvisionTenantMutationOptions(options), queryClient);
+    }
+
+export const getGetTenantUrl = (key: string,) => {
+
+
+
+
+  return `/api/v1/platform/tenants/${key}`
+}
+
+export const getTenant = async (key: string, options?: Parameters<typeof apiFetch>[1]): Promise<TenantDetail> => {
+
+  return apiFetch<TenantDetail>(getGetTenantUrl(key),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTenantQueryKey = (key: string,) => {
+    return [
+    `/api/v1/platform/tenants/${key}`
+    ] as const;
+    }
+
+
+export const getGetTenantQueryOptions = <TData = Awaited<ReturnType<typeof getTenant>>, TError = unknown>(key: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTenant>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTenantQueryKey(key);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTenant>>> = ({ signal }) => getTenant(key, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: key !== null && key !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTenant>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetTenantQueryResult = NonNullable<Awaited<ReturnType<typeof getTenant>>>
+export type GetTenantQueryError = unknown
+
+
+export function useGetTenant<TData = Awaited<ReturnType<typeof getTenant>>, TError = unknown>(
+ key: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTenant>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTenant>>,
+          TError,
+          Awaited<ReturnType<typeof getTenant>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTenant<TData = Awaited<ReturnType<typeof getTenant>>, TError = unknown>(
+ key: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTenant>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTenant>>,
+          TError,
+          Awaited<ReturnType<typeof getTenant>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTenant<TData = Awaited<ReturnType<typeof getTenant>>, TError = unknown>(
+ key: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTenant>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetTenant<TData = Awaited<ReturnType<typeof getTenant>>, TError = unknown>(
+ key: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTenant>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetTenantQueryOptions(key,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getResumeTenantProvisioningUrl = (key: string,) => {
+
+
+
+
+  return `/api/v1/platform/tenants/${key}/resume`
+}
+
+export const resumeTenantProvisioning = async (key: string, options?: Parameters<typeof apiFetch>[1]): Promise<ProvisionAccepted> => {
+
+  return apiFetch<ProvisionAccepted>(getResumeTenantProvisioningUrl(key),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getResumeTenantProvisioningMutationKey = () => ['resumeTenantProvisioning'] as const;
+
+export const getResumeTenantProvisioningMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resumeTenantProvisioning>>, TError,ResumeTenantProvisioningMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof resumeTenantProvisioning>>, TError,ResumeTenantProvisioningMutationVariables, TContext> => {
+
+const mutationKey = getResumeTenantProvisioningMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof resumeTenantProvisioning>>, ResumeTenantProvisioningMutationVariables> = (props) => {
+          const {key} = props ?? {};
+
+          return  resumeTenantProvisioning(key,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ResumeTenantProvisioningMutationResult = NonNullable<Awaited<ReturnType<typeof resumeTenantProvisioning>>>
+
+    export type ResumeTenantProvisioningMutationError = unknown
+    export type ResumeTenantProvisioningMutationVariables = {key: string}
+
+    export const useResumeTenantProvisioning = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resumeTenantProvisioning>>, TError,ResumeTenantProvisioningMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof resumeTenantProvisioning>>,
+        TError,
+        ResumeTenantProvisioningMutationVariables,
+        TContext
+      > => {
+      return useMutation(getResumeTenantProvisioningMutationOptions(options), queryClient);
+    }
+
+export const getSuspendTenantUrl = (key: string,) => {
+
+
+
+
+  return `/api/v1/platform/tenants/${key}/suspend`
+}
+
+export const suspendTenant = async (key: string,
+    suspendTenantRequest: SuspendTenantRequest, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<void>(getSuspendTenantUrl(key),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(suspendTenantRequest)
+  }
+);}
+
+
+
+
+
+export const getSuspendTenantMutationKey = () => ['suspendTenant'] as const;
+
+export const getSuspendTenantMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof suspendTenant>>, TError,SuspendTenantMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof suspendTenant>>, TError,SuspendTenantMutationVariables, TContext> => {
+
+const mutationKey = getSuspendTenantMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof suspendTenant>>, SuspendTenantMutationVariables> = (props) => {
+          const {key,data} = props ?? {};
+
+          return  suspendTenant(key,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SuspendTenantMutationResult = NonNullable<Awaited<ReturnType<typeof suspendTenant>>>
+    export type SuspendTenantMutationBody = SuspendTenantRequest
+    export type SuspendTenantMutationError = unknown
+    export type SuspendTenantMutationVariables = {key: string;data: SuspendTenantRequest}
+
+    export const useSuspendTenant = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof suspendTenant>>, TError,SuspendTenantMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof suspendTenant>>,
+        TError,
+        SuspendTenantMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSuspendTenantMutationOptions(options), queryClient);
+    }
+
+export const getReactivateTenantUrl = (key: string,) => {
+
+
+
+
+  return `/api/v1/platform/tenants/${key}/reactivate`
+}
+
+export const reactivateTenant = async (key: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getReactivateTenantUrl(key),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getReactivateTenantMutationKey = () => ['reactivateTenant'] as const;
+
+export const getReactivateTenantMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reactivateTenant>>, TError,ReactivateTenantMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reactivateTenant>>, TError,ReactivateTenantMutationVariables, TContext> => {
+
+const mutationKey = getReactivateTenantMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reactivateTenant>>, ReactivateTenantMutationVariables> = (props) => {
+          const {key} = props ?? {};
+
+          return  reactivateTenant(key,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReactivateTenantMutationResult = NonNullable<Awaited<ReturnType<typeof reactivateTenant>>>
+
+    export type ReactivateTenantMutationError = unknown
+    export type ReactivateTenantMutationVariables = {key: string}
+
+    export const useReactivateTenant = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reactivateTenant>>, TError,ReactivateTenantMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reactivateTenant>>,
+        TError,
+        ReactivateTenantMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReactivateTenantMutationOptions(options), queryClient);
     }
 
 export const getLoginUrl = () => {

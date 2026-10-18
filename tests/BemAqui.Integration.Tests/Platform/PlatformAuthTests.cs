@@ -59,8 +59,8 @@ public partial class PlatformAuthTests(TenancyFixture tenancy) : IClassFixture<T
         var email = NewEmail();
         var output = new StringWriter();
         (await RunCliAsync(output, "platform-admin", "create", "--email", email)).Should().Be(0, output.ToString());
-        var link = output.ToString().Split('\n').Single(l => l.Contains("/definir-senha?token=", StringComparison.Ordinal)).Trim();
-        link.Should().StartWith("https://" + PlatformHost + "/definir-senha?token=");
+        var link = output.ToString().Split('\n').Single(l => l.Contains("/plataforma/definir-senha?token=", StringComparison.Ordinal)).Trim();
+        link.Should().StartWith("https://" + PlatformHost + "/plataforma/definir-senha?token=");
         var token = Uri.UnescapeDataString(link[(link.IndexOf("token=", StringComparison.Ordinal) + 6)..]);
 
         (await Client().PostAsJsonAsync("/api/v1/platform/auth/set-password", new { token, password = Password })).StatusCode.Should().Be(HttpStatusCode.NoContent);

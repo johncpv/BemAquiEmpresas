@@ -54,7 +54,7 @@ Não existe cadastro de super admin por rota pública (FND-13, ADR 0012). Para c
 docker compose run --rm api platform-admin create --email voce@bemaquiapp.com.br
 ```
 
-- A saída mostra, uma única vez, o link `https://plataforma.bemaquiapp.com.br/definir-senha?token=...`, válido por 24 h. Não cole esse link em chat nem em ticket.
+- A saída mostra, uma única vez, o link `https://plataforma.bemaquiapp.com.br/plataforma/definir-senha?token=...`, válido por 24 h. Não cole esse link em chat nem em ticket.
 - Abra o link e defina a senha, com as mesmas regras dos usuários: 12 caracteres ou mais.
 - No primeiro login, a configuração do 2FA é obrigatória. Guarde os 10 códigos de recuperação fora do computador.
 - Se o link expirar antes do uso, rode o mesmo comando de novo: um link novo é gerado e o anterior deixa de valer. Depois que a senha foi definida, o comando recusa o mesmo e-mail.

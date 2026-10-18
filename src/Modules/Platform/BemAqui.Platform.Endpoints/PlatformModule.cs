@@ -32,6 +32,7 @@ public sealed class PlatformModule : IModule
 
         endpoints.MapPlatformAuthEndpoints();
         endpoints.MapTenantModuleEndpoints();
+        endpoints.MapPlatformTenantEndpoints();
     }
 }
 

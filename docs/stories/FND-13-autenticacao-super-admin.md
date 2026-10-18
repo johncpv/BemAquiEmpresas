@@ -5,7 +5,7 @@
 | ID | FND-13 |
 | Título | Login do super admin em `plataforma.bemaquiapp.com.br`, 2FA obrigatório, allowlist de IP e painel Hangfire protegido |
 | Tamanho | M |
-| Status | In Progress (API pronta; telas depois da FND-09a/b/c) |
+| Status | Done |
 | Requisitos | R-PLT-4 (acesso ao painel da plataforma) · PRD §6 Segurança |
 | Dependências | FND-02 (host da plataforma fora de `tenant_domains`), FND-04 (mecanismo de sessão), FND-05 (TOTP), FND-11, FND-12 |
 | Bloqueia | FND-03b, FND-06 (tela de liberação de módulos), FND-10 (vhost da plataforma) |
@@ -129,6 +129,14 @@ Checklist do @po (Pax), 16/10/2026.
   - **Anti-CSRF:** todo POST em `/api/v1/platform` exige `Origin` e `X-CSRF: 1`.
   - **Testes:** 8 de integração.
   - **Pendente:** telas Entrar, Definir senha e 2FA da superfície Plataforma, depois da FND-09a/b/c; E2E.
+
+- **Telas (FND-13), 18/10/2026, branch `feat/fnd-03b-plataforma`.**
+  - `/plataforma/entrar`: senha e, em seguida, a configuração do 2FA no primeiro acesso, ou o desafio nos seguintes.
+  - `/plataforma/definir-senha`: o link da CLI.
+  - Layout próprio (Tenants, Jobs e Sair).
+  - O mutator trata o 401 da plataforma levando ao login dela.
+  - Caminhos sob `/plataforma` (adendo da ADR 0012).
+  - Ajuda: `plataforma-entrar.md`, `plataforma-tenants.md` e `plataforma-tenant.md`.
 
 ## QA Results
 _A preencher pelo @qa._

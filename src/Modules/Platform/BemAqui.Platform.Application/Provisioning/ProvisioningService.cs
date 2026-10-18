@@ -116,6 +116,7 @@ public sealed partial class ProvisioningService(
         var tenant = Tenant.Create(id, request.Key, request.LegalName, database,
             protector.Protect(SecretScope.ForTenant(id), SecretKind.TenantConnection, new Secret(connection)), clock.GetUtcNow());
         tenant.Document = request.Document;
+        tenant.TradeName = string.IsNullOrWhiteSpace(request.TradeName) ? null : request.TradeName.Trim();
         tenant.PlanId = await catalog.EnsurePlanAsync(request.Plan, cancellationToken);
         tenant.Domains.Add(new TenantDomain { TenantId = id, Host = host, IsPrimary = true });
         await catalog.AddTenantAsync(tenant, cancellationToken);

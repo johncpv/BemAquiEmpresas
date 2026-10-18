@@ -33,12 +33,14 @@ function refreshSession(): Promise<boolean> {
   return refreshing
 }
 
-/** Sem sessão: vai para o login guardando a rota para voltar depois. */
-export function redirectToLogin(): void {
+/** Sem sessão: vai para o login (do tenant ou da plataforma) guardando a rota para voltar depois. */
+export function redirectToLogin(login = '/entrar'): void {
   setAccessToken(null)
   const back = window.location.pathname + window.location.search
-  if (!window.location.pathname.startsWith('/entrar')) window.location.assign('/entrar?volta=' + encodeURIComponent(back))
+  if (!window.location.pathname.startsWith(login)) window.location.assign(login + '?volta=' + encodeURIComponent(back))
 }
+
+const PLATFORM = '/api/v1/platform/'
 
 async function send(url: string, options: RequestInit): Promise<Response> {
   const headers = new Headers(options.headers)
@@ -54,7 +56,10 @@ async function send(url: string, options: RequestInit): Promise<Response> {
  */
 export async function apiFetch<T>(url: string, options: RequestInit = {}): Promise<T> {
   let response = await send(url, options)
-  if (response.status === 401 && !url.startsWith('/api/v1/auth/')) {
+  // Plataforma (FND-13): a sessão é o cookie do super admin, sem refresh; 401 leva ao login da plataforma.
+  if (response.status === 401 && url.startsWith(PLATFORM) && !url.startsWith(PLATFORM + 'auth/')) {
+    redirectToLogin('/plataforma/entrar')
+  } else if (response.status === 401 && !url.startsWith('/api/v1/auth/') && !url.startsWith(PLATFORM)) {
     if (await refreshSession()) {
       response = await send(url, options)
     }

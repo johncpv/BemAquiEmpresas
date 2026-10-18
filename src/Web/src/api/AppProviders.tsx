@@ -20,7 +20,7 @@ function SessionBridge({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Retoma a sessão pelo cookie de refresh (HttpOnly) ao abrir o app; sem cookie, segue sem sessão.
-    if (!getAccessToken()) refreshSession().then((r) => setAccessToken(r.accessToken), () => {})
+    if (!getAccessToken() && !window.location.pathname.startsWith('/plataforma')) refreshSession().then((r) => setAccessToken(r.accessToken), () => {})
   }, [])
 
   useEffect(() => {

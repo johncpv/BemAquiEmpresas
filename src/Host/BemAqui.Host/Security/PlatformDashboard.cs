@@ -12,7 +12,7 @@ namespace BemAqui.Host.Security;
 public static class PlatformDashboard
 {
     public const string Path = "/hangfire";
-    public const string LoginPath = "/entrar";
+    public const string LoginPath = "/plataforma/entrar";
 
     public static WebApplication UsePlatformDashboard(this WebApplication app)
     {
