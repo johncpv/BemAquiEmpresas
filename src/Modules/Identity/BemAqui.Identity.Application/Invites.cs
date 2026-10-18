@@ -145,6 +145,25 @@ public sealed class Invites(IIdentityDb db, IPasswordHasher<User> hasher, IEmail
         return true;
     }
 
+    /// <summary>
+    /// Link do convite pendente do proprietário sem passar pelo e-mail (CLI <c>tenant invite-owner</c>, para quando o SMTP
+    /// ainda não existe). Gera um token novo: o link anterior, inclusive o do e-mail, deixa de valer. O token não é guardado.
+    /// </summary>
+    public async Task<(string Email, string Link, DateTimeOffset ExpiresAt)?> IssueOwnerLinkAsync(CancellationToken cancellationToken = default)
+    {
+        var invite = await db.UserInvites.Where(i => i.IsOwner && i.AcceptedAt == null && i.CanceledAt == null).OrderByDescending(i => i.CreatedAt).FirstOrDefaultAsync(cancellationToken);
+        if (invite is null)
+        {
+            return null;
+        }
+
+        var token = OpaqueToken.New();
+        invite.TokenHash = OpaqueToken.Hash(token);
+        invite.ExpiresAt = clock.GetUtcNow() + UserInvite.Lifetime;
+        await db.SaveChangesAsync(cancellationToken);
+        return (invite.Email, links.Absolute("/convite?token=" + Uri.EscapeDataString(token)), invite.ExpiresAt);
+    }
+
     private async Task<(UserInvite? Invite, User? User)> FindAsync(string token, CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(token))
