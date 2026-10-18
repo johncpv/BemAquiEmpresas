@@ -5,6 +5,7 @@ Para quem opera a VPS. Este runbook prepara a homologação **uma vez**; depois 
 Regras que valem em toda a operação:
 - **VPS compartilhada:** não mexa nos containers, volumes e vhosts dos outros projetos (`bemaqui-atende`, `konebras`, `nshome`…). `app.konebras.com.br` continua com o Dolibarr até a GOL-01.
 - **nginx:** `docker exec stack-nginx nginx -t` **antes** de todo `nginx -s reload`. Se o teste falhar, desfaça a cópia e não recarregue.
+- **Nomes únicos:** na `stack_stack`, `postgres`, `redis`, `api` e `web` já são apelidos de outros projetos. Por isso a API e a web se chamam `bqe-homolog-api` e `bqe-homolog-web`, e o banco e o ClamAV são acessados pelo nome do container (`bqe-homolog-postgres`, `bqe-homolog-clamav`). Nunca use host genérico numa connection string.
 - **Segredos:** nunca entram no repositório, em chat, em ticket ou em variável de ambiente. Cada um é um arquivo em `secrets/`, com chmod 0400.
 
 ## O que o PO providencia antes
@@ -38,8 +39,8 @@ O dono de cada arquivo precisa ser o uid do container que o lê: api e migrator 
 |---|---|---|
 | `pg-superuser-password` | senha do superuser `postgres` | 70 |
 | `pg-catalog-password` / `pg-provisioner-password` | senhas dos roles `bemaqui_catalog` e `bemaqui_provisioner` | 70 |
-| `catalog-connection` | `Host=postgres;Database=catalog;Username=bemaqui_catalog;Password=…` | 1654 |
-| `provisioner-connection` | `Host=postgres;Database=postgres;Username=bemaqui_provisioner;Password=…` | 1654 |
+| `catalog-connection` | `Host=bqe-homolog-postgres;Database=catalog;Username=bemaqui_catalog;Password=…` | 1654 |
+| `provisioner-connection` | `Host=bqe-homolog-postgres;Database=postgres;Username=bemaqui_provisioner;Password=…` | 1654 |
 | `auth-signing-key` | `openssl rand -base64 48` | 1654 |
 | `smtp-password` | senha do SMTP | 1654 |
 | `dp-cert.pfx` / `dp-cert-password` | certificado do key ring e a senha dele | 1654 |
@@ -58,7 +59,7 @@ docker compose up -d postgres clamav            # cria os roles e o banco catalo
 ALLOW_KEY_RING_CREATION=true docker compose run --rm migrator   # só nesta vez: cria o key ring ("Key ring do Data Protection pronto")
 docker compose run --rm migrator tenant provision --key konebras --legal-name "WSP Equipamentos por Elevação Ltda" \
   --document 47.225.005/0001-86 --host homolog.konebras.com.br --owner-email <e-mail do PO> --plan Piloto
-docker compose up -d --no-deps --wait api web
+docker compose up -d --no-deps --wait bqe-homolog-api bqe-homolog-web
 docker compose run --rm migrator platform-admin create --email <e-mail do super admin>   # link aparece uma vez
 ```
 
@@ -95,6 +96,6 @@ Rode uma vez à mão (`./backup-cron.sh daily`) e liste o bucket. Depois, **tent
 ## Voltar uma versão à mão
 ```bash
 cd /opt/projetos/bemaqui-empresas-homolog
-sed -i 's/^IMAGE_TAG=.*/IMAGE_TAG=<sha anterior>/' .env && docker compose up -d --no-deps --wait api web
+sed -i 's/^IMAGE_TAG=.*/IMAGE_TAG=<sha anterior>/' .env && docker compose up -d --no-deps --wait bqe-homolog-api bqe-homolog-web
 ```
 As migrations seguem o padrão expand/contract, então a versão anterior aceita o schema mais novo.

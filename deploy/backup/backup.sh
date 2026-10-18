@@ -10,7 +10,7 @@ set -o pipefail
 MODE="${1:-daily}"
 SECRETS="${SECRETS_DIR:-/run/secrets}"
 : "${BACKUP_ENV:?defina BACKUP_ENV (ex.: homolog)}"
-export PGHOST="${PGHOST:-postgres}" PGUSER="${PGUSER:-postgres}" PGDATABASE=postgres
+export PGHOST="${PGHOST:-bqe-homolog-postgres}" PGUSER="${PGUSER:-postgres}" PGDATABASE=postgres
 PGPASSWORD="$(cat "$SECRETS/backup-pg-password")"
 export PGPASSWORD
 RECIPIENTS="$SECRETS/backup-age-recipients"

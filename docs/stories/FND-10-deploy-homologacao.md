@@ -139,4 +139,26 @@ Checklist do @po (Pax), 16/10/2026.
 _A preencher pelo @dev._
 
 ## QA Results
+_A preencher pelo @qa.**FND-10b (em andamento desde 18/10/2026)**
+
+Feito:
+- DNS dos dois hosts, criado pelo PO e conferido.
+- Diretório `/opt/projetos/bemaqui-empresas-homolog` e secrets gerados na VPS. O certificado do key ring e a chave `age` foram gerados na estação do PO; as cópias offline vão para o cofre.
+- Key ring criado; api e web saudáveis.
+- Vhost instalado com `nginx -t` antes de cada reload.
+- Certificados Let's Encrypt dos dois hosts, que entram na renovação automática que já existe.
+- Fumaça externa: `/health/ready` 200, front, HTTPS e redirecionamento; `app.konebras.com.br` continua no Dolibarr.
+- Correção no primeiro deploy: a API resolveu `postgres` para o banco de outro projeto na `stack_stack`. A senha foi recusada e nada vazou. Desde então os nomes são únicos, a regra está no `check-compose.mjs` e na ADR 0015.
+- Painel da plataforma **aberto para qualquer IP**, a pedido do PO, até a lista de IPs ser definida.
+
+Pendente:
+- SMTP, e depois disso o provisionamento do tenant Konebras (o convite do proprietário sai por e-mail).
+- Super admin da plataforma: o PO roda `platform-admin create` pelo SSH, porque o link aparece uma única vez.
+- Buckets, cron do backup e prova do CA 12.
+- Pipeline automático: token de leitura do GHCR na VPS, chave de deploy, secrets do environment e `HOMOLOG_DEPLOY`.
+- Monitor UptimeRobot (CA 16).
+- Exercício de restauração com o backup real.
+- Fechar a allowlist da plataforma.
+
+## QA Results
 _A preencher pelo @qa._
