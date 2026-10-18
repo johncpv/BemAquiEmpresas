@@ -49,3 +49,17 @@ public sealed class GroupRequiresTwoFactorRule(IIdentityDb db) : ITwoFactorRequi
             .AnyAsync(cancellationToken);
     }
 }
+
+/// <summary>
+/// Quem aprova ou paga, e o Proprietário, precisa de 2FA (FND-06c CA 12; revisão §2.3): a permissão efetiva inclui
+/// alguma <c>*.approve</c> ou <c>*.pay</c>.
+/// </summary>
+public sealed class ApproverRequiresTwoFactorRule(BemAqui.BuildingBlocks.Identity.IPermissionService permissions) : ITwoFactorRequirementRule
+{
+    public async Task<bool> RequiresAsync(User user, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(user);
+        var effective = await permissions.GetAsync(user.Id, cancellationToken);
+        return effective.IsOwner || effective.Permissions.Any(p => p.EndsWith(".approve", StringComparison.Ordinal) || p.EndsWith(".pay", StringComparison.Ordinal));
+    }
+}

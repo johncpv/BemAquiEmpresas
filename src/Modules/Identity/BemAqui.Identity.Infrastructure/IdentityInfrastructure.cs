@@ -28,8 +28,11 @@ public static class IdentityInfrastructure
         services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Tenancy.ITenantSeeder, ModuleCatalogSeeder>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Tenancy.ITenantSeeder, GroupSeeder>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ITwoFactorRequirementRule, GroupRequiresTwoFactorRule>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<ITwoFactorRequirementRule, ApproverRequiresTwoFactorRule>());
         services.TryAddScoped<BemAqui.BuildingBlocks.Identity.IPermissionService, PermissionService>();
         services.TryAddScoped<GroupService>();
+        services.TryAddScoped<UserService>();
+        services.TryAddScoped<SecuritySettings>();
         services.TryAddScoped<BemAqui.Platform.Contracts.ITenantOwnerOnboarding, IdentityOwnerOnboarding>();
         return services;
     }

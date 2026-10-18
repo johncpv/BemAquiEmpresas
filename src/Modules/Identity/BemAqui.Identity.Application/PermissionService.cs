@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using BemAqui.BuildingBlocks.Identity;
 using BemAqui.BuildingBlocks.Modules;
 using BemAqui.BuildingBlocks.Tenancy;
@@ -8,24 +10,28 @@ using Microsoft.Extensions.Caching.Memory;
 namespace BemAqui.Identity.Application;
 
 /// <summary>
-/// Permissão efetiva com cache curto por usuário (ADR 0008), invalidado na hora quando grupo, vínculo ou usuário
-/// muda. O filtro de módulos liberados é aplicado a cada chamada, então bloquear um módulo vale no próximo request.
+/// Permissão efetiva com cache versionado (ADR 0008): a chave é <c>{tenant}:{user}:{perm_version}</c> e a versão é lida a
+/// cada request, então revogar vale no próximo request mesmo com várias instâncias. O filtro de módulos liberados é
+/// aplicado a cada chamada e também compõe a versão que vai para o front.
 /// </summary>
 public sealed class PermissionService(IIdentityDb db, TenantContextHolder tenant, IMemoryCache cache) : IPermissionService
 {
-    private static readonly TimeSpan Ttl = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan Ttl = TimeSpan.FromMinutes(10);
 
     private sealed record Grants(bool IsOwner, IReadOnlySet<string> Permissions);
 
     public async Task<EffectivePermissions> GetAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var resolved = tenant.Resolved;
-        if (resolved is null)
+        var user = resolved is null
+            ? null
+            : await db.Users.AsNoTracking().Where(u => u.Id == userId).Select(u => new { u.Status, u.PermVersion }).FirstOrDefaultAsync(cancellationToken);
+        if (resolved is null || user is null || user.Status != UserStatus.Active)
         {
             return EffectivePermissions.None;
         }
 
-        var grants = await cache.GetOrCreateAsync(Key(resolved.Tenant.Id, userId), entry =>
+        var grants = await cache.GetOrCreateAsync($"perm:{resolved.Tenant.Id}:{userId}:{user.PermVersion}", entry =>
         {
             entry.AbsoluteExpirationRelativeToNow = Ttl;
             return LoadAsync(userId, cancellationToken);
@@ -34,24 +40,21 @@ public sealed class PermissionService(IIdentityDb db, TenantContextHolder tenant
         var released = grants.IsOwner
             ? ModuleCatalog.All.Where(m => resolved.IsReleased(m.Code)).SelectMany(m => m.Actions.Select(a => m.Code + "." + a))
             : grants.Permissions.Where(p => resolved.IsReleased(p[..p.IndexOf('.', StringComparison.Ordinal)]));
-        return new EffectivePermissions(released.ToHashSet(StringComparer.Ordinal), grants.IsOwner);
+        return new EffectivePermissions(released.ToHashSet(StringComparer.Ordinal), grants.IsOwner, user.PermVersion + "-" + ReleaseHash(resolved));
     }
 
-    public void Invalidate(Guid userId)
+    public async Task BumpAsync(IReadOnlyCollection<Guid> userIds, CancellationToken cancellationToken = default)
     {
-        if (tenant.Resolved is { } resolved)
+        ArgumentNullException.ThrowIfNull(userIds);
+        if (userIds.Count > 0)
         {
-            cache.Remove(Key(resolved.Tenant.Id, userId));
+            var ids = userIds.ToList();
+            await db.Users.Where(u => ids.Contains(u.Id)).ExecuteUpdateAsync(s => s.SetProperty(u => u.PermVersion, u => u.PermVersion + 1), cancellationToken);
         }
     }
 
     private async Task<Grants> LoadAsync(Guid userId, CancellationToken cancellationToken)
     {
-        if (!await db.Users.AnyAsync(u => u.Id == userId && u.Status == UserStatus.Active, cancellationToken))
-        {
-            return new Grants(false, new HashSet<string>());
-        }
-
         var groups = await db.UserGroups.Where(ug => ug.UserId == userId)
             .Join(db.Groups.Where(g => g.IsActive), ug => ug.GroupId, g => g.Id, (_, g) => new { g.Id, g.IsSystem, g.SeedKey })
             .ToListAsync(cancellationToken);
@@ -70,5 +73,6 @@ public sealed class PermissionService(IIdentityDb db, TenantContextHolder tenant
             .ToHashSet(StringComparer.Ordinal));
     }
 
-    private static string Key(Guid tenantId, Guid userId) => "perm:" + tenantId + ":" + userId;
+    private static string ReleaseHash(ResolvedTenant tenant) =>
+        Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(string.Join(',', tenant.ReleasedModules.Order(StringComparer.Ordinal)))))[..8];
 }

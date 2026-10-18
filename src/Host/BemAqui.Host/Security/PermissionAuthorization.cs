@@ -50,8 +50,14 @@ public sealed class PermissionHandler : AuthorizationHandler<PermissionRequireme
             return;
         }
 
-        if (Guid.TryParse(context.User.FindFirst("sub")?.Value, out var userId)
-            && (await http.RequestServices.GetRequiredService<IPermissionService>().GetAsync(userId, http.RequestAborted)).Has(requirement.Permission))
+        if (!Guid.TryParse(context.User.FindFirst("sub")?.Value, out var userId))
+        {
+            return;
+        }
+
+        var effective = await http.RequestServices.GetRequiredService<IPermissionService>().GetAsync(userId, http.RequestAborted);
+        http.Response.Headers[EffectivePermissions.Header] = effective.Version; // o front recarrega /me/permissions se mudou
+        if (effective.Has(requirement.Permission))
         {
             context.Succeed(requirement);
         }

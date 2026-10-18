@@ -41,6 +41,9 @@ public sealed class User : Entity, IAuditable
 
     public bool TotpEnabled { get; set; }
 
+    /// <summary>Versão das permissões (ADR 0008): sobe quando grupos, vínculos ou situação mudam; entra na chave do cache.</summary>
+    public int PermVersion { get; private set; }
+
     /// <summary>Segredo TOTP cifrado (<c>SecretKind.TotpSecret</c>); existe desde o início da ativação, nunca volta para o cliente.</summary>
     [ProtectedSecret]
     public string? TotpSecretCipher { get; private set; }
@@ -72,12 +75,14 @@ public sealed class User : Entity, IAuditable
     public void Activate()
     {
         Status = UserStatus.Active;
+        PermVersion++;
         RotateSecurityStamp();
     }
 
     public void Deactivate()
     {
         Status = UserStatus.Inactive;
+        PermVersion++;
         RotateSecurityStamp();
     }
 
