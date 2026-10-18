@@ -61,6 +61,12 @@
 }
 
 @layer base {
+  /* Foco e rolagem nunca escondidos sob a topbar fixa e o dock (WCAG 2.4.11). */
+  html {
+    scroll-padding-top: 7rem;
+    scroll-padding-bottom: 7.5rem;
+  }
+
   html,
   body {
     background: var(--background);

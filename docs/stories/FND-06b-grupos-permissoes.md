@@ -5,7 +5,7 @@
 | ID | FND-06b |
 | Título | Grupos (criar, editar, duplicar, inativar), matriz módulo × ação, grupos iniciais, grupo Proprietário, regra de delegação, serviço de permissão efetiva e policy `perm:{modulo}.{acao}` |
 | Tamanho | G |
-| Status | In Progress (API pronta; tela depois da FND-09a/b/c) |
+| Status | Done |
 | Requisitos | R-SEC-9 · R-SEC-10 · R-SEC-12 · R-SEC-5 (alterações auditadas) |
 | Dependências | FND-06, FND-04, FND-05 (regra de 2FA por grupo); telas dependem de FND-09b e FND-09c. **Pré-condição:** ADR 0008 aceita |
 | Bloqueia | FND-06c, FND-06d |
@@ -179,6 +179,22 @@ Checklist do @po (Pax), 16/10/2026.
   - **Convite do proprietário:** ao aceitar, o usuário entra no grupo Proprietário.
   - **Testes:** 6 de integração.
   - **Pendente:** tela "Usuários e acessos → Grupos" e a ajuda `acessos-grupos.md`, depois da FND-09a/b/c; E2E.
+
+- **Tela (FND-06b), 18/10/2026, branch `feat/fnd-06bc-telas`.** "Usuários e acessos → Grupos" fica em `/app/acessos/grupos`, com o grupo escolhido na URL (`?grupo=`).
+  - **Matriz:**
+    - as mesmas regras do servidor (`group-matrix.ts`);
+    - "Habilitado" é o Switch do Radix e cada caixa tem o rótulo "{ação} em {módulo}";
+    - as ações específicas ficam na coluna "Outras", com descrição, e "Aprovar" mostra o significado;
+    - módulo não liberado aparece desabilitado (CA 1 a 6).
+  - **Edição:**
+    - chip "Alterações não salvas";
+    - "Salvar grupo", com o toast de quantos usuários recebem as permissões;
+    - guarda "Salvar/Descartar" ao sair com alteração.
+  - **Ações:** "Novo grupo" a partir de um existente, "Duplicar", "Inativar" com o número de afetados e "Gerenciar membros".
+  - **Proprietário:** aparece como "Grupo do sistema: acesso total, não pode ser restringido".
+  - **Delegação recusada:** a tela mostra o motivo que o servidor mandou.
+  - **`<Can perm>`** esconde o que o usuário não pode fazer, e o `ModuleGate` aplica as regras da FND-06d.
+  - **Ajuda:** `acessos-grupos.md`.
 
 ## QA Results
 _A preencher pelo @qa._
