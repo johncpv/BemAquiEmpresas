@@ -23,7 +23,7 @@ function AreaButton({ area, active, ...props }: { area: NavArea; active: boolean
 
 /** Dock fixo das 7 áreas (FND-09b CA 1 a 5, ADR 0005 D8). No celular encosta na borda e rola na horizontal. */
 export function Dock({ activeAreaId }: { activeAreaId?: string }) {
-  const { areas } = useNavigation()
+  const { areas, status, retry } = useNavigation()
   const mobile = useMediaQuery(MOBILE)
   const [open, setOpen] = useState<string | null>(null)
 
@@ -41,7 +41,14 @@ export function Dock({ activeAreaId }: { activeAreaId?: string }) {
           mobile ? 'w-full rounded-none' : 'rounded-2xl',
         )}
       >
-        {areas.map((area) =>
+        {status === 'loading' ? (
+          Array.from({ length: 7 }, (_, i) => <span key={i} aria-hidden="true" className="h-[52px] w-[68px] animate-pulse rounded-[11px] bg-rail-hi" />)
+        ) : status === 'error' ? (
+          <span role="alert" className="flex items-center gap-3 px-3 py-2 text-xs">
+            Não foi possível carregar o menu.
+            <button type="button" onClick={retry} className="font-semibold text-rail-ring">Tentar de novo</button>
+          </span>
+        ) : areas.map((area) =>
           mobile ? (
             <Dialog.Root key={area.id} open={open === area.id} onOpenChange={(o) => setOpen(o ? area.id : null)}>
               <Dialog.Trigger asChild>

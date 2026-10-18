@@ -9,6 +9,8 @@ export interface MyModule {
   code: string;
   name: string;
   area: string;
+  order: number;
+  description: string;
   released: boolean;
   enabled: boolean;
   actions: string[];

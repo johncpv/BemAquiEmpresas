@@ -12,7 +12,7 @@ const NEXT_STEPS = [
 /** Tela inicial da Fase 0 (ADR 0010 item 9): boas-vindas com os próximos passos e atalhos para os módulos com acesso. */
 export function Inicio() {
   const { areas, tenantName } = useNavigation()
-  const modules = areas.flatMap((a) => a.modules.filter((m) => m.released && m.enabled))
+  const modules = areas.flatMap((a) => a.modules.filter((m) => !m.locked && m.enabled))
 
   return (
     <>

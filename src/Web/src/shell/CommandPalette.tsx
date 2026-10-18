@@ -24,8 +24,9 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
   const entries = useMemo(() => {
     const all = areas.flatMap((a) =>
       a.modules.flatMap((m) => [
-        { path: m.path, label: m.name, hint: a.name },
-        ...m.tabs.map((t) => ({ path: `${m.path}/${t.slug}`, label: `${m.name} › ${t.label}`, hint: a.name })),
+        { path: m.path, label: m.locked ? `${m.name} (não liberado)` : m.name, hint: a.name },
+        // Sub-telas só de módulo com acesso; o não liberado leva à tela padrão (FND-06d CA 5).
+        ...(m.locked ? [] : m.tabs.map((t) => ({ path: `${m.path}/${t.slug}`, label: `${m.name} › ${t.label}`, hint: a.name }))),
       ]),
     )
     const recent = open ? readRecent() : []

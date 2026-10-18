@@ -5,7 +5,7 @@
 | ID | FND-06d |
 | Título | Dock e paleta de comandos montados por `/me/permissions`; tela padrão `ModuleNotReleased` |
 | Tamanho | P |
-| Status | Draft |
+| Status | Done |
 | Requisitos | R-SEC-11 · R-SEC-12 |
 | Dependências | FND-06c (`/me/permissions`), FND-09b (dock, popover/sheet e Ctrl K) |
 | Bloqueia | FND-14 (ajuda filtrada pelo mesmo menu) |
@@ -108,7 +108,19 @@ Checklist do @po (Pax), 16/10/2026.
 | 16/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 
 ## Dev Agent Record
-_A preencher pelo @dev._
+- **Entrega (FND-06d), 18/10/2026, branch `feat/fnd-06d-menu-permissao`.** O texto de acesso negado é o da ADR 0010 item 8. As telas dedicadas abrem na mesma aba.
+  - **Menu (CA 1, 3, 4):**
+    - vem de `/me/permissions`, que agora traz ordem e descrição do `ModuleCatalog`; o front não tem lista fixa;
+    - módulo não liberado aparece com cadeado e o rótulo "{módulo}, não liberado";
+    - liberado sem acesso fica oculto;
+    - área sem módulo visível some do dock.
+  - **Telas por URL (CA 2, 3):** `ModuleNotReleased` mostra o nome, a mensagem exata e a descrição do catálogo; `AccessDenied` mostra "Sem acesso a esta tela". Nunca fica em branco.
+  - **Paleta (CA 5):** só o que o usuário vê. O não liberado aparece marcado e não oferece sub-telas.
+  - **Revogação (CA 6):** com `X-Perm-Version` nova, o `/me/permissions` é invalidado, e o dock, a paleta e a tela atual são remontados.
+  - **Contador (CA 7):** rótulo acessível "{módulo}, {N} pendentes".
+  - **Estados do dock:** carregando (skeleton das 7 áreas) e erro com "Tentar de novo".
+  - **Ajuda:** `modulo-nao-liberado.md` e `acesso-negado.md`.
+  - **Testes:** Vitest com as regras do menu; Playwright com cadeado e mensagem exata, acesso negado, área vazia e revogação no meio da navegação.
 
 ## QA Results
 _A preencher pelo @qa._

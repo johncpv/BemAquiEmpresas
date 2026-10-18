@@ -53,11 +53,13 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
   settings: { slug: 'configuracoes', icon: Settings, tabs: [{ slug: 'seguranca', label: 'Segurança' }] },
 }
 
-/** Mesmo formato de MyModule em GET /api/v1/me/permissions (FND-06c). */
+/** Mesmo formato de MyModule em GET /api/v1/me/permissions (FND-06c/06d). */
 export interface PermissionModule {
   code: string
   name: string
   area: string
+  order?: number
+  description?: string
   released: boolean
   enabled: boolean
   actions: readonly string[]
@@ -68,6 +70,8 @@ export interface NavModule extends PermissionModule {
   path: string
   icon: LucideIcon
   tabs: readonly Tab[]
+  /** Não liberado no tenant: aparece com cadeado e leva à tela ModuleNotReleased (FND-06d CA 1, 2). */
+  locked: boolean
   count?: number
 }
 
@@ -75,22 +79,34 @@ export interface NavArea extends Area {
   modules: NavModule[]
 }
 
-export function buildNavigation(modules: readonly PermissionModule[]): NavArea[] {
-  return AREAS.map((area) => ({
-    ...area,
-    modules: modules
-      .filter((m) => m.area === area.name && MODULE_UI[m.code])
-      .map((m) => {
-        const ui = MODULE_UI[m.code]
-        return { ...m, slug: ui.slug, path: `/app/${ui.slug}`, icon: ui.icon, tabs: ui.tabs ?? [] }
-      }),
-  }))
+export interface Navigation {
+  /** Só o que o usuário vê: liberado com acesso, ou não liberado (com cadeado). Área vazia some (CA 4). */
+  areas: NavArea[]
+  /** Todos os módulos, para a rota saber se mostra a tela, o cadeado ou o acesso negado (CA 2, 3). */
+  all: NavModule[]
 }
 
-export function findModuleBySlug(areas: readonly NavArea[], slug: string): { area: NavArea; module: NavModule } | undefined {
-  for (const area of areas) {
-    const module = area.modules.find((m) => m.slug === slug)
-    if (module) return { area, module }
-  }
-  return undefined
+const toNav = (m: PermissionModule): NavModule | null => {
+  const ui = MODULE_UI[m.code]
+  return ui ? { ...m, slug: ui.slug, path: `/app/${ui.slug}`, icon: ui.icon, tabs: ui.tabs ?? [], locked: !m.released } : null
+}
+
+/** Visível no menu: liberado com acesso, ou não liberado (com cadeado). Liberado sem acesso fica oculto (CA 3). */
+export const isVisible = (m: NavModule) => m.locked || m.enabled
+
+export function buildNavigation(modules: readonly PermissionModule[]): Navigation {
+  const all = modules.map(toNav).filter((m): m is NavModule => m !== null)
+  const areas = AREAS.map((area) => ({
+    ...area,
+    modules: all.filter((m) => m.area === area.name && isVisible(m)).sort((x, y) => (x.order ?? 0) - (y.order ?? 0)),
+  })).filter((area) => area.modules.length > 0)
+  return { areas, all }
+}
+
+export function findModuleBySlug(modules: readonly NavModule[], slug: string): NavModule | undefined {
+  return modules.find((m) => m.slug === slug)
+}
+
+export function areaOf(areas: readonly NavArea[], module: NavModule): NavArea | undefined {
+  return areas.find((a) => a.name === module.area)
 }

@@ -1,9 +1,12 @@
 import { createContext, useContext } from 'react'
-import type { NavArea } from './modules'
+import type { NavArea, NavModule } from './modules'
 
 export interface NavigationValue {
   areas: NavArea[]
+  all: NavModule[]
   tenantName: string
+  status: 'loading' | 'error' | 'ready'
+  retry: () => void
 }
 
 export const NavigationContext = createContext<NavigationValue | null>(null)
