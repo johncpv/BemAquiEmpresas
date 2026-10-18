@@ -11,7 +11,8 @@ namespace BemAqui.Identity.Endpoints;
 
 public sealed record SetUserGroupsRequest(IReadOnlyList<Guid> GroupIds);
 
-public sealed record MyModule(string Code, string Name, string Area, bool Released, bool Enabled, IReadOnlyList<string> Actions);
+/// <summary>Módulo como o menu vê (FND-06d): a descrição explica, na tela de não liberado, o que o módulo fará.</summary>
+public sealed record MyModule(string Code, string Name, string Area, int Order, string Description, bool Released, bool Enabled, IReadOnlyList<string> Actions);
 
 public sealed record MyPermissionsResponse(IReadOnlyList<string> Permissions, bool IsOwner, string Version, IReadOnlyList<MyModule> Modules);
 
@@ -62,7 +63,7 @@ internal static class UserEndpoints
                     .Select(m =>
                     {
                         var actions = m.Actions.Where(a => effective.Has(m.Code + "." + a)).ToList();
-                        return new MyModule(m.Code, m.Name, m.Area, tenant.Resolved?.IsReleased(m.Code) == true, actions.Count > 0, actions);
+                        return new MyModule(m.Code, m.Name, m.Area, m.Order, m.Description, tenant.Resolved?.IsReleased(m.Code) == true, actions.Count > 0, actions);
                     })
                     .ToList();
                 return Results.Ok(new MyPermissionsResponse(effective.Permissions.Order(StringComparer.Ordinal).ToList(), effective.IsOwner, effective.Version, modules));

@@ -1981,6 +1981,8 @@
           "code",
           "name",
           "area",
+          "order",
+          "description",
           "released",
           "enabled",
           "actions"
@@ -1994,6 +1996,13 @@
             "type": "string"
           },
           "area": {
+            "type": "string"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": {
             "type": "string"
           },
           "released": {

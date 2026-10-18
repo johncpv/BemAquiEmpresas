@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router'
+import { Lock } from 'lucide-react'
 import type { KeyboardEvent } from 'react'
 import type { NavArea } from '@/navigation/modules'
 
@@ -26,12 +27,14 @@ export function AreaMenu({ area, onNavigate }: { area: NavArea; onNavigate: () =
                 to="/app/$module"
                 params={{ module: m.slug }}
                 onClick={onNavigate}
+                aria-label={m.locked ? `${m.name}, não liberado` : m.count ? `${m.name}, ${m.count} pendentes` : undefined}
                 className="flex items-center gap-3 rounded-md px-2 py-2 text-sm font-medium text-foreground hover:bg-muted focus-visible:bg-muted"
               >
                 <m.icon aria-hidden="true" className="size-[18px] text-muted-foreground" />
-                <span className="flex-1">{m.name}</span>
+                <span className={m.locked ? 'flex-1 text-muted-foreground' : 'flex-1'}>{m.name}</span>
+                {m.locked ? <Lock aria-hidden="true" className="size-3.5 text-muted-foreground" /> : null}
                 {m.count ? (
-                  <span className="rounded-full bg-signal px-1.5 text-[10px] font-extrabold text-signal-foreground tabular-nums" aria-label={`${m.count} pendentes`}>
+                  <span aria-hidden="true" className="rounded-full bg-signal px-1.5 text-[10px] font-extrabold text-signal-foreground tabular-nums">
                     {m.count}
                   </span>
                 ) : null}
