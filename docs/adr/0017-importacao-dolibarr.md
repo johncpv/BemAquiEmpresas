@@ -80,3 +80,15 @@
 - **Relatório:** os arquivos ficam em `Migration:ReportDirectory`, por padrão `/data/files/migration-reports`, no volume da API. O `--purge-staging --accepted` registra o aceite do PO e expurga.
 - **Alerta:** o recorrente global `migration-staging-check` roda todo dia às 08:00 de São Paulo e enfileira, por tenant, o job que emite `migration_staging_expired`.
 - **Risco aceito:** o GRANT em `llx_const` (`name`, `value`, `entity`) permite ao usuário somente leitura ler outras constantes, mas o script lê só `MAIN_INFO_SIREN`. O usuário existe só até a GOL-01, que faz o `DROP USER`.
+
+## Adendo 2 (18/10/2026, decisão do PO): leitura pela API REST do Dolibarr
+- **Decisão:** a importação lê o Dolibarr pela **API REST** (`api/index.php`), com a mesma chave (`DOLAPIKEY`) que o Konebras UI já usa. O PO autorizou em 18/10/2026. O snapshot no MariaDB temporário continua no código como alternativa (`--snapshot`), mas deixa de ser o caminho padrão.
+- **Por quê:** não cria usuário nem GRANT no MariaDB do Dolibarr em produção. O BemAqui também não entra na rede do Dolibarr: a leitura é por HTTPS, só GET, como a de qualquer cliente da API.
+- **Como:**
+  - CLI: `tenant import-dolibarr ... --dolibarr-api <arquivo-de-secret>`. O arquivo tem `url=`, `key=` e `cnpj=`, com permissão 0600, e roda no serviço `importer` do compose (perfil `import`, rede interna mais saída).
+  - A lista fixa (`SnapshotTables`) continua sendo o contrato: cada tabela é montada do JSON da API só com as colunas mapeadas (`DolibarrApiMap`) e com os tipos do DDL fixo. O resto do JSON (IBAN, BIC, saldo, preços, custo, estoque) é descartado na leitura e não chega à staging, ao log nem ao relatório.
+  - Tabelas sem endpoint próprio saem de outros objetos da API: os tipos de terceiro vêm dos próprios terceiros, os vínculos de categoria de `/categories/{id}/objects` e a garantia do extrafield `options_elev_garantia` do produto.
+- **Proteção contra tenant errado (CA 6):** a chave não lê `/setup/company` nem `MAIN_INFO_SIREN` (403). O CNPJ da empresa daquele Dolibarr vai no arquivo de secret (`cnpj=`), escrito uma vez por quem configura, e é comparado com o CNPJ do tenant no catálogo. Continua valendo o `--confirm-tenant`.
+- **Consistência (CA 3):** a API não tem transação consistente. Vale a hora do início da leitura. O risco é baixo: o volume é pequeno (inventário de 18/10/2026: 118 terceiros, 0 contatos, 34 produtos, 4 depósitos, 3 contas, 13 condições, 7 categorias de fornecedor), o Dolibarr é pouco usado durante a carga e a reexecução é idempotente.
+- **Risco aceito:** a chave é de um usuário do Dolibarr sem perfil de admin, mas que pode ter permissão de escrita. O BemAqui só faz GET, e há teste que reprova qualquer outro método. Na GOL-01, a chave deixa de ser usada pelo BemAqui e o secret é apagado.
+- **Inventário (CA 1):** feito pela API em 18/10/2026, no Dolibarr 21.0.4. Os campos usados estão em `DolibarrApiMap` e no runbook. O PO registrou o aceite do mapeamento.

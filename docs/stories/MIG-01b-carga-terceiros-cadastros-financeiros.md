@@ -7,7 +7,7 @@
 | Tamanho | M (quebra da MIG-01) |
 | Status | Ready |
 | Requisitos | R-TER-5 · R-TER-1 · R-TER-2 · R-FIN-2 (cadastro das contas) · PRD §6 LGPD |
-| Dependências | MIG-01a, CAD-01a, CAD-05b. **Pré-condição de execução:** painel da plataforma fora do modo aberto antes da primeira carga real (ADR 0018, CA 1) |
+| Dependências | MIG-01a, CAD-01a, CAD-05b. ~~Pré-condição: painel da plataforma fora do modo aberto~~ (dispensada pelo PO em 18/10/2026, adendo da ADR 0018). Origem: API REST do Dolibarr (ADR 0017, adendo 2) |
 | Bloqueia | MIG-01c (fornecedores dos códigos do fornecedor), GOL-01 |
 | Ordem de execução | 4 (Marco A — terceiros reais) |
 
@@ -24,7 +24,7 @@ Como **proprietário**, quero **trazer do Dolibarr todos os clientes e fornecedo
 
 ## Critérios de aceite
 **Pré-condição**
-1. **[Segurança]** **Dado** um ambiente que não é Development com `Platform:AllowedNetworks` vazio (painel da plataforma em modo aberto), **quando** rodo uma carga real desta story, **então** o comando recusa com "Feche a allowlist da plataforma antes da primeira carga real (ADR 0018)." e código ≠ 0; a simulação (`--dry-run`) continua permitida. O runbook pede também o arquivo `.allow` do nginx com os IPs do PO.
+1. ~~**[Segurança]** **Dado** um ambiente que não é Development com `Platform:AllowedNetworks` vazio (painel da plataforma em modo aberto), **quando** rodo uma carga real desta story, **então** o comando recusa com "Feche a allowlist da plataforma antes da primeira carga real (ADR 0018)." e código ≠ 0; a simulação (`--dry-run`) continua permitida. O runbook pede também o arquivo `.allow` do nginx com os IPs do PO.~~ **Dispensado pelo PO em 18/10/2026 (adendo da ADR 0018): a carga não depende da allowlist.**
 
 **Terceiros**
 2. **Dado** um `llx_societe` com `client` = 1 ou 3, **quando** a carga roda, **então** o terceiro recebe o papel Cliente; com `fournisseur` = 1, o papel Fornecedor; com os dois, os dois papéis no mesmo terceiro.

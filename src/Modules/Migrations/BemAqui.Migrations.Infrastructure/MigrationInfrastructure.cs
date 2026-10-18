@@ -16,7 +16,7 @@ public static class MigrationInfrastructure
         services.TryAddScoped<ImportRunner>();
         services.TryAddScoped<StagingService>();
         services.TryAddScoped<ImportQueries>();
-        services.TryAddSingleton<ISnapshotSourceFactory, MariaDbSnapshotSourceFactory>();
+        services.TryAddSingleton<ISnapshotSourceFactory, SnapshotSourceFactory>();
         return services;
     }
 }

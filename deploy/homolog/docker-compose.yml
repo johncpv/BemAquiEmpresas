@@ -94,6 +94,35 @@ services:
       resources:
         limits: { cpus: "1.0", memory: 512m }
 
+  # Importação do Dolibarr pela API REST (MIG-01a, ADR 0017 adendo 2). Não sobe com "up":
+  # docker compose --profile import run --rm importer tenant import-dolibarr ... --dolibarr-api /run/secrets/dolibarr-api
+  importer:
+    <<: *app
+    image: ${REGISTRY}/bemaqui-empresas-api:${IMAGE_TAG}
+    container_name: bqe-homolog-importer
+    restart: "no"
+    user: "1654:1654"
+    profiles: [import]
+    environment: *api-env
+    secrets:
+      - { source: catalog-connection, target: ConnectionStrings__Catalog }
+      - { source: provisioner-connection, target: ConnectionStrings__Provisioner }
+      - { source: auth-signing-key, target: Auth__SigningKey }
+      - { source: smtp-password, target: Email__SmtpPassword }
+      - { source: dp-cert, target: dp-cert.pfx }
+      - { source: dp-cert-password, target: dp-cert-password }
+      - { source: dolibarr-api, target: dolibarr-api }
+    tmpfs: ["/tmp:size=64m"]
+    volumes:
+      - files:/data/files
+    networks: [internal, egress]
+    healthcheck: { disable: true }
+    depends_on:
+      postgres: { condition: service_healthy }
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 512m }
+
   bqe-homolog-api:
     <<: *app
     image: ${REGISTRY}/bemaqui-empresas-api:${IMAGE_TAG}
@@ -178,6 +207,7 @@ secrets:
   smtp-password: { file: ./secrets/smtp-password }
   dp-cert: { file: ./secrets/dp-cert.pfx }
   dp-cert-password: { file: ./secrets/dp-cert-password }
+  dolibarr-api: { file: ./secrets/dolibarr-api }
   pg-superuser-password: { file: ./secrets/pg-superuser-password }
   pg-catalog-password: { file: ./secrets/pg-catalog-password }
   pg-provisioner-password: { file: ./secrets/pg-provisioner-password }

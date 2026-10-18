@@ -5,7 +5,7 @@
 | ID | MIG-01a |
 | Título | Mapeamento dos cadastros do Dolibarr, snapshot cifrado com usuário somente leitura e GRANT por coluna, módulo `Migration` com staging e chaves externas, simulação, relatório e tela só de leitura da importação |
 | Tamanho | G (quebra da MIG-01 em infraestrutura e cargas: MIG-01b terceiros e cadastros financeiros, MIG-01c itens e locais) |
-| Status | Done (código). Passos manuais pendentes: aceite do mapeamento (CA 1) e ensaio com a base real (CA 4) |
+| Status | Done. Mapeamento aceito pelo PO em 18/10/2026 (CA 1). Origem padrão: API REST do Dolibarr (ADR 0017, adendo 2); os CAs 2 a 4 valem para a alternativa por snapshot |
 | Requisitos | R-TER-5 (importação do Dolibarr) · PRD §7 Fase 1 ("dados migrados") e §1.2 (Dolibarr desligado) · PRD §6 Segurança e LGPD · R-SEC-5 |
 | Dependências | Fase 0 (FND-03a CLI, FND-07 auditoria, FND-11 segredos, FND-12 alertas, FND-10a compose e secrets), FND-09d (tela da importação). Não depende dos cadastros: as cargas (MIG-01b/01c) é que esperam os destinos |
 | Bloqueia | MIG-01b, MIG-01c, GOL-01 (carga final) |
@@ -177,4 +177,5 @@ Checklist do @po (Pax), 18/10/2026.
 | 18/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 18/10/2026 | 0.3 | Decisões do PO: só cadastros (ADR 0017), D3, D4, D8; correções da revisão pré-Fase 1; ordem 2 do Marco A | River (SM) |
 | 18/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 18/10/2026 | 1.1 | Decisões do PO: leitura pela API REST do Dolibarr (adendo 2 da ADR 0017), aceite do mapeamento e painel sem allowlist (adendo da ADR 0018) | Dev |
 | 18/10/2026 | 1.0 | Implementada: módulo `Migrations` (nome por causa do EF, adendo da ADR 0017), executor, CLI, tela, runbook | Dev |

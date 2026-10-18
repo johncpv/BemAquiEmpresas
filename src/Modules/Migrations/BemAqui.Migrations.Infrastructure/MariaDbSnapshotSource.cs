@@ -89,8 +89,29 @@ public sealed class MariaDbSnapshotSource : ISnapshotSource
 }
 
 /// <summary>Conexão lida do arquivo de secret (CA 5): o caminho vem do <c>--snapshot</c>, o conteúdo nunca aparece em log nem em erro.</summary>
-internal sealed class MariaDbSnapshotSourceFactory : ISnapshotSourceFactory
+internal sealed class SnapshotSourceFactory(TimeProvider clock) : ISnapshotSourceFactory
 {
+    public async Task<ISnapshotSource> OpenApiAsync(string apiSecretFile, CancellationToken cancellationToken = default)
+    {
+        if (!File.Exists(apiSecretFile))
+        {
+            throw new FileNotFoundException("Arquivo de secret da API do Dolibarr não encontrado: " + apiSecretFile);
+        }
+
+        var values = (await File.ReadAllLinesAsync(apiSecretFile, cancellationToken))
+            .Select(l => l.Trim()).Where(l => l.Length > 0 && !l.StartsWith('#') && l.Contains('=', StringComparison.Ordinal))
+            .Select(l => (Name: l[..l.IndexOf('=', StringComparison.Ordinal)].Trim(), Value: l[(l.IndexOf('=', StringComparison.Ordinal) + 1)..].Trim()))
+            .ToDictionary(p => p.Name, p => p.Value, StringComparer.OrdinalIgnoreCase);
+        if (!values.TryGetValue("url", out var url) || !Uri.TryCreate(url.TrimEnd('/') + "/", UriKind.Absolute, out var baseUri) || baseUri.Scheme != Uri.UriSchemeHttps
+            || !values.TryGetValue("key", out var key) || string.IsNullOrWhiteSpace(key)
+            || !values.TryGetValue("cnpj", out var cnpj) || !BemAqui.SharedKernel.BrazilianDocuments.IsValidCnpj(cnpj))
+        {
+            throw new InvalidOperationException("Arquivo de secret da API do Dolibarr incompleto: precisa de url= (https), key= e cnpj= válido.");
+        }
+
+        return new DolibarrApiSnapshotSource(new HttpClient { BaseAddress = baseUri, Timeout = TimeSpan.FromSeconds(60) }, key, cnpj, clock);
+    }
+
     public async Task<ISnapshotSource> OpenAsync(string connectionSecretFile, CancellationToken cancellationToken = default)
     {
         if (!File.Exists(connectionSecretFile))
