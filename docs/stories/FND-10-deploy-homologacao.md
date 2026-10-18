@@ -5,7 +5,7 @@
 | ID | FND-10 |
 | Título | Compose endurecido na VPS compartilhada, vhost de homologação no `stack-nginx`, CI/CD por SSH, backup diário cifrado e restauração testada |
 | Tamanho | G (re-estimada: o backlog dizia M; endurecimento, backup cifrado e restauração ampliaram o escopo) |
-| Status | Draft |
+| Status | Em andamento (FND-10a pronta; FND-10b aguarda o PO) |
 | Requisitos | PRD §6 Backup (dump diário por banco, 30 dias, cópia fora da VPS, restauração testada) · PRD §6 Disponibilidade · PRD §6 Segurança (HTTPS) |
 | Dependências | FND-01, FND-03a (migrator), FND-11 (key ring), FND-12 (health e alertas), FND-13 (host da plataforma). Pré-requisito externo: DNS do host de homologação criado pelo PO |
 | Bloqueia | Validação da Fase 0 pelo PO; GOL-01 (reaproveita o pipeline para produção) |
@@ -133,6 +133,7 @@ Checklist do @po (Pax), 16/10/2026.
 |---|---|---|---|
 | 16/10/2026 | 0.1 | Story detalhada conforme ADR 0005 (D1, D6, D7) e os CAs de segurança da revisão; troca de host movida para a GOL-01 | River (SM) |
 | 16/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
+| 18/10/2026 | 0.3 | Quebrada em FND-10a (repositório, pronta) e FND-10b (VPS); decisões na ADR 0015 | @dev |
 
 ## Dev Agent Record
 _A preencher pelo @dev._

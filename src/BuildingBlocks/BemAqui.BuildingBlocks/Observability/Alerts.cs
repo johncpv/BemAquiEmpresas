@@ -8,6 +8,10 @@ public static class AlertKinds
     public const string EmailFailed = "email_failed";
     public const string MigrationFailed = "migration_failed";
     public const string IntegrationDown = "integration_down";
+    public const string BackupFailed = "backup_failed";
+
+    /// <summary>Tipos que podem vir de fora da API, pela CLI <c>alert raise</c> (FND-10).</summary>
+    public static readonly string[] External = [BackupFailed];
 }
 
 public sealed record Alert(string Kind, string? Tenant, string Summary, string? Details = null, string? Link = null);

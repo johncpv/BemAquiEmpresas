@@ -7,17 +7,18 @@ using BemAqui.BuildingBlocks.Security;
 using BemAqui.Host.Persistence;
 using BemAqui.Platform.Application.Provisioning;
 using BemAqui.Platform.Endpoints;
+using BemAqui.Host.Security;
 using Serilog;
 
 namespace BemAqui.Host.Cli;
 
 /// <summary>
 /// Modo CLI da imagem (ADR 0006): <c>migrate</c> (catálogo e todos os tenants, antes da subida da API) e
-/// <c>tenant provision</c> (FND-03a) e <c>platform-admin create</c> (FND-13). Saída em PT-BR; código de saída 0 = sucesso.
+/// <c>tenant provision</c> (FND-03a), <c>platform-admin create</c> (FND-13) e <c>alert raise</c> (FND-10, falha do backup). Saída em PT-BR; código de saída 0 = sucesso.
 /// </summary>
 public static class CliCommand
 {
-    public static bool IsCli(string[] args) => args is ["migrate", ..] or ["tenant", "provision", ..] or ["platform-admin", "create", ..];
+    public static bool IsCli(string[] args) => args is ["migrate", ..] or ["tenant", "provision", ..] or ["platform-admin", "create", ..] or ["alert", "raise", ..];
 
     public static async Task<int> RunAsync(string[] args, Action<IConfigurationBuilder>? configure = null, TextWriter? output = null)
     {
@@ -36,6 +37,7 @@ public static class CliCommand
             builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?> { ["Catalog:AutoMigrate"] = "true", ["DataProtection:AutoMigrate"] = "true" });
         }
 
+        builder.Configuration.AddSecretFiles();
         configure?.Invoke(builder.Configuration);
         builder.Services.AddSerilog(lc => LoggingSetup.Configure(lc, builder.Configuration, builder.Environment));
         builder.Services.AddBemAquiEmail(builder.Configuration);
@@ -57,6 +59,7 @@ public static class CliCommand
             return args[0] switch
             {
                 "migrate" => await MigrateAsync(scope.ServiceProvider, output),
+                "alert" => await RaiseAlertAsync(scope.ServiceProvider, new CliArguments(args.Skip(2).ToList()), output),
                 "platform-admin" => await CreatePlatformAdminAsync(scope.ServiceProvider, new CliArguments(args.Skip(2).ToList()), output),
                 _ => await ProvisionAsync(scope.ServiceProvider, new CliArguments(args.Skip(2).ToList()), output),
             };
@@ -108,6 +111,25 @@ public static class CliCommand
         await output.WriteLineAsync("Super admin criado. Abra o link abaixo para definir a senha (vale até " + result.Value.ExpiresAt.ToString("u", System.Globalization.CultureInfo.InvariantCulture) + " e não aparece de novo):");
         await output.WriteLineAsync("https://" + host + "/plataforma/definir-senha?token=" + Uri.EscapeDataString(result.Value.SetPasswordToken));
         await output.WriteLineAsync("No primeiro login, a configuração do 2FA é obrigatória.");
+        return 0;
+    }
+
+    /// <summary>
+    /// Alerta vindo de fora da API (FND-10 CA 14): o cron do backup chama <c>alert raise --kind backup_failed --summary ...</c>
+    /// quando o backup falha, e o alerta segue o mesmo caminho dos outros (e-mail aos super admins, dedup de 30 min).
+    /// </summary>
+    private static async Task<int> RaiseAlertAsync(IServiceProvider services, CliArguments args, TextWriter output)
+    {
+        var kind = args.Get("kind");
+        var summary = args.Get("summary");
+        if (kind is null || !AlertKinds.External.Contains(kind) || string.IsNullOrWhiteSpace(summary))
+        {
+            await output.WriteLineAsync("Uso: alert raise --kind <" + string.Join("|", AlertKinds.External) + "> --summary \"texto\" [--details \"texto\"]");
+            return 1;
+        }
+
+        await services.GetRequiredService<IAlertSink>().RaiseAsync(new Alert(kind, args.Get("tenant"), summary, args.Get("details")));
+        await output.WriteLineAsync("Alerta enviado: " + kind + ".");
         return 0;
     }
 

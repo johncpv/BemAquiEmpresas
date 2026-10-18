@@ -1,0 +1,191 @@
+# Homologação do BemAqui Empresas na VPS compartilhada (FND-10, ADR 0004 e 0015).
+# Diretório: /opt/projetos/bemaqui-empresas-homolog. Segredos em ./secrets (um arquivo por segredo, chmod 0400).
+# Regras verificadas no CI (scripts/check-compose.mjs): postgres sem ports e fora da stack_stack; api, web, migrator e
+# backup não-root, read_only, cap_drop ALL, no-new-privileges e com limites; só web e api na stack_stack.
+name: bqe-homolog
+
+x-app: &app
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  restart: unless-stopped
+  logging:
+    driver: json-file
+    options: { max-size: "10m", max-file: "5" }
+
+x-api-env: &api-env
+  ASPNETCORE_ENVIRONMENT: Production
+  DataProtection__CertificatePath: /run/secrets/dp-cert.pfx
+  DataProtection__CertificatePasswordFile: /run/secrets/dp-cert-password
+  DataProtection__AllowKeyRingCreation: ${ALLOW_KEY_RING_CREATION:-false}
+  Platform__Host: ${PLATFORM_HOST}
+  Alerts__PlatformBaseUrl: https://${PLATFORM_HOST}
+  Alerts__Recipients__0: ${ALERT_RECIPIENT}
+  ReverseProxy__KnownNetworks__0: ${STACK_SUBNET}
+  ReverseProxy__RequireTrustedProxy: "true"
+  Email__SmtpHost: ${SMTP_HOST}
+  Email__SmtpUsername: ${SMTP_USERNAME}
+  Storage__Root: /data/files
+  ClamAV__Host: clamav
+
+x-api-secrets: &api-secrets
+  - { source: catalog-connection, target: ConnectionStrings__Catalog }
+  - { source: provisioner-connection, target: ConnectionStrings__Provisioner }
+  - { source: auth-signing-key, target: Auth__SigningKey }
+  - { source: smtp-password, target: Email__SmtpPassword }
+  - { source: dp-cert, target: dp-cert.pfx }
+  - { source: dp-cert-password, target: dp-cert-password }
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: bqe-homolog-postgres
+    restart: unless-stopped
+    cap_drop: [ALL]
+    cap_add: [CHOWN, DAC_OVERRIDE, FOWNER, SETGID, SETUID]
+    security_opt: ["no-new-privileges:true"]
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD_FILE: /run/secrets/pg-superuser-password
+    secrets: [pg-superuser-password, pg-catalog-password, pg-provisioner-password]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres/init-roles.sh:/docker-entrypoint-initdb.d/10-init-roles.sh:ro
+    networks: [internal]
+    shm_size: 256m
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 1536m }
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d catalog"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  clamav:
+    image: clamav/clamav:1.4
+    container_name: bqe-homolog-clamav
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+    volumes:
+      - clamdb:/var/lib/clamav
+    networks: [internal, egress]
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 2g }
+
+  migrator:
+    <<: *app
+    image: ${REGISTRY}/bemaqui-empresas-api:${IMAGE_TAG}
+    container_name: bqe-homolog-migrator
+    restart: "no"
+    user: "1654:1654"
+    command: ["migrate"]
+    environment: *api-env
+    secrets: *api-secrets
+    tmpfs: ["/tmp:size=64m"]
+    networks: [internal]
+    healthcheck: { disable: true }
+    depends_on:
+      postgres: { condition: service_healthy }
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 512m }
+
+  api:
+    <<: *app
+    image: ${REGISTRY}/bemaqui-empresas-api:${IMAGE_TAG}
+    container_name: bqe-homolog-api
+    user: "1654:1654"
+    environment: *api-env
+    secrets: *api-secrets
+    tmpfs: ["/tmp:size=128m"]
+    volumes:
+      - files:/data/files
+    networks: [internal, stack]
+    depends_on:
+      migrator: { condition: service_completed_successfully }
+      clamav: { condition: service_started }
+    deploy:
+      resources:
+        limits: { cpus: "1.5", memory: 1536m }
+
+  web:
+    <<: *app
+    image: ${REGISTRY}/bemaqui-empresas-web:${IMAGE_TAG}
+    container_name: bqe-homolog-web
+    user: "101:101"
+    tmpfs: ["/tmp:size=16m", "/var/cache/nginx:size=32m"]
+    networks: [stack]
+    deploy:
+      resources:
+        limits: { cpus: "0.5", memory: 128m }
+
+  # Não sobe com "up": o cron chama "docker compose run --rm backup daily" (e "keyring" uma vez por semana).
+  backup:
+    <<: *app
+    image: ${REGISTRY}/bemaqui-empresas-backup:${IMAGE_TAG}
+    container_name: bqe-homolog-backup
+    restart: "no"
+    user: "10001:10001"
+    profiles: [backup]
+    environment:
+      BACKUP_ENV: homolog
+      PGHOST: postgres
+      PGUSER: postgres
+      S3_PROVIDER: ${S3_PROVIDER:-Other}
+    secrets:
+      - backup-pg-password
+      - backup-age-recipients
+      - dumps-s3-endpoint
+      - dumps-s3-bucket
+      - dumps-s3-access-key
+      - dumps-s3-secret-key
+      - keyring-s3-endpoint
+      - keyring-s3-bucket
+      - keyring-s3-access-key
+      - keyring-s3-secret-key
+    tmpfs: ["/tmp:size=64m"]
+    networks: [internal, egress]
+    depends_on:
+      postgres: { condition: service_healthy }
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 512m }
+
+networks:
+  # Sem saída para a internet: só os containers do projeto se enxergam.
+  internal:
+    internal: true
+  # Saída para a internet de quem precisa (assinaturas do ClamAV, bucket do backup); sem nada exposto.
+  egress: {}
+  # Rede do stack-nginx: só web e api.
+  stack:
+    external: true
+    name: stack_stack
+
+volumes:
+  pgdata: { name: bqe-homolog-pgdata }
+  files: { name: bqe-homolog-files }
+  clamdb: { name: bqe-homolog-clamdb }
+
+secrets:
+  catalog-connection: { file: ./secrets/catalog-connection }
+  provisioner-connection: { file: ./secrets/provisioner-connection }
+  auth-signing-key: { file: ./secrets/auth-signing-key }
+  smtp-password: { file: ./secrets/smtp-password }
+  dp-cert: { file: ./secrets/dp-cert.pfx }
+  dp-cert-password: { file: ./secrets/dp-cert-password }
+  pg-superuser-password: { file: ./secrets/pg-superuser-password }
+  pg-catalog-password: { file: ./secrets/pg-catalog-password }
+  pg-provisioner-password: { file: ./secrets/pg-provisioner-password }
+  backup-pg-password: { file: ./secrets/backup-pg-password }
+  backup-age-recipients: { file: ./secrets/backup-age-recipients }
+  dumps-s3-endpoint: { file: ./secrets/dumps-s3-endpoint }
+  dumps-s3-bucket: { file: ./secrets/dumps-s3-bucket }
+  dumps-s3-access-key: { file: ./secrets/dumps-s3-access-key }
+  dumps-s3-secret-key: { file: ./secrets/dumps-s3-secret-key }
+  keyring-s3-endpoint: { file: ./secrets/keyring-s3-endpoint }
+  keyring-s3-bucket: { file: ./secrets/keyring-s3-bucket }
+  keyring-s3-access-key: { file: ./secrets/keyring-s3-access-key }
+  keyring-s3-secret-key: { file: ./secrets/keyring-s3-secret-key }

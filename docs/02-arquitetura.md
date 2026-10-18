@@ -95,12 +95,26 @@ Em ambos os casos o módulo Fiscal só conhece a interface `IFiscalEmitter` (Emi
 - Leitura de PDF de NF de entrada: extração de texto (PdfPig); se não houver texto, OCR; parser da chave de 44 dígitos e campos do DANFE; conferência manual obrigatória antes de dar entrada.
 
 ## 7. Infra e deploy
-- Docker Compose próprio em `/opt/projetos/bemaqui-empresas/`: `api`, `web` (nginx estático), `postgres` (17), `backup`; rede externa `stack_stack`.
-- Borda: `stack-nginx` compartilhado da VPS, vhost por host (`app.konebras.com.br`), certificado Let's Encrypt por host via certbot existente. Sem Caddy/wildcard (ADR 0004).
-- CI no GitHub Actions: build, testes (Testcontainers), imagem Docker, deploy por SSH: `docker compose run --rm api migrate` (catálogo + todos os tenants, advisory lock, relatório, saída ≠ 0 se algum falhar) e só então `docker compose up -d`. A API não migra sozinha em homologação/produção (ADR 0006; runbook `docs/operacao/provisionamento.md`).
-- Ambientes: `dev` (local), `homolog` (host a definir), `prod` (`app.konebras.com.br`).
-- Backup: `pg_dump` por banco diário → bucket S3 compatível; retenção 30 dias; restauração testada mensalmente.
-- Monitoramento: health checks `/health`, Uptime Kuma (já pode rodar na VPS), logs Serilog em arquivo + Seq opcional.
+- **Compose:** compose próprio por ambiente: `/opt/projetos/bemaqui-empresas-homolog/` (projeto `bqe-homolog`, containers `bqe-homolog-*`) e, na GOL-01, `/opt/projetos/bemaqui-empresas/`.
+  - Serviços: `api`, `migrator` (a mesma imagem da API), `web` (nginx-unprivileged), `postgres` 17 (só na rede interna, sem `ports:`), `clamav` e `backup`.
+  - Só `web` e `api` entram na `stack_stack`. O endurecimento e o `check-compose.mjs` estão na ADR 0015.
+- **Borda:** `stack-nginx` compartilhado da VPS, com um vhost por host (`deploy/nginx/`) e um certificado Let's Encrypt por host, pelo certbot existente.
+  - O log `bqe_masked` não grava query string nem o Referer completo.
+  - Sem Caddy e sem wildcard (ADR 0004).
+- **CI e CD (GitHub Actions):** o CI faz build, testes (Testcontainers), o job "Infra" (compose, `nginx -t` e as três imagens) e E2E.
+  - O CD publica as imagens no GHCR (tag = SHA) e faz o deploy por SSH, com chave de comando restrito (`deploy/homolog/deploy.sh`).
+  - No deploy, o `migrator` roda antes (catálogo e todos os tenants, advisory lock, relatório, saída ≠ 0 se algum falhar). Só depois sobem `api` e `web`, esperando `healthy`, com volta automática para a versão anterior.
+  - A API não migra sozinha em homologação e produção (ADR 0006; runbooks `docs/operacao/provisionamento.md` e `deploy.md`).
+- **Ambientes:**
+  - `dev`: local;
+  - `homolog`: `homolog.konebras.com.br` e `plataforma-homolog.bemaquiapp.com.br` (ADR 0015; DNS pelo PO);
+  - `prod`: `app.konebras.com.br`. O pipeline está pronto e desligado até a GOL-01.
+- **Segredos:** arquivos em `./secrets`, montados como Docker secrets. O Host lê `/run/secrets/*__*` como configuração. Nada vai em variável de ambiente.
+- **Backup (RPO 24 h):** `pg_dump` por banco e os papéis, cifrados com `age` em stream e enviados por `rclone` a um bucket S3 compatível (recomendação: Backblaze B2).
+  - A credencial não tem delete; a retenção de 30 dias é regra de ciclo de vida do bucket.
+  - A trilha do key ring vai para outro bucket.
+  - A restauração está descrita e registrada em `docs/operacao/restauracao.md`.
+- **Monitoramento:** health checks `/health/live` e `/health/ready`, UptimeRobot fora da VPS (ADR 0010) e logs Serilog JSON.
 
 ## 8. Padrões de dados
 - Schemas por módulo; nomes em snake_case (convenção Npgsql).
