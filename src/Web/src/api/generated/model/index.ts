@@ -7,6 +7,11 @@
 
 export * from './acceptInviteRequest';
 export * from './accessTokenResponse';
+export * from './aiProviderInfo';
+export * from './aiSettingsDto';
+export * from './aiSettingsRequest';
+export * from './aiTestResult';
+export * from './askHelpRequest';
 export * from './auditEntryDto';
 export * from './challengeRequest';
 export * from './confirmTwoFactorRequest';
@@ -22,6 +27,8 @@ export * from './groupMember';
 export * from './groupModuleRow';
 export * from './groupSaved';
 export * from './groupSummary';
+export * from './helpAnswer';
+export * from './helpCitation';
 export * from './helpDocument';
 export * from './helpSection';
 export * from './iFormFile';
@@ -62,6 +69,7 @@ export * from './provisionTenantRequest';
 export * from './resetPasswordRequest';
 export * from './saveGroupRequest';
 export * from './saveModuleReleaseRequest';
+export * from './secret';
 export * from './securitySettingsDto';
 export * from './setGroupMembersRequest';
 export * from './setUserGroupsRequest';

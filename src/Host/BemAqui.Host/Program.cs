@@ -41,7 +41,19 @@ try
     });
 
     builder.Services.AddProblemDetails();
-    builder.Services.AddOpenApi();
+    // Secret entra como texto write-only (ADR 0007): no contrato é string, nunca objeto, e nunca aparece numa resposta.
+    builder.Services.AddOpenApi(o => o.AddSchemaTransformer((schema, context, _) =>
+    {
+        if (context.JsonTypeInfo.Type == typeof(BemAqui.SharedKernel.Secret))
+        {
+            schema.Type = Microsoft.OpenApi.JsonSchemaType.String;
+            schema.Format = "password";
+            schema.WriteOnly = true;
+            schema.Properties?.Clear();
+        }
+
+        return Task.CompletedTask;
+    }));
     builder.Services.AddHttpContextAccessor();
     var health = builder.Configuration.GetSection(HealthOptions.Section).Get<HealthOptions>() ?? new HealthOptions();
     var checks = builder.Services.AddHealthChecks().AddCheck<PostgresHealthCheck>("catalog-db", tags: ["ready"]);

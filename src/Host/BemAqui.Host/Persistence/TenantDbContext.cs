@@ -39,6 +39,10 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<UserPreference> UserPreferences => Set<UserPreference>();
 
+    public DbSet<AiSettings> AiSettings => Set<AiSettings>();
+
+    public DbSet<AiUsageLog> AiUsageLogs => Set<AiUsageLog>();
+
     protected override void ConfigureModules(ModelBuilder modelBuilder)
     {
         foreach (var module in ModuleRegistry.All)

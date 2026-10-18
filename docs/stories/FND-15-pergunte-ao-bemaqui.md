@@ -5,7 +5,7 @@
 | ID | FND-15 |
 | Título | Busca nas ajudas, resposta da IA só com os trechos e com citação, fallback por trechos, tela do provedor de IA e `IAiProvider` |
 | Tamanho | G (re-estimada: o backlog dizia M; três adaptadores, tela de configuração, validação de citação e registro de uso) |
-| Status | Draft |
+| Status | Done |
 | Requisitos | R-AJD-5 · R-AJD-8 · R-AJD-6 (a IA só usa ajudas permitidas ao usuário) |
 | Dependências | FND-14 (catálogo e painel de ajuda), FND-11 (chave cifrada), FND-06c (permissões, `settings.edit`), FND-09c (formulário), FND-12 (alerta de integração) |
 | Bloqueia | — |
@@ -129,9 +129,17 @@ Checklist do @po (Pax), 16/10/2026.
 |---|---|---|---|
 | 16/10/2026 | 0.1 | Story detalhada a partir do backlog e do PRD §5.15a | River (SM) |
 | 16/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
+| 18/10/2026 | 1.0 | Implementada; pontos em aberto decididos na ADR 0014 | @dev |
 
 ## Dev Agent Record
-_A preencher pelo @dev._
+- Pontos em aberto decididos na ADR 0014: busca do NSHome, aviso com confirmação para pergunta com dado da empresa, configuração no Identity, lista de modelos mantida pelo sistema com "Outro", tempo limite de 20 s e o texto do prompt em `HelpPrompt.System`.
+- Backend:
+  - lógica em `HelpSearch`, `HelpPrompt` (prompt e validação de citação), `BusinessDataGuard`, `AiSettingsService` e `HelpAnswerService`;
+  - adaptadores `AnthropicProvider`, `GeminiProvider` e `OpenAiProvider`;
+  - endpoints `POST /api/v1/ajuda/perguntar`, `GET|PUT|DELETE /api/v1/settings/ia` e `POST /api/v1/settings/ia/testar`;
+  - migration `AiSettingsAndUsage` e rate limit da pergunta.
+- Front: aba "Pergunte ao BemAqui" no painel de ajuda, com perguntas sugeridas das FAQ da tela, e a tela Configurações → Inteligência artificial, com abas de Configurações.
+- Testes de unidade (busca, citação, prompt e aviso) e de integração com o servidor falso dos três provedores (CA 1 a 14), incluindo o teste de prompt sem dado do tenant (CA 7).
 
 ## QA Results
 _A preencher pelo @qa._

@@ -11,6 +11,7 @@ import { GroupsPage } from '@/pages/access/GroupsPage'
 import { UsersPage } from '@/pages/access/UsersPage'
 import { ModuleGate } from '@/pages/ModuleGate'
 import { SecurityPage } from '@/pages/settings/SecurityPage'
+import { AiSettingsPage } from '@/pages/settings/AiSettingsPage'
 import { ShopfloorLayout, TvLayout } from '@/pages/DedicatedLayouts'
 import { Inicio } from '@/pages/Inicio'
 import { ModulePage, NotFound } from '@/pages/ModulePage'
@@ -62,6 +63,7 @@ const usersRoute = createRoute({ getParentRoute: () => appRoute, path: 'acessos/
 const groupsRoute = createRoute({ getParentRoute: () => appRoute, path: 'acessos/grupos', component: gated('identity', GroupsPage), validateSearch: (s: Record<string, unknown>): { grupo?: string } => ({ grupo: text(s.grupo) }) })
 const settingsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes', beforeLoad: () => { throw redirect({ to: '/app/configuracoes/seguranca' }) } })
 const securityRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/seguranca', component: gated('settings', SecurityPage) })
+const aiSettingsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/ia', component: gated('settings', AiSettingsPage) })
 const moduleRoute = createRoute({ getParentRoute: () => appRoute, path: '$module', component: ModulePage })
 const moduleTabRoute = createRoute({ getParentRoute: () => appRoute, path: '$module/$tab', component: ModulePage })
 
@@ -97,7 +99,8 @@ export const routeTree = rootRoute.addChildren([
   forgotRoute,
   resetRoute,
   inviteRoute,
-  appRoute.addChildren([appIndexRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, securityRoute, moduleRoute, moduleTabRoute]),
+  appRoute.addChildren([appIndexRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, securityRoute,
+    aiSettingsRoute, moduleRoute, moduleTabRoute]),
   platformLoginRoute,
   platformPasswordRoute,
   platformRoute.addChildren([platformIndexRoute, tenantsRoute, tenantRoute]),

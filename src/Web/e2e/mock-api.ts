@@ -23,6 +23,7 @@ export async function mockApi(page: Page, overrides: Record<string, Handler> = {
     'GET /api/v1/ajuda/vistas': (r) => json(r, []),
     'GET /api/v1/identity/users': (r) => json(r, []),
     'GET /api/v1/settings/security': (r) => json(r, { requireTwoFactor: false }),
+    'GET /api/v1/settings/ia': (r) => json(r, aiSettings()),
   }
   const handlers = { ...defaults, ...overrides }
 
@@ -35,6 +36,20 @@ export async function mockApi(page: Page, overrides: Record<string, Handler> = {
     return json(route, {})
   })
 }
+
+/** Configuração de IA sem provedor (FND-15), com a lista de provedores e modelos sugeridos. */
+export const aiSettings = (configured = false) => ({
+  configured,
+  provider: configured ? 'anthropic' : null,
+  model: configured ? 'claude-haiku-5-5' : null,
+  keySetAt: configured ? '2026-10-18T12:00:00Z' : null,
+  updatedAt: configured ? '2026-10-18T12:00:00Z' : null,
+  providers: [
+    { code: 'anthropic', name: 'Anthropic Claude', models: ['claude-haiku-5-5', 'claude-sonnet-5-5'] },
+    { code: 'gemini', name: 'Google Gemini', models: ['gemini-2.5-flash'] },
+    { code: 'openai', name: 'OpenAI', models: ['gpt-5-mini'] },
+  ],
+})
 
 export { json }
 
