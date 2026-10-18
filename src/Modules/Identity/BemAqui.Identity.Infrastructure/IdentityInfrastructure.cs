@@ -33,6 +33,7 @@ public static class IdentityInfrastructure
         services.TryAddScoped<GroupService>();
         services.TryAddScoped<UserService>();
         services.TryAddScoped<SecuritySettings>();
+        services.TryAddScoped<Preferences>();
         services.TryAddScoped<BemAqui.Platform.Contracts.ITenantOwnerOnboarding, IdentityOwnerOnboarding>();
         return services;
     }

@@ -1,16 +1,136 @@
 /*
- * Único arquivo onde cor literal é permitida (CLAUDE.md: toda cor vem de tokens).
- * Os tokens definitivos (claro/escuro/automático, mapeamento shadcn) chegam na FND-09a.
+ * Único arquivo onde cor literal é permitida (CLAUDE.md: toda cor vem de tokens). FND-09a.
+ * Base: protótipo aprovado (docs/prototipo), mapeado para os nomes do shadcn, com as correções de contraste da
+ * revisão §2.4 (tokens *-ink, --success-foreground, --input, --rail-ring, --info, e --led renomeado para --signal).
+ * O script scripts/check-contrast.mjs confere os pares e falha abaixo dos limites (CA 3 a 6).
+ *
+ * Tema: "Automático" segue o sistema; [data-theme="light|dark"] força. .theme-tv é sempre escuro (CA 11).
  */
 :root {
-  color-scheme: light dark;
-  --background: #e9edf1;
-  --foreground: #14202b;
+  color-scheme: light;
+  --background: #e9edf1; /* --steel */
+  --foreground: #14202b; /* --ink */
+  --card: #ffffff; /* --surface */
+  --card-foreground: #14202b;
+  --popover: #ffffff;
+  --popover-foreground: #14202b;
+  --muted: #f4f6f8; /* --sunken */
+  --muted-foreground: #5a6774; /* --muted do protótipo */
+  --border: #d6dce2; /* --line */
+  --input: #75838f; /* borda de campo, >= 3:1 contra o fundo e o card */
+  --ring: #2148c0;
+  --rail: #17222d;
+  --rail-ink: #c9d3dc;
+  --rail-dim: #8a99a6;
+  --rail-hi: #22303d;
+  --rail-ring: #8fa8ff; /* foco sobre o trilho, >= 3:1 */
+  --primary: #2148c0; /* --accent */
+  --primary-foreground: #ffffff;
+  --primary-soft: #e3e9fa;
+  --ok: #25804a;
+  --ok-soft: #e1f1e7;
+  --ok-ink: #17592f;
+  --success-foreground: #ffffff;
+  --warn: #b76e0b;
+  --warn-soft: #fbeedb;
+  --warn-ink: #7a4502;
+  --crit: #c2352b;
+  --crit-soft: #f9e3e1;
+  --crit-ink: #8f1f17;
+  --critical-foreground: #ffffff;
+  --info: #0e6f8a;
+  --info-soft: #dcf0f5;
+  --info-ink: #0a4f63;
+  --signal: #f2a93b; /* --led: marca, item ativo e indicador de etapa; nunca estado */
+  --signal-foreground: #1a1205;
+  --radius-s: 6px;
+  --radius-m: 10px;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
     --background: #0e1419;
     --foreground: #e4eaf0;
+    --card: #151d24;
+    --card-foreground: #e4eaf0;
+    --popover: #151d24;
+    --popover-foreground: #e4eaf0;
+    --muted: #111820;
+    --muted-foreground: #93a1ae;
+    --border: #26323c;
+    --input: #66788a;
+    --ring: #7d9bff;
+    --rail: #0a0f13;
+    --rail-ink: #c9d3dc;
+    --rail-dim: #7d8c99;
+    --rail-hi: #18232d;
+    --rail-ring: #7d9bff;
+    --primary: #7d9bff;
+    --primary-foreground: #0b1230;
+    --primary-soft: #1c2647;
+    --ok: #5cc68a;
+    --ok-soft: #14301f;
+    --ok-ink: #7fd8a5;
+    --success-foreground: #0a2414;
+    --warn: #ff8a5c;
+    --warn-soft: #3a2010;
+    --warn-ink: #ffb98c;
+    --crit: #ff7b70;
+    --crit-soft: #3a1916;
+    --crit-ink: #ffa39b;
+    --critical-foreground: #2a0806;
+    --info: #4cc3e0;
+    --info-soft: #0f2a33;
+    --info-ink: #84d8eb;
+    --signal: #f2a93b;
+    --signal-foreground: #1a1205;
   }
+}
+
+:root[data-theme="dark"],
+.theme-tv {
+  color-scheme: dark;
+  --background: #0e1419;
+  --foreground: #e4eaf0;
+  --card: #151d24;
+  --card-foreground: #e4eaf0;
+  --popover: #151d24;
+  --popover-foreground: #e4eaf0;
+  --muted: #111820;
+  --muted-foreground: #93a1ae;
+  --border: #26323c;
+  --input: #66788a;
+  --ring: #7d9bff;
+  --rail: #0a0f13;
+  --rail-ink: #c9d3dc;
+  --rail-dim: #7d8c99;
+  --rail-hi: #18232d;
+  --rail-ring: #7d9bff;
+  --primary: #7d9bff;
+  --primary-foreground: #0b1230;
+  --primary-soft: #1c2647;
+  --ok: #5cc68a;
+  --ok-soft: #14301f;
+  --ok-ink: #7fd8a5;
+  --success-foreground: #0a2414;
+  --warn: #ff8a5c;
+  --warn-soft: #3a2010;
+  --warn-ink: #ffb98c;
+  --crit: #ff7b70;
+  --crit-soft: #3a1916;
+  --crit-ink: #ffa39b;
+  --critical-foreground: #2a0806;
+  --info: #4cc3e0;
+  --info-soft: #0f2a33;
+  --info-ink: #84d8eb;
+  --signal: #f2a93b;
+  --signal-foreground: #1a1205;
+}
+
+/* Painel da TV: sempre escuro, texto grande (revisão §2.4). */
+.theme-tv {
+  background: var(--background);
+  color: var(--foreground);
+  font-size: 24px;
 }

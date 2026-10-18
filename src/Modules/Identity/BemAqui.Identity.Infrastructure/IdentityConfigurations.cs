@@ -173,3 +173,15 @@ internal sealed class UserGroupConfiguration : IEntityTypeConfiguration<UserGrou
         b.HasOne<Group>().WithMany().HasForeignKey(e => e.GroupId).OnDelete(DeleteBehavior.Restrict);
     }
 }
+
+internal sealed class UserPreferenceConfiguration : IEntityTypeConfiguration<UserPreference>
+{
+    public void Configure(EntityTypeBuilder<UserPreference> b)
+    {
+        b.ToTable("user_preferences", IdentitySchema.Name);
+        b.Property(e => e.Key).HasMaxLength(64);
+        b.Property(e => e.Value).HasMaxLength(4000);
+        b.HasIndex(e => new { e.UserId, e.Key }).IsUnique();
+        b.HasOne<User>().WithMany().HasForeignKey(e => e.UserId).OnDelete(DeleteBehavior.Restrict);
+    }
+}

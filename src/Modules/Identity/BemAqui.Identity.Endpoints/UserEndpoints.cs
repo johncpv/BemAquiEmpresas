@@ -69,6 +69,12 @@ internal static class UserEndpoints
             })
             .WithTags("Identidade").WithName("GetMyPermissions");
 
+        api.MapGet("/me/preferences", async (ICurrentUser user, Preferences preferences, CancellationToken ct) => Results.Ok(await preferences.GetAsync(user.UserId!.Value, ct)))
+            .WithTags("Identidade").WithName("GetMyPreferences");
+        api.MapPut("/me/preferences", async (PreferencesDto request, ICurrentUser user, Preferences preferences, CancellationToken ct) =>
+                (await preferences.SaveAsync(user.UserId!.Value, request, ct)).ToHttpResult())
+            .WithTags("Identidade").WithName("SaveMyPreferences");
+
         return api;
     }
 }
