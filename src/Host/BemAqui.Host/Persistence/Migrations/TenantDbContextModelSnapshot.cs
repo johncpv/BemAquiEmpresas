@@ -475,6 +475,125 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("module_actions", "identity");
                 });
 
+            modelBuilder.Entity("BemAqui.Identity.Domain.Group", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("description");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<bool>("IsSystem")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_system");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.Property<bool>("RequiresTwoFactor")
+                        .HasColumnType("boolean")
+                        .HasColumnName("requires_two_factor");
+
+                    b.Property<string>("SeedKey")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("seed_key");
+
+                    b.HasKey("Id")
+                        .HasName("pk_groups");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasDatabaseName("ix_groups_name")
+                        .HasFilter("is_active");
+
+                    b.HasIndex("SeedKey")
+                        .IsUnique()
+                        .HasDatabaseName("ix_groups_seed_key");
+
+                    b.ToTable("groups", "identity");
+                });
+
+            modelBuilder.Entity("BemAqui.Identity.Domain.GroupGrant", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("action");
+
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("group_id");
+
+                    b.Property<string>("ModuleCode")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("module_code");
+
+                    b.HasKey("Id")
+                        .HasName("pk_group_permissions");
+
+                    b.HasIndex("GroupId", "ModuleCode", "Action")
+                        .IsUnique()
+                        .HasDatabaseName("ix_group_permissions_group_id_module_code_action");
+
+                    b.ToTable("group_permissions", "identity");
+                });
+
+            modelBuilder.Entity("BemAqui.Identity.Domain.GroupModule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Enabled")
+                        .HasColumnType("boolean")
+                        .HasColumnName("enabled");
+
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("group_id");
+
+                    b.Property<string>("ModuleCode")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("module_code");
+
+                    b.HasKey("Id")
+                        .HasName("pk_group_modules");
+
+                    b.HasIndex("GroupId", "ModuleCode")
+                        .IsUnique()
+                        .HasDatabaseName("ix_group_modules_group_id_module_code");
+
+                    b.ToTable("group_modules", "identity");
+                });
+
             modelBuilder.Entity("BemAqui.Identity.Domain.PasswordReset", b =>
                 {
                     b.Property<Guid>("Id")
@@ -788,6 +907,34 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("users", "identity");
                 });
 
+            modelBuilder.Entity("BemAqui.Identity.Domain.UserGroup", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("group_id");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_user_groups");
+
+                    b.HasIndex("GroupId")
+                        .HasDatabaseName("ix_user_groups_group_id");
+
+                    b.HasIndex("UserId", "GroupId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_user_groups_user_id_group_id");
+
+                    b.ToTable("user_groups", "identity");
+                });
+
             modelBuilder.Entity("BemAqui.Identity.Domain.UserInvite", b =>
                 {
                     b.Property<Guid>("Id")
@@ -843,6 +990,26 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("user_invites", "identity");
                 });
 
+            modelBuilder.Entity("BemAqui.Identity.Domain.GroupGrant", b =>
+                {
+                    b.HasOne("BemAqui.Identity.Domain.Group", null)
+                        .WithMany()
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_group_permissions_groups_group_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Identity.Domain.GroupModule", b =>
+                {
+                    b.HasOne("BemAqui.Identity.Domain.Group", null)
+                        .WithMany()
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_group_modules_groups_group_id");
+                });
+
             modelBuilder.Entity("BemAqui.Identity.Domain.PasswordReset", b =>
                 {
                     b.HasOne("BemAqui.Identity.Domain.User", null)
@@ -881,6 +1048,23 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_two_factor_challenges_users_user_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Identity.Domain.UserGroup", b =>
+                {
+                    b.HasOne("BemAqui.Identity.Domain.Group", null)
+                        .WithMany()
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_user_groups_groups_group_id");
+
+                    b.HasOne("BemAqui.Identity.Domain.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_user_groups_users_user_id");
                 });
 
             modelBuilder.Entity("BemAqui.Identity.Domain.UserInvite", b =>
