@@ -1,0 +1,28 @@
+# Homologação a cada push na main com o CI verde (FND-10 CA 1). Liga quando a variável HOMOLOG_DEPLOY=true existir
+# no repositório (Settings → Variables), depois da preparação da VPS descrita em docs/operacao/deploy.md.
+name: Deploy homologação
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  homolog:
+    if: vars.HOMOLOG_DEPLOY == 'true' && (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: homolog
+      ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      tenant_host: ${{ vars.HOMOLOG_TENANT_HOST || 'homolog.konebras.com.br' }}
+      ssh_host: 2.25.82.127
+      dolibarr_host: app.konebras.com.br
+    secrets:
+      DEPLOY_SSH_KEY: ${{ secrets.HOMOLOG_SSH_KEY }}
+      DEPLOY_KNOWN_HOSTS: ${{ secrets.HOMOLOG_KNOWN_HOSTS }}

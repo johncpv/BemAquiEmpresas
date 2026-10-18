@@ -1,0 +1,15 @@
+**/bin/
+**/obj/
+**/node_modules/
+**/dist/
+**/.vitest/
+**/TestResults/
+**/test-results/
+**/playwright-report/
+**/.local/
+.git/
+.github/
+.claude/
+**/*.pfx
+**/.env
+deploy/homolog/secrets/

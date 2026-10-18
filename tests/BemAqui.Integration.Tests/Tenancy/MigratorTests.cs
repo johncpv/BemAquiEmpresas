@@ -13,7 +13,7 @@ using Npgsql;
 namespace BemAqui.Integration.Tests.Tenancy;
 
 /// <summary>FND-03a CA 9 a 12: migrator com relatório, falha isolada, lock e 503 com schema defasado.</summary>
-public class MigratorTests(TenancyFixture tenancy) : IClassFixture<TenancyFixture>
+public partial class MigratorTests(TenancyFixture tenancy) : IClassFixture<TenancyFixture>
 {
     private Task<int> RunCliAsync(TextWriter output, params string[] args) =>
         CliCommand.RunAsync(args, c => c.AddInMemoryCollection(new Dictionary<string, string?>

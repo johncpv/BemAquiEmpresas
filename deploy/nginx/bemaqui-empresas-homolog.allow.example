@@ -1,0 +1,3 @@
+# IPs liberados para o painel da plataforma de homologação (um por linha: "<ip ou cidr> 1;").
+# Copie para /opt/infra/nginx/conf.d/bemaqui-empresas-homolog.allow (sem .conf, para não ser incluído sozinho).
+203.0.113.10 1;

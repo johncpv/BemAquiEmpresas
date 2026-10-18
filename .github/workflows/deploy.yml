@@ -1,0 +1,76 @@
+# Publicação reutilizável (FND-10): imagens no GHCR e deploy por SSH com chave de comando restrito.
+# Chamado por deploy-homolog.yml (main) e deploy-prod.yml (tag, desligado até a GOL-01).
+name: Deploy (reutilizável)
+
+on:
+  workflow_call:
+    inputs:
+      environment: { type: string, required: true }
+      ref: { type: string, required: true }
+      tenant_host: { type: string, required: true }
+      ssh_host: { type: string, required: true }
+      dolibarr_host: { type: string, required: false, default: "" }
+    secrets:
+      DEPLOY_SSH_KEY: { required: true }
+      DEPLOY_KNOWN_HOSTS: { required: true }
+
+permissions:
+  contents: read
+
+jobs:
+  images:
+    name: Imagens
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref }}
+      - name: Build e push (api, web, backup)
+        env:
+          REGISTRY: ghcr.io/${{ github.repository_owner }}
+          SHA: ${{ inputs.ref }}
+          ENVIRONMENT: ${{ inputs.environment }}
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          echo "$TOKEN" | docker login ghcr.io -u "$ACTOR" --password-stdin
+          for image in api web backup; do
+            name="$REGISTRY/bemaqui-empresas-$image"
+            docker build -f "deploy/$image.Dockerfile" -t "$name:$SHA" -t "$name:$ENVIRONMENT" \
+              --label org.opencontainers.image.source="https://github.com/${{ github.repository }}" \
+              --label org.opencontainers.image.revision="$SHA" .
+            docker push "$name:$SHA"
+            docker push "$name:$ENVIRONMENT"
+          done
+
+  deploy:
+    name: Deploy em ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    needs: images
+    environment: ${{ inputs.environment }}
+    concurrency:
+      group: deploy-${{ inputs.environment }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref }}
+      - name: Deploy por SSH (compose do commit no stdin)
+        env:
+          KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          SSH_HOST: ${{ inputs.ssh_host }}
+          SHA: ${{ inputs.ref }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$KEY" > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          tar -cz deploy | ssh -i ~/.ssh/deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes "root@$SSH_HOST" "deploy $SHA"
+      - name: Fumaça (health, rotas da API e Dolibarr intacto)
+        env:
+          TENANT_HOST: ${{ inputs.tenant_host }}
+          DOLIBARR_HOST: ${{ inputs.dolibarr_host }}
+        run: sh scripts/smoke.sh "$TENANT_HOST" "$DOLIBARR_HOST"

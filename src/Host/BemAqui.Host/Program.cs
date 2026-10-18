@@ -30,6 +30,7 @@ Log.Logger = new LoggerConfiguration().WriteTo.Console(formatProvider: System.Gl
 try
 {
     var builder = WebApplication.CreateBuilder(args);
+    builder.Configuration.AddSecretFiles();
 
     builder.Services.AddSerilog((sp, lc) =>
     {

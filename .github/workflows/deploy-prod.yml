@@ -1,0 +1,24 @@
+# Produção por tag (v*). PREPARADO E DESLIGADO até a GOL-01 (ADR 0005 D1): app.konebras.com.br continua com o Dolibarr
+# até o go-live. Para ligar: variável PROD_DEPLOY=true, environment "production" com aprovação e os secrets PROD_*.
+name: Deploy produção
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  production:
+    if: vars.PROD_DEPLOY == 'true'
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: production
+      ref: ${{ github.sha }}
+      tenant_host: app.konebras.com.br
+      ssh_host: 2.25.82.127
+    secrets:
+      DEPLOY_SSH_KEY: ${{ secrets.PROD_SSH_KEY }}
+      DEPLOY_KNOWN_HOSTS: ${{ secrets.PROD_KNOWN_HOSTS }}
