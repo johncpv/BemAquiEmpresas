@@ -17,6 +17,11 @@
   - diretório `/opt/projetos/bemaqui-empresas-homolog`;
   - projeto do compose `bqe-homolog`;
   - containers `bqe-homolog-*`, volumes `bqe-homolog-*` e o vhost `bemaqui-empresas-homolog.conf`, tudo prefixado para não colidir com o bemaqui-atende.
+- **Nomes únicos na rede compartilhada** (adendo de 18/10/2026, no primeiro deploy):
+  - O Docker registra o nome de cada serviço como apelido em todas as redes dele. Na `stack_stack`, `postgres` e `redis` são do bemaqui-atende, e `api` e `web` já são de vários projetos.
+  - No primeiro deploy, a API resolveu `postgres` para o banco do bemaqui-atende. A senha foi recusada e nada foi lido ou gravado, mas isso mostrou o risco.
+  - Regra: os serviços que entram na `stack_stack` se chamam `bqe-<ambiente>-api` e `bqe-<ambiente>-web`, e toda dependência é acessada pelo nome do container (`bqe-<ambiente>-postgres`, `bqe-<ambiente>-clamav`).
+  - O `check-compose.mjs` reprova serviço com nome genérico na `stack_stack` e host genérico em `*__Host` ou `PGHOST`.
 - **Imagens:** `ghcr.io/johncpv/bemaqui-empresas-{api,web,backup}`, com a tag do SHA do commit e a do ambiente.
   - O build usa `docker build` e `docker push` direto, sem actions de terceiros (a regra de actions fixadas por SHA continua simples).
   - **api:** a mesma imagem serve de API, de migrator (`migrate`) e de CLI. É alpine com ICU, tzdata e krb5, roda com uid 1654, healthcheck em `/health/live`.

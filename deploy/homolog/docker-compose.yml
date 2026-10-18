@@ -2,6 +2,8 @@
 # Diretório: /opt/projetos/bemaqui-empresas-homolog. Segredos em ./secrets (um arquivo por segredo, chmod 0400).
 # Regras verificadas no CI (scripts/check-compose.mjs): postgres sem ports e fora da stack_stack; api, web, migrator e
 # backup não-root, read_only, cap_drop ALL, no-new-privileges e com limites; só web e api na stack_stack.
+# Nomes únicos (ADR 0015): na stack_stack, "postgres", "redis", "api" e "web" já são apelidos de outros projetos.
+# Por isso api e web se chamam bqe-homolog-*, e a API acha o banco e o ClamAV pelo nome do container.
 name: bqe-homolog
 
 x-app: &app
@@ -26,7 +28,7 @@ x-api-env: &api-env
   Email__SmtpHost: ${SMTP_HOST}
   Email__SmtpUsername: ${SMTP_USERNAME}
   Storage__Root: /data/files
-  ClamAV__Host: clamav
+  ClamAV__Host: bqe-homolog-clamav
 
 x-api-secrets: &api-secrets
   - { source: catalog-connection, target: ConnectionStrings__Catalog }
@@ -92,7 +94,7 @@ services:
       resources:
         limits: { cpus: "1.0", memory: 512m }
 
-  api:
+  bqe-homolog-api:
     <<: *app
     image: ${REGISTRY}/bemaqui-empresas-api:${IMAGE_TAG}
     container_name: bqe-homolog-api
@@ -110,7 +112,7 @@ services:
       resources:
         limits: { cpus: "1.5", memory: 1536m }
 
-  web:
+  bqe-homolog-web:
     <<: *app
     image: ${REGISTRY}/bemaqui-empresas-web:${IMAGE_TAG}
     container_name: bqe-homolog-web
@@ -131,7 +133,7 @@ services:
     profiles: [backup]
     environment:
       BACKUP_ENV: homolog
-      PGHOST: postgres
+      PGHOST: bqe-homolog-postgres
       PGUSER: postgres
       S3_PROVIDER: ${S3_PROVIDER:-Other}
     secrets:

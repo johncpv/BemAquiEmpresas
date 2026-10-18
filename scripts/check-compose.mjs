@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Verificação estática do compose de homologação/produção (FND-10 CA 8 a 10). Entrada: saída de
+// Verificação estática do compose de homologação/produção (FND-10 CA 8 a 10 e nomes únicos na stack_stack). Entrada: saída de
 //   docker compose -f <arquivo> --profile backup config --format json
 // Falha (código 1) com a lista do que está fora da regra.
 import { readFileSync } from 'node:fs'
@@ -13,8 +13,11 @@ if (!file) {
 const compose = JSON.parse(readFileSync(file, 'utf8'))
 const services = compose.services ?? {}
 const stackNetwork = Object.entries(compose.networks ?? {}).find(([, n]) => n.name === 'stack_stack')?.[0]
-const hardened = ['api', 'web', 'migrator', 'backup']
-const onStack = new Set(['api', 'web'])
+// api e web têm nome próprio do ambiente (bqe-<ambiente>-api|web): o nome do serviço vira apelido na stack_stack,
+// onde "api", "web", "postgres" e "redis" já são de outros projetos (ADR 0015).
+const isEdge = (name) => /^bqe-[a-z0-9]+-(api|web)$/.test(name)
+const hardened = ['migrator', 'backup', ...Object.keys(services).filter(isEdge)]
+const generic = new Set(['postgres', 'clamav', 'redis', 'api', 'web', 'db', 'database'])
 const problems = []
 
 for (const name of hardened) {
@@ -42,12 +45,16 @@ else {
 
 for (const [name, s] of Object.entries(services)) {
   const networks = Object.keys(s.networks ?? {})
-  if (stackNetwork && networks.includes(stackNetwork) && !onStack.has(name)) problems.push(`${name}: só api e web podem estar na stack_stack`)
+  if (stackNetwork && networks.includes(stackNetwork) && !isEdge(name)) problems.push(`${name}: só bqe-<ambiente>-api e -web podem estar na stack_stack`)
+  for (const [key, value] of Object.entries(s.environment ?? {})) {
+    if (/(__Host|^PGHOST)$/.test(key) && generic.has(String(value))) problems.push(`${name}: ${key}=${value} é nome genérico; use o nome do container (ex.: bqe-homolog-postgres)`)
+  }
   if (s.network_mode === 'host') problems.push(`${name}: network_mode host não é permitido`)
   if ((s.ports ?? []).length > 0) problems.push(`${name}: o acesso externo é só pelo stack-nginx; remova ports:`)
 }
 
 if (!stackNetwork) problems.push('rede externa stack_stack não declarada')
+if (Object.keys(services).filter(isEdge).length !== 2) problems.push('esperado um serviço bqe-<ambiente>-api e um bqe-<ambiente>-web')
 
 if (problems.length > 0) {
   console.error('Compose fora das regras de endurecimento:\n- ' + problems.join('\n- '))
