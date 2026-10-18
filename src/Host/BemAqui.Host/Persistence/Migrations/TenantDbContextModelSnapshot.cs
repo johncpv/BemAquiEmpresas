@@ -376,6 +376,105 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("number_sequences", "shared");
                 });
 
+            modelBuilder.Entity("BemAqui.Identity.Domain.CatalogModule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ApproveMeaning")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("approve_meaning");
+
+                    b.Property<string>("Area")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("area");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("code");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("description");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("integer")
+                        .HasColumnName("order");
+
+                    b.Property<int>("Phase")
+                        .HasColumnType("integer")
+                        .HasColumnName("phase");
+
+                    b.HasKey("Id")
+                        .HasName("pk_modules");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasDatabaseName("ix_modules_code");
+
+                    b.ToTable("modules", "identity");
+                });
+
+            modelBuilder.Entity("BemAqui.Identity.Domain.CatalogModuleAction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("action");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("description");
+
+                    b.Property<bool>("IsStandard")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_standard");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("label");
+
+                    b.Property<string>("ModuleCode")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("module_code");
+
+                    b.HasKey("Id")
+                        .HasName("pk_module_actions");
+
+                    b.HasIndex("ModuleCode", "Action")
+                        .IsUnique()
+                        .HasDatabaseName("ix_module_actions_module_code_action");
+
+                    b.ToTable("module_actions", "identity");
+                });
+
             modelBuilder.Entity("BemAqui.Identity.Domain.PasswordReset", b =>
                 {
                     b.Property<Guid>("Id")

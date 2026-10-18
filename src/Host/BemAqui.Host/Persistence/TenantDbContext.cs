@@ -25,6 +25,10 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<TenantSetting> TenantSettings => Set<TenantSetting>();
 
+    public DbSet<CatalogModule> CatalogModules => Set<CatalogModule>();
+
+    public DbSet<CatalogModuleAction> CatalogModuleActions => Set<CatalogModuleAction>();
+
     protected override void ConfigureModules(ModelBuilder modelBuilder)
     {
         foreach (var module in ModuleRegistry.All)

@@ -85,7 +85,7 @@ internal static class PlatformAuthEndpoints
         return api;
     }
 
-    private static async ValueTask<object?> RequireSameOriginOnPost(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
+    internal static async ValueTask<object?> RequireSameOriginOnPost(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
         var http = context.HttpContext;
         if (HttpMethods.IsGet(http.Request.Method) || HttpMethods.IsHead(http.Request.Method))

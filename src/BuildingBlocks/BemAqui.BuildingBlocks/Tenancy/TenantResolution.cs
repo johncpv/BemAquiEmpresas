@@ -2,8 +2,16 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace BemAqui.BuildingBlocks.Tenancy;
 
-/// <summary>Tenant resolvido: dados públicos, host primário (para links absolutos) e a conexão ainda cifrada.</summary>
-public sealed record ResolvedTenant(TenantInfo Tenant, string LegalName, string? TradeName, string PrimaryHost, string ConnectionCipher, string? SchemaVersion = null);
+/// <summary>
+/// Tenant resolvido: dados públicos, host primário (para links absolutos), a conexão ainda cifrada e os módulos
+/// liberados (FND-06). Recarrega quando o catálogo avisa por NOTIFY, então mudar a liberação vale no próximo request.
+/// </summary>
+public sealed record ResolvedTenant(TenantInfo Tenant, string LegalName, string? TradeName, string PrimaryHost, string ConnectionCipher, string? SchemaVersion = null)
+{
+    public IReadOnlySet<string> ReleasedModules { get; init; } = new HashSet<string>(StringComparer.Ordinal);
+
+    public bool IsReleased(string moduleCode) => ReleasedModules.Contains(moduleCode);
+}
 
 /// <summary>Resolve o tenant pelo host ou pelo id, com cache; <see cref="Invalidate"/> é chamado ao mudar o catálogo.</summary>
 public interface ITenantResolver

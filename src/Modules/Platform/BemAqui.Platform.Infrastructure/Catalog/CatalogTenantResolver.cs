@@ -85,7 +85,11 @@ public sealed class CatalogTenantResolver(IServiceScopeFactory scopes, TimeProvi
             TenantLifecycle.Suspended => TenantStatus.Suspended,
             _ => TenantStatus.Provisioning,
         };
-        return new ResolvedTenant(new TenantInfo(tenant.Id, tenant.Key, status), tenant.LegalName, tenant.TradeName, primary, tenant.ConnectionSecret, tenant.SchemaVersion);
+        var released = await db.TenantModules.AsNoTracking().Where(m => m.TenantId == tenant.Id && m.Enabled).Select(m => m.ModuleCode).ToListAsync(cancellationToken);
+        return new ResolvedTenant(new TenantInfo(tenant.Id, tenant.Key, status), tenant.LegalName, tenant.TradeName, primary, tenant.ConnectionSecret, tenant.SchemaVersion)
+        {
+            ReleasedModules = released.ToHashSet(StringComparer.Ordinal),
+        };
     }
 
     private void Remember<TKey>(ConcurrentDictionary<TKey, (ResolvedTenant? Tenant, DateTimeOffset Expires)> cache, TKey key, ResolvedTenant? tenant, DateTimeOffset now)

@@ -38,6 +38,8 @@ public static class PlatformInfrastructure
         services.TryAddScoped<IProvisioningCatalog, EfProvisioningCatalog>();
         services.TryAddSingleton<ITenantDatabaseAdmin, PostgresTenantDatabaseAdmin>();
         services.TryAddScoped<ProvisioningService>();
+        services.TryAddScoped<BemAqui.Platform.Application.Modules.ITenantModulesDb>(sp => sp.GetRequiredService<CatalogDbContext>());
+        services.TryAddScoped<BemAqui.Platform.Application.Modules.TenantModuleService>();
 
         // Login do super admin (FND-13).
         services.Configure<PlatformAuthOptions>(configuration.GetSection(PlatformAuthOptions.Section));

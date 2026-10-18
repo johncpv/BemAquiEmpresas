@@ -126,6 +126,7 @@ try
     api.MapAuditEndpoints();
     api.MapAttachmentEndpoints();
     api.MapNotificationEndpoints();
+    api.MapModuleEndpoints();
     foreach (var module in ModuleRegistry.All)
     {
         module.MapEndpoints(api);

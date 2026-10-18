@@ -23,6 +23,7 @@ public sealed partial class ProvisioningService(
     ITenantResolver resolver,
     IEnumerable<ITenantSeeder> seeders,
     ITenantOwnerOnboarding onboarding,
+    BemAqui.Platform.Application.Modules.TenantModuleService modules,
     ISecretProtector protector,
     TimeProvider clock)
 {
@@ -118,6 +119,7 @@ public sealed partial class ProvisioningService(
         tenant.PlanId = await catalog.EnsurePlanAsync(request.Plan, cancellationToken);
         tenant.Domains.Add(new TenantDomain { TenantId = id, Host = host, IsPrimary = true });
         await catalog.AddTenantAsync(tenant, cancellationToken);
+        await modules.ApplyPlanAsync(id, tenant.PlanId, cancellationToken); // FND-06 CA 7: o tenant herda os módulos do plano
         await catalog.LogAsync(id, ProvisioningSteps.Register, ProvisioningStatus.Succeeded, null, cancellationToken);
         resolver.Invalidate();
         return tenant;

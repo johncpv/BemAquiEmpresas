@@ -21,8 +21,10 @@ public sealed class EfProvisioningCatalog(CatalogDbContext db, TimeProvider cloc
         var plan = await db.Plans.FirstOrDefaultAsync(p => p.Name == planName, cancellationToken);
         if (plan is null)
         {
+            // Plano novo nasce completo (ADR 0010 item 4: a Konebras tem todos os módulos); o super admin restringe depois.
             plan = new Plan { Name = planName };
             db.Plans.Add(plan);
+            db.PlanModules.AddRange(BemAqui.BuildingBlocks.Modules.ModuleCatalog.All.Select(m => new PlanModule { PlanId = plan.Id, ModuleCode = m.Code }));
             await db.SaveChangesAsync(cancellationToken);
         }
 
