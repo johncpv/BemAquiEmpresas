@@ -1,12 +1,13 @@
 using BemAqui.BuildingBlocks.Persistence.Auditing;
 using BemAqui.Platform.Application.Auth;
+using BemAqui.Platform.Application.Modules;
 using BemAqui.Platform.Domain;
 using Microsoft.EntityFrameworkCore;
 
 namespace BemAqui.Platform.Infrastructure.Catalog;
 
 /// <summary>Banco de catálogo (schema <c>catalog</c>): tenants, domínios e planos (ADRs 0001 e 0004).</summary>
-public sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options) : DbContext(options), IPlatformAuthDb
+public sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options) : DbContext(options), IPlatformAuthDb, ITenantModulesDb
 {
     public const string Schema = "catalog";
     public const string ChangeChannel = "tenant_changed";
@@ -20,6 +21,10 @@ public sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options)
     public DbSet<ProvisioningLog> ProvisioningLogs => Set<ProvisioningLog>();
 
     public DbSet<PlatformAlert> PlatformAlerts => Set<PlatformAlert>();
+
+    public DbSet<PlanModule> PlanModules => Set<PlanModule>();
+
+    public DbSet<TenantModule> TenantModules => Set<TenantModule>();
 
     public DbSet<PlatformAdmin> PlatformAdmins => Set<PlatformAdmin>();
 
@@ -87,6 +92,22 @@ public sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options)
             b.Property(e => e.Status).HasConversion<string>().HasMaxLength(16);
             b.Property(e => e.Message).HasMaxLength(2000);
             b.HasIndex(e => new { e.TenantId, e.At });
+            b.HasOne<Tenant>().WithMany().HasForeignKey(e => e.TenantId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PlanModule>(b =>
+        {
+            b.ToTable("plan_modules");
+            b.Property(e => e.ModuleCode).HasMaxLength(32);
+            b.HasIndex(e => new { e.PlanId, e.ModuleCode }).IsUnique();
+            b.HasOne<Plan>().WithMany().HasForeignKey(e => e.PlanId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<TenantModule>(b =>
+        {
+            b.ToTable("tenant_modules");
+            b.Property(e => e.ModuleCode).HasMaxLength(32);
+            b.HasIndex(e => new { e.TenantId, e.ModuleCode }).IsUnique();
             b.HasOne<Tenant>().WithMany().HasForeignKey(e => e.TenantId).OnDelete(DeleteBehavior.Cascade);
         });
 

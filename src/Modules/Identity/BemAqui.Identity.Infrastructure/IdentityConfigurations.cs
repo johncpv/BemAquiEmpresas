@@ -97,3 +97,30 @@ internal sealed class TenantSettingConfiguration : IEntityTypeConfiguration<Tena
         b.Property(e => e.Value).HasMaxLength(4000);
     }
 }
+
+internal sealed class CatalogModuleConfiguration : IEntityTypeConfiguration<CatalogModule>
+{
+    public void Configure(EntityTypeBuilder<CatalogModule> b)
+    {
+        b.ToTable("modules", IdentitySchema.Name);
+        b.Property(e => e.Code).HasMaxLength(32);
+        b.HasIndex(e => e.Code).IsUnique();
+        b.Property(e => e.Name).HasMaxLength(100);
+        b.Property(e => e.Area).HasMaxLength(32);
+        b.Property(e => e.Description).HasMaxLength(500);
+        b.Property(e => e.ApproveMeaning).HasMaxLength(200);
+    }
+}
+
+internal sealed class CatalogModuleActionConfiguration : IEntityTypeConfiguration<CatalogModuleAction>
+{
+    public void Configure(EntityTypeBuilder<CatalogModuleAction> b)
+    {
+        b.ToTable("module_actions", IdentitySchema.Name);
+        b.Property(e => e.ModuleCode).HasMaxLength(32);
+        b.Property(e => e.Action).HasMaxLength(32);
+        b.HasIndex(e => new { e.ModuleCode, e.Action }).IsUnique();
+        b.Property(e => e.Label).HasMaxLength(100);
+        b.Property(e => e.Description).HasMaxLength(500);
+    }
+}

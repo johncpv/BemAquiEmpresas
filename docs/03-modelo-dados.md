@@ -6,8 +6,8 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 - **tenants** (FND-02a): key (identificador curto, único), legal_name, trade_name, document, status (Provisioning/Active/Suspended), plan_id, db_name, connection_secret (cifrado, FND-11), created_at — auditado em `audit.audit_log` do catálogo
 - **tenant_domains** (FND-02a, ADR 0004): tenant_id, host (normalizado, **único**), is_primary, verified_at — o tenant é resolvido pelo host completo; o host da plataforma nunca entra aqui
 - **plans**: name, limits (JSON: usuários, armazenamento), price
-- **plan_modules**: plan_id, module_code — módulos que a versão/plano libera
-- **tenant_modules**: tenant_id, module_code, enabled, released_at — liberação efetiva por tenant (herda do plano, com exceções manuais do super admin)
+- **plan_modules** (FND-06): plan_id, module_code (único por plano). Módulos que o plano libera; plano novo nasce com todos (ADR 0010 item 4)
+- **tenant_modules** (FND-06): tenant_id, module_code (único por tenant), enabled, is_exception, released_at, updated_at. Liberação efetiva por tenant: herda do plano; a mudança manual do super admin vira exceção e sobrevive à troca de plano. Trigger com NOTIFY invalida o cache do tenant
 - **platform_admins** (FND-13, ADR 0012): email, normalized_email (único), password_hash, security_stamp, status (Invited/Active/Inactive), access_failed_count, lockout_end, last_login_at, totp_enabled, totp_secret_cipher, totp_last_step, created_at
 - **platform_admin_tokens** (FND-13): admin_id, token_hash (único), purpose (SetPassword/Verify/Setup), created_at, expires_at, attempts, used_at, invalidated_at
 - **platform_recovery_codes** (FND-13): admin_id, code_hash, created_at, used_at
@@ -20,7 +20,8 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 
 ## identity
 - **users** (FND-04a, ADR 0011): name, email, normalized_email (único), password_hash (PBKDF2 do Identity), security_stamp, status (Invited/Active/Inactive), access_failed_count, lockout_end, last_login_at, totp_enabled, totp_secret_cipher (cifrado, FND-05), totp_last_step (anti-replay); employee_id opcional entra com o RH
-- **modules** (seed do catálogo de funcionalidades, igual em todos os tenants): code (`finance`), name, area (Comercial/Fábrica/...), phase, applicable_actions (`view,create,edit,approve,delete`), approve_meaning, sort
+- **modules** (FND-06, seed do `ModuleCatalog`, igual em todos os tenants): code (`finance`, único), name, area (uma das 7 do dock), phase, order, description, approve_meaning
+- **module_actions** (FND-06, ADR 0003): module_code, action (único por módulo), label, description, is_standard. Ações padrão e específicas (snake_case) aplicáveis ao módulo
 - **groups**: name, description, is_system (Proprietário), is_active
 - **group_modules**: group_id, module_code, enabled
 - **group_permissions**: group_id, module_code, action (`view`/`create`/`edit`/`approve`/`delete`) — só vale se o módulo estiver habilitado no grupo

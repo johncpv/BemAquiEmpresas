@@ -104,6 +104,33 @@ namespace BemAqui.Platform.Infrastructure.Catalog.Migrations
                     b.ToTable("plans", "catalog");
                 });
 
+            modelBuilder.Entity("BemAqui.Platform.Domain.PlanModule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ModuleCode")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("module_code");
+
+                    b.Property<Guid>("PlanId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("plan_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_plan_modules");
+
+                    b.HasIndex("PlanId", "ModuleCode")
+                        .IsUnique()
+                        .HasDatabaseName("ix_plan_modules_plan_id_module_code");
+
+                    b.ToTable("plan_modules", "catalog");
+                });
+
             modelBuilder.Entity("BemAqui.Platform.Domain.PlatformAdmin", b =>
                 {
                     b.Property<Guid>("Id")
@@ -513,6 +540,59 @@ namespace BemAqui.Platform.Infrastructure.Catalog.Migrations
                     b.ToTable("tenant_domains", "catalog");
                 });
 
+            modelBuilder.Entity("BemAqui.Platform.Domain.TenantModule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Enabled")
+                        .HasColumnType("boolean")
+                        .HasColumnName("enabled");
+
+                    b.Property<bool>("IsException")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_exception");
+
+                    b.Property<string>("ModuleCode")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("module_code");
+
+                    b.Property<DateTimeOffset?>("ReleasedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("released_at");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tenant_modules");
+
+                    b.HasIndex("TenantId", "ModuleCode")
+                        .IsUnique()
+                        .HasDatabaseName("ix_tenant_modules_tenant_id_module_code");
+
+                    b.ToTable("tenant_modules", "catalog");
+                });
+
+            modelBuilder.Entity("BemAqui.Platform.Domain.PlanModule", b =>
+                {
+                    b.HasOne("BemAqui.Platform.Domain.Plan", null)
+                        .WithMany()
+                        .HasForeignKey("PlanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_plan_modules_plans_plan_id");
+                });
+
             modelBuilder.Entity("BemAqui.Platform.Domain.PlatformAdminToken", b =>
                 {
                     b.HasOne("BemAqui.Platform.Domain.PlatformAdmin", null)
@@ -570,6 +650,16 @@ namespace BemAqui.Platform.Infrastructure.Catalog.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_tenant_domains_tenants_tenant_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Platform.Domain.TenantModule", b =>
+                {
+                    b.HasOne("BemAqui.Platform.Domain.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_tenant_modules_tenants_tenant_id");
                 });
 
             modelBuilder.Entity("BemAqui.Platform.Domain.Tenant", b =>

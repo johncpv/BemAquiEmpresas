@@ -12,9 +12,10 @@ public sealed record TenantMigrationReport(string Tenant, string? From, string? 
 
 /// <summary>
 /// Migra todos os tenants (ativos e suspensos) do catálogo. Falha em um não impede os outros; o relatório
-/// marca cada um e a versão aplicada fica no catálogo (FND-03a CA 9 e 10).
+/// marca cada um e a versão aplicada fica no catálogo (FND-03a CA 9 e 10). Depois da migração, os seeders
+/// idempotentes rodam de novo, para o banco acompanhar o catálogo de módulos do código (FND-06 CA 1).
 /// </summary>
-public sealed class TenantMigrationRunner(CatalogDbContext catalog, ITenantDatabaseMigrator migrator, ISecretProtector protector, ITenantResolver resolver, TimeProvider clock)
+public sealed class TenantMigrationRunner(CatalogDbContext catalog, ITenantDatabaseMigrator migrator, ISecretProtector protector, ITenantResolver resolver, ITenantScopeFactory scopes, IEnumerable<ITenantSeeder> seeders, TimeProvider clock)
 {
     public async Task<IReadOnlyList<TenantMigrationReport>> MigrateAllAsync(CancellationToken cancellationToken)
     {
@@ -34,6 +35,15 @@ public sealed class TenantMigrationRunner(CatalogDbContext catalog, ITenantDatab
                 tenant.SchemaVersion = to;
                 tenant.MigratedAt = clock.GetUtcNow();
                 await catalog.SaveChangesAsync(cancellationToken);
+                resolver.Invalidate();
+                await using (var scope = await scopes.CreateScopeAsync(new TenantInfo(tenant.Id, tenant.Key, TenantStatus.Active), cancellationToken))
+                {
+                    foreach (var seeder in seeders.OrderBy(s => s.Order))
+                    {
+                        await seeder.SeedAsync(scope.ServiceProvider, cancellationToken);
+                    }
+                }
+
                 reports.Add(new TenantMigrationReport(tenant.Key, from, to, true, Stopwatch.GetElapsedTime(started), null));
             }
             catch (Exception ex) when (ex is not OperationCanceledException)

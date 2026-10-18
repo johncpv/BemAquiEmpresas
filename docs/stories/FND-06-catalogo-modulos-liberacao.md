@@ -5,7 +5,7 @@
 | ID | FND-06 |
 | Título | `ModuleCatalog` (módulos, ações padrão e específicas, significado de "aprovar"), `plan_modules`/`tenant_modules` e tela de liberação |
 | Tamanho | M |
-| Status | Draft |
+| Status | In Progress (API pronta; aba "Módulos" na FND-03b) |
 | Requisitos | R-SEC-11 · R-SEC-10 (significado de "aprovar" por módulo) · R-SEC-12 (limite pelos módulos liberados) |
 | Dependências | FND-02, FND-03a (seed no provisionamento), FND-13 e FND-03b (tela no painel da plataforma) |
 | Bloqueia | FND-06b, FND-06c, FND-06d, FND-14 (ajuda filtrada por módulo) |
@@ -136,7 +136,19 @@ Checklist do @po (Pax), 16/10/2026.
 | 16/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 
 ## Dev Agent Record
-_A preencher pelo @dev._
+- **API (FND-06), 18/10/2026, branch `feat/fnd-06-catalogo-modulos`.** O catálogo segue a proposta desta story, aprovada na ADR 0010 itens 1, 2 e 4.
+  - **`ModuleCatalog`** (`BuildingBlocks.Modules`), com os 16 módulos (CA 2). Cada um tem código, nome, área do dock, fase, ordem, descrição, ações padrão, ações específicas (`inventory.adjust`, `finance.pay`, `hr.view_sensitive`) e o significado de "aprovar".
+  - **Seed no tenant (CA 1):** `ModuleCatalogSeeder` (`ITenantSeeder`) deixa `identity.modules` e `identity.module_actions` iguais ao catálogo. É idempotente e não mexe em grupos. Roda no provisionamento e no `migrate` do deploy.
+  - **Teste de arquitetura (CA 3):** falha se `RequireModule`/`RequirePermission` usar um código fora do catálogo ou permissão em três níveis. Outro teste confere a consistência do catálogo.
+  - **`RequireModule("<código>")` (CA 4):** filtro do grupo de rotas. Módulo não liberado responde 403 `module_not_released` com "Funcionalidade não liberada nessa versão do sistema.", antes do handler e da checagem de permissão (FND-06b).
+  - **Liberação sem deploy (CA 5, 6, 8):**
+    - `GET`/`PUT /api/v1/platform/tenants/{id}/modules` (sessão da plataforma). Os módulos liberados vão no `ResolvedTenant`;
+    - gravar invalida o cache local, e o trigger de NOTIFY em `tenant_modules`/`plan_modules` avisa as outras instâncias. O efeito vale no próximo request;
+    - cada mudança é auditada (`TenantModule`, antes e depois).
+  - **Plano (CA 7):** o tenant herda do plano no provisionamento. Mudar à mão vira exceção (`is_exception`) e sobrevive à troca de plano (`ChangePlanAsync`). Plano novo nasce com todos os módulos (ADR 0010 item 4), e a migration preencheu planos e tenants já existentes.
+  - **`GET /api/v1/modules`:** catálogo com `released` do tenant, base do menu da FND-06d.
+  - **Testes:** 3 de integração, 3 de unidade do filtro e 9 de arquitetura e catálogo.
+  - **Pendente:** aba "Módulos" na tela do tenant (FND-03b); tela "não liberada" e menu com cadeado (FND-06d).
 
 ## QA Results
 _A preencher pelo @qa._

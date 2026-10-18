@@ -21,6 +21,10 @@ public interface IIdentityDb
 
     DbSet<TenantSetting> TenantSettings { get; }
 
+    DbSet<CatalogModule> CatalogModules { get; }
+
+    DbSet<CatalogModuleAction> CatalogModuleActions { get; }
+
     /// <summary>Eventos de segurança (login, bloqueio, reuso de refresh...) entram na auditoria imutável.</summary>
     DbSet<AuditEntry> AuditEntries { get; }
 
