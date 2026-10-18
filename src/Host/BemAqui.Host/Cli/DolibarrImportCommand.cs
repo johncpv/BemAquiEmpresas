@@ -18,7 +18,7 @@ namespace BemAqui.Host.Cli;
 /// </summary>
 internal static class DolibarrImportCommand
 {
-    public const string Usage = "Uso: tenant import-dolibarr --tenant <chave> --confirm-tenant <chave> --snapshot <arquivo-de-secret> --entities <lista> --operator <email> [--dry-run] [--mapping <arquivo>]\n"
+    public const string Usage = "Uso: tenant import-dolibarr --tenant <chave> --confirm-tenant <chave> (--dolibarr-api <arquivo-de-secret> | --snapshot <arquivo-de-secret>) --entities <lista> --operator <email> [--dry-run] [--mapping <arquivo>]\n"
         + "     tenant import-dolibarr --purge-staging --tenant <chave> [--accepted]";
 
     public static async Task<int> RunAsync(IServiceProvider services, CliArguments args, TextWriter output)
@@ -64,7 +64,8 @@ internal static class DolibarrImportCommand
         ISnapshotSource source;
         try
         {
-            source = await scope.ServiceProvider.GetRequiredService<ISnapshotSourceFactory>().OpenAsync(args.Get("snapshot")!);
+            var factory = scope.ServiceProvider.GetRequiredService<ISnapshotSourceFactory>();
+            source = args.Get("dolibarr-api") is { } api ? await factory.OpenApiAsync(api) : await factory.OpenAsync(args.Get("snapshot")!);
         }
         catch (Exception ex) when (ex is FileNotFoundException or InvalidOperationException)
         {
@@ -96,12 +97,13 @@ internal static class DolibarrImportCommand
             return null;
         }
 
-        var snapshot = args.Get("snapshot");
+        // Uma origem só: a API REST do Dolibarr (padrão, ADR 0017 adendo 2) ou o snapshot no MariaDB temporário.
+        var snapshot = args.Get("dolibarr-api") is { } api ? (args.Has("snapshot") ? null : api) : args.Get("snapshot");
         var entities = (args.Get("entities") ?? string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         var @operator = args.Get("operator");
         if (string.IsNullOrWhiteSpace(snapshot) || entities.Length == 0 || !MailAddress.TryCreate(@operator, out _))
         {
-            await output.WriteLineAsync("Informe --snapshot, --entities e o e-mail de quem executa em --operator.\n" + Usage);
+            await output.WriteLineAsync("Informe uma origem (--dolibarr-api ou --snapshot), --entities e o e-mail de quem executa em --operator.\n" + Usage);
             return null;
         }
 

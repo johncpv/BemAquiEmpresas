@@ -2,7 +2,7 @@
 
 MIG-01a, ADR 0017 e ADR 0018. A migração traz **só cadastros**. Lançamentos e financeiro transacional começam no BemAqui.
 
-> **Aceite do PO (CA 1):** pendente. Antes da primeira carga real, o PO confere o mapeamento abaixo com o inventário da base real e registra aqui: "Aceito em dd/mm/aaaa, por <nome>". Sem esse registro, só rode `--dry-run`.
+> **Aceite do PO (CA 1):** aceito em 18/10/2026, por John (PO). Inventário pela API REST do Dolibarr 21.0.4 na mesma data: 118 terceiros (36 clientes, 81 fornecedores, 31 com CNPJ/CPF no `idprof1`, todos na entidade 1), 0 contatos, 34 produtos (com o extrafield `elev_garantia`), 4 depósitos, 3 contas bancárias, 13 condições de pagamento, 36 unidades, 27 UFs, 7 categorias de fornecedor e nenhuma de produto ou cliente.
 
 ## 1. Mapeamento
 
@@ -38,7 +38,27 @@ Nomes do Dolibarr padrão. No `llx_societe`, o `idprof1` a `idprof4` da tela sã
 - **Minimização (LGPD):** `llx_societe_rib`, IBAN, BIC, titular, `birthday`, preços (`llx_product_price` e as colunas de preço do fornecedor) e anexos.
 - Tudo continua consultável no Dolibarr em `adm.konebras.com.br` até o desligamento.
 
-## 2. Acesso somente leitura (uma vez por ambiente; precisa de autorização do PO)
+## 2. Origem padrão: API REST do Dolibarr (ADR 0017, adendo 2)
+A importação lê pela API (`api/index.php`), só com GET, usando a chave do Konebras UI (autorizada pelo PO em 18/10/2026). O campo de cada coluna está em `DolibarrApiMap`; o que não está na lista fixa (IBAN, saldo, preços, custo, estoque) é descartado na leitura.
+
+1. Crie o secret uma vez, sem mostrar a chave na tela (0600, dono 1654, que é o usuário da CLI):
+   ```sh
+   cd /opt/projetos/bemaqui-empresas-homolog
+   umask 077
+   { echo "url=$(sed -n 's/^DOLIBARR__BASEURL=//p' /opt/projetos/konebras-ui/deploy/.env)"
+     echo "key=$(sed -n 's/^DOLIBARR__APIKEY=//p' /opt/projetos/konebras-ui/deploy/.env)"
+     echo "cnpj=47.225.005/0001-86"; } > secrets/dolibarr-api
+   chown 1654:1654 secrets/dolibarr-api
+   ```
+   Depois do go-live, a URL passa a ser a do `adm.konebras.com.br`.
+2. Rode a importação pelo serviço `importer` (perfil `import`: rede interna mais saída para a API):
+   ```sh
+   docker compose --profile import run --rm importer tenant import-dolibarr --tenant konebras --confirm-tenant konebras \
+     --dolibarr-api /run/secrets/dolibarr-api --entities parties,contacts --operator <email> --dry-run
+   ```
+   Siga as seções 4 e 6 para ler o relatório, rodar a carga real e expurgar a staging. O snapshot (seções 3 e 5) só é usado se a API não estiver disponível.
+
+## 3. Alternativa: acesso somente leitura ao MariaDB (só se a API não servir; precisa de nova autorização do PO)
 O usuário `bqe_migracao_ro` vale só para `localhost` dentro do container do MariaDB do Dolibarr. Nenhum container do BemAqui entra na rede do Dolibarr.
 
 1. Gere a senha e grave o secret no formato de opções do cliente, com permissão 0600, fora do repositório:
@@ -55,13 +75,13 @@ O usuário `bqe_migracao_ro` vale só para `localhost` dentro do container do Ma
    ```
 3. Confira: `SHOW GRANTS FOR 'bqe_migracao_ro'@'localhost';` lista só `SELECT (colunas)` nas tabelas da lista fixa.
 
-## 3. Snapshot cifrado (CA 3)
+### 3.1 Snapshot cifrado (CA 3)
 ```sh
 sh scripts/dolibarr-snapshot.sh dolibarr-db <banco-do-dolibarr> /opt/projetos/bemaqui-empresas-homolog/secrets/dolibarr-ro.cnf <destinatario-age-do-backup> /opt/projetos/bemaqui-empresas-homolog/import/snapshot-$(date +%Y%m%d%H%M).sql.age
 ```
 O script lê com colunas explícitas dentro de `START TRANSACTION WITH CONSISTENT SNAPSHOT, READ ONLY`, grava a data e hora da extração e entrega o pacote cifrado com `age`. Nada fica em claro no disco.
 
-## 4. Restauração no MariaDB temporário (CA 4)
+### 3.2 Restauração no MariaDB temporário (CA 4)
 ```sh
 umask 077; openssl rand -base64 24 > /opt/projetos/bemaqui-empresas-homolog/secrets/snapshot-root
 sh scripts/dolibarr/restore-snapshot.sh homolog bemaqui-empresas-homolog_internal <chave-age> <snapshot.sql.age> /opt/projetos/bemaqui-empresas-homolog/secrets/snapshot-root
@@ -72,7 +92,7 @@ printf 'Server=bqe-homolog-dolibarr-snapshot;Database=snapshot;User ID=root;Pass
 chown 1654:1654 /opt/projetos/bemaqui-empresas-homolog/secrets/snapshot-connection   # a CLI roda como 1654; o arquivo continua 0600
 ```
 
-## 5. Importação (CLI da imagem da API)
+## 4. Importação: códigos de saída, relatório e carga real
 Roda no serviço `migrator` (mesma imagem da API, com os secrets do catálogo e do key ring), na rede interna. Sempre uma simulação antes. O operador é o e-mail de quem executa. Com de-para, monte o arquivo e passe `--mapping`.
 ```sh
 cd /opt/projetos/bemaqui-empresas-homolog
@@ -86,16 +106,16 @@ docker compose run --rm --no-deps -v bemaqui-empresas-homolog_files:/data/files 
 - O relatório sai no console e em `run-<id>.json` e `.csv` em `/data/files/migration-reports` (0600). A tela Configurações → Importação do Dolibarr mostra o mesmo.
 - Confira o relatório com o PO. Depois, rode sem `--dry-run`. Pode rodar de novo quantas vezes for preciso.
 
-## 6. Limpeza (no mesmo dia)
+## 5. Limpeza do snapshot (no mesmo dia)
 ```sh
 sh scripts/dolibarr/restore-snapshot.sh --remove homolog
 rm -f /opt/projetos/bemaqui-empresas-homolog/import/snapshot-*.sql.age /opt/projetos/bemaqui-empresas-homolog/secrets/snapshot-root /opt/projetos/bemaqui-empresas-homolog/secrets/snapshot-connection
 docker ps -a | grep dolibarr-snapshot   # não deve listar nada
 ```
 
-## 7. Aceite e expurgo da staging (CA 22, ADR 0018)
+## 6. Aceite e expurgo da staging (CA 22, ADR 0018)
 - Com o aceite do PO: `tenant import-dolibarr --purge-staging --tenant konebras --accepted`. Apaga `import_items` e os arquivos do relatório e mantém `external_refs` e os totais em `import_runs`.
 - Sem aceite, o prazo é de 30 dias. Depois disso, o alerta `migration_staging_expired` chega aos super admins todo dia, até o expurgo (`--purge-staging` sem `--accepted`).
 
-## 8. Go-live (GOL-01)
-Repete as seções 3 a 7 em produção. Depois da carga final: `DROP USER 'bqe_migracao_ro'@'localhost';` e remoção do `dolibarr-ro.cnf`.
+## 7. Go-live (GOL-01)
+Repete as seções 2, 4 e 6 em produção. Depois da carga final, apague o `secrets/dolibarr-api`. Se o snapshot tiver sido usado, faça também `DROP USER 'bqe_migracao_ro'@'localhost';` e apague o `dolibarr-ro.cnf`.

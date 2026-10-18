@@ -81,13 +81,13 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Compose endurecido (FND-10 CA 8 a 10)
         run: |
-          docker compose -f deploy/homolog/docker-compose.yml --env-file deploy/homolog/.env.example --profile backup config --format json > compose.json
+          docker compose -f deploy/homolog/docker-compose.yml --env-file deploy/homolog/.env.example --profile backup --profile import config --format json > compose.json
           node scripts/check-compose.mjs compose.json
       - name: nginx -t do vhost (FND-10 CA 4)
         run: sh scripts/check-nginx.sh
       - name: Scripts de shell
         run: |
-          for f in deploy/homolog/deploy.sh deploy/homolog/backup-cron.sh deploy/backup/backup.sh deploy/postgres/init-roles.sh scripts/smoke.sh; do sh -n "$f"; done
+          for f in deploy/homolog/deploy.sh deploy/homolog/backup-cron.sh deploy/backup/backup.sh deploy/postgres/init-roles.sh scripts/smoke.sh scripts/dolibarr-snapshot.sh scripts/dolibarr/restore-snapshot.sh; do sh -n "$f"; done
       - name: Imagens (api, web, backup)
         run: |
           for image in api web backup; do docker build -q -f "deploy/$image.Dockerfile" -t "bqe-ci-$image" .; done

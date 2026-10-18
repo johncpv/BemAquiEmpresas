@@ -16,14 +16,14 @@ const stackNetwork = Object.entries(compose.networks ?? {}).find(([, n]) => n.na
 // api e web têm nome próprio do ambiente (bqe-<ambiente>-api|web): o nome do serviço vira apelido na stack_stack,
 // onde "api", "web", "postgres" e "redis" já são de outros projetos (ADR 0015).
 const isEdge = (name) => /^bqe-[a-z0-9]+-(api|web)$/.test(name)
-const hardened = ['migrator', 'backup', ...Object.keys(services).filter(isEdge)]
+const hardened = ['migrator', 'backup', 'importer', ...Object.keys(services).filter(isEdge)]
 const generic = new Set(['postgres', 'clamav', 'redis', 'api', 'web', 'db', 'database'])
 const problems = []
 
 for (const name of hardened) {
   const s = services[name]
   if (!s) {
-    problems.push(`${name}: serviço ausente (use --profile backup no "config")`)
+    problems.push(`${name}: serviço ausente (use --profile backup --profile import no "config")`)
     continue
   }
   const user = String(s.user ?? '')

@@ -43,3 +43,8 @@
 - A MIG-01a implementa o expurgo da staging (`--purge-staging`) e o prazo de 30 dias, com alerta quando vence.
 - A CAD-04b e a CAD-01a seguem os testes de auditoria e log sem dado pessoal.
 - O backlog da Fase 6 ganha a story de exportação e anonimização (LGPD-01).
+
+## Adendo (18/10/2026, decisão do PO): painel da plataforma sem restrição por IP
+- O PO decidiu manter o painel da plataforma **sem allowlist de IP**. A pré-condição "painel fora do modo aberto antes da primeira carga real" deixa de valer, e a MIG-01b não recusa a carga por isso.
+- O painel continua protegido por senha com 2FA obrigatório, sessão própria, rate limit e auditoria de login (FND-13). O `Platform:AllowedNetworks` e o arquivo `.allow` do nginx continuam disponíveis para quando o PO quiser restringir.
+- **Risco aceito:** a tela de login do super admin fica exposta à internet. O que compensa é o 2FA e o bloqueio por tentativas.

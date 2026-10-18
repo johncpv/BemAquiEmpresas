@@ -37,4 +37,10 @@ public interface ISnapshotSource : IAsyncDisposable
 public interface ISnapshotSourceFactory
 {
     Task<ISnapshotSource> OpenAsync(string connectionSecretFile, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Origem pela API REST do Dolibarr (ADR 0017, adendo 2). Arquivo de secret com <c>url=</c> (https, até <c>api/index.php</c>),
+    /// <c>key=</c> (DOLAPIKEY) e <c>cnpj=</c> (CNPJ da empresa daquele Dolibarr), uma por linha.
+    /// </summary>
+    Task<ISnapshotSource> OpenApiAsync(string apiSecretFile, CancellationToken cancellationToken = default);
 }

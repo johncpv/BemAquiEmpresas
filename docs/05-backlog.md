@@ -120,7 +120,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-1--cadastros-e-mi
 **MIG-01a [x] Mapeamento e infraestrutura de importação do Dolibarr (G)** — Marco A, ordem 2 — [story](stories/MIG-01a-infra-importacao-dolibarr.md)
 - Requisitos: R-TER-5, PRD §6 (Segurança, LGPD), R-SEC-5.
 - CA: mapeamento só das tabelas de cadastro aceito pelo PO; snapshot cifrado com GRANT por coluna, sem conexão ao banco do Dolibarr; módulo `Migrations` com `I*Import`; idempotência por `xmin`; `--dry-run` desfeito no fim; proteção por `MAIN_INFO_SIREN`; relatório pelo total lido, CSV sem injeção de fórmula; tela só de leitura "Configurações → Importação do Dolibarr"; expurgo da staging em até 30 dias.
-- Pendente fora do código (passos manuais da story): inventário da base real e aceite do mapeamento pelo PO (CA 1), criação do usuário `bqe_migracao_ro` e ensaio com o snapshot real na VPS (CA 4). Os dois dependem de autorização para mexer no MariaDB do Dolibarr.
+- Mapeamento aceito pelo PO em 18/10/2026 (CA 1). Origem padrão: API REST do Dolibarr com a chave do Konebras UI (ADR 0017, adendo 2), sem usuário no MariaDB de produção; o snapshot fica como alternativa. Painel da plataforma sem allowlist por decisão do PO (adendo da ADR 0018).
 
 **CAD-05b [ ] Contas bancárias, caixas e condições de pagamento (M)** — Marco A, ordem 3 — [story](stories/CAD-05b-contas-bancarias-condicoes-pagamento.md)
 - Requisitos: R-FIN-2, R-TER-2, R-PRP-1, R-SEC-5.
