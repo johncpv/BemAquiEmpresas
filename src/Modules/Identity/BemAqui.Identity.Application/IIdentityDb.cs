@@ -25,6 +25,14 @@ public interface IIdentityDb
 
     DbSet<CatalogModuleAction> CatalogModuleActions { get; }
 
+    DbSet<Group> Groups { get; }
+
+    DbSet<GroupModule> GroupModules { get; }
+
+    DbSet<GroupGrant> GroupPermissions { get; }
+
+    DbSet<UserGroup> UserGroups { get; }
+
     /// <summary>Eventos de segurança (login, bloqueio, reuso de refresh...) entram na auditoria imutável.</summary>
     DbSet<AuditEntry> AuditEntries { get; }
 

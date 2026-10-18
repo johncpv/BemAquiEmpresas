@@ -29,6 +29,14 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<CatalogModuleAction> CatalogModuleActions => Set<CatalogModuleAction>();
 
+    public DbSet<Group> Groups => Set<Group>();
+
+    public DbSet<GroupModule> GroupModules => Set<GroupModule>();
+
+    public DbSet<GroupGrant> GroupPermissions => Set<GroupGrant>();
+
+    public DbSet<UserGroup> UserGroups => Set<UserGroup>();
+
     protected override void ConfigureModules(ModelBuilder modelBuilder)
     {
         foreach (var module in ModuleRegistry.All)

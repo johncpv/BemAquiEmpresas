@@ -65,6 +65,12 @@ public sealed class Invites(IIdentityDb db, IPasswordHasher<User> hasher, IEmail
         user!.SetPassword(hasher.HashPassword(user, password));
         user.Activate();
         invite.AcceptedAt = now;
+        if (invite.IsOwner && await db.Groups.FirstOrDefaultAsync(g => g.IsSystem && g.SeedKey == Group.OwnerSeedKey, cancellationToken) is { } owner
+            && !await db.UserGroups.AnyAsync(ug => ug.UserId == user.Id && ug.GroupId == owner.Id, cancellationToken))
+        {
+            db.UserGroups.Add(new UserGroup { UserId = user.Id, GroupId = owner.Id }); // proprietário do provisionamento
+        }
+
         db.AuditEntries.Add(new AuditEntry { Entity = "Auth", EntityId = user.Id.ToString(), Action = "InviteAccepted", UserId = user.Id, At = now, Ip = ip, Changes = "{}" });
         events.Publish(new UserActivated(user.Id, invite.IsOwner));
         await db.SaveChangesAsync(cancellationToken);

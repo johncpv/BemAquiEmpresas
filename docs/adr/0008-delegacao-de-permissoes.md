@@ -19,6 +19,11 @@
   - a versão é conferida a cada request.
 - **Security stamp:** é conferido a cada request via cache. Desativar o usuário, trocar a senha ou resetar o 2FA invalida o stamp no próximo request.
 
+## Adendo (FND-06b, 18/10/2026)
+- Inativar grupo exige `identity.edit`: inativar é edição, porque grupos não são excluídos.
+- Adicionar membro a qualquer grupo exige que o ator tenha todas as permissões do grupo. Se houver ação reservada no grupo, só o Proprietário adiciona.
+- **Cache de permissões, por enquanto:** memória por `{tenantId}:{userId}`, com 30 s, invalidado na hora pelas mudanças de grupo, membros e inativação. O filtro de módulos liberados é aplicado a cada chamada. Funciona porque a API roda numa única instância (Compose). A versão conferida a cada request, para várias instâncias, entra na FND-06c.
+
 ## Consequências
 - A FND-06b implementa a regra de delegação e a FND-06c implementa a versão de permissões.
 - A FND-04 implementa as claims e o security stamp.

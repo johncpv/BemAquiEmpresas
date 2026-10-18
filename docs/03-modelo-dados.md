@@ -22,9 +22,9 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 - **users** (FND-04a, ADR 0011): name, email, normalized_email (único), password_hash (PBKDF2 do Identity), security_stamp, status (Invited/Active/Inactive), access_failed_count, lockout_end, last_login_at, totp_enabled, totp_secret_cipher (cifrado, FND-05), totp_last_step (anti-replay); employee_id opcional entra com o RH
 - **modules** (FND-06, seed do `ModuleCatalog`, igual em todos os tenants): code (`finance`, único), name, area (uma das 7 do dock), phase, order, description, approve_meaning
 - **module_actions** (FND-06, ADR 0003): module_code, action (único por módulo), label, description, is_standard. Ações padrão e específicas (snake_case) aplicáveis ao módulo
-- **groups**: name, description, is_system (Proprietário), is_active
+- **groups** (FND-06b): name (único entre ativos), description, is_system (Proprietário), is_active, requires_2fa, seed_key (grupos do seed: o seed não recria), created_at; auditada
 - **group_modules**: group_id, module_code, enabled
-- **group_permissions**: group_id, module_code, action (`view`/`create`/`edit`/`approve`/`delete`) — só vale se o módulo estiver habilitado no grupo
+- **group_permissions**: group_id, module_code, action (padrão ou específica do `ModuleCatalog`; único por grupo e módulo). Só vale se o módulo estiver habilitado no grupo; o Proprietário não grava linhas
 - **user_groups**: user_id, group_id (N:N)
 - **user_invites**: email, group_ids, token_hash, expires_at, accepted_at, invited_by
 - Permissão efetiva (calculada e em cache): ∪ group_permissions dos grupos ativos do usuário, com módulo habilitado, ∩ módulos liberados do tenant

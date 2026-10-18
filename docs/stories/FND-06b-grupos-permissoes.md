@@ -5,7 +5,7 @@
 | ID | FND-06b |
 | Título | Grupos (criar, editar, duplicar, inativar), matriz módulo × ação, grupos iniciais, grupo Proprietário, regra de delegação, serviço de permissão efetiva e policy `perm:{modulo}.{acao}` |
 | Tamanho | G |
-| Status | Draft |
+| Status | In Progress (API pronta; tela depois da FND-09a/b/c) |
 | Requisitos | R-SEC-9 · R-SEC-10 · R-SEC-12 · R-SEC-5 (alterações auditadas) |
 | Dependências | FND-06, FND-04, FND-05 (regra de 2FA por grupo); telas dependem de FND-09b e FND-09c. **Pré-condição:** ADR 0008 aceita |
 | Bloqueia | FND-06c, FND-06d |
@@ -157,7 +157,28 @@ Checklist do @po (Pax), 16/10/2026.
 | 16/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 
 ## Dev Agent Record
-_A preencher pelo @dev._
+- **API (FND-06b), 18/10/2026, branch `feat/fnd-06b-grupos-permissoes`.** As permissões padrão seguem a ADR 0010 item 3. Inativar grupo exige `identity.edit`, porque inativar é edição e grupos não são excluídos.
+  - **Tabelas:** `identity.groups` (+ `requires_2fa`, `seed_key`), `group_modules`, `group_permissions` e `user_groups`.
+  - **Seed (CA 7):** `GroupSeeder` cria os 8 grupos uma vez por `seed_key`. O Proprietário é de sistema, exige 2FA e não grava linhas de permissão. O Financeiro não tem `finance.approve`, e o RH tem `hr.view_sensitive`.
+  - **Matriz no servidor (CA 1 a 4):** `GroupMatrix.Normalize` aplica as regras: qualquer ação marca "Ver" e "Habilitado", e um módulo sem ações fica desabilitado. Salvar permissão num módulo não liberado responde 422 `module_not_released`. O detalhe do grupo devolve as ações disponíveis, com a descrição das específicas e o significado de "aprovar" (CA 5, 6).
+  - **Grupos (CA 8 a 11):**
+    - duplicar cria "Cópia de {nome}", sem membros;
+    - inativar devolve quantos usuários são afetados;
+    - o Proprietário responde 409 `system_group` e não fica sem membro (409, "O grupo Proprietário precisa ter ao menos um membro.");
+    - "Exigir verificação em duas etapas" entra como `GroupRequiresTwoFactorRule` (CA 12).
+  - **Delegação, ADR 0008 (CA 13, 14):**
+    - ninguém concede o que não tem;
+    - só o Proprietário concede `*.approve`, `finance.pay`, `hr.view_sensitive`, `identity.edit` e `settings.edit`, e só ele adiciona alguém ao Proprietário;
+    - adicionar membro a um grupo exige ter todas as permissões dele;
+    - ninguém altera um grupo de que é membro, salvo o Proprietário;
+    - a recusa responde 403 `delegation_denied`.
+  - **Permissão efetiva (CA 15, 17):** `PermissionService` calcula a união dos grupos ativos com módulo habilitado e filtra pelos módulos liberados a cada chamada. O cache por usuário dura 30 s e é invalidado na hora quando grupo, membros ou inativação mudam. A versão conferida a cada request, prevista na ADR 0008, fica para a FND-06c.
+  - **Policy `perm:` (CA 18):** `RequirePermission("modulo.acao")` confere primeiro a liberação (403 `module_not_released`) e depois a ação (403 `forbidden`, com a mensagem da ADR 0010 item 8).
+  - **Endpoints:** `/api/v1/identity/groups` (listar, detalhe, criar, duplicar, salvar, inativar e membros) e `GET /api/v1/me/permissions`.
+  - **Auditoria e aviso (CA 16):** toda mudança é auditada com antes e depois, e os membros do Proprietário são notificados.
+  - **Convite do proprietário:** ao aceitar, o usuário entra no grupo Proprietário.
+  - **Testes:** 6 de integração.
+  - **Pendente:** tela "Usuários e acessos → Grupos" e a ajuda `acessos-grupos.md`, depois da FND-09a/b/c; E2E.
 
 ## QA Results
 _A preencher pelo @qa._

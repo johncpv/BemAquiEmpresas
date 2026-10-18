@@ -124,3 +124,52 @@ internal sealed class CatalogModuleActionConfiguration : IEntityTypeConfiguratio
         b.Property(e => e.Description).HasMaxLength(500);
     }
 }
+
+internal sealed class GroupConfiguration : IEntityTypeConfiguration<Group>
+{
+    public void Configure(EntityTypeBuilder<Group> b)
+    {
+        b.ToTable("groups", IdentitySchema.Name);
+        b.Property(e => e.Name).HasMaxLength(100);
+        b.HasIndex(e => e.Name).IsUnique().HasFilter("is_active");
+        b.Property(e => e.Description).HasMaxLength(500);
+        b.Property(e => e.SeedKey).HasMaxLength(32);
+        b.HasIndex(e => e.SeedKey).IsUnique();
+        b.Ignore(e => e.IsOwner);
+    }
+}
+
+internal sealed class GroupModuleConfiguration : IEntityTypeConfiguration<GroupModule>
+{
+    public void Configure(EntityTypeBuilder<GroupModule> b)
+    {
+        b.ToTable("group_modules", IdentitySchema.Name);
+        b.Property(e => e.ModuleCode).HasMaxLength(32);
+        b.HasIndex(e => new { e.GroupId, e.ModuleCode }).IsUnique();
+        b.HasOne<Group>().WithMany().HasForeignKey(e => e.GroupId).OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+internal sealed class GroupGrantConfiguration : IEntityTypeConfiguration<GroupGrant>
+{
+    public void Configure(EntityTypeBuilder<GroupGrant> b)
+    {
+        b.ToTable("group_permissions", IdentitySchema.Name);
+        b.Property(e => e.ModuleCode).HasMaxLength(32);
+        b.Property(e => e.Action).HasMaxLength(32);
+        b.HasIndex(e => new { e.GroupId, e.ModuleCode, e.Action }).IsUnique();
+        b.HasOne<Group>().WithMany().HasForeignKey(e => e.GroupId).OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+internal sealed class UserGroupConfiguration : IEntityTypeConfiguration<UserGroup>
+{
+    public void Configure(EntityTypeBuilder<UserGroup> b)
+    {
+        b.ToTable("user_groups", IdentitySchema.Name);
+        b.HasIndex(e => new { e.UserId, e.GroupId }).IsUnique();
+        b.HasIndex(e => e.GroupId);
+        b.HasOne<User>().WithMany().HasForeignKey(e => e.UserId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne<Group>().WithMany().HasForeignKey(e => e.GroupId).OnDelete(DeleteBehavior.Restrict);
+    }
+}

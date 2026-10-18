@@ -83,6 +83,7 @@ try
     builder.Services.AddTenantJwtAuthentication(builder.Configuration, builder.Environment);
     builder.Services.AddSignalR();
     builder.Services.AddAuthRateLimiting(builder.Configuration);
+    PermissionResultHandler.Register(builder.Services);
 
     foreach (var module in ModuleRegistry.All)
     {

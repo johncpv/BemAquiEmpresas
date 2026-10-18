@@ -37,3 +37,15 @@ public sealed class TwoFactorRequirement(IEnumerable<ITwoFactorRequirementRule> 
         return false;
     }
 }
+
+/// <summary>Membro de um grupo ativo com "Exigir verificação em duas etapas" (FND-06b CA 12).</summary>
+public sealed class GroupRequiresTwoFactorRule(IIdentityDb db) : ITwoFactorRequirementRule
+{
+    public Task<bool> RequiresAsync(User user, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(user);
+        return db.UserGroups.Where(ug => ug.UserId == user.Id)
+            .Join(db.Groups.Where(g => g.IsActive && g.RequiresTwoFactor), ug => ug.GroupId, g => g.Id, (ug, _) => ug)
+            .AnyAsync(cancellationToken);
+    }
+}

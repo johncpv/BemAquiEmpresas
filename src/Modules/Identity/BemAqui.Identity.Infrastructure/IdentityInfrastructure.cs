@@ -26,6 +26,10 @@ public static class IdentityInfrastructure
         services.TryAddScoped<TwoFactorRequirement>();
         services.TryAddScoped<TwoFactorService>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Tenancy.ITenantSeeder, ModuleCatalogSeeder>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Tenancy.ITenantSeeder, GroupSeeder>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<ITwoFactorRequirementRule, GroupRequiresTwoFactorRule>());
+        services.TryAddScoped<BemAqui.BuildingBlocks.Identity.IPermissionService, PermissionService>();
+        services.TryAddScoped<GroupService>();
         services.TryAddScoped<BemAqui.Platform.Contracts.ITenantOwnerOnboarding, IdentityOwnerOnboarding>();
         return services;
     }

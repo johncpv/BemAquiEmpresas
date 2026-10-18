@@ -17,6 +17,23 @@ public sealed record ModuleSummary(string Code, string Name, string Area, int Or
 public static class ModuleEndpoints
 {
     public const string NotReleasedMessage = "Funcionalidade não liberada nessa versão do sistema.";
+    public const string PermissionPolicyPrefix = "perm:";
+
+    /// <summary>
+    /// Exige <c>modulo.acao</c> (policy <c>perm:</c>): módulo não liberado → 403 <c>module_not_released</c>; sem a ação
+    /// nos grupos → 403 <c>forbidden</c> (FND-06b CA 18). Código fora do catálogo falha aqui e no teste de arquitetura.
+    /// </summary>
+    public static TBuilder RequirePermission<TBuilder>(this TBuilder builder, string permission)
+        where TBuilder : IEndpointConventionBuilder
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        if (!ModuleCatalog.IsKnownPermission(permission))
+        {
+            throw new ArgumentException("Permissão fora do ModuleCatalog: " + permission, nameof(permission));
+        }
+
+        return builder.RequireAuthorization(PermissionPolicyPrefix + permission);
+    }
 
     /// <summary>
     /// Camada 1 do controle de acesso (CLAUDE.md): módulo não liberado para o tenant responde 403
