@@ -111,7 +111,7 @@ Um único cadastro de **Terceiro** com papéis (cliente, fornecedor, instalador/
 | TER-2 | Múltiplos endereços (cobrança, entrega, obra), contatos, IE, regime, condições padrão de pagamento | M |
 | TER-3 | Histórico do terceiro: orçamentos, contratos, títulos, compras, pontualidade de pagamento | M |
 | TER-4 | Indicador de pontualidade do cliente (média de dias de atraso), alimenta a projeção ajustada | M |
-| TER-5 | Importação do Dolibarr (clientes, fornecedores, produtos) por CSV/consulta ao banco | M |
+| TER-5 | Importação do Dolibarr de todos os cadastros (clientes, fornecedores, contatos, condições de pagamento, contas bancárias sem saldo, produtos, unidades, categorias, depósitos), por snapshot do banco. Não importa lançamentos nem financeiro transacional (títulos, pagamentos, saldos bancários e de estoque): decisão do PO de 18/10/2026, ADR 0017 | M |
 
 ### 5.3 RH
 | ID | Requisito | Pri |
@@ -316,7 +316,7 @@ Acesso do cliente ao andamento do(s) projeto(s) (etapa atual, previsão de entre
 | Fase | Entrega | Resultado para o cliente |
 |---|---|---|
 | 0 | Fundação SaaS, auth/2FA, RBAC, auditoria, e-mail, deploy | Ambiente no ar com login seguro |
-| 1 | Cadastros (terceiros, itens, funcionários base, plano de contas, bancos) + migração Dolibarr | Dados migrados |
+| 1 | Cadastros (terceiros, itens, funcionários base, plano de contas, bancos) + migração dos cadastros do Dolibarr (sem lançamentos nem saldos, ADR 0017) | Cadastros migrados |
 | 2 | Comercial + Projetos + Financeiro núcleo (CR/CP, OP com aprovação, fluxo de caixa base) | Primeiro ganho financeiro: OP aprovada e caixa projetado |
 | 3 | Engenharia + Estoque + Compras + Produção (OS, Kanban, apontamento, qualidade, série/lote) | Fábrica rodando no sistema |
 | 4 | Planejamento/capacidade + Painel TV + Dashboard do proprietário + projeção ajustada + orçado×realizado | Visão completa do dono |

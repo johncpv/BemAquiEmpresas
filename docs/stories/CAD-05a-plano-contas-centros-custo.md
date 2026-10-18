@@ -3,131 +3,127 @@
 | Campo | Valor |
 |---|---|
 | ID | CAD-05a |
-| Título | Plano de contas gerencial em árvore com seed padrão editável e centros de custo, com inativação em vez de exclusão quando houver lançamento |
+| Título | Plano de contas gerencial em árvore com seed v1 editável (máscara `9.9.99`, grupos da DRE, contas "A classificar") e centros de custo, com excluir sem uso e inativar com uso |
 | Tamanho | M (quebra da CAD-05, que somava plano de contas, centros de custo, contas bancárias e condições de pagamento) |
-| Status | Draft |
+| Status | Ready |
 | Requisitos | R-FIN-1 · R-PLT-3 (seed do plano de contas padrão) · R-FIN-13 (grupo da DRE, preparação) · R-SEC-5 · R-PRP-1 |
-| Dependências | Fase 0 concluída (FND-06c, FND-07, FND-09c, FND-14). Sem dependência da Fase 1 |
-| Bloqueia | CAD-05b (conta contábil padrão das contas bancárias, opcional), MIG-01e (conta "a classificar"), FIN-01, FIN-02, FIN-08 |
-| Ordem de execução | 2 |
+| Dependências | CAD-05b (schema `finance` e padrões do módulo), FND-09d (`TreeTable`, painel lateral); Fase 0 (FND-06c, FND-07, FND-09c, FND-14) |
+| Bloqueia | Nenhuma story da Fase 1. Fora dela: FIN-01, FIN-02, FIN-08 |
+| Ordem de execução | 11 (Marco C — base de custo) |
 
 ## User story
 Como **financeiro**, quero **um plano de contas gerencial pronto, em árvore, que eu possa ajustar, e os centros de custo da empresa**, para **classificar cada receita e despesa desde o primeiro lançamento e ter DRE e custos por área sem planilha**.
 
 ## Contexto e referências
-- PRD R-FIN-1 (plano de contas gerencial com seed padrão editável, centros de custo, vínculo opcional a projeto em todo lançamento), R-PLT-3 (o provisionamento carrega o plano de contas padrão), R-FIN-13 (DRE gerencial por mês e por projeto).
-- `docs/03-modelo-dados.md` → `finance.chart_of_accounts` (`code`, `name`, `type` Revenue/Expense/Asset/Liability, `parent_id`, `accepts_entries`, `dre_group`) e `finance.cost_centers` (`code`, `name`, `parent_id`).
-- `docs/02-arquitetura.md` §8 (schema por módulo, `pg_trgm` nos campos de busca, `row_version`).
-- `docs/06-pendencias-riscos.md` P-17 (DRE por competência; não muda o cadastro, só o relatório da FIN-08).
-- Backlog (CA): plano de contas em árvore; conta com lançamento não pode ser excluída, só inativada.
-- Código existente: `ITenantSeeder` (seed idempotente no provisionamento), `ISoftDeletable`, `IAuditable`, `RecordHistory`, `DataTable`.
-- `ModuleCatalog`: módulo `finance` ("Caixa e pagamentos", área Financeiro) com `view`, `create`, `edit`, `approve`, `delete` e `pay`. O grupo Financeiro do seed tem `finance.view`, `create` e `edit`.
-- Protótipo: não tem tela de plano de contas; seguir o padrão de listagem (cabeçalho com ação principal, painel com tabela).
+- PRD R-FIN-1 (plano de contas com seed editável, centros de custo), R-PLT-3, R-FIN-13.
+- `docs/03-modelo-dados.md` → `finance.chart_of_accounts` e `finance.cost_centers` (com `is_active` e `seed_key`).
+- `docs/02-arquitetura.md` §8; `docs/06-pendencias-riscos.md` P-17 (DRE por competência; não muda o cadastro).
+- Decidido em 18/10/2026 (tabela 1.1): a estrutura sugerida vira o **seed v1**, editável e sem esperar a contadora; o seed nunca sobrescreve; máscara `9.9.99`; grupos da DRE sugeridos; centros Administrativo, Comercial, Produção e Instalação; contas "A classificar" de receita e despesa.
+- ADR 0016 (seeds nos tenants existentes com `IgnoreQueryFilters()`; excluir × inativar).
+- Padrões comuns a todos os cadastros: `docs/stories/README.md`. Árvore no `TreeTable` (`treegrid`) e edição no **painel lateral**.
+- `ModuleCatalog`: `finance` com `view`, `create`, `edit`, `approve`, `delete`, `pay`. O grupo Financeiro tem `view`, `create` e `edit`.
 
 ## Critérios de aceite
-**Seed**
-1. **Dado** um tenant recém-provisionado, **quando** abro Financeiro → Plano de contas, **então** o plano padrão está carregado em árvore (estrutura no ponto em aberto 1), com contas sintéticas (agrupadoras) e analíticas.
-2. **Dado** o seed já aplicado e contas editadas pelo tenant, **quando** o seed roda de novo (reprovisionamento ou migração), **então** nada é duplicado e nenhuma conta editada, inativada ou excluída pelo tenant volta ao padrão (controle por `seed_key`).
+**Seed v1**
+1. **Dado** um tenant novo ou um tenant existente no próximo deploy, **quando** o seed roda, **então** o plano v1 está carregado em árvore, com contas sintéticas e analíticas:
+   - `1 Receitas` (Revenue): 1.1 Venda de equipamentos · 1.2 Serviços de instalação e assistência · 1.3 Receitas financeiras · 1.4 Outras receitas · 1.9 Receitas a classificar;
+   - `2 Custos` (Expense): 2.1 Materiais · 2.2 Mão de obra direta · 2.3 Instalação terceirizada · 2.4 Fretes · 2.5 Impostos sobre vendas · 2.6 Outros custos;
+   - `3 Despesas` (Expense): 3.1 Pessoal administrativo · 3.2 Ocupação · 3.3 Administrativas · 3.4 Comerciais · 3.5 Financeiras · 3.6 Impostos e taxas · 3.9 Despesas a classificar;
+   - `4 Investimentos` (Asset): 4.1 Investimentos e imobilizado;
+   - `5 Financiamentos e sócios` (Liability): 5.1 Empréstimos e financiamentos · 5.2 Aportes e retiradas dos sócios;
+   cada conta com o grupo da DRE do seed (as raízes 4 e 5 ficam "Fora da DRE") e `seed_key`. As movimentações patrimoniais da sugestão original foram divididas em duas raízes porque o tipo da raiz vale para todos os descendentes (CA 7).
+2. **Dado** o seed aplicado e contas editadas, inativadas ou excluídas pelo tenant, **quando** o seed roda de novo, **então** nada é duplicado e nada volta ao padrão (busca por `seed_key` com `IgnoreQueryFilters()`).
+3. **Dado** um tenant novo ou existente no próximo deploy, **quando** o seed roda, **então** existem os centros de custo Administrativo, Comercial, Produção e Instalação, com as mesmas regras de idempotência.
 
 **Árvore e cadastro**
-3. **Dado** `finance.view`, **quando** abro a tela, **então** vejo a árvore com código, nome, tipo, grupo da DRE e situação, posso expandir e recolher, e a busca por código ou nome mostra a conta com o caminho dos pais.
-4. **Dado** `finance.create` e uma conta pai selecionada, **quando** clico "Nova conta filha", **então** o código vem sugerido como o próximo do nível (ex.: depois de `2.1.03` vem `2.1.04`) e o tipo vem herdado do pai (R-PRP-1); salvar com "Salvar conta" grava e confirma "Conta salva".
-5. **Dado** uma conta filha com tipo diferente do pai, **quando** salvo, **então** a API responde 400 "A conta precisa ter o mesmo tipo da conta pai."
-6. **Dado** um código já usado por outra conta não excluída, **quando** salvo, **então** a API responde 409 "Já existe a conta {código}."; o índice único no banco garante a regra também em gravações simultâneas.
-7. **Dado** uma conta que recebe filhas, **quando** a primeira filha é criada, **então** a conta pai passa a sintética (`accepts_entries = false`); só contas analíticas aparecem nos seletores de lançamento.
-8. **Dado** uma conta analítica com lançamento, **quando** tento criar uma filha nela, **então** a API responde 409 "Esta conta já tem lançamentos e não pode virar agrupadora. Crie a conta em outro grupo."
-9. **Dado** uma conta, **quando** troco a conta pai para uma descendente dela, **então** a API responde 400 "A conta não pode ficar dentro dela mesma."
+4. **Dado** `finance.view`, **quando** abro a tela, **então** vejo a `TreeTable` (`role="treegrid"`) com código, nome, tipo, grupo da DRE e situação, expando e recolho pelo teclado, e a busca por código ou nome mostra a conta com o caminho dos pais.
+5. **Dado** `finance.create` e uma conta pai, **quando** clico "Nova conta filha", **então** o código vem sugerido como o próximo do nível na máscara `9.9.99` (ex.: depois de `2.1.03` vem `2.1.04`), o tipo e o grupo da DRE vêm herdados do pai (R-PRP-1), e "Salvar conta contábil" grava com o toast "Conta contábil salva".
+6. **Dado** um código fora da máscara `9.9.99` (níveis 1, 1.1 e 1.1.01), **quando** salvo, **então** a API responde 400 "Use o formato 9.9.99."
+7. **Dado** uma conta filha com tipo diferente do pai, **quando** salvo, **então** a API responde 400 "A conta precisa ter o mesmo tipo da conta pai."
+8. **Dado** um código já usado por outra conta não excluída, **quando** salvo, **então** a API responde 409 "Já existe a conta {código}."; o índice único parcial garante também em gravações simultâneas.
+9. **Dado** uma conta que recebe a primeira filha, **quando** a filha é criada, **então** a conta pai passa a sintética (`accepts_entries = false`); só contas analíticas aparecem nos seletores de lançamento.
+10. **Dado** uma conta analítica com lançamento, **quando** tento criar uma filha nela, **então** a API responde 409 "Esta conta já tem lançamentos e não pode virar agrupadora. Crie a conta em outro grupo."
+11. **Dado** uma conta, **quando** troco a conta pai para uma descendente dela, **então** a API responde 400 "A conta não pode ficar dentro dela mesma."
 
-**Excluir e inativar**
-10. **Dado** `finance.delete` e uma conta sem lançamento e sem filhas, **quando** clico "Excluir" e confirmo "Excluir", **então** ela é excluída logicamente (`is_deleted`) e some da árvore.
-11. **Dado** uma conta com lançamento, **quando** tento excluir, **então** a API responde 409 "Conta com lançamentos não pode ser excluída. Inative-a." e a tela oferece "Inativar" no mesmo aviso (propositivo).
-12. **Dado** `finance.edit`, **quando** inativo uma conta, **então** ela some dos seletores de novos lançamentos, continua visível na árvore com o chip "Inativa" e nos relatórios; inativar uma conta sintética exige que as filhas estejam inativas (409 com a lista).
-13. **Dado** a verificação de uso, **quando** um módulo registra lançamentos ligados a contas (FIN-01, FIN-02, recorrentes), **então** ele implementa `IAccountUsageProvider`; nesta story o teste de integração usa um provedor de teste que declara uma conta como usada.
+**Excluir e inativar (D10)**
+12. **Dado** `finance.delete` e uma conta sem lançamento e sem filhas, **quando** clico "Excluir conta contábil" e confirmo "Excluir", **então** ela é excluída logicamente e some da árvore.
+13. **Dado** uma conta com lançamento, **quando** tento excluir, **então** a API responde 409 "Conta com lançamentos não pode ser excluída. Inative-a." e o `ConfirmDialog` oferece "Inativar" (`recovery`).
+14. **Dado** `finance.edit`, **quando** inativo uma conta, **então** ela some dos seletores, continua na árvore com o chip neutro "Inativa" (filtro "Inativas") e nos relatórios; inativar uma sintética exige as filhas inativas (409 com a lista).
+15. **Dado** a verificação de uso, **quando** um módulo registra lançamentos ligados a contas (FIN-01, FIN-02, recorrentes), **então** ele implementa `IAccountUsageProvider`; aqui, o teste usa um provedor de teste.
 
 **Centros de custo**
-14. **Dado** `finance.create`, **quando** cadastro centros de custo em árvore (código, nome, pai), **então** valem as mesmas regras de código único, ciclo, excluir sem uso e inativar com uso (CA 6, 9, 10, 11, 12).
+16. **Dado** `finance.create`, **quando** cadastro centros de custo em árvore (código, nome, pai) e clico "Salvar centro de custo", **então** valem as mesmas regras de código único, ciclo, excluir sem uso e inativar com uso (CA 8, 11–14).
 
-**Contratos para os próximos módulos**
-15. **Dado** um módulo que lança valores (Fase 2 em diante), **quando** precisa listar contas para seleção, **então** usa `IChartOfAccounts` de `Finance.Contracts`, que devolve só contas analíticas, ativas e não excluídas, filtrando por tipo.
+**Contratos**
+17. **Dado** um módulo que lança valores (Fase 2 em diante), **quando** lista contas para seleção, **então** usa `IChartOfAccounts` de `Finance.Contracts`, que devolve só contas analíticas, ativas e não excluídas, filtrando por tipo, e resolve qualquer conta por id.
 
 **Permissões (3 camadas)**
-16. **Dado** o módulo `finance` não liberado, **quando** chamo os endpoints, **então** recebo 403 `module_not_released` e o front mostra `ModuleNotReleased`.
-17. **Dado** um usuário sem grupo que habilite `finance`, **quando** chamo os endpoints, **então** recebo 403 `forbidden`; com `finance.view` sem `finance.create`/`edit`/`delete`, as ações ficam ocultas por `<Can>` e as chamadas de escrita respondem 403 `forbidden`.
+18. **Dado** o módulo `finance` não liberado, **quando** chamo os endpoints, **então** recebo 403 `module_not_released` e o front mostra `ModuleNotReleased`.
+19. **Dado** um usuário sem grupo que habilite `finance`, **quando** chamo os endpoints, **então** recebo 403 `forbidden`; com `finance.view` sem `create`/`edit`/`delete`, as ações ficam ocultas por `<Can>` e a escrita responde 403 `forbidden`. Todo endpoint tem `RequireModule` e `perm:`.
 
 **Auditoria**
-18. **Dado** qualquer alteração de conta ou centro de custo, **quando** abro "Histórico", **então** vejo antes/depois, usuário e data (FND-07, `RecordHistory`).
+20. **Dado** qualquer alteração de conta ou centro de custo, **quando** abro "Histórico de alterações", **então** vejo antes/depois, usuário e data.
 
 ## Regras de negócio e técnicas
-- **Código hierárquico:** segmentos numéricos separados por ponto (ex.: `1`, `1.1`, `1.1.01`); máscara definitiva no ponto em aberto 2. O código é texto; a ordenação da árvore é por segmento numérico, não alfabética.
-- **Tipo:** `Revenue`, `Expense`, `Asset`, `Liability`, gravado como texto (02 §8). O tipo da raiz define o dos descendentes.
-- **Sintética × analítica:** `accepts_entries` é derivado (tem filhas ativas → `false`), não editado à mão.
-- **Soft delete** (cadastro, CLAUDE.md): `is_deleted` + `deleted_at`; o índice único de `code` é parcial (`WHERE NOT is_deleted`).
-- **Inativação:** campo `is_active` (**proposta**, não está no 03).
-- **Grupo da DRE:** `dre_group` é uma lista fixa do sistema (ponto em aberto 3), usada pela FIN-08.
-- **Uso da conta:** `IAccountUsage` (Finance.Application) consulta todos os `IAccountUsageProvider` registrados. Nesta fase ainda não há lançamento real; o mecanismo nasce pronto para FIN-01/FIN-02.
-- **Seed:** `ChartOfAccountsSeeder : ITenantSeeder`, idempotente, com `seed_key` (**proposta**) por conta, como o `GroupSeeder`.
-- **Ids:** Guid v7. **Auditoria:** `IAuditable` nas duas entidades.
-- Nenhum outro módulo lê `finance.*` direto (ADR 0006); só via `Finance.Contracts`.
+- **Código hierárquico:** máscara `9.9.99` (três níveis); texto, ordenado por segmento numérico.
+- **Tipo:** `Revenue`, `Expense`, `Asset`, `Liability`, gravado como texto; o tipo da raiz define o dos descendentes.
+- **Sintética × analítica:** `accepts_entries` derivado (tem filhas ativas → `false`).
+- **Grupo da DRE** (lista fixa do sistema, usada pela FIN-08): Receita bruta, Deduções, Custos, Despesas operacionais, Resultado financeiro, Outros resultados, Fora da DRE.
+- **Contas "A classificar":** 1.9 (receita) e 3.9 (despesa), para o lançamento que ainda não tem conta certa; aparecem nos seletores com a `<Dica>` "Use só enquanto não souber a conta."
+- **Soft delete** com índice único de `code` parcial (`WHERE NOT is_deleted`). **Inativação:** `is_active`.
+- **Uso da conta:** `IAccountUsage` consulta os `IAccountUsageProvider`.
+- **Seed:** `ChartOfAccountsSeeder` e `CostCentersSeeder` (`ITenantSeeder`), idempotentes, com `seed_key`, rodando também nos tenants existentes.
+- **Ids:** Guid v7. **Auditoria:** `IAuditable`. Nenhum outro módulo lê `finance.*` direto.
 
 ## Permissões, eventos e tabelas
-- **Permissões (já no `ModuleCatalog`):** `finance.view`, `finance.create`, `finance.edit`, `finance.delete`. Nenhuma ação nova.
-- **Eventos:** nenhum (sem consumidor nesta fase).
-- **Tabelas:** `finance.chart_of_accounts` (03) + `is_active`, `seed_key` (**propostas**); `finance.cost_centers` (03) + `is_active` (**proposta**).
+- **Permissões (já no `ModuleCatalog`):** `finance.view`, `create`, `edit`, `delete`.
+- **Eventos:** nenhum.
+- **Tabelas:** `finance.chart_of_accounts` (+ `is_active`, `seed_key`); `finance.cost_centers` (+ `is_active`, `seed_key`).
 
 ## Telas e estados
-- **Financeiro → Plano de contas** (`/app/financeiro/plano-de-contas`): árvore em tabela (código, nome, tipo, grupo da DRE, situação), busca, filtro "mostrar inativas"; painel lateral para criar e editar; ações "Nova conta", "Nova conta filha", "Inativar", "Reativar", "Excluir", "Histórico".
-- **Financeiro → Centros de custo** (`/app/financeiro/centros-de-custo`): mesma estrutura.
-- As duas rotas entram como abas do módulo `finance` em `navigation/modules.ts`.
-- **Estados:** carregando (skeleton da árvore); vazio só nos centros de custo ("Cadastre os centros de custo da empresa, como Administrativo, Comercial e Produção." + "Novo centro de custo"); erro com o motivo e "Tentar de novo".
-- **Propositivo:** código e tipo sugeridos (CA 4); exclusão recusada oferece "Inativar" (CA 11); a `<Dica>` em "Analítica/Sintética" explica que só a analítica recebe lançamento.
-- **Ajuda:** `Ajuda/financeiro-plano-de-contas.md` (aba `plano-de-contas`, `padrao: true`) e `Ajuda/financeiro-centros-de-custo.md` (aba `centros-de-custo`).
+- **Financeiro → Plano de contas** (`/app/financeiro/plano-de-contas`): h1 com a linha "Contas para classificar receitas e despesas."; `TreeTable` com busca e filtro "Inativas" na URL; painel lateral para criar e editar; ações "Nova conta contábil", "Nova conta filha", "Inativar", "Reativar", "Excluir conta contábil".
+- **Financeiro → Centros de custo** (`/app/financeiro/centros-de-custo`): mesma estrutura, com "Salvar centro de custo".
+- **Estados:** carregando; vazio só se o tenant excluir tudo ("Cadastre as contas..." + "Nova conta contábil"); vazio filtrado; erro com "Tentar de novo"; modo leitura.
+- **Propositivo:** código, tipo e grupo da DRE sugeridos; exclusão recusada oferece "Inativar"; `<Dica>` em "Analítica/Sintética".
+- **400 px e teclado:** um CA de E2E para a árvore (`treegrid` pelas setas).
+- **Ajuda:** `Ajuda/financeiro-plano-de-contas.md` (aba `plano-de-contas`) e `Ajuda/financeiro-centros-de-custo.md` (aba `centros-de-custo`).
 
 ## Plano de testes
-- **Unidade:** próximo código do nível (CA 4); herança e validação de tipo (CA 5); detecção de ciclo (CA 9); derivação de sintética (CA 7); ordenação por segmento numérico.
-- **Integração (Testcontainers):** seed aplicado e reaplicado sem duplicar nem sobrescrever edição (CA 1, 2); código único com duas gravações simultâneas (CA 6); conta usada pelo provedor de teste não exclui e inativa (CA 8, 11, 12); centros de custo com as mesmas regras (CA 14); `IChartOfAccounts` só com analíticas ativas (CA 15); três camadas (CA 16, 17); auditoria (CA 18).
-- **Arquitetura:** nenhum módulo referencia `Finance.Infrastructure` ou `Finance.Application`; `RequirePermission` só com códigos do catálogo.
-- **E2E (Playwright):** criar conta filha com código sugerido, tentar excluir conta usada e inativar.
+- **Unidade:** próximo código na máscara (CA 5, 6); herança e validação de tipo (CA 7); ciclo (CA 11); derivação de sintética (CA 9); ordenação por segmento.
+- **Integração (Testcontainers):** seed v1 e centros em tenant novo e existente, sem duplicar nem sobrescrever e sem recriar excluído (CA 1–3); código único concorrente (CA 8); conta usada pelo provedor de teste (CA 10, 13, 14); centros com as mesmas regras (CA 16); `IChartOfAccounts` (CA 17); três camadas (CA 18, 19); auditoria (CA 20).
+- **Arquitetura:** nenhum módulo referencia `Finance.Infrastructure`/`Application`; todo endpoint com `RequireModule` e `perm:`.
+- **E2E (Playwright):** criar conta filha com código sugerido, tentar excluir conta usada e inativar; árvore a 400 px e só pelo teclado.
 
 ## Fora do escopo
 - Contas bancárias, caixas e condições de pagamento: CAD-05b.
-- Lançamentos (CR, CP, recorrentes) e a DRE: Fases 2 e 4.
-- Rateio de lançamento entre centros de custo.
-- Exportação para a contadora (R-FIN-14, P-06).
+- Plano contábil do Dolibarr (`llx_accounting_account`): não migra (ADR 0017).
+- Lançamentos e DRE: Fases 2 e 4. Rateio entre centros. Exportação para a contadora (P-06).
 
 ## Pontos em aberto
-1. **Conteúdo do plano de contas padrão** (pré-condição do seed): validar com o PO e a contadora. Sugestão de estrutura gerencial, alinhada às naturezas de custo do PRD R-PRJ-5:
-   - `1 Receitas` (Revenue): 1.1 Venda de equipamentos · 1.2 Serviços de instalação e assistência · 1.3 Receitas financeiras · 1.4 Outras receitas;
-   - `2 Custos` (Expense): 2.1 Materiais · 2.2 Mão de obra direta · 2.3 Instalação terceirizada · 2.4 Fretes · 2.5 Impostos sobre vendas · 2.6 Outros custos;
-   - `3 Despesas` (Expense): 3.1 Pessoal administrativo · 3.2 Ocupação (aluguel, energia, água) · 3.3 Administrativas · 3.4 Comerciais · 3.5 Financeiras (tarifas e juros) · 3.6 Impostos e taxas;
-   - `4 Movimentações patrimoniais` (Asset e Liability): investimentos e imobilizado, empréstimos e financiamentos, aportes e retiradas dos sócios.
-2. **Máscara do código** (níveis e dígitos por nível; sugestão `9.9.99`).
-3. **Lista do grupo da DRE** (sugestão: Receita bruta, Deduções, Custos, Despesas operacionais, Resultado financeiro, Outros resultados, Fora da DRE).
-4. **Seed de centros de custo:** criar um padrão (sugestão: Administrativo, Comercial, Produção) ou começar vazio.
-5. **Conta sem uso:** pode ser excluída (proposta, igual aos demais cadastros) ou só inativada.
+- Decidido em 18/10/2026 (tabela 1.1 e D10): seed v1 conforme o CA 1, editável e sem esperar a contadora; máscara `9.9.99`; grupos da DRE sugeridos; centros Administrativo, Comercial, Produção e Instalação; contas "A classificar"; conta sem uso pode ser excluída.
+- Nenhum ponto em aberto. A contadora pode revisar o plano depois, pela própria tela.
 
 ## Definition of Done
 - [ ] Critérios de aceite atendidos.
 - [ ] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
-- [ ] Migration criada (schema `finance`, não destrutiva) e seed idempotente.
-- [ ] Permissões usadas só do `ModuleCatalog`.
-- [ ] Telas com estados de carregando, vazio e erro.
-- [ ] Ajuda das duas telas escrita; teste de cobertura passando.
-- [ ] Padrões e próximo passo propositivos avaliados.
+- [ ] Migration criada (não destrutiva) e seeds idempotentes.
+- [ ] Permissões só do `ModuleCatalog`.
+- [ ] Telas com estados de carregando, vazio, vazio filtrado e erro.
+- [ ] Ajuda das duas telas; teste de cobertura passando.
+- [ ] Padrões comuns dos cadastros e próximos passos aplicados.
 - [ ] Auditoria ligada.
 - [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado (`is_active`, `seed_key`); story marcada no backlog.
+- [ ] `docs/03-modelo-dados.md` conferido; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] Entidades `ChartAccount` e `CostCenter` (Domain) com regras de árvore, tipo e código.
-- [ ] `IFinanceDb`, configurações EF `internal`, migration do schema `finance`.
-- [ ] `ChartOfAccountsSeeder` (e de centros de custo, se decidido).
+- [ ] Entidades `ChartAccount` e `CostCenter` com regras de árvore, tipo, máscara e código.
+- [ ] Migration, `ChartOfAccountsSeeder` e `CostCentersSeeder`.
 - [ ] `IAccountUsage` + `IAccountUsageProvider`; `IChartOfAccounts` em `Finance.Contracts`.
-- [ ] Endpoints `/api/v1/finance/chart-of-accounts` e `/api/v1/finance/cost-centers` com `RequireModule("finance")`.
-- [ ] Telas de árvore e ajuda.
+- [ ] Endpoints `/api/v1/finance/chart-of-accounts` e `/api/v1/finance/cost-centers`; telas e ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, @qa.
-- Gate: CA 2 (seed idempotente sem sobrescrever) e CA 11 (exclusão recusada com uso) obrigatórios.
+- Gate: CA 2 (seed idempotente sem sobrescrever) e CA 13 (exclusão recusada com uso) obrigatórios.
 
 ## Validação do PO
 Checklist do @po (Pax), 18/10/2026.
@@ -145,12 +141,14 @@ Checklist do @po (Pax), 18/10/2026.
 | 9 | Telas com estados, ajuda e comportamento propositivo | OK |
 | 10 | DoD do CLAUDE.md ajustado; pontos em aberto registrados sem decidir | OK |
 
-- **Correções feitas na validação:** —
-- **Pré-condições para `Ready`:** Ponto em aberto 1 (conteúdo do plano de contas padrão, com o PO e a contadora).
-- **Prontidão:** 9/10. **Veredito:** GO condicional (permanece `Draft` até as pré-condições serem decididas).
+- **Correções feitas na validação (18/10/2026):** seed v1, máscara, grupos da DRE, centros e contas "A classificar" decididos (tabela 1.1) e escritos nos CAs; seed também nos tenants existentes; `TreeTable`; verbos específicos; a story não bloqueia mais a CAD-05b nem a MIG-01e (cancelada); ordem 11 do Marco C.
+- **Pré-condições para `Ready`:** nenhuma pendente.
+- **Prontidão:** 10/10. **Veredito:** GO. Status `Ready`.
 
 ## Change Log
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 18/10/2026 | 0.1 | Story detalhada (quebra da CAD-05) | River (SM) |
 | 18/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
+| 18/10/2026 | 0.3 | Decisões do PO (D1, D10, tabela 1.1); ordem 11 do Marco C | River (SM) |
+| 18/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |

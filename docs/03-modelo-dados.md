@@ -19,7 +19,7 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 - **security.data_protection_keys** (FND-11, ADR 0007): id, friendly_name, xml. É o key ring do Data Protection. Cada chave é gravada cifrada pelo certificado de proteção, que fica fora do banco.
 
 ## identity
-- **users** (FND-04a, ADR 0011): name, email, normalized_email (único), password_hash (PBKDF2 do Identity), security_stamp, status (Invited/Active/Inactive), access_failed_count, lockout_end, last_login_at, totp_enabled, totp_secret_cipher (cifrado, FND-05), totp_last_step (anti-replay); employee_id opcional entra com o RH
+- **users** (FND-04a, ADR 0011): name, email, normalized_email (único), password_hash (PBKDF2 do Identity), security_stamp, status (Invited/Active/Inactive), access_failed_count, lockout_end, last_login_at, totp_enabled, totp_secret_cipher (cifrado, FND-05), totp_last_step (anti-replay); employee_id (CAD-04b: opcional, único, gravado só por `IUserEmployeeLink`)
 - **modules** (FND-06, seed do `ModuleCatalog`, igual em todos os tenants): code (`finance`, único), name, area (uma das 7 do dock), phase, order, description, approve_meaning
 - **module_actions** (FND-06, ADR 0003): module_code, action (único por módulo), label, description, is_standard. Ações padrão e específicas (snake_case) aplicáveis ao módulo
 - **groups** (FND-06b): name (único entre ativos), description, is_system (Proprietário), is_active, requires_2fa, seed_key (grupos do seed: o seed não recria), created_at; auditada
@@ -32,34 +32,42 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 - **password_resets** (FND-04): user_id, token_hash, expires_at (1 h), used_at, created_at
 - **kiosk_tokens**: name, token_hash, scope (painel + filtros JSON), last_seen_at, revoked_at
 - **user_preferences** (FND-09a, ADR 0009): user_id, key (único por usuário: `theme`; `help:<chave>` para ajuda já vista, FND-14/ADR 0013), value, updated_at
-- **tenant_settings** (FND-05): key (única), value, updated_at, updated_by; auditada. Chaves: `security.require_2fa`; depois logo, dados da empresa, numeração
+- **tenant_settings** (FND-05): key (única), value, updated_at, updated_by; auditada. Chaves: `security.require_2fa`; `payroll.charges_pct` (numeric(5,2), seed 80,00) e `pricing.mode` (`markup` | `margin`, seed `markup`) (CAD-06). A garantia padrão fica no Inventory (ADR 0016)
+- **seed_patches** (CAD-01a, ADR 0016): key (única), applied_at. Patches versionados que só acrescentam concessões aos grupos com `seed_key` e incrementam o `perm_version`
 - **ai_settings** (FND-15, ADR 0014): provider (`anthropic` | `gemini` | `openai`), model, api_key_cipher (cifrada com `SecretKind.AiApiKey`, nunca volta pela API), key_set_at, updated_at, updated_by; uma linha por tenant; auditada sem a chave
 - **ai_usage_logs** (FND-15): at, user_id, provider, model, input_tokens, output_tokens, duration_ms, outcome (`answered` | `no_citation` | `failed` | `test_ok` | `test_failed`)
 - **recovery_codes** (FND-05): user_id, code_hash (SHA-256), created_at, used_at. 10 por usuário, de uso único
 - **two_factor_challenges** (FND-05, ADR 0011): user_id, token_hash (único), purpose (Verify/Setup), created_at, expires_at (5 min), attempts (máx. 5), completed_at, invalidated_at, created_by_ip
 
+## settings (dono: Identity, ADR 0014 e 0016)
+- **company_profile** (CAD-06): legal_name, trade_name, state_registration, municipal_registration, zip, street, number, complement, district, city, city_ibge, state, phone, email, logo_attachment_id; uma linha por tenant; auditada. Fonte da verdade de razão social e nome fantasia; o CNPJ vem do catálogo, só leitura
+
 ## shared
-- **number_sequences** (schema `shared`, FND-07a): doc_type, year (0 = sem ano), last_value; único por (doc_type, year). Prefixo e dígitos vêm de `NumberFormats` (padrão de `04-fluxos` §4, editável por tenant na CAD-06)
+- **number_sequences** (schema `shared`, FND-07a): doc_type, year (0 = sem ano), last_value; único por (doc_type, year). Prefixo e dígitos vêm de `NumberFormats` (padrão de `04-fluxos` §4) mais as exceções de `number_formats`. "Próximo número" por `INSERT … ON CONFLICT DO UPDATE SET last_value = GREATEST(…)` (ADR 0016). Toda tabela de documento numerado tem índice único em `number`
+- **number_formats** (schema `shared`, CAD-06): doc_type (único), prefix (1–6, A–Z/0–9, único entre os tipos), yearly (bloqueado depois do primeiro número), digits (3–8), updated_at, updated_by; só as exceções ao padrão, gravadas pelo `INumberFormatAdmin`
 - **attachments** (schema `shared`, FND-07c): owner_type, owner_id, file_name (só exibição), content_type (detectado), size, sha256, storage_path (aleatório), scan_status (Pending/Clean/Infected/Failed), scanned_at, created_at, uploaded_by
-- **audit_log** (schema `audit`, FND-07a): entity, entity_id, action (Created/Updated/Deleted e eventos de autenticação, até 64 caracteres), user_id, at, changes (jsonb, só campos alterados; `[PersonalData]` mascarado, `[ProtectedSecret]` só `changed`), ip. **Imutável**: trigger recusa UPDATE/DELETE/TRUNCATE
+- **audit_log** (schema `audit`, FND-07a): entity, entity_id, action (Created/Updated/Deleted e eventos de autenticação, até 64 caracteres), user_id, at, changes (jsonb, só campos alterados; `[PersonalData]` mascarado, `[ProtectedSecret]` só `changed`), ip. **Imutável**: trigger recusa UPDATE/DELETE/TRUNCATE. `action = "SensitiveRead"` registra leitura de dado sensível (CAD-04a, ADR 0016), visível só ao Proprietário
+- **purge_log** (schema `audit`, ADR 0016): at, migration, rows, reason — registro do expurgo controlado de dado pessoal que tenha chegado à auditoria (nasce com o primeiro expurgo)
 - **outbox_messages** (schema `shared`, FND-07b): id (v7), type, payload (jsonb), occurred_at, attempts, next_attempt_at, processed_at, dead_lettered_at, error, correlation_id
 - **inbox_messages** (schema `shared`, FND-07b): message_id, handler (PK composta), processed_at — entrega idempotente por handler
 - **notifications** (schema `shared`, FND-07c): user_id, type, title, link (obrigatório, rota relativa do app), created_at, read_at
 - **email_logs** (schema `shared`, FND-08): to (`[PersonalData]`), template, subject, model (jsonb), status (Queued/Sent/Failed/Skipped), attempts, error, related_type, related_id, created_at, sent_at
 
 ## parties
-- **parties**: kind (PF/PJ), document, legal_name, trade_name, state_registration, municipal_registration, tax_regime, email, phone, notes, default_payment_term_id
-- **party_roles**: party_id, role (Customer/Supplier/Installer/Carrier)
-- **party_addresses**: party_id, type (Billing/Delivery/Site), zip, street, number, complement, district, city, city_ibge, state
-- **party_contacts**: party_id, name, role, email, phone, receives_billing
-- **payment_terms**: name, installments (JSON: dias/percentual)
+- **parties** (CAD-01a): kind (PF/PJ), document (opcional; único parcial `WHERE NOT is_deleted AND document IS NOT NULL`; `[PersonalData]`), legal_name, trade_name, state_registration, municipal_registration, tax_regime, email, phone, notes, is_active (CAD-01a); default_payment_term_id (CAD-05b, só o id de `finance.payment_terms`); import_source (MIG-01b)
+- **party_roles** (CAD-01a): party_id, role (Customer/Supplier/Installer/Carrier); único por terceiro e papel
+- **party_addresses** (CAD-01a): party_id, type (Billing/Delivery/Site), zip, street, number, complement, district, city, city_ibge, state, is_default (CAD-01a; único por terceiro e tipo)
+- **party_contacts** (CAD-01a): party_id, name, role, email, phone, receives_billing
+- **cnpj_lookups** (CAD-01b): document, payload (jsonb, sem QSA), looked_up_at; cache por tenant, expurgado aos 30 dias
+- As condições de pagamento pertencem ao Finance (`finance.payment_terms`, ADR 0016)
 
 ## hr
-- **job_positions**: name, cbo, salary_min, salary_max, hourly_cost (calculado/ajustável), work_center_id (padrão)
-- **employees**: name, cpf, rg, pis, birth_date, address, phone, email, bank/pix, admission_date, termination_date, job_position_id, base_salary, work_schedule_id, union_id, transport_voucher, insalubrity_pct, hazard_pay, status
-- **employee_dependents**: employee_id, name, cpf, birth_date, kinship, ir_dependent, family_allowance
-- **employee_history**: employee_id, type (Salary/Position/Leave), effective_date, old_value, new_value, reason
-- **work_schedules**: name, weekly_hours, days (JSON com entradas/saídas)
+- **job_positions** (CAD-04a): name, cbo, salary_min, salary_max, reference_salary (padrão na média da faixa), monthly_hours (semanais × 5, editável), hourly_cost (numeric(18,6), calculado/ajustável), hourly_cost_manual, work_center_id (padrão), is_active. Faixa e salário de referência são `[PersonalData]` e só saem em `/sensitive`
+- **employees** (CAD-04b, base): name, registration (matrícula, texto opcional, única), cpf, rg, pis, ctps_number, ctps_series, voter_id, birth_date, zip, street, number, complement, district, city, state, phone, email, admission_date, termination_date, job_position_id, base_salary, work_schedule_id, union_id, status (Active/Terminated; OnLeave na CAD-04c). **CAD-04c:** bank_code, bank_agency, bank_account, bank_account_type, pix_key_type, pix_key, transport_voucher, insalubrity_pct (10/20/40), hazard_pay, cnh_number, cnh_category, cnh_expiry, military_certificate. Campos pessoais `[PersonalData]`, só em `/sensitive`
+- **employee_dependents** (CAD-04c): employee_id, name, cpf (só quando ir_dependent), birth_date, kinship, ir_dependent, family_allowance
+- **employee_history**: employee_id, type (Salary/Position na CAD-04b; Leave na CAD-04c), effective_date, old_value, new_value, reason (Leave: até 200 caracteres, sem CID)
+- **work_schedules** (CAD-04a): name, weekly_hours, days (JSON com entradas/saídas), is_active, seed_key (seed "44 h — seg a sex 08:00–17:48")
+- **unions** (CAD-04a): name, document (CNPJ), base_month, is_active
 - **time_entries**: employee_id, at, type (In/Out/BreakStart/BreakEnd), source (PWA/Manual), lat, lng, justification, approved_by
 - **timesheets**: employee_id, period (ano-mês), worked_hours, overtime_hours, absences, hour_bank_balance, status (Open/Closed)
 - **payroll_runs**: period, type (Monthly/Vacation/13th/Termination), mode (Entered/Calculated), status (Draft/Closed/Paid)
@@ -86,8 +94,9 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 - **bom_lines**: bom_id, item_id, quantity, unit_id, scrap_pct, notes
 
 ## production
-- **work_centers**: name, line, hours_per_day, shifts (JSON), calendar_id, is_active
-- **calendars / calendar_exceptions**: date, type (Holiday/Shutdown), hours_available
+- **work_centers** (CAD-03): name, line, hours_per_day (numeric(5,2), derivado dos turnos), shifts (JSON, sem turno que vira o dia), calendar_id, is_active
+- **calendars** (CAD-03): name, is_default (um padrão por tenant no MVP), working_days (JSON)
+- **calendar_exceptions** (CAD-03): calendar_id, date (único por calendário), type (Holiday/Shutdown), hours_available, description
 - **production_orders**: number, type (Fabrication/Installation/Maintenance), project_id, project_item_id, product_id, quantity, status (Open/InProgress/Paused/Quality/Completed/Cancelled), priority, planned_start, planned_end, actual_start, actual_end, executor_party_id (instalação terceirizada), serial_numbers
 - **production_order_steps**: order_id, sequence, name, work_center_id, standard_hours, status (Waiting/Ready/InProgress/Paused/Done/Rejected), planned_start, planned_end, actual_start, actual_end, checklist_result (JSON)
 - **labor_entries**: order_step_id, employee_id, started_at, ended_at, paused_minutes, hourly_cost_snapshot, cost, notes
@@ -96,17 +105,18 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 - **downtimes**: work_center_id, asset_id, reason, started_at, ended_at
 
 ## inventory
-- **units**: code (UN, KG, M, M2, M3, L, PC), name
-- **item_categories**: name, parent_id
-- **items**: code, name, type (RawMaterial/Component/Finished/Consumable/Service), category_id, unit_id (estoque), ncm, cest, origin, min_stock, tracks_lot, tracks_serial, average_cost, is_active
-- **item_unit_conversions**: item_id, from_unit_id, to_unit_id, factor
-- **item_supplier_codes**: item_id, party_id, supplier_code, supplier_unit, conversion_factor (de-para da NF de entrada)
-- **locations**: name, code, is_default
+- **units** (CAD-02a): code (UN, KG, M, M2, M3, L, PC), name, is_active, seed_key; import_source (MIG-01c)
+- **item_categories** (CAD-02a): name, parent_id, is_active; import_source (MIG-01c)
+- **items** (CAD-02a): code (digitado, único), name, type (`ItemType` em `Inventory.Contracts`: RawMaterial/Component/Finished/Consumable/Service), category_id, unit_id (estoque), ncm (obrigatório para item ativo de RawMaterial/Component/Finished), cest, origin, min_stock, tracks_lot, tracks_serial, warranty_months (CAD-02a), average_cost (só leitura, EST-01), is_active; import_source (MIG-01c)
+- **warranty_defaults** (CAD-02a, ADR 0016): item_type (único), months (nulo = sem garantia); seed Finished 12, Component 3, Service 3
+- **item_unit_conversions** (CAD-02b): item_id, from_unit_id, to_unit_id, factor (numeric(18,6); resultado com 4 casas, AwayFromZero)
+- **item_supplier_codes** (CAD-02b): item_id, party_id, supplier_code, supplier_unit (texto livre), conversion_factor (de-para da NF de entrada); import_source (MIG-01c)
+- **locations** (CAD-03): name, code, is_default, is_active, seed_key (seed "ALM — Almoxarifado principal"); import_source (MIG-01c)
 - **lots**: item_id, lot_number, supplier_party_id, received_at, expiry
 - **serials**: item_id, serial_number, production_order_id, status (InStock/Shipped), project_id
 - **stock_balances**: item_id, location_id, lot_id, quantity_on_hand, quantity_reserved (disponível = on_hand − reserved)
 - **reservations**: item_id, location_id, production_order_id, bom_line_id, quantity, quantity_issued, status (Active/Consumed/Released)
-- **stock_movements**: number, type (Receipt/Issue/Transfer/Adjustment/Return/Production/Shipment), item_id, location_id, lot_id, serial_id, quantity (com sinal), unit_cost, total_cost, source_type, source_id, project_id, at, user_id — imutável
+- **stock_movements**: number, type (Receipt/Issue/Transfer/Adjustment/Return/Production/Shipment; OpeningBalance "Saldo inicial" entra com a EST-01, ADR 0016), item_id, location_id, lot_id, serial_id, quantity (com sinal), unit_cost, total_cost, source_type, source_id, project_id, at, user_id — imutável
 - **inventory_counts / inventory_count_lines**: location_id, status, item_id, lot_id, system_qty, counted_qty, adjusted
 
 ## purchasing
@@ -120,9 +130,10 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 - **goods_receipt_lines**: receipt_id, po_line_id, item_id, quantity, lot_number, location_id, unit_cost
 
 ## finance
-- **chart_of_accounts**: code, name, type (Revenue/Expense/Asset/Liability), parent_id, accepts_entries, dre_group
-- **cost_centers**: code, name, parent_id
-- **bank_accounts**: name, type (Bank/Cash), bank_code, agency, account, provider (Inter/OFX/None), credentials_secret, opening_balance, opening_date
+- **chart_of_accounts** (CAD-05a): code (máscara `9.9.99`), name, type (Revenue/Expense/Asset/Liability), parent_id, accepts_entries (derivado), dre_group, is_active, seed_key
+- **cost_centers** (CAD-05a): code, name, parent_id, is_active, seed_key
+- **bank_accounts** (CAD-05b): name, type (Bank/Cash), bank_code, agency, account, opening_balance (numeric(18,2), anulável), opening_date (date, anulável, junto com o saldo), is_active, is_default (único entre as ativas); import_source (MIG-01b, entra sem saldo); provider (Inter/OFX/None) e credentials_secret entram na BNK-01
+- **payment_terms** (CAD-05b, dono Finance, ADR 0016): name, installments (jsonb: dias e percentual numeric(7,4), soma 100), is_active, seed_key (seed À vista, 30, 30/60 e 30/60/90 dias); import_source (MIG-01b). Exposta por `IPaymentTerms` em `Finance.Contracts`
 - **receivables**: number, party_id, project_id, contract_milestone_id, account_id, cost_center_id, description, issue_date, due_date, amount, interest, fine, discount, paid_amount, status (Planned/Open/PartiallyPaid/Paid/Overdue/Cancelled), billing_slip_id
 - **payables**: number, party_id, project_id, account_id, cost_center_id, origin (Purchase/Payroll/Installer/Recurring/Manual), origin_id, description, due_date, amount, paid_amount, status (Planned/Open/AwaitingApproval/Approved/Paid/Cancelled)
 - **payment_orders**: number, payable_ids, total, requested_by, status (Pending/Approved/Rejected/Paid/Cancelled), approval_rule_id, scheduled_date
@@ -148,6 +159,11 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 - **asset_movements**: asset_id, from/to location, from/to responsible, at, reason
 - **maintenance_plans**: asset_id, description, frequency_type (Days/Hours), frequency_value, last_done_at, next_due_at, checklist (JSON)
 - **maintenance_orders**: number, asset_id, plan_id, type (Preventive/Corrective), status, scheduled_at, done_at, cost, supplier_party_id, notes, payable_id
+
+## migration (MIG-01a, ADR 0017; módulo fora do `ModuleCatalog`)
+- **import_runs**: started_at, finished_at, mode (DryRun/Real), entities, status (Running/Succeeded/Failed), summary (jsonb), operator, snapshot_taken_at, accepted_at, purged_at
+- **import_items**: run_id, source_table, source_id, payload (jsonb), hash, outcome (Imported/Updated/Unchanged/Merged/Linked/Skipped/Conflict/Error), target_type, target_id, message — expurgada após o aceite e em até 30 dias (ADR 0018)
+- **external_refs**: source, source_table, source_id (únicos juntos), target_type, target_id, source_hash, target_xmin, imported_at, last_run_id
 
 ## Relacionamentos-chave
 - quote 1—N quote_items 1—N quote_item_costs · quote 1—0..1 contract (a revisão aprovada)
