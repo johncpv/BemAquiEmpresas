@@ -73,7 +73,7 @@ public static class ModuleEndpoints
         api.MapGet("/modules", (TenantContextHolder tenant) => Results.Ok(ModuleCatalog.All
                 .OrderBy(m => Array.IndexOf(ModuleAreas.All, m.Area)).ThenBy(m => m.Order)
                 .Select(m => new ModuleSummary(m.Code, m.Name, m.Area, m.Order, m.Description, tenant.Resolved?.IsReleased(m.Code) == true))))
-            .WithName("ListModules")
+            .WithName("ListModules").Produces<IEnumerable<ModuleSummary>>()
             .WithTags("Módulos");
         return api;
     }

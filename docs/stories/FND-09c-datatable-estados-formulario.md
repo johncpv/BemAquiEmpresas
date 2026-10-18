@@ -5,7 +5,7 @@
 | ID | FND-09c |
 | Título | Cliente Orval + TanStack Query, DataTable server-side, Skeleton/EmptyState/ErrorState/InlineError, formulário RHF + Zod, confirmação e histórico por registro |
 | Tamanho | M |
-| Status | Draft |
+| Status | Done |
 | Requisitos | PRD §6 Desempenho (listagem < 1 s com 50 mil registros) · R-SEC-5 (histórico consultável por registro) · R-PRP-2 (próximo passo após concluir) |
 | Dependências | FND-09a; FND-07 (PagedList, ProblemDetails e endpoint de auditoria) |
 | Bloqueia | Todas as telas com lista ou formulário (FND-03b, FND-04, FND-05, FND-06b, FND-06c, FND-15) |
@@ -122,7 +122,31 @@ Checklist do @po (Pax), 16/10/2026.
 | 16/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 
 ## Dev Agent Record
-_A preencher pelo @dev._
+- **Entrega (FND-09c), 18/10/2026, branch `feat/fnd-09c-datatable-orval`.** Os pontos em aberto foram resolvidos assim: a página padrão é 20 e o máximo 100, iguais ao `PageRequest` da FND-07; o teste de desempenho usa a tabela real `audit.audit_log`. O resto das decisões está no adendo da ADR 0009.
+  - **Contrato da API (CA 1):**
+    - o OpenAPI do Host fica versionado em `src/Web/openapi.json`, e o teste `OpenApiDocumentTests` falha se ele ficar desatualizado;
+    - o Orval gera cliente e hooks do TanStack Query em `src/api/generated`, e o CI falha se o cliente gerado mudar;
+    - os endpoints passaram a declarar `Produces<T>`, e o JSON usa `NumberHandling = Strict`.
+  - **Lint (CA 2):** `fetch`, `axios` e `XMLHttpRequest` fora do mutator reprovam.
+  - **Mutator (CA 3):**
+    - o token fica só em memória;
+    - no 401 faz um único refresh e repete a requisição; se o refresh falha, vai para `/entrar?volta=`;
+    - lê o `X-Perm-Version` e recarrega `/me/permissions` quando muda;
+    - converte ProblemDetails em `ApiError`.
+  - **Ligações:** `AppProviders` liga o TanStack Query, os toasts, a retomada da sessão pelo cookie, o sino na API e o tema salvo no perfil (fecha o CA 9 da FND-09a).
+  - **`DataTable` (CA 4, 6, 7):**
+    - página, ordenação e busca no servidor e na URL;
+    - estados de carregando, vazio com ação, "Nenhum resultado para os filtros" com "Limpar filtros" e erro com "Tentar de novo";
+    - colunas secundárias somem a 400px.
+  - **Desempenho (CA 5):** 50 mil linhas em `audit.audit_log` e página 2400 em menos de 1 s.
+  - **Formulário (CA 8 a 10):**
+    - `useZodForm` com Zod em PT-BR, `Field` com `aria-describedby`, foco no primeiro campo inválido;
+    - `applyServerErrors` põe os erros do servidor nos campos e os demais no topo;
+    - `UnsavedChangesGuard` pergunta "Salvar" ou "Descartar".
+  - **`ConfirmDialog` e toast (CA 11, 12):** mesmo verbo no botão de confirmar, particípio no toast, e `toastDone` com próximo passo.
+  - **`RecordHistory` (CA 13):** quem, quando e antes → depois, paginado e com o mascaramento do servidor.
+  - **Auditoria e anexos:** o `IPermissionChecker` real (`CurrentUserPermissionChecker`) substituiu o DenyAll da FND-07, e as entidades auditáveis passaram a ser registradas por módulo.
+  - **Testes:** 60 no Vitest e 21 no Playwright, com tabela na URL, 400px, formulário e confirmação; integração com o OpenAPI e com as 50 mil linhas.
 
 ## QA Results
 _A preencher pelo @qa._

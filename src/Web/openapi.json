@@ -1,0 +1,2527 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "BemAqui.Host | v1",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/v1/audit/{entity}/{id}": {
+      "get": {
+        "tags": [
+          "Auditoria"
+        ],
+        "operationId": "GetAuditHistory",
+        "parameters": [
+          {
+            "name": "entity",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfAuditEntryDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/modules": {
+      "get": {
+        "tags": [
+          "M\u00F3dulos"
+        ],
+        "operationId": "ListModules",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ModuleSummary"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/public/tenant-context": {
+      "get": {
+        "tags": [
+          "Plataforma"
+        ],
+        "operationId": "GetTenantPublicContext",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantPublicContext"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/permissions": {
+      "get": {
+        "tags": [
+          "Identidade"
+        ],
+        "operationId": "GetMyPermissions",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyPermissionsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/preferences": {
+      "get": {
+        "tags": [
+          "Identidade"
+        ],
+        "operationId": "GetMyPreferences",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreferencesDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Identidade"
+        ],
+        "operationId": "SaveMyPreferences",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreferencesDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreferencesDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me": {
+      "get": {
+        "tags": [
+          "Identidade"
+        ],
+        "operationId": "GetCurrentSession",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/attachments/{ownerType}/{ownerId}": {
+      "post": {
+        "tags": [
+          "Anexos"
+        ],
+        "operationId": "UploadAttachment",
+        "parameters": [
+          {
+            "name": "ownerType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ownerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "$ref": "#/components/schemas/IFormFile"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Anexos"
+        ],
+        "operationId": "ListAttachments",
+        "parameters": [
+          {
+            "name": "ownerType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ownerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/attachments/{id}/content": {
+      "get": {
+        "tags": [
+          "Anexos"
+        ],
+        "operationId": "DownloadAttachment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/notifications": {
+      "get": {
+        "tags": [
+          "Notifica\u00E7\u00F5es"
+        ],
+        "operationId": "ListMyNotifications",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationPage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/{id}/read": {
+      "post": {
+        "tags": [
+          "Notifica\u00E7\u00F5es"
+        ],
+        "operationId": "MarkNotificationRead",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/auth/login": {
+      "post": {
+        "tags": [
+          "Plataforma"
+        ],
+        "operationId": "PlatformLogin",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlatformLoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/auth/set-password": {
+      "post": {
+        "tags": [
+          "Plataforma"
+        ],
+        "operationId": "PlatformSetPassword",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlatformSetPasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/auth/2fa/setup": {
+      "post": {
+        "tags": [
+          "Plataforma"
+        ],
+        "operationId": "PlatformBeginTwoFactorSetup",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlatformChallengeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/auth/2fa/confirm": {
+      "post": {
+        "tags": [
+          "Plataforma"
+        ],
+        "operationId": "PlatformConfirmTwoFactorSetup",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlatformConfirmRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/auth/2fa/verify": {
+      "post": {
+        "tags": [
+          "Plataforma"
+        ],
+        "operationId": "PlatformVerifyTwoFactor",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlatformVerifyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/auth/logout": {
+      "post": {
+        "tags": [
+          "Plataforma"
+        ],
+        "operationId": "PlatformLogout",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/me": {
+      "get": {
+        "tags": [
+          "Plataforma"
+        ],
+        "operationId": "GetPlatformCurrentAdmin",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/tenants/{tenantId}/modules": {
+      "get": {
+        "tags": [
+          "Plataforma"
+        ],
+        "operationId": "GetTenantModules",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Plataforma"
+        ],
+        "operationId": "SaveTenantModules",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveModuleReleaseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": [
+          "Autentica\u00E7\u00E3o"
+        ],
+        "operationId": "Login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/refresh": {
+      "post": {
+        "tags": [
+          "Autentica\u00E7\u00E3o"
+        ],
+        "operationId": "RefreshSession",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessTokenResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "tags": [
+          "Autentica\u00E7\u00E3o"
+        ],
+        "operationId": "Logout",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/forgot-password": {
+      "post": {
+        "tags": [
+          "Autentica\u00E7\u00E3o"
+        ],
+        "operationId": "ForgotPassword",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/reset-password": {
+      "post": {
+        "tags": [
+          "Autentica\u00E7\u00E3o"
+        ],
+        "operationId": "ResetPassword",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/invites/inspect": {
+      "post": {
+        "tags": [
+          "Autentica\u00E7\u00E3o"
+        ],
+        "operationId": "InspectInvite",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InviteTokenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InviteInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/invites/accept": {
+      "post": {
+        "tags": [
+          "Autentica\u00E7\u00E3o"
+        ],
+        "operationId": "AcceptInvite",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcceptInviteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InviteAcceptedResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/2fa/verify": {
+      "post": {
+        "tags": [
+          "Autentica\u00E7\u00E3o"
+        ],
+        "operationId": "VerifyTwoFactor",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyTwoFactorRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessTokenResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/2fa/setup": {
+      "post": {
+        "tags": [
+          "Autentica\u00E7\u00E3o"
+        ],
+        "operationId": "BeginRequiredTwoFactorSetup",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChallengeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TotpSetup"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/2fa/confirm": {
+      "post": {
+        "tags": [
+          "Autentica\u00E7\u00E3o"
+        ],
+        "operationId": "ConfirmRequiredTwoFactorSetup",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmWithChallengeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TwoFactorActivatedResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/2fa": {
+      "get": {
+        "tags": [
+          "Identidade"
+        ],
+        "operationId": "GetTwoFactorStatus",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TwoFactorStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/2fa/setup": {
+      "post": {
+        "tags": [
+          "Identidade"
+        ],
+        "operationId": "BeginTwoFactorSetup",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TotpSetup"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/2fa/confirm": {
+      "post": {
+        "tags": [
+          "Identidade"
+        ],
+        "operationId": "ConfirmTwoFactorSetup",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmTwoFactorRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TwoFactorActivatedResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/2fa/disable": {
+      "post": {
+        "tags": [
+          "Identidade"
+        ],
+        "operationId": "DisableTwoFactor",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DisableTwoFactorRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessTokenResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/identity/groups": {
+      "get": {
+        "tags": [
+          "Usu\u00E1rios e acessos"
+        ],
+        "operationId": "ListGroups",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GroupSummary"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Usu\u00E1rios e acessos"
+        ],
+        "operationId": "CreateGroup",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveGroupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupSaved"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/identity/groups/{id}": {
+      "get": {
+        "tags": [
+          "Usu\u00E1rios e acessos"
+        ],
+        "operationId": "GetGroup",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Usu\u00E1rios e acessos"
+        ],
+        "operationId": "UpdateGroup",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveGroupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupSaved"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/identity/groups/{id}/duplicate": {
+      "post": {
+        "tags": [
+          "Usu\u00E1rios e acessos"
+        ],
+        "operationId": "DuplicateGroup",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupSaved"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/identity/groups/{id}/deactivate": {
+      "post": {
+        "tags": [
+          "Usu\u00E1rios e acessos"
+        ],
+        "operationId": "DeactivateGroup",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupSaved"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/identity/groups/{id}/members": {
+      "put": {
+        "tags": [
+          "Usu\u00E1rios e acessos"
+        ],
+        "operationId": "SetGroupMembers",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetGroupMembersRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupSaved"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/identity/users": {
+      "get": {
+        "tags": [
+          "Usu\u00E1rios e acessos"
+        ],
+        "operationId": "ListUsers",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserRow"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/identity/users/invite": {
+      "post": {
+        "tags": [
+          "Usu\u00E1rios e acessos"
+        ],
+        "operationId": "InviteUser",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InviteUserRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserInvited"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/identity/users/{id}/resend-invite": {
+      "post": {
+        "tags": [
+          "Usu\u00E1rios e acessos"
+        ],
+        "operationId": "ResendInvite",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/identity/users/{id}/cancel-invite": {
+      "post": {
+        "tags": [
+          "Usu\u00E1rios e acessos"
+        ],
+        "operationId": "CancelInvite",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/identity/users/{id}/deactivate": {
+      "post": {
+        "tags": [
+          "Usu\u00E1rios e acessos"
+        ],
+        "operationId": "DeactivateUser",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/identity/users/{id}/reactivate": {
+      "post": {
+        "tags": [
+          "Usu\u00E1rios e acessos"
+        ],
+        "operationId": "ReactivateUser",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/identity/users/{id}/groups": {
+      "put": {
+        "tags": [
+          "Usu\u00E1rios e acessos"
+        ],
+        "operationId": "SetUserGroups",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetUserGroupsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/settings/security": {
+      "get": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "GetSecuritySettings",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecuritySettingsDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "SaveSecuritySettings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SecuritySettingsDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecuritySettingsDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AcceptInviteRequest": {
+        "required": [
+          "token",
+          "name",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "AccessTokenResponse": {
+        "required": [
+          "accessToken",
+          "expiresAt"
+        ],
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AuditEntryDto": {
+        "required": [
+          "id",
+          "action",
+          "userId",
+          "at",
+          "changes"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "action": {
+            "type": "string"
+          },
+          "userId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "changes": {
+            "type": "string"
+          }
+        }
+      },
+      "ChallengeRequest": {
+        "required": [
+          "challenge"
+        ],
+        "type": "object",
+        "properties": {
+          "challenge": {
+            "type": "string"
+          }
+        }
+      },
+      "ConfirmTwoFactorRequest": {
+        "required": [
+          "code"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          }
+        }
+      },
+      "ConfirmWithChallengeRequest": {
+        "required": [
+          "challenge",
+          "code"
+        ],
+        "type": "object",
+        "properties": {
+          "challenge": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        }
+      },
+      "DisableTwoFactorRequest": {
+        "required": [
+          "password",
+          "code"
+        ],
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        }
+      },
+      "ForgotPasswordRequest": {
+        "required": [
+          "email"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          }
+        }
+      },
+      "GroupActionInfo": {
+        "required": [
+          "code",
+          "label",
+          "description",
+          "isStandard"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "isStandard": {
+            "type": "boolean"
+          }
+        }
+      },
+      "GroupChip": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "GroupDetail": {
+        "required": [
+          "group",
+          "members",
+          "modules"
+        ],
+        "type": "object",
+        "properties": {
+          "group": {
+            "$ref": "#/components/schemas/GroupSummary"
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GroupMember"
+            }
+          },
+          "modules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GroupModuleRow"
+            }
+          }
+        }
+      },
+      "GroupMember": {
+        "required": [
+          "userId",
+          "name",
+          "email"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          }
+        }
+      },
+      "GroupModuleRow": {
+        "required": [
+          "code",
+          "name",
+          "area",
+          "released",
+          "enabled",
+          "actions",
+          "available",
+          "approveMeaning"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "area": {
+            "type": "string"
+          },
+          "released": {
+            "type": "boolean"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "available": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GroupActionInfo"
+            }
+          },
+          "approveMeaning": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "GroupSaved": {
+        "required": [
+          "id",
+          "affectedUsers"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "affectedUsers": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "GroupSummary": {
+        "required": [
+          "id",
+          "name",
+          "description",
+          "isSystem",
+          "isActive",
+          "requiresTwoFactor",
+          "memberCount"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "isSystem": {
+            "type": "boolean"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "requiresTwoFactor": {
+            "type": "boolean"
+          },
+          "memberCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "IFormFile": {
+        "type": "string",
+        "format": "binary"
+      },
+      "InviteAcceptedResponse": {
+        "required": [
+          "email",
+          "offerTwoFactor",
+          "accessToken",
+          "expiresAt",
+          "twoFactor"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "offerTwoFactor": {
+            "type": "boolean"
+          },
+          "accessToken": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "expiresAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "twoFactor": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TwoFactorStep"
+              }
+            ]
+          }
+        }
+      },
+      "InviteInfo": {
+        "required": [
+          "state",
+          "email",
+          "name",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "state": {
+            "$ref": "#/components/schemas/InviteState"
+          },
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "message": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "InviteState": {
+        "enum": [
+          "Valid",
+          "Expired",
+          "Accepted",
+          "NotFound"
+        ]
+      },
+      "InviteTokenRequest": {
+        "required": [
+          "token"
+        ],
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          }
+        }
+      },
+      "InviteUserRequest": {
+        "required": [
+          "name",
+          "email",
+          "groupIds"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "groupIds": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        }
+      },
+      "LoginRequest": {
+        "required": [
+          "email",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "LoginResponse": {
+        "required": [
+          "accessToken",
+          "expiresAt",
+          "twoFactor"
+        ],
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "expiresAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "twoFactor": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TwoFactorStep"
+              }
+            ]
+          }
+        }
+      },
+      "MatrixEntry": {
+        "required": [
+          "moduleCode",
+          "enabled",
+          "actions"
+        ],
+        "type": "object",
+        "properties": {
+          "moduleCode": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "MessageResponse": {
+        "required": [
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "ModuleReleaseChange": {
+        "required": [
+          "code",
+          "released"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "released": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ModuleSummary": {
+        "required": [
+          "code",
+          "name",
+          "area",
+          "order",
+          "description",
+          "released"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "area": {
+            "type": "string"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": {
+            "type": "string"
+          },
+          "released": {
+            "type": "boolean"
+          }
+        }
+      },
+      "MyModule": {
+        "required": [
+          "code",
+          "name",
+          "area",
+          "released",
+          "enabled",
+          "actions"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "area": {
+            "type": "string"
+          },
+          "released": {
+            "type": "boolean"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "MyPermissionsResponse": {
+        "required": [
+          "permissions",
+          "isOwner",
+          "version",
+          "modules"
+        ],
+        "type": "object",
+        "properties": {
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isOwner": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "string"
+          },
+          "modules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MyModule"
+            }
+          }
+        }
+      },
+      "NotificationDto": {
+        "required": [
+          "id",
+          "type",
+          "title",
+          "link",
+          "createdAt",
+          "readAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "link": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "readAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "NotificationPage": {
+        "required": [
+          "page",
+          "unread"
+        ],
+        "type": "object",
+        "properties": {
+          "page": {
+            "$ref": "#/components/schemas/PagedListOfNotificationDto"
+          },
+          "unread": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PagedListOfAuditEntryDto": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuditEntryDto"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PagedListOfNotificationDto": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NotificationDto"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PlatformChallengeRequest": {
+        "required": [
+          "challenge"
+        ],
+        "type": "object",
+        "properties": {
+          "challenge": {
+            "type": "string"
+          }
+        }
+      },
+      "PlatformConfirmRequest": {
+        "required": [
+          "challenge",
+          "code"
+        ],
+        "type": "object",
+        "properties": {
+          "challenge": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        }
+      },
+      "PlatformLoginRequest": {
+        "required": [
+          "email",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "PlatformSetPasswordRequest": {
+        "required": [
+          "token",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "PlatformVerifyRequest": {
+        "required": [
+          "challenge",
+          "code",
+          "recoveryCode"
+        ],
+        "type": "object",
+        "properties": {
+          "challenge": {
+            "type": "string"
+          },
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "recoveryCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PreferencesDto": {
+        "required": [
+          "theme"
+        ],
+        "type": "object",
+        "properties": {
+          "theme": {
+            "type": "string"
+          }
+        }
+      },
+      "ResetPasswordRequest": {
+        "required": [
+          "token",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "SaveGroupRequest": {
+        "required": [
+          "name",
+          "description",
+          "requiresTwoFactor",
+          "modules"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "requiresTwoFactor": {
+            "type": "boolean"
+          },
+          "modules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MatrixEntry"
+            }
+          }
+        }
+      },
+      "SaveModuleReleaseRequest": {
+        "required": [
+          "modules"
+        ],
+        "type": "object",
+        "properties": {
+          "modules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ModuleReleaseChange"
+            }
+          }
+        }
+      },
+      "SecuritySettingsDto": {
+        "required": [
+          "requireTwoFactor"
+        ],
+        "type": "object",
+        "properties": {
+          "requireTwoFactor": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SetGroupMembersRequest": {
+        "required": [
+          "userIds"
+        ],
+        "type": "object",
+        "properties": {
+          "userIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        }
+      },
+      "SetUserGroupsRequest": {
+        "required": [
+          "groupIds"
+        ],
+        "type": "object",
+        "properties": {
+          "groupIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        }
+      },
+      "TenantPublicContext": {
+        "required": [
+          "name",
+          "logoUrl",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "logoUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "TotpSetup": {
+        "required": [
+          "manualKey",
+          "otpAuthUri"
+        ],
+        "type": "object",
+        "properties": {
+          "manualKey": {
+            "type": "string"
+          },
+          "otpAuthUri": {
+            "type": "string"
+          }
+        }
+      },
+      "TwoFactorActivatedResponse": {
+        "required": [
+          "recoveryCodes",
+          "accessToken",
+          "expiresAt"
+        ],
+        "type": "object",
+        "properties": {
+          "recoveryCodes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "accessToken": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "TwoFactorStatus": {
+        "required": [
+          "enabled",
+          "required",
+          "recoveryCodesLeft"
+        ],
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "recoveryCodesLeft": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "TwoFactorStep": {
+        "required": [
+          "challenge",
+          "purpose",
+          "expiresAt"
+        ],
+        "type": "object",
+        "properties": {
+          "challenge": {
+            "type": "string"
+          },
+          "purpose": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "UserInvited": {
+        "required": [
+          "id",
+          "email"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string"
+          }
+        }
+      },
+      "UserRow": {
+        "required": [
+          "id",
+          "name",
+          "email",
+          "groups",
+          "twoFactor",
+          "lastLoginAt",
+          "status",
+          "inviteOpen"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GroupChip"
+            }
+          },
+          "twoFactor": {
+            "type": "string"
+          },
+          "lastLoginAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string"
+          },
+          "inviteOpen": {
+            "type": "boolean"
+          }
+        }
+      },
+      "VerifyTwoFactorRequest": {
+        "required": [
+          "challenge",
+          "code",
+          "recoveryCode"
+        ],
+        "type": "object",
+        "properties": {
+          "challenge": {
+            "type": "string"
+          },
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "recoveryCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Auditoria"
+    },
+    {
+      "name": "M\u00F3dulos"
+    },
+    {
+      "name": "Plataforma"
+    },
+    {
+      "name": "Identidade"
+    },
+    {
+      "name": "Anexos"
+    },
+    {
+      "name": "Notifica\u00E7\u00F5es"
+    },
+    {
+      "name": "Autentica\u00E7\u00E3o"
+    },
+    {
+      "name": "Usu\u00E1rios e acessos"
+    },
+    {
+      "name": "Configura\u00E7\u00F5es"
+    }
+  ]
+}

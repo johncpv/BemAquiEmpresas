@@ -19,7 +19,7 @@ public static class PersistenceServiceCollectionExtensions
         services.TryAddScoped<ICurrentUser, SystemCurrentUser>();
         services.TryAddScoped<AuditSaveChangesInterceptor>();
         services.TryAddScoped<INumberSequence, NumberSequenceService>();
-        services.TryAddSingleton<AuditableEntityRegistry>();
+        services.TryAddSingleton(sp => new AuditableEntityRegistry(sp.GetServices<AuditableEntity>()));
         services.TryAddScoped<IPermissionChecker, DenyAllPermissionChecker>();
         services.TryAddScoped<AuditHistory>();
         services.TryAddSingleton<AttachmentOwnerRegistry>();

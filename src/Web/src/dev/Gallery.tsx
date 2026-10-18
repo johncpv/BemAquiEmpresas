@@ -3,6 +3,7 @@ import { StageIndicator } from '@/components/ui/stage-indicator'
 import { DEFAULT_STAGES } from '@/lib/stages'
 import { StatusChip } from '@/components/ui/status-chip'
 import { ThemeToggle } from '@/theme/ThemeToggle'
+import { GalleryForm, GalleryStates, GalleryTable } from './GalleryData'
 
 const SWATCHES = ['background', 'card', 'muted', 'border', 'input', 'primary', 'primary-soft', 'rail', 'signal', 'ok', 'warn', 'crit', 'info'] as const
 
@@ -60,6 +61,21 @@ export default function Gallery() {
         <p>
           Sem centavos: <Money value={1234.5} cents={false} /> · Negativo: <Money value={-850} highlightNegative />
         </p>
+      </section>
+
+      <section aria-labelledby="tabela" className="space-y-3">
+        <h2 id="tabela" className="text-[15px] font-semibold">Tabela</h2>
+        <GalleryTable />
+      </section>
+
+      <section aria-labelledby="formulario" className="space-y-3">
+        <h2 id="formulario" className="text-[15px] font-semibold">Formulário</h2>
+        <GalleryForm />
+      </section>
+
+      <section aria-labelledby="vazio-erro" className="space-y-3">
+        <h2 id="vazio-erro" className="text-[15px] font-semibold">Vazio, erro e confirmação</h2>
+        <GalleryStates />
       </section>
 
       <section aria-labelledby="tv" className="theme-tv space-y-2 rounded-md p-4">

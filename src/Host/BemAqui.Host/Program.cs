@@ -83,6 +83,8 @@ try
     builder.Services.AddTenantJwtAuthentication(builder.Configuration, builder.Environment);
     builder.Services.AddSignalR();
     builder.Services.AddAuthRateLimiting(builder.Configuration);
+    // Número é número no contrato (OpenAPI/Orval): sem aceitar "1" como 1, que gerava tipos integer|string no cliente.
+    builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.Strict);
     PermissionResultHandler.Register(builder.Services);
 
     foreach (var module in ModuleRegistry.All)

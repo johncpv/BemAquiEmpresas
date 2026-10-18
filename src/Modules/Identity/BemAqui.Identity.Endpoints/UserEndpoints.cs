@@ -25,10 +25,10 @@ internal static class UserEndpoints
     {
         var users = api.MapGroup("/identity/users").WithTags("Usuários e acessos").RequireModule("identity");
         users.MapGet(string.Empty, async (UserService service, CancellationToken ct) => Results.Ok(await service.ListAsync(ct)))
-            .RequirePermission("identity.view").WithName("ListUsers");
+            .RequirePermission("identity.view").WithName("ListUsers").Produces<IReadOnlyList<UserRow>>();
         users.MapPost("/invite", async (InviteUserRequest request, ICurrentUser user, UserService service, CancellationToken ct) =>
                 (await service.InviteAsync(request, user.UserId!.Value, ct)).ToHttpResult(invited => Results.Created("/api/v1/identity/users/" + invited.Id, invited)))
-            .RequirePermission("identity.create").WithName("InviteUser");
+            .RequirePermission("identity.create").WithName("InviteUser").Produces<UserInvited>(201);
         users.MapPost("/{id:guid}/resend-invite", async (Guid id, ICurrentUser user, UserService service, CancellationToken ct) =>
                 (await service.ResendInviteAsync(id, user.UserId!.Value, ct)).ToHttpResult())
             .RequirePermission("identity.edit").WithName("ResendInvite");
@@ -47,10 +47,10 @@ internal static class UserEndpoints
 
         var security = api.MapGroup("/settings/security").WithTags("Configurações").RequireModule("settings");
         security.MapGet(string.Empty, async (SecuritySettings settings, CancellationToken ct) => Results.Ok(await settings.GetAsync(ct)))
-            .RequirePermission("settings.view").WithName("GetSecuritySettings");
+            .RequirePermission("settings.view").WithName("GetSecuritySettings").Produces<SecuritySettingsDto>();
         security.MapPut(string.Empty, async (SecuritySettingsDto request, ICurrentUser user, SecuritySettings settings, CancellationToken ct) =>
                 Results.Ok(await settings.SaveAsync(request, user.UserId!.Value, ct)))
-            .RequirePermission("settings.edit").WithName("SaveSecuritySettings");
+            .RequirePermission("settings.edit").WithName("SaveSecuritySettings").Produces<SecuritySettingsDto>();
 
         // Permissões de quem está logado (CA 1): o front esconde ações com <Can>; a autorização real é sempre no backend.
         api.MapGet("/me/permissions", async (ICurrentUser user, IPermissionService permissions, TenantContextHolder tenant, HttpContext http, CancellationToken ct) =>
@@ -67,13 +67,13 @@ internal static class UserEndpoints
                     .ToList();
                 return Results.Ok(new MyPermissionsResponse(effective.Permissions.Order(StringComparer.Ordinal).ToList(), effective.IsOwner, effective.Version, modules));
             })
-            .WithTags("Identidade").WithName("GetMyPermissions");
+            .WithTags("Identidade").WithName("GetMyPermissions").Produces<MyPermissionsResponse>();
 
         api.MapGet("/me/preferences", async (ICurrentUser user, Preferences preferences, CancellationToken ct) => Results.Ok(await preferences.GetAsync(user.UserId!.Value, ct)))
-            .WithTags("Identidade").WithName("GetMyPreferences");
+            .WithTags("Identidade").WithName("GetMyPreferences").Produces<PreferencesDto>();
         api.MapPut("/me/preferences", async (PreferencesDto request, ICurrentUser user, Preferences preferences, CancellationToken ct) =>
                 (await preferences.SaveAsync(user.UserId!.Value, request, ct)).ToHttpResult())
-            .WithTags("Identidade").WithName("SaveMyPreferences");
+            .WithTags("Identidade").WithName("SaveMyPreferences").Produces<PreferencesDto>();
 
         return api;
     }

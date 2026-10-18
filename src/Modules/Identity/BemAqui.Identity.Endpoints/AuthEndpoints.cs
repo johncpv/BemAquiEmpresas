@@ -26,7 +26,7 @@ public static class AuthEndpoints
         auth.MapPost("/login", async (LoginRequest request, HttpContext http, AuthService service, CancellationToken ct) =>
             (await service.LoginAsync(request.Email, request.Password, http.Request.Host.Host, Ip(http), ct))
                 .ToHttpResult(outcome => Results.Ok(TwoFactorEndpoints.Login(http, outcome))))
-            .WithName("Login");
+            .WithName("Login").Produces<LoginResponse>();
 
         auth.MapPost("/refresh", async (HttpContext http, AuthService service, TokenSigning signing, CancellationToken ct) =>
             {
@@ -43,7 +43,7 @@ public static class AuthEndpoints
 
                 return result.ToHttpResult(session => Issue(http, session));
             })
-            .WithName("RefreshSession");
+            .WithName("RefreshSession").Produces<AccessTokenResponse>();
 
         auth.MapPost("/logout", async (HttpContext http, AuthService service, CancellationToken ct) =>
             {

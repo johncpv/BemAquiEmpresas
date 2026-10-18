@@ -42,15 +42,15 @@ Stories detalhadas em [`docs/stories/`](stories/README.md), com critérios de ac
 - Requisitos: PRD §6 (Observabilidade, Disponibilidade).
 - CA: logs JSON com tenant, usuário e correlação, sem segredos; `/health/live` e `/health/ready`; alerta de job esgotado, dead-letter, falha de migração e de integração.
 
-**FND-04 [ ] Autenticação (G)** — [story](stories/FND-04-autenticacao.md)
+**FND-04 [ ] Autenticação (G)** — API pronta; telas depois da FND-09c — [story](stories/FND-04-autenticacao.md)
 - Requisitos: R-SEC-1, R-SEC-3, R-SEC-4, R-SEC-5, R-PLT-3.
 - CA: access 15 min / refresh 7 dias; reuso de refresh revoga a família, com tolerância a refresh concorrente; 5 tentativas erradas bloqueiam 15 min; recuperação expira em 1 h, é de uso único, revoga as sessões e não desliga o 2FA; access token só em memória; anti-CSRF por Origin + header; respostas uniformes; desativar vale no próximo request; rate limit por IP real + tenant + usuário. Inclui as telas de login, recuperação e aceite de convite.
 
-**FND-05 [ ] 2FA TOTP (M)** — [story](stories/FND-05-2fa-totp.md)
+**FND-05 [ ] 2FA TOTP (M)** — API pronta; telas depois da FND-09c — [story](stories/FND-05-2fa-totp.md)
 - Requisitos: R-SEC-2.
 - CA: login com 2FA pede código; código de recuperação usável uma vez; proprietário obriga 2FA e usuários sem 2FA são levados à configuração no próximo login; anti-replay; 5 tentativas por desafio; token intermediário só com escopo de 2FA. Inclui as telas de 2FA.
 
-**FND-13 [ ] Autenticação do super admin (M)** — nova — [story](stories/FND-13-autenticacao-super-admin.md)
+**FND-13 [ ] Autenticação do super admin (M)** — API pronta; telas depois da FND-09c — nova — [story](stories/FND-13-autenticacao-super-admin.md)
 - Requisitos: R-PLT-4.
 - CA: login em `plataforma.bemaquiapp.com.br` com 2FA obrigatório e allowlist de IP (ADR 0005 D2); tokens da plataforma e do tenant não valem um no outro; painel da plataforma e `/hangfire` respondem 404 em host de tenant.
 
@@ -58,15 +58,15 @@ Stories detalhadas em [`docs/stories/`](stories/README.md), com critérios de ac
 - Requisitos: R-PLT-4, R-PLT-3.
 - CA: listar, provisionar com progresso por etapa, retomar, suspender (com motivo) e reativar tenants; ações auditadas; 404 em host de tenant.
 
-**FND-06 [ ] Catálogo de módulos e liberação por tenant (M)** — [story](stories/FND-06-catalogo-modulos-liberacao.md)
+**FND-06 [ ] Catálogo de módulos e liberação por tenant (M)** — API pronta; telas depois da FND-09c — [story](stories/FND-06-catalogo-modulos-liberacao.md)
 - Requisitos: R-SEC-11, R-SEC-10, R-SEC-12.
 - CA: endpoint de módulo não liberado → 403 `module_not_released`; seed idempotente com `module_actions` (ADR 0003); liberar ou bloquear um módulo reflete no tenant no próximo request, sem deploy.
 
-**FND-06b [ ] Grupos de usuários e permissões (G)** — [story](stories/FND-06b-grupos-permissoes.md)
+**FND-06b [ ] Grupos de usuários e permissões (G)** — API pronta; telas depois da FND-09c — [story](stories/FND-06b-grupos-permissoes.md)
 - Requisitos: R-SEC-9, R-SEC-10, R-SEC-12, R-SEC-5.
 - CA: habilitar módulo marca "ver"; desmarcar "ver" limpa o módulo; marcar outra ação marca "ver"; módulos não liberados aparecem desabilitados com "Não liberado"; Proprietário não editável e nunca sem membro; ninguém concede ação ou grupo que não possui, e só o Proprietário concede `*.approve`, `*.pay`, `hr.view_sensitive` e o grupo Proprietário (ADR 0008); revogar vale no próximo request; serviço de permissão efetiva e policy `perm:{modulo}.{acao}`; alterações auditadas.
 
-**FND-06c [ ] Usuários, convite e permissão efetiva (M)** — [story](stories/FND-06c-usuarios-convite-permissao-efetiva.md)
+**FND-06c [ ] Usuários, convite e permissão efetiva (M)** — API pronta; telas depois da FND-09c — [story](stories/FND-06c-usuarios-convite-permissao-efetiva.md)
 - Requisitos: R-SEC-4, R-SEC-12, R-SEC-2.
 - CA: usuário em dois grupos recebe a união; remover do grupo tira o acesso no próximo request; rota sem permissão → 403 `forbidden`; teste de integração cobrindo as três camadas; convite respeita a delegação; 2FA obrigatório para o Proprietário e para quem aprova ou paga; tela Configurações → Segurança (exigir 2FA para todos, `settings.edit`).
 
@@ -74,15 +74,15 @@ Stories detalhadas em [`docs/stories/`](stories/README.md), com critérios de ac
 - Requisitos: R-SEC-11, R-SEC-12.
 - CA: acessar a URL de um módulo bloqueado mostra a tela padrão "Funcionalidade não liberada nessa versão do sistema.", nunca uma tela quebrada ou em branco; módulo sem permissão some do dock e da paleta.
 
-**FND-09a [ ] Tokens, tema e componentes visuais base (M)** — quebra da FND-09 — [story](stories/FND-09a-tokens-tema.md)
+**FND-09a [ ] Tokens, tema e componentes visuais base (M)** — pronta; aguarda validação visual do PO — quebra da FND-09 — [story](stories/FND-09a-tokens-tema.md)
 - Requisitos: PRD §6 (Usabilidade).
 - CA: tokens do protótipo mapeados para o shadcn, com as correções de contraste da revisão (§2.4); `--signal` separado de `--warn`; tema claro/escuro/automático salvo no perfil, sem flash; Archivo self-hosted; chips, indicador de etapa e `Money`; lint proíbe cor literal.
 
-**FND-09b [ ] Shell do backoffice e navegação (M)** — quebra da FND-09 — [story](stories/FND-09b-shell-navegacao.md)
+**FND-09b [ ] Shell do backoffice e navegação (M)** — pronta; aguarda validação visual do PO — quebra da FND-09 — [story](stories/FND-09b-shell-navegacao.md)
 - Requisitos: PRD §6 (Usabilidade), R-COM-2.
 - CA: dock com as 7 áreas, cada uma abrindo popover (desktop) ou sheet (celular) com os módulos (ADR 0005 D8); sub-telas em abas na topbar; Ctrl K abre a paleta; topbar a 400px com busca em ícone e tema no menu do usuário; `<nav>`, skip link, foco e título na troca de rota.
 
-**FND-09c [ ] DataTable, estados e formulário base (M)** — quebra da FND-09 — [story](stories/FND-09c-datatable-estados-formulario.md)
+**FND-09c [x] DataTable, estados e formulário base (M)** — quebra da FND-09 — [story](stories/FND-09c-datatable-estados-formulario.md)
 - Requisitos: PRD §6 (Desempenho), R-SEC-5, R-PRP-2.
 - CA: tabela padrão com filtro, ordenação e paginação server-side; Skeleton, EmptyState, ErrorState e InlineError ligados ao TanStack Query; formulário RHF + Zod com mensagens PT-BR e erros do ProblemDetails; cliente Orval sem `fetch` à mão; histórico por registro.
 
