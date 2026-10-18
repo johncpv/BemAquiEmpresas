@@ -33,6 +33,8 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 - **kiosk_tokens**: name, token_hash, scope (painel + filtros JSON), last_seen_at, revoked_at
 - **user_preferences** (FND-09a, ADR 0009): user_id, key (único por usuário: `theme`; `help:<chave>` para ajuda já vista, FND-14/ADR 0013), value, updated_at
 - **tenant_settings** (FND-05): key (única), value, updated_at, updated_by; auditada. Chaves: `security.require_2fa`; depois logo, dados da empresa, numeração
+- **ai_settings** (FND-15, ADR 0014): provider (`anthropic` | `gemini` | `openai`), model, api_key_cipher (cifrada com `SecretKind.AiApiKey`, nunca volta pela API), key_set_at, updated_at, updated_by; uma linha por tenant; auditada sem a chave
+- **ai_usage_logs** (FND-15): at, user_id, provider, model, input_tokens, output_tokens, duration_ms, outcome (`answered` | `no_citation` | `failed` | `test_ok` | `test_failed`)
 - **recovery_codes** (FND-05): user_id, code_hash (SHA-256), created_at, used_at. 10 por usuário, de uso único
 - **two_factor_challenges** (FND-05, ADR 0011): user_id, token_hash (único), purpose (Verify/Setup), created_at, expires_at (5 min), attempts (máx. 5), completed_at, invalidated_at, created_by_ip
 

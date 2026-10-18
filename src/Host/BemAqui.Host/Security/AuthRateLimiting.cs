@@ -15,6 +15,9 @@ public sealed class AuthRateLimitOptions
 
     /// <summary>Teto do tenant inteiro, contra ataque distribuído em muitos IPs.</summary>
     public int PerTenantPerMinute { get; set; } = 300;
+
+    /// <summary>Pergunte ao BemAqui (FND-15), por IP + tenant: cada pergunta pode virar uma chamada paga ao provedor de IA.</summary>
+    public int AskPerMinute { get; set; } = 10;
 }
 
 /// <summary>
@@ -24,6 +27,7 @@ public sealed class AuthRateLimitOptions
 public static class AuthRateLimiting
 {
     public const string PathPrefix = "/api/v1/auth";
+    public const string AskPath = "/api/v1/ajuda/perguntar";
     public const string Message = "Muitas tentativas em pouco tempo. Aguarde um pouco e tente de novo.";
 
     public static IServiceCollection AddAuthRateLimiting(this IServiceCollection services, IConfiguration configuration)
@@ -34,7 +38,16 @@ public static class AuthRateLimiting
             o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
             o.GlobalLimiter = PartitionedRateLimiter.CreateChained(
                 Partition(options.PerIpPerMinute, http => TenantKey(http) + "|" + (http.Connection.RemoteIpAddress?.ToString() ?? "-")),
-                Partition(options.PerTenantPerMinute, TenantKey));
+                Partition(options.PerTenantPerMinute, TenantKey),
+                PartitionedRateLimiter.Create<HttpContext, string>(http =>
+                    http.Request.Path.StartsWithSegments(AskPath, StringComparison.OrdinalIgnoreCase)
+                        ? RateLimitPartition.GetFixedWindowLimiter("ask|" + TenantKey(http) + "|" + (http.Connection.RemoteIpAddress?.ToString() ?? "-"), _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = options.AskPerMinute,
+                            Window = TimeSpan.FromMinutes(1),
+                            QueueLimit = 0,
+                        })
+                        : RateLimitPartition.GetNoLimiter(string.Empty)));
             o.OnRejected = async (context, cancellationToken) =>
             {
                 var retryAfter = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var wait) ? wait : TimeSpan.FromMinutes(1);

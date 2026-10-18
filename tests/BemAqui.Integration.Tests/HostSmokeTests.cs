@@ -25,6 +25,7 @@ public class HostSmokeTests(PostgresFixture postgres)
             b.UseSetting("Jobs:ServerEnabled", "false");
             b.UseSetting("RateLimit:Auth:PerIpPerMinute", "100000");
             b.UseSetting("RateLimit:Auth:PerTenantPerMinute", "100000");
+            b.UseSetting("RateLimit:Auth:AskPerMinute", "100000");
             b.UseSetting("Health:ClamAv", "false");
             b.UseSetting("Storage:Root", Path.Combine(Path.GetTempPath(), "bemaqui-test-files"));
             b.UseSetting("Auth:SigningKey", BemAqui.Integration.Tests.Tenancy.TestTokens.SigningKeyBase64);

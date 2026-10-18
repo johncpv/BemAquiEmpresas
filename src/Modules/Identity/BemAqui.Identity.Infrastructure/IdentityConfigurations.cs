@@ -185,3 +185,26 @@ internal sealed class UserPreferenceConfiguration : IEntityTypeConfiguration<Use
         b.HasOne<User>().WithMany().HasForeignKey(e => e.UserId).OnDelete(DeleteBehavior.Restrict);
     }
 }
+
+internal sealed class AiSettingsConfiguration : IEntityTypeConfiguration<AiSettings>
+{
+    public void Configure(EntityTypeBuilder<AiSettings> b)
+    {
+        b.ToTable("ai_settings", IdentitySchema.Name);
+        b.Property(e => e.Provider).HasMaxLength(20);
+        b.Property(e => e.Model).HasMaxLength(100);
+        b.Property(e => e.ApiKeyCipher).HasMaxLength(2000);
+    }
+}
+
+internal sealed class AiUsageLogConfiguration : IEntityTypeConfiguration<AiUsageLog>
+{
+    public void Configure(EntityTypeBuilder<AiUsageLog> b)
+    {
+        b.ToTable("ai_usage_logs", IdentitySchema.Name);
+        b.Property(e => e.Provider).HasMaxLength(20);
+        b.Property(e => e.Model).HasMaxLength(100);
+        b.Property(e => e.Outcome).HasMaxLength(20);
+        b.HasIndex(e => e.At);
+    }
+}

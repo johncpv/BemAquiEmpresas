@@ -2,6 +2,7 @@ import * as Dialog from '@radix-ui/react-dialog'
 import { useState } from 'react'
 import type { HelpDocument } from '@/api/generated/model'
 import { ErrorState, Skeleton } from '@/components/ui/states'
+import { AskTab } from './AskTab'
 import { renderInline } from './inline'
 import { Markdown } from './markdown'
 import { searchHelp } from './resolve'
@@ -15,15 +16,16 @@ interface HelpPanelProps {
   retry: () => void
 }
 
-/** Painel de ajuda (FND-14 CA 4 e 5): à direita no desktop, tela cheia no celular; ajuda da tela, busca e índice. */
+/** Painel de ajuda (FND-14 CA 4 e 5, FND-15): à direita no desktop, tela cheia no celular; ajuda da tela, busca, índice e Pergunte ao BemAqui. */
 export function HelpPanel({ open, onOpenChange, docs = [], current, status, retry }: HelpPanelProps) {
   const [term, setTerm] = useState('')
   const [selected, setSelected] = useState<HelpDocument | null>(null)
+  const [view, setView] = useState<'tela' | 'perguntar'>('tela')
   const shown = selected ?? current
   const hits = searchHelp(docs, term, current?.key)
 
   return (
-    <Dialog.Root open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) { setSelected(null); setTerm('') } }}>
+    <Dialog.Root open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) { setSelected(null); setTerm(''); setView('tela') } }}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-foreground/20" />
         <Dialog.Content aria-describedby={undefined} className="fixed inset-y-0 right-0 z-50 flex w-full flex-col border-l border-border bg-popover text-popover-foreground shadow-xl sm:w-[420px]">
@@ -31,10 +33,21 @@ export function HelpPanel({ open, onOpenChange, docs = [], current, status, retr
             <Dialog.Title className="text-base font-semibold">Ajuda</Dialog.Title>
             <Dialog.Close className="rounded-sm px-2 py-1 text-sm font-semibold">Fechar</Dialog.Close>
           </div>
+          <div role="tablist" aria-label="Tipo de ajuda" className="flex border-b border-border px-3">
+            {([['tela', 'Ajuda da tela'], ['perguntar', 'Pergunte ao BemAqui']] as const).map(([id, label]) => (
+              <button key={id} type="button" role="tab" id={"ajuda-tab-" + id} aria-selected={view === id} aria-controls="ajuda-painel" onClick={() => setView(id)} className="-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-muted-foreground aria-selected:border-primary aria-selected:text-foreground">{label}</button>
+            ))}
+          </div>
+          {view === 'perguntar' ? (
+            <div id="ajuda-painel" role="tabpanel" aria-labelledby="ajuda-tab-perguntar" className="flex-1 overflow-y-auto p-4">
+              <AskTab current={current} onOpenDoc={(key) => { setSelected(docs.find((d) => d.key === key) ?? null); setView('tela') }} />
+            </div>
+          ) : (
+          <>
           <div className="border-b border-border p-3">
             <input type="search" value={term} onChange={(e) => setTerm(e.target.value)} placeholder="Buscar na ajuda" aria-label="Buscar na ajuda" className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm" />
           </div>
-          <div className="flex-1 space-y-5 overflow-y-auto p-4">
+          <div id="ajuda-painel" role="tabpanel" aria-labelledby="ajuda-tab-tela" className="flex-1 space-y-5 overflow-y-auto p-4">
             {status === 'loading' ? <Skeleton className="h-40" /> : status === 'error' ? <ErrorState title="Não foi possível carregar a ajuda." onRetry={retry} /> : term ? (
               hits.length === 0 ? <p className="text-sm text-muted-foreground">Nada encontrado para "{term}". Tente outra palavra.</p> : (
                 <ul aria-label="Resultados da busca" className="space-y-3">
@@ -74,6 +87,8 @@ export function HelpPanel({ open, onOpenChange, docs = [], current, status, retr
               </>
             )}
           </div>
+          </>
+          )}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

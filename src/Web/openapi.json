@@ -1677,6 +1677,36 @@
         }
       }
     },
+    "/api/v1/ajuda/perguntar": {
+      "post": {
+        "tags": [
+          "Ajuda"
+        ],
+        "operationId": "AskHelp",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AskHelpRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HelpAnswer"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/ajuda/{chave}": {
       "get": {
         "tags": [
@@ -1729,6 +1759,95 @@
           }
         }
       }
+    },
+    "/api/v1/settings/ia": {
+      "get": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "GetAiSettings",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiSettingsDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "SaveAiSettings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiSettingsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiSettingsDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "RemoveAiSettings",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/settings/ia/testar": {
+      "post": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "TestAiSettings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiSettingsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiTestResult"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1768,6 +1887,139 @@
           "expiresAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "AiProviderInfo": {
+        "required": [
+          "code",
+          "name",
+          "models"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "models": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "AiSettingsDto": {
+        "required": [
+          "configured",
+          "provider",
+          "model",
+          "keySetAt",
+          "updatedAt",
+          "providers"
+        ],
+        "type": "object",
+        "properties": {
+          "configured": {
+            "type": "boolean"
+          },
+          "provider": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "model": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "keySetAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "providers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AiProviderInfo"
+            }
+          }
+        }
+      },
+      "AiSettingsRequest": {
+        "required": [
+          "provider",
+          "model",
+          "apiKey"
+        ],
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "apiKey": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Secret"
+              }
+            ]
+          }
+        }
+      },
+      "AiTestResult": {
+        "required": [
+          "ok",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "AskHelpRequest": {
+        "required": [
+          "question",
+          "currentKey"
+        ],
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string"
+          },
+          "currentKey": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "confirmed": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -2079,6 +2331,51 @@
           "memberCount": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "HelpAnswer": {
+        "required": [
+          "kind",
+          "text",
+          "citations"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "citations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HelpCitation"
+            }
+          }
+        }
+      },
+      "HelpCitation": {
+        "required": [
+          "key",
+          "documentTitle",
+          "section",
+          "body"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "documentTitle": {
+            "type": "string"
+          },
+          "section": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
           }
         }
       },
@@ -2929,6 +3226,11 @@
             }
           }
         }
+      },
+      "Secret": {
+        "type": "string",
+        "format": "password",
+        "writeOnly": true
       },
       "SecuritySettingsDto": {
         "required": [

@@ -35,6 +35,10 @@ public interface IIdentityDb
 
     DbSet<UserPreference> UserPreferences { get; }
 
+    DbSet<AiSettings> AiSettings { get; }
+
+    DbSet<AiUsageLog> AiUsageLogs { get; }
+
     /// <summary>Eventos de segurança (login, bloqueio, reuso de refresh...) entram na auditoria imutável.</summary>
     DbSet<AuditEntry> AuditEntries { get; }
 

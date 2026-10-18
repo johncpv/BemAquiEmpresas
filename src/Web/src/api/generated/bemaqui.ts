@@ -26,6 +26,10 @@ import type {
 import type {
   AcceptInviteRequest,
   AccessTokenResponse,
+  AiSettingsDto,
+  AiSettingsRequest,
+  AiTestResult,
+  AskHelpRequest,
   ChallengeRequest,
   ConfirmTwoFactorRequest,
   ConfirmWithChallengeRequest,
@@ -36,6 +40,7 @@ import type {
   GroupDetail,
   GroupSaved,
   GroupSummary,
+  HelpAnswer,
   HelpDocument,
   InviteAcceptedResponse,
   InviteInfo,
@@ -5154,6 +5159,88 @@ export function useListSeenHelp<TData = Awaited<ReturnType<typeof listSeenHelp>>
 
 
 
+export const getAskHelpUrl = () => {
+
+
+
+
+  return `/api/v1/ajuda/perguntar`
+}
+
+export const askHelp = async (askHelpRequest: AskHelpRequest, options?: Parameters<typeof apiFetch>[1]): Promise<HelpAnswer> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<HelpAnswer>(getAskHelpUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(askHelpRequest)
+  }
+);}
+
+
+
+
+
+export const getAskHelpMutationKey = () => ['askHelp'] as const;
+
+export const getAskHelpMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof askHelp>>, TError,AskHelpMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof askHelp>>, TError,AskHelpMutationVariables, TContext> => {
+
+const mutationKey = getAskHelpMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof askHelp>>, AskHelpMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  askHelp(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AskHelpMutationResult = NonNullable<Awaited<ReturnType<typeof askHelp>>>
+    export type AskHelpMutationBody = AskHelpRequest
+    export type AskHelpMutationError = unknown
+    export type AskHelpMutationVariables = {data: AskHelpRequest}
+
+    export const useAskHelp = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof askHelp>>, TError,AskHelpMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof askHelp>>,
+        TError,
+        AskHelpMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAskHelpMutationOptions(options), queryClient);
+    }
+
 export const getGetHelpUrl = (chave: string,) => {
 
 
@@ -5315,4 +5402,331 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getMarkHelpSeenMutationOptions(options), queryClient);
+    }
+
+export const getGetAiSettingsUrl = () => {
+
+
+
+
+  return `/api/v1/settings/ia`
+}
+
+export const getAiSettings = async ( options?: Parameters<typeof apiFetch>[1]): Promise<AiSettingsDto> => {
+
+  return apiFetch<AiSettingsDto>(getGetAiSettingsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAiSettingsQueryKey = () => {
+    return [
+    `/api/v1/settings/ia`
+    ] as const;
+    }
+
+
+export const getGetAiSettingsQueryOptions = <TData = Awaited<ReturnType<typeof getAiSettings>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAiSettings>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAiSettingsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAiSettings>>> = ({ signal }) => getAiSettings({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAiSettings>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAiSettingsQueryResult = NonNullable<Awaited<ReturnType<typeof getAiSettings>>>
+export type GetAiSettingsQueryError = unknown
+
+
+export function useGetAiSettings<TData = Awaited<ReturnType<typeof getAiSettings>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAiSettings>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAiSettings>>,
+          TError,
+          Awaited<ReturnType<typeof getAiSettings>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAiSettings<TData = Awaited<ReturnType<typeof getAiSettings>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAiSettings>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAiSettings>>,
+          TError,
+          Awaited<ReturnType<typeof getAiSettings>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAiSettings<TData = Awaited<ReturnType<typeof getAiSettings>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAiSettings>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetAiSettings<TData = Awaited<ReturnType<typeof getAiSettings>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAiSettings>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetAiSettingsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSaveAiSettingsUrl = () => {
+
+
+
+
+  return `/api/v1/settings/ia`
+}
+
+export const saveAiSettings = async (aiSettingsRequest: AiSettingsRequest, options?: Parameters<typeof apiFetch>[1]): Promise<AiSettingsDto> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<AiSettingsDto>(getSaveAiSettingsUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(aiSettingsRequest)
+  }
+);}
+
+
+
+
+
+export const getSaveAiSettingsMutationKey = () => ['saveAiSettings'] as const;
+
+export const getSaveAiSettingsMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveAiSettings>>, TError,SaveAiSettingsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveAiSettings>>, TError,SaveAiSettingsMutationVariables, TContext> => {
+
+const mutationKey = getSaveAiSettingsMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveAiSettings>>, SaveAiSettingsMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  saveAiSettings(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveAiSettingsMutationResult = NonNullable<Awaited<ReturnType<typeof saveAiSettings>>>
+    export type SaveAiSettingsMutationBody = AiSettingsRequest
+    export type SaveAiSettingsMutationError = unknown
+    export type SaveAiSettingsMutationVariables = {data: AiSettingsRequest}
+
+    export const useSaveAiSettings = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveAiSettings>>, TError,SaveAiSettingsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof saveAiSettings>>,
+        TError,
+        SaveAiSettingsMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSaveAiSettingsMutationOptions(options), queryClient);
+    }
+
+export const getRemoveAiSettingsUrl = () => {
+
+
+
+
+  return `/api/v1/settings/ia`
+}
+
+export const removeAiSettings = async ( options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getRemoveAiSettingsUrl(),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getRemoveAiSettingsMutationKey = () => ['removeAiSettings'] as const;
+
+export const getRemoveAiSettingsMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeAiSettings>>, TError,void, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof removeAiSettings>>, TError,void, TContext> => {
+
+const mutationKey = getRemoveAiSettingsMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof removeAiSettings>>, void> = () => {
+
+
+          return  removeAiSettings(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RemoveAiSettingsMutationResult = NonNullable<Awaited<ReturnType<typeof removeAiSettings>>>
+
+    export type RemoveAiSettingsMutationError = unknown
+
+
+    export const useRemoveAiSettings = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeAiSettings>>, TError,void, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof removeAiSettings>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getRemoveAiSettingsMutationOptions(options), queryClient);
+    }
+
+export const getTestAiSettingsUrl = () => {
+
+
+
+
+  return `/api/v1/settings/ia/testar`
+}
+
+export const testAiSettings = async (aiSettingsRequest: AiSettingsRequest, options?: Parameters<typeof apiFetch>[1]): Promise<AiTestResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<AiTestResult>(getTestAiSettingsUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(aiSettingsRequest)
+  }
+);}
+
+
+
+
+
+export const getTestAiSettingsMutationKey = () => ['testAiSettings'] as const;
+
+export const getTestAiSettingsMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof testAiSettings>>, TError,TestAiSettingsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof testAiSettings>>, TError,TestAiSettingsMutationVariables, TContext> => {
+
+const mutationKey = getTestAiSettingsMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof testAiSettings>>, TestAiSettingsMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  testAiSettings(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TestAiSettingsMutationResult = NonNullable<Awaited<ReturnType<typeof testAiSettings>>>
+    export type TestAiSettingsMutationBody = AiSettingsRequest
+    export type TestAiSettingsMutationError = unknown
+    export type TestAiSettingsMutationVariables = {data: AiSettingsRequest}
+
+    export const useTestAiSettings = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof testAiSettings>>, TError,TestAiSettingsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof testAiSettings>>,
+        TError,
+        TestAiSettingsMutationVariables,
+        TContext
+      > => {
+      return useMutation(getTestAiSettingsMutationOptions(options), queryClient);
     }

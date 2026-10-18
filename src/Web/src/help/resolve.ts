@@ -34,3 +34,9 @@ export function searchHelp(docs: readonly HelpDocument[], term: string, currentK
   )
   return hits.sort((a, b) => Number(b.doc.key === currentKey) - Number(a.doc.key === currentKey))
 }
+
+/** Perguntas das "Perguntas frequentes" da tela atual, para começar sem digitar (propositivo). */
+export function suggestedQuestions(doc?: HelpDocument): string[] {
+  const faq = doc?.sections.find((s) => s.title === 'Perguntas frequentes')?.body ?? ''
+  return [...faq.matchAll(/\*\*([^*]+\?)\*\*/g)].map((m) => m[1].trim()).slice(0, 3)
+}
