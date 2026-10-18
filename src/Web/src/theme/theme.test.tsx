@@ -1,5 +1,5 @@
-import { act, cleanup, render, screen } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { act, render, screen } from '@testing-library/react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { applyTheme, readStoredTheme, THEME_STORAGE_KEY } from './theme'
 import { useTheme } from './theme-context'
 import { ThemeProvider } from './ThemeProvider'
@@ -14,7 +14,6 @@ function Probe() {
 }
 
 describe('tema (FND-09a CA 8 a 10)', () => {
-  afterEach(cleanup)
 
   beforeEach(() => {
     localStorage.clear()

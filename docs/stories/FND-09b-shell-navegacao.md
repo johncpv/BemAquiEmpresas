@@ -5,7 +5,7 @@
 | ID | FND-09b |
 | Título | Dock com 7 áreas, menu por área (popover/sheet), abas de sub-tela na topbar, paleta Ctrl K, topbar e acessibilidade de navegação |
 | Tamanho | M |
-| Status | Draft |
+| Status | In Progress (pronta; validação visual do PO) |
 | Requisitos | PRD §6 Usabilidade (responsivo) · base de R-SEC-11, R-SEC-12 (menu) e R-AJD-2 (slot do botão Ajuda) · R-COM-2 (sino) |
 | Dependências | FND-09a; sino consome a API da FND-07; menu real liga em `/me/permissions` na FND-06d (até lá, provider de menu de exemplo) |
 | Bloqueia | FND-06d, FND-14, todas as telas do backoffice |
@@ -133,7 +133,28 @@ Checklist do @po (Pax), 16/10/2026.
 | 16/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 
 ## Dev Agent Record
-_A preencher pelo @dev._
+- **Entrega (FND-09b), 18/10/2026, branch `feat/fnd-09b-shell`.** A tela inicial e a busca seguem a ADR 0010 item 9. Os ícones vêm do Lucide, o padrão do shadcn.
+  - **Rotas:** TanStack Router tipado com as superfícies `/app` (backoffice), `/fab` e `/tv/{token}`, que têm esqueletos sem dock (CA 13), e a `/dev/galeria`, só em desenvolvimento.
+  - **Dock:**
+    - `<nav aria-label="Navegação principal">` com as 7 áreas (CA 1);
+    - popover no desktop e sheet no celular (Radix), com a correção do `Trigger asChild` (CA 2);
+    - traço `--signal` e `aria-current` na área ativa (CA 3);
+    - no celular encosta na borda, rola sem barra e respeita `safe-area-inset` (CA 4);
+    - setas, Home e End no menu; Esc devolve o foco (CA 5).
+  - **Topbar:**
+    - marca do tenant, trilha, busca com Ctrl K, botão "Ajuda" (slot da FND-14), sino, tema e menu do usuário (CA 6);
+    - a 400px a busca vira ícone e o tema vai para o menu do usuário (CA 7);
+    - as sub-telas viram abas com rota própria, como `/app/acessos/grupos` (CA 8).
+  - **Paleta (cmdk):** Ctrl K ou ⌘ K, busca por módulo e por sub-tela, com as usadas por último primeiro (CA 9).
+  - **Sino (CA 10):** estados de carregando, vazio e erro com "Tentar de novo". Usa uma fonte injetável (`NotificationsContext`), que a FND-09c liga em `/api/v1/notifications`.
+  - **Título e foco (CA 11, 12):** `PageHeading` monta "{Tela} · {Tenant} · BemAqui Empresas" e foca o h1 na troca de rota. Na primeira carga o foco fica no começo, e o primeiro Tab é "Pular para o conteúdo".
+  - **Menu:** vem do `NavigationProvider` no formato de `/me/permissions`, com dados de exemplo. A FND-06d troca pela API.
+  - **Ajuda:** `Ajuda/inicio.md`.
+  - **Testes:**
+    - Vitest, 6 do shell;
+    - Playwright em desktop e a 400px: popover e setas, sheet sem transbordar, Ctrl K, skip link e axe sem violações sérias. Também cobre o tema da FND-09a: sem flash, acompanhar o sistema e screenshots da galeria;
+    - o E2E entrou no CI.
+  - **Pendente:** comparação visual com o protótipo pelo PO, usando os screenshots anexados aos testes (CA 14).
 
 ## QA Results
 _A preencher pelo @qa._
