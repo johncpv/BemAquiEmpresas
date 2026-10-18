@@ -1,6 +1,7 @@
 import * as Switch from '@radix-ui/react-switch'
 import type { GroupModuleRow } from '@/api/generated/model'
 import { StatusChip } from '@/components/ui/status-chip'
+import { Dica } from '@/help/Dica'
 import { cn } from '@/lib/utils'
 import { type MatrixRow, toggleAction, toggleEnabled } from './group-matrix'
 
@@ -30,7 +31,7 @@ export function GroupMatrixTable({ modules, value, onChange, readOnly }: Props) 
         <thead className="border-b border-border text-xs text-muted-foreground">
           <tr>
             <th scope="col" className="px-3 py-2 text-left font-semibold">Funcionalidade</th>
-            <th scope="col" className="px-2 py-2 text-center font-semibold">Habilitado</th>
+            <th scope="col" className="px-2 py-2 text-center font-semibold">Habilitado<Dica texto="O módulo aparece no menu dos membros. Ligar marca Ver." /></th>
             {STANDARD.map(([, label]) => <th key={label} scope="col" className="px-2 py-2 text-center font-semibold">{label}</th>)}
             <th scope="col" className="px-2 py-2 text-left font-semibold">Outras</th>
           </tr>

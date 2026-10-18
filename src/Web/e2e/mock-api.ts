@@ -19,6 +19,8 @@ export async function mockApi(page: Page, overrides: Record<string, Handler> = {
     'GET /api/v1/notifications/': (r) => json(r, { page: { items: [], page: 1, pageSize: 10, total: 0 }, unread: 0 }),
     'POST /api/v1/auth/logout': (r) => r.fulfill({ status: 204 }),
     'GET /api/v1/identity/groups': (r) => json(r, []),
+    'GET /api/v1/ajuda': (r) => json(r, []),
+    'GET /api/v1/ajuda/vistas': (r) => json(r, []),
     'GET /api/v1/identity/users': (r) => json(r, []),
     'GET /api/v1/settings/security': (r) => json(r, { requireTwoFactor: false }),
   }

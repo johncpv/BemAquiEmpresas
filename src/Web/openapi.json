@@ -1630,6 +1630,105 @@
           }
         }
       }
+    },
+    "/api/v1/ajuda": {
+      "get": {
+        "tags": [
+          "Ajuda"
+        ],
+        "operationId": "ListHelp",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HelpDocument"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ajuda/vistas": {
+      "get": {
+        "tags": [
+          "Ajuda"
+        ],
+        "operationId": "ListSeenHelp",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ajuda/{chave}": {
+      "get": {
+        "tags": [
+          "Ajuda"
+        ],
+        "operationId": "GetHelp",
+        "parameters": [
+          {
+            "name": "chave",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HelpDocument"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ajuda/{chave}/vista": {
+      "post": {
+        "tags": [
+          "Ajuda"
+        ],
+        "operationId": "MarkHelpSeen",
+        "parameters": [
+          {
+            "name": "chave",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1980,6 +2079,65 @@
           "memberCount": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "HelpDocument": {
+        "required": [
+          "key",
+          "title",
+          "route",
+          "tab",
+          "isDefault",
+          "module",
+          "sections"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "route": {
+            "type": "string"
+          },
+          "tab": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "module": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "sections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HelpSection"
+            }
+          }
+        }
+      },
+      "HelpSection": {
+        "required": [
+          "title",
+          "body"
+        ],
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
           }
         }
       },
@@ -3137,6 +3295,9 @@
     },
     {
       "name": "Configura\u00E7\u00F5es"
+    },
+    {
+      "name": "Ajuda"
     }
   ]
 }

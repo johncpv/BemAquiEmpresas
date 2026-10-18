@@ -29,4 +29,8 @@
     <ProjectReference Include="..\..\Modules\Production\BemAqui.Production.Endpoints\BemAqui.Production.Endpoints.csproj" />
     <ProjectReference Include="..\..\Modules\Purchasing\BemAqui.Purchasing.Endpoints\BemAqui.Purchasing.Endpoints.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- Ajuda contextual (FND-14): Ajuda/*.md da raiz, embutidos como Ajuda.<chave>.md. -->
+    <EmbeddedResource Include="../../../Ajuda/*.md" LogicalName="Ajuda.%(Filename).md" />
+  </ItemGroup>
 </Project>

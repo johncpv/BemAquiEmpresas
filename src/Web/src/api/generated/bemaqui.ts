@@ -36,6 +36,7 @@ import type {
   GroupDetail,
   GroupSaved,
   GroupSummary,
+  HelpDocument,
   InviteAcceptedResponse,
   InviteInfo,
   InviteTokenRequest,
@@ -4961,4 +4962,357 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getSaveSecuritySettingsMutationOptions(options), queryClient);
+    }
+
+export const getListHelpUrl = () => {
+
+
+
+
+  return `/api/v1/ajuda`
+}
+
+export const listHelp = async ( options?: Parameters<typeof apiFetch>[1]): Promise<HelpDocument[]> => {
+
+  return apiFetch<HelpDocument[]>(getListHelpUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListHelpQueryKey = () => {
+    return [
+    `/api/v1/ajuda`
+    ] as const;
+    }
+
+
+export const getListHelpQueryOptions = <TData = Awaited<ReturnType<typeof listHelp>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listHelp>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListHelpQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listHelp>>> = ({ signal }) => listHelp({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listHelp>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListHelpQueryResult = NonNullable<Awaited<ReturnType<typeof listHelp>>>
+export type ListHelpQueryError = unknown
+
+
+export function useListHelp<TData = Awaited<ReturnType<typeof listHelp>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listHelp>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listHelp>>,
+          TError,
+          Awaited<ReturnType<typeof listHelp>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListHelp<TData = Awaited<ReturnType<typeof listHelp>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listHelp>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listHelp>>,
+          TError,
+          Awaited<ReturnType<typeof listHelp>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListHelp<TData = Awaited<ReturnType<typeof listHelp>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listHelp>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListHelp<TData = Awaited<ReturnType<typeof listHelp>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listHelp>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListHelpQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListSeenHelpUrl = () => {
+
+
+
+
+  return `/api/v1/ajuda/vistas`
+}
+
+export const listSeenHelp = async ( options?: Parameters<typeof apiFetch>[1]): Promise<string[]> => {
+
+  return apiFetch<string[]>(getListSeenHelpUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListSeenHelpQueryKey = () => {
+    return [
+    `/api/v1/ajuda/vistas`
+    ] as const;
+    }
+
+
+export const getListSeenHelpQueryOptions = <TData = Awaited<ReturnType<typeof listSeenHelp>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSeenHelp>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListSeenHelpQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listSeenHelp>>> = ({ signal }) => listSeenHelp({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listSeenHelp>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListSeenHelpQueryResult = NonNullable<Awaited<ReturnType<typeof listSeenHelp>>>
+export type ListSeenHelpQueryError = unknown
+
+
+export function useListSeenHelp<TData = Awaited<ReturnType<typeof listSeenHelp>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSeenHelp>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listSeenHelp>>,
+          TError,
+          Awaited<ReturnType<typeof listSeenHelp>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListSeenHelp<TData = Awaited<ReturnType<typeof listSeenHelp>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSeenHelp>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listSeenHelp>>,
+          TError,
+          Awaited<ReturnType<typeof listSeenHelp>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListSeenHelp<TData = Awaited<ReturnType<typeof listSeenHelp>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSeenHelp>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListSeenHelp<TData = Awaited<ReturnType<typeof listSeenHelp>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSeenHelp>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListSeenHelpQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetHelpUrl = (chave: string,) => {
+
+
+
+
+  return `/api/v1/ajuda/${chave}`
+}
+
+export const getHelp = async (chave: string, options?: Parameters<typeof apiFetch>[1]): Promise<HelpDocument> => {
+
+  return apiFetch<HelpDocument>(getGetHelpUrl(chave),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetHelpQueryKey = (chave: string,) => {
+    return [
+    `/api/v1/ajuda/${chave}`
+    ] as const;
+    }
+
+
+export const getGetHelpQueryOptions = <TData = Awaited<ReturnType<typeof getHelp>>, TError = unknown>(chave: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getHelp>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetHelpQueryKey(chave);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getHelp>>> = ({ signal }) => getHelp(chave, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: chave !== null && chave !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getHelp>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetHelpQueryResult = NonNullable<Awaited<ReturnType<typeof getHelp>>>
+export type GetHelpQueryError = unknown
+
+
+export function useGetHelp<TData = Awaited<ReturnType<typeof getHelp>>, TError = unknown>(
+ chave: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getHelp>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getHelp>>,
+          TError,
+          Awaited<ReturnType<typeof getHelp>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetHelp<TData = Awaited<ReturnType<typeof getHelp>>, TError = unknown>(
+ chave: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getHelp>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getHelp>>,
+          TError,
+          Awaited<ReturnType<typeof getHelp>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetHelp<TData = Awaited<ReturnType<typeof getHelp>>, TError = unknown>(
+ chave: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getHelp>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetHelp<TData = Awaited<ReturnType<typeof getHelp>>, TError = unknown>(
+ chave: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getHelp>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetHelpQueryOptions(chave,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getMarkHelpSeenUrl = (chave: string,) => {
+
+
+
+
+  return `/api/v1/ajuda/${chave}/vista`
+}
+
+export const markHelpSeen = async (chave: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getMarkHelpSeenUrl(chave),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getMarkHelpSeenMutationKey = () => ['markHelpSeen'] as const;
+
+export const getMarkHelpSeenMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markHelpSeen>>, TError,MarkHelpSeenMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof markHelpSeen>>, TError,MarkHelpSeenMutationVariables, TContext> => {
+
+const mutationKey = getMarkHelpSeenMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof markHelpSeen>>, MarkHelpSeenMutationVariables> = (props) => {
+          const {chave} = props ?? {};
+
+          return  markHelpSeen(chave,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MarkHelpSeenMutationResult = NonNullable<Awaited<ReturnType<typeof markHelpSeen>>>
+
+    export type MarkHelpSeenMutationError = unknown
+    export type MarkHelpSeenMutationVariables = {chave: string}
+
+    export const useMarkHelpSeen = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markHelpSeen>>, TError,MarkHelpSeenMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof markHelpSeen>>,
+        TError,
+        MarkHelpSeenMutationVariables,
+        TContext
+      > => {
+      return useMutation(getMarkHelpSeenMutationOptions(options), queryClient);
     }

@@ -22,6 +22,8 @@ export * from './groupMember';
 export * from './groupModuleRow';
 export * from './groupSaved';
 export * from './groupSummary';
+export * from './helpDocument';
+export * from './helpSection';
 export * from './iFormFile';
 export * from './inviteAcceptedResponse';
 export * from './inviteInfo';

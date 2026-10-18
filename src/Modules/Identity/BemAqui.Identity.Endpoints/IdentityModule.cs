@@ -25,6 +25,7 @@ public sealed class IdentityModule : IModule
         endpoints.MapProfileTwoFactorEndpoints();
         endpoints.MapGroupEndpoints();
         endpoints.MapUserEndpoints();
+        endpoints.MapHelpEndpoints();
 
         // Sessão atual: identidade, nome e e-mail (permissões em /me/permissions).
         endpoints.MapGet("/me", async (ClaimsPrincipal user, Profile profile, CancellationToken ct) =>

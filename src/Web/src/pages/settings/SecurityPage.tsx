@@ -3,6 +3,7 @@ import { getGetSecuritySettingsQueryKey, saveSecuritySettings, useGetSecuritySet
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
+import { Dica } from '@/help/Dica'
 import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
 
@@ -24,7 +25,7 @@ export function SecurityPage() {
       {settings.isPending ? <Skeleton className="h-28 max-w-xl" /> : settings.isError ? <ErrorState onRetry={() => settings.refetch()} /> : (
         <section className="max-w-xl space-y-3 rounded-md border border-border bg-card p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <b className="font-semibold">Exigir verificação em duas etapas para todos</b>
+            <b className="font-semibold">Exigir verificação em duas etapas para todos<Dica texto="Quem ainda não tem será levado à configuração no próximo acesso." /></b>
             <StatusChip tone={settings.data.requireTwoFactor ? 'ok' : 'info'}>{settings.data.requireTwoFactor ? 'Exigida' : 'Não exigida'}</StatusChip>
           </div>
           <p className="text-sm text-muted-foreground">
