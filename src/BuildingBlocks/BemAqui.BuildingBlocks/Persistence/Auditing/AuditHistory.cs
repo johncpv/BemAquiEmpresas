@@ -5,7 +5,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BemAqui.BuildingBlocks.Persistence.Auditing;
 
-public sealed record AuditEntryDto(Guid Id, string Action, Guid? UserId, DateTimeOffset At, string Changes);
+/// <summary><c>Origin</c>: quem alterou quando não foi um usuário (ex.: a importação do Dolibarr, MIG-01a CA 21).</summary>
+public sealed record AuditEntryDto(Guid Id, string Action, Guid? UserId, DateTimeOffset At, string Changes, string? Origin);
 
 /// <summary>Histórico de um registro, do mais recente ao mais antigo, só com a permissão <c>view</c> do módulo dono.</summary>
 public sealed class AuditHistory(BemAquiDbContext db, AuditableEntityRegistry registry, IPermissionChecker permissions)
@@ -26,7 +27,7 @@ public sealed class AuditHistory(BemAquiDbContext db, AuditableEntityRegistry re
         return await db.AuditEntries.AsNoTracking()
             .Where(a => a.Entity == entity && a.EntityId == entityId)
             .OrderByDescending(a => a.At).ThenByDescending(a => a.Id)
-            .Select(a => new AuditEntryDto(a.Id, a.Action, a.UserId, a.At, a.Changes))
+            .Select(a => new AuditEntryDto(a.Id, a.Action, a.UserId, a.At, a.Changes, a.Origin))
             .ToPagedListAsync(page, cancellationToken);
     }
 }

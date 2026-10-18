@@ -9,11 +9,11 @@ public class SolutionArchitectureTests
     private static readonly string[] DomainForbiddenNamespaces = ["Microsoft.EntityFrameworkCore", "Microsoft.AspNetCore", "Npgsql"];
 
     [Fact]
-    public void Existem_os_13_modulos_cada_um_com_as_5_camadas()
+    public void Existem_os_14_modulos_cada_um_com_as_5_camadas()
     {
         Solution.ModuleNames.Should().BeEquivalentTo(
             "Platform", "Identity", "Parties", "HR", "Commercial", "Engineering", "Production",
-            "Inventory", "Purchasing", "Finance", "Fiscal", "Assets", "Portal");
+            "Inventory", "Purchasing", "Finance", "Fiscal", "Assets", "Portal", "Migrations");
 
         foreach (var module in Solution.ModuleNames)
         {

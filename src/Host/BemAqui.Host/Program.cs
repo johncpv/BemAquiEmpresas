@@ -78,6 +78,10 @@ try
 
     // Jobs com storage no catálogo (schema hangfire) e filas separadas; dashboard só no host da plataforma (FND-13).
     builder.Services.AddBemAquiJobs(builder.Configuration);
+    if (builder.Configuration.GetValue("Jobs:ServerEnabled", true))
+    {
+        builder.Services.AddHostedService<RecurringJobsRegistrar>();
+    }
 
     // Tenant pelo host (ADR 0004), banco do tenant por escopo e outbox por tenant ativo (ADR 0006).
     builder.Services.Configure<PlatformHostOptions>(builder.Configuration.GetSection(PlatformHostOptions.Section));

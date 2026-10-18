@@ -24,6 +24,7 @@
     <ProjectReference Include="..\..\Modules\Identity\BemAqui.Identity.Endpoints\BemAqui.Identity.Endpoints.csproj" />
     <ProjectReference Include="..\..\Modules\Inventory\BemAqui.Inventory.Endpoints\BemAqui.Inventory.Endpoints.csproj" />
     <ProjectReference Include="..\..\Modules\Parties\BemAqui.Parties.Endpoints\BemAqui.Parties.Endpoints.csproj" />
+    <ProjectReference Include="..\..\Modules\Migrations\BemAqui.Migrations.Endpoints\BemAqui.Migrations.Endpoints.csproj" />
     <ProjectReference Include="..\..\Modules\Platform\BemAqui.Platform.Endpoints\BemAqui.Platform.Endpoints.csproj" />
     <ProjectReference Include="..\..\Modules\Portal\BemAqui.Portal.Endpoints\BemAqui.Portal.Endpoints.csproj" />
     <ProjectReference Include="..\..\Modules\Production\BemAqui.Production.Endpoints\BemAqui.Production.Endpoints.csproj" />

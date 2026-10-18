@@ -12,7 +12,7 @@ namespace BemAqui.BuildingBlocks.Persistence.Auditing;
 /// Antes de salvar: converte exclusão de <see cref="ISoftDeletable"/> em exclusão lógica e grava em
 /// <c>audit.audit_log</c>, no mesmo SaveChanges (mesma transação), o diff das entidades <see cref="IAuditable"/>.
 /// </summary>
-public sealed class AuditSaveChangesInterceptor(ICurrentUser currentUser, TimeProvider clock) : SaveChangesInterceptor
+public sealed class AuditSaveChangesInterceptor(ICurrentUser currentUser, TimeProvider clock, AuditOrigin origin) : SaveChangesInterceptor
 {
     public const string Masked = "***";
 
@@ -76,6 +76,7 @@ public sealed class AuditSaveChangesInterceptor(ICurrentUser currentUser, TimePr
                 UserId = currentUser.UserId,
                 At = now,
                 Ip = currentUser.IpAddress,
+                Origin = origin.Label,
                 Changes = JsonSerializer.Serialize(changes),
             });
         }

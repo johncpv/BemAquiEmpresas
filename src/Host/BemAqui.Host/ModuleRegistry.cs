@@ -7,6 +7,7 @@ using BemAqui.Fiscal.Endpoints;
 using BemAqui.HR.Endpoints;
 using BemAqui.Identity.Endpoints;
 using BemAqui.Inventory.Endpoints;
+using BemAqui.Migrations.Endpoints;
 using BemAqui.Parties.Endpoints;
 using BemAqui.Platform.Endpoints;
 using BemAqui.Portal.Endpoints;
@@ -33,5 +34,6 @@ public static class ModuleRegistry
         new FiscalModule(),
         new AssetsModule(),
         new PortalModule(),
+        new MigrationModule(),
     ];
 }

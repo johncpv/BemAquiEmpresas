@@ -3,6 +3,7 @@ import { Link } from '@tanstack/react-router'
 const TABS = [
   { to: '/app/configuracoes/seguranca', label: 'Segurança' },
   { to: '/app/configuracoes/ia', label: 'Inteligência artificial' },
+  { to: '/app/configuracoes/importacao', label: 'Importação do Dolibarr' },
 ] as const
 
 /** Abas de Configurações: cada aba é uma rota própria (FND-09b CA 8). */

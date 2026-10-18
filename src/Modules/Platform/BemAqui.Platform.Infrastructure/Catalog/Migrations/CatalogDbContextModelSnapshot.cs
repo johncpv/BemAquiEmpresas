@@ -62,6 +62,11 @@ namespace BemAqui.Platform.Infrastructure.Catalog.Migrations
                         .HasColumnType("character varying(64)")
                         .HasColumnName("ip");
 
+                    b.Property<string>("Origin")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("origin");
+
                     b.Property<Guid?>("UserId")
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");

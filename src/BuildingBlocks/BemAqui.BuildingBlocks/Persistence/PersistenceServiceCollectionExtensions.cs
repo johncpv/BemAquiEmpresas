@@ -17,6 +17,7 @@ public static class PersistenceServiceCollectionExtensions
     {
         services.TryAddSingleton(TimeProvider.System);
         services.TryAddScoped<ICurrentUser, SystemCurrentUser>();
+        services.TryAddScoped<AuditOrigin>();
         services.TryAddScoped<AuditSaveChangesInterceptor>();
         services.TryAddScoped<INumberSequence, NumberSequenceService>();
         services.TryAddSingleton(sp => new AuditableEntityRegistry(sp.GetServices<AuditableEntity>()));

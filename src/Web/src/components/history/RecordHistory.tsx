@@ -6,7 +6,10 @@ import { describeChanges } from './describe-changes'
 
 const ACTIONS: Record<string, string> = { Created: 'Criou', Updated: 'Alterou', Deleted: 'Excluiu' }
 
-/** Histórico de um registro auditado (FND-09c CA 13): quem, quando (Brasília) e o que mudou, paginado. */
+/**
+ * Histórico de um registro auditado (FND-09c CA 13): quem, quando (Brasília) e o que mudou, paginado. Sem usuário, mostra a
+ * origem gravada (ex.: "Importação Dolibarr · operador · execução", MIG-01a CA 21).
+ */
 export function RecordHistory({ entity, id }: { entity: string; id: string }) {
   const [page, setPage] = useState(1)
   const query = useGetAuditHistory(entity, id, { page, pageSize: 20 })
@@ -24,7 +27,7 @@ export function RecordHistory({ entity, id }: { entity: string; id: string }) {
           <li key={entry.id} className="rounded-md border border-border bg-card p-3 text-sm">
             <p>
               <b className="font-semibold">{ACTIONS[entry.action] ?? entry.action}</b>
-              <span className="text-muted-foreground"> · {entry.userId ? 'usuário ' + entry.userId.slice(0, 8) : 'sistema'} · </span>
+              <span className="text-muted-foreground"> · {entry.userId ? 'usuário ' + entry.userId.slice(0, 8) : entry.origin ?? 'sistema'} · </span>
               <time className="tabular-nums text-muted-foreground" dateTime={entry.at}>{formatDateTime(entry.at)}</time>
             </p>
             <ul className="mt-1 text-muted-foreground">
