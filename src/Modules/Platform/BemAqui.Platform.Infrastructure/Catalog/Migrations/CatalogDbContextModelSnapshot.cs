@@ -32,8 +32,8 @@ namespace BemAqui.Platform.Infrastructure.Catalog.Migrations
 
                     b.Property<string>("Action")
                         .IsRequired()
-                        .HasMaxLength(16)
-                        .HasColumnType("character varying(16)")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
                         .HasColumnName("action");
 
                     b.Property<DateTimeOffset>("At")
@@ -104,6 +104,137 @@ namespace BemAqui.Platform.Infrastructure.Catalog.Migrations
                     b.ToTable("plans", "catalog");
                 });
 
+            modelBuilder.Entity("BemAqui.Platform.Domain.PlatformAdmin", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("access_failed_count");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)")
+                        .HasColumnName("email");
+
+                    b.Property<DateTimeOffset?>("LastLoginAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_login_at");
+
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("lockout_end");
+
+                    b.Property<string>("NormalizedEmail")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)")
+                        .HasColumnName("normalized_email");
+
+                    b.Property<string>("PasswordHash")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("password_hash");
+
+                    b.Property<string>("SecurityStamp")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("security_stamp");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.Property<bool>("TotpEnabled")
+                        .HasColumnType("boolean")
+                        .HasColumnName("totp_enabled");
+
+                    b.Property<long?>("TotpLastStep")
+                        .HasColumnType("bigint")
+                        .HasColumnName("totp_last_step");
+
+                    b.Property<string>("TotpSecretCipher")
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)")
+                        .HasColumnName("totp_secret_cipher");
+
+                    b.HasKey("Id")
+                        .HasName("pk_platform_admins");
+
+                    b.HasIndex("NormalizedEmail")
+                        .IsUnique()
+                        .HasDatabaseName("ix_platform_admins_normalized_email");
+
+                    b.ToTable("platform_admins", "catalog");
+                });
+
+            modelBuilder.Entity("BemAqui.Platform.Domain.PlatformAdminToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AdminId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("admin_id");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("integer")
+                        .HasColumnName("attempts");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<DateTimeOffset?>("InvalidatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("invalidated_at");
+
+                    b.Property<string>("Purpose")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("purpose");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("token_hash");
+
+                    b.Property<DateTimeOffset?>("UsedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("used_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_platform_admin_tokens");
+
+                    b.HasIndex("AdminId")
+                        .HasDatabaseName("ix_platform_admin_tokens_admin_id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_platform_admin_tokens_token_hash");
+
+                    b.ToTable("platform_admin_tokens", "catalog");
+                });
+
             modelBuilder.Entity("BemAqui.Platform.Domain.PlatformAlert", b =>
                 {
                     b.Property<Guid>("Id")
@@ -138,6 +269,93 @@ namespace BemAqui.Platform.Infrastructure.Catalog.Migrations
                         .HasDatabaseName("ix_platform_alerts_key");
 
                     b.ToTable("platform_alerts", "catalog");
+                });
+
+            modelBuilder.Entity("BemAqui.Platform.Domain.PlatformRecoveryCode", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AdminId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("admin_id");
+
+                    b.Property<string>("CodeHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("code_hash");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset?>("UsedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("used_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_platform_recovery_codes");
+
+                    b.HasIndex("AdminId", "CodeHash")
+                        .HasDatabaseName("ix_platform_recovery_codes_admin_id_code_hash");
+
+                    b.ToTable("platform_recovery_codes", "catalog");
+                });
+
+            modelBuilder.Entity("BemAqui.Platform.Domain.PlatformSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AdminId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("admin_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedByIp")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("created_by_ip");
+
+                    b.Property<string>("Host")
+                        .IsRequired()
+                        .HasMaxLength(253)
+                        .HasColumnType("character varying(253)")
+                        .HasColumnName("host");
+
+                    b.Property<DateTimeOffset>("LastSeenAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_seen_at");
+
+                    b.Property<DateTimeOffset?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revoked_at");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("token_hash");
+
+                    b.HasKey("Id")
+                        .HasName("pk_platform_sessions");
+
+                    b.HasIndex("AdminId")
+                        .HasDatabaseName("ix_platform_sessions_admin_id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_platform_sessions_token_hash");
+
+                    b.ToTable("platform_sessions", "catalog");
                 });
 
             modelBuilder.Entity("BemAqui.Platform.Domain.ProvisioningLog", b =>
@@ -293,6 +511,36 @@ namespace BemAqui.Platform.Infrastructure.Catalog.Migrations
                         .HasDatabaseName("ix_tenant_domains_tenant_id");
 
                     b.ToTable("tenant_domains", "catalog");
+                });
+
+            modelBuilder.Entity("BemAqui.Platform.Domain.PlatformAdminToken", b =>
+                {
+                    b.HasOne("BemAqui.Platform.Domain.PlatformAdmin", null)
+                        .WithMany()
+                        .HasForeignKey("AdminId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_platform_admin_tokens_platform_admins_admin_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Platform.Domain.PlatformRecoveryCode", b =>
+                {
+                    b.HasOne("BemAqui.Platform.Domain.PlatformAdmin", null)
+                        .WithMany()
+                        .HasForeignKey("AdminId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_platform_recovery_codes_platform_admins_admin_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Platform.Domain.PlatformSession", b =>
+                {
+                    b.HasOne("BemAqui.Platform.Domain.PlatformAdmin", null)
+                        .WithMany()
+                        .HasForeignKey("AdminId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_platform_sessions_platform_admins_admin_id");
                 });
 
             modelBuilder.Entity("BemAqui.Platform.Domain.ProvisioningLog", b =>

@@ -13,8 +13,11 @@ public sealed class PlatformModule : IModule
 {
     public string Code => "platform";
 
-    public void AddServices(IServiceCollection services, IConfiguration configuration) =>
+    public void AddServices(IServiceCollection services, IConfiguration configuration)
+    {
         services.AddPlatformInfrastructure(configuration);
+        PlatformSessionAuthenticationHandler.Register(services);
+    }
 
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
     {
@@ -26,6 +29,8 @@ public sealed class PlatformModule : IModule
             .AllowAnonymous()
             .WithName("GetTenantPublicContext")
             .WithTags("Plataforma");
+
+        endpoints.MapPlatformAuthEndpoints();
     }
 }
 

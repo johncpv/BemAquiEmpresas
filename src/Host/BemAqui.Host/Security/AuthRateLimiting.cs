@@ -60,8 +60,12 @@ public static class AuthRateLimiting
                 })
                 : RateLimitPartition.GetNoLimiter(string.Empty));
 
+    /// <summary>Login da plataforma tem o mesmo limite (FND-13 CA 7).</summary>
+    public const string PlatformPathPrefix = "/api/v1/platform/auth";
+
     private static bool IsAuthRoute(HttpContext http) =>
-        http.Request.Path.StartsWithSegments(PathPrefix, StringComparison.OrdinalIgnoreCase);
+        http.Request.Path.StartsWithSegments(PathPrefix, StringComparison.OrdinalIgnoreCase)
+        || http.Request.Path.StartsWithSegments(PlatformPathPrefix, StringComparison.OrdinalIgnoreCase);
 
     private static string TenantKey(HttpContext http) =>
         http.RequestServices.GetService<ITenantContext>()?.Tenant?.Id.ToString() ?? "-";

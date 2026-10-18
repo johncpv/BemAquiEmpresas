@@ -1,7 +1,9 @@
 using BemAqui.BuildingBlocks.Persistence;
 using BemAqui.BuildingBlocks.Tenancy;
 using BemAqui.BuildingBlocks.Observability;
+using BemAqui.Platform.Application.Auth;
 using BemAqui.Platform.Application.Provisioning;
+using BemAqui.Platform.Domain;
 using BemAqui.Platform.Infrastructure.Alerts;
 using BemAqui.Platform.Infrastructure.Catalog;
 using BemAqui.Platform.Infrastructure.Provisioning;
@@ -36,6 +38,13 @@ public static class PlatformInfrastructure
         services.TryAddScoped<IProvisioningCatalog, EfProvisioningCatalog>();
         services.TryAddSingleton<ITenantDatabaseAdmin, PostgresTenantDatabaseAdmin>();
         services.TryAddScoped<ProvisioningService>();
+
+        // Login do super admin (FND-13).
+        services.Configure<PlatformAuthOptions>(configuration.GetSection(PlatformAuthOptions.Section));
+        services.TryAddScoped<IPlatformAuthDb>(sp => sp.GetRequiredService<CatalogDbContext>());
+        services.TryAddSingleton<Microsoft.AspNetCore.Identity.IPasswordHasher<PlatformAdmin>, Microsoft.AspNetCore.Identity.PasswordHasher<PlatformAdmin>>();
+        services.TryAddSingleton(TimeProvider.System);
+        services.TryAddScoped<PlatformAuthService>();
 
         services.Configure<AlertOptions>(configuration.GetSection(AlertOptions.Section));
         services.AddSingleton<IAlertSink, CatalogAlertSink>(); // substitui o LogOnlyAlertSink padrão

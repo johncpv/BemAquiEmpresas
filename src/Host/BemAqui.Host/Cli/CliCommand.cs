@@ -13,11 +13,11 @@ namespace BemAqui.Host.Cli;
 
 /// <summary>
 /// Modo CLI da imagem (ADR 0006): <c>migrate</c> (catálogo e todos os tenants, antes da subida da API) e
-/// <c>tenant provision</c> (FND-03a). Saída em PT-BR; código de saída 0 = sucesso.
+/// <c>tenant provision</c> (FND-03a) e <c>platform-admin create</c> (FND-13). Saída em PT-BR; código de saída 0 = sucesso.
 /// </summary>
 public static class CliCommand
 {
-    public static bool IsCli(string[] args) => args is ["migrate", ..] or ["tenant", "provision", ..];
+    public static bool IsCli(string[] args) => args is ["migrate", ..] or ["tenant", "provision", ..] or ["platform-admin", "create", ..];
 
     public static async Task<int> RunAsync(string[] args, Action<IConfigurationBuilder>? configure = null, TextWriter? output = null)
     {
@@ -45,6 +45,7 @@ public static class CliCommand
         new PlatformModule().AddServices(builder.Services, builder.Configuration);
         new BemAqui.Identity.Endpoints.IdentityModule().AddServices(builder.Services, builder.Configuration);
         builder.Services.AddTenantPersistence();
+        builder.Services.Configure<BemAqui.Host.Tenancy.PlatformHostOptions>(builder.Configuration.GetSection(BemAqui.Host.Tenancy.PlatformHostOptions.Section));
         builder.Services.AddSingleton<ITenantDatabaseMigrator, TenantDatabaseMigrator>();
         builder.Services.AddScoped<TenantMigrationRunner>();
 
@@ -53,9 +54,12 @@ public static class CliCommand
         try
         {
             await using var scope = host.Services.CreateAsyncScope();
-            return migrate
-                ? await MigrateAsync(scope.ServiceProvider, output)
-                : await ProvisionAsync(scope.ServiceProvider, new CliArguments(args.Skip(2).ToList()), output);
+            return args[0] switch
+            {
+                "migrate" => await MigrateAsync(scope.ServiceProvider, output),
+                "platform-admin" => await CreatePlatformAdminAsync(scope.ServiceProvider, new CliArguments(args.Skip(2).ToList()), output),
+                _ => await ProvisionAsync(scope.ServiceProvider, new CliArguments(args.Skip(2).ToList()), output),
+            };
         }
         finally
         {
@@ -85,6 +89,26 @@ public static class CliCommand
             ? $"Migração concluída: {reports.Count} tenant(s)."
             : $"Migração com falha em {failed} de {reports.Count} tenant(s). A API responde 503 para eles até migrar.");
         return failed == 0 ? 0 : 2;
+    }
+
+    /// <summary>
+    /// Único jeito de criar super admin (FND-13 CA 1): não há rota pública. O link de definição de senha aparece só
+    /// aqui, uma vez, para quem tem acesso SSH ao servidor; o 2FA é configurado no primeiro login.
+    /// </summary>
+    private static async Task<int> CreatePlatformAdminAsync(IServiceProvider services, CliArguments args, TextWriter output)
+    {
+        var result = await services.GetRequiredService<BemAqui.Platform.Application.Auth.PlatformAuthService>().InviteAsync(args.Get("email") ?? string.Empty);
+        if (result.IsFailure)
+        {
+            await output.WriteLineAsync("Super admin não criado: " + result.Error!.Message);
+            return 1;
+        }
+
+        var host = services.GetRequiredService<Microsoft.Extensions.Options.IOptions<BemAqui.Host.Tenancy.PlatformHostOptions>>().Value.Host;
+        await output.WriteLineAsync("Super admin criado. Abra o link abaixo para definir a senha (vale até " + result.Value.ExpiresAt.ToString("u", System.Globalization.CultureInfo.InvariantCulture) + " e não aparece de novo):");
+        await output.WriteLineAsync("https://" + host + "/definir-senha?token=" + Uri.EscapeDataString(result.Value.SetPasswordToken));
+        await output.WriteLineAsync("No primeiro login, a configuração do 2FA é obrigatória.");
+        return 0;
     }
 
     private static async Task<int> ProvisionAsync(IServiceProvider services, CliArguments args, TextWriter output)

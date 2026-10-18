@@ -46,6 +46,21 @@ tenant provision --key konebras --resume
 
 A retomada pula as etapas já concluídas e continua a partir da que falhou. Rodar a retomada de novo, com tudo concluído, não refaz nada.
 
+## Criar o super admin da plataforma
+
+Não existe cadastro de super admin por rota pública (FND-13, ADR 0012). Para criar, rode no servidor:
+
+```bash
+docker compose run --rm api platform-admin create --email voce@bemaquiapp.com.br
+```
+
+- A saída mostra, uma única vez, o link `https://plataforma.bemaquiapp.com.br/definir-senha?token=...`, válido por 24 h. Não cole esse link em chat nem em ticket.
+- Abra o link e defina a senha, com as mesmas regras dos usuários: 12 caracteres ou mais.
+- No primeiro login, a configuração do 2FA é obrigatória. Guarde os 10 códigos de recuperação fora do computador.
+- Se o link expirar antes do uso, rode o mesmo comando de novo: um link novo é gerado e o anterior deixa de valer. Depois que a senha foi definida, o comando recusa o mesmo e-mail.
+- O painel da plataforma só responde para IPs liberados no nginx (ADR 0010 item 7). Fora deles, a resposta é 404. Para entrar de outro lugar, adicione o IP no vhost pelo SSH.
+- O painel do Hangfire fica em `https://plataforma.bemaquiapp.com.br/hangfire` e exige a sessão da plataforma. A sessão expira depois de 30 min sem uso ou de 8 h no total (`PlatformAuth`).
+
 ## Migrar no deploy
 
 ```bash

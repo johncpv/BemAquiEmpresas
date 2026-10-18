@@ -1,3 +1,4 @@
+using BemAqui.BuildingBlocks.Security;
 using BemAqui.BuildingBlocks.Email;
 using BemAqui.BuildingBlocks.Messaging;
 using BemAqui.BuildingBlocks.Persistence.Auditing;

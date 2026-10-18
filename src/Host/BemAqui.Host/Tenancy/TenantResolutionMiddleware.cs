@@ -12,6 +12,34 @@ public sealed class PlatformHostOptions
     public const string Section = "Platform";
 
     public string Host { get; set; } = "plataforma.bemaquiapp.com.br";
+
+    /// <summary>
+    /// Allowlist opcional de redes (CIDR) do host da plataforma, além da do nginx (ADR 0010 item 7). Vazia: a app
+    /// não filtra. Fora dela: 404, antes de chegar ao login (FND-13 CA 2).
+    /// </summary>
+    public string[] AllowedNetworks { get; set; } = [];
+
+    /// <summary>Prefixos que só existem no host da plataforma (FND-13 CA 5).</summary>
+    public static readonly string[] PlatformPaths = ["/api/v1/platform", "/hangfire"];
+
+    public static bool IsPlatformPath(PathString path) =>
+        PlatformPaths.Any(p => path.StartsWithSegments(p, StringComparison.OrdinalIgnoreCase));
+
+    public bool IsAllowed(System.Net.IPAddress? address)
+    {
+        if (AllowedNetworks.Length == 0)
+        {
+            return true;
+        }
+
+        if (address is null)
+        {
+            return false;
+        }
+
+        var ip = address.IsIPv4MappedToIPv6 ? address.MapToIPv4() : address;
+        return AllowedNetworks.Any(n => System.Net.IPNetwork.TryParse(n, out var network) && network.Contains(ip));
+    }
 }
 
 /// <summary>
@@ -36,7 +64,19 @@ public sealed class TenantResolutionMiddleware(RequestDelegate next, ITenantReso
         var host = TenantDomain.Normalize(context.Request.Host.Host);
         if (string.Equals(host, TenantDomain.Normalize(platform.Value.Host), StringComparison.Ordinal))
         {
-            // Rotas da plataforma chegam nas FND-13/03b; rota de tenant aqui não existe.
+            // Host da plataforma: só as rotas da plataforma, e só de IP permitido. Rota de tenant aqui não existe.
+            if (platform.Value.IsAllowed(context.Connection.RemoteIpAddress) && PlatformHostOptions.IsPlatformPath(context.Request.Path))
+            {
+                await next(context);
+                return;
+            }
+
+            await NotFound(context);
+            return;
+        }
+
+        if (PlatformHostOptions.IsPlatformPath(context.Request.Path))
+        {
             await NotFound(context);
             return;
         }

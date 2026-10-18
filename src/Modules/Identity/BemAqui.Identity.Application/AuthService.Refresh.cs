@@ -1,3 +1,4 @@
+using BemAqui.BuildingBlocks.Security;
 using BemAqui.Identity.Domain;
 using BemAqui.SharedKernel;
 using Microsoft.EntityFrameworkCore;
