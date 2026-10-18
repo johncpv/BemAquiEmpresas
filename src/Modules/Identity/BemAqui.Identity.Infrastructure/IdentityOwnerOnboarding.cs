@@ -13,7 +13,7 @@ public sealed class IdentityOwnerOnboarding : ITenantOwnerOnboarding
     public async Task CreateOwnerAsync(Guid tenantId, string tenantKey, string email, IServiceProvider tenantScope, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(tenantScope);
-        await tenantScope.GetRequiredService<Invites>().EnsureInviteAsync(email, isOwner: true, invitedBy: null, cancellationToken);
+        await tenantScope.GetRequiredService<Invites>().EnsureInviteAsync(email, isOwner: true, invitedBy: null, cancellationToken: cancellationToken);
     }
 
     public async Task SendInviteAsync(Guid tenantId, string tenantKey, string email, IServiceProvider tenantScope, CancellationToken cancellationToken)

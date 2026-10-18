@@ -9,8 +9,6 @@ namespace BemAqui.Identity.Endpoints;
 
 public sealed record SetGroupMembersRequest(IReadOnlyList<Guid> UserIds);
 
-public sealed record MyPermissions(IReadOnlyList<string> Permissions, bool IsOwner);
-
 /// <summary>
 /// Grupos e matriz (FND-06b), no módulo <c>identity</c>. Ver: <c>identity.view</c>; criar e duplicar:
 /// <c>identity.create</c>; editar matriz, membros e inativar: <c>identity.edit</c> (inativar é edição, sem exclusão).
@@ -46,14 +44,6 @@ internal static class GroupEndpoints
         groups.MapPut("/{id:guid}/members", async (Guid id, SetGroupMembersRequest request, ICurrentUser user, GroupService service, CancellationToken ct) =>
                 (await service.SetMembersAsync(id, request.UserIds, user.UserId!.Value, ct)).ToHttpResult())
             .RequirePermission("identity.edit").WithName("SetGroupMembers");
-
-        // Permissões efetivas de quem está logado: o front esconde ações com <Can> (a autorização real é aqui no backend).
-        api.MapGet("/me/permissions", async (ICurrentUser user, IPermissionService permissions, CancellationToken ct) =>
-            {
-                var effective = await permissions.GetAsync(user.UserId!.Value, ct);
-                return Results.Ok(new MyPermissions(effective.Permissions.Order(StringComparer.Ordinal).ToList(), effective.IsOwner));
-            })
-            .WithTags("Identidade").WithName("GetMyPermissions");
 
         return api;
     }

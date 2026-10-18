@@ -60,12 +60,40 @@ public sealed partial class GroupService
         Audit(id, "MembersChanged", actorId, new { before = current.Select(c => c.UserId), after = wanted });
         await NotifyOwnersAsync(id, "Membros do grupo " + group.Name + " alterados.", actorId, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
-        foreach (var user in added.Concat(removed.Select(r => r.UserId)))
-        {
-            permissions.Invalidate(user);
-        }
+        await permissions.BumpAsync(added.Concat(removed.Select(r => r.UserId)).ToList(), cancellationToken);
 
         return new GroupSaved(id, added.Count + removed.Count);
+    }
+
+    /// <summary>
+    /// Pode o ator pôr alguém nestes grupos? (convite e grupos do usuário, FND-06c CA 6). Grupo inexistente ou inativo
+    /// é erro de validação; o resto segue a delegação da ADR 0008.
+    /// </summary>
+    public async Task<Error?> GroupGrantDeniedAsync(Guid actorId, IReadOnlyCollection<Guid> groupIds, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(groupIds);
+        var ids = groupIds.Distinct().ToList();
+        var groups = await db.Groups.AsNoTracking().Where(g => ids.Contains(g.Id) && g.IsActive).ToListAsync(cancellationToken);
+        if (groups.Count != ids.Count)
+        {
+            return Error.Validation(Error.Codes.Validation, "Há grupo que não existe ou está inativo.");
+        }
+
+        var actor = await permissions.GetAsync(actorId, cancellationToken);
+        foreach (var group in groups)
+        {
+            if (group.IsOwner && !actor.IsOwner)
+            {
+                return Denied("Só quem é do grupo Proprietário pode adicionar alguém a ele.");
+            }
+
+            if (await DelegationDeniedAsync(actorId, await PermissionsOfGroupAsync(group, cancellationToken), cancellationToken) is { } denied)
+            {
+                return denied;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>Ações reservadas ao Proprietário (ADR 0008): <c>*.approve</c>, <c>finance.pay</c>, <c>hr.view_sensitive</c>, <c>identity.edit</c> e <c>settings.edit</c>.</summary>
@@ -116,10 +144,7 @@ public sealed partial class GroupService
     private async Task<int> InvalidateMembersAsync(Guid groupId, CancellationToken cancellationToken)
     {
         var members = await db.UserGroups.Where(ug => ug.GroupId == groupId).Select(ug => ug.UserId).ToListAsync(cancellationToken);
-        foreach (var member in members)
-        {
-            permissions.Invalidate(member);
-        }
+        await permissions.BumpAsync(members, cancellationToken);
 
         return members.Count;
     }

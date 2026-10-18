@@ -22,7 +22,12 @@
 ## Adendo (FND-06b, 18/10/2026)
 - Inativar grupo exige `identity.edit`: inativar é edição, porque grupos não são excluídos.
 - Adicionar membro a qualquer grupo exige que o ator tenha todas as permissões do grupo. Se houver ação reservada no grupo, só o Proprietário adiciona.
-- **Cache de permissões, por enquanto:** memória por `{tenantId}:{userId}`, com 30 s, invalidado na hora pelas mudanças de grupo, membros e inativação. O filtro de módulos liberados é aplicado a cada chamada. Funciona porque a API roda numa única instância (Compose). A versão conferida a cada request, para várias instâncias, entra na FND-06c.
+- **Cache de permissões (FND-06c):**
+  - a versão é `users.perm_version`, lida a cada request;
+  - a chave do cache é `{tenantId}:{userId}:{versão}`;
+  - a versão sobe quando grupo, membros, inativação ou situação do usuário mudam;
+  - os módulos liberados são aplicados a cada chamada e entram na versão enviada ao front.
+- **Cabeçalho `X-Perm-Version`:** os endpoints com `perm:` e o `/me/permissions` devolvem a versão. Quando ela muda, o front recarrega `/me/permissions` sem pedir novo login.
 
 ## Consequências
 - A FND-06b implementa a regra de delegação e a FND-06c implementa a versão de permissões.

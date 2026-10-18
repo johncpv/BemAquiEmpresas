@@ -27,7 +27,7 @@ public sealed record InviteInfo(InviteState State, string? Email, string? Name, 
 public sealed record InviteAccepted(Guid UserId, string Email, bool OfferTwoFactor);
 
 /// <summary>Convites (FND-04 CA 17 a 19): criar, enviar, consultar e aceitar. O token só existe no e-mail.</summary>
-public sealed class Invites(IIdentityDb db, IPasswordHasher<User> hasher, IEmailSender email, IEventPublisher events, TenantLinks links, TimeProvider clock)
+public sealed class Invites(IIdentityDb db, IPasswordHasher<User> hasher, IEmailSender email, IEventPublisher events, TenantLinks links, GroupService groups, TimeProvider clock)
 {
     public const string ExpiredMessage = "Este convite expirou. Peça um novo ao administrador da empresa.";
     public const string AcceptedMessage = "Este convite já foi usado. Entre com seu e-mail e senha.";
@@ -71,6 +71,15 @@ public sealed class Invites(IIdentityDb db, IPasswordHasher<User> hasher, IEmail
             db.UserGroups.Add(new UserGroup { UserId = user.Id, GroupId = owner.Id }); // proprietário do provisionamento
         }
 
+        // Grupos do convite: a delegação é conferida de novo no aceite; grupo que o autor não pode mais conceder fica de fora.
+        foreach (var groupId in invite.GroupIds.Distinct())
+        {
+            if (invite.InvitedBy is { } inviter && await groups.GroupGrantDeniedAsync(inviter, [groupId], cancellationToken) is null)
+            {
+                db.UserGroups.Add(new UserGroup { UserId = user.Id, GroupId = groupId });
+            }
+        }
+
         db.AuditEntries.Add(new AuditEntry { Entity = "Auth", EntityId = user.Id.ToString(), Action = "InviteAccepted", UserId = user.Id, At = now, Ip = ip, Changes = "{}" });
         events.Publish(new UserActivated(user.Id, invite.IsOwner));
         await db.SaveChangesAsync(cancellationToken);
@@ -81,13 +90,13 @@ public sealed class Invites(IIdentityDb db, IPasswordHasher<User> hasher, IEmail
     /// Garante o usuário (status Convidado) e um convite pendente. Idempotente: rodar de novo não duplica.
     /// Usuário já ativo não recebe convite. O token só nasce no envio.
     /// </summary>
-    public async Task<Guid?> EnsureInviteAsync(string emailAddress, bool isOwner, Guid? invitedBy, CancellationToken cancellationToken = default)
+    public async Task<Guid?> EnsureInviteAsync(string emailAddress, bool isOwner, Guid? invitedBy, IReadOnlyCollection<Guid>? groupIds = null, string? name = null, CancellationToken cancellationToken = default)
     {
         var normalized = User.Normalize(emailAddress);
         var user = await db.Users.FirstOrDefaultAsync(u => u.NormalizedEmail == normalized, cancellationToken);
         if (user is null)
         {
-            user = User.Invite(emailAddress);
+            user = User.Invite(emailAddress, name);
             db.Users.Add(user);
         }
         else if (user.Status != UserStatus.Invited)
@@ -95,11 +104,11 @@ public sealed class Invites(IIdentityDb db, IPasswordHasher<User> hasher, IEmail
             return null;
         }
 
-        var pending = await db.UserInvites.AnyAsync(i => i.UserId == user.Id && i.AcceptedAt == null, cancellationToken);
+        var pending = await db.UserInvites.AnyAsync(i => i.UserId == user.Id && i.AcceptedAt == null && i.CanceledAt == null, cancellationToken);
         if (!pending)
         {
             var now = clock.GetUtcNow();
-            db.UserInvites.Add(new UserInvite { UserId = user.Id, Email = user.Email, IsOwner = isOwner, InvitedBy = invitedBy, ExpiresAt = now, CreatedAt = now });
+            db.UserInvites.Add(new UserInvite { UserId = user.Id, Email = user.Email, IsOwner = isOwner, InvitedBy = invitedBy, GroupIds = groupIds?.ToArray() ?? [], ExpiresAt = now, CreatedAt = now });
         }
 
         await db.SaveChangesAsync(cancellationToken);
@@ -116,7 +125,7 @@ public sealed class Invites(IIdentityDb db, IPasswordHasher<User> hasher, IEmail
         var user = await db.Users.FirstOrDefaultAsync(u => u.NormalizedEmail == normalized && u.Status == UserStatus.Invited, cancellationToken);
         var invite = user is null
             ? null
-            : await db.UserInvites.Where(i => i.UserId == user.Id && i.AcceptedAt == null).OrderByDescending(i => i.CreatedAt).FirstOrDefaultAsync(cancellationToken);
+            : await db.UserInvites.Where(i => i.UserId == user.Id && i.AcceptedAt == null && i.CanceledAt == null).OrderByDescending(i => i.CreatedAt).FirstOrDefaultAsync(cancellationToken);
         if (invite is null)
         {
             return false;
@@ -150,7 +159,7 @@ public sealed class Invites(IIdentityDb db, IPasswordHasher<User> hasher, IEmail
     }
 
     private InviteState StateOf(UserInvite? invite, User? user) =>
-        invite is null || user is null || user.Status == UserStatus.Inactive ? InviteState.NotFound
+        invite is null || user is null || user.Status == UserStatus.Inactive || invite.CanceledAt is not null ? InviteState.NotFound
         : invite.AcceptedAt is not null || user.Status == UserStatus.Active ? InviteState.Accepted
         : invite.ExpiresAt <= clock.GetUtcNow() ? InviteState.Expired
         : InviteState.Valid;

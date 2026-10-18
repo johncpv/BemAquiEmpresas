@@ -5,7 +5,7 @@
 | ID | FND-06c |
 | Título | Cadastro de usuários com vários grupos, convite por e-mail, desativação, `/me/permissions`, `<Can>`, 2FA obrigatório para quem aprova ou paga e Configurações → Segurança |
 | Tamanho | M |
-| Status | Draft |
+| Status | In Progress (API pronta; front depois da FND-09a/b/c) |
 | Requisitos | R-SEC-4 · R-SEC-12 · R-SEC-2 (2FA obrigatório para quem aprova ou paga) |
 | Dependências | FND-06b, FND-04, FND-05, FND-08; telas dependem de FND-09b e FND-09c. **Pré-condição:** ADR 0008 aceita |
 | Bloqueia | FND-06d, FND-14 (ajuda filtrada por permissão), FND-15 |
@@ -137,7 +137,26 @@ Checklist do @po (Pax), 16/10/2026.
 | 16/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 
 ## Dev Agent Record
-_A preencher pelo @dev._
+- **API (FND-06c), 18/10/2026, branch `feat/fnd-06c-usuarios`.** O convite vale 72 h (ADR 0010 item 5) e o e-mail só aparece para quem tem `identity.view` (ADR 0010 item 10). O cabeçalho de versão (CA 15) é `X-Perm-Version`, registrado na ADR 0008.
+  - **Cache versionado (CA 3, ADR 0008):**
+    - `users.perm_version` sobe quando grupos, membros, inativação de grupo ou situação do usuário mudam;
+    - a chave do cache é `{tenant}:{user}:{versão}` e a versão é lida a cada request, então funciona com várias instâncias;
+    - a versão enviada ao front também inclui os módulos liberados.
+  - **`GET /me/permissions` (CA 1, 4):** permissões, `isOwner`, `version` e módulos (código, área, `released`, `enabled`, ações). O Proprietário tem todas as ações dos módulos liberados.
+  - **Três camadas (CA 2):** testadas de ponta a ponta. Os quatro casos respondem `module_not_released`, `forbidden`, `forbidden` e 200.
+  - **Usuários (`/api/v1/identity/users`):**
+    - lista com grupos, 2FA (`active`, `pending`, `required_pending`), último acesso e situação;
+    - convite com nome, e-mail e grupos (CA 5). Os grupos passam pela delegação no envio e de novo no aceite (CA 6, ADR 0008);
+    - e-mail já cadastrado responde 409 `user_exists` com o id (CA 8);
+    - reenviar troca o link e cancelar o invalida (CA 7);
+    - desativar e reativar mantêm os grupos (CA 9, 11). O último Proprietário ativo não pode ser desativado nem sair do grupo (CA 10);
+    - grupos do usuário seguem a mesma delegação.
+  - **2FA (CA 12):** a `ApproverRequiresTwoFactorRule` exige 2FA de quem tem `*.approve` ou `*.pay` e do Proprietário.
+  - **Configurações → Segurança (CA 13):** `GET`/`PUT /api/v1/settings/security`, com `settings.view` e `settings.edit`. Grava `security.require_2fa`, com auditoria.
+  - **Testes:** 6 de integração.
+  - **Pendente:**
+    - front: `<Can>` (CA 14), recarga pelo `X-Perm-Version` (CA 15), telas de Usuários e de Segurança e a ajuda, depois da FND-09a/b/c;
+    - E2E.
 
 ## QA Results
 _A preencher pelo @qa._

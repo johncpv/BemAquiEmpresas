@@ -55,6 +55,12 @@ public sealed class UserInvite : Entity
 
     public Guid? InvitedBy { get; init; }
 
+    /// <summary>Grupos do convite: validados pela delegação no envio e de novo no aceite (ADR 0008).</summary>
+    public Guid[] GroupIds { get; set; } = [];
+
+    /// <summary>Cancelado pelo administrador: o link deixa de valer.</summary>
+    public DateTimeOffset? CanceledAt { get; set; }
+
     /// <summary>Convite do proprietário criado no provisionamento (entra no grupo Proprietário na FND-06b).</summary>
     public bool IsOwner { get; init; }
 

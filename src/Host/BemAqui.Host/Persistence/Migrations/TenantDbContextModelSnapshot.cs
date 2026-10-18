@@ -872,6 +872,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("character varying(512)")
                         .HasColumnName("password_hash");
 
+                    b.Property<int>("PermVersion")
+                        .HasColumnType("integer")
+                        .HasColumnName("perm_version");
+
                     b.Property<string>("SecurityStamp")
                         .IsRequired()
                         .HasMaxLength(64)
@@ -946,6 +950,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("accepted_at");
 
+                    b.Property<DateTimeOffset?>("CanceledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("canceled_at");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -959,6 +967,11 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<DateTimeOffset>("ExpiresAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("expires_at");
+
+                    b.PrimitiveCollection<Guid[]>("GroupIds")
+                        .IsRequired()
+                        .HasColumnType("uuid[]")
+                        .HasColumnName("group_ids");
 
                     b.Property<Guid?>("InvitedBy")
                         .HasColumnType("uuid")

@@ -8,7 +8,7 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 - **plans**: name, limits (JSON: usuários, armazenamento), price
 - **plan_modules** (FND-06): plan_id, module_code (único por plano). Módulos que o plano libera; plano novo nasce com todos (ADR 0010 item 4)
 - **tenant_modules** (FND-06): tenant_id, module_code (único por tenant), enabled, is_exception, released_at, updated_at. Liberação efetiva por tenant: herda do plano; a mudança manual do super admin vira exceção e sobrevive à troca de plano. Trigger com NOTIFY invalida o cache do tenant
-- **platform_admins** (FND-13, ADR 0012): email, normalized_email (único), password_hash, security_stamp, status (Invited/Active/Inactive), access_failed_count, lockout_end, last_login_at, totp_enabled, totp_secret_cipher, totp_last_step, created_at
+- **platform_admins** (FND-13, ADR 0012): email, normalized_email (único), password_hash, security_stamp, status (Invited/Active/Inactive), access_failed_count, lockout_end, last_login_at, totp_enabled, perm_version (FND-06c, cache versionado), totp_secret_cipher, totp_last_step, created_at
 - **platform_admin_tokens** (FND-13): admin_id, token_hash (único), purpose (SetPassword/Verify/Setup), created_at, expires_at, attempts, used_at, invalidated_at
 - **platform_recovery_codes** (FND-13): admin_id, code_hash, created_at, used_at
 - **platform_sessions** (FND-13): admin_id, token_hash (único), host, created_at, last_seen_at, revoked_at, created_by_ip
@@ -26,7 +26,7 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 - **group_modules**: group_id, module_code, enabled
 - **group_permissions**: group_id, module_code, action (padrão ou específica do `ModuleCatalog`; único por grupo e módulo). Só vale se o módulo estiver habilitado no grupo; o Proprietário não grava linhas
 - **user_groups**: user_id, group_id (N:N)
-- **user_invites**: email, group_ids, token_hash, expires_at, accepted_at, invited_by
+- **user_invites**: user_id, email, group_ids (uuid[], validados pela delegação no envio e no aceite), token_hash, expires_at (72 h), accepted_at, canceled_at, invited_by, is_owner, created_at
 - Permissão efetiva (calculada e em cache): ∪ group_permissions dos grupos ativos do usuário, com módulo habilitado, ∩ módulos liberados do tenant
 - **refresh_tokens** (FND-04a): user_id, token_hash (SHA-256, único), family_id, created_at, expires_at, replaced_at, replaced_by_id, revoked_at, created_by_ip
 - **password_resets** (FND-04): user_id, token_hash, expires_at (1 h), used_at, created_at
