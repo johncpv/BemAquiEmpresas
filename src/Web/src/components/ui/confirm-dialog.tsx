@@ -15,13 +15,19 @@ interface ConfirmDialogProps {
   onConfirm: () => Promise<unknown>
   nextStep?: NextStep
   trigger: ReactNode
+  /**
+   * Ação alternativa quando o servidor recusa (FND-09d CA 17), ex.: excluir recusado por uso oferece "Inativar".
+   * `when` filtra pelo código do erro; sem ele, a alternativa aparece em qualquer recusa.
+   */
+  recovery?: { verb: string; done: string; onSelect: () => Promise<unknown>; when?: (code: string | undefined) => boolean }
 }
 
 /** Confirmação com o mesmo verbo da ação (FND-09c CA 11); erro do servidor fica no diálogo, com o motivo. */
-export function ConfirmDialog({ verb, done, title, description, destructive, onConfirm, nextStep, trigger }: ConfirmDialogProps) {
+export function ConfirmDialog({ verb, done, title, description, destructive, onConfirm, nextStep, trigger, recovery }: ConfirmDialogProps) {
   const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [errorCode, setErrorCode] = useState<string | undefined>()
 
   const confirm = async () => {
     setBusy(true)
@@ -30,6 +36,21 @@ export function ConfirmDialog({ verb, done, title, description, destructive, onC
       await onConfirm()
       setOpen(false)
       toastDone(done, nextStep)
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : 'Não foi possível concluir. Tente de novo.')
+      setErrorCode(e instanceof ApiError ? e.code : undefined)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const recover = async () => {
+    if (!recovery) return
+    setBusy(true)
+    try {
+      await recovery.onSelect()
+      setOpen(false)
+      toastDone(recovery.done)
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Não foi possível concluir. Tente de novo.')
     } finally {
@@ -46,6 +67,11 @@ export function ConfirmDialog({ verb, done, title, description, destructive, onC
           <Dialog.Title className="text-base font-semibold">{title}</Dialog.Title>
           {description ? <Dialog.Description className="mt-1 text-sm text-muted-foreground">{description}</Dialog.Description> : null}
           {error ? <p role="alert" className="mt-3 text-sm text-crit-ink">{error}</p> : null}
+          {error && recovery && (recovery.when?.(errorCode) ?? true) ? (
+            <button type="button" disabled={busy} onClick={recover} className="mt-2 rounded-md border border-border px-3 py-1.5 text-sm font-semibold">
+              {recovery.verb}
+            </button>
+          ) : null}
           <div className="mt-5 flex justify-end gap-2">
             <Dialog.Close className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Voltar</Dialog.Close>
             <button

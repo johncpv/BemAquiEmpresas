@@ -5,14 +5,15 @@ import { useId, useState } from 'react'
  * Explicação curta ao lado do que confunde (FND-14 CA 7): abre no mouse, no foco (Tab) e no toque; Esc ou tocar fora
  * fecha. O texto também está sempre ligado ao "?" por aria-describedby, para o leitor de tela.
  */
-export function Dica({ texto }: { texto: string }) {
+/** `nome`: o campo explicado, para o leitor de tela distinguir várias dicas ("Dica: Regime tributário", FND-09d CA 20). */
+export function Dica({ texto, nome }: { texto: string; nome?: string }) {
   const [open, setOpen] = useState(false)
   const id = useId()
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger
         type="button"
-        aria-label="Dica"
+        aria-label={nome ? `Dica: ${nome}` : 'Dica'}
         aria-describedby={id}
         onMouseEnter={() => setOpen(true)}
         onMouseLeave={() => setOpen(false)}
@@ -23,9 +24,10 @@ export function Dica({ texto }: { texto: string }) {
           e.preventDefault()
           setOpen(true)
         }}
-        className="ml-1 inline-grid size-4 place-items-center rounded-full border border-input text-[10px] font-bold text-muted-foreground align-middle"
+        // Alvo de 24 px (WCAG 2.5.8); o círculo visível continua com 16 px.
+        className="ml-0.5 inline-grid size-6 place-items-center rounded-full align-middle text-muted-foreground"
       >
-        ?
+        <span aria-hidden="true" className="grid size-4 place-items-center rounded-full border border-input text-[10px] font-bold">?</span>
       </Popover.Trigger>
       <span id={id} className="sr-only">{texto}</span>
       <Popover.Portal>

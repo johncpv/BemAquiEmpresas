@@ -12,12 +12,12 @@ const HELP_DIR = join(process.cwd(), '..', '..', 'Ajuda')
 const header = (text: string, field: string) => new RegExp(`^${field}:(.*)$`, 'm').exec(text)?.[1].trim() ?? ''
 const helpFiles = readdirSync(HELP_DIR).filter((f) => f.endsWith('.md')).map((f) => readFileSync(join(HELP_DIR, f), 'utf8'))
 
-// Rotas que só redirecionam (não são telas) e a galeria de desenvolvimento.
+// Rotas que só redirecionam (não são telas) e as galerias de desenvolvimento (/dev, /app/dev: só em dev e homologação).
 const NOT_SCREENS = new Set(['__root__', '/', '/app/acessos', '/app/configuracoes', '/plataforma', '/dev/galeria'])
 
 describe('cobertura da ajuda (FND-14 CA 8 e 10)', () => {
   it('toda rota do TanStack Router tem uma ajuda em Ajuda/', () => {
-    const routes = Object.keys(router.routesById).map(normalizeRoute).filter((r) => !NOT_SCREENS.has(r))
+    const routes = Object.keys(router.routesById).map(normalizeRoute).filter((r) => !NOT_SCREENS.has(r) && !r.startsWith('/app/dev'))
     const covered = new Set(helpFiles.map((t) => header(t, 'rota')))
     const missing = [...new Set(routes)].filter((r) => !covered.has(r))
     expect(missing, 'rotas sem ajuda: crie Ajuda/<chave>.md com o cabeçalho rota').toEqual([])

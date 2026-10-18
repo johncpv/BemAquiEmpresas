@@ -21,9 +21,13 @@ import { PlatformLoginPage } from '@/platform/PlatformLoginPage'
 import { PlatformSetPasswordPage } from '@/platform/PlatformSetPasswordPage'
 import { TenantDetailPage } from '@/platform/TenantDetailPage'
 import { TenantsPage } from '@/platform/TenantsPage'
+import { ComponentsMold, CreateMold, DetailMold, PanelMold } from '@/dev/molds/lazy'
 import { AppShell } from '@/shell/AppShell'
 
-const Gallery = import.meta.env.DEV ? lazy(() => import('./dev/Gallery')) : null
+// Galerias (FND-09a e FND-09d): em desenvolvimento e no build da homologação (VITE_GALERIA=true); nunca em produção.
+const galleryEnabled = import.meta.env.DEV || import.meta.env.VITE_GALERIA === 'true'
+const Gallery = galleryEnabled ? lazy(() => import('./dev/Gallery')) : null
+
 
 const text = (v: unknown) => (typeof v === 'string' && v ? v : undefined)
 
@@ -64,6 +68,13 @@ const groupsRoute = createRoute({ getParentRoute: () => appRoute, path: 'acessos
 const settingsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes', beforeLoad: () => { throw redirect({ to: '/app/configuracoes/seguranca' }) } })
 const securityRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/seguranca', component: gated('settings', SecurityPage) })
 const aiSettingsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/ia', component: gated('settings', AiSettingsPage) })
+// Moldes de tela da FND-09d, dentro do shell, para o PO aprovar no contexto real.
+const moldsRoute = createRoute({ getParentRoute: () => appRoute, path: 'dev/moldes', beforeLoad: () => { throw redirect({ to: '/app/dev/moldes/cadastro' }) } })
+const createMoldRoute = createRoute({ getParentRoute: () => appRoute, path: 'dev/moldes/cadastro', component: CreateMold })
+const detailMoldRoute = createRoute({ getParentRoute: () => appRoute, path: 'dev/moldes/detalhe', component: DetailMold })
+const panelMoldRoute = createRoute({ getParentRoute: () => appRoute, path: 'dev/moldes/painel', component: PanelMold })
+const componentsMoldRoute = createRoute({ getParentRoute: () => appRoute, path: 'dev/componentes', component: ComponentsMold })
+const devRoutes = galleryEnabled ? [moldsRoute, createMoldRoute, detailMoldRoute, panelMoldRoute, componentsMoldRoute] : []
 const moduleRoute = createRoute({ getParentRoute: () => appRoute, path: '$module', component: ModulePage })
 const moduleTabRoute = createRoute({ getParentRoute: () => appRoute, path: '$module/$tab', component: ModulePage })
 
@@ -100,7 +111,7 @@ export const routeTree = rootRoute.addChildren([
   resetRoute,
   inviteRoute,
   appRoute.addChildren([appIndexRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, securityRoute,
-    aiSettingsRoute, moduleRoute, moduleTabRoute]),
+    aiSettingsRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
   platformLoginRoute,
   platformPasswordRoute,
   platformRoute.addChildren([platformIndexRoute, tenantsRoute, tenantRoute]),

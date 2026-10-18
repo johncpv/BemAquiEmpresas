@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { provisionTenant, useListPlans } from '@/api/generated/bemaqui'
 import { Field, FormError } from '@/components/form/form'
 import { applyServerErrors, inputClass, useZodForm } from '@/components/form/form-utils'
-import { isValidCnpj } from '@/lib/cnpj'
+import { isValidCnpj } from '@/lib/masks'
 import { z } from '@/lib/zod'
 
 const schema = z.object({

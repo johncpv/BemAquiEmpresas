@@ -4,6 +4,9 @@ WORKDIR /web
 RUN corepack enable
 COPY src/Web/package.json src/Web/pnpm-lock.yaml src/Web/.npmrc ./
 RUN pnpm install --frozen-lockfile
+# Galeria de componentes e moldes (FND-09d): ligada só no build da homologação.
+ARG VITE_GALERIA=false
+ENV VITE_GALERIA=$VITE_GALERIA
 COPY src/Web/ ./
 RUN pnpm build
 
