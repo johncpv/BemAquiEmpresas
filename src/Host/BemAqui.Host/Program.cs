@@ -101,6 +101,7 @@ try
     app.UseAuthentication();
     app.UseRequestLogContext();
     app.UseBemAquiRequestLogging();
+    app.UsePlatformDashboard(); // antes da policy padrão: o painel tem a própria autorização (esquema Platform)
     app.UseAuthorization();
 
     if (app.Environment.IsDevelopment())

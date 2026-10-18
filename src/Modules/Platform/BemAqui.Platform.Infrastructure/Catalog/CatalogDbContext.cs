@@ -1,11 +1,12 @@
 using BemAqui.BuildingBlocks.Persistence.Auditing;
+using BemAqui.Platform.Application.Auth;
 using BemAqui.Platform.Domain;
 using Microsoft.EntityFrameworkCore;
 
 namespace BemAqui.Platform.Infrastructure.Catalog;
 
 /// <summary>Banco de catálogo (schema <c>catalog</c>): tenants, domínios e planos (ADRs 0001 e 0004).</summary>
-public sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options) : DbContext(options)
+public sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options) : DbContext(options), IPlatformAuthDb
 {
     public const string Schema = "catalog";
     public const string ChangeChannel = "tenant_changed";
@@ -19,6 +20,14 @@ public sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options)
     public DbSet<ProvisioningLog> ProvisioningLogs => Set<ProvisioningLog>();
 
     public DbSet<PlatformAlert> PlatformAlerts => Set<PlatformAlert>();
+
+    public DbSet<PlatformAdmin> PlatformAdmins => Set<PlatformAdmin>();
+
+    public DbSet<PlatformAdminToken> PlatformAdminTokens => Set<PlatformAdminToken>();
+
+    public DbSet<PlatformRecoveryCode> PlatformRecoveryCodes => Set<PlatformRecoveryCode>();
+
+    public DbSet<PlatformSession> PlatformSessions => Set<PlatformSession>();
 
     /// <summary>Auditoria das alterações do catálogo (ex.: suspensão de tenant), imutável como a dos tenants.</summary>
     public DbSet<AuditEntry> AuditEntries => Set<AuditEntry>();
@@ -57,7 +66,7 @@ public sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options)
             b.HasKey(e => e.Id);
             b.Property(e => e.Entity).HasMaxLength(128);
             b.Property(e => e.EntityId).HasMaxLength(64);
-            b.Property(e => e.Action).HasMaxLength(16);
+            b.Property(e => e.Action).HasMaxLength(64);
             b.Property(e => e.Changes).HasColumnType("jsonb");
             b.Property(e => e.Ip).HasMaxLength(64);
             b.HasIndex(e => new { e.Entity, e.EntityId, e.At });
@@ -79,6 +88,47 @@ public sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options)
             b.Property(e => e.Message).HasMaxLength(2000);
             b.HasIndex(e => new { e.TenantId, e.At });
             b.HasOne<Tenant>().WithMany().HasForeignKey(e => e.TenantId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PlatformAdmin>(b =>
+        {
+            b.ToTable("platform_admins");
+            b.Property(e => e.Email).HasMaxLength(320);
+            b.Property(e => e.NormalizedEmail).HasMaxLength(320);
+            b.HasIndex(e => e.NormalizedEmail).IsUnique();
+            b.Property(e => e.PasswordHash).HasMaxLength(512);
+            b.Property(e => e.SecurityStamp).HasMaxLength(64);
+            b.Property(e => e.Status).HasConversion<string>().HasMaxLength(16);
+            b.Property(e => e.TotpSecretCipher).HasMaxLength(1024);
+        });
+
+        modelBuilder.Entity<PlatformAdminToken>(b =>
+        {
+            b.ToTable("platform_admin_tokens");
+            b.Property(e => e.TokenHash).HasMaxLength(64);
+            b.HasIndex(e => e.TokenHash).IsUnique();
+            b.Property(e => e.Purpose).HasConversion<string>().HasMaxLength(16);
+            b.HasIndex(e => e.AdminId);
+            b.HasOne<PlatformAdmin>().WithMany().HasForeignKey(e => e.AdminId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<PlatformRecoveryCode>(b =>
+        {
+            b.ToTable("platform_recovery_codes");
+            b.Property(e => e.CodeHash).HasMaxLength(64);
+            b.HasIndex(e => new { e.AdminId, e.CodeHash });
+            b.HasOne<PlatformAdmin>().WithMany().HasForeignKey(e => e.AdminId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<PlatformSession>(b =>
+        {
+            b.ToTable("platform_sessions");
+            b.Property(e => e.TokenHash).HasMaxLength(64);
+            b.HasIndex(e => e.TokenHash).IsUnique();
+            b.Property(e => e.Host).HasMaxLength(253);
+            b.Property(e => e.CreatedByIp).HasMaxLength(64);
+            b.HasIndex(e => e.AdminId);
+            b.HasOne<PlatformAdmin>().WithMany().HasForeignKey(e => e.AdminId).OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<TenantDomain>(b =>

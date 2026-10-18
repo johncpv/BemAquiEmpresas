@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace BemAqui.Identity.Application;
+namespace BemAqui.BuildingBlocks.Security;
 
 /// <summary>Tokens opacos (refresh, convite, redefinição): 32 bytes aleatórios; no banco fica só o SHA-256.</summary>
 public static class OpaqueToken

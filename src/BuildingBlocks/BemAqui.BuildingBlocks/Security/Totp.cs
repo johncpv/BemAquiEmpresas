@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace BemAqui.Identity.Application;
+namespace BemAqui.BuildingBlocks.Security;
 
 /// <summary>TOTP da RFC 6238: HMAC-SHA1, intervalos de 30 s, 6 dígitos, tolerância de ±1 intervalo.</summary>
 public static class Totp

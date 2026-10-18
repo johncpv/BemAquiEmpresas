@@ -5,7 +5,7 @@
 | ID | FND-13 |
 | Título | Login do super admin em `plataforma.bemaquiapp.com.br`, 2FA obrigatório, allowlist de IP e painel Hangfire protegido |
 | Tamanho | M |
-| Status | Draft |
+| Status | In Progress (API pronta; telas depois da FND-09a/b/c) |
 | Requisitos | R-PLT-4 (acesso ao painel da plataforma) · PRD §6 Segurança |
 | Dependências | FND-02 (host da plataforma fora de `tenant_domains`), FND-04 (mecanismo de sessão), FND-05 (TOTP), FND-11, FND-12 |
 | Bloqueia | FND-03b, FND-06 (tela de liberação de módulos), FND-10 (vhost da plataforma) |
@@ -116,7 +116,19 @@ Checklist do @po (Pax), 16/10/2026.
 | 16/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 
 ## Dev Agent Record
-_A preencher pelo @dev._
+- **API (FND-13), 18/10/2026, branch `feat/fnd-13-super-admin`.** Decisões na ADR 0012, que tem a sessão em cookie opaco e os tempos padrão de 30 min de inatividade e 8 h de teto. A allowlist segue a ADR 0010 item 7.
+  - **CLI (CA 1):** `platform-admin create --email` cria o super admin convidado e mostra, uma única vez, o link de definição de senha (24 h). Não existe rota pública de cadastro.
+  - **Login (CA 3):** `POST /api/v1/platform/auth/login` sempre devolve um desafio, de configuração no primeiro acesso e de verificação depois. A sessão só nasce em `/2fa/confirm` ou `/2fa/verify`.
+  - **Esquema `Platform` (CA 4):** usa o cookie `__Host-bq_pa`, preso ao host da plataforma e conferido no catálogo. Ele ignora `Authorization`, então um token de tenant não vale na plataforma, e o cookie da plataforma não vale num tenant.
+  - **Roteamento por host (CA 5):** `/api/v1/platform` e `/hangfire` respondem 404 nos hosts de tenant. No host da plataforma, só elas existem.
+  - **Allowlist (CA 2):** fica no nginx; `Platform:AllowedNetworks` é uma camada opcional na app. Fora da lista, a resposta é 404, antes do login.
+  - **Hangfire (CA 6):** sem sessão, `/hangfire` redireciona para `/entrar?volta=/hangfire`. Com sessão, abre o painel, e o filtro do dashboard confere o esquema `Platform`.
+  - **Regras compartilhadas (CA 7):** bloqueio, resposta uniforme, anti-replay atômico, 5 tentativas por desafio e o mesmo rate limit. `Totp`, `Base32`, `OpaqueToken` e `PasswordPolicy` foram para `BuildingBlocks.Security`.
+  - **Auditoria (CA 8):** os eventos vão para a `audit.audit_log` do catálogo (`entity = "PlatformAuth"`), com IP e UTC.
+  - **Inatividade (CA 9):** configurável em `PlatformAuth`.
+  - **Anti-CSRF:** todo POST em `/api/v1/platform` exige `Origin` e `X-CSRF: 1`.
+  - **Testes:** 8 de integração.
+  - **Pendente:** telas Entrar, Definir senha e 2FA da superfície Plataforma, depois da FND-09a/b/c; E2E.
 
 ## QA Results
 _A preencher pelo @qa._

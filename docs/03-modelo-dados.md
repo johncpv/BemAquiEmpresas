@@ -8,7 +8,11 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 - **plans**: name, limits (JSON: usuários, armazenamento), price
 - **plan_modules**: plan_id, module_code — módulos que a versão/plano libera
 - **tenant_modules**: tenant_id, module_code, enabled, released_at — liberação efetiva por tenant (herda do plano, com exceções manuais do super admin)
-- **platform_admins**: email, password_hash, totp_secret
+- **platform_admins** (FND-13, ADR 0012): email, normalized_email (único), password_hash, security_stamp, status (Invited/Active/Inactive), access_failed_count, lockout_end, last_login_at, totp_enabled, totp_secret_cipher, totp_last_step, created_at
+- **platform_admin_tokens** (FND-13): admin_id, token_hash (único), purpose (SetPassword/Verify/Setup), created_at, expires_at, attempts, used_at, invalidated_at
+- **platform_recovery_codes** (FND-13): admin_id, code_hash, created_at, used_at
+- **platform_sessions** (FND-13): admin_id, token_hash (único), host, created_at, last_seen_at, revoked_at, created_by_ip
+- **audit.audit_log** do catálogo: auditoria da plataforma (`entity = "PlatformAuth"` para login do super admin), imutável
 - **platform_alerts** (FND-12): key (tipo:tenant, único), last_sent_at, occurrences, last_summary — deduplicação de alertas
 - **provisioning_logs** (FND-03a): tenant_id, step (Register/CreateRole/CreateDatabase/Migrate/Seed/CreateOwner/SendInvite/Activate), status (Started/Succeeded/Failed), message (nunca com segredo), at
 - **tenants** recebe também `schema_version` (última migration aplicada no banco do tenant) e `migrated_at` (FND-03a)

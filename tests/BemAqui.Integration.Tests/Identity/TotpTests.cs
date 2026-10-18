@@ -1,3 +1,4 @@
+using BemAqui.BuildingBlocks.Security;
 using System.Text;
 using BemAqui.Identity.Application;
 using FluentAssertions;
