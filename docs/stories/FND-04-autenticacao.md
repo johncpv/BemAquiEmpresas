@@ -5,7 +5,7 @@
 | ID | FND-04 |
 | Título | Identity por tenant: login, refresh rotativo em cookie, recuperação de senha, bloqueio e aceite de convite |
 | Tamanho | G |
-| Status | In Progress (04a pronta; 04b e telas a seguir) |
+| Status | In Progress (04a e 04b prontas; telas a seguir) |
 | Requisitos | R-SEC-1 · R-SEC-3 · R-SEC-4 (aceite de convite) · R-SEC-5 (login, logout e falhas auditados) · R-PLT-3 (proprietário e convite no provisionamento) |
 | Dependências | FND-02, FND-03a, FND-07, FND-08, FND-11; telas dependem de FND-09a e FND-09c |
 | Bloqueia | FND-05, FND-06c, FND-13 (reaproveita o mecanismo) e todas as rotas autenticadas |
@@ -164,6 +164,25 @@ Checklist do @po (Pax), 16/10/2026.
   - **Pendente nas partes seguintes:**
     - CA 3 (access token só em memória no front): telas do front;
     - CA 11 a 15 e 17 a 19: FND-04b.
+- **Parte B (FND-04b), 18/10/2026, branch `feat/fnd-04b-recuperacao-convite`.**
+  - **`AccountRecovery`:**
+    - `POST /auth/forgot-password` responde sempre 202 com "Se o e-mail estiver cadastrado, você receberá um link."; só o usuário ativo recebe o e-mail (CA 12);
+    - `POST /auth/reset-password` aceita o token uma única vez, por 1 h (CA 13);
+    - a redefinição revoga todas as famílias de refresh, troca o security stamp, invalida o cache, desbloqueia a conta e não mexe no 2FA (CA 14).
+  - **`Invites`:** `EnsureInviteAsync` (idempotente) cria o usuário convidado e o convite pendente; `SendAsync` gera um token novo, o anterior deixa de valer, e o convite vale 72 h.
+  - **Endpoints de convite:**
+    - `POST /auth/invites/inspect` devolve o estado do convite (`Valid`, `Expired`, `Accepted`, `NotFound`), com o e-mail para pré-preencher ou a mensagem de orientação (CA 18);
+    - `POST /auth/invites/accept` aplica a política de senha, ativa o usuário, publica `UserActivated`, já devolve a sessão e indica `offerTwoFactor` (CA 17).
+  - **Tokens no corpo:** os endpoints recebem o token no corpo, nunca na URL da API, para que ele não apareça em log de acesso. Os links de e-mail usam o host primário do tenant (CA 15).
+  - **Provisionamento:** `IdentityOwnerOnboarding` substitui o `PendingOwnerOnboarding` nas etapas `CreateOwner` e `SendInvite` (CA 19). A CLI agora compõe o módulo Identity e o outbox, com o dispatcher desligado.
+  - **Conta bloqueada:** a 5ª senha errada enfileira o e-mail `account-locked`, com link para "Esqueci minha senha".
+  - **Rate limit (CA 11):**
+    - aplicado a `/api/v1/auth/*` (`AuthRateLimiting`), com duas janelas fixas encadeadas: IP real + tenant (20/min) e tenant (300/min), configuráveis em `RateLimit:Auth`;
+    - excedeu, responde 429 com `Retry-After` e `code: "rate_limited"`;
+    - o limite por usuário é o bloqueio da conta.
+  - **Pendente:**
+    - telas (CA 3, Entrar, Esqueci minha senha, Redefinir senha e Aceitar convite) depois da FND-09a/b/c;
+    - E2E com Playwright.
 
 ## QA Results
 _A preencher pelo @qa._

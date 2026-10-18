@@ -1,4 +1,5 @@
 using System.Text.Json;
+using BemAqui.BuildingBlocks.Email;
 using BemAqui.BuildingBlocks.Persistence.Auditing;
 using BemAqui.BuildingBlocks.Security;
 using BemAqui.BuildingBlocks.Tenancy;
@@ -21,6 +22,8 @@ public sealed partial class AuthService(
     IAccessTokenIssuer issuer,
     ITenantContext tenant,
     TokenSigning signing,
+    IEmailSender mail,
+    TenantLinks links,
     TimeProvider clock)
 {
     public const string InvalidCredentials = "E-mail ou senha inválidos.";
@@ -53,6 +56,16 @@ public sealed partial class AuthService(
         if (verified == PasswordVerificationResult.Failed)
         {
             var lockedNow = user.RegisterFailedLogin(now);
+            if (lockedNow)
+            {
+                // Avisa o dono da conta: se não foi ele, o link leva direto à redefinição (propositivo).
+                mail.Enqueue("account-locked", user.Email, new Dictionary<string, object?>
+                {
+                    ["locked_until"] = user.LockoutEnd,
+                    ["link"] = links.Absolute("/esqueci-senha"),
+                }, "User", user.Id);
+            }
+
             await AuditAsync(lockedNow ? "LockedOut" : "LoginFailed", user.Id, ip, new { reason = "wrong_password" }, cancellationToken);
             return Invalid();
         }

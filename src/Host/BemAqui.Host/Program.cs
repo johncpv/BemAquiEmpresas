@@ -74,7 +74,7 @@ try
     builder.Services.AddTenantPersistence();
     builder.Services.AddSingleton<BemAqui.Platform.Application.Provisioning.ITenantDatabaseMigrator, TenantDatabaseMigrator>();
     builder.Services.AddBemAquiEmail(builder.Configuration);
-    builder.Services.AddBemAquiMessaging(builder.Configuration, events => events.AddEmailEvents());
+    builder.Services.AddBemAquiMessaging(builder.Configuration, HostEvents.Register);
 
     // Endurecimento HTTP (FND-02b): proxy confiável, JWT preso ao tenant e ao host, SignalR. Sem CORS (mesma origem).
     var proxy = builder.Configuration.GetSection(ReverseProxyOptions.Section).Get<ReverseProxyOptions>() ?? new ReverseProxyOptions();
@@ -82,6 +82,7 @@ try
     builder.Services.Configure<ForwardedHeadersOptions>(o => ReverseProxySetup.Configure(o, proxy));
     builder.Services.AddTenantJwtAuthentication(builder.Configuration, builder.Environment);
     builder.Services.AddSignalR();
+    builder.Services.AddAuthRateLimiting(builder.Configuration);
 
     foreach (var module in ModuleRegistry.All)
     {
@@ -96,6 +97,7 @@ try
     app.UseExceptionHandler();
     app.UseStatusCodePages();
     app.UseMiddleware<TenantResolutionMiddleware>();
+    app.UseRateLimiter();
     app.UseAuthentication();
     app.UseRequestLogContext();
     app.UseBemAquiRequestLogging();

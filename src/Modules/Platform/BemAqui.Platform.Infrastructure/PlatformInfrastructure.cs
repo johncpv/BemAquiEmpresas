@@ -35,7 +35,6 @@ public static class PlatformInfrastructure
 
         services.TryAddScoped<IProvisioningCatalog, EfProvisioningCatalog>();
         services.TryAddSingleton<ITenantDatabaseAdmin, PostgresTenantDatabaseAdmin>();
-        services.TryAddScoped<ITenantOwnerOnboarding, PendingOwnerOnboarding>();
         services.TryAddScoped<ProvisioningService>();
 
         services.Configure<AlertOptions>(configuration.GetSection(AlertOptions.Section));

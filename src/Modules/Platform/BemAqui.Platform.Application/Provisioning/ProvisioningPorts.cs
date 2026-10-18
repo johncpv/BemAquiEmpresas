@@ -42,10 +42,3 @@ public interface ITenantDatabaseMigrator
     Task<(string? From, string? To)> MigrateAsync(string connectionString, CancellationToken cancellationToken);
 }
 
-/// <summary>Dono do tenant e convite (Identity na FND-04/06c e e-mail na FND-08). Até lá, implementação provisória.</summary>
-public interface ITenantOwnerOnboarding
-{
-    Task CreateOwnerAsync(Tenant tenant, string email, IServiceProvider tenantScope, CancellationToken cancellationToken);
-
-    Task SendInviteAsync(Tenant tenant, string email, IServiceProvider tenantScope, CancellationToken cancellationToken);
-}
