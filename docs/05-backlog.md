@@ -50,15 +50,15 @@ Stories detalhadas em [`docs/stories/`](stories/README.md), com critérios de ac
 - Requisitos: R-SEC-2.
 - CA: login com 2FA pede código; código de recuperação usável uma vez; proprietário obriga 2FA e usuários sem 2FA são levados à configuração no próximo login; anti-replay; 5 tentativas por desafio; token intermediário só com escopo de 2FA. Inclui as telas de 2FA.
 
-**FND-13 [ ] Autenticação do super admin (M)** — API pronta; telas depois da FND-09c — nova — [story](stories/FND-13-autenticacao-super-admin.md)
+**FND-13 [x] Autenticação do super admin (M)** — nova — [story](stories/FND-13-autenticacao-super-admin.md)
 - Requisitos: R-PLT-4.
 - CA: login em `plataforma.bemaquiapp.com.br` com 2FA obrigatório e allowlist de IP (ADR 0005 D2); tokens da plataforma e do tenant não valem um no outro; painel da plataforma e `/hangfire` respondem 404 em host de tenant.
 
-**FND-03b [ ] Tela do super admin: tenants (M)** — quebra da FND-03 — [story](stories/FND-03b-tela-super-admin-tenants.md)
+**FND-03b [x] Tela do super admin: tenants (M)** — quebra da FND-03 — [story](stories/FND-03b-tela-super-admin-tenants.md)
 - Requisitos: R-PLT-4, R-PLT-3.
 - CA: listar, provisionar com progresso por etapa, retomar, suspender (com motivo) e reativar tenants; ações auditadas; 404 em host de tenant.
 
-**FND-06 [ ] Catálogo de módulos e liberação por tenant (M)** — API pronta; telas depois da FND-09c — [story](stories/FND-06-catalogo-modulos-liberacao.md)
+**FND-06 [x] Catálogo de módulos e liberação por tenant (M)** — [story](stories/FND-06-catalogo-modulos-liberacao.md)
 - Requisitos: R-SEC-11, R-SEC-10, R-SEC-12.
 - CA: endpoint de módulo não liberado → 403 `module_not_released`; seed idempotente com `module_actions` (ADR 0003); liberar ou bloquear um módulo reflete no tenant no próximo request, sem deploy.
 

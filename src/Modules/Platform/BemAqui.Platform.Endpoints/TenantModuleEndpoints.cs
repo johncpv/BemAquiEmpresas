@@ -21,7 +21,7 @@ internal static class TenantModuleEndpoints
 
         tenants.MapGet(string.Empty, async (Guid tenantId, TenantModuleService service, CancellationToken ct) =>
                 (await service.GetAsync(tenantId, ct)).ToHttpResult())
-            .WithName("GetTenantModules");
+            .WithName("GetTenantModules").Produces<IReadOnlyList<ModuleRelease>>();
 
         tenants.MapPut(string.Empty, async (Guid tenantId, SaveModuleReleaseRequest request, ClaimsPrincipal user, HttpContext http, TenantModuleService service, CancellationToken ct) =>
                 (await service.SaveAsync(tenantId, request.Modules, Guid.TryParse(user.FindFirstValue("sub"), out var adminId) ? adminId : null, http.Connection.RemoteIpAddress?.ToString(), ct)).ToHttpResult())

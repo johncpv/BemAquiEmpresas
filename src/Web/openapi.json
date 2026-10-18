@@ -374,7 +374,14 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformChallengeResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -420,7 +427,14 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformTotpSetup"
+                }
+              }
+            }
           }
         }
       }
@@ -443,7 +457,14 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformRecoveryCodesResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -492,7 +513,14 @@
         "operationId": "GetPlatformCurrentAdmin",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformCurrentAdmin"
+                }
+              }
+            }
           }
         }
       }
@@ -516,7 +544,17 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ModuleRelease"
+                  }
+                }
+              }
+            }
           }
         }
       },
@@ -546,6 +584,225 @@
           },
           "required": true
         },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/plans": {
+      "get": {
+        "tags": [
+          "Plataforma"
+        ],
+        "operationId": "ListPlans",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/platform/tenants": {
+      "get": {
+        "tags": [
+          "Plataforma"
+        ],
+        "operationId": "ListTenants",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfTenantRow"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Plataforma"
+        ],
+        "operationId": "ProvisionTenant",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProvisionTenantRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvisionAccepted"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/platform/tenants/{key}": {
+      "get": {
+        "tags": [
+          "Plataforma"
+        ],
+        "operationId": "GetTenant",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/platform/tenants/{key}/resume": {
+      "post": {
+        "tags": [
+          "Plataforma"
+        ],
+        "operationId": "ResumeTenantProvisioning",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvisionAccepted"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/platform/tenants/{key}/suspend": {
+      "post": {
+        "tags": [
+          "Plataforma"
+        ],
+        "operationId": "SuspendTenant",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuspendTenantRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/tenants/{key}/reactivate": {
+      "post": {
+        "tags": [
+          "Plataforma"
+        ],
+        "operationId": "ReactivateTenant",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -1929,6 +2186,41 @@
           }
         }
       },
+      "ModuleRelease": {
+        "required": [
+          "code",
+          "name",
+          "area",
+          "description",
+          "released",
+          "inPlan",
+          "isException"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "area": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "released": {
+            "type": "boolean"
+          },
+          "inPlan": {
+            "type": "boolean"
+          },
+          "isException": {
+            "type": "boolean"
+          }
+        }
+      },
       "ModuleReleaseChange": {
         "required": [
           "code",
@@ -2159,6 +2451,35 @@
           }
         }
       },
+      "PagedListOfTenantRow": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TenantRow"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "PlatformChallengeRequest": {
         "required": [
           "challenge"
@@ -2167,6 +2488,26 @@
         "properties": {
           "challenge": {
             "type": "string"
+          }
+        }
+      },
+      "PlatformChallengeResponse": {
+        "required": [
+          "challenge",
+          "purpose",
+          "expiresAt"
+        ],
+        "type": "object",
+        "properties": {
+          "challenge": {
+            "type": "string"
+          },
+          "purpose": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -2181,6 +2522,17 @@
             "type": "string"
           },
           "code": {
+            "type": "string"
+          }
+        }
+      },
+      "PlatformCurrentAdmin": {
+        "required": [
+          "adminId"
+        ],
+        "type": "object",
+        "properties": {
+          "adminId": {
             "type": "string"
           }
         }
@@ -2200,6 +2552,20 @@
           }
         }
       },
+      "PlatformRecoveryCodesResponse": {
+        "required": [
+          "recoveryCodes"
+        ],
+        "type": "object",
+        "properties": {
+          "recoveryCodes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "PlatformSetPasswordRequest": {
         "required": [
           "token",
@@ -2211,6 +2577,21 @@
             "type": "string"
           },
           "password": {
+            "type": "string"
+          }
+        }
+      },
+      "PlatformTotpSetup": {
+        "required": [
+          "manualKey",
+          "otpAuthUri"
+        ],
+        "type": "object",
+        "properties": {
+          "manualKey": {
+            "type": "string"
+          },
+          "otpAuthUri": {
             "type": "string"
           }
         }
@@ -2248,6 +2629,88 @@
         "properties": {
           "theme": {
             "type": "string"
+          }
+        }
+      },
+      "ProvisionAccepted": {
+        "required": [
+          "key"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          }
+        }
+      },
+      "ProvisioningLogRow": {
+        "required": [
+          "step",
+          "status",
+          "message",
+          "at"
+        ],
+        "type": "object",
+        "properties": {
+          "step": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "message": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ProvisionTenantRequest": {
+        "required": [
+          "key",
+          "legalName",
+          "tradeName",
+          "document",
+          "host",
+          "ownerEmail",
+          "plan"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "legalName": {
+            "type": "string"
+          },
+          "tradeName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "document": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "host": {
+            "type": "string"
+          },
+          "ownerEmail": {
+            "type": "string"
+          },
+          "plan": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -2350,6 +2813,49 @@
           }
         }
       },
+      "SuspendTenantRequest": {
+        "required": [
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "TenantDetail": {
+        "required": [
+          "tenant",
+          "domains",
+          "log",
+          "steps"
+        ],
+        "type": "object",
+        "properties": {
+          "tenant": {
+            "$ref": "#/components/schemas/TenantRow"
+          },
+          "domains": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "log": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProvisioningLogRow"
+            }
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "TenantPublicContext": {
         "required": [
           "name",
@@ -2369,6 +2875,70 @@
           },
           "status": {
             "type": "string"
+          }
+        }
+      },
+      "TenantRow": {
+        "required": [
+          "id",
+          "key",
+          "legalName",
+          "tradeName",
+          "document",
+          "primaryHost",
+          "plan",
+          "status",
+          "schemaVersion",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "key": {
+            "type": "string"
+          },
+          "legalName": {
+            "type": "string"
+          },
+          "tradeName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "document": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "primaryHost": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "plan": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "type": "string"
+          },
+          "schemaVersion": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },

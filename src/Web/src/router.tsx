@@ -14,6 +14,12 @@ import { SecurityPage } from '@/pages/settings/SecurityPage'
 import { ShopfloorLayout, TvLayout } from '@/pages/DedicatedLayouts'
 import { Inicio } from '@/pages/Inicio'
 import { ModulePage, NotFound } from '@/pages/ModulePage'
+import { getPlatformCurrentAdmin } from '@/api/generated/bemaqui'
+import { PlatformLayout } from '@/platform/PlatformLayout'
+import { PlatformLoginPage } from '@/platform/PlatformLoginPage'
+import { PlatformSetPasswordPage } from '@/platform/PlatformSetPasswordPage'
+import { TenantDetailPage } from '@/platform/TenantDetailPage'
+import { TenantsPage } from '@/platform/TenantsPage'
 import { AppShell } from '@/shell/AppShell'
 
 const Gallery = import.meta.env.DEV ? lazy(() => import('./dev/Gallery')) : null
@@ -59,6 +65,25 @@ const securityRoute = createRoute({ getParentRoute: () => appRoute, path: 'confi
 const moduleRoute = createRoute({ getParentRoute: () => appRoute, path: '$module', component: ModulePage })
 const moduleTabRoute = createRoute({ getParentRoute: () => appRoute, path: '$module/$tab', component: ModulePage })
 
+// Plataforma (FND-13/03b): no host da plataforma, com a sessão do super admin (cookie). Sem sessão, vai ao login dela.
+const platformLoginRoute = createRoute({ getParentRoute: () => rootRoute, path: '/plataforma/entrar', component: PlatformLoginPage, validateSearch: (s: Record<string, unknown>): { volta?: string } => ({ volta: text(s.volta) }) })
+const platformPasswordRoute = createRoute({ getParentRoute: () => rootRoute, path: '/plataforma/definir-senha', component: PlatformSetPasswordPage, validateSearch: (s: Record<string, unknown>): { token?: string } => ({ token: text(s.token) }) })
+const platformRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/plataforma',
+  component: PlatformLayout,
+  beforeLoad: async ({ location }) => {
+    try {
+      await getPlatformCurrentAdmin()
+    } catch {
+      throw redirect({ to: '/plataforma/entrar', search: { volta: location.href } })
+    }
+  },
+})
+const platformIndexRoute = createRoute({ getParentRoute: () => platformRoute, path: '/', beforeLoad: () => { throw redirect({ to: '/plataforma/tenants' }) } })
+const tenantsRoute = createRoute({ getParentRoute: () => platformRoute, path: 'tenants', component: TenantsPage })
+const tenantRoute = createRoute({ getParentRoute: () => platformRoute, path: 'tenants/$key', component: TenantDetailPage, validateSearch: (s: Record<string, unknown>): { aba?: string } => ({ aba: text(s.aba) }) })
+
 // Superfícies com layout próprio (02-arquitetura §4): /fab operador, /tv painel. /portal reservado.
 const fabRoute = createRoute({ getParentRoute: () => rootRoute, path: '/fab', component: ShopfloorLayout })
 const tvRoute = createRoute({ getParentRoute: () => rootRoute, path: '/tv/$token', component: TvLayout })
@@ -73,6 +98,9 @@ export const routeTree = rootRoute.addChildren([
   resetRoute,
   inviteRoute,
   appRoute.addChildren([appIndexRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, securityRoute, moduleRoute, moduleTabRoute]),
+  platformLoginRoute,
+  platformPasswordRoute,
+  platformRoute.addChildren([platformIndexRoute, tenantsRoute, tenantRoute]),
   fabRoute,
   tvRoute,
   galleryRoute,

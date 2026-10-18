@@ -22,7 +22,7 @@
 - **Roteamento por host:**
   - `/api/v1/platform` e `/hangfire` só existem no host da plataforma. Nos hosts de tenant, respondem 404;
   - no host da plataforma, qualquer outra rota responde 404;
-  - sem sessão, `/hangfire` redireciona para `/entrar?volta=/hangfire`.
+  - sem sessão, `/hangfire` redireciona para `/plataforma/entrar?volta=/hangfire`.
 - **Allowlist:**
   - fica no nginx (ADR 0010 item 7);
   - a app tem uma segunda camada opcional, `Platform:AllowedNetworks` (CIDR). Vazia, a app não filtra;
@@ -32,3 +32,12 @@
 ## Consequências
 - Primitivas compartilhadas (`Totp`, `Base32`, `OpaqueToken`, `PasswordPolicy`) foram para `BuildingBlocks.Security`, e Identity e Platform usam o mesmo código.
 - Para mudar os tempos de sessão, basta mudar a configuração. Se o PO definir outros valores, eles entram em `PlatformAuth` sem código novo.
+
+## Adendo (FND-03b, 18/10/2026): telas e jobs da plataforma
+- **Caminhos:** as telas da plataforma ficam em `/plataforma/*` (`/plataforma/entrar`, `/plataforma/definir-senha`, `/plataforma/tenants`), no host da plataforma.
+  - Elas não se confundem com o `/entrar` dos tenants e funcionam também em desenvolvimento.
+  - O redirecionamento do Hangfire e o link da CLI apontam para esses caminhos.
+- **401 na plataforma:** o mutator leva ao login da plataforma, sem tentar o refresh do tenant.
+- **`PlatformJob<TArgs>`:** classe base para os jobs que só tocam no catálogo. O primeiro é o provisionamento, que roda antes de o tenant existir.
+  - O teste de arquitetura aceita `TenantJob`, `GlobalRecurringJob` e `PlatformJob`.
+  - Job que mexe em dado de tenant continua obrigado a receber o `tenantId`.

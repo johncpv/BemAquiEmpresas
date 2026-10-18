@@ -1,13 +1,14 @@
 using BemAqui.BuildingBlocks.Persistence.Auditing;
 using BemAqui.Platform.Application.Auth;
 using BemAqui.Platform.Application.Modules;
+using BemAqui.Platform.Application.Tenants;
 using BemAqui.Platform.Domain;
 using Microsoft.EntityFrameworkCore;
 
 namespace BemAqui.Platform.Infrastructure.Catalog;
 
 /// <summary>Banco de catálogo (schema <c>catalog</c>): tenants, domínios e planos (ADRs 0001 e 0004).</summary>
-public sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options) : DbContext(options), IPlatformAuthDb, ITenantModulesDb
+public sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options) : DbContext(options), IPlatformAuthDb, ITenantModulesDb, IPlatformTenantsDb
 {
     public const string Schema = "catalog";
     public const string ChangeChannel = "tenant_changed";

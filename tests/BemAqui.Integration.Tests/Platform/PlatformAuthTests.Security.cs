@@ -22,7 +22,7 @@ public partial class PlatformAuthTests
     {
         var anonymous = await Client().GetAsync("/hangfire");
         anonymous.StatusCode.Should().Be(HttpStatusCode.Redirect);
-        anonymous.Headers.Location!.ToString().Should().Be("/entrar?volta=%2Fhangfire");
+        anonymous.Headers.Location!.ToString().Should().Be("/plataforma/entrar?volta=%2Fhangfire");
 
         var admin = await AdminWithSessionAsync();
         (await WithCookie(Client(), admin.Cookie).GetAsync("/hangfire")).StatusCode.Should().Be(HttpStatusCode.OK);

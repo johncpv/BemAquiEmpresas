@@ -3,7 +3,7 @@ using BemAqui.Platform.Domain;
 namespace BemAqui.Platform.Application.Provisioning;
 
 /// <summary>Pedido de provisionamento (CLI ou tela da FND-03b).</summary>
-public sealed record ProvisionRequest(string Key, string LegalName, string? Document, string Host, string OwnerEmail, string? Plan, bool Resume = false);
+public sealed record ProvisionRequest(string Key, string LegalName, string? Document, string Host, string OwnerEmail, string? Plan, bool Resume = false, string? TradeName = null);
 
 /// <summary>Catálogo visto pelo provisionamento.</summary>
 public interface IProvisioningCatalog

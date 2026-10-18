@@ -42,7 +42,7 @@ internal static class PlatformAuthEndpoints
         auth.MapPost("/login", async (PlatformLoginRequest request, HttpContext http, PlatformAuthService service, CancellationToken ct) =>
                 (await service.LoginAsync(request.Email, request.Password, Ip(http), ct))
                     .ToHttpResult(c => Results.Ok(new PlatformChallengeResponse(c.Challenge, c.Purpose.ToString().ToLowerInvariant(), c.ExpiresAt))))
-            .WithName("PlatformLogin");
+            .WithName("PlatformLogin").Produces<PlatformChallengeResponse>();
 
         auth.MapPost("/set-password", async (PlatformSetPasswordRequest request, HttpContext http, PlatformAuthService service, CancellationToken ct) =>
                 (await service.SetPasswordAsync(request.Token, request.Password, Ip(http), ct)).ToHttpResult())
@@ -50,7 +50,7 @@ internal static class PlatformAuthEndpoints
 
         auth.MapPost("/2fa/setup", async (PlatformChallengeRequest request, PlatformAuthService service, CancellationToken ct) =>
                 (await service.BeginSetupAsync(request.Challenge, ct)).ToHttpResult())
-            .WithName("PlatformBeginTwoFactorSetup");
+            .WithName("PlatformBeginTwoFactorSetup").Produces<PlatformTotpSetup>();
 
         auth.MapPost("/2fa/confirm", async (PlatformConfirmRequest request, HttpContext http, PlatformAuthService service, CancellationToken ct) =>
                 (await service.ConfirmSetupAsync(request.Challenge, request.Code, Host(http), Ip(http), ct))
@@ -59,7 +59,7 @@ internal static class PlatformAuthEndpoints
                         SetSession(http, activated.Session);
                         return Results.Ok(new PlatformRecoveryCodesResponse(activated.RecoveryCodes));
                     }))
-            .WithName("PlatformConfirmTwoFactorSetup");
+            .WithName("PlatformConfirmTwoFactorSetup").Produces<PlatformRecoveryCodesResponse>();
 
         auth.MapPost("/2fa/verify", async (PlatformVerifyRequest request, HttpContext http, PlatformAuthService service, CancellationToken ct) =>
                 (await service.VerifyAsync(request.Challenge, request.Code, request.RecoveryCode, Host(http), Ip(http), ct))
@@ -80,7 +80,7 @@ internal static class PlatformAuthEndpoints
 
         platform.MapGet("/me", (ClaimsPrincipal user) => Results.Ok(new PlatformCurrentAdmin(user.FindFirstValue("sub")!)))
             .RequireAuthorization(PlatformSessionAuthenticationHandler.Policy)
-            .WithName("GetPlatformCurrentAdmin");
+            .WithName("GetPlatformCurrentAdmin").Produces<PlatformCurrentAdmin>();
 
         return api;
     }

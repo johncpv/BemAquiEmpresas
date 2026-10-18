@@ -5,7 +5,7 @@
 | ID | FND-03b |
 | Título | Painel da plataforma: listar, provisionar, retomar, suspender e reativar tenants |
 | Tamanho | M |
-| Status | Draft |
+| Status | Done |
 | Requisitos | R-PLT-4 · R-PLT-3 (provisionar pela tela) |
 | Dependências | FND-03a (serviço de provisionamento), FND-13 (login da plataforma), FND-09a e FND-09c (componentes) |
 | Bloqueia | FND-06 (a tela de liberação de módulos fica dentro do detalhe do tenant) |
@@ -117,7 +117,19 @@ Checklist do @po (Pax), 16/10/2026.
 | 16/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 
 ## Dev Agent Record
-_A preencher pelo @dev._
+- **Entrega (FND-03b), 18/10/2026, branch `feat/fnd-03b-plataforma`.** Decisões da story: o host é digitado (ADR 0004), os planos vêm do catálogo e o progresso é atualizado por consulta periódica a cada 3 s.
+  - **API** (`/api/v1/platform`, sessão do super admin e anti-CSRF):
+    - tenants: lista paginada com busca por nome, CNPJ, chave e endereço; detalhe com domínios e log de etapas;
+    - provisionar: valida por campo (chave e host únicos, CNPJ com dígito verificador, e-mail) e enfileira o `ProvisionTenantJob` (`PlatformJob`, fila `maintenance`);
+    - retomar, suspender com motivo obrigatório e reativar; planos.
+  - **Auditoria (CA 8):** cada ação fica no catálogo com o super admin, o motivo e antes/depois.
+  - **Telas:**
+    - `/plataforma/tenants`: DataTable com busca na URL e vazio com "Provisionar tenant";
+    - provisionar: diálogo com Zod (CNPJ no cliente) e plano pré-selecionado quando só há um;
+    - `/plataforma/tenants/{chave}`: etapas com o indicador de etapa e o status de cada uma, além de retomar, copiar link, suspender com motivo e reativar;
+    - ao concluir o provisionamento, oferece "Liberar módulos".
+  - **Aba "Módulos" (FND-06 CA 5):** chave por módulo, origem (Plano ou Exceção), "Alterações não salvas" e "Salvar liberação".
+  - **Testes:** integração (lista, detalhe, validação, job, suspender e reativar, 404 no host do tenant, auditoria) e Playwright (login com 2FA, provisionar, suspender, módulos).
 
 ## QA Results
 _A preencher pelo @qa._

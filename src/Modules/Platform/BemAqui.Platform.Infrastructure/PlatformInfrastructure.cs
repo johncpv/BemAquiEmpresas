@@ -40,6 +40,9 @@ public static class PlatformInfrastructure
         services.TryAddScoped<ProvisioningService>();
         services.TryAddScoped<BemAqui.Platform.Application.Modules.ITenantModulesDb>(sp => sp.GetRequiredService<CatalogDbContext>());
         services.TryAddScoped<BemAqui.Platform.Application.Modules.TenantModuleService>();
+        services.TryAddScoped<BemAqui.Platform.Application.Tenants.IPlatformTenantsDb>(sp => sp.GetRequiredService<CatalogDbContext>());
+        services.TryAddScoped<BemAqui.Platform.Application.Tenants.TenantAdminService>();
+        services.TryAddTransient<Provisioning.ProvisionTenantJob>();
 
         // Login do super admin (FND-13).
         services.Configure<PlatformAuthOptions>(configuration.GetSection(PlatformAuthOptions.Section));
