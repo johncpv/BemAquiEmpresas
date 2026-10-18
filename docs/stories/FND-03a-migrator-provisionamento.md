@@ -137,7 +137,7 @@ Checklist do @po (Pax), 16/10/2026.
   - **Middleware:** responde 503 `tenant_schema_outdated` quando o schema do tenant está abaixo do esperado pelo build. Um schema mais novo é aceito, por causa do expand/contract.
   - **Teste de arquitetura:** migration destrutiva sem ADR referenciada reprova o CI (CA 13).
   - **Fixture de tenancy:** passou a usar o provisionamento real.
-  - **Etapas provisórias:** `CreateOwner` e `SendInvite` usam `PendingOwnerOnboarding`. As versões reais chegam na FND-04/06c e na FND-08, e o CA 1 será verificado de ponta a ponta na FND-04.
+  - **Etapas provisórias:** `CreateOwner` e `SendInvite` usavam `PendingOwnerOnboarding`. Desde a FND-04b, usam `IdentityOwnerOnboarding`, e o CA 1 é verificado de ponta a ponta (FND-04 CA 19).
   - **Plano:** "Piloto" é o padrão, criado se ainda não existir. Os módulos de cada plano chegam na FND-06.
   - **CAs:** 1 a 13 atendidos, com testes de integração no PostgreSQL real.
 

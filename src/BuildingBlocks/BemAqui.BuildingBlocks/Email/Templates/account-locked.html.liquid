@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="pt-BR">
+<body style="margin:0;padding:24px;background:#e9edf1;font-family:Arial,sans-serif;color:#14202b">
+  <table role="presentation" width="100%" style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:10px">
+    <tr><td style="padding:24px">
+      <h1 style="font-size:20px;margin:0 0 16px">Conta bloqueada por 15 minutos</h1>
+      <p>Houve 5 tentativas de entrada com senha errada na sua conta em <strong>{{ tenant_name }}</strong>. Para proteger a conta, o acesso ficou bloqueado até {{ locked_until }}.</p>
+      <p>Se foi você, aguarde e tente de novo. Se não foi, redefina sua senha:</p>
+      <p style="margin:24px 0">
+        <a href="{{ link }}" style="background:#2148c0;color:#ffffff;padding:12px 20px;border-radius:6px;text-decoration:none;font-weight:bold">Redefinir senha</a>
+      </p>
+    </td></tr>
+  </table>
+</body>
+</html>

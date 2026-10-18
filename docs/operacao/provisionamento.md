@@ -29,7 +29,7 @@ O comando executa estas etapas, nesta ordem:
 | CreateDatabase | Cria o banco `tenant_<key>` com esse role como dono e aplica `REVOKE CONNECT FROM PUBLIC`. |
 | Migrate | Aplica as migrations do TenantDbContext e registra a versão no catálogo. |
 | Seed | Roda os dados iniciais dos módulos. Todos os seeds são idempotentes. |
-| CreateOwner / SendInvite | Cria o usuário proprietário e envia o convite. **Ainda provisórias:** passam a funcionar de verdade com a FND-04/06c e a FND-08. |
+| CreateOwner / SendInvite | Cria o proprietário como usuário convidado e enfileira o e-mail de convite (válido por 72 h, link no host primário). A CLI só grava o e-mail no outbox do tenant; quem envia é a API em execução. Rodar de novo gera um link novo e invalida o anterior. |
 | Activate | Muda o tenant para `Active`, e ele passa a responder pelo host. |
 
 - **Logs:** cada etapa grava `Started`, `Succeeded` ou `Failed` em `catalog.provisioning_logs`. Nenhum segredo vai para o log nem para a saída do comando.

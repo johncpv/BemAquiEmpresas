@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using BemAqui.BuildingBlocks.Security;
 using BemAqui.BuildingBlocks.Tenancy;
+using BemAqui.Platform.Contracts;
 using BemAqui.Platform.Domain;
 using BemAqui.SharedKernel;
 
@@ -153,14 +154,14 @@ public sealed partial class ProvisioningService(
             case ProvisioningSteps.CreateOwner:
                 await using (var scope = await scopes.CreateScopeAsync(info, cancellationToken))
                 {
-                    await onboarding.CreateOwnerAsync(tenant, request.OwnerEmail, scope.ServiceProvider, cancellationToken);
+                    await onboarding.CreateOwnerAsync(tenant.Id, tenant.Key, request.OwnerEmail, scope.ServiceProvider, cancellationToken);
                 }
 
                 break;
             case ProvisioningSteps.SendInvite:
                 await using (var scope = await scopes.CreateScopeAsync(info, cancellationToken))
                 {
-                    await onboarding.SendInviteAsync(tenant, request.OwnerEmail, scope.ServiceProvider, cancellationToken);
+                    await onboarding.SendInviteAsync(tenant.Id, tenant.Key, request.OwnerEmail, scope.ServiceProvider, cancellationToken);
                 }
 
                 break;

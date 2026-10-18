@@ -1,5 +1,6 @@
 using BemAqui.BuildingBlocks.Email;
 using BemAqui.BuildingBlocks.Logging;
+using BemAqui.BuildingBlocks.Messaging;
 using BemAqui.BuildingBlocks.Observability;
 using BemAqui.Host.Observability;
 using BemAqui.BuildingBlocks.Security;
@@ -37,9 +38,12 @@ public static class CliCommand
 
         configure?.Invoke(builder.Configuration);
         builder.Services.AddSerilog(lc => LoggingSetup.Configure(lc, builder.Configuration, builder.Environment));
-        builder.Services.AddBemAquiEmailTransportOnly(builder.Configuration);
+        builder.Services.AddBemAquiEmail(builder.Configuration);
+        // O convite do proprietário vai para o outbox do tenant; quem envia é a API (dispatcher desligado aqui).
+        builder.Services.AddBemAquiMessaging(builder.Configuration, HostEvents.Register, runDispatcher: false);
         builder.Services.AddBemAquiSecrets(builder.Configuration, builder.Environment);
         new PlatformModule().AddServices(builder.Services, builder.Configuration);
+        new BemAqui.Identity.Endpoints.IdentityModule().AddServices(builder.Services, builder.Configuration);
         builder.Services.AddTenantPersistence();
         builder.Services.AddSingleton<ITenantDatabaseMigrator, TenantDatabaseMigrator>();
         builder.Services.AddScoped<TenantMigrationRunner>();

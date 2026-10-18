@@ -20,6 +20,9 @@ public static class IdentityInfrastructure
         services.TryAddScoped<ISecurityStampCache>(sp => (CachedSecurityStampValidator)sp.GetRequiredService<BemAqui.BuildingBlocks.Identity.ISecurityStampValidator>());
         services.TryAddScoped<AuthService>();
         services.TryAddScoped<UserLifecycle>();
+        services.TryAddScoped<AccountRecovery>();
+        services.TryAddScoped<Invites>();
+        services.TryAddScoped<BemAqui.Platform.Contracts.ITenantOwnerOnboarding, IdentityOwnerOnboarding>();
         return services;
     }
 }

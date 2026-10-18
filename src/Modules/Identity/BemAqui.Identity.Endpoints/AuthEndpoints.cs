@@ -58,6 +58,8 @@ public static class AuthEndpoints
             })
             .WithName("Logout");
 
+        auth.MapAccountEndpoints();
+
         return api;
     }
 
@@ -75,7 +77,7 @@ public static class AuthEndpoints
             && string.Equals(uri.Host, http.Request.Host.Host, StringComparison.OrdinalIgnoreCase);
     }
 
-    private static IResult Issue(HttpContext http, LoginSession session)
+    internal static IResult Issue(HttpContext http, LoginSession session)
     {
         http.Response.Cookies.Append(RefreshCookie, session.RefreshToken, CookieOptions(session.RefreshTokenExpiresAt));
         http.Response.Headers.CacheControl = "no-store";
@@ -95,5 +97,5 @@ public static class AuthEndpoints
     private static IResult CsrfRejected() =>
         Error.Forbidden(Error.Codes.Forbidden, "Requisição recusada: origem não confirmada.").ToProblem();
 
-    private static string? Ip(HttpContext http) => http.Connection.RemoteIpAddress?.ToString();
+    internal static string? Ip(HttpContext http) => http.Connection.RemoteIpAddress?.ToString();
 }
