@@ -11,6 +11,7 @@ export * from './auditEntryDto';
 export * from './challengeRequest';
 export * from './confirmTwoFactorRequest';
 export * from './confirmWithChallengeRequest';
+export * from './currentSession';
 export * from './disableTwoFactorRequest';
 export * from './forgotPasswordRequest';
 export * from './getAuditHistoryParams';

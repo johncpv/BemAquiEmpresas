@@ -1,6 +1,8 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createMemoryHistory } from '@tanstack/react-router'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { setAccessToken } from './api/session'
 import { App } from './App'
 import { createAppRouter } from './router'
 import { ThemeProvider } from './theme/ThemeProvider'
@@ -8,14 +10,27 @@ import { ThemeProvider } from './theme/ThemeProvider'
 function renderAt(path: string) {
   const router = createAppRouter(createMemoryHistory({ initialEntries: [path] }))
   render(
-    <ThemeProvider>
-      <App appRouter={router} />
-    </ThemeProvider>,
+    <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+      <ThemeProvider>
+        <App appRouter={router} />
+      </ThemeProvider>
+    </QueryClientProvider>,
   )
   return router
 }
 
 describe('shell do backoffice (FND-09b)', () => {
+  // Sessão em memória e API respondendo vazio: o guarda de /app deixa passar.
+  beforeEach(() => {
+    setAccessToken('token-de-teste')
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } })))
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    setAccessToken(null)
+  })
+
   it('dock com as 7 áreas na ordem, dentro de nav rotulado (CA 1)', async () => {
     renderAt('/app')
     const nav = await screen.findByRole('navigation', { name: 'Navegação principal' })

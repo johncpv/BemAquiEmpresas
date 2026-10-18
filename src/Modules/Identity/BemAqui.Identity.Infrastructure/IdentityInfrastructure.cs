@@ -35,6 +35,7 @@ public static class IdentityInfrastructure
         services.TryAddScoped<UserService>();
         services.TryAddScoped<SecuritySettings>();
         services.TryAddScoped<Preferences>();
+        services.TryAddScoped<Profile>();
 
         // Permissão real no lugar do DenyAll e entidades com histórico consultável (FND-07 + FND-06c).
         services.AddScoped<BemAqui.BuildingBlocks.Authorization.IPermissionChecker, CurrentUserPermissionChecker>();

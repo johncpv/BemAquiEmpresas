@@ -29,6 +29,7 @@ import type {
   ChallengeRequest,
   ConfirmTwoFactorRequest,
   ConfirmWithChallengeRequest,
+  CurrentSession,
   DisableTwoFactorRequest,
   ForgotPasswordRequest,
   GetAuditHistoryParams,
@@ -677,9 +678,9 @@ export const getGetCurrentSessionUrl = () => {
   return `/api/v1/me`
 }
 
-export const getCurrentSession = async ( options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+export const getCurrentSession = async ( options?: Parameters<typeof apiFetch>[1]): Promise<CurrentSession> => {
 
-  return apiFetch<void>(getGetCurrentSessionUrl(),
+  return apiFetch<CurrentSession>(getGetCurrentSessionUrl(),
   {
     ...options,
     method: 'GET'

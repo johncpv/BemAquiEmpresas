@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Security.Claims;
 using BemAqui.BuildingBlocks.Modules;
+using BemAqui.Identity.Application;
 using BemAqui.Identity.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -25,11 +26,16 @@ public sealed class IdentityModule : IModule
         endpoints.MapGroupEndpoints();
         endpoints.MapUserEndpoints();
 
-        // Sessão atual (a FND-06c completa com nome, grupos e permissões efetivas).
-        endpoints.MapGet("/me", (ClaimsPrincipal user) => Results.Ok(new CurrentSession(user.FindFirstValue("sub"), user.FindFirstValue("tid"))))
-            .WithName("GetCurrentSession")
+        // Sessão atual: identidade, nome e e-mail (permissões em /me/permissions).
+        endpoints.MapGet("/me", async (ClaimsPrincipal user, Profile profile, CancellationToken ct) =>
+            {
+                var id = user.FindFirstValue("sub");
+                var me = Guid.TryParse(id, out var userId) ? await profile.GetAsync(userId, ct) : null;
+                return Results.Ok(new CurrentSession(id, user.FindFirstValue("tid"), me?.Name ?? string.Empty, me?.Email ?? string.Empty));
+            })
+            .WithName("GetCurrentSession").Produces<CurrentSession>()
             .WithTags("Identidade");
     }
 }
 
-public sealed record CurrentSession(string? UserId, string? TenantId);
+public sealed record CurrentSession(string? UserId, string? TenantId, string Name, string Email);

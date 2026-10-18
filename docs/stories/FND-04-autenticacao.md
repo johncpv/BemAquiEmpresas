@@ -5,7 +5,7 @@
 | ID | FND-04 |
 | Título | Identity por tenant: login, refresh rotativo em cookie, recuperação de senha, bloqueio e aceite de convite |
 | Tamanho | G |
-| Status | In Progress (04a e 04b prontas; telas a seguir) |
+| Status | Done |
 | Requisitos | R-SEC-1 · R-SEC-3 · R-SEC-4 (aceite de convite) · R-SEC-5 (login, logout e falhas auditados) · R-PLT-3 (proprietário e convite no provisionamento) |
 | Dependências | FND-02, FND-03a, FND-07, FND-08, FND-11; telas dependem de FND-09a e FND-09c |
 | Bloqueia | FND-05, FND-06c, FND-13 (reaproveita o mecanismo) e todas as rotas autenticadas |
@@ -183,6 +183,16 @@ Checklist do @po (Pax), 16/10/2026.
   - **Pendente:**
     - telas (CA 3, Entrar, Esqueci minha senha, Redefinir senha e Aceitar convite) depois da FND-09a/b/c;
     - E2E com Playwright.
+
+- **Telas (FND-04), 18/10/2026, branch `feat/fnd-04-telas`.**
+  - **Rotas:** `/entrar`, `/esqueci-senha`, `/redefinir-senha` e `/convite`, sem dock e com a marca do tenant vinda de `/public/tenant-context`.
+  - **Guarda de rota:** `/app` retoma a sessão pelo cookie de refresh. Sem sessão, vai para `/entrar?volta=`, que só aceita caminhos internos (sem open redirect).
+  - **Token só em memória (CA 3):** o E2E confere que ele não fica em `localStorage`, `sessionStorage` nem cookie legível.
+  - **Propositivo:** o e-mail do login segue para "Esqueci minha senha"; o convite vem com o nome preenchido e, ao concluir, oferece "Configurar verificação em duas etapas" ou "Fazer depois". Se a empresa exige 2FA, a configuração começa sozinha.
+  - **Sair:** `POST /auth/logout` limpa a sessão e o cache.
+  - **`/me`:** passou a trazer nome e e-mail, que aparecem no menu do usuário.
+  - **Ajuda:** `entrar`, `esqueci-senha`, `redefinir-senha`, `convite`, `conta`.
+  - **Testes:** Vitest com guarda, erro uniforme, 2FA e convite; Playwright com login e 2FA até a rota pedida, tentativas e sair.
 
 ## QA Results
 _A preencher pelo @qa._
