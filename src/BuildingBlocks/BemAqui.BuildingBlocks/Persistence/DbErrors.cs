@@ -13,4 +13,16 @@ public static class DbErrors
         return exception.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation } pg
             && (constraint is null || string.Equals(pg.ConstraintName, constraint, StringComparison.Ordinal));
     }
+
+    /// <summary>
+    /// Erro do dado, e não da infraestrutura (MIG-01a CA 15): restrição (classe 23) ou valor inválido (classe 22).
+    /// Conexão caída, timeout e permissão não entram aqui.
+    /// </summary>
+    public static bool IsDataError(Exception exception, out string? detail)
+    {
+        ArgumentNullException.ThrowIfNull(exception);
+        var pg = exception as PostgresException ?? exception.InnerException as PostgresException;
+        detail = pg?.ConstraintName ?? pg?.SqlState;
+        return pg?.SqlState is { Length: 5 } state && (state.StartsWith("22", StringComparison.Ordinal) || state.StartsWith("23", StringComparison.Ordinal));
+    }
 }

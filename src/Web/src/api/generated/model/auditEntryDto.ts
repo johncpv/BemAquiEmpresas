@@ -12,4 +12,6 @@ export interface AuditEntryDto {
   userId: string | null;
   at: string;
   changes: string;
+  /** @nullable */
+  origin: string | null;
 }

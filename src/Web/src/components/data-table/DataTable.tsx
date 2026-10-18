@@ -50,6 +50,8 @@ interface DataTableProps<T> {
   inactiveFilter?: boolean
   /** A primeira coluna vira link para o detalhe (Enter abre). */
   rowHref?: (row: T) => string
+  /** Sem busca de texto quando o servidor não filtra por texto (ex.: execuções da importação). */
+  searchable?: boolean
 }
 
 export interface TableFilter {
@@ -66,7 +68,7 @@ const cellClass = (secondary?: boolean, numeric?: boolean) =>
  * Tabela padrão (FND-09c CA 4 a 7): paginação, ordenação e busca no servidor, refletidas na URL; estados de carregando,
  * vazio, vazio por filtro e erro; colunas secundárias somem a 400px.
  */
-export function DataTable<T>({ columns, query, empty, label, searchPlaceholder = 'Buscar', getRowId, filters = [], inactiveFilter, rowHref }: DataTableProps<T>) {
+export function DataTable<T>({ columns, query, empty, label, searchPlaceholder = 'Buscar', getRowId, filters = [], inactiveFilter, rowHref, searchable = true }: DataTableProps<T>) {
   const [search, setSearch] = useTableSearch()
   const navigate = useNavigate()
   const values = useTableFilters(filters.map((f) => f.key))
@@ -164,10 +166,12 @@ export function DataTable<T>({ columns, query, empty, label, searchPlaceholder =
 
   return (
     <div className="rounded-md border border-border bg-card">
-      <div className="flex items-center gap-2 border-b border-border p-2">
-        <Search aria-hidden="true" className="ml-1 size-4 text-muted-foreground" />
-        <input type="search" value={text} onChange={(e) => setText(e.target.value)} placeholder={searchPlaceholder} aria-label={searchPlaceholder} className="w-full bg-transparent py-1 text-sm outline-none" />
-      </div>
+      {searchable ? (
+        <div className="flex items-center gap-2 border-b border-border p-2">
+          <Search aria-hidden="true" className="ml-1 size-4 text-muted-foreground" />
+          <input type="search" value={text} onChange={(e) => setText(e.target.value)} placeholder={searchPlaceholder} aria-label={searchPlaceholder} className="w-full bg-transparent py-1 text-sm outline-none" />
+        </div>
+      ) : null}
       {filters.length > 0 || inactiveFilter ? (
         <div className="flex flex-wrap items-center gap-2 border-b border-border px-2 py-2">
           {filters.map((f) => (

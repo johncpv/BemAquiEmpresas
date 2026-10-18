@@ -19,6 +19,9 @@ public sealed class AuditEntry
     public required string Changes { get; init; }
 
     public string? Ip { get; init; }
+
+    /// <summary>Origem da alteração feita por processo, sem usuário logado (ex.: "Importação Dolibarr · operador · execução").</summary>
+    public string? Origin { get; init; }
 }
 
 public static class AuditActions

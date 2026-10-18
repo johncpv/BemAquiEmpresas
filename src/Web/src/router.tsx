@@ -12,6 +12,8 @@ import { UsersPage } from '@/pages/access/UsersPage'
 import { ModuleGate } from '@/pages/ModuleGate'
 import { SecurityPage } from '@/pages/settings/SecurityPage'
 import { AiSettingsPage } from '@/pages/settings/AiSettingsPage'
+import { ImportRunPage } from '@/pages/settings/import/ImportRunPage'
+import { ImportRunsPage } from '@/pages/settings/import/ImportRunsPage'
 import { ShopfloorLayout, TvLayout } from '@/pages/DedicatedLayouts'
 import { Inicio } from '@/pages/Inicio'
 import { ModulePage, NotFound } from '@/pages/ModulePage'
@@ -71,6 +73,9 @@ const groupsRoute = createRoute({ getParentRoute: () => appRoute, path: 'acessos
 const settingsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes', beforeLoad: () => { throw redirect({ to: '/app/configuracoes/seguranca' }) } })
 const securityRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/seguranca', component: gated('settings', SecurityPage) })
 const aiSettingsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/ia', component: gated('settings', AiSettingsPage) })
+// Importação do Dolibarr (MIG-01a): só leitura; a carga é pela CLI.
+const importRunsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/importacao', component: gated('settings', ImportRunsPage) })
+const importRunRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/importacao/$id', component: gated('settings', ImportRunPage) })
 // Cadastros (CAD-01a): /app/cadastros leva à primeira aba do módulo.
 const partiesRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'cadastros', beforeLoad: () => { throw redirect({ to: '/app/cadastros/terceiros' }) } })
 const partiesRoute = createRoute({ getParentRoute: () => appRoute, path: 'cadastros/terceiros', component: gated('parties', PartiesPage) })
@@ -119,7 +124,7 @@ export const routeTree = rootRoute.addChildren([
   resetRoute,
   inviteRoute,
   appRoute.addChildren([appIndexRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, securityRoute,
-    aiSettingsRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
+    aiSettingsRoute, importRunsRoute, importRunRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
   platformLoginRoute,
   platformPasswordRoute,
   platformRoute.addChildren([platformIndexRoute, tenantsRoute, tenantRoute]),

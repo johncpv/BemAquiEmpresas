@@ -71,6 +71,13 @@
     <Project Path="src/Modules/Parties/BemAqui.Parties.Endpoints/BemAqui.Parties.Endpoints.csproj" />
     <Project Path="src/Modules/Parties/BemAqui.Parties.Infrastructure/BemAqui.Parties.Infrastructure.csproj" />
   </Folder>
+    <Folder Name="/src/Modules/Migrations/">
+    <Project Path="src/Modules/Migrations/BemAqui.Migrations.Application/BemAqui.Migrations.Application.csproj" />
+    <Project Path="src/Modules/Migrations/BemAqui.Migrations.Contracts/BemAqui.Migrations.Contracts.csproj" />
+    <Project Path="src/Modules/Migrations/BemAqui.Migrations.Domain/BemAqui.Migrations.Domain.csproj" />
+    <Project Path="src/Modules/Migrations/BemAqui.Migrations.Endpoints/BemAqui.Migrations.Endpoints.csproj" />
+    <Project Path="src/Modules/Migrations/BemAqui.Migrations.Infrastructure/BemAqui.Migrations.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/src/Modules/Platform/">
     <Project Path="src/Modules/Platform/BemAqui.Platform.Application/BemAqui.Platform.Application.csproj" />
     <Project Path="src/Modules/Platform/BemAqui.Platform.Contracts/BemAqui.Platform.Contracts.csproj" />

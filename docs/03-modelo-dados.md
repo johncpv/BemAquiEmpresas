@@ -46,7 +46,7 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 - **number_sequences** (schema `shared`, FND-07a): doc_type, year (0 = sem ano), last_value; único por (doc_type, year). Prefixo e dígitos vêm de `NumberFormats` (padrão de `04-fluxos` §4) mais as exceções de `number_formats`. "Próximo número" por `INSERT … ON CONFLICT DO UPDATE SET last_value = GREATEST(…)` (ADR 0016). Toda tabela de documento numerado tem índice único em `number`
 - **number_formats** (schema `shared`, CAD-06): doc_type (único), prefix (1–6, A–Z/0–9, único entre os tipos), yearly (bloqueado depois do primeiro número), digits (3–8), updated_at, updated_by; só as exceções ao padrão, gravadas pelo `INumberFormatAdmin`
 - **attachments** (schema `shared`, FND-07c): owner_type, owner_id, file_name (só exibição), content_type (detectado), size, sha256, storage_path (aleatório), scan_status (Pending/Clean/Infected/Failed), scanned_at, created_at, uploaded_by
-- **audit_log** (schema `audit`, FND-07a): entity, entity_id, action (Created/Updated/Deleted e eventos de autenticação, até 64 caracteres), user_id, at, changes (jsonb, só campos alterados; `[PersonalData]` mascarado, `[ProtectedSecret]` só `changed`), ip. **Imutável**: trigger recusa UPDATE/DELETE/TRUNCATE. `action = "SensitiveRead"` registra leitura de dado sensível (CAD-04a, ADR 0016), visível só ao Proprietário
+- **audit_log** (schema `audit`, FND-07a): entity, entity_id, action (Created/Updated/Deleted e eventos de autenticação, até 64 caracteres), user_id, at, changes (jsonb, só campos alterados; `[PersonalData]` mascarado, `[ProtectedSecret]` só `changed`), ip, origin (MIG-01a: quem gravou sem usuário logado, ex.: "Importação Dolibarr · operador · execução"; também no catálogo). **Imutável**: trigger recusa UPDATE/DELETE/TRUNCATE. `action = "SensitiveRead"` registra leitura de dado sensível (CAD-04a, ADR 0016), visível só ao Proprietário
 - **purge_log** (schema `audit`, ADR 0016): at, migration, rows, reason — registro do expurgo controlado de dado pessoal que tenha chegado à auditoria (nasce com o primeiro expurgo)
 - **outbox_messages** (schema `shared`, FND-07b): id (v7), type, payload (jsonb), occurred_at, attempts, next_attempt_at, processed_at, dead_lettered_at, error, correlation_id
 - **inbox_messages** (schema `shared`, FND-07b): message_id, handler (PK composta), processed_at — entrega idempotente por handler
@@ -160,9 +160,9 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 - **maintenance_plans**: asset_id, description, frequency_type (Days/Hours), frequency_value, last_done_at, next_due_at, checklist (JSON)
 - **maintenance_orders**: number, asset_id, plan_id, type (Preventive/Corrective), status, scheduled_at, done_at, cost, supplier_party_id, notes, payable_id
 
-## migration (MIG-01a, ADR 0017; módulo fora do `ModuleCatalog`)
-- **import_runs**: started_at, finished_at, mode (DryRun/Real), entities, status (Running/Succeeded/Failed), summary (jsonb), operator, snapshot_taken_at, accepted_at, purged_at
-- **import_items**: run_id, source_table, source_id, payload (jsonb), hash, outcome (Imported/Updated/Unchanged/Merged/Linked/Skipped/Conflict/Error), target_type, target_id, message — expurgada após o aceite e em até 30 dias (ADR 0018)
+## migration (MIG-01a, ADR 0017; módulo `Migrations`, fora do `ModuleCatalog`)
+- **import_runs**: started_at, finished_at, mode (DryRun/Real), entities, status (Running/Succeeded/Failed), summary (jsonb, totais por entidade), operator, snapshot_taken_at, failure, accepted_at, purged_at
+- **import_items**: run_id, entity, source_table, source_id, payload (jsonb, colunas pessoais mascaradas), hash, outcome (Imported/Updated/Unchanged/Merged/Linked/Skipped/Conflict/Error), target_type, target_id, message, warning, differences (jsonb, os dois valores do conflito, mascarados) — expurgada após o aceite e em até 30 dias (ADR 0018)
 - **external_refs**: source, source_table, source_id (únicos juntos), target_type, target_id, source_hash, target_xmin, imported_at, last_run_id
 
 ## Relacionamentos-chave

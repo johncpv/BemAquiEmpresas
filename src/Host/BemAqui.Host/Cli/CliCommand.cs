@@ -14,11 +14,11 @@ namespace BemAqui.Host.Cli;
 
 /// <summary>
 /// Modo CLI da imagem (ADR 0006): <c>migrate</c> (catálogo e todos os tenants, antes da subida da API) e
-/// <c>tenant provision</c> (FND-03a), <c>platform-admin create</c> (FND-13) e <c>alert raise</c> (FND-10, falha do backup) e <c>tenant invite-owner</c> (link do convite do proprietário sem e-mail). Saída em PT-BR; código de saída 0 = sucesso.
+/// <c>tenant provision</c> (FND-03a), <c>platform-admin create</c> (FND-13) e <c>alert raise</c> (FND-10, falha do backup), <c>tenant invite-owner</c> (link do convite do proprietário sem e-mail) e <c>tenant import-dolibarr</c> (MIG-01a). Saída em PT-BR; código de saída 0 = sucesso.
 /// </summary>
 public static class CliCommand
 {
-    public static bool IsCli(string[] args) => args is ["migrate", ..] or ["tenant", "provision", ..] or ["tenant", "invite-owner", ..] or ["platform-admin", "create", ..] or ["alert", "raise", ..];
+    public static bool IsCli(string[] args) => args is ["migrate", ..] or ["tenant", "provision", ..] or ["tenant", "invite-owner", ..] or ["tenant", "import-dolibarr", ..] or ["platform-admin", "create", ..] or ["alert", "raise", ..];
 
     public static async Task<int> RunAsync(string[] args, Action<IConfigurationBuilder>? configure = null, TextWriter? output = null)
     {
@@ -46,6 +46,9 @@ public static class CliCommand
         builder.Services.AddBemAquiSecrets(builder.Configuration, builder.Environment);
         new PlatformModule().AddServices(builder.Services, builder.Configuration);
         new BemAqui.Identity.Endpoints.IdentityModule().AddServices(builder.Services, builder.Configuration);
+        // A importação grava nos destinos pelos I*Import dos módulos donos (ADR 0017).
+        new BemAqui.Parties.Endpoints.PartiesModule().AddServices(builder.Services, builder.Configuration);
+        new BemAqui.Migrations.Endpoints.MigrationModule().AddServices(builder.Services, builder.Configuration);
         builder.Services.AddTenantPersistence();
         builder.Services.Configure<BemAqui.Host.Tenancy.PlatformHostOptions>(builder.Configuration.GetSection(BemAqui.Host.Tenancy.PlatformHostOptions.Section));
         builder.Services.AddSingleton<ITenantDatabaseMigrator, TenantDatabaseMigrator>();
@@ -59,6 +62,7 @@ public static class CliCommand
             return args[0] switch
             {
                 "migrate" => await MigrateAsync(scope.ServiceProvider, output),
+                "tenant" when args[1] == "import-dolibarr" => await DolibarrImportCommand.RunAsync(scope.ServiceProvider, new CliArguments(args.Skip(2).ToList()), output),
                 "tenant" when args[1] == "invite-owner" => await InviteOwnerAsync(scope.ServiceProvider, new CliArguments(args.Skip(2).ToList()), output),
                 "alert" => await RaiseAlertAsync(scope.ServiceProvider, new CliArguments(args.Skip(2).ToList()), output),
                 "platform-admin" => await CreatePlatformAdminAsync(scope.ServiceProvider, new CliArguments(args.Skip(2).ToList()), output),

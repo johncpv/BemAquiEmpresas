@@ -47,10 +47,13 @@ import type {
   GroupSummary,
   HelpAnswer,
   HelpDocument,
+  ImportRunDetail,
   InviteAcceptedResponse,
   InviteInfo,
   InviteTokenRequest,
   InviteUserRequest,
+  ListImportPendingParams,
+  ListImportRunsParams,
   ListMyNotificationsParams,
   ListPartiesParams,
   ListTenantsParams,
@@ -62,6 +65,8 @@ import type {
   MyPermissionsResponse,
   NotificationPage,
   PagedListOfAuditEntryDto,
+  PagedListOfImportPendingItem,
+  PagedListOfImportRunRow,
   PagedListOfPartyListItem,
   PagedListOfTenantRow,
   PartyDetail,
@@ -7055,3 +7060,304 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getRemovePartyContactMutationOptions(options), queryClient);
     }
+
+export const getListImportRunsUrl = (params?: ListImportRunsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/settings/import-runs?${stringifiedParams}` : `/api/v1/settings/import-runs`
+}
+
+export const listImportRuns = async (params?: ListImportRunsParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfImportRunRow> => {
+
+  return apiFetch<PagedListOfImportRunRow>(getListImportRunsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListImportRunsQueryKey = (params?: ListImportRunsParams,) => {
+    return [
+    `/api/v1/settings/import-runs`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListImportRunsQueryOptions = <TData = Awaited<ReturnType<typeof listImportRuns>>, TError = unknown>(params?: ListImportRunsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listImportRuns>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListImportRunsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listImportRuns>>> = ({ signal }) => listImportRuns(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listImportRuns>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListImportRunsQueryResult = NonNullable<Awaited<ReturnType<typeof listImportRuns>>>
+export type ListImportRunsQueryError = unknown
+
+
+export function useListImportRuns<TData = Awaited<ReturnType<typeof listImportRuns>>, TError = unknown>(
+ params: undefined |  ListImportRunsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listImportRuns>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listImportRuns>>,
+          TError,
+          Awaited<ReturnType<typeof listImportRuns>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListImportRuns<TData = Awaited<ReturnType<typeof listImportRuns>>, TError = unknown>(
+ params?: ListImportRunsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listImportRuns>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listImportRuns>>,
+          TError,
+          Awaited<ReturnType<typeof listImportRuns>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListImportRuns<TData = Awaited<ReturnType<typeof listImportRuns>>, TError = unknown>(
+ params?: ListImportRunsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listImportRuns>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListImportRuns<TData = Awaited<ReturnType<typeof listImportRuns>>, TError = unknown>(
+ params?: ListImportRunsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listImportRuns>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListImportRunsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetImportRunUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/settings/import-runs/${id}`
+}
+
+export const getImportRun = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<ImportRunDetail> => {
+
+  return apiFetch<ImportRunDetail>(getGetImportRunUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetImportRunQueryKey = (id: string,) => {
+    return [
+    `/api/v1/settings/import-runs/${id}`
+    ] as const;
+    }
+
+
+export const getGetImportRunQueryOptions = <TData = Awaited<ReturnType<typeof getImportRun>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getImportRun>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetImportRunQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getImportRun>>> = ({ signal }) => getImportRun(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getImportRun>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetImportRunQueryResult = NonNullable<Awaited<ReturnType<typeof getImportRun>>>
+export type GetImportRunQueryError = unknown
+
+
+export function useGetImportRun<TData = Awaited<ReturnType<typeof getImportRun>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getImportRun>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getImportRun>>,
+          TError,
+          Awaited<ReturnType<typeof getImportRun>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetImportRun<TData = Awaited<ReturnType<typeof getImportRun>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getImportRun>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getImportRun>>,
+          TError,
+          Awaited<ReturnType<typeof getImportRun>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetImportRun<TData = Awaited<ReturnType<typeof getImportRun>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getImportRun>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetImportRun<TData = Awaited<ReturnType<typeof getImportRun>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getImportRun>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetImportRunQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListImportPendingUrl = (id: string,
+    params?: ListImportPendingParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/settings/import-runs/${id}/pending?${stringifiedParams}` : `/api/v1/settings/import-runs/${id}/pending`
+}
+
+export const listImportPending = async (id: string,
+    params?: ListImportPendingParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfImportPendingItem> => {
+
+  return apiFetch<PagedListOfImportPendingItem>(getListImportPendingUrl(id,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListImportPendingQueryKey = (id: string,
+    params?: ListImportPendingParams,) => {
+    return [
+    `/api/v1/settings/import-runs/${id}/pending`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListImportPendingQueryOptions = <TData = Awaited<ReturnType<typeof listImportPending>>, TError = unknown>(id: string,
+    params?: ListImportPendingParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listImportPending>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListImportPendingQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listImportPending>>> = ({ signal }) => listImportPending(id,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listImportPending>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListImportPendingQueryResult = NonNullable<Awaited<ReturnType<typeof listImportPending>>>
+export type ListImportPendingQueryError = unknown
+
+
+export function useListImportPending<TData = Awaited<ReturnType<typeof listImportPending>>, TError = unknown>(
+ id: string,
+    params: undefined |  ListImportPendingParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listImportPending>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listImportPending>>,
+          TError,
+          Awaited<ReturnType<typeof listImportPending>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListImportPending<TData = Awaited<ReturnType<typeof listImportPending>>, TError = unknown>(
+ id: string,
+    params?: ListImportPendingParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listImportPending>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listImportPending>>,
+          TError,
+          Awaited<ReturnType<typeof listImportPending>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListImportPending<TData = Awaited<ReturnType<typeof listImportPending>>, TError = unknown>(
+ id: string,
+    params?: ListImportPendingParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listImportPending>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListImportPending<TData = Awaited<ReturnType<typeof listImportPending>>, TError = unknown>(
+ id: string,
+    params?: ListImportPendingParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listImportPending>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListImportPendingQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}

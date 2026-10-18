@@ -37,7 +37,7 @@ public class OpenApiDocumentTests(PostgresFixture postgres)
     }
 
     /// <summary>Sobe a partir deste arquivo-fonte (caminho de compilação), do diretório atual ou dos binários.</summary>
-    private static string RepositoryRoot([CallerFilePath] string source = "")
+    internal static string RepositoryRoot([CallerFilePath] string source = "")
     {
         foreach (var start in new[] { Path.GetDirectoryName(source) ?? string.Empty, Directory.GetCurrentDirectory(), AppContext.BaseDirectory })
         {

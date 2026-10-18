@@ -75,6 +75,7 @@ public sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options)
             b.Property(e => e.Action).HasMaxLength(64);
             b.Property(e => e.Changes).HasColumnType("jsonb");
             b.Property(e => e.Ip).HasMaxLength(64);
+            b.Property(e => e.Origin).HasMaxLength(300);
             b.HasIndex(e => new { e.Entity, e.EntityId, e.At });
         });
 

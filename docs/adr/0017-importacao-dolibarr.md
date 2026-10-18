@@ -68,3 +68,15 @@
 - A MIG-01d (saldos de estoque) e a MIG-01e (títulos) foram canceladas pelo PO em 18/10/2026. A D2 e a D5 da revisão ficam sem efeito. O saldo inicial de estoque é digitado na EST-01 (`OpeningBalance`, ADR 0016) e o saldo das contas na CAD-05b.
 - O histórico de pontualidade dos clientes (R-TER-4) começa com os títulos do BemAqui.
 - A staging tem prazo de expurgo (ADR 0018).
+
+## Adendo (MIG-01a, 18/10/2026): detalhes de implementação
+- **Nome do módulo:** a pasta e os projetos se chamam `Migrations` (`BemAqui.Migrations.*`). Com `BemAqui.Migration`, o namespace encobria a classe `Migration` do EF Core em todo arquivo de migration do Host. O schema continua `migration` e a contagem continua em 14 módulos.
+- **`--snapshot`:** recebe o caminho do arquivo de secret com a conexão do MariaDB temporário (`bqe-<ambiente>-dolibarr-snapshot`), e não o pacote cifrado. O pacote é aberto antes, por `scripts/dolibarr/restore-snapshot.sh`. Assim a credencial nunca vai em argumento (CA 5).
+- **Formato do snapshot:** `scripts/dolibarr/snapshot.sql` gera um `INSERT` com colunas explícitas por linha (`QUOTE` e `CONVERT ... USING utf8mb4`), lido pelo cliente `mariadb --batch --raw` e entregue direto ao `age`. A primeira linha grava a data e hora da extração em `bqe_snapshot`.
+- **Lista fixa única:** tabelas e colunas ficam em `SnapshotTables` (C#). O GRANT, o snapshot e o DDL de `scripts/dolibarr/` são gerados dela, e um teste reprova se os arquivos divergirem.
+- **Coluna `entity`:** entra no GRANT das tabelas que a têm, para o filtro `entity = 1`.
+- **`idprof1` a `idprof4`:** no Dolibarr padrão, as colunas físicas de `llx_societe` são `siren`, `siret`, `ape` e `idprof4`. Elas são confirmadas no inventário da base real (CA 1).
+- **Staging:** `import_items` guarda também `entity`, `warning` (aviso à parte da soma) e `differences` (os dois valores do conflito). As colunas pessoais saem mascaradas no `payload` e nas diferenças.
+- **Relatório:** os arquivos ficam em `Migration:ReportDirectory`, por padrão `/data/files/migration-reports`, no volume da API. O `--purge-staging --accepted` registra o aceite do PO e expurga.
+- **Alerta:** o recorrente global `migration-staging-check` roda todo dia às 08:00 de São Paulo e enfileira, por tenant, o job que emite `migration_staging_expired`.
+- **Risco aceito:** o GRANT em `llx_const` (`name`, `value`, `entity`) permite ao usuário somente leitura ler outras constantes, mas o script lê só `MAIN_INFO_SIREN`. O usuário existe só até a GOL-01, que faz o `DROP USER`.

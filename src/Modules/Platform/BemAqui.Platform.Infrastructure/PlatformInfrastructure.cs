@@ -38,6 +38,7 @@ public static class PlatformInfrastructure
         services.TryAddScoped<IProvisioningCatalog, EfProvisioningCatalog>();
         services.TryAddSingleton<ITenantDatabaseAdmin, PostgresTenantDatabaseAdmin>();
         services.TryAddScoped<ProvisioningService>();
+        services.TryAddScoped<BemAqui.Platform.Contracts.ITenantProfile, Catalog.CatalogTenantProfile>();
         services.TryAddScoped<BemAqui.Platform.Application.Modules.ITenantModulesDb>(sp => sp.GetRequiredService<CatalogDbContext>());
         services.TryAddScoped<BemAqui.Platform.Application.Modules.TenantModuleService>();
         services.TryAddScoped<BemAqui.Platform.Application.Tenants.IPlatformTenantsDb>(sp => sp.GetRequiredService<CatalogDbContext>());
