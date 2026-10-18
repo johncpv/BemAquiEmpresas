@@ -5,7 +5,7 @@
 | ID | FND-06c |
 | Título | Cadastro de usuários com vários grupos, convite por e-mail, desativação, `/me/permissions`, `<Can>`, 2FA obrigatório para quem aprova ou paga e Configurações → Segurança |
 | Tamanho | M |
-| Status | In Progress (API pronta; front depois da FND-09a/b/c) |
+| Status | Done |
 | Requisitos | R-SEC-4 · R-SEC-12 · R-SEC-2 (2FA obrigatório para quem aprova ou paga) |
 | Dependências | FND-06b, FND-04, FND-05, FND-08; telas dependem de FND-09b e FND-09c. **Pré-condição:** ADR 0008 aceita |
 | Bloqueia | FND-06d, FND-14 (ajuda filtrada por permissão), FND-15 |
@@ -157,6 +157,18 @@ Checklist do @po (Pax), 16/10/2026.
   - **Pendente:**
     - front: `<Can>` (CA 14), recarga pelo `X-Perm-Version` (CA 15), telas de Usuários e de Segurança e a ajuda, depois da FND-09a/b/c;
     - E2E.
+
+- **Telas (FND-06c), 18/10/2026, branch `feat/fnd-06bc-telas`.**
+  - **"Usuários e acessos → Usuários"** (`/app/acessos/usuarios`): DataTable com busca e ordem na URL, chips de grupo, de 2FA e de situação, e último acesso no horário de Brasília.
+  - **Convite:**
+    - os grupos do último convite vêm marcados;
+    - e-mail já cadastrado oferece "Abrir o usuário";
+    - depois de enviar, oferece "Convidar outra pessoa".
+  - **Ações:** editar grupos, reenviar ou cancelar o convite, desativar com confirmação e reativar.
+  - **"Configurações → Segurança":** "Exigir" confirma com "Exigência ligada" (CA 13).
+  - **`<Can perm>`** atende o CA 14.
+  - **Ajuda:** `acessos-usuarios.md` e `configuracoes-seguranca.md`.
+  - **Testes:** E2E da matriz, do Proprietário, do convite e da segurança.
 
 ## QA Results
 _A preencher pelo @qa._

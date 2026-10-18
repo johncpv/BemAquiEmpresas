@@ -7,6 +7,10 @@ import { ensureSession } from '@/auth/session-guard'
 import { RequiredTwoFactorSetupPage, TwoFactorVerifyPage } from '@/auth/TwoFactorPages'
 import { AccountPage } from '@/pages/account/AccountPage'
 import { AccountSecurityPage } from '@/pages/account/AccountSecurityPage'
+import { GroupsPage } from '@/pages/access/GroupsPage'
+import { UsersPage } from '@/pages/access/UsersPage'
+import { ModuleGate } from '@/pages/ModuleGate'
+import { SecurityPage } from '@/pages/settings/SecurityPage'
 import { ShopfloorLayout, TvLayout } from '@/pages/DedicatedLayouts'
 import { Inicio } from '@/pages/Inicio'
 import { ModulePage, NotFound } from '@/pages/ModulePage'
@@ -45,6 +49,13 @@ const appRoute = createRoute({
 const appIndexRoute = createRoute({ getParentRoute: () => appRoute, path: '/', component: Inicio })
 const accountRoute = createRoute({ getParentRoute: () => appRoute, path: 'conta', component: AccountPage })
 const accountSecurityRoute = createRoute({ getParentRoute: () => appRoute, path: 'conta/seguranca', component: AccountSecurityPage })
+// Telas reais de módulo: mesmas regras do menu (ModuleGate) e rota própria por aba (FND-09b CA 8).
+const gated = (code: string, Page: () => React.ReactNode) => () => <ModuleGate code={code}><Page /></ModuleGate>
+const accessRoute = createRoute({ getParentRoute: () => appRoute, path: 'acessos', beforeLoad: () => { throw redirect({ to: '/app/acessos/usuarios' }) } })
+const usersRoute = createRoute({ getParentRoute: () => appRoute, path: 'acessos/usuarios', component: gated('identity', UsersPage) })
+const groupsRoute = createRoute({ getParentRoute: () => appRoute, path: 'acessos/grupos', component: gated('identity', GroupsPage), validateSearch: (s: Record<string, unknown>): { grupo?: string } => ({ grupo: text(s.grupo) }) })
+const settingsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes', beforeLoad: () => { throw redirect({ to: '/app/configuracoes/seguranca' }) } })
+const securityRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/seguranca', component: gated('settings', SecurityPage) })
 const moduleRoute = createRoute({ getParentRoute: () => appRoute, path: '$module', component: ModulePage })
 const moduleTabRoute = createRoute({ getParentRoute: () => appRoute, path: '$module/$tab', component: ModulePage })
 
@@ -61,7 +72,7 @@ export const routeTree = rootRoute.addChildren([
   forgotRoute,
   resetRoute,
   inviteRoute,
-  appRoute.addChildren([appIndexRoute, accountRoute, accountSecurityRoute, moduleRoute, moduleTabRoute]),
+  appRoute.addChildren([appIndexRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, securityRoute, moduleRoute, moduleTabRoute]),
   fabRoute,
   tvRoute,
   galleryRoute,

@@ -18,6 +18,9 @@ export async function mockApi(page: Page, overrides: Record<string, Handler> = {
     'PUT /api/v1/me/preferences': (r) => json(r, { theme: 'system' }),
     'GET /api/v1/notifications/': (r) => json(r, { page: { items: [], page: 1, pageSize: 10, total: 0 }, unread: 0 }),
     'POST /api/v1/auth/logout': (r) => r.fulfill({ status: 204 }),
+    'GET /api/v1/identity/groups': (r) => json(r, []),
+    'GET /api/v1/identity/users': (r) => json(r, []),
+    'GET /api/v1/settings/security': (r) => json(r, { requireTwoFactor: false }),
   }
   const handlers = { ...defaults, ...overrides }
 
@@ -42,5 +45,5 @@ const CATALOG: [string, string, string][] = [
 
 /** Formato de /me/permissions; por padrão tudo liberado e com acesso. */
 export function allModules(change: Record<string, { released?: boolean; enabled?: boolean }> = {}) {
-  return CATALOG.map(([code, name, area], i) => ({ code, name, area, order: i * 10, description: 'O que ' + name + ' faz.', released: true, enabled: true, actions: ['view'], ...change[code] }))
+  return CATALOG.map(([code, name, area], i) => ({ code, name, area, order: i * 10, description: 'O que ' + name + ' faz.', released: true, enabled: true, actions: ['view', 'create', 'edit', 'approve', 'delete'], ...change[code] }))
 }

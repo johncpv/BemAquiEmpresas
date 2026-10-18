@@ -62,11 +62,11 @@ Stories detalhadas em [`docs/stories/`](stories/README.md), com critérios de ac
 - Requisitos: R-SEC-11, R-SEC-10, R-SEC-12.
 - CA: endpoint de módulo não liberado → 403 `module_not_released`; seed idempotente com `module_actions` (ADR 0003); liberar ou bloquear um módulo reflete no tenant no próximo request, sem deploy.
 
-**FND-06b [ ] Grupos de usuários e permissões (G)** — API pronta; telas depois da FND-09c — [story](stories/FND-06b-grupos-permissoes.md)
+**FND-06b [x] Grupos de usuários e permissões (G)** — [story](stories/FND-06b-grupos-permissoes.md)
 - Requisitos: R-SEC-9, R-SEC-10, R-SEC-12, R-SEC-5.
 - CA: habilitar módulo marca "ver"; desmarcar "ver" limpa o módulo; marcar outra ação marca "ver"; módulos não liberados aparecem desabilitados com "Não liberado"; Proprietário não editável e nunca sem membro; ninguém concede ação ou grupo que não possui, e só o Proprietário concede `*.approve`, `*.pay`, `hr.view_sensitive` e o grupo Proprietário (ADR 0008); revogar vale no próximo request; serviço de permissão efetiva e policy `perm:{modulo}.{acao}`; alterações auditadas.
 
-**FND-06c [ ] Usuários, convite e permissão efetiva (M)** — API pronta; telas depois da FND-09c — [story](stories/FND-06c-usuarios-convite-permissao-efetiva.md)
+**FND-06c [x] Usuários, convite e permissão efetiva (M)** — [story](stories/FND-06c-usuarios-convite-permissao-efetiva.md)
 - Requisitos: R-SEC-4, R-SEC-12, R-SEC-2.
 - CA: usuário em dois grupos recebe a união; remover do grupo tira o acesso no próximo request; rota sem permissão → 403 `forbidden`; teste de integração cobrindo as três camadas; convite respeita a delegação; 2FA obrigatório para o Proprietário e para quem aprova ou paga; tela Configurações → Segurança (exigir 2FA para todos, `settings.edit`).
 
