@@ -74,11 +74,11 @@ Stories detalhadas em [`docs/stories/`](stories/README.md), com critérios de ac
 - Requisitos: R-SEC-11, R-SEC-12.
 - CA: acessar a URL de um módulo bloqueado mostra a tela padrão "Funcionalidade não liberada nessa versão do sistema.", nunca uma tela quebrada ou em branco; módulo sem permissão some do dock e da paleta.
 
-**FND-09a [ ] Tokens, tema e componentes visuais base (M)** — pronta; aguarda validação visual do PO — quebra da FND-09 — [story](stories/FND-09a-tokens-tema.md)
+**FND-09a [x] Tokens, tema e componentes visuais base (M)** — validada pelo PO em 18/10/2026 — quebra da FND-09 — [story](stories/FND-09a-tokens-tema.md)
 - Requisitos: PRD §6 (Usabilidade).
 - CA: tokens do protótipo mapeados para o shadcn, com as correções de contraste da revisão (§2.4); `--signal` separado de `--warn`; tema claro/escuro/automático salvo no perfil, sem flash; Archivo self-hosted; chips, indicador de etapa e `Money`; lint proíbe cor literal.
 
-**FND-09b [ ] Shell do backoffice e navegação (M)** — pronta; aguarda validação visual do PO — quebra da FND-09 — [story](stories/FND-09b-shell-navegacao.md)
+**FND-09b [x] Shell do backoffice e navegação (M)** — validada pelo PO em 18/10/2026 — quebra da FND-09 — [story](stories/FND-09b-shell-navegacao.md)
 - Requisitos: PRD §6 (Usabilidade), R-COM-2.
 - CA: dock com as 7 áreas, cada uma abrindo popover (desktop) ou sheet (celular) com os módulos (ADR 0005 D8); sub-telas em abas na topbar; Ctrl K abre a paleta; topbar a 400px com busca em ícone e tema no menu do usuário; `<nav>`, skip link, foco e título na troca de rota.
 
@@ -86,7 +86,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md), com critérios de ac
 - Requisitos: PRD §6 (Desempenho), R-SEC-5, R-PRP-2.
 - CA: tabela padrão com filtro, ordenação e paginação server-side; Skeleton, EmptyState, ErrorState e InlineError ligados ao TanStack Query; formulário RHF + Zod com mensagens PT-BR e erros do ProblemDetails; cliente Orval sem `fetch` à mão; histórico por registro.
 
-**FND-09d [ ] Componentes de formulário e moldes de tela (G)** — nova (D7, 18/10/2026), `Ready`, antes do Marco A da Fase 1 — [story](stories/FND-09d-componentes-formulario.md)
+**FND-09d [x] Componentes de formulário e moldes de tela (G)** — moldes aprovados pelo PO em 18/10/2026 — [story](stories/FND-09d-componentes-formulario.md)
 - Requisitos: PRD §6 (Usabilidade), R-PRP-1, R-PRP-2, R-PRP-3, R-AJD-4.
 - CA: pré-requisito "PO valida FND-09a/09b e aprova os moldes"; três moldes (cadastro em seções, detalhe com abas na URL, painel lateral); máscaras (CNPJ/CPF inclusive alfanumérico, CEP, telefone, NCM, CBO), números no padrão brasileiro, Combobox com criação rápida, chips acessíveis, ToggleGroup, Sheet, TreeTable `treegrid`, editor de linhas, data/hora, aviso `warning`, "obrigatório" com `aria-required`, faixa "Próximos passos", `ConfirmDialog` com `recovery`, `Tag` e tom neutro, filtros na URL, `Dica` de 24 px; CAs de teclado e 400 px.
 

@@ -5,7 +5,7 @@
 | ID | FND-09b |
 | Título | Dock com 7 áreas, menu por área (popover/sheet), abas de sub-tela na topbar, paleta Ctrl K, topbar e acessibilidade de navegação |
 | Tamanho | M |
-| Status | In Progress (pronta; validação visual do PO) |
+| Status | Done |
 | Requisitos | PRD §6 Usabilidade (responsivo) · base de R-SEC-11, R-SEC-12 (menu) e R-AJD-2 (slot do botão Ajuda) · R-COM-2 (sino) |
 | Dependências | FND-09a; sino consome a API da FND-07; menu real liga em `/me/permissions` na FND-06d (até lá, provider de menu de exemplo) |
 | Bloqueia | FND-06d, FND-14, todas as telas do backoffice |
@@ -133,6 +133,7 @@ Checklist do @po (Pax), 16/10/2026.
 | 16/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 
 ## Dev Agent Record
+- **Validação visual do PO (18/10/2026):** aprovada por John na homologação (`https://homolog.konebras.com.br`), junto com os moldes da FND-09d.
 - **Entrega (FND-09b), 18/10/2026, branch `feat/fnd-09b-shell`.** A tela inicial e a busca seguem a ADR 0010 item 9. Os ícones vêm do Lucide, o padrão do shadcn.
   - **Rotas:** TanStack Router tipado com as superfícies `/app` (backoffice), `/fab` e `/tv/{token}`, que têm esqueletos sem dock (CA 13), e a `/dev/galeria`, só em desenvolvimento.
   - **Dock:**

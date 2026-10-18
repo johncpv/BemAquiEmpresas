@@ -5,7 +5,7 @@
 | ID | FND-09d |
 | Título | Três moldes de tela aprovados pelo PO (cadastro em seções, detalhe com abas na URL, painel lateral) e os componentes de formulário que os cadastros da Fase 1 usam |
 | Tamanho | G (nova, da decisão D7 da revisão pré-Fase 1: 3 moldes e cerca de 20 componentes, com acessibilidade e 400 px) |
-| Status | Em andamento (aguarda a aprovação dos moldes pelo PO, CA 1 e 2) |
+| Status | Done |
 | Requisitos | PRD §6 Usabilidade (responsivo, 400 px) · R-PRP-1 (padrões preenchidos) · R-PRP-2 (próximo passo) · R-PRP-3 (nada digitado duas vezes) · R-AJD-4 (`Dica`) |
 | Dependências | FND-09a, FND-09b e FND-09c (concluídas no código). **Pré-condição explícita:** o PO valida a FND-09a e a FND-09b (validação visual pendente) no início desta story (CA 1) |
 | Bloqueia | Todas as stories de tela da Fase 1 (CAD-01a, CAD-01b, CAD-05b, CAD-06, CAD-03, CAD-02a, CAD-02b, CAD-05a, CAD-04a, CAD-04b) e a tela da importação (MIG-01a) |
@@ -153,7 +153,7 @@ Checklist do @po (Pax), 18/10/2026.
 - **Testes:**
   - Vitest: máscaras, documentos e números (5) e componentes (8);
   - E2E `e2e/molds.spec.ts`: axe e ausência de rolagem horizontal nos 4 moldes, desktop e 400 px; documento → PF/PJ; criação rápida no combobox; erro em aba escondida com contador e foco; excluir recusado → inativar; filtro de inativos na URL; guarda do painel.
-- **Pendente (CA 1 e 2):** o PO validar a FND-09a e a FND-09b e aprovar os três moldes em `https://homolog.konebras.com.br/app/dev/moldes/cadastro`. Os ajustes pedidos entram nesta story.
+- **CA 1 e 2 (18/10/2026):** o PO (John) validou a FND-09a e a FND-09b e aprovou os três moldes na homologação, sem ajustes.
 
 ## Change Log
 | Data | Versão | Descrição | Autor |
@@ -161,3 +161,4 @@ Checklist do @po (Pax), 18/10/2026.
 | 18/10/2026 | 0.1 | Story criada pela decisão D7 da revisão pré-Fase 1 | River (SM) |
 | 18/10/2026 | 0.2 | Validação do PO (checklist): `Ready` | Pax (PO) |
 | 18/10/2026 | 0.3 | Etapa 1: componentes e moldes na galeria da homologação | @dev |
+| 18/10/2026 | 1.0 | Moldes aprovados pelo PO; story concluída | @dev |

@@ -5,7 +5,7 @@
 | ID | FND-09a |
 | Título | Tokens (claro, escuro, TV), mapeamento para shadcn, tema salvo no perfil sem flash, Archivo, chips, indicador de etapa e `Money` |
 | Tamanho | M |
-| Status | In Progress (pronta; validação visual do PO) |
+| Status | Done |
 | Requisitos | PRD §6 Usabilidade (responsivo) · base visual de R-SEC-11 e R-AJD-4 |
 | Dependências | FND-01 (lint contra cor literal). A persistência do tema no perfil usa a API da FND-04; antes dela, vale o armazenamento local |
 | Bloqueia | FND-09b, FND-09c e todas as telas |
@@ -142,6 +142,7 @@ Checklist do @po (Pax), 16/10/2026.
 | 16/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 
 ## Dev Agent Record
+- **Validação visual do PO (18/10/2026):** aprovada por John na homologação (`https://homolog.konebras.com.br`), junto com os moldes da FND-09d.
 - **Entrega (FND-09a), 18/10/2026, branch `feat/fnd-09a-tokens-tema`.**
   - **Tokens** (`src/styles/tokens.css`):
     - nomes do shadcn conforme a tabela do Plano (CA 1);
