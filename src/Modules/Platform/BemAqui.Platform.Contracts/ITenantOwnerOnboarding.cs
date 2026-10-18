@@ -9,4 +9,12 @@ public interface ITenantOwnerOnboarding
     Task CreateOwnerAsync(Guid tenantId, string tenantKey, string email, IServiceProvider tenantScope, CancellationToken cancellationToken);
 
     Task SendInviteAsync(Guid tenantId, string tenantKey, string email, IServiceProvider tenantScope, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Link do convite pendente do proprietário, sem e-mail (CLI <c>tenant invite-owner</c>): gera um token novo e o link
+    /// anterior deixa de valer. Null se não há convite pendente (o proprietário já criou a senha).
+    /// </summary>
+    Task<OwnerInviteLink?> IssueOwnerLinkAsync(IServiceProvider tenantScope, CancellationToken cancellationToken);
 }
+
+public sealed record OwnerInviteLink(string Email, string Link, DateTimeOffset ExpiresAt);

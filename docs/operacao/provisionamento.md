@@ -46,6 +46,18 @@ tenant provision --key konebras --resume
 
 A retomada pula as etapas já concluídas e continua a partir da que falhou. Rodar a retomada de novo, com tudo concluído, não refaz nada.
 
+## Link do convite do proprietário sem e-mail
+
+Use quando o SMTP ainda não existe ou quando o e-mail do convite se perdeu:
+
+```bash
+docker compose run --rm migrator tenant invite-owner --key konebras
+```
+
+- A saída mostra o link `https://<host do tenant>/convite?token=...` **uma única vez**. Ele vale 72 h. Não cole esse link em chat nem em ticket.
+- Cada execução gera um token novo, e o link anterior deixa de valer, inclusive o que foi por e-mail.
+- Se o proprietário já criou a senha, o comando recusa e indica "Esqueci minha senha".
+
 ## Criar o super admin da plataforma
 
 Não existe cadastro de super admin por rota pública (FND-13, ADR 0012). Para criar, rode no servidor:

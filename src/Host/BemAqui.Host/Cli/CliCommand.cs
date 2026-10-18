@@ -14,11 +14,11 @@ namespace BemAqui.Host.Cli;
 
 /// <summary>
 /// Modo CLI da imagem (ADR 0006): <c>migrate</c> (catálogo e todos os tenants, antes da subida da API) e
-/// <c>tenant provision</c> (FND-03a), <c>platform-admin create</c> (FND-13) e <c>alert raise</c> (FND-10, falha do backup). Saída em PT-BR; código de saída 0 = sucesso.
+/// <c>tenant provision</c> (FND-03a), <c>platform-admin create</c> (FND-13) e <c>alert raise</c> (FND-10, falha do backup) e <c>tenant invite-owner</c> (link do convite do proprietário sem e-mail). Saída em PT-BR; código de saída 0 = sucesso.
 /// </summary>
 public static class CliCommand
 {
-    public static bool IsCli(string[] args) => args is ["migrate", ..] or ["tenant", "provision", ..] or ["platform-admin", "create", ..] or ["alert", "raise", ..];
+    public static bool IsCli(string[] args) => args is ["migrate", ..] or ["tenant", "provision", ..] or ["tenant", "invite-owner", ..] or ["platform-admin", "create", ..] or ["alert", "raise", ..];
 
     public static async Task<int> RunAsync(string[] args, Action<IConfigurationBuilder>? configure = null, TextWriter? output = null)
     {
@@ -59,6 +59,7 @@ public static class CliCommand
             return args[0] switch
             {
                 "migrate" => await MigrateAsync(scope.ServiceProvider, output),
+                "tenant" when args[1] == "invite-owner" => await InviteOwnerAsync(scope.ServiceProvider, new CliArguments(args.Skip(2).ToList()), output),
                 "alert" => await RaiseAlertAsync(scope.ServiceProvider, new CliArguments(args.Skip(2).ToList()), output),
                 "platform-admin" => await CreatePlatformAdminAsync(scope.ServiceProvider, new CliArguments(args.Skip(2).ToList()), output),
                 _ => await ProvisionAsync(scope.ServiceProvider, new CliArguments(args.Skip(2).ToList()), output),
@@ -130,6 +131,33 @@ public static class CliCommand
 
         await services.GetRequiredService<IAlertSink>().RaiseAsync(new Alert(kind, args.Get("tenant"), summary, args.Get("details")));
         await output.WriteLineAsync("Alerta enviado: " + kind + ".");
+        return 0;
+    }
+
+    /// <summary>
+    /// Link do convite do proprietário sem e-mail (FND-10b): como no <c>platform-admin create</c>, aparece só aqui, uma vez,
+    /// para quem tem SSH no servidor. Gera um token novo; o link anterior (inclusive o do e-mail) deixa de valer.
+    /// </summary>
+    private static async Task<int> InviteOwnerAsync(IServiceProvider services, CliArguments args, TextWriter output)
+    {
+        var key = args.Get("key");
+        var tenant = (await services.GetRequiredService<BemAqui.BuildingBlocks.Tenancy.ITenantDirectory>().GetActiveAsync()).FirstOrDefault(t => t.Key == key);
+        if (tenant is null)
+        {
+            await output.WriteLineAsync("Tenant não encontrado ou não ativo. Uso: tenant invite-owner --key <chave>");
+            return 1;
+        }
+
+        await using var scope = await services.GetRequiredService<BemAqui.BuildingBlocks.Tenancy.ITenantScopeFactory>().CreateScopeAsync(tenant);
+        var link = await scope.ServiceProvider.GetRequiredService<BemAqui.Platform.Contracts.ITenantOwnerOnboarding>().IssueOwnerLinkAsync(scope.ServiceProvider, CancellationToken.None);
+        if (link is null)
+        {
+            await output.WriteLineAsync("Não há convite pendente do proprietário: ele já criou a senha. Para recuperar o acesso, use \"Esqueci minha senha\".");
+            return 1;
+        }
+
+        await output.WriteLineAsync("Convite do proprietário " + link.Email + ". Abra o link abaixo para criar a senha (vale até " + link.ExpiresAt.ToString("u", System.Globalization.CultureInfo.InvariantCulture) + " e não aparece de novo; links anteriores deixam de valer):");
+        await output.WriteLineAsync(link.Link);
         return 0;
     }
 

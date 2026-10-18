@@ -24,4 +24,12 @@ public sealed class IdentityOwnerOnboarding : ITenantOwnerOnboarding
             throw new InvalidOperationException($"Tenant {tenantKey}: o proprietário não tem convite pendente (rode a etapa CreateOwner).");
         }
     }
+
+    public async Task<OwnerInviteLink?> IssueOwnerLinkAsync(IServiceProvider tenantScope, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(tenantScope);
+        return await tenantScope.GetRequiredService<Invites>().IssueOwnerLinkAsync(cancellationToken) is { } issued
+            ? new OwnerInviteLink(issued.Email, issued.Link, issued.ExpiresAt)
+            : null;
+    }
 }
