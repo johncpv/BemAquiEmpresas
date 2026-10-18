@@ -1,4 +1,4 @@
-import { type KeyboardEvent, type ReactNode, useRef } from 'react'
+import { type KeyboardEvent, type ReactNode, useRef, useState } from 'react'
 import { useHelpTab } from '@/help/help-context'
 import { useUrlTab } from './url-tab'
 
@@ -11,11 +11,14 @@ export interface UrlTab {
   /** Por que está desabilitada (ex.: "Salve o cadastro para adicionar endereços."). */
   disabledReason?: string
   content: ReactNode
+  /** Monta a aba desde o início (abas de formulário: o foco no primeiro erro precisa do campo montado). */
+  keepMounted?: boolean
 }
 
 /**
  * Abas do detalhe (molde "detalhe com abas", FND-09d CA 2 e 10): ligadas à URL e à ajuda da aba (useHelpTab).
- * Todas as abas ficam montadas (escondidas), para o formulário não perder campos nem o foco no primeiro erro.
+ * Uma aba é montada na primeira visita e fica montada depois (não busca dados de aba que ninguém abriu); a aba com
+ * keepMounted nasce montada.
  */
 /** `help`: a aba vira a "aba" da ajuda (Ajuda/<chave>.md com `aba: <id>`, ADR 0013). */
 export function UrlTabs({ tabs, fallback, label, help = true }: { tabs: UrlTab[]; fallback?: string; label: string; help?: boolean }) {
@@ -24,6 +27,8 @@ export function UrlTabs({ tabs, fallback, label, help = true }: { tabs: UrlTab[]
   const active = tabs.find((t) => t.id === current && !t.disabled) ? current : first
   useHelpTab(help ? active : null)
   const refs = useRef<(HTMLButtonElement | null)[]>([])
+  const [visited, setVisited] = useState<Set<string>>(() => new Set([active]))
+  if (!visited.has(active)) setVisited(new Set([...visited, active]))
   const enabled = tabs.filter((t) => !t.disabled)
 
   const move = (event: KeyboardEvent) => {
@@ -66,7 +71,7 @@ export function UrlTabs({ tabs, fallback, label, help = true }: { tabs: UrlTab[]
       </div>
       {tabs.map((t) => (
         <div key={t.id} role="tabpanel" id={`painel-${t.id}`} aria-labelledby={`aba-${t.id}`} hidden={t.id !== active} className="pt-4">
-          {t.disabled ? null : t.content}
+          {t.disabled || !(t.keepMounted || visited.has(t.id)) ? null : t.content}
         </div>
       ))}
     </div>

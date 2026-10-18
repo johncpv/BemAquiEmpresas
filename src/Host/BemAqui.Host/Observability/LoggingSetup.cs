@@ -29,6 +29,7 @@ public static class LoggingSetup
         logger
             .ReadFrom.Configuration(configuration)
             .Destructure.With<SecretDestructuringPolicy>()
+            .Destructure.With<PersonalDataDestructuringPolicy>()
             .Enrich.FromLogContext()
             .Enrich.With<SensitivePropertyMask>()
             .Enrich.WithProperty("Application", "bemaqui-empresas");

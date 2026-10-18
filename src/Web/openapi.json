@@ -1848,6 +1848,604 @@
           }
         }
       }
+    },
+    "/api/v1/parties": {
+      "get": {
+        "tags": [
+          "Terceiros"
+        ],
+        "operationId": "ListParties",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/PartyRoleKind"
+            }
+          },
+          {
+            "name": "includeInactive",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfPartyListItem"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Terceiros"
+        ],
+        "operationId": "CreateParty",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePartyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartyDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/parties/search": {
+      "get": {
+        "tags": [
+          "Terceiros"
+        ],
+        "operationId": "SearchParties",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PartySearchHit"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/parties/document-check": {
+      "get": {
+        "tags": [
+          "Terceiros"
+        ],
+        "operationId": "CheckPartyDocument",
+        "parameters": [
+          {
+            "name": "document",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentCheck"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/parties/{id}": {
+      "get": {
+        "tags": [
+          "Terceiros"
+        ],
+        "operationId": "GetParty",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartyDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Terceiros"
+        ],
+        "operationId": "UpdateParty",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePartyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartyDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Terceiros"
+        ],
+        "operationId": "DeleteParty",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/parties/{id}/inactivate": {
+      "post": {
+        "tags": [
+          "Terceiros"
+        ],
+        "operationId": "InactivateParty",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartyDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/parties/{id}/reactivate": {
+      "post": {
+        "tags": [
+          "Terceiros"
+        ],
+        "operationId": "ReactivateParty",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartyDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/parties/{id}/restore": {
+      "post": {
+        "tags": [
+          "Terceiros"
+        ],
+        "operationId": "RestoreParty",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartyDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/parties/{id}/addresses": {
+      "post": {
+        "tags": [
+          "Terceiros"
+        ],
+        "operationId": "AddPartyAddress",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddressInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartyDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/parties/{id}/addresses/{addressId}": {
+      "put": {
+        "tags": [
+          "Terceiros"
+        ],
+        "operationId": "UpdatePartyAddress",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "addressId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddressInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartyDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Terceiros"
+        ],
+        "operationId": "RemovePartyAddress",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "addressId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartyDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/parties/{id}/contacts": {
+      "post": {
+        "tags": [
+          "Terceiros"
+        ],
+        "operationId": "AddPartyContact",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContactInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartyDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/parties/{id}/contacts/{contactId}": {
+      "put": {
+        "tags": [
+          "Terceiros"
+        ],
+        "operationId": "UpdatePartyContact",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "contactId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContactInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartyDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Terceiros"
+        ],
+        "operationId": "RemovePartyContact",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "contactId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartyDetail"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1889,6 +2487,66 @@
             "format": "date-time"
           }
         }
+      },
+      "AddressInput": {
+        "required": [
+          "kind",
+          "zipCode",
+          "street",
+          "number",
+          "complement",
+          "district",
+          "city",
+          "ibgeCode",
+          "state"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/AddressKind"
+          },
+          "zipCode": {
+            "type": "string"
+          },
+          "street": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "complement": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "district": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "ibgeCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "state": {
+            "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "AddressKind": {
+        "enum": [
+          "Billing",
+          "Delivery",
+          "Site"
+        ]
       },
       "AiProviderInfo": {
         "required": [
@@ -2093,6 +2751,138 @@
           }
         }
       },
+      "ContactInput": {
+        "required": [
+          "name",
+          "role",
+          "email",
+          "phone",
+          "receivesBilling"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "receivesBilling": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CreatePartyRequest": {
+        "required": [
+          "kind",
+          "document",
+          "legalName",
+          "tradeName",
+          "roles"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/PartyKind"
+          },
+          "document": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "legalName": {
+            "type": "string"
+          },
+          "tradeName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartyRoleKind"
+            }
+          },
+          "stateRegistration": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "municipalRegistration": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "taxRegime": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TaxRegime"
+              }
+            ]
+          },
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "billingAddress": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AddressInput"
+              }
+            ]
+          },
+          "mainContact": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ContactInput"
+              }
+            ]
+          }
+        }
+      },
       "CurrentSession": {
         "required": [
           "userId",
@@ -2134,6 +2924,47 @@
           },
           "code": {
             "type": "string"
+          }
+        }
+      },
+      "DocumentCheck": {
+        "required": [
+          "valid",
+          "exists",
+          "id",
+          "name",
+          "deleted",
+          "roles"
+        ],
+        "type": "object",
+        "properties": {
+          "valid": {
+            "type": "boolean"
+          },
+          "exists": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "deleted": {
+            "type": "boolean"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartyRoleKind"
+            }
           }
         }
       },
@@ -2906,6 +3737,35 @@
           }
         }
       },
+      "PagedListOfPartyListItem": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartyListItem"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "PagedListOfTenantRow": {
         "required": [
           "items",
@@ -2932,6 +3792,311 @@
           "total": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "PartyAddressDto": {
+        "required": [
+          "id",
+          "kind",
+          "zipCode",
+          "street",
+          "number",
+          "complement",
+          "district",
+          "city",
+          "ibgeCode",
+          "state",
+          "isDefault"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/AddressKind"
+          },
+          "zipCode": {
+            "type": "string"
+          },
+          "street": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "complement": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "district": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "ibgeCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "state": {
+            "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PartyContactDto": {
+        "required": [
+          "id",
+          "name",
+          "role",
+          "email",
+          "phone",
+          "receivesBilling"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "receivesBilling": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PartyDetail": {
+        "required": [
+          "id",
+          "kind",
+          "legalName",
+          "tradeName",
+          "document",
+          "roles",
+          "stateRegistration",
+          "municipalRegistration",
+          "taxRegime",
+          "email",
+          "phone",
+          "notes",
+          "isActive",
+          "addresses",
+          "contacts",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PartyKind"
+          },
+          "legalName": {
+            "type": "string"
+          },
+          "tradeName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "document": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartyRoleKind"
+            }
+          },
+          "stateRegistration": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "municipalRegistration": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "taxRegime": {
+            "$ref": "#/components/schemas/TaxRegime"
+          },
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "addresses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartyAddressDto"
+            }
+          },
+          "contacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartyContactDto"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PartyKind": {
+        "enum": [
+          "PF",
+          "PJ"
+        ]
+      },
+      "PartyListItem": {
+        "required": [
+          "id",
+          "kind",
+          "legalName",
+          "tradeName",
+          "document",
+          "roles",
+          "city",
+          "state",
+          "isActive"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PartyKind"
+          },
+          "legalName": {
+            "type": "string"
+          },
+          "tradeName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "document": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartyRoleKind"
+            }
+          },
+          "city": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "state": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PartyRoleKind": {
+        "enum": [
+          "Customer",
+          "Supplier",
+          "Installer",
+          "Carrier"
+        ]
+      },
+      "PartySearchHit": {
+        "required": [
+          "id",
+          "name",
+          "document",
+          "roles"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "document": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartyRoleKind"
+            }
           }
         }
       },
@@ -3284,6 +4449,16 @@
           }
         }
       },
+      "TaxRegime": {
+        "enum": [
+          "NotInformed",
+          "SimplesNacional",
+          "Mei",
+          "LucroPresumido",
+          "LucroReal",
+          "Exempt"
+        ]
+      },
       "TenantDetail": {
         "required": [
           "tenant",
@@ -3480,6 +4655,81 @@
           }
         }
       },
+      "UpdatePartyRequest": {
+        "required": [
+          "kind",
+          "document",
+          "legalName",
+          "tradeName",
+          "roles",
+          "stateRegistration",
+          "municipalRegistration",
+          "taxRegime",
+          "email",
+          "phone",
+          "notes"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/PartyKind"
+          },
+          "document": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "legalName": {
+            "type": "string"
+          },
+          "tradeName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartyRoleKind"
+            }
+          },
+          "stateRegistration": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "municipalRegistration": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "taxRegime": {
+            "$ref": "#/components/schemas/TaxRegime"
+          },
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "UserInvited": {
         "required": [
           "id",
@@ -3600,6 +4850,9 @@
     },
     {
       "name": "Ajuda"
+    },
+    {
+      "name": "Terceiros"
     }
   ]
 }

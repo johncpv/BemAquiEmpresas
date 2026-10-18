@@ -5,7 +5,7 @@
 | ID | CAD-01a |
 | Título | Cadastro de terceiros PF/PJ com CPF/CNPJ validado (`BrazilianDocuments`), papéis (cliente, fornecedor, instalador, transportadora), situação, vários endereços e contatos, sem duplicar documento |
 | Tamanho | G (quebra da CAD-01: a consulta de CNPJ e de CEP foi para a CAD-01b) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-TER-1 (PF/PJ, CPF/CNPJ validado) · R-TER-2 · R-PRP-1 · R-PRP-3 · R-SEC-5 · PRD §6 Desempenho (lista < 1 s com 50 mil) e LGPD (dados de PF) |
 | Dependências | FND-09d (moldes e componentes); Fase 0 (FND-06c, FND-07, FND-09c, FND-14) |
 | Bloqueia | MIG-01b, CAD-05b (condição de pagamento padrão do terceiro), CAD-01b, CAD-02b (códigos do fornecedor), CAD-06 e CAD-04a/04b (`BrazilianDocuments`), COM-01, CMP-02, COM-06 |
@@ -164,6 +164,44 @@ Checklist do @po (Pax), 18/10/2026.
 - **Correções feitas na validação (18/10/2026, decisões do PO e revisão pré-Fase 1):** `BrazilianDocuments` trazido da CAD-06; CA da condição de pagamento padrão movido para a CAD-05b; endereço de cobrança no formulário de criação; duplicidade antes da consulta à Receita; documento opcional com `Tag` "Sem documento"; situação Ativo/Inativo e excluir × inativar; CPF mascarado e busca exata; busca da topbar; seed patch das permissões; CAs de segurança da §2.5 (IDOR, `no-store`, canário, allowlist, registro qualificado); verbos específicos e moldes da FND-09d.
 - **Pré-condições para `Ready`:** nenhuma pendente.
 - **Prontidão:** 10/10. **Veredito:** GO. Status `Ready`.
+
+## Dev Agent Record
+**Implementação (18/10/2026)**
+- **Building blocks:**
+  - `BrazilianDocuments` no SharedKernel: CPF e CNPJ numérico e alfanumérico, `Normalize`, `KindOf`, `Format` e `MaskCpf`. Substitui o `Cnpj` da plataforma.
+  - `DbErrors.IsUniqueViolation`.
+  - `Error.Data`, que vai como extensões do ProblemDetails (o `existingId` do 409).
+- **Auditoria (CA 26):** o `AuditableEntityRegistry` continua indexado pelo nome curto, porque é o que já está gravado em `audit_log.entity`. A colisão é barrada na subida: duas classes com o mesmo nome curto em módulos diferentes lançam exceção com o nome qualificado das duas. Assim o histórico de um módulo nunca vale com a permissão de outro.
+- **Log (CA 25):**
+  - o `SensitivePropertyMask` passa a mascarar cpf, cnpj, document, email, phone, salary, pix, bank e birth (por substring) e rg e pis (só como palavra inteira, para não pegar `Arguments` ou `Target`);
+  - nova `PersonalDataDestructuringPolicy` para objetos com `[PersonalData]`;
+  - e-mail agora é mascarado também nos logs antigos.
+- **Seed patch (CA 22, ADR 0016):**
+  - `identity.seed_patches` e o `SeedPatchSeeder`, com ordem 25, depois do `GroupSeeder`, rodando no provisionamento e em todo `migrate`;
+  - o patch `parties-default-permissions` só acrescenta permissões, roda uma vez e incrementa o `perm_version` dos membros.
+- **Módulo Parties (5 camadas):**
+  - **Contracts:** `IParties`, `IPartyUsageProvider` e os enums.
+  - **Domain:** `Party`, `PartyRole`, `PartyAddress` e `PartyContact`, com `[PersonalData]` e `SearchText` normalizado.
+  - **Application:** `PartyService` (criação com endereço de cobrança e contato principal, duplicidade 409 `party_exists`/`party_deleted`, inativar, excluir com uso, restaurar, endereços com padrão por tipo numa transação, contatos, lista e busca da topbar) e `PartiesContract`.
+  - **Infrastructure:** schema `parties`, índice único parcial `ix_parties_document_unique`, GIN `gin_trgm_ops` em `search_text` e `document`, e índice parcial do endereço padrão.
+  - **Endpoints:** `/api/v1/parties`, com `RequireModule`, `perm:` por ação e `Cache-Control: no-store`.
+- **Busca:**
+  - o nome usa uma coluna normalizada (minúsculas e sem acento, calculada no domínio) com `pg_trgm`, em vez de `unaccent` no índice (a função não é imutável);
+  - CNPJ é buscado por parte;
+  - CPF só inteiro.
+- **Validação:** responde **422**, o padrão do sistema (FND-07), e não 400 como dizia o texto dos CAs 3, 10 e 14.
+- **Front:**
+  - lista `/app/cadastros/terceiros`, com filtros de papel e inativos na URL e CPF mascarado;
+  - "Novo terceiro" no molde de seções, com o documento primeiro, a duplicidade conferida ao sair do campo, "Adicionar papel" e "Restaurar cadastro", e papel pré-marcado por `?papel=`;
+  - detalhe no molde de abas (Dados, Endereços e Contatos em painel lateral, Histórico de alterações) com "Próximos passos";
+  - grupo "Terceiros" na paleta Ctrl K;
+  - o `UrlTabs` passa a montar a aba na primeira visita (`keepMounted` para abas de formulário).
+- **Ajuda:** `cadastros-terceiros`, `cadastros-terceiro-novo` e `cadastros-terceiro` (com dados, enderecos, contatos e historico).
+- **Testes:**
+  - unidade: documentos, marcadores de log e colisão do registro;
+  - arquitetura: allowlist de `[PersonalData]` (CA 24);
+  - integração `PartiesTests`, cobrindo CA 3 a 22, 25, 27 e 28, inclusive 50 mil registros com busca abaixo de 1 s, gravação simultânea, IDOR, seed patch e canários na auditoria e no log;
+  - E2E `e2e/parties.spec.ts`, com cadastro, "Adicionar papel", axe, 400 px e teclado.
 
 ## Change Log
 | Data | Versão | Descrição | Autor |

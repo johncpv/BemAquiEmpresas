@@ -20,6 +20,7 @@ namespace BemAqui.Host.Persistence.Migrations
                 .HasAnnotation("ProductVersion", "10.0.13")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "pg_trgm");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("BemAqui.BuildingBlocks.Attachments.Attachment", b =>
@@ -829,6 +830,33 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("refresh_tokens", "identity");
                 });
 
+            modelBuilder.Entity("BemAqui.Identity.Domain.SeedPatch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("AppliedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("applied_at");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("key");
+
+                    b.HasKey("Id")
+                        .HasName("pk_seed_patches");
+
+                    b.HasIndex("Key")
+                        .IsUnique()
+                        .HasDatabaseName("ix_seed_patches_key");
+
+                    b.ToTable("seed_patches", "identity");
+                });
+
             modelBuilder.Entity("BemAqui.Identity.Domain.TenantSetting", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1137,6 +1165,264 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("user_preferences", "identity");
                 });
 
+            modelBuilder.Entity("BemAqui.Parties.Domain.Party", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<string>("Document")
+                        .HasMaxLength(14)
+                        .HasColumnType("character varying(14)")
+                        .HasColumnName("document");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)")
+                        .HasColumnName("email");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("LegalName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("legal_name");
+
+                    b.Property<string>("MunicipalRegistration")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("municipal_registration");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("notes");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(11)
+                        .HasColumnType("character varying(11)")
+                        .HasColumnName("phone");
+
+                    b.Property<string>("SearchText")
+                        .IsRequired()
+                        .HasMaxLength(420)
+                        .HasColumnType("character varying(420)")
+                        .HasColumnName("search_text");
+
+                    b.Property<string>("StateRegistration")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("state_registration");
+
+                    b.Property<string>("TaxRegime")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("tax_regime");
+
+                    b.Property<string>("TradeName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("trade_name");
+
+                    b.HasKey("Id")
+                        .HasName("pk_parties");
+
+                    b.HasIndex(new[] { "Document" }, "ix_parties_document_trgm")
+                        .HasDatabaseName("ix_parties_document_trgm");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex(new[] { "Document" }, "ix_parties_document_trgm"), "gin");
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex(new[] { "Document" }, "ix_parties_document_trgm"), new[] { "gin_trgm_ops" });
+
+                    b.HasIndex(new[] { "Document" }, "ix_parties_document_unique")
+                        .IsUnique()
+                        .HasDatabaseName("ix_parties_document_unique")
+                        .HasFilter("NOT is_deleted AND document IS NOT NULL");
+
+                    b.HasIndex(new[] { "SearchText" }, "ix_parties_search_text_trgm")
+                        .HasDatabaseName("ix_parties_search_text_trgm");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex(new[] { "SearchText" }, "ix_parties_search_text_trgm"), "gin");
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex(new[] { "SearchText" }, "ix_parties_search_text_trgm"), new[] { "gin_trgm_ops" });
+
+                    b.ToTable("parties", "parties");
+                });
+
+            modelBuilder.Entity("BemAqui.Parties.Domain.PartyAddress", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("city");
+
+                    b.Property<string>("Complement")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("complement");
+
+                    b.Property<string>("District")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("district");
+
+                    b.Property<string>("IbgeCode")
+                        .HasMaxLength(7)
+                        .HasColumnType("character varying(7)")
+                        .HasColumnName("ibge_code");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_default");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("number");
+
+                    b.Property<Guid>("PartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("party_id");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)")
+                        .HasColumnName("state");
+
+                    b.Property<string>("Street")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("street");
+
+                    b.Property<string>("ZipCode")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)")
+                        .HasColumnName("zip_code");
+
+                    b.HasKey("Id")
+                        .HasName("pk_party_addresses");
+
+                    b.HasIndex("PartyId", "Kind")
+                        .IsUnique()
+                        .HasDatabaseName("ix_party_addresses_default")
+                        .HasFilter("is_default");
+
+                    b.ToTable("party_addresses", "parties");
+                });
+
+            modelBuilder.Entity("BemAqui.Parties.Domain.PartyContact", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)")
+                        .HasColumnName("email");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid>("PartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("party_id");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(11)
+                        .HasColumnType("character varying(11)")
+                        .HasColumnName("phone");
+
+                    b.Property<bool>("ReceivesBilling")
+                        .HasColumnType("boolean")
+                        .HasColumnName("receives_billing");
+
+                    b.Property<string>("Role")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("role");
+
+                    b.HasKey("Id")
+                        .HasName("pk_party_contacts");
+
+                    b.HasIndex("PartyId")
+                        .HasDatabaseName("ix_party_contacts_party_id");
+
+                    b.ToTable("party_contacts", "parties");
+                });
+
+            modelBuilder.Entity("BemAqui.Parties.Domain.PartyRole", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("PartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("party_id");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("role");
+
+                    b.HasKey("Id")
+                        .HasName("pk_party_roles");
+
+                    b.HasIndex("Role")
+                        .HasDatabaseName("ix_party_roles_role");
+
+                    b.HasIndex("PartyId", "Role")
+                        .IsUnique()
+                        .HasDatabaseName("ix_party_roles_party_id_role");
+
+                    b.ToTable("party_roles", "parties");
+                });
+
             modelBuilder.Entity("BemAqui.Identity.Domain.GroupGrant", b =>
                 {
                     b.HasOne("BemAqui.Identity.Domain.Group", null)
@@ -1232,6 +1518,45 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_user_preferences_users_user_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Parties.Domain.PartyAddress", b =>
+                {
+                    b.HasOne("BemAqui.Parties.Domain.Party", null)
+                        .WithMany("Addresses")
+                        .HasForeignKey("PartyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_party_addresses_parties_party_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Parties.Domain.PartyContact", b =>
+                {
+                    b.HasOne("BemAqui.Parties.Domain.Party", null)
+                        .WithMany("Contacts")
+                        .HasForeignKey("PartyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_party_contacts_parties_party_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Parties.Domain.PartyRole", b =>
+                {
+                    b.HasOne("BemAqui.Parties.Domain.Party", null)
+                        .WithMany("Roles")
+                        .HasForeignKey("PartyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_party_roles_parties_party_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Parties.Domain.Party", b =>
+                {
+                    b.Navigation("Addresses");
+
+                    b.Navigation("Contacts");
+
+                    b.Navigation("Roles");
                 });
 #pragma warning restore 612, 618
         }

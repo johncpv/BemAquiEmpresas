@@ -1,14 +1,27 @@
 import { useNavigate } from '@tanstack/react-router'
 import { Command } from 'cmdk'
 import { useEffect, useMemo, useState } from 'react'
+import { useSearchParties } from '@/api/generated/bemaqui'
 import { useNavigation } from '@/navigation/navigation-context'
+import { ROLE_LABELS } from '@/pages/parties/labels'
 import { readRecent, rememberRecent } from '@/navigation/recent'
 
-/** Ctrl K / ⌘ K (FND-09b CA 9): busca por módulo e sub-tela; os usados por último aparecem primeiro (propositivo). */
+/**
+ * Ctrl K / ⌘ K (FND-09b CA 9): busca por módulo e sub-tela; os usados por último aparecem primeiro (propositivo).
+ * Com parties.view, a partir de 3 letras também mostra até 5 terceiros (CAD-01a CA 19, ADR 0010 item 9).
+ */
 export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
-  const { areas } = useNavigation()
+  const { areas, all } = useNavigation()
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
+  const [term, setTerm] = useState('')
+  const parties = all.find((m) => m.code === 'parties')
+  const canParties = !!parties && !parties.locked && parties.actions.includes('view')
+  useEffect(() => {
+    const t = setTimeout(() => setTerm(search.trim()), 300)
+    return () => clearTimeout(t)
+  }, [search])
+  const hits = useSearchParties({ q: term }, { query: { enabled: open && canParties && term.length >= 3 } })
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -61,6 +74,16 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
             <span className="text-xs text-muted-foreground">{e.hint}</span>
           </Command.Item>
         ))}
+        {canParties && term.length >= 3 && hits.data?.length ? (
+          <Command.Group heading="Terceiros" className="mt-1 border-t border-border pt-1 text-xs text-muted-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1">
+            {hits.data.map((h) => (
+              <Command.Item key={h.id} value={`terceiro ${h.id} ${search}`} onSelect={() => go(`/app/cadastros/terceiros/${h.id}`)} className="flex cursor-pointer items-center justify-between gap-2 rounded-md px-2 py-2 text-sm text-foreground data-[selected=true]:bg-muted">
+                <span className="min-w-0 truncate">{h.name}</span>
+                <span className="shrink-0 text-xs text-muted-foreground">{[h.roles.map((r) => ROLE_LABELS[r]).join(', '), h.document].filter(Boolean).join(' · ')}</span>
+              </Command.Item>
+            ))}
+          </Command.Group>
+        ) : null}
       </Command.List>
     </Command.Dialog>
   )

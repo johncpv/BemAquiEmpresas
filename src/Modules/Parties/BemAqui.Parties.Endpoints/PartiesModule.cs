@@ -1,4 +1,6 @@
+using System.Reflection;
 using BemAqui.BuildingBlocks.Modules;
+using BemAqui.Parties.Infrastructure;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,11 +11,9 @@ public sealed class PartiesModule : IModule
 {
     public string Code => "parties";
 
-    public void AddServices(IServiceCollection services, IConfiguration configuration)
-    {
-    }
+    public Assembly? PersistenceAssembly => typeof(PartiesInfrastructure).Assembly;
 
-    public void MapEndpoints(IEndpointRouteBuilder endpoints)
-    {
-    }
+    public void AddServices(IServiceCollection services, IConfiguration configuration) => services.AddPartiesInfrastructure();
+
+    public void MapEndpoints(IEndpointRouteBuilder endpoints) => endpoints.MapPartyEndpoints();
 }

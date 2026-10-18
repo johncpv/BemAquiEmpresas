@@ -49,7 +49,7 @@ public sealed partial class TenantAdminService
             fields["legalName"] = ["Informe a razão social."];
         }
 
-        if (!string.IsNullOrWhiteSpace(request.Document) && !Cnpj.IsValid(request.Document))
+        if (!string.IsNullOrWhiteSpace(request.Document) && !BrazilianDocuments.IsValidCnpj(request.Document))
         {
             fields["document"] = ["CNPJ inválido. Confira os dígitos."];
         }

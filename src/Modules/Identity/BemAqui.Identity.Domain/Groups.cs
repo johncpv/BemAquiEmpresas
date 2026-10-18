@@ -82,3 +82,14 @@ public static class GroupMatrix
         return entry with { Enabled = false, Actions = [] };
     }
 }
+
+/// <summary>
+/// Seed patch já aplicado no tenant (<c>identity.seed_patches</c>, ADR 0016): concessões novas aos grupos do seed,
+/// aplicadas uma vez, em tenant novo e nos existentes. Depois de aplicado, o que o tenant mudar no grupo vale.
+/// </summary>
+public sealed class SeedPatch : Entity
+{
+    public required string Key { get; init; }
+
+    public DateTimeOffset AppliedAt { get; init; }
+}

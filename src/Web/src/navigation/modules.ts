@@ -38,7 +38,7 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
   dashboard: { slug: 'painel', icon: LayoutDashboard },
   quotes: { slug: 'orcamentos', icon: FileText },
   projects: { slug: 'projetos', icon: FolderKanban },
-  parties: { slug: 'cadastros', icon: Contact },
+  parties: { slug: 'cadastros', icon: Contact, tabs: [{ slug: 'terceiros', label: 'Terceiros' }] },
   engineering: { slug: 'engenharia', icon: DraftingCompass },
   production: { slug: 'producao', icon: Factory },
   inventory: { slug: 'estoque', icon: Boxes },
@@ -50,7 +50,7 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
   kiosk: { slug: 'painel-tv', icon: MonitorPlay },
   shopfloor: { slug: 'operador', icon: HardHat },
   identity: { slug: 'acessos', icon: ShieldCheck, tabs: [{ slug: 'usuarios', label: 'Usuários' }, { slug: 'grupos', label: 'Grupos' }] },
-  settings: { slug: 'configuracoes', icon: Settings, tabs: [{ slug: 'seguranca', label: 'Segurança' }] },
+  settings: { slug: 'configuracoes', icon: Settings, tabs: [{ slug: 'seguranca', label: 'Segurança' }, { slug: 'ia', label: 'Inteligência artificial' }] },
 }
 
 /** Mesmo formato de MyModule em GET /api/v1/me/permissions (FND-06c/06d). */

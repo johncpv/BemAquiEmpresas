@@ -1,6 +1,8 @@
 using BemAqui.BuildingBlocks.Persistence;
 using BemAqui.Identity.Application;
 using BemAqui.Identity.Domain;
+using BemAqui.Parties.Application;
+using BemAqui.Parties.Domain;
 using Microsoft.EntityFrameworkCore;
 
 namespace BemAqui.Host.Persistence;
@@ -9,7 +11,7 @@ namespace BemAqui.Host.Persistence;
 /// DbContext único do banco de tenant (ADR 0006): tabelas compartilhadas da base e, conforme as stories
 /// avançam, as configurações de cada módulo. A conexão por tenant chega na FND-02.
 /// </summary>
-public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) : BemAquiDbContext(options), IIdentityDb
+public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) : BemAquiDbContext(options), IIdentityDb, IPartiesDb
 {
     public DbSet<User> Users => Set<User>();
 
@@ -43,8 +45,20 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<AiUsageLog> AiUsageLogs => Set<AiUsageLog>();
 
+    public DbSet<SeedPatch> SeedPatches => Set<SeedPatch>();
+
+    public DbSet<Party> Parties => Set<Party>();
+
+    public DbSet<PartyRole> PartyRoles => Set<PartyRole>();
+
+    public DbSet<PartyAddress> PartyAddresses => Set<PartyAddress>();
+
+    public DbSet<PartyContact> PartyContacts => Set<PartyContact>();
+
     protected override void ConfigureModules(ModelBuilder modelBuilder)
     {
+        // Busca por parte do nome e do CNPJ (CAD-01a CA 18). pg_trgm é extensão confiável: o dono do banco cria.
+        modelBuilder.HasPostgresExtension("pg_trgm");
         foreach (var module in ModuleRegistry.All)
         {
             if (module.PersistenceAssembly is { } assembly)

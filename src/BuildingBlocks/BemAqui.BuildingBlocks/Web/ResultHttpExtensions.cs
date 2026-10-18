@@ -27,6 +27,11 @@ public static class ResultHttpExtensions
             extensions["errors"] = error.Fields;
         }
 
+        foreach (var (key, value) in error.Data ?? new Dictionary<string, object?>())
+        {
+            extensions[key] = value;
+        }
+
         return Results.Problem(
             detail: error.Message,
             statusCode: StatusCode(error.Type),
