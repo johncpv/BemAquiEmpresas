@@ -5,7 +5,7 @@
 | ID | FND-09d |
 | Título | Três moldes de tela aprovados pelo PO (cadastro em seções, detalhe com abas na URL, painel lateral) e os componentes de formulário que os cadastros da Fase 1 usam |
 | Tamanho | G (nova, da decisão D7 da revisão pré-Fase 1: 3 moldes e cerca de 20 componentes, com acessibilidade e 400 px) |
-| Status | Ready |
+| Status | Em andamento (aguarda a aprovação dos moldes pelo PO, CA 1 e 2) |
 | Requisitos | PRD §6 Usabilidade (responsivo, 400 px) · R-PRP-1 (padrões preenchidos) · R-PRP-2 (próximo passo) · R-PRP-3 (nada digitado duas vezes) · R-AJD-4 (`Dica`) |
 | Dependências | FND-09a, FND-09b e FND-09c (concluídas no código). **Pré-condição explícita:** o PO valida a FND-09a e a FND-09b (validação visual pendente) no início desta story (CA 1) |
 | Bloqueia | Todas as stories de tela da Fase 1 (CAD-01a, CAD-01b, CAD-05b, CAD-06, CAD-03, CAD-02a, CAD-02b, CAD-05a, CAD-04a, CAD-04b) e a tela da importação (MIG-01a) |
@@ -136,8 +136,28 @@ Checklist do @po (Pax), 18/10/2026.
 - **Pré-condições para `Ready`:** nenhuma bloqueante. A validação da FND-09a/09b e a aprovação dos moldes são passos da própria story (CA 1 e 2).
 - **Prontidão:** 10/10. **Veredito:** GO. Status `Ready`.
 
+## Dev Agent Record
+**Etapa 1 (18/10/2026): componentes e moldes prontos para a aprovação do PO**
+- **Moldes** em `/app/dev/moldes/{cadastro,detalhe,painel}` e componentes em `/app/dev/componentes`, dentro do shell.
+  - Só existem em desenvolvimento e no build da homologação (`VITE_GALERIA=true`, build arg do `web.Dockerfile`, ligado pelo `deploy.yml` só no environment `homolog`). Nunca entram em produção.
+- **Componentes:**
+  - campos: `MaskedInput` e variantes (`DocumentInput` com CNPJ alfanumérico, `CpfInput`, `CnpjInput`, `CepInput`, `PhoneInput`, `NcmInput`, `CboInput`), `DecimalInput` (`MoneyInput`, `PercentInput`, `QuantityInput`, com string normalizada e sem `float`), `DateInput`, `TimeInput`;
+  - seleção: `ToggleGroup` (grupo de rádio), `ChipGroup`, `Combobox` (busca no servidor com debounce e "Criar '{termo}'");
+  - estrutura: `SidePanel` (com guarda de alteração não salva), `UrlTabs` + `useUrlTab` (abas em `?aba=`, contador de erros, ajuda por aba), `TreeTable` (`treegrid`), `RowsEditor`;
+  - mensagens e estados: `Field` com `required`, `warning` e `dica`, `FormSection`, `NextSteps`, `ConfirmDialog` com `recovery`, `Tag`, tom `neutral` no `StatusChip`, `Dica` com alvo de 24 px e nome do campo;
+  - `DataTable` com filtros na URL, "Mostrar inativos", vazio filtrado e primeira coluna como link.
+- **Bibliotecas** (`src/lib`): `masks.ts`, com CPF e CNPJ numérico e alfanumérico, validado com o exemplo oficial da Receita `12.ABC.345/01DE-35`; o validador antigo `lib/cnpj.ts` foi substituído. Também `decimal.ts` e `text.ts`.
+- **Acessibilidade corrigida pelos testes:**
+  - a `Dica` saiu de dentro do `<label>`, porque entrava no nome acessível do campo;
+  - "(obrigatório)" ganhou espaço real no nome acessível.
+- **Testes:**
+  - Vitest: máscaras, documentos e números (5) e componentes (8);
+  - E2E `e2e/molds.spec.ts`: axe e ausência de rolagem horizontal nos 4 moldes, desktop e 400 px; documento → PF/PJ; criação rápida no combobox; erro em aba escondida com contador e foco; excluir recusado → inativar; filtro de inativos na URL; guarda do painel.
+- **Pendente (CA 1 e 2):** o PO validar a FND-09a e a FND-09b e aprovar os três moldes em `https://homolog.konebras.com.br/app/dev/moldes/cadastro`. Os ajustes pedidos entram nesta story.
+
 ## Change Log
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 18/10/2026 | 0.1 | Story criada pela decisão D7 da revisão pré-Fase 1 | River (SM) |
 | 18/10/2026 | 0.2 | Validação do PO (checklist): `Ready` | Pax (PO) |
+| 18/10/2026 | 0.3 | Etapa 1: componentes e moldes na galeria da homologação | @dev |

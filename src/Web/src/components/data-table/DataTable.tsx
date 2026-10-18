@@ -1,10 +1,11 @@
 import { type ColumnDef, flexRender, getCoreRowModel, type RowData, useReactTable } from '@tanstack/react-table'
 import { ArrowDown, ArrowUp, Search } from 'lucide-react'
+import { useNavigate } from '@tanstack/react-router'
 import { type ReactNode, useEffect, useState } from 'react'
 import { ApiError } from '@/api/http'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { cn } from '@/lib/utils'
-import { useTableSearch } from './table-search'
+import { useTableFilters, useTableSearch } from './table-search'
 
 declare module '@tanstack/react-table' {
   interface ColumnMeta<TData extends RowData, TValue> {
@@ -43,7 +44,20 @@ interface DataTableProps<T> {
   label: string
   searchPlaceholder?: string
   getRowId?: (row: T) => string
+  /** Filtros na URL (FND-09d CA 19); o valor vazio é "Todos". */
+  filters?: TableFilter[]
+  /** Liga o filtro "Mostrar inativos" (?inativos=true). */
+  inactiveFilter?: boolean
+  /** A primeira coluna vira link para o detalhe (Enter abre). */
+  rowHref?: (row: T) => string
 }
+
+export interface TableFilter {
+  key: string
+  label: string
+  options: { value: string; label: string }[]
+}
+
 
 const cellClass = (secondary?: boolean, numeric?: boolean) =>
   cn('px-3 py-2 text-left', secondary && 'hidden sm:table-cell', numeric && 'text-right tabular-nums')
@@ -52,8 +66,12 @@ const cellClass = (secondary?: boolean, numeric?: boolean) =>
  * Tabela padrão (FND-09c CA 4 a 7): paginação, ordenação e busca no servidor, refletidas na URL; estados de carregando,
  * vazio, vazio por filtro e erro; colunas secundárias somem a 400px.
  */
-export function DataTable<T>({ columns, query, empty, label, searchPlaceholder = 'Buscar', getRowId }: DataTableProps<T>) {
+export function DataTable<T>({ columns, query, empty, label, searchPlaceholder = 'Buscar', getRowId, filters = [], inactiveFilter, rowHref }: DataTableProps<T>) {
   const [search, setSearch] = useTableSearch()
+  const navigate = useNavigate()
+  const values = useTableFilters(filters.map((f) => f.key))
+  const setFilter = (key: string, value: string | boolean | undefined) => setSearch({ [key]: value || undefined, page: 1 } as never)
+  const filtered = !!search.q || Object.values(values).some(Boolean)
   const [text, setText] = useState(search.q ?? '')
 
   useEffect(() => {
@@ -73,7 +91,7 @@ export function DataTable<T>({ columns, query, empty, label, searchPlaceholder =
     setSearch({ sort: search.sort === field ? '-' + field : search.sort === '-' + field ? undefined : field, page: 1 })
   const clearFilters = () => {
     setText('')
-    setSearch({ q: undefined, page: 1 })
+    setSearch({ q: undefined, page: 1, ...Object.fromEntries(Object.keys(values).map((k) => [k, undefined])) } as never)
   }
 
   let body: ReactNode
@@ -86,7 +104,7 @@ export function DataTable<T>({ columns, query, empty, label, searchPlaceholder =
   } else if (query.isError) {
     body = <ErrorState message={query.error instanceof ApiError ? query.error.message : undefined} onRetry={() => query.refetch()} className="m-3" />
   } else if (!data || data.items.length === 0) {
-    body = search.q ? (
+    body = filtered ? (
       <EmptyState title="Nenhum resultado para os filtros." className="m-3" action={<button type="button" onClick={clearFilters} className="text-sm font-semibold text-primary">Limpar filtros</button>} />
     ) : (
       <EmptyState {...empty} className="m-3" />
@@ -123,11 +141,19 @@ export function DataTable<T>({ columns, query, empty, label, searchPlaceholder =
           <tbody>
             {table.getRowModel().rows.map((row) => (
               <tr key={row.id} className="border-b border-border last:border-0">
-                {row.getVisibleCells().map((c) => (
-                  <td key={c.id} className={cellClass(c.column.columnDef.meta?.secondary, c.column.columnDef.meta?.numeric)}>
-                    {flexRender(c.column.columnDef.cell, c.getContext())}
-                  </td>
-                ))}
+                {row.getVisibleCells().map((c, i) => {
+                  const content = flexRender(c.column.columnDef.cell, c.getContext())
+                  const href = i === 0 && rowHref ? rowHref(row.original) : undefined
+                  return (
+                    <td key={c.id} className={cellClass(c.column.columnDef.meta?.secondary, c.column.columnDef.meta?.numeric)}>
+                      {href ? (
+                        <a href={href} onClick={(e) => { if (e.metaKey || e.ctrlKey || e.shiftKey) return; e.preventDefault(); void navigate({ to: href } as never) }} className="font-semibold text-primary hover:underline">
+                          {content}
+                        </a>
+                      ) : content}
+                    </td>
+                  )
+                })}
               </tr>
             ))}
           </tbody>
@@ -142,6 +168,25 @@ export function DataTable<T>({ columns, query, empty, label, searchPlaceholder =
         <Search aria-hidden="true" className="ml-1 size-4 text-muted-foreground" />
         <input type="search" value={text} onChange={(e) => setText(e.target.value)} placeholder={searchPlaceholder} aria-label={searchPlaceholder} className="w-full bg-transparent py-1 text-sm outline-none" />
       </div>
+      {filters.length > 0 || inactiveFilter ? (
+        <div className="flex flex-wrap items-center gap-2 border-b border-border px-2 py-2">
+          {filters.map((f) => (
+            <label key={f.key} className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+              {f.label}
+              <select value={values[f.key] ?? ''} onChange={(e) => setFilter(f.key, e.target.value)} className="rounded-md border border-input bg-card px-2 py-1 text-sm text-foreground">
+                <option value="">Todos</option>
+                {f.options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            </label>
+          ))}
+          {inactiveFilter ? (
+            <label className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+              <input type="checkbox" checked={values.inativos === 'true'} onChange={(e) => setFilter('inativos', e.target.checked || undefined)} className="size-4 accent-primary" />
+              Mostrar inativos
+            </label>
+          ) : null}
+        </div>
+      ) : null}
       {body}
       {data && data.total > 0 ? (
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-3 py-2 text-xs text-muted-foreground">

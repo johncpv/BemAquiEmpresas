@@ -39,7 +39,9 @@ jobs:
           echo "$TOKEN" | docker login ghcr.io -u "$ACTOR" --password-stdin
           for image in api web backup; do
             name="$REGISTRY/bemaqui-empresas-$image"
+            # A galeria de moldes (FND-09d) só entra no build da homologação.
             docker build -f "deploy/$image.Dockerfile" -t "$name:$SHA" -t "$name:$ENVIRONMENT" \
+              --build-arg VITE_GALERIA=$([ "$ENVIRONMENT" = homolog ] && echo true || echo false) \
               --label org.opencontainers.image.source="https://github.com/${{ github.repository }}" \
               --label org.opencontainers.image.revision="$SHA" .
             docker push "$name:$SHA"

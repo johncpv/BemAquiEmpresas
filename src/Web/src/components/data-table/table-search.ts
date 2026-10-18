@@ -49,3 +49,9 @@ export function useTableSearch(): [TableSearch, (patch: Partial<TableSearch>) =>
   )
   return [parseTableSearch(raw), set]
 }
+
+/** Valores dos filtros da URL, para a consulta da tela (as mesmas chaves de `filters`, mais `inativos`). */
+export function useTableFilters(keys: string[]): Record<string, string | undefined> {
+  const search = useSearch({ strict: false }) as Record<string, unknown>
+  return Object.fromEntries([...keys, 'inativos'].map((k) => [k, ['string', 'number', 'boolean'].includes(typeof search[k]) ? String(search[k]) : undefined]))
+}
