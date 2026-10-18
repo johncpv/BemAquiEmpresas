@@ -10,7 +10,7 @@ Regra: não comece uma fase sem a anterior concluída, exceto quando indicado.
 
 Stories detalhadas em [`docs/stories/`](stories/README.md), com critérios de aceite completos, ordem de execução, Definition of Ready e pontos em aberto. A linha `Requisitos:` usa o prefixo `R-` (ADR 0005 D9). Aqui fica o resumo de cada uma.
 
-**Ordem de execução** (revisão pré-Fase 0 §2.3 + stories novas): FND-01 → FND-11 → FND-07 → FND-02 → FND-03a → FND-08 → FND-12 → FND-04 → FND-05 → FND-13 → FND-03b → FND-06 → FND-06b → FND-06c → FND-06d → FND-10 → FND-14 → FND-15. Em paralelo desde a FND-01: FND-09a → FND-09b e FND-09c.
+**Ordem de execução** (revisão pré-Fase 0 §2.3 + stories novas): FND-01 → FND-11 → FND-07 → FND-02 → FND-03a → FND-08 → FND-12 → FND-04 → FND-05 → FND-13 → FND-03b → FND-06 → FND-06b → FND-06c → FND-06d → FND-10 → FND-14 → FND-15. Em paralelo desde a FND-01: FND-09a → FND-09b e FND-09c. Antes da Fase 1: FND-09d (D7 da revisão pré-Fase 1).
 
 **Definition of Ready:** story sem CA testável não entra em execução.
 
@@ -86,6 +86,10 @@ Stories detalhadas em [`docs/stories/`](stories/README.md), com critérios de ac
 - Requisitos: PRD §6 (Desempenho), R-SEC-5, R-PRP-2.
 - CA: tabela padrão com filtro, ordenação e paginação server-side; Skeleton, EmptyState, ErrorState e InlineError ligados ao TanStack Query; formulário RHF + Zod com mensagens PT-BR e erros do ProblemDetails; cliente Orval sem `fetch` à mão; histórico por registro.
 
+**FND-09d [ ] Componentes de formulário e moldes de tela (G)** — nova (D7, 18/10/2026), `Ready`, antes do Marco A da Fase 1 — [story](stories/FND-09d-componentes-formulario.md)
+- Requisitos: PRD §6 (Usabilidade), R-PRP-1, R-PRP-2, R-PRP-3, R-AJD-4.
+- CA: pré-requisito "PO valida FND-09a/09b e aprova os moldes"; três moldes (cadastro em seções, detalhe com abas na URL, painel lateral); máscaras (CNPJ/CPF inclusive alfanumérico, CEP, telefone, NCM, CBO), números no padrão brasileiro, Combobox com criação rápida, chips acessíveis, ToggleGroup, Sheet, TreeTable `treegrid`, editor de linhas, data/hora, aviso `warning`, "obrigatório" com `aria-required`, faixa "Próximos passos", `ConfirmDialog` com `recovery`, `Tag` e tom neutro, filtros na URL, `Dica` de 24 px; CAs de teclado e 400 px.
+
 **FND-10 [~] Deploy em homologação (G)** — FND-10a [x] (repositório) · FND-10b [ ] (VPS, aguarda o PO; ADR 0015) — [story](stories/FND-10-deploy-homologacao.md)
 - Requisitos: PRD §6 (Backup, Disponibilidade, Segurança).
 - CA: push na main publica na homologação (host sugerido `homolog.konebras.com.br`) atrás do `stack-nginx`; `app.konebras.com.br` continua com o Dolibarr até a GOL-01 (ADR 0005 D1); Postgres em rede interna, sem `ports:`; containers não-root, `read_only` e `cap_drop`; WebSocket com `proxy_read_timeout` ≥ 120 s; logs do nginx mascaram tokens; backup diário cifrado fora da VPS (RPO 24 h, D6), credencial sem delete; restauração de um tenant testada e documentada.
@@ -101,26 +105,67 @@ Stories detalhadas em [`docs/stories/`](stories/README.md), com critérios de ac
 ---
 ## Fase 1 — Cadastros e migração
 
-**CAD-01 [ ] Terceiros (M)** — CRUD com papéis, endereços, contatos, consulta CNPJ.
-- CA: CNPJ/CPF validados; consulta preenche razão social e endereço; mesmo documento não duplica (adiciona papel).
+Stories detalhadas em [`docs/stories/`](stories/README.md#fase-1--cadastros-e-migração), com critérios de aceite completos, ordem de execução e a validação do PO. Decisões do PO de 18/10/2026 aplicadas (revisão pré-Fase 1, ADRs 0016, 0017 e 0018): as 13 stories da fase estão `Ready`. Aqui fica o resumo de cada uma.
 
-**CAD-02 [ ] Itens e unidades (M)** — Itens, categorias, unidades, conversões, NCM, lote/série, estoque mínimo.
-- CA: conversão kg→m² por item aplicada nos movimentos; item com movimento não pode trocar a unidade de estoque.
+**Escopo da migração (decisão do PO, 18/10/2026):** migra todos os cadastros do Dolibarr, inclusive condições de pagamento e contas bancárias e caixas sem saldo. Não migra lançamentos nem financeiro transacional (títulos, pagamentos, recebimentos, movimentos e saldos bancários, saldos de estoque), que começam no BemAqui (ADR 0017).
 
-**CAD-03 [ ] Locais de estoque e centros de trabalho (P)** — CRUD; calendário e feriados.
-- CA: capacidade diária por centro usada nos testes de planejamento.
+**Ordem de execução (D1):** FND-09d (Fase 0) → **Marco A, terceiros reais:** CAD-01a → MIG-01a → CAD-05b → MIG-01b → CAD-01b → **Marco B, catálogo real:** CAD-06 → CAD-03 → CAD-02a → CAD-02b → MIG-01c → **Marco C, base de custo:** CAD-05a → CAD-04a → CAD-04b. A CAD-04c vai para o início da Fase 3.
 
-**CAD-04 [ ] Funcionários e cargos (M)** — Cadastro completo para folha (RH-1, RH-2, RH-3), custo-hora do cargo.
-- CA: dados pessoais visíveis só com permissão `hr.view_sensitive` (ADR 0003); histórico salarial registrado a cada alteração.
+**Quebras:** CAD-01 → 01a/01b · CAD-02 → 02a/02b · CAD-04 → 04a/04b/04c (D6) · CAD-05 → 05a/05b · MIG-01 → 01a/01b/01c. **Canceladas pelo PO:** MIG-01d e MIG-01e. Re-estimadas: CAD-03 e CAD-06 (P → M), CAD-04b (G → M).
 
-**CAD-05 [ ] Financeiro base (M)** — Plano de contas padrão (seed), centros de custo, contas bancárias/caixa, condições de pagamento.
-- CA: plano de contas em árvore; conta com lançamento não pode ser excluída, só inativada.
+**CAD-01a [ ] Terceiros (G)** — Marco A, ordem 1 — [story](stories/CAD-01a-terceiros.md)
+- Requisitos: R-TER-1, R-TER-2, R-PRP-1, R-PRP-3, R-SEC-5, PRD §6 (Desempenho, LGPD).
+- CA: `BrazilianDocuments` (CNPJ alfanumérico e CPF); duplicidade conferida antes de tudo e também em gravação simultânea, oferecendo adicionar o papel; documento opcional com "Sem documento"; situação Ativo/Inativo; endereço de cobrança na criação; CPF mascarado na lista e busca exata; Ctrl K; permissões padrão por seed patch; auditoria e log sem dado pessoal; lista com 50 mil registros em menos de 1 s.
 
-**CAD-06 [ ] Configurações da empresa (P)** — Dados do tenant, logo, numeração, %encargos, parâmetros.
+**MIG-01a [ ] Mapeamento e infraestrutura de importação do Dolibarr (G)** — Marco A, ordem 2 — [story](stories/MIG-01a-infra-importacao-dolibarr.md)
+- Requisitos: R-TER-5, PRD §6 (Segurança, LGPD), R-SEC-5.
+- CA: mapeamento só das tabelas de cadastro aceito pelo PO; snapshot cifrado com GRANT por coluna, sem conexão ao banco do Dolibarr; módulo `Migration` com `I*Import`; idempotência por `xmin`; `--dry-run` desfeito no fim; proteção por `MAIN_INFO_SIREN`; relatório pelo total lido, CSV sem injeção de fórmula; tela só de leitura "Configurações → Importação do Dolibarr"; expurgo da staging em até 30 dias.
 
-**MIG-01 [ ] Migração do Dolibarr (G)** — Script/tela de importação: terceiros, produtos, saldos de estoque iniciais, títulos em aberto.
-- CA: relatório de importação (importados, ignorados, erros); reexecução não duplica; saldos de estoque entram como movimento "Saldo inicial".
-- Nota: primeiro mapear tabelas do Dolibarr (`llx_societe`, `llx_product`, `llx_product_stock`, `llx_facture`...) com o PO.
+**CAD-05b [ ] Contas bancárias, caixas e condições de pagamento (M)** — Marco A, ordem 3 — [story](stories/CAD-05b-contas-bancarias-condicoes-pagamento.md)
+- Requisitos: R-FIN-2, R-TER-2, R-PRP-1, R-SEC-5.
+- CA: saldo inicial opcional, travado depois de movimentação; conta padrão única; troca de dados bancários só com Proprietário ou `finance.approve`, notificada; condições do Finance com parcelas somando 100% e `IPaymentTerms.Split`; seed À vista, 30, 30/60 e 30/60/90 dias; condição padrão do terceiro.
+
+**MIG-01b [ ] Carga de terceiros, contatos, condições de pagamento e contas bancárias (M)** — Marco A, ordem 4 — [story](stories/MIG-01b-carga-terceiros-cadastros-financeiros.md)
+- Requisitos: R-TER-5, R-TER-1, R-TER-2, R-FIN-2.
+- CA: só depois da allowlist da plataforma fechada (ADR 0018); mesmo documento vira um terceiro com vários papéis; prospects como Cliente, encerrados inativos, instaladores pela lista do PO; condições por de-para com o seed; contas sem saldo e sem `opening_date`; nada de `birthday`, IBAN, BIC ou titular; relatório pelo total lido.
+
+**CAD-01b [ ] Consulta de CNPJ e de CEP (M)** — Marco A, ordem 5 — [story](stories/CAD-01b-consulta-cnpj.md)
+- Requisitos: R-TER-1, R-PRP-3, R-PRP-7.
+- CA: BrasilAPI para CNPJ e CEP, sem reserva automática; só grava com confirmação; cache de 30 dias por tenant, sem QSA; falha não trava o cadastro e conta para o alerta; regex, sem redirect, resposta até 64 KB, limite global e circuit breaker.
+
+**CAD-06 [ ] Configurações da empresa (M)** — Marco B, ordem 6 — re-estimada — [story](stories/CAD-06-configuracoes-empresa.md)
+- Requisitos: R-COM-4, R-COM-3, R-RH-2, R-COML-1, R-SEC-5, R-AJD-1.
+- CA: perfil da empresa como fonte da verdade, CNPJ só leitura; logo até 1 MB pela rota pública própria; numeração com "próximo número" que só sobe (inclusive em ano sem linha) e reinício anual bloqueado depois do primeiro número; % de encargos com 80,00%, histórico e `PayrollChargesChanged`; markup como modo padrão.
+
+**CAD-03 [ ] Locais de estoque, centros de trabalho e calendário (M)** — Marco B, ordem 7 — re-estimada — [story](stories/CAD-03-locais-centros-trabalho-calendario.md)
+- Requisitos: R-EST-2, R-PLN-1, R-SEC-5, R-PRP-1.
+- CA: `delete` em `inventory` e `production`; local padrão "ALM"; turnos definem as horas por dia; feriados nacionais sugeridos e confirmados; capacidade diária por centro (`IWorkCenterCapacity` por id) com a fixture reaproveitada pela PLN-01.
+
+**CAD-02a [ ] Itens, unidades, categorias e garantia padrão (M)** — Marco B, ordem 8 — [story](stories/CAD-02a-itens-unidades-categorias.md)
+- Requisitos: R-EST-1, R-EST-8, R-PLT-3, R-PRJ-7, R-PRP-1, R-PRP-3, R-SEC-5.
+- CA: seed de unidades; NCM obrigatório para item ativo de matéria-prima, componente e produto acabado; lote e série para qualquer tipo exceto Serviço; garantia padrão no Inventory (12/3/3 meses); item com movimento não troca a unidade; Ctrl K; lista com 50 mil itens em menos de 1 s.
+
+**CAD-02b [ ] Conversões de unidade e códigos do fornecedor (M)** — Marco B, ordem 9 — [story](stories/CAD-02b-conversoes-codigos-fornecedor.md)
+- Requisitos: R-EST-3, R-FIS-5, R-PRP-3, R-SEC-5.
+- CA: conversão kg → m² por item pelo `IUnitConversion`; sem conversão, erro claro (nunca fator 1); código do fornecedor único por fornecedor e só para terceiro com papel Fornecedor.
+
+**MIG-01c [ ] Carga de itens, categorias, unidades, códigos do fornecedor e locais (M)** — Marco B, ordem 10 — [story](stories/MIG-01c-carga-itens-locais.md)
+- Requisitos: R-TER-5, R-EST-1, R-EST-2, R-EST-3, R-PRJ-7.
+- CA: de-para de unidades e tipos; produto sem NCM entra inativo; `elev_garantia` vira a garantia do item (P-11); depósito único ligado ao ALM; sem saldo, custo médio nem preço; relatório pelo total lido.
+
+**CAD-05a [ ] Plano de contas gerencial e centros de custo (M)** — Marco C, ordem 11 — [story](stories/CAD-05a-plano-contas-centros-custo.md)
+- Requisitos: R-FIN-1, R-PLT-3, R-FIN-13, R-SEC-5, R-PRP-1.
+- CA: seed v1 editável (máscara `9.9.99`, grupos da DRE, contas "A classificar"), sem sobrescrever; só conta analítica recebe lançamento; excluir sem uso, inativar com uso; centros Administrativo, Comercial, Produção e Instalação.
+
+**CAD-04a [ ] Cargos, jornadas, sindicatos e custo-hora (M)** — Marco C, ordem 12 — [story](stories/CAD-04a-cargos-jornadas-custo-hora.md)
+- Requisitos: R-RH-2, R-RH-1, R-PRD-4, R-SEC-5, R-SEC-10, PRD §6 (LGPD).
+- CA: custo-hora = salário de referência × (1 + % encargos) ÷ horas mensais (semanais × 5), ou ajustado à mão; recálculo idempotente quando o % muda; faixa salarial só em `/sensitive` com `hr.view_sensitive`; custo-hora só por cargo.
+
+**CAD-04b [ ] Funcionários: cadastro base (M)** — Marco C, ordem 13 — quebra D6 — [story](stories/CAD-04b-funcionarios-base.md)
+- Requisitos: R-RH-1, R-RH-3, R-SEC-5, R-SEC-10, PRD §6 (LGPD).
+- CA: criação em página única; dados pessoais só em `/sensitive`, com `SensitiveRead`; comandos separados; reajuste de salário, troca de cargo e desligamento com diálogo e linha do tempo; vínculo com o usuário exige `hr.edit` e `identity.edit`.
+
+~~**MIG-01d Saldos iniciais de estoque**~~ e ~~**MIG-01e Títulos em aberto e histórico de pagamentos**~~ — **canceladas pelo PO em 18/10/2026.** A migração não traz saldos nem títulos; o saldo inicial de estoque é digitado na EST-01 (`OpeningBalance`) e o das contas na CAD-05b.
 
 ---
 
@@ -163,9 +208,16 @@ Stories detalhadas em [`docs/stories/`](stories/README.md), com critérios de ac
 
 **FIN-06 [ ] Inadimplência e aging (P)** — Por cliente e projeto.
 
+_MIG-01e (títulos em aberto e histórico de pagamentos) não entra aqui: cancelada pelo PO em 18/10/2026. A pontualidade dos clientes (R-TER-4) começa com os títulos do BemAqui. O histórico comercial e financeiro do terceiro (R-TER-3) é CA da COM-05 ou de uma story "Terceiro 360"._
+
 ---
 
 ## Fase 3 — Engenharia, Estoque, Compras e Produção
+
+**CAD-04c [ ] Funcionários: dependentes, banco/Pix, adicionais, vale-transporte, afastamentos e documentos (M)** — quebra D6 da CAD-04b, no início da Fase 3 (antes da PRD-03), `Draft` até o PO decidir o formato do vale-transporte e os tipos de afastamento — [story](stories/CAD-04c-funcionarios-complemento.md)
+- CA: afastamento visível como "Afastado" com `hr.view` e tipo/motivo só com `hr.view_sensitive` (LGPD art. 11), motivo sem CID; troca de banco/Pix notificada aos Proprietários; CPF de dependente só quando é de IR; documentos com `hr.view_sensitive` e `SensitiveRead`.
+
+_MIG-01d (saldos iniciais de estoque) não entra aqui: cancelada pelo PO em 18/10/2026._
 
 **ENG-01 [ ] Templates de roteiro (M)** — CRUD de templates e etapas (centro, horas padrão, checklist, qualidade).
 
@@ -270,7 +322,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md), com critérios de ac
 
 **FIN-09 [ ] Régua de cobrança (M)** — D.
 
-**GOL-01 [ ] Go-live Konebras (M)** — Carga final do Dolibarr, treinamento, checklist de virada, acompanhamento da primeira semana.
+**GOL-01 [ ] Go-live Konebras (M)** — Carga final do Dolibarr (só os cadastros: MIG-01b e MIG-01c com a infraestrutura da MIG-01a; ADR 0017), `DROP USER` do usuário somente leitura e remoção do segredo, treinamento, checklist de virada, acompanhamento da primeira semana.
 
 ---
 
@@ -282,6 +334,8 @@ Stories detalhadas em [`docs/stories/`](stories/README.md), com critérios de ac
 - CA: holerite com layout padrão (proventos, descontos, bases INSS/FGTS/IRRF, líquido).
 
 **RH-03 [ ] Exportação para contadora (M)** — D, layout a definir.
+
+**LGPD-01 [ ] Exportação e anonimização a pedido do titular (M)** — ADR 0018. O Proprietário atende o pedido; exportação em JSON e PDF de terceiro PF, contato ou funcionário; anonimização que preserva os documentos com movimento; pedido e atendimento auditados.
 
 **PAT-01 [ ] Cadastro de patrimônio e QR (M)** — Bens, etiquetas em lote (PDF para impressora de etiqueta), leitura pelo PWA.
 

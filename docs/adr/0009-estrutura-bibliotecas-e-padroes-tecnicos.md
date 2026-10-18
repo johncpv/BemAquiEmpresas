@@ -64,3 +64,5 @@
 - **Números no JSON:** `NumberHandling = Strict`. O padrão do ASP.NET aceitava número como string, e o OpenAPI do .NET 10 publicava `integer|string`.
 - **Mutator único** (`src/api/http.ts`): cuida da mesma origem, do access token só em memória, do `X-CSRF`, do refresh silencioso no 401 (um por vez), do `X-Perm-Version` e do ProblemDetails convertido em `ApiError`. Fora dele, `fetch`, `axios` e `XMLHttpRequest` reprovam no lint.
 - **Bibliotecas do front:** TanStack Query 5, TanStack Table 8 (a 9 tem outra API), React Hook Form, Zod 4 (mensagens em `pt`), sonner (toasts), Radix (Dialog, Popover, DropdownMenu, ToggleGroup) e cmdk.
+
+- Ver ADR 0016 (rota anônima `GET /api/v1/public/tenant-logo`, dados sensíveis por rota e auditoria sem dado pessoal), ADR 0017 (importação do Dolibarr) e ADR 0018 (LGPD).

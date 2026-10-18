@@ -1,0 +1,70 @@
+# ADR 0017: Importação do Dolibarr
+
+- Status: Aceito (18/10/2026). O PO (John) aprovou as decisões D3 e D4 da revisão pré-Fase 1 e definiu o escopo: **a migração traz todos os cadastros e nenhum lançamento.**
+- Contexto: a MIG-01a deixava em aberto a forma de leitura do MariaDB do Dolibarr, a rede até ele, onde fica o código e se há tela. A revisão `docs/revisoes/2026-10-18-revisao-pre-fase1.md` (D2 a D5, §2.1 e §2.5) recomendou leitura por snapshot, módulo próprio e tela só de leitura. O PO decidiu que saldos e lançamentos começam no sistema novo.
+- Complementa as ADRs 0006 (fronteira de módulos), 0007 (segredos), 0015 (segredos em arquivo e rede compartilhada) e 0018 (LGPD).
+
+## Decisão
+
+### Escopo: só cadastros
+- **Migra todo cadastro que tem destino no BemAqui:**
+  - terceiros (`llx_societe`), com papéis, documento e endereço de cobrança;
+  - contatos (`llx_socpeople`);
+  - condições de pagamento (`llx_c_payment_term`), por de-para com as do seed, sem duplicar;
+  - contas bancárias e caixas (`llx_bank_account`), **só o cadastro**: nome, banco, agência, conta e tipo. A conta entra sem saldo inicial e sem `opening_date`, até o usuário informar na CAD-05b;
+  - unidades (`llx_c_units`), categorias de produto (`llx_categorie` tipo produto e `llx_categorie_product`), itens (`llx_product` e o extrafield `elev_garantia`), códigos do fornecedor (`llx_product_fournisseur_price`, sem preço) e locais (`llx_entrepot`).
+- **Não migra nada que seja lançamento ou financeiro transacional:** títulos a receber e a pagar, pagamentos, recebimentos, movimentos bancários, saldos bancários e saldos de estoque. Tabelas fora: `llx_facture*`, `llx_paiement*`, `llx_paiementfourn*`, `llx_bank`, `llx_product_stock`, `llx_product_batch`, `llx_product_lot`, `llx_stock_mouvement`.
+- **Não migram também** (sem destino na Fase 1, ou por minimização):
+  - orçamentos, pedidos, OS, BOM/OF e projetos (`llx_propal`, `llx_commande`, `llx_mrp_mo`, `llx_bom_bom`, `llx_projet`);
+  - usuários (`llx_user`): são convidados no BemAqui (FND-06c);
+  - funcionários do módulo RH do Dolibarr, se houver: são cadastrados na CAD-04b, por minimização de dado pessoal;
+  - plano contábil do Dolibarr (`llx_accounting_account`): o plano gerencial nasce do seed da CAD-05a;
+  - modos de pagamento (`llx_c_paiement`): só fazem sentido no título (Fase 2);
+  - contas bancárias de terceiros (`llx_societe_rib`), IBAN, BIC e titular;
+  - preços de venda e de compra (`llx_product_price`, colunas de preço do `llx_product_fournisseur_price`), aniversário (`birthday`) e anexos.
+- **Categorias de terceiro** (`llx_categorie` tipo cliente ou fornecedor): não viram cadastro, porque o terceiro não tem categoria no BemAqui. Podem ser usadas como fonte do de-para de papéis (Instalador, Transportadora), se o PO indicar no arquivo de de-para.
+- Tudo o que não migra continua consultável no Dolibarr em `adm.konebras.com.br` até o desligamento (ADR 0004).
+- A GOL-01 repete só a carga dos cadastros.
+
+### Leitura por snapshot (D3)
+- Nenhum container do BemAqui conecta no banco do Dolibarr em produção nem entra na rede dele.
+- **Usuário somente leitura** `bqe_migracao_ro`, restrito por host (`'bqe_migracao_ro'@'localhost'` ou o IP do container do script), com `GRANT SELECT` **por coluna**, só nas colunas mapeadas da lista fixa de tabelas.
+  - `llx_const`: só as colunas `name`, `value` e `entity`, e o script lê só a linha `MAIN_INFO_SIREN`.
+- **Extração:** o script `scripts/dolibarr-snapshot.sh` roda na VPS com esse usuário, executa um `SELECT` com colunas explícitas por tabela dentro de `START TRANSACTION WITH CONSISTENT SNAPSHOT, READ ONLY` e grava os arquivos num pacote cifrado com `age` (mesma chave do backup, ADR 0015). Nada fica em claro no disco.
+- **Restauração:** o pacote é aberto num MariaDB temporário (`bqe-<ambiente>-dolibarr-snapshot`) na rede interna do projeto, com o DDL fixo do repositório (só as colunas mapeadas). O importador lê dele com as mesmas colunas explícitas.
+- Depois da carga, o container e o volume do snapshot são removidos e o pacote é apagado.
+- A credencial do usuário somente leitura fica num arquivo de secret (ADR 0015), nunca em variável de ambiente nem em argumento.
+- Na GOL-01, depois da carga final: `DROP USER bqe_migracao_ro` e remoção do secret.
+
+### Módulo `Migration`
+- Projeto novo em `src/Modules/Migration/`, com as 5 camadas. Fica **fora do `ModuleCatalog`** e não tem rota HTTP de escrita. O teste de arquitetura passa a contar 14 módulos.
+- A escrita nos destinos é feita por interfaces `I*Import` (ex.: `IPartyImport`, `IPaymentTermImport`, `IBankAccountImport`, `IItemImport`, `ILocationImport`) nos `*.Contracts` dos módulos de destino.
+  - Só o `Migration` pode referenciar essas interfaces (teste de arquitetura).
+  - A implementação chama os mesmos handlers da Application, com as mesmas validações da tela.
+- O registro importado guarda `import_source` (ex.: `dolibarr:llx_societe:42`) na própria tabela de destino, gravado só pelo `I*Import`. O detalhe mostra o chip "Importado do Dolibarr" com a referência de origem.
+- Staging no schema `migration`: `import_runs`, `import_items` e `external_refs`.
+
+### Execução
+- Só pela CLI, na mesma imagem da API: `tenant import-dolibarr --tenant <key> --confirm-tenant <key> --snapshot <arquivo> --entities <lista> --operator <email> [--dry-run] [--mapping <arquivo>]`.
+- **Proteção contra tenant errado:** o `MAIN_INFO_SIREN` do snapshot precisa ser igual ao CNPJ do tenant no catálogo, e `--confirm-tenant` precisa repetir a chave. Se não bater, o comando recusa antes de gravar.
+- **Idempotência:** por `migration.external_refs` (`source`, tabela, id de origem), com o hash do conteúdo e o `xmin` da linha de destino gravados.
+  - Mesmo hash: "sem alteração".
+  - Hash diferente e `xmin` igual: "atualizado".
+  - `xmin` diferente (o registro foi editado no BemAqui): não sobrescreve e sai como "conflito", com os dois valores.
+- **`--dry-run`:** executa tudo, inclusive as gravações, numa transação desfeita no fim. O relatório é igual ao real.
+- **Auditoria:** usuário de sistema "Importação Dolibarr", com o operador (`--operator`) e o id da execução registrados.
+- **Primeira carga real:** na homologação. Em homologação, as cargas são ensaio; a que vale é a da GOL-01.
+- **Contagens:** o relatório confere com o total lido na extração, e não com números fixos.
+
+### Relatório e tela (D4)
+- O relatório sai no console, em JSON e em CSV, e fica em `migration.import_runs`.
+  - O CSV é protegido contra injeção de fórmula: célula que começa com `=`, `+`, `-`, `@`, tabulação ou retorno de carro ganha o prefixo `'`.
+  - Os arquivos são gravados com permissão 0600 e apagados depois do aceite do PO.
+  - CPF, e-mail e telefone saem mascarados; credencial nunca sai.
+- **Tela só de leitura** "Configurações → Importação do Dolibarr" (`settings.view`): execuções, totais por entidade e pendências (erros, avisos, conflitos) com link para o registro. A carga continua só pela CLI.
+
+## Consequências
+- A MIG-01a entrega o módulo, o snapshot, o executor, o relatório e a tela. A MIG-01b e a MIG-01c entregam as cargas.
+- A MIG-01d (saldos de estoque) e a MIG-01e (títulos) foram canceladas pelo PO em 18/10/2026. A D2 e a D5 da revisão ficam sem efeito. O saldo inicial de estoque é digitado na EST-01 (`OpeningBalance`, ADR 0016) e o saldo das contas na CAD-05b.
+- O histórico de pontualidade dos clientes (R-TER-4) começa com os títulos do BemAqui.
+- A staging tem prazo de expurgo (ADR 0018).

@@ -19,3 +19,5 @@
 | 12 | **FND-10 dividida:**<br>• **FND-10a:** homologação no ar logo depois da FND-01;<br>• **FND-10b:** hardening, backup cifrado e monitor externo. |
 | 13 | **Produção:** o pipeline fica desligado até a GOL-01 (ADR 0005 D1). |
 | 14 | **Alertas:** chegam por e-mail. O monitor externo é o UptimeRobot (plano gratuito), fora da VPS. |
+
+- Ver ADR 0016 (seed patch para os tenants existentes, `delete` em `inventory` e `production`, garantia no Inventory: o item 2 fica com encargos, markup ou margem, IA, 2FA e numeração).

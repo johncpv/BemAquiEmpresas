@@ -32,3 +32,5 @@
 ## Consequências
 - A FND-06b implementa a regra de delegação e a FND-06c implementa a versão de permissões.
 - A FND-04 implementa as claims e o security stamp.
+
+- Ver ADR 0016 (seed patch: concessões acrescentadas pelo sistema aos grupos do seed, fora da delegação).
