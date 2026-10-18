@@ -79,7 +79,8 @@ public partial class ImportTests
     [Fact]
     public async Task Segunda_importacao_no_mesmo_tenant_e_recusada_pelo_lock()
     {
-        await using var holder = new NpgsqlConnection(tenancy.Decrypt(tenancy.TenantA));
+        // Sem pool: devolvida ao pool, a sessão continuaria segurando o lock para os testes seguintes.
+        await using var holder = new NpgsqlConnection(new NpgsqlConnectionStringBuilder(tenancy.Decrypt(tenancy.TenantA)) { Pooling = false }.ConnectionString);
         await holder.OpenAsync();
         await using (var command = new NpgsqlCommand("SELECT pg_advisory_lock(" + ImportRunner.LockKey + ")", holder))
         {
@@ -90,6 +91,10 @@ public partial class ImportTests
 
         result.ExitCode.Should().Be(1);
         result.Message.Should().Be("Já existe uma importação em andamento neste tenant.");
+
+        await using var unlock = new NpgsqlCommand("SELECT pg_advisory_unlock(" + ImportRunner.LockKey + ")", holder);
+        await unlock.ExecuteNonQueryAsync();
+        (await RunAsync(new FakeSnapshot())).Message.Should().NotBe(ImportRunner.Busy, "sem o lock, a importação segue");
     }
 
     [Fact]
