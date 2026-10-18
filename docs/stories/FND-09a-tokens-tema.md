@@ -5,7 +5,7 @@
 | ID | FND-09a |
 | Título | Tokens (claro, escuro, TV), mapeamento para shadcn, tema salvo no perfil sem flash, Archivo, chips, indicador de etapa e `Money` |
 | Tamanho | M |
-| Status | In Progress (pronta; E2E com o Playwright na FND-09b) |
+| Status | In Progress (pronta; validação visual do PO) |
 | Requisitos | PRD §6 Usabilidade (responsivo) · base visual de R-SEC-11 e R-AJD-4 |
 | Dependências | FND-01 (lint contra cor literal). A persistência do tema no perfil usa a API da FND-04; antes dela, vale o armazenamento local |
 | Bloqueia | FND-09b, FND-09c e todas as telas |
@@ -158,7 +158,7 @@ Checklist do @po (Pax), 16/10/2026.
   - **Archivo self-hosted** (`@fontsource-variable/archivo`, eixos `wdth` e `wght`), com utilitários `font-wide`, `font-wider` e `font-widest` e `tabular-nums` nos números (CA 12).
   - **Componentes:** `StatusChip` (CA 13), `StageIndicator` (CA 14), `Money` (CA 15) e a galeria em `/dev/galeria`, que fica fora do build de produção (CA 16).
   - **Testes:** unidade (Vitest) dos componentes, do tema, do lint e do contraste; integração das preferências.
-  - **Pendente:** E2E com Playwright (sem flash no primeiro frame e screenshots da galeria nos dois temas e a 400px). Entra junto com a configuração do Playwright na FND-09b.
+  - **E2E (na FND-09b):** sem flash, acompanhar o sistema e screenshots da galeria nos dois temas e a 400px, sem transbordar. Falta a validação visual do PO.
 
 ## QA Results
 _A preencher pelo @qa._
