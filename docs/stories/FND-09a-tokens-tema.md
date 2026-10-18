@@ -5,7 +5,7 @@
 | ID | FND-09a |
 | Título | Tokens (claro, escuro, TV), mapeamento para shadcn, tema salvo no perfil sem flash, Archivo, chips, indicador de etapa e `Money` |
 | Tamanho | M |
-| Status | Draft |
+| Status | In Progress (pronta; E2E com o Playwright na FND-09b) |
 | Requisitos | PRD §6 Usabilidade (responsivo) · base visual de R-SEC-11 e R-AJD-4 |
 | Dependências | FND-01 (lint contra cor literal). A persistência do tema no perfil usa a API da FND-04; antes dela, vale o armazenamento local |
 | Bloqueia | FND-09b, FND-09c e todas as telas |
@@ -142,7 +142,23 @@ Checklist do @po (Pax), 16/10/2026.
 | 16/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 
 ## Dev Agent Record
-_A preencher pelo @dev._
+- **Entrega (FND-09a), 18/10/2026, branch `feat/fnd-09a-tokens-tema`.**
+  - **Tokens** (`src/styles/tokens.css`):
+    - nomes do shadcn conforme a tabela do Plano (CA 1);
+    - tokens novos da revisão §2.4: `*-ink`, `--success-foreground`, `--critical-foreground`, `--input`, `--rail-ring`, `--info*` e `--signal` no lugar de `--led` (CA 2);
+    - três escopos: claro, escuro (automático e forçado) e `.theme-tv`, que é sempre escuro, com corpo de 24px (CA 11).
+  - **Ajustes de cor** (o PO valida na galeria): o `--warn` escuro passou a laranja `#ff8a5c` para se separar do `--signal` `#f2a93b` (CA 6), e os tons de `*-ink` foram escurecidos ou clareados até passar no contraste. A identidade do protótipo continua igual.
+  - **Contraste automatizado** (`scripts/check-contrast.mjs`): 20 pares por tema, dentro do `pnpm lint` e do CI (CA 3 a 6).
+  - **Lint de cor:** além de hex, barra `rgb()`/`hsl()` e classes de cor fixa do Tailwind (CA 7).
+  - **Tema:**
+    - script inline no `index.html`, sem flash (CA 8);
+    - `ThemeProvider` + `ThemeToggle` (ToggleGroup do Radix). "Automático" deixa o CSS seguir o sistema, sem recarregar (CA 10);
+    - o perfil vence o navegador;
+    - `GET`/`PUT /api/v1/me/preferences` grava o tema em `identity.user_preferences` (CA 9). A ligação no front entra com o cliente Orval na FND-09c.
+  - **Archivo self-hosted** (`@fontsource-variable/archivo`, eixos `wdth` e `wght`), com utilitários `font-wide`, `font-wider` e `font-widest` e `tabular-nums` nos números (CA 12).
+  - **Componentes:** `StatusChip` (CA 13), `StageIndicator` (CA 14), `Money` (CA 15) e a galeria em `/dev/galeria`, que fica fora do build de produção (CA 16).
+  - **Testes:** unidade (Vitest) dos componentes, do tema, do lint e do contraste; integração das preferências.
+  - **Pendente:** E2E com Playwright (sem flash no primeiro frame e screenshots da galeria nos dois temas e a 400px). Entra junto com a configuração do Playwright na FND-09b.
 
 ## QA Results
 _A preencher pelo @qa._

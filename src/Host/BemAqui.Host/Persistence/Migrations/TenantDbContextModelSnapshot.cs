@@ -1003,6 +1003,43 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("user_invites", "identity");
                 });
 
+            modelBuilder.Entity("BemAqui.Identity.Domain.UserPreference", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("key");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("value");
+
+                    b.HasKey("Id")
+                        .HasName("pk_user_preferences");
+
+                    b.HasIndex("UserId", "Key")
+                        .IsUnique()
+                        .HasDatabaseName("ix_user_preferences_user_id_key");
+
+                    b.ToTable("user_preferences", "identity");
+                });
+
             modelBuilder.Entity("BemAqui.Identity.Domain.GroupGrant", b =>
                 {
                     b.HasOne("BemAqui.Identity.Domain.Group", null)
@@ -1088,6 +1125,16 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_user_invites_users_user_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Identity.Domain.UserPreference", b =>
+                {
+                    b.HasOne("BemAqui.Identity.Domain.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_user_preferences_users_user_id");
                 });
 #pragma warning restore 612, 618
         }

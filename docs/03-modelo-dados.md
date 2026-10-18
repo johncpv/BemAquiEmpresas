@@ -31,6 +31,7 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 - **refresh_tokens** (FND-04a): user_id, token_hash (SHA-256, único), family_id, created_at, expires_at, replaced_at, replaced_by_id, revoked_at, created_by_ip
 - **password_resets** (FND-04): user_id, token_hash, expires_at (1 h), used_at, created_at
 - **kiosk_tokens**: name, token_hash, scope (painel + filtros JSON), last_seen_at, revoked_at
+- **user_preferences** (FND-09a, ADR 0009): user_id, key (único por usuário: `theme`; `help_seen` na FND-14), value, updated_at
 - **tenant_settings** (FND-05): key (única), value, updated_at, updated_by; auditada. Chaves: `security.require_2fa`; depois logo, dados da empresa, numeração
 - **recovery_codes** (FND-05): user_id, code_hash (SHA-256), created_at, used_at. 10 por usuário, de uso único
 - **two_factor_challenges** (FND-05, ADR 0011): user_id, token_hash (único), purpose (Verify/Setup), created_at, expires_at (5 min), attempts (máx. 5), completed_at, invalidated_at, created_by_ip

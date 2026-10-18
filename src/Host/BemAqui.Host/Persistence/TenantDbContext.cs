@@ -37,6 +37,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<UserGroup> UserGroups => Set<UserGroup>();
 
+    public DbSet<UserPreference> UserPreferences => Set<UserPreference>();
+
     protected override void ConfigureModules(ModelBuilder modelBuilder)
     {
         foreach (var module in ModuleRegistry.All)

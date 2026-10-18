@@ -1,10 +1,85 @@
-body {
-  margin: 0;
-  font-family: system-ui, sans-serif;
-  background: var(--background);
-  color: var(--foreground);
+@import "tailwindcss";
+@import "@fontsource-variable/archivo/standard.css";
+
+/*
+ * Tailwind lê os tokens (src/styles/tokens.css): bg-primary, text-ok-ink, border-input... Nenhuma cor literal aqui.
+ * Nomes no padrão do shadcn/ui (FND-09a CA 1).
+ */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-rail: var(--rail);
+  --color-rail-ink: var(--rail-ink);
+  --color-rail-dim: var(--rail-dim);
+  --color-rail-hi: var(--rail-hi);
+  --color-rail-ring: var(--rail-ring);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-soft: var(--primary-soft);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-ok-ink: var(--ok-ink);
+  --color-success-foreground: var(--success-foreground);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-warn-ink: var(--warn-ink);
+  --color-crit: var(--crit);
+  --color-crit-soft: var(--crit-soft);
+  --color-crit-ink: var(--crit-ink);
+  --color-critical-foreground: var(--critical-foreground);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-info-ink: var(--info-ink);
+  --color-signal: var(--signal);
+  --color-signal-foreground: var(--signal-foreground);
+  --radius-sm: var(--radius-s);
+  --radius-md: var(--radius-m);
+  --font-sans: "Archivo Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Archivo Variable", "Arial Narrow", system-ui, sans-serif;
 }
 
-main {
-  padding: 24px 16px;
+/* Larguras da Archivo (protótipo): expandida em títulos e números, normal no texto. */
+@utility font-wide {
+  font-stretch: 112%;
+}
+
+@utility font-wider {
+  font-stretch: 120%;
+}
+
+@utility font-widest {
+  font-stretch: 125%;
+}
+
+@layer base {
+  html,
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-stretch: 112%;
+    text-wrap: balance;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
 }

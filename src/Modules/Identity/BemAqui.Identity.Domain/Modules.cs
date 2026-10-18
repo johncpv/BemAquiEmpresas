@@ -34,3 +34,17 @@ public sealed class CatalogModuleAction : Entity
 
     public bool IsStandard { get; set; }
 }
+
+/// <summary>Preferência do usuário (<c>identity.user_preferences</c>, FND-09a): tema; na FND-14, ajudas vistas.</summary>
+public sealed class UserPreference : Entity
+{
+    public const string Theme = "theme";
+
+    public Guid UserId { get; init; }
+
+    public required string Key { get; init; }
+
+    public string Value { get; set; } = string.Empty;
+
+    public DateTimeOffset UpdatedAt { get; set; }
+}
