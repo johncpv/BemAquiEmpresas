@@ -61,7 +61,7 @@ public class MigratorTests(TenancyFixture tenancy) : IClassFixture<TenancyFixtur
     public async Task Dois_migrators_em_paralelo_nao_migram_o_mesmo_banco_ao_mesmo_tempo()
     {
         await using var admin = await tenancy.AdminAsync();
-        var database = "paralelo_" + Guid.CreateVersion7().ToString("N")[..8];
+        var database = "paralelo_" + Guid.NewGuid().ToString("N")[..8];
         await using (var create = new NpgsqlCommand("CREATE DATABASE " + database, admin))
         {
             await create.ExecuteNonQueryAsync();

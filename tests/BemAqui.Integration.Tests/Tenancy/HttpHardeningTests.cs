@@ -24,7 +24,7 @@ public class HttpHardeningTests(TenancyFixture tenancy) : IClassFixture<TenancyF
     [Fact]
     public async Task Token_do_tenant_A_vale_no_host_A()
     {
-        var response = await Authorized("a.localhost", TestTokens.Create(tenancy.TenantA.Id, "a.localhost")).GetAsync("/api/v1/me");
+        var response = await Authorized("a.localhost", await tenancy.TokenAsync(tenancy.TenantA, "a.localhost")).GetAsync("/api/v1/me");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement.GetProperty("tenantId").GetString().Should().Be(tenancy.TenantA.Id.ToString());
@@ -64,7 +64,7 @@ public class HttpHardeningTests(TenancyFixture tenancy) : IClassFixture<TenancyF
     [Fact]
     public async Task Hub_aceita_token_do_proprio_tenant_e_host()
     {
-        await using var hub = Hub("a.localhost", TestTokens.Create(tenancy.TenantA.Id, "a.localhost"));
+        await using var hub = Hub("a.localhost", await tenancy.TokenAsync(tenancy.TenantA, "a.localhost"));
 
         await hub.StartAsync();
 

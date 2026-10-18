@@ -21,6 +21,7 @@ public static class TenantPersistence
             options.UseBemAquiDefaults(connection.Reveal(), sp);
         });
         services.AddScoped<BemAquiDbContext>(sp => sp.GetRequiredService<TenantDbContext>());
+        services.AddScoped<BemAqui.Identity.Application.IIdentityDb>(sp => sp.GetRequiredService<TenantDbContext>());
         return services;
     }
 }

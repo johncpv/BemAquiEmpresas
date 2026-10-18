@@ -15,4 +15,7 @@ public interface IModule
     void AddServices(IServiceCollection services, IConfiguration configuration);
 
     void MapEndpoints(IEndpointRouteBuilder endpoints);
+
+    /// <summary>Assembly com as configurações EF do módulo (aplicadas no TenantDbContext; ADR 0006).</summary>
+    System.Reflection.Assembly? PersistenceAssembly => null;
 }

@@ -76,7 +76,7 @@ public class ObservabilityTests(TenancyFixture tenancy) : IClassFixture<TenancyF
         await using var factory = tenancy.Factory.WithWebHostBuilder(b => b.ConfigureTestServices(s => s.AddSingleton<ILogEventSink>(sink)));
         var client = factory.CreateClient();
         client.DefaultRequestHeaders.Host = "a.localhost";
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", TestTokens.Create(tenancy.TenantA.Id, "a.localhost"));
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await tenancy.TokenAsync(tenancy.TenantA, "a.localhost"));
 
         (await client.GetAsync("/api/v1/me")).StatusCode.Should().Be(HttpStatusCode.OK);
 
@@ -130,7 +130,7 @@ public class ObservabilityTests(TenancyFixture tenancy) : IClassFixture<TenancyF
             b.ConfigureTestServices(s => s.AddSingleton<IEmailTransport>(transport));
         });
         var alerts = factory.Services.GetRequiredService<IAlertSink>();
-        var tenant = "dedup-" + Guid.CreateVersion7().ToString("N")[..6];
+        var tenant = "dedup-" + Guid.NewGuid().ToString("N")[..6];
 
         await alerts.RaiseAsync(new Alert(AlertKinds.JobFailed, tenant, "Job X falhou"));
         await alerts.RaiseAsync(new Alert(AlertKinds.JobFailed, tenant, "Job X falhou de novo"));

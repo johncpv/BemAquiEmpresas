@@ -1,4 +1,8 @@
 using BemAqui.BuildingBlocks.Security;
+using BemAqui.BuildingBlocks.Tenancy;
+using BemAqui.Identity.Application;
+using BemAqui.Identity.Domain;
+using Microsoft.AspNetCore.Identity;
 using BemAqui.Platform.Application.Provisioning;
 using BemAqui.Platform.Domain;
 using BemAqui.Platform.Infrastructure.Catalog;
@@ -71,6 +75,29 @@ public sealed class TenancyFixture : IAsyncLifetime
 
     public string Decrypt(Tenant tenant) =>
         Factory.Services.GetRequiredService<ISecretProtector>().Unprotect(SecretScope.ForTenant(tenant.Id), SecretKind.TenantConnection, tenant.ConnectionSecret).Reveal();
+
+    public const string DefaultPassword = "uma frase de teste bem longa";
+
+    /// <summary>Cria um usuário ativo no banco do tenant e devolve id e security stamp.</summary>
+    public async Task<(Guid Id, string Stamp)> SeedUserAsync(Tenant tenant, string email, string password = DefaultPassword)
+    {
+        var info = (await Factory.Services.GetRequiredService<ITenantDirectory>().FindAsync(tenant.Id))!;
+        await using var scope = await Factory.Services.GetRequiredService<ITenantScopeFactory>().CreateScopeAsync(info);
+        var db = scope.ServiceProvider.GetRequiredService<IIdentityDb>();
+        var user = User.Invite(email, "Usuário de teste");
+        user.SetPassword(scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>().HashPassword(user, password));
+        user.Activate();
+        db.Users.Add(user);
+        await db.SaveChangesAsync();
+        return (user.Id, user.SecurityStamp);
+    }
+
+    /// <summary>Token de teste de um usuário real (com sstamp válido) do tenant, para o host informado.</summary>
+    public async Task<string> TokenAsync(Tenant tenant, string host)
+    {
+        var (id, stamp) = await SeedUserAsync(tenant, "u" + Guid.NewGuid().ToString("N")[..10] + "@teste.com");
+        return TestTokens.Create(tenant.Id, host, userId: id, stamp: stamp);
+    }
 
     public HttpClient ClientFor(string host)
     {

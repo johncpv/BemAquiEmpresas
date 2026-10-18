@@ -11,9 +11,14 @@ public static class TestTokens
 
     public static string SigningKeyBase64 { get; } = Convert.ToBase64String(SigningKey);
 
-    public static string Create(Guid? tenantId, string audience, DateTime? expires = null, string issuer = "bemaqui-empresas", byte[]? key = null)
+    public static string Create(Guid? tenantId, string audience, DateTime? expires = null, string issuer = "bemaqui-empresas", byte[]? key = null, Guid? userId = null, string? stamp = null)
     {
-        var claims = new Dictionary<string, object> { ["sub"] = Guid.CreateVersion7().ToString() };
+        var claims = new Dictionary<string, object> { ["sub"] = (userId ?? Guid.CreateVersion7()).ToString() };
+        if (stamp is not null)
+        {
+            claims["sstamp"] = stamp;
+        }
+
         if (tenantId is { } tid)
         {
             claims["tid"] = tid.ToString();
