@@ -57,7 +57,7 @@ export function Topbar({ area, module, tab, onSearch, onHelp }: TopbarProps) {
           </button>
           <NotificationsBell />
           {mobile ? null : <ThemeToggle />}
-          <UserMenu name="Usuário" showTheme={mobile} />
+          <UserMenu showTheme={mobile} />
         </div>
       </div>
 

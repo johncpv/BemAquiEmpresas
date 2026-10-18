@@ -42,11 +42,11 @@ Stories detalhadas em [`docs/stories/`](stories/README.md), com critérios de ac
 - Requisitos: PRD §6 (Observabilidade, Disponibilidade).
 - CA: logs JSON com tenant, usuário e correlação, sem segredos; `/health/live` e `/health/ready`; alerta de job esgotado, dead-letter, falha de migração e de integração.
 
-**FND-04 [ ] Autenticação (G)** — API pronta; telas depois da FND-09c — [story](stories/FND-04-autenticacao.md)
+**FND-04 [x] Autenticação (G)** — [story](stories/FND-04-autenticacao.md)
 - Requisitos: R-SEC-1, R-SEC-3, R-SEC-4, R-SEC-5, R-PLT-3.
 - CA: access 15 min / refresh 7 dias; reuso de refresh revoga a família, com tolerância a refresh concorrente; 5 tentativas erradas bloqueiam 15 min; recuperação expira em 1 h, é de uso único, revoga as sessões e não desliga o 2FA; access token só em memória; anti-CSRF por Origin + header; respostas uniformes; desativar vale no próximo request; rate limit por IP real + tenant + usuário. Inclui as telas de login, recuperação e aceite de convite.
 
-**FND-05 [ ] 2FA TOTP (M)** — API pronta; telas depois da FND-09c — [story](stories/FND-05-2fa-totp.md)
+**FND-05 [x] 2FA TOTP (M)** — [story](stories/FND-05-2fa-totp.md)
 - Requisitos: R-SEC-2.
 - CA: login com 2FA pede código; código de recuperação usável uma vez; proprietário obriga 2FA e usuários sem 2FA são levados à configuração no próximo login; anti-replay; 5 tentativas por desafio; token intermediário só com escopo de 2FA. Inclui as telas de 2FA.
 

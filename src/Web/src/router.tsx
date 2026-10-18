@@ -1,11 +1,20 @@
 import { createRootRoute, createRoute, createRouter, Outlet, redirect } from '@tanstack/react-router'
 import { lazy } from 'react'
+import { InvitePage } from '@/auth/InvitePage'
+import { LoginPage } from '@/auth/LoginPage'
+import { ForgotPasswordPage, ResetPasswordPage } from '@/auth/PasswordPages'
+import { ensureSession } from '@/auth/session-guard'
+import { RequiredTwoFactorSetupPage, TwoFactorVerifyPage } from '@/auth/TwoFactorPages'
+import { AccountPage } from '@/pages/account/AccountPage'
+import { AccountSecurityPage } from '@/pages/account/AccountSecurityPage'
 import { ShopfloorLayout, TvLayout } from '@/pages/DedicatedLayouts'
 import { Inicio } from '@/pages/Inicio'
 import { ModulePage, NotFound } from '@/pages/ModulePage'
 import { AppShell } from '@/shell/AppShell'
 
 const Gallery = import.meta.env.DEV ? lazy(() => import('./dev/Gallery')) : null
+
+const text = (v: unknown) => (typeof v === 'string' && v ? v : undefined)
 
 const rootRoute = createRootRoute({ component: Outlet, notFoundComponent: NotFound })
 const indexRoute = createRoute({
@@ -16,18 +25,43 @@ const indexRoute = createRoute({
   },
 })
 
-// Superfícies com layout próprio (02-arquitetura §4): /app backoffice, /fab operador, /tv painel. /portal reservado.
-const appRoute = createRoute({ getParentRoute: () => rootRoute, path: '/app', component: AppShell })
+// Telas públicas (rotas anônimas do CLAUDE.md): sem dock, com a marca do tenant.
+const loginRoute = createRoute({ getParentRoute: () => rootRoute, path: '/entrar', component: LoginPage, validateSearch: (s: Record<string, unknown>): { volta?: string; email?: string } => ({ volta: text(s.volta), email: text(s.email) }) })
+const verifyRoute = createRoute({ getParentRoute: () => rootRoute, path: '/entrar/verificacao', component: TwoFactorVerifyPage })
+const requiredSetupRoute = createRoute({ getParentRoute: () => rootRoute, path: '/entrar/configurar-2fa', component: RequiredTwoFactorSetupPage })
+const forgotRoute = createRoute({ getParentRoute: () => rootRoute, path: '/esqueci-senha', component: ForgotPasswordPage, validateSearch: (s: Record<string, unknown>): { email?: string } => ({ email: text(s.email) }) })
+const resetRoute = createRoute({ getParentRoute: () => rootRoute, path: '/redefinir-senha', component: ResetPasswordPage, validateSearch: (s: Record<string, unknown>): { token?: string } => ({ token: text(s.token) }) })
+const inviteRoute = createRoute({ getParentRoute: () => rootRoute, path: '/convite', component: InvitePage, validateSearch: (s: Record<string, unknown>): { token?: string } => ({ token: text(s.token) }) })
+
+// Backoffice (/app): exige sessão; sem ela, vai ao login guardando a rota (FND-04).
+const appRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app',
+  component: AppShell,
+  beforeLoad: async ({ location }) => {
+    if (!(await ensureSession())) throw redirect({ to: '/entrar', search: { volta: location.href } })
+  },
+})
 const appIndexRoute = createRoute({ getParentRoute: () => appRoute, path: '/', component: Inicio })
+const accountRoute = createRoute({ getParentRoute: () => appRoute, path: 'conta', component: AccountPage })
+const accountSecurityRoute = createRoute({ getParentRoute: () => appRoute, path: 'conta/seguranca', component: AccountSecurityPage })
 const moduleRoute = createRoute({ getParentRoute: () => appRoute, path: '$module', component: ModulePage })
 const moduleTabRoute = createRoute({ getParentRoute: () => appRoute, path: '$module/$tab', component: ModulePage })
+
+// Superfícies com layout próprio (02-arquitetura §4): /fab operador, /tv painel. /portal reservado.
 const fabRoute = createRoute({ getParentRoute: () => rootRoute, path: '/fab', component: ShopfloorLayout })
 const tvRoute = createRoute({ getParentRoute: () => rootRoute, path: '/tv/$token', component: TvLayout })
 const galleryRoute = createRoute({ getParentRoute: () => rootRoute, path: '/dev/galeria', component: Gallery ?? NotFound })
 
 export const routeTree = rootRoute.addChildren([
   indexRoute,
-  appRoute.addChildren([appIndexRoute, moduleRoute, moduleTabRoute]),
+  loginRoute,
+  verifyRoute,
+  requiredSetupRoute,
+  forgotRoute,
+  resetRoute,
+  inviteRoute,
+  appRoute.addChildren([appIndexRoute, accountRoute, accountSecurityRoute, moduleRoute, moduleTabRoute]),
   fabRoute,
   tvRoute,
   galleryRoute,

@@ -5,7 +5,7 @@
 | ID | FND-05 |
 | Título | 2FA por app autenticador, códigos de recuperação e exigência por tenant |
 | Tamanho | M |
-| Status | In Progress (API pronta; telas depois da FND-09a/b/c) |
+| Status | Done |
 | Requisitos | R-SEC-2 |
 | Dependências | FND-04, FND-11 (segredo TOTP cifrado); telas dependem de FND-09a e FND-09c |
 | Bloqueia | FND-06b/06c (exigência por grupo e para quem aprova ou paga), FND-13 (reaproveita o TOTP) |
@@ -136,6 +136,13 @@ Checklist do @po (Pax), 16/10/2026.
     - a coluna `audit.audit_log.action` foi ampliada para 64 caracteres, sem perda de dados.
   - **Testes:** unidade do TOTP e do Base32, e 6 testes de integração. O CA 11 é a regressão da FND-04 (redefinição mantém o 2FA).
   - **Pendente:** telas (configurar, desafio, perfil), ajuda dessas telas e E2E, depois da FND-09a/b/c.
+
+- **Telas (FND-05), 18/10/2026, branch `feat/fnd-04-telas`.**
+  - **Desafio no login** (`/entrar/verificacao`): código com `inputmode=numeric` e `one-time-code`, o link "Usar código de recuperação", as tentativas restantes e "Entrar de novo" quando o desafio cai.
+  - **Configuração obrigatória** (`/entrar/configurar-2fa`): sem "Fazer depois".
+  - **Perfil** (`/app/conta/seguranca`): ativar, ver os códigos restantes e desativar com senha e código. Quando o 2FA é obrigatório, a opção de desativar não aparece.
+  - **Componentes:** `TwoFactorSetup` (QR desenhado no navegador com `qrcode`, mais a chave manual) e `RecoveryCodes` (copiar, baixar e concluir).
+  - **Ajuda:** `verificacao-2fa`, `configurar-2fa`, `conta-seguranca`.
 
 ## QA Results
 _A preencher pelo @qa._

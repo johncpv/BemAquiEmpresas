@@ -38,3 +38,12 @@ public sealed class Preferences(IIdentityDb db, TimeProvider clock)
         return preferences;
     }
 }
+
+/// <summary>Quem está logado, para a topbar e o menu do usuário (FND-04 telas).</summary>
+public sealed record ProfileDto(string Name, string Email);
+
+public sealed class Profile(IIdentityDb db)
+{
+    public Task<ProfileDto?> GetAsync(Guid userId, CancellationToken cancellationToken = default) =>
+        db.Users.Where(u => u.Id == userId).Select(u => new ProfileDto(u.Name, u.Email)).FirstOrDefaultAsync(cancellationToken);
+}

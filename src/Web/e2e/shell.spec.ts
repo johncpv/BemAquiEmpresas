@@ -1,9 +1,12 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
+import { mockApi } from './mock-api'
 
 const isMobile = (name: string) => name === 'celular'
 
 test.describe('shell do backoffice (FND-09b)', () => {
+  test.beforeEach(async ({ page }) => mockApi(page))
+
   test('desktop: área abre popover, setas navegam e Esc devolve o foco (CA 2, 5)', async ({ page }, info) => {
     test.skip(isMobile(info.project.name))
     await page.goto('/app')
@@ -39,7 +42,7 @@ test.describe('shell do backoffice (FND-09b)', () => {
     await page.getByPlaceholder('Buscar tela ou módulo…').fill('Segurança')
     await page.keyboard.press('Enter')
     await expect(page).toHaveURL(/\/app\/configuracoes\/seguranca$/)
-    await expect(page).toHaveTitle('Configurações: Segurança · Empresa · BemAqui Empresas')
+    await expect(page).toHaveTitle('Configurações: Segurança · Konebras · BemAqui Empresas')
   })
 
   test('primeiro Tab é "Pular para o conteúdo" (CA 12)', async ({ page }) => {
@@ -59,7 +62,10 @@ test.describe('shell do backoffice (FND-09b)', () => {
 })
 
 test.describe('tema (FND-09a)', () => {
+  test.beforeEach(async ({ page }) => mockApi(page))
+
   test('sem flash: o tema guardado vale antes da primeira pintura (CA 8)', async ({ page }) => {
+    await mockApi(page, { 'GET /api/v1/me/preferences': (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ theme: 'dark' }) }) })
     await page.addInitScript(() => localStorage.setItem('bq-theme', 'dark'))
     // O script inline roda antes de qualquer CSS ou JS do app: no DOMContentLoaded o atributo já está lá.
     await page.goto('/app', { waitUntil: 'domcontentloaded' })
