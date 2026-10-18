@@ -31,6 +31,9 @@ public sealed record Error(string Code, string Message, ErrorType Type)
 
     public IReadOnlyDictionary<string, string[]>? Fields { get; init; }
 
+    /// <summary>Dados extras para o front, que vão como extensões do ProblemDetails (ex.: id do terceiro existente no 409).</summary>
+    public IReadOnlyDictionary<string, object?>? Data { get; init; }
+
     public static Error Validation(string code, string message, IReadOnlyDictionary<string, string[]>? fields = null) =>
         new(code, message, ErrorType.Validation) { Fields = fields };
 

@@ -5,12 +5,15 @@ export class ApiError extends Error {
   readonly status: number
   readonly code?: string
   readonly fields: Record<string, string[]>
+  /** Extensões do ProblemDetails além de code e errors (ex.: existingId no 409 party_exists). */
+  readonly data: Record<string, unknown>
 
-  constructor(status: number, problem: { detail?: string; title?: string; code?: string; errors?: Record<string, string[]> }) {
+  constructor(status: number, problem: { detail?: string; title?: string; code?: string; errors?: Record<string, string[]>; [key: string]: unknown }) {
     super(problem.detail ?? problem.title ?? 'Não foi possível concluir a operação.')
     this.status = status
     this.code = problem.code
     this.fields = problem.errors ?? {}
+    this.data = problem
   }
 }
 

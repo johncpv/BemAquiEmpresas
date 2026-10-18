@@ -24,6 +24,7 @@ export async function mockApi(page: Page, overrides: Record<string, Handler> = {
     'GET /api/v1/identity/users': (r) => json(r, []),
     'GET /api/v1/settings/security': (r) => json(r, { requireTwoFactor: false }),
     'GET /api/v1/settings/ia': (r) => json(r, aiSettings()),
+    'GET /api/v1/audit/*/*': (r) => json(r, { items: [], page: 1, pageSize: 20, total: 0 }),
   }
   const handlers = { ...defaults, ...overrides }
 
@@ -31,7 +32,10 @@ export async function mockApi(page: Page, overrides: Record<string, Handler> = {
     const url = new URL(route.request().url())
     const key = `${route.request().method()} ${url.pathname}`
     const bare = key.endsWith('/') ? key.slice(0, -1) : key
-    const handler = handlers[key] ?? handlers[bare] ?? handlers[bare + '/']
+    // "*" casa um segmento da rota (ex.: "GET /api/v1/parties/*" para o detalhe por id).
+    const matches = (pattern: string) => { const p = pattern.split('/'); const k = bare.split('/'); return p.length === k.length && p.every((seg, i) => seg === '*' || seg === k[i]) }
+    const wildcard = Object.keys(handlers).find((k) => k.includes('*') && matches(k))
+    const handler = handlers[key] ?? handlers[bare] ?? handlers[bare + '/'] ?? (wildcard ? handlers[wildcard] : undefined)
     if (handler) return handler(route)
     return json(route, {})
   })

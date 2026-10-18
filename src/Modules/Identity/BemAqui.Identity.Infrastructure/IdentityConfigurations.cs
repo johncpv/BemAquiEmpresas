@@ -208,3 +208,13 @@ internal sealed class AiUsageLogConfiguration : IEntityTypeConfiguration<AiUsage
         b.HasIndex(e => e.At);
     }
 }
+
+internal sealed class SeedPatchConfiguration : IEntityTypeConfiguration<SeedPatch>
+{
+    public void Configure(EntityTypeBuilder<SeedPatch> b)
+    {
+        b.ToTable("seed_patches", IdentitySchema.Name);
+        b.Property(e => e.Key).HasMaxLength(100);
+        b.HasIndex(e => e.Key).IsUnique();
+    }
+}

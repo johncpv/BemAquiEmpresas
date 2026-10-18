@@ -22,6 +22,9 @@ import { PlatformSetPasswordPage } from '@/platform/PlatformSetPasswordPage'
 import { TenantDetailPage } from '@/platform/TenantDetailPage'
 import { TenantsPage } from '@/platform/TenantsPage'
 import { ComponentsMold, CreateMold, DetailMold, PanelMold } from '@/dev/molds/lazy'
+import { NewPartyPage } from '@/pages/parties/NewPartyPage'
+import { PartiesPage } from '@/pages/parties/PartiesPage'
+import { PartyPage } from '@/pages/parties/PartyPage'
 import { AppShell } from '@/shell/AppShell'
 
 // Galerias (FND-09a e FND-09d): em desenvolvimento e no build da homologação (VITE_GALERIA=true); nunca em produção.
@@ -68,6 +71,11 @@ const groupsRoute = createRoute({ getParentRoute: () => appRoute, path: 'acessos
 const settingsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes', beforeLoad: () => { throw redirect({ to: '/app/configuracoes/seguranca' }) } })
 const securityRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/seguranca', component: gated('settings', SecurityPage) })
 const aiSettingsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/ia', component: gated('settings', AiSettingsPage) })
+// Cadastros (CAD-01a): /app/cadastros leva à primeira aba do módulo.
+const partiesRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'cadastros', beforeLoad: () => { throw redirect({ to: '/app/cadastros/terceiros' }) } })
+const partiesRoute = createRoute({ getParentRoute: () => appRoute, path: 'cadastros/terceiros', component: gated('parties', PartiesPage) })
+const newPartyRoute = createRoute({ getParentRoute: () => appRoute, path: 'cadastros/terceiros/novo', component: gated('parties', NewPartyPage) })
+const partyRoute = createRoute({ getParentRoute: () => appRoute, path: 'cadastros/terceiros/$id', component: gated('parties', PartyPage) })
 // Moldes de tela da FND-09d, dentro do shell, para o PO aprovar no contexto real.
 const moldsRoute = createRoute({ getParentRoute: () => appRoute, path: 'dev/moldes', beforeLoad: () => { throw redirect({ to: '/app/dev/moldes/cadastro' }) } })
 const createMoldRoute = createRoute({ getParentRoute: () => appRoute, path: 'dev/moldes/cadastro', component: CreateMold })
@@ -111,7 +119,7 @@ export const routeTree = rootRoute.addChildren([
   resetRoute,
   inviteRoute,
   appRoute.addChildren([appIndexRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, securityRoute,
-    aiSettingsRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
+    aiSettingsRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
   platformLoginRoute,
   platformPasswordRoute,
   platformRoute.addChildren([platformIndexRoute, tenantsRoute, tenantRoute]),

@@ -1,0 +1,68 @@
+using BemAqui.BuildingBlocks.Identity;
+using BemAqui.BuildingBlocks.Tenancy;
+using BemAqui.Identity.Application;
+using BemAqui.Identity.Domain;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace BemAqui.Identity.Infrastructure;
+
+/// <summary>Um seed patch: chave estável e as concessões por grupo do seed (pela <c>seed_key</c>).</summary>
+public sealed record GroupGrantPatch(string Key, IReadOnlyList<(string SeedKey, string Module, string[] Actions)> Grants);
+
+/// <summary>
+/// Seed patches (ADR 0016, CAD-01a CA 22): roda depois do <see cref="GroupSeeder"/>, em todo provisionamento e todo
+/// <c>migrate</c>. Cada patch roda uma vez por tenant: só <b>acrescenta</b> módulo e ações a grupos com <c>seed_key</c>
+/// (nunca remove, nunca toca grupo criado pelo tenant) e invalida o cache de permissão dos membros.
+/// Aplicado pelo sistema, fora da delegação da ADR 0008.
+/// </summary>
+public sealed class SeedPatchSeeder : ITenantSeeder
+{
+    /// <summary>Patches em ordem. Patch novo entra no fim, com chave nova; nunca altere um já publicado.</summary>
+    public static readonly IReadOnlyList<GroupGrantPatch> Patches =
+    [
+        new("parties-default-permissions",
+        [
+            ("commercial", "parties", ["view", "create", "edit"]),
+            ("finance", "parties", ["view", "create", "edit"]),
+            ("warehouse", "parties", ["view", "create", "edit"]),
+            ("engineering", "parties", ["view"]),
+        ]),
+    ];
+
+    public int Order => 25;
+
+    public async Task SeedAsync(IServiceProvider tenantScope, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(tenantScope);
+        var db = tenantScope.GetRequiredService<IIdentityDb>();
+        var clock = tenantScope.GetRequiredService<TimeProvider>();
+        var applied = (await db.SeedPatches.Select(p => p.Key).ToListAsync(cancellationToken)).ToHashSet(StringComparer.Ordinal);
+        foreach (var patch in Patches.Where(p => !applied.Contains(p.Key)))
+        {
+            var touched = new HashSet<Guid>();
+            foreach (var (seedKey, module, actions) in patch.Grants)
+            {
+                var group = await db.Groups.FirstOrDefaultAsync(g => g.SeedKey == seedKey && !g.IsSystem, cancellationToken);
+                if (group is null)
+                {
+                    continue;
+                }
+
+                if (!await db.GroupModules.AnyAsync(m => m.GroupId == group.Id && m.ModuleCode == module, cancellationToken))
+                {
+                    db.GroupModules.Add(new GroupModule { GroupId = group.Id, ModuleCode = module, Enabled = true });
+                }
+
+                var existing = await db.GroupPermissions.Where(p => p.GroupId == group.Id && p.ModuleCode == module).Select(p => p.Action).ToListAsync(cancellationToken);
+                db.GroupPermissions.AddRange(actions.Except(existing).Select(a => new GroupGrant { GroupId = group.Id, ModuleCode = module, Action = a }));
+                touched.Add(group.Id);
+            }
+
+            db.SeedPatches.Add(new SeedPatch { Key = patch.Key, AppliedAt = clock.GetUtcNow() });
+            await db.SaveChangesAsync(cancellationToken);
+            var members = await db.UserGroups.Where(ug => touched.Contains(ug.GroupId)).Select(ug => ug.UserId).Distinct().ToListAsync(cancellationToken);
+            await tenantScope.GetRequiredService<IPermissionService>().BumpAsync(members, cancellationToken);
+        }
+    }
+}

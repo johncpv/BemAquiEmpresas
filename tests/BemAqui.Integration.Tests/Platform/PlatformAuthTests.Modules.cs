@@ -62,7 +62,7 @@ public partial class PlatformAuthTests
 
         (await platform.PutAsJsonAsync(path, new { modules = new[] { new { code = "finance", released = true } } })).StatusCode.Should().Be(HttpStatusCode.NoContent);
         (await TenantModulesSeenByUserAsync())["finance"].Should().BeTrue();
-        var actions = await CatalogAsync(db => db.AuditEntries.Where(a => a.Entity == "TenantModule" && a.EntityId == tenancy.TenantA.Id + ":finance").Select(a => a.Action).ToListAsync());
+        var actions = await CatalogAsync(db => db.AuditEntries.Where(a => a.Entity == "TenantModule" && a.EntityId == tenancy.TenantA.Id + ":finance").OrderBy(a => a.At).Select(a => a.Action).ToListAsync());
         actions.Should().ContainInOrder("ModuleBlocked", "ModuleReleased");
         (await Client("a.localhost").GetAsync(path)).StatusCode.Should().Be(HttpStatusCode.NotFound, "a API da plataforma não existe no host do tenant");
     }

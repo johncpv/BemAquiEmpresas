@@ -46,7 +46,8 @@ public class ObservabilityTests
 
         var rendered = sink.Events.Single().RenderMessage(System.Globalization.CultureInfo.InvariantCulture);
         rendered.Should().NotContain("senha-real").And.NotContain("eyJ-real").And.NotContain("sk-real").And.NotContain("tok-real").And.NotContain("ck-real");
-        rendered.Should().Contain("ana@konebras.com.br").And.Contain("application/json").And.Contain("***");
+        // E-mail é dado pessoal desde a CAD-01a (CA 25): também sai mascarado.
+        rendered.Should().NotContain("ana@konebras.com.br").And.Contain("application/json").And.Contain("***");
     }
 
     [Theory]
@@ -55,7 +56,7 @@ public class ObservabilityTests
     [InlineData("refresh_token", true)]
     [InlineData("X-Api-Key", true)]
     [InlineData("ConnectionString", true)]
-    [InlineData("Email", false)]
+    [InlineData("Email", true)]
     [InlineData("TenantId", false)]
     public void Nome_sensivel_e_reconhecido(string name, bool sensitive) => SensitivePropertyMask.IsSensitive(name).Should().Be(sensitive);
 

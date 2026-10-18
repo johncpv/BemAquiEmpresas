@@ -39,6 +39,8 @@ public interface IIdentityDb
 
     DbSet<AiUsageLog> AiUsageLogs { get; }
 
+    DbSet<SeedPatch> SeedPatches { get; }
+
     /// <summary>Eventos de segurança (login, bloqueio, reuso de refresh...) entram na auditoria imutável.</summary>
     DbSet<AuditEntry> AuditEntries { get; }
 

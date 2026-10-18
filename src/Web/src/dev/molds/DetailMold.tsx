@@ -90,7 +90,7 @@ export default function DetailMold() {
 
       <UrlTabs label="Seções do terceiro" fallback="dados" help={false} tabs={[
         {
-          id: 'dados', label: 'Dados', errors: tried ? dataErrors : 0, content: (
+          id: 'dados', label: 'Dados', keepMounted: true, errors: tried ? dataErrors : 0, content: (
             <div className="grid max-w-3xl gap-3 sm:grid-cols-2">
               <Field label="Razão social" required error={tried && name.trim().length < 2 ? 'Informe o nome ou a razão social.' : undefined}>{(p) => <input {...p} value={name} onChange={(e) => setName(e.target.value)} className={inputClass} />}</Field>
               <Field label="E-mail" error={tried && !isEmail(email) ? 'Informe um e-mail válido.' : undefined}>{(p) => <input {...p} value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} />}</Field>
@@ -107,7 +107,7 @@ export default function DetailMold() {
           ),
         },
         {
-          id: 'contatos', label: 'Contatos', errors: tried ? contactErrors : 0, content: (
+          id: 'contatos', label: 'Contatos', keepMounted: true, errors: tried ? contactErrors : 0, content: (
             <div className="max-w-3xl">
               <RowsEditor noun="contato" rows={contacts} onChange={setContacts} newRow={() => ({ name: '', email: '' })} headers={['Nome', 'E-mail']} summary={`${contacts.length} ${contacts.length === 1 ? 'contato' : 'contatos'}`}
                 renderRow={(row, i, update) => [
