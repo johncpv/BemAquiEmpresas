@@ -95,7 +95,7 @@ public sealed class TenancyFixture : IAsyncLifetime
     /// <summary>Token de teste de um usuário real (com sstamp válido) do tenant, para o host informado.</summary>
     public async Task<string> TokenAsync(Tenant tenant, string host)
     {
-        var (id, stamp) = await SeedUserAsync(tenant, "u" + Guid.CreateVersion7().ToString("N")[..10] + "@teste.com");
+        var (id, stamp) = await SeedUserAsync(tenant, "u" + Guid.NewGuid().ToString("N")[..10] + "@teste.com");
         return TestTokens.Create(tenant.Id, host, userId: id, stamp: stamp);
     }
 

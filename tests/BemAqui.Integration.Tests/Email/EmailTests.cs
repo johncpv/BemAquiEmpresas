@@ -70,7 +70,7 @@ public class EmailTests(PostgresFixture postgres, MailpitFixture mailpit) : ICla
     {
         var (provider, _, _) = await EmailHarness.CreateAsync(await postgres.CreateDatabaseAsync("mail_ok"), mailpit.Container.Hostname, mailpit.SmtpPort);
         await using var disposeProvider = provider;
-        var to = "envio-" + Guid.CreateVersion7().ToString("N")[..8] + "@konebras.com.br";
+        var to = "envio-" + Guid.NewGuid().ToString("N")[..8] + "@konebras.com.br";
         var id = await EnqueueAsync(provider, to);
 
         await Job(provider).ExecuteAsync(EmailHarness.Tenant.Id, new SendEmailArgs(id), CancellationToken.None);

@@ -15,7 +15,7 @@ public partial class AuthTests(TenancyFixture tenancy) : IClassFixture<TenancyFi
 {
     private const string Host = "a.localhost";
 
-    private static string NewEmail() => "auth-" + Guid.CreateVersion7().ToString("N")[..10] + "@konebras.com.br";
+    private static string NewEmail() => "auth-" + Guid.NewGuid().ToString("N")[..10] + "@konebras.com.br";
 
     private Task<HttpResponseMessage> LoginAsync(string email, string password) =>
         tenancy.ClientFor(Host).PostAsJsonAsync("/api/v1/auth/login", new { email, password });
