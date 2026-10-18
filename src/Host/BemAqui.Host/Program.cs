@@ -86,6 +86,7 @@ try
     // Número é número no contrato (OpenAPI/Orval): sem aceitar "1" como 1, que gerava tipos integer|string no cliente.
     builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.Strict);
     PermissionResultHandler.Register(builder.Services);
+    builder.Services.AddSingleton(BemAqui.BuildingBlocks.Help.HelpCatalog.FromAssembly(typeof(Program).Assembly)); // ajuda inválida derruba a subida
 
     foreach (var module in ModuleRegistry.All)
     {

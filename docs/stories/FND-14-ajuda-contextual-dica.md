@@ -5,7 +5,7 @@
 | ID | FND-14 |
 | Título | Catálogo de ajudas em Markdown, endpoints `/ajuda`, painel lateral, abertura na primeira visita, `<Dica>` e teste de cobertura |
 | Tamanho | M |
-| Status | Draft |
+| Status | Done |
 | Requisitos | R-AJD-1 · R-AJD-2 · R-AJD-3 · R-AJD-4 · R-AJD-6 · R-AJD-7 |
 | Dependências | FND-06c (permissões efetivas), FND-06d (menu por permissão), FND-09b (slot do botão Ajuda) |
 | Bloqueia | FND-15 |
@@ -118,7 +118,17 @@ Checklist do @po (Pax), 16/10/2026.
 | 16/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 
 ## Dev Agent Record
-_A preencher pelo @dev._
+- **Entrega (FND-14), 18/10/2026, branch `feat/fnd-14-ajuda`.** Os pontos em aberto foram decididos na ADR 0013.
+  - **Catálogo (CA 1):** `HelpCatalog` lê `Ajuda/*.md`, embutidos no Host, valida o cabeçalho e as três seções obrigatórias e derruba a subida se algo estiver errado. O teste de arquitetura valida os arquivos no CI.
+  - **API:**
+    - `GET /api/v1/ajuda` devolve só as ajudas gerais e as dos módulos liberados e habilitados para o usuário (CA 2);
+    - `GET /api/v1/ajuda/{chave}` responde 403 com `module_not_released` ou `forbidden` (CA 3);
+    - `GET /ajuda/vistas` e `POST /ajuda/{chave}/vista` guardam a ajuda vista em `user_preferences`.
+  - **Painel (CA 4, 5, 6):** o botão "Ajuda" abre o painel lateral, que vira tela cheia no celular. A ajuda é escolhida pela rota e pela aba (a tela informa a aba com `useHelpTab`). O painel tem o índice permitido e a busca, que prioriza a tela atual. Na primeira visita a uma tela, abre sozinho uma vez.
+  - **`<Dica>` (CA 7):** abre no mouse, no foco e no toque e fecha com Esc. O texto fica ligado por `aria-describedby`. Já está em "Habilitado" na matriz de grupos e em Configurações → Segurança.
+  - **Markdown seguro (CA 9):** renderizador próprio, sem HTML cru.
+  - **Cobertura (CA 8, 10):** todas as rotas do roteador têm ajuda. Entraram as que faltavam: `modulo`, `modulo-aba`, `plataforma-definir-senha`, `fab` e `tv`, além de `ajuda.md`, que explica o próprio painel.
+  - **Testes:** integração (índice por permissão, módulo não liberado, já vista), Vitest (cobertura, resolução, busca, sanitização, Dica) e Playwright (primeira visita, reload sem reabrir, busca, Dica por teclado e toque).
 
 ## QA Results
 _A preencher pelo @qa._

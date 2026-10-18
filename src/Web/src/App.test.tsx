@@ -24,7 +24,7 @@ describe('shell do backoffice (FND-09b)', () => {
   // Sessão em memória e API respondendo vazio: o guarda de /app deixa passar.
   beforeEach(() => {
     setAccessToken('token-de-teste')
-    const body = (url: string) => (url.startsWith('/api/v1/me/permissions') ? { permissions: [], isOwner: true, version: '1', modules: SAMPLE_MODULES } : {})
+    const body = (url: string) => (url.startsWith('/api/v1/me/permissions') ? { permissions: [], isOwner: true, version: '1', modules: SAMPLE_MODULES } : url.startsWith('/api/v1/ajuda') ? [] : {})
     vi.stubGlobal('fetch', vi.fn(async (url: string) => new Response(JSON.stringify(body(url)), { status: 200, headers: { 'Content-Type': 'application/json' } })))
   })
 

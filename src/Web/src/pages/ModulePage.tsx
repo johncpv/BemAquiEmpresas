@@ -2,6 +2,7 @@ import { Link, useParams } from '@tanstack/react-router'
 import { Lock, ShieldOff } from 'lucide-react'
 import { findModuleBySlug, type NavModule } from '@/navigation/modules'
 import { useNavigation } from '@/navigation/navigation-context'
+import { useHelpTab } from '@/help/help-context'
 import { PageHeading } from '@/shell/PageHeading'
 
 export const NOT_RELEASED_MESSAGE = 'Funcionalidade não liberada nessa versão do sistema.'
@@ -9,6 +10,7 @@ export const ACCESS_DENIED_MESSAGE = 'Você não tem acesso a esta funcionalidad
 
 /** Tela padrão de módulo não liberado (CLAUDE.md, FND-06d CA 2): nome, a mensagem exata e o que o módulo fará. */
 export function ModuleNotReleased({ module }: { module: Pick<NavModule, 'name' | 'description'> }) {
+  useHelpTab('nao-liberado')
   return (
     <>
       <PageHeading title={module.name} />
@@ -25,6 +27,7 @@ export function ModuleNotReleased({ module }: { module: Pick<NavModule, 'name' |
 
 /** Liberado, mas sem grupo que dê acesso (FND-06d CA 3; mensagem da ADR 0010 item 8). */
 export function AccessDenied({ module }: { module: Pick<NavModule, 'name'> }) {
+  useHelpTab('sem-acesso')
   return (
     <>
       <PageHeading title="Sem acesso a esta tela" />
