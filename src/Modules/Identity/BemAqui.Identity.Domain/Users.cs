@@ -41,6 +41,13 @@ public sealed class User : Entity, IAuditable
 
     public bool TotpEnabled { get; set; }
 
+    /// <summary>Segredo TOTP cifrado (<c>SecretKind.TotpSecret</c>); existe desde o início da ativação, nunca volta para o cliente.</summary>
+    [ProtectedSecret]
+    public string? TotpSecretCipher { get; private set; }
+
+    /// <summary>Último intervalo de 30 s aceito: um código do mesmo intervalo (ou anterior) é recusado (anti-replay).</summary>
+    public long? TotpLastStep { get; private set; }
+
     public static User Invite(string email, string? name = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(email);
@@ -88,11 +95,45 @@ public sealed class User : Entity, IAuditable
         return true;
     }
 
+    /// <summary>Senha certa, mas ainda falta o 2FA: zera as falhas sem contar como entrada.</summary>
+    public void RegisterPasswordVerified()
+    {
+        AccessFailedCount = 0;
+        LockoutEnd = null;
+    }
+
     public void RegisterSuccessfulLogin(DateTimeOffset now)
     {
         AccessFailedCount = 0;
         LockoutEnd = null;
         LastLoginAt = now;
+    }
+
+    /// <summary>Começa (ou recomeça) a ativação: o 2FA só liga em <see cref="EnableTotp"/>.</summary>
+    public void BeginTotpSetup(string secretCipher)
+    {
+        if (TotpEnabled)
+        {
+            throw new InvalidOperationException("O 2FA já está ativo.");
+        }
+
+        TotpSecretCipher = secretCipher;
+        TotpLastStep = null;
+    }
+
+    public void EnableTotp(long acceptedStep)
+    {
+        TotpEnabled = true;
+        TotpLastStep = acceptedStep;
+        RotateSecurityStamp();
+    }
+
+    public void DisableTotp()
+    {
+        TotpEnabled = false;
+        TotpSecretCipher = null;
+        TotpLastStep = null;
+        RotateSecurityStamp();
     }
 
     public void RotateSecurityStamp() => SecurityStamp = NewStamp();

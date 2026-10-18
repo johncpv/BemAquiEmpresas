@@ -43,7 +43,7 @@ public abstract class BemAquiDbContext(DbContextOptions options) : DbContext(opt
             b.HasKey(e => e.Id);
             b.Property(e => e.Entity).HasMaxLength(128);
             b.Property(e => e.EntityId).HasMaxLength(64);
-            b.Property(e => e.Action).HasMaxLength(16);
+            b.Property(e => e.Action).HasMaxLength(64);
             b.Property(e => e.Changes).HasColumnType("jsonb");
             b.Property(e => e.Ip).HasMaxLength(64);
             b.HasIndex(e => new { e.Entity, e.EntityId, e.At });

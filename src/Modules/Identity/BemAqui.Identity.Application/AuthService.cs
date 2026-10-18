@@ -12,6 +12,12 @@ namespace BemAqui.Identity.Application;
 
 public sealed record LoginSession(string AccessToken, DateTimeOffset AccessTokenExpiresAt, string RefreshToken, DateTimeOffset RefreshTokenExpiresAt);
 
+/// <summary>Senha certa, falta o 2FA: o desafio é um token opaco de 5 min, só aceito pelas rotas de 2FA.</summary>
+public sealed record TwoFactorPending(string Challenge, TwoFactorChallengePurpose Purpose, DateTimeOffset ExpiresAt);
+
+/// <summary>Resultado do login: a sessão completa ou o passo de 2FA pendente (FND-05 CA 3 e 8).</summary>
+public sealed record LoginOutcome(LoginSession? Session, TwoFactorPending? TwoFactor);
+
 /// <summary>
 /// Login, renovação e saída (FND-04a). Falha de login responde sempre igual ("E-mail ou senha inválidos."),
 /// com tempo equivalente, para não revelar se o e-mail existe (CA 10). Eventos de segurança vão para a auditoria.
@@ -24,6 +30,7 @@ public sealed partial class AuthService(
     TokenSigning signing,
     IEmailSender mail,
     TenantLinks links,
+    TwoFactorRequirement requirement,
     TimeProvider clock)
 {
     public const string InvalidCredentials = "E-mail ou senha inválidos.";
@@ -32,7 +39,7 @@ public sealed partial class AuthService(
     // Hash de uma senha qualquer: usado quando o usuário não existe, para o tempo de resposta não denunciar.
     private static readonly string DummyHash = new PasswordHasher<User>().HashPassword(User.Invite("ninguem@exemplo.com"), "senha-que-nao-existe-123");
 
-    public async Task<Result<LoginSession>> LoginAsync(string email, string password, string host, string? ip, CancellationToken cancellationToken = default)
+    public async Task<Result<LoginOutcome>> LoginAsync(string email, string password, string host, string? ip, CancellationToken cancellationToken = default)
     {
         var now = clock.GetUtcNow();
         var normalized = User.Normalize(email ?? string.Empty);
@@ -75,10 +82,43 @@ public sealed partial class AuthService(
             user.SetPassword(hasher.HashPassword(user, password!));
         }
 
+        if (user.TotpEnabled || await requirement.IsRequiredAsync(user, cancellationToken))
+        {
+            user.RegisterPasswordVerified();
+            var purpose = user.TotpEnabled ? TwoFactorChallengePurpose.Verify : TwoFactorChallengePurpose.Setup;
+            var pending = NewChallenge(user.Id, purpose, ip, now);
+            await AuditAsync(purpose == TwoFactorChallengePurpose.Verify ? "TwoFactorChallenged" : "TwoFactorSetupRequired", user.Id, ip, null, cancellationToken);
+            return new LoginOutcome(null, pending);
+        }
+
+        return new LoginOutcome(await StartSessionAsync(user, host, ip, cancellationToken), null);
+    }
+
+    /// <summary>Sessão completa (access + refresh numa família nova), depois da senha e, se houver, do 2FA.</summary>
+    public async Task<LoginSession> StartSessionAsync(User user, string host, string? ip, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(user);
+        var now = clock.GetUtcNow();
         user.RegisterSuccessfulLogin(now);
         var session = CreateSession(user, host, Guid.CreateVersion7(), ip, now);
         await AuditAsync("LoginSucceeded", user.Id, ip, null, cancellationToken);
         return session;
+    }
+
+    private TwoFactorPending NewChallenge(Guid userId, TwoFactorChallengePurpose purpose, string? ip, DateTimeOffset now)
+    {
+        var raw = OpaqueToken.New();
+        var challenge = new TwoFactorChallenge
+        {
+            UserId = userId,
+            TokenHash = OpaqueToken.Hash(raw),
+            Purpose = purpose,
+            CreatedAt = now,
+            ExpiresAt = now + TwoFactorChallenge.Lifetime,
+            CreatedByIp = ip,
+        };
+        db.TwoFactorChallenges.Add(challenge);
+        return new TwoFactorPending(raw, purpose, challenge.ExpiresAt);
     }
 
     public async Task LogoutAsync(string? refreshToken, string? ip, CancellationToken cancellationToken = default)
@@ -139,7 +179,7 @@ public sealed partial class AuthService(
         await db.SaveChangesAsync(cancellationToken);
     }
 
-    private async Task AuditAsync(string action, Guid? userId, string? ip, object? details, CancellationToken cancellationToken)
+    internal async Task AuditAsync(string action, Guid? userId, string? ip, object? details, CancellationToken cancellationToken)
     {
         db.AuditEntries.Add(new AuditEntry
         {

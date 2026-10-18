@@ -21,6 +21,7 @@ public sealed class IdentityModule : IModule
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
     {
         endpoints.MapAuthEndpoints();
+        endpoints.MapProfileTwoFactorEndpoints();
 
         // Sessão atual (a FND-06c completa com nome, grupos e permissões efetivas).
         endpoints.MapGet("/me", (ClaimsPrincipal user) => Results.Ok(new CurrentSession(user.FindFirstValue("sub"), user.FindFirstValue("tid"))))

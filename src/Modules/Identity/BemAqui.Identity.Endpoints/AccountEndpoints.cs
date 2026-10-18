@@ -16,7 +16,7 @@ public sealed record InviteTokenRequest(string Token);
 
 public sealed record AcceptInviteRequest(string Token, string? Name, string Password);
 
-public sealed record InviteAcceptedResponse(string Email, bool OfferTwoFactor, string AccessToken, DateTimeOffset ExpiresAt);
+public sealed record InviteAcceptedResponse(string Email, bool OfferTwoFactor, string? AccessToken, DateTimeOffset? ExpiresAt, TwoFactorStep? TwoFactor);
 
 /// <summary>
 /// Esqueci minha senha, redefinição e convite (FND-04b). O token vai sempre no corpo, nunca na URL da API, para
@@ -49,10 +49,11 @@ internal static class AccountEndpoints
                 }
 
                 var login = await service.LoginAsync(accepted.Value.Email, request.Password, http.Request.Host.Host, ip, ct);
-                return login.ToHttpResult(session =>
+                // Se o tenant exige 2FA, o login devolve o passo de configuração em vez da sessão (FND-05 CA 8).
+                return login.ToHttpResult(outcome =>
                 {
-                    AuthEndpoints.Issue(http, session);
-                    return Results.Ok(new InviteAcceptedResponse(accepted.Value.Email, accepted.Value.OfferTwoFactor, session.AccessToken, session.AccessTokenExpiresAt));
+                    var response = TwoFactorEndpoints.Login(http, outcome);
+                    return Results.Ok(new InviteAcceptedResponse(accepted.Value.Email, accepted.Value.OfferTwoFactor, response.AccessToken, response.ExpiresAt, response.TwoFactor));
                 });
             })
             .WithName("AcceptInvite");

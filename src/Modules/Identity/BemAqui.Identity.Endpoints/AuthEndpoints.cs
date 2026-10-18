@@ -25,7 +25,7 @@ public static class AuthEndpoints
 
         auth.MapPost("/login", async (LoginRequest request, HttpContext http, AuthService service, CancellationToken ct) =>
             (await service.LoginAsync(request.Email, request.Password, http.Request.Host.Host, Ip(http), ct))
-                .ToHttpResult(session => Issue(http, session)))
+                .ToHttpResult(outcome => Results.Ok(TwoFactorEndpoints.Login(http, outcome))))
             .WithName("Login");
 
         auth.MapPost("/refresh", async (HttpContext http, AuthService service, TokenSigning signing, CancellationToken ct) =>
@@ -59,6 +59,7 @@ public static class AuthEndpoints
             .WithName("Logout");
 
         auth.MapAccountEndpoints();
+        auth.MapTwoFactorChallengeEndpoints();
 
         return api;
     }
@@ -79,9 +80,15 @@ public static class AuthEndpoints
 
     internal static IResult Issue(HttpContext http, LoginSession session)
     {
+        SetSession(http, session);
+        return Results.Ok(new AccessTokenResponse(session.AccessToken, session.AccessTokenExpiresAt));
+    }
+
+    /// <summary>Grava o refresh no cookie HttpOnly e impede cache da resposta que leva o access token.</summary>
+    internal static void SetSession(HttpContext http, LoginSession session)
+    {
         http.Response.Cookies.Append(RefreshCookie, session.RefreshToken, CookieOptions(session.RefreshTokenExpiresAt));
         http.Response.Headers.CacheControl = "no-store";
-        return Results.Ok(new AccessTokenResponse(session.AccessToken, session.AccessTokenExpiresAt));
     }
 
     private static CookieOptions CookieOptions(DateTimeOffset expires) => new()

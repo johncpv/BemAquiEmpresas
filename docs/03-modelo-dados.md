@@ -15,7 +15,7 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 - **security.data_protection_keys** (FND-11, ADR 0007): id, friendly_name, xml. É o key ring do Data Protection. Cada chave é gravada cifrada pelo certificado de proteção, que fica fora do banco.
 
 ## identity
-- **users** (FND-04a, ADR 0011): name, email, normalized_email (único), password_hash (PBKDF2 do Identity), security_stamp, status (Invited/Active/Inactive), access_failed_count, lockout_end, last_login_at, totp_enabled; employee_id opcional entra com o RH
+- **users** (FND-04a, ADR 0011): name, email, normalized_email (único), password_hash (PBKDF2 do Identity), security_stamp, status (Invited/Active/Inactive), access_failed_count, lockout_end, last_login_at, totp_enabled, totp_secret_cipher (cifrado, FND-05), totp_last_step (anti-replay); employee_id opcional entra com o RH
 - **modules** (seed do catálogo de funcionalidades, igual em todos os tenants): code (`finance`), name, area (Comercial/Fábrica/...), phase, applicable_actions (`view,create,edit,approve,delete`), approve_meaning, sort
 - **groups**: name, description, is_system (Proprietário), is_active
 - **group_modules**: group_id, module_code, enabled
@@ -26,12 +26,14 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 - **refresh_tokens** (FND-04a): user_id, token_hash (SHA-256, único), family_id, created_at, expires_at, replaced_at, replaced_by_id, revoked_at, created_by_ip
 - **password_resets** (FND-04): user_id, token_hash, expires_at (1 h), used_at, created_at
 - **kiosk_tokens**: name, token_hash, scope (painel + filtros JSON), last_seen_at, revoked_at
-- **tenant_settings**: chave/valor (2FA obrigatório, logo, dados da empresa, numeração)
+- **tenant_settings** (FND-05): key (única), value, updated_at, updated_by; auditada. Chaves: `security.require_2fa`; depois logo, dados da empresa, numeração
+- **recovery_codes** (FND-05): user_id, code_hash (SHA-256), created_at, used_at. 10 por usuário, de uso único
+- **two_factor_challenges** (FND-05, ADR 0011): user_id, token_hash (único), purpose (Verify/Setup), created_at, expires_at (5 min), attempts (máx. 5), completed_at, invalidated_at, created_by_ip
 
 ## shared
 - **number_sequences** (schema `shared`, FND-07a): doc_type, year (0 = sem ano), last_value; único por (doc_type, year). Prefixo e dígitos vêm de `NumberFormats` (padrão de `04-fluxos` §4, editável por tenant na CAD-06)
 - **attachments** (schema `shared`, FND-07c): owner_type, owner_id, file_name (só exibição), content_type (detectado), size, sha256, storage_path (aleatório), scan_status (Pending/Clean/Infected/Failed), scanned_at, created_at, uploaded_by
-- **audit_log** (schema `audit`, FND-07a): entity, entity_id, action (Created/Updated/Deleted), user_id, at, changes (jsonb, só campos alterados; `[PersonalData]` mascarado, `[ProtectedSecret]` só `changed`), ip. **Imutável**: trigger recusa UPDATE/DELETE/TRUNCATE
+- **audit_log** (schema `audit`, FND-07a): entity, entity_id, action (Created/Updated/Deleted e eventos de autenticação, até 64 caracteres), user_id, at, changes (jsonb, só campos alterados; `[PersonalData]` mascarado, `[ProtectedSecret]` só `changed`), ip. **Imutável**: trigger recusa UPDATE/DELETE/TRUNCATE
 - **outbox_messages** (schema `shared`, FND-07b): id (v7), type, payload (jsonb), occurred_at, attempts, next_attempt_at, processed_at, dead_lettered_at, error, correlation_id
 - **inbox_messages** (schema `shared`, FND-07b): message_id, handler (PK composta), processed_at — entrega idempotente por handler
 - **notifications** (schema `shared`, FND-07c): user_id, type, title, link (obrigatório, rota relativa do app), created_at, read_at
