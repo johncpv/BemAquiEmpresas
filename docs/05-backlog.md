@@ -101,26 +101,72 @@ Stories detalhadas em [`docs/stories/`](stories/README.md), com critérios de ac
 ---
 ## Fase 1 — Cadastros e migração
 
-**CAD-01 [ ] Terceiros (M)** — CRUD com papéis, endereços, contatos, consulta CNPJ.
-- CA: CNPJ/CPF validados; consulta preenche razão social e endereço; mesmo documento não duplica (adiciona papel).
+Stories detalhadas em [`docs/stories/`](stories/README.md#fase-1--cadastros-e-migração), com critérios de aceite completos, ordem de execução, pontos em aberto e a validação do PO (18/10/2026, todas `Draft` com GO condicional). Aqui fica o resumo de cada uma.
 
-**CAD-02 [ ] Itens e unidades (M)** — Itens, categorias, unidades, conversões, NCM, lote/série, estoque mínimo.
-- CA: conversão kg→m² por item aplicada nos movimentos; item com movimento não pode trocar a unidade de estoque.
+**Ordem de execução:** CAD-06 → CAD-05a → CAD-05b → CAD-01a → CAD-01b → CAD-03 → CAD-02a → CAD-02b → CAD-04a → CAD-04b → MIG-01b → MIG-01c. A CAD-03 pode correr em paralelo com a CAD-01a/01b, e a MIG-01a em paralelo desde a CAD-05a. A MIG-01d roda depois do EST-01 e a MIG-01e depois da FIN-01/FIN-02 (dependem de tabelas dessas fases; decisão do PO sobre o fechamento da Fase 1).
 
-**CAD-03 [ ] Locais de estoque e centros de trabalho (P)** — CRUD; calendário e feriados.
-- CA: capacidade diária por centro usada nos testes de planejamento.
+**Quebras:** CAD-01 → 01a/01b · CAD-02 → 02a/02b · CAD-04 → 04a/04b · CAD-05 → 05a/05b · MIG-01 → 01a/01b/01c/01d/01e. Re-estimadas: CAD-03 e CAD-06 (P → M).
 
-**CAD-04 [ ] Funcionários e cargos (M)** — Cadastro completo para folha (RH-1, RH-2, RH-3), custo-hora do cargo.
-- CA: dados pessoais visíveis só com permissão `hr.view_sensitive` (ADR 0003); histórico salarial registrado a cada alteração.
+**CAD-06 [ ] Configurações da empresa (M)** — re-estimada — [story](stories/CAD-06-configuracoes-empresa.md)
+- Requisitos: R-COM-4, R-COM-3, R-RH-2, R-PRJ-7, R-COML-1, R-SEC-5, R-AJD-1.
+- CA: dados da empresa e logo (allowlist, ClamAV, rota pública só do logo); numeração editável por tipo sem reiniciar a sequência e com "próximo número" que só sobe; % de encargos com histórico e evento `PayrollChargesChanged`; garantia padrão por tipo de item; modo de precificação (P-14).
 
-**CAD-05 [ ] Financeiro base (M)** — Plano de contas padrão (seed), centros de custo, contas bancárias/caixa, condições de pagamento.
-- CA: plano de contas em árvore; conta com lançamento não pode ser excluída, só inativada.
+**CAD-05a [ ] Plano de contas gerencial e centros de custo (M)** — quebra da CAD-05 — [story](stories/CAD-05a-plano-contas-centros-custo.md)
+- Requisitos: R-FIN-1, R-PLT-3, R-FIN-13, R-SEC-5, R-PRP-1.
+- CA: plano de contas padrão por seed idempotente, em árvore; código sugerido e tipo herdado; só conta analítica recebe lançamento; conta com lançamento não pode ser excluída, só inativada; centros de custo com as mesmas regras.
 
-**CAD-06 [ ] Configurações da empresa (P)** — Dados do tenant, logo, numeração, %encargos, parâmetros.
+**CAD-05b [ ] Contas bancárias, caixas e condições de pagamento (M)** — quebra da CAD-05 — [story](stories/CAD-05b-contas-bancarias-condicoes-pagamento.md)
+- Requisitos: R-FIN-2, R-TER-2, R-PRP-1, R-SEC-5.
+- CA: saldo inicial e data travados depois de movimentação; uma conta padrão; credencial bancária nunca volta na API; condições com parcelas somando 100% e divisão com a diferença na última parcela (`IPaymentTerms.Split`).
 
-**MIG-01 [ ] Migração do Dolibarr (G)** — Script/tela de importação: terceiros, produtos, saldos de estoque iniciais, títulos em aberto.
-- CA: relatório de importação (importados, ignorados, erros); reexecução não duplica; saldos de estoque entram como movimento "Saldo inicial".
-- Nota: primeiro mapear tabelas do Dolibarr (`llx_societe`, `llx_product`, `llx_product_stock`, `llx_facture`...) com o PO.
+**CAD-01a [ ] Terceiros (G)** — quebra da CAD-01 — [story](stories/CAD-01a-terceiros.md)
+- Requisitos: R-TER-1, R-TER-2, R-PRP-1, R-PRP-3, R-SEC-5, PRD §6 (Desempenho, LGPD).
+- CA: CNPJ (inclusive alfanumérico) e CPF validados; mesmo documento não duplica e oferece adicionar o papel, também em gravação simultânea; vários endereços e contatos; dados pessoais de PF mascarados na auditoria; lista com 50 mil registros em menos de 1 s.
+
+**CAD-01b [ ] Consulta de CNPJ (M)** — quebra da CAD-01 — [story](stories/CAD-01b-consulta-cnpj.md)
+- Requisitos: R-TER-1, R-PRP-3, R-PRP-7.
+- CA: consulta preenche razão social e endereço e só grava com confirmação; cache; provedor fora do ar não trava o cadastro e conta para o alerta de integração; rate limit; requisição só com o CNPJ e para URL fixa.
+
+**CAD-03 [ ] Locais de estoque, centros de trabalho e calendário (M)** — re-estimada — [story](stories/CAD-03-locais-centros-trabalho-calendario.md)
+- Requisitos: R-EST-2, R-PLN-1, R-SEC-5, R-PRP-1.
+- CA: local padrão único; turnos definem as horas por dia; feriados nacionais sugeridos e confirmados; capacidade diária por centro (`IWorkCenterCapacity`) usada nos testes de planejamento, com a fixture reaproveitada pela PLN-01.
+
+**CAD-02a [ ] Itens, unidades e categorias (M)** — quebra da CAD-02 — [story](stories/CAD-02a-itens-unidades-categorias.md)
+- Requisitos: R-EST-1, R-EST-8, R-PLT-3, R-PRJ-7, R-PRP-1, R-PRP-3, R-SEC-5.
+- CA: seed de unidades; NCM obrigatório fora de Serviço; lote e série sugeridos pelo tipo; garantia padrão do tipo; item com movimento não pode trocar a unidade de estoque; lista com 50 mil itens em menos de 1 s.
+
+**CAD-02b [ ] Conversões de unidade e códigos do fornecedor (M)** — quebra da CAD-02 — [story](stories/CAD-02b-conversoes-codigos-fornecedor.md)
+- Requisitos: R-EST-3, R-FIS-5, R-PRP-3, R-SEC-5.
+- CA: conversão kg → m² por item pelo `IUnitConversion` que os movimentos vão usar; sem conversão, erro claro (nunca fator 1); código do fornecedor único por fornecedor e só para terceiro com papel Fornecedor.
+
+**CAD-04a [ ] Cargos, jornadas, sindicatos e custo-hora (M)** — quebra da CAD-04 — [story](stories/CAD-04a-cargos-jornadas-custo-hora.md)
+- Requisitos: R-RH-2, R-RH-1, R-PRD-4, R-SEC-5, PRD §6 (LGPD).
+- CA: custo-hora = salário × (1 + % encargos) ÷ horas mensais, ou ajustado à mão; recálculo idempotente quando o % de encargos muda; faixa salarial só com `hr.view_sensitive`.
+
+**CAD-04b [ ] Funcionários, dependentes, histórico e afastamentos (G)** — quebra da CAD-04 — [story](stories/CAD-04b-funcionarios-dependentes-historico.md)
+- Requisitos: R-RH-1, R-RH-3, R-SEC-5, R-SEC-10, PRD §6 (LGPD).
+- CA: dados pessoais só com `hr.view_sensitive` (ADR 0003), cortados na resposta da API; leitura de dado sensível registrada; histórico salarial e de cargo gravado a cada alteração; afastamentos e desligamento sem apagar nada; vínculo com o usuário pelo `Identity.Contracts`.
+
+**MIG-01a [ ] Mapeamento e infraestrutura de importação do Dolibarr (G)** — quebra da MIG-01 — [story](stories/MIG-01a-infra-importacao-dolibarr.md)
+- Requisitos: R-TER-5, PRD §6 (Segurança, LGPD), R-SEC-5.
+- CA: mapeamento das tabelas `llx_*` aceito pelo PO; leitura somente leitura com snapshot consistente e credencial só em secret; staging e chaves externas; reexecução não duplica; simulação sem gravação; relatório de importação (importados, atualizados, sem alteração, ignorados, conflitos, erros).
+- Nota: primeiro mapear as tabelas do Dolibarr com o PO (P-07).
+
+**MIG-01b [ ] Carga de terceiros, contatos, condições e contas bancárias (M)** — quebra da MIG-01 — [story](stories/MIG-01b-carga-terceiros-financeiro.md)
+- Requisitos: R-TER-5, R-TER-1, R-TER-2, R-FIN-2.
+- CA: `llx_societe` com o mesmo documento vira um terceiro com vários papéis; documento inválido vai para o relatório; saldo bancário na data de corte; os 118 terceiros contados no relatório.
+
+**MIG-01c [ ] Carga de itens, categorias, unidades, códigos do fornecedor e locais (M)** — quebra da MIG-01 — [story](stories/MIG-01c-carga-itens-locais.md)
+- Requisitos: R-TER-5, R-EST-1, R-EST-2, R-EST-3, R-PRJ-7.
+- CA: de-para de unidades e tipos; `elev_garantia` vira a garantia do item (P-11); códigos do fornecedor de `llx_product_fournisseur_price`; os 34 produtos contados no relatório.
+
+**MIG-01d [ ] Saldos iniciais de estoque (P)** — quebra da MIG-01; depende do EST-01 — [story](stories/MIG-01d-saldos-iniciais-estoque.md)
+- Requisitos: R-TER-5, R-EST-4, R-EST-5, R-EST-6, R-EST-7, R-EST-8, R-PRP-7.
+- CA: saldos de estoque entram como movimento "Saldo inicial" com o custo de partida, só com confirmação explícita; reexecução não duplica nem ajusta sozinha.
+
+**MIG-01e [ ] Títulos em aberto e histórico de pagamentos (M)** — quebra da MIG-01; depende da FIN-01 e da FIN-02 — [story](stories/MIG-01e-titulos-abertos-historico.md)
+- Requisitos: R-TER-5, R-FIN-3, R-FIN-4, R-FIN-5, R-TER-4, R-FIN-11, R-PRP-7.
+- CA: faturas em aberto viram CR e CP com o valor pago parcial; pagos de cliente dos últimos 12 meses entram como histórico de pontualidade; nenhum título a pagar é baixado sem OP; totais por terceiro batem com o Dolibarr.
 
 ---
 
