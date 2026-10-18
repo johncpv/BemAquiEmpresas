@@ -17,5 +17,14 @@
 - **Tokens opacos** (refresh, convite, redefinição): 32 bytes aleatórios; no banco fica só o hash.
 
 ## Consequências
-- O 2FA (FND-05) usa o TOTP nativo do .NET, gravado nas entidades próprias: segredo cifrado (FND-11) e códigos de recuperação como hash.
+- O 2FA (FND-05) usa TOTP da RFC 6238 (HMAC-SHA1, 30 s, 6 dígitos, ±1 intervalo), implementado no módulo porque o .NET não expõe o TOTP do Identity fora do `UserManager`. Os dados ficam nas entidades próprias: o segredo é cifrado com `SecretKind.TotpSecret` (FND-11) e os 10 códigos de recuperação são guardados como hash.
+
+## Adendo (FND-05, 18/10/2026): desafio de 2FA opaco
+- A story sugeria um JWT intermediário com `scope=2fa`. Em vez dele, o desafio é um **token opaco de 5 min**, guardado como hash em `identity.two_factor_challenges`, com contador de tentativas: 5 erros derrubam o desafio.
+- Como não é um bearer token, ele não passa pelo JwtBearer e não abre nenhuma rota além de `/auth/2fa/*`. Isso atende o CA 3 sem depender de policy por escopo.
+- O desafio tem dois propósitos:
+  - `verify`: o usuário tem 2FA e falta o código;
+  - `setup`: o 2FA é obrigatório e ainda não foi configurado. Esse desafio só libera a configuração (CA 8).
+- O anti-replay e o uso único dos códigos de recuperação são feitos por UPDATE condicional atômico (`totp_last_step < passo`, `used_at is null`), então duas requisições paralelas com o mesmo código não passam juntas.
+- Ativar ou desativar o 2FA troca o security stamp e revoga as sessões. A resposta já traz uma sessão nova.
 - Uma troca futura para o Identity completo exigiria migrar as tabelas. Como o hash é o mesmo formato do Identity, as senhas não precisariam ser redefinidas.

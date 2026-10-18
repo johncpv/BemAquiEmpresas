@@ -22,6 +22,9 @@ public static class IdentityInfrastructure
         services.TryAddScoped<UserLifecycle>();
         services.TryAddScoped<AccountRecovery>();
         services.TryAddScoped<Invites>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<ITwoFactorRequirementRule, TenantRequiresTwoFactorRule>());
+        services.TryAddScoped<TwoFactorRequirement>();
+        services.TryAddScoped<TwoFactorService>();
         services.TryAddScoped<BemAqui.Platform.Contracts.ITenantOwnerOnboarding, IdentityOwnerOnboarding>();
         return services;
     }

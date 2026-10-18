@@ -19,6 +19,12 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<PasswordReset> PasswordResets => Set<PasswordReset>();
 
+    public DbSet<RecoveryCode> RecoveryCodes => Set<RecoveryCode>();
+
+    public DbSet<TwoFactorChallenge> TwoFactorChallenges => Set<TwoFactorChallenge>();
+
+    public DbSet<TenantSetting> TenantSettings => Set<TenantSetting>();
+
     protected override void ConfigureModules(ModelBuilder modelBuilder)
     {
         foreach (var module in ModuleRegistry.All)

@@ -5,7 +5,7 @@
 | ID | FND-05 |
 | Título | 2FA por app autenticador, códigos de recuperação e exigência por tenant |
 | Tamanho | M |
-| Status | Draft |
+| Status | In Progress (API pronta; telas depois da FND-09a/b/c) |
 | Requisitos | R-SEC-2 |
 | Dependências | FND-04, FND-11 (segredo TOTP cifrado); telas dependem de FND-09a e FND-09c |
 | Bloqueia | FND-06b/06c (exigência por grupo e para quem aprova ou paga), FND-13 (reaproveita o TOTP) |
@@ -118,7 +118,24 @@ Checklist do @po (Pax), 16/10/2026.
 | 16/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 
 ## Dev Agent Record
-_A preencher pelo @dev._
+- **API (FND-05), 18/10/2026, branch `feat/fnd-05-2fa`.** As pré-condições estão decididas na ADR 0010: 10 códigos de recuperação e desafio de 5 min. O desafio é um token opaco, não um JWT (adendo da ADR 0011).
+  - **TOTP:** RFC 6238 (`Totp`), conferido contra os vetores da RFC. O segredo é cifrado com `SecretKind.TotpSecret` e nunca volta para o cliente depois da ativação.
+  - **Perfil (`/me/2fa`, autenticado):**
+    - `GET` devolve `enabled`, `required` e `recoveryCodesLeft`;
+    - `POST /setup` devolve a chave manual e a URI `otpauth://` (o QR é desenhado no cliente);
+    - `POST /confirm` ativa com um código válido e devolve os 10 códigos de recuperação uma única vez, já com uma sessão nova (CA 1, 2);
+    - `POST /disable` exige senha e código e responde 403 `auth.2fa_required` quando o 2FA é obrigatório (CA 10).
+  - **Login:**
+    - com 2FA, o login devolve `twoFactor { challenge, purpose: "verify" }`, sem cookie e sem access token (CA 3);
+    - `POST /auth/2fa/verify` aceita o código do app ou um código de recuperação e entra (CA 4, 7);
+    - código repetido é recusado (CA 5), e 5 erros derrubam o desafio (CA 6).
+  - **Exigência:** `ITwoFactorRequirementRule` com a regra `TenantRequiresTwoFactorRule` (`security.require_2fa` em `identity.tenant_settings`). Quando o 2FA é exigido e não está configurado, o login devolve `purpose: "setup"`, e o desafio só libera `/auth/2fa/setup` e `/auth/2fa/confirm` (CA 8, 9).
+  - **Aceite de convite:** se o tenant exige 2FA, o aceite devolve o passo de configuração em vez da sessão.
+  - **Auditoria:**
+    - eventos: `TwoFactorChallenged`, `TwoFactorSetupRequired`, `TwoFactorVerified`, `TwoFactorCodeRejected`, `TwoFactorChallengeFailed`, `RecoveryCodeUsed`, `TwoFactorEnabled`, `TwoFactorDisabled` e `TwoFactorDisableRejected`;
+    - a coluna `audit.audit_log.action` foi ampliada para 64 caracteres, sem perda de dados.
+  - **Testes:** unidade do TOTP e do Base32, e 6 testes de integração. O CA 11 é a regressão da FND-04 (redefinição mantém o 2FA).
+  - **Pendente:** telas (configurar, desafio, perfil), ajuda dessas telas e E2E, depois da FND-09a/b/c.
 
 ## QA Results
 _A preencher pelo @qa._

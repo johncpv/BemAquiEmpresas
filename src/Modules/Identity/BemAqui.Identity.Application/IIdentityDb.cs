@@ -15,6 +15,12 @@ public interface IIdentityDb
 
     DbSet<PasswordReset> PasswordResets { get; }
 
+    DbSet<RecoveryCode> RecoveryCodes { get; }
+
+    DbSet<TwoFactorChallenge> TwoFactorChallenges { get; }
+
+    DbSet<TenantSetting> TenantSettings { get; }
+
     /// <summary>Eventos de segurança (login, bloqueio, reuso de refresh...) entram na auditoria imutável.</summary>
     DbSet<AuditEntry> AuditEntries { get; }
 

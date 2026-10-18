@@ -55,6 +55,8 @@ public partial class AuthTests
     {
         var email = NewEmail();
         var (userId, _) = await tenancy.SeedUserAsync(tenancy.TenantA, email);
+        // Sessão antes de ligar o 2FA (com ele ligado, o login pediria o código).
+        var cookie = CookieValue(RefreshCookieOf(await LoginAsync(email, TenancyFixture.DefaultPassword)));
         await using (var scope = await TenantAScopeAsync())
         {
             var db = scope.ServiceProvider.GetRequiredService<IIdentityDb>();
@@ -62,7 +64,6 @@ public partial class AuthTests
             await db.SaveChangesAsync();
         }
 
-        var cookie = CookieValue(RefreshCookieOf(await LoginAsync(email, TenancyFixture.DefaultPassword)));
         await PostAsync("/api/v1/auth/forgot-password", new { email });
         var token = TokenOf((await LinksSentAsync(email, "password-reset"))[0]);
         const string newPassword = "outra frase longa para entrar";

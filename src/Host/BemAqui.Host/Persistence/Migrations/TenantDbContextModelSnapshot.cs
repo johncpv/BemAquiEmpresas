@@ -302,8 +302,8 @@ namespace BemAqui.Host.Persistence.Migrations
 
                     b.Property<string>("Action")
                         .IsRequired()
-                        .HasMaxLength(16)
-                        .HasColumnType("character varying(16)")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
                         .HasColumnName("action");
 
                     b.Property<DateTimeOffset>("At")
@@ -418,6 +418,40 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("password_resets", "identity");
                 });
 
+            modelBuilder.Entity("BemAqui.Identity.Domain.RecoveryCode", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("CodeHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("code_hash");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset?>("UsedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("used_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_recovery_codes");
+
+                    b.HasIndex("UserId", "CodeHash")
+                        .HasDatabaseName("ix_recovery_codes_user_id_code_hash");
+
+                    b.ToTable("recovery_codes", "identity");
+                });
+
             modelBuilder.Entity("BemAqui.Identity.Domain.RefreshToken", b =>
                 {
                     b.Property<Guid>("Id")
@@ -480,6 +514,104 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("refresh_tokens", "identity");
                 });
 
+            modelBuilder.Entity("BemAqui.Identity.Domain.TenantSetting", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("key");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("value");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tenant_settings");
+
+                    b.HasIndex("Key")
+                        .IsUnique()
+                        .HasDatabaseName("ix_tenant_settings_key");
+
+                    b.ToTable("tenant_settings", "identity");
+                });
+
+            modelBuilder.Entity("BemAqui.Identity.Domain.TwoFactorChallenge", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("integer")
+                        .HasColumnName("attempts");
+
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("completed_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedByIp")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("created_by_ip");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<DateTimeOffset?>("InvalidatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("invalidated_at");
+
+                    b.Property<string>("Purpose")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("purpose");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("token_hash");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_two_factor_challenges");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_two_factor_challenges_token_hash");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_two_factor_challenges_user_id");
+
+                    b.ToTable("two_factor_challenges", "identity");
+                });
+
             modelBuilder.Entity("BemAqui.Identity.Domain.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -537,6 +669,15 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<bool>("TotpEnabled")
                         .HasColumnType("boolean")
                         .HasColumnName("totp_enabled");
+
+                    b.Property<long?>("TotpLastStep")
+                        .HasColumnType("bigint")
+                        .HasColumnName("totp_last_step");
+
+                    b.Property<string>("TotpSecretCipher")
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)")
+                        .HasColumnName("totp_secret_cipher");
 
                     b.HasKey("Id")
                         .HasName("pk_users");
@@ -613,6 +754,16 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasConstraintName("fk_password_resets_users_user_id");
                 });
 
+            modelBuilder.Entity("BemAqui.Identity.Domain.RecoveryCode", b =>
+                {
+                    b.HasOne("BemAqui.Identity.Domain.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_recovery_codes_users_user_id");
+                });
+
             modelBuilder.Entity("BemAqui.Identity.Domain.RefreshToken", b =>
                 {
                     b.HasOne("BemAqui.Identity.Domain.User", null)
@@ -621,6 +772,16 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_refresh_tokens_users_user_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Identity.Domain.TwoFactorChallenge", b =>
+                {
+                    b.HasOne("BemAqui.Identity.Domain.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_two_factor_challenges_users_user_id");
                 });
 
             modelBuilder.Entity("BemAqui.Identity.Domain.UserInvite", b =>
