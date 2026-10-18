@@ -1,4 +1,5 @@
 
+using BemAqui.BuildingBlocks.Persistence.Auditing;
 using BemAqui.Identity.Application;
 using BemAqui.Identity.Domain;
 using Microsoft.AspNetCore.Identity;
@@ -34,6 +35,12 @@ public static class IdentityInfrastructure
         services.TryAddScoped<UserService>();
         services.TryAddScoped<SecuritySettings>();
         services.TryAddScoped<Preferences>();
+
+        // Permissão real no lugar do DenyAll e entidades com histórico consultável (FND-07 + FND-06c).
+        services.AddScoped<BemAqui.BuildingBlocks.Authorization.IPermissionChecker, CurrentUserPermissionChecker>();
+        services.AddAuditableEntity<Group>("identity");
+        services.AddAuditableEntity<User>("identity");
+        services.AddAuditableEntity<TenantSetting>("settings");
         services.TryAddScoped<BemAqui.Platform.Contracts.ITenantOwnerOnboarding, IdentityOwnerOnboarding>();
         return services;
     }

@@ -28,7 +28,7 @@ internal static class AccountEndpoints
     {
         auth.MapPost("/forgot-password", async (ForgotPasswordRequest request, AccountRecovery recovery, CancellationToken ct) =>
                 Results.Accepted(value: new MessageResponse(await recovery.ForgotAsync(request.Email, ct))))
-            .WithName("ForgotPassword");
+            .WithName("ForgotPassword").Produces<MessageResponse>(202);
 
         auth.MapPost("/reset-password", async (ResetPasswordRequest request, HttpContext http, AccountRecovery recovery, CancellationToken ct) =>
                 (await recovery.ResetAsync(request.Token, request.Password, AuthEndpoints.Ip(http), ct)).ToHttpResult())
@@ -36,7 +36,7 @@ internal static class AccountEndpoints
 
         auth.MapPost("/invites/inspect", async (InviteTokenRequest request, Invites invites, CancellationToken ct) =>
                 Results.Ok(await invites.GetAsync(request.Token, ct)))
-            .WithName("InspectInvite");
+            .WithName("InspectInvite").Produces<InviteInfo>();
 
         // Aceitou: já entra (cookie de refresh + access), e a tela oferece o 2FA como próximo passo (CA 17).
         auth.MapPost("/invites/accept", async (AcceptInviteRequest request, HttpContext http, Invites invites, AuthService service, CancellationToken ct) =>
@@ -56,7 +56,7 @@ internal static class AccountEndpoints
                     return Results.Ok(new InviteAcceptedResponse(accepted.Value.Email, accepted.Value.OfferTwoFactor, response.AccessToken, response.ExpiresAt, response.TwoFactor));
                 });
             })
-            .WithName("AcceptInvite");
+            .WithName("AcceptInvite").Produces<InviteAcceptedResponse>();
 
         return auth;
     }

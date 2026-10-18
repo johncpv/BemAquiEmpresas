@@ -13,7 +13,7 @@ public static class AuditEndpoints
     {
         api.MapGet("/audit/{entity}/{id}", async (string entity, string id, int? page, int? pageSize, AuditHistory history, CancellationToken ct) =>
                 (await history.GetAsync(entity, id, new PageRequest(page ?? 1, pageSize ?? PageRequest.DefaultPageSize), ct)).ToHttpResult())
-            .WithName("GetAuditHistory")
+            .WithName("GetAuditHistory").Produces<BemAqui.BuildingBlocks.Paging.PagedList<AuditEntryDto>>()
             .WithTags("Auditoria");
         return api;
     }

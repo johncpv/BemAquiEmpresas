@@ -55,3 +55,12 @@
   - `inbox_messages`;
   - `platform_alerts`;
   - `data_protection_keys`.
+
+## Adendo (FND-09c, 18/10/2026): contrato da API para o front
+- **OpenAPI versionado:** o documento do Host (`/openapi/v1.json`, só em Development) fica em `src/Web/openapi.json` e é a entrada do Orval.
+  - O teste `OpenApiDocumentTests` falha quando o documento fica desatualizado. Para atualizar, rode `BQ_UPDATE_OPENAPI=1 sh scripts/test-docker.sh --filter-class "*OpenApiDocumentTests"`.
+  - O CI do front roda `pnpm gen:api` e falha se o cliente gerado em `src/api/generated` mudar.
+- **Tipos de resposta:** os endpoints declaram `.Produces<T>()`, para o cliente gerado ter os tipos de resposta.
+- **Números no JSON:** `NumberHandling = Strict`. O padrão do ASP.NET aceitava número como string, e o OpenAPI do .NET 10 publicava `integer|string`.
+- **Mutator único** (`src/api/http.ts`): cuida da mesma origem, do access token só em memória, do `X-CSRF`, do refresh silencioso no 401 (um por vez), do `X-Perm-Version` e do ProblemDetails convertido em `ApiError`. Fora dele, `fetch`, `axios` e `XMLHttpRequest` reprovam no lint.
+- **Bibliotecas do front:** TanStack Query 5, TanStack Table 8 (a 9 tem outra API), React Hook Form, Zod 4 (mensagens em `pt`), sonner (toasts), Radix (Dialog, Popover, DropdownMenu, ToggleGroup) e cmdk.

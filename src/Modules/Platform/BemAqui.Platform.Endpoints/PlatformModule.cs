@@ -27,7 +27,7 @@ public sealed class PlatformModule : IModule
                     ? Results.Ok(new TenantPublicContext(t.TradeName ?? t.LegalName, LogoUrl: null, t.Tenant.Status.ToString()))
                     : Results.NotFound())
             .AllowAnonymous()
-            .WithName("GetTenantPublicContext")
+            .WithName("GetTenantPublicContext").Produces<TenantPublicContext>()
             .WithTags("Plataforma");
 
         endpoints.MapPlatformAuthEndpoints();

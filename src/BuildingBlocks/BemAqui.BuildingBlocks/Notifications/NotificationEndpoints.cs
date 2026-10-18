@@ -15,7 +15,7 @@ public static class NotificationEndpoints
 
         group.MapGet("/", async (int? page, int? pageSize, NotificationService service, CancellationToken ct) =>
                 (await service.ListMineAsync(new PageRequest(page ?? 1, pageSize ?? PageRequest.DefaultPageSize), ct)).ToHttpResult())
-            .WithName("ListMyNotifications");
+            .WithName("ListMyNotifications").Produces<NotificationPage>();
 
         group.MapPost("/{id:guid}/read", async (Guid id, NotificationService service, CancellationToken ct) =>
                 (await service.MarkReadAsync(id, ct)).ToHttpResult())

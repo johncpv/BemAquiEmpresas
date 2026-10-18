@@ -59,6 +59,10 @@ jobs:
           cache: pnpm
           cache-dependency-path: src/Web/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
+      - name: Cliente da API atualizado (Orval x openapi.json)
+        run: |
+          pnpm gen:api
+          git diff --exit-code -- src/api/generated
       - run: pnpm lint
       - run: pnpm test
       - run: pnpm build

@@ -102,7 +102,8 @@ sh scripts/test-docker.sh                         # mesma suíte num container L
 dotnet run --project src/Host/BemAqui.Host        # API em http://localhost:5080 (/health)
 cd src/Web && pnpm i && pnpm dev                  # front em http://localhost:5173
 pnpm lint && pnpm test && pnpm build              # dentro de src/Web
-pnpm gen:api                                      # regenera o cliente TS a partir do OpenAPI (a partir da FND-09c)
+BQ_UPDATE_OPENAPI=1 sh scripts/test-docker.sh --filter-class "*OpenApiDocumentTests"  # atualiza src/Web/openapi.json
+pnpm gen:api                                      # regenera o cliente TS (src/api/generated) a partir do openapi.json
 ```
 - **Windows com Smart App Control ativo:** ele bloqueia DLLs recém-compiladas quando os testes de arquitetura as carregam (erro `0x800711C7`). Nesse caso, rode a suíte com `sh scripts/test-docker.sh`. O Host roda normalmente.
 - **RTK:** o hook reescreve `pnpm lint` como eslint. Use `rtk proxy pnpm lint` para rodar o script real (oxlint + regra de cor literal).

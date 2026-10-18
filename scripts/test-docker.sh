@@ -9,5 +9,6 @@ MSYS_NO_PATHCONV=1 docker run --rm \
   -v bemaqui-nuget:/root/.nuget/packages \
   -v //var/run/docker.sock:/var/run/docker.sock \
   -e TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal \
+  -e BQ_UPDATE_OPENAPI \
   -w /src mcr.microsoft.com/dotnet/sdk:10.0 \
   dotnet test --solution BemAquiEmpresas.slnx --artifacts-path /tmp/artifacts "$@"
