@@ -10,6 +10,6 @@ public static class HostEvents
     public static void Register(IntegrationEventRegistry events)
     {
         ArgumentNullException.ThrowIfNull(events);
-        events.AddEmailEvents().AddEvent<UserActivated>();
+        events.AddEmailEvents().AddEvent<UserActivated>().AddEvent<PayrollChargesChanged>();
     }
 }

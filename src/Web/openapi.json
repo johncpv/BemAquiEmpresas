@@ -1849,6 +1849,265 @@
         }
       }
     },
+    "/api/v1/settings/company": {
+      "get": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "GetCompanyProfile",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyProfileDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "SaveCompanyProfile",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompanyProfileInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyProfileDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/company/logo": {
+      "post": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "UploadCompanyLogo",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "$ref": "#/components/schemas/IFormFile"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyLogo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/company/cep/{cep}": {
+      "get": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "LookupCompanyCep",
+        "parameters": [
+          {
+            "name": "cep",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddressData"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/numbering": {
+      "get": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "ListNumberFormats",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NumberFormatRow"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/numbering/{docType}": {
+      "put": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "SaveNumberFormat",
+        "parameters": [
+          {
+            "name": "docType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NumberFormatInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NumberFormatRow"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/parameters": {
+      "get": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "GetTenantParameters",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantParametersDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/parameters/payroll-charges": {
+      "put": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "SavePayrollCharges",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayrollChargesInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantParametersDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/parameters/pricing-mode": {
+      "put": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "SavePricingMode",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PricingModeInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantParametersDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/parties": {
       "get": {
         "tags": [
@@ -3815,6 +4074,256 @@
           }
         }
       },
+      "CompanyLogo": {
+        "required": [
+          "status",
+          "version",
+          "pendingNew"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/LogoStatus"
+          },
+          "version": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pendingNew": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CompanyProfileDto": {
+        "required": [
+          "exists",
+          "document",
+          "legalName",
+          "tradeName",
+          "stateRegistration",
+          "municipalRegistration",
+          "zipCode",
+          "street",
+          "number",
+          "complement",
+          "district",
+          "city",
+          "cityIbge",
+          "state",
+          "phone",
+          "email",
+          "id",
+          "logo"
+        ],
+        "type": "object",
+        "properties": {
+          "exists": {
+            "type": "boolean"
+          },
+          "document": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "legalName": {
+            "type": "string"
+          },
+          "tradeName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "stateRegistration": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "municipalRegistration": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "zipCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "street": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "number": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "complement": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "district": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "city": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cityIbge": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "state": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "logo": {
+            "$ref": "#/components/schemas/CompanyLogo"
+          }
+        }
+      },
+      "CompanyProfileInput": {
+        "required": [
+          "legalName",
+          "tradeName",
+          "stateRegistration",
+          "municipalRegistration",
+          "zipCode",
+          "street",
+          "number",
+          "complement",
+          "district",
+          "city",
+          "cityIbge",
+          "state",
+          "phone",
+          "email"
+        ],
+        "type": "object",
+        "properties": {
+          "legalName": {
+            "type": "string"
+          },
+          "tradeName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "stateRegistration": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "municipalRegistration": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "zipCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "street": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "number": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "complement": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "district": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "city": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cityIbge": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "state": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
       "ConfirmTwoFactorRequest": {
         "required": [
           "code"
@@ -4852,6 +5361,13 @@
           }
         }
       },
+      "LogoStatus": {
+        "enum": [
+          "None",
+          "Pending",
+          "Clean"
+        ]
+      },
       "MatrixEntry": {
         "required": [
           "moduleCode",
@@ -5089,6 +5605,78 @@
           "unread": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "NumberFormatInput": {
+        "required": [
+          "prefix",
+          "yearly",
+          "digits"
+        ],
+        "type": "object",
+        "properties": {
+          "prefix": {
+            "type": "string"
+          },
+          "yearly": {
+            "type": "boolean"
+          },
+          "digits": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nextNumber": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          }
+        }
+      },
+      "NumberFormatRow": {
+        "required": [
+          "docType",
+          "label",
+          "prefix",
+          "yearly",
+          "digits",
+          "lastIssued",
+          "hasIssued",
+          "next",
+          "customized"
+        ],
+        "type": "object",
+        "properties": {
+          "docType": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "prefix": {
+            "type": "string"
+          },
+          "yearly": {
+            "type": "boolean"
+          },
+          "digits": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lastIssued": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "hasIssued": {
+            "type": "boolean"
+          },
+          "next": {
+            "type": "string"
+          },
+          "customized": {
+            "type": "boolean"
           }
         }
       },
@@ -5745,6 +6333,18 @@
           }
         }
       },
+      "PayrollChargesInput": {
+        "required": [
+          "pct"
+        ],
+        "type": "object",
+        "properties": {
+          "pct": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "PlatformChallengeRequest": {
         "required": [
           "challenge"
@@ -5894,6 +6494,23 @@
         "properties": {
           "theme": {
             "type": "string"
+          }
+        }
+      },
+      "PricingMode": {
+        "enum": [
+          "Markup",
+          "Margin"
+        ]
+      },
+      "PricingModeInput": {
+        "required": [
+          "mode"
+        ],
+        "type": "object",
+        "properties": {
+          "mode": {
+            "$ref": "#/components/schemas/PricingMode"
           }
         }
       },
@@ -6157,6 +6774,38 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "TenantParametersDto": {
+        "required": [
+          "payrollChargesPct",
+          "pricingMode",
+          "chargesSettingId",
+          "pricingSettingId"
+        ],
+        "type": "object",
+        "properties": {
+          "payrollChargesPct": {
+            "type": "number",
+            "format": "double"
+          },
+          "pricingMode": {
+            "$ref": "#/components/schemas/PricingMode"
+          },
+          "chargesSettingId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "pricingSettingId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         }
       },

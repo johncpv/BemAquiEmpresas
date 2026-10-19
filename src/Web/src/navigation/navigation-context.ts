@@ -5,6 +5,7 @@ export interface NavigationValue {
   areas: NavArea[]
   all: NavModule[]
   tenantName: string
+  tenantLogo?: string | null
   status: 'loading' | 'error' | 'ready'
   retry: () => void
 }

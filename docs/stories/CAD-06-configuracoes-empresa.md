@@ -5,7 +5,7 @@
 | ID | CAD-06 |
 | Título | Dados da empresa (fonte da verdade no banco do tenant), logo com rota pública própria, numeração editável por tipo de documento e parâmetros (% de encargos e modo de precificação) |
 | Tamanho | M (re-estimada: o backlog dizia P; logo com anexo, ClamAV e rota pública, numeração editável com concorrência e parâmetros com histórico) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-COM-4 · R-COM-3 (logo como anexo) · R-RH-2 (% de encargos do custo-hora, P-05) · R-COML-1 (modo de precificação, P-14) · R-SEC-5 · R-AJD-1 |
 | Dependências | FND-09d (moldes e componentes), CAD-01a (`BrazilianDocuments`), CAD-01b (`ICepLookup`); Fase 0 (FND-06c, FND-07, FND-09c, FND-14) |
 | Bloqueia | CAD-04a (% de encargos e `PayrollChargesChanged`), COM-01 (modo de precificação), COM-03 (logo no PDF), toda story que numera documento |
@@ -100,23 +100,23 @@ Como **proprietário**, quero **cadastrar os dados e o logo da empresa, ajustar 
 - Nenhum ponto em aberto.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
-- [ ] Migration criada (schema `settings`, `shared.number_formats`, não destrutiva) e seeds idempotentes.
-- [ ] Permissões só do `ModuleCatalog` (`settings.view`, `settings.edit`).
-- [ ] Telas com estados de carregando, vazio e erro; modo leitura.
-- [ ] Ajuda das três abas escrita; teste de cobertura passando.
-- [ ] Padrões comuns dos cadastros e próximos passos aplicados.
-- [ ] Auditoria ligada (perfil, numeração, parâmetros).
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` conferido; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
+- [x] Migration criada (schema `settings`, `shared.number_formats`, não destrutiva) e seeds idempotentes.
+- [x] Permissões só do `ModuleCatalog` (`settings.view`, `settings.edit`).
+- [x] Telas com estados de carregando, vazio e erro; modo leitura.
+- [x] Ajuda das três abas escrita; teste de cobertura passando.
+- [x] Padrões comuns dos cadastros e próximos passos aplicados.
+- [x] Auditoria ligada (perfil, numeração, parâmetros).
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` conferido; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `settings.company_profile`, endpoints do perfil e `LogoUrl`/nome fantasia no `tenant-context`.
-- [ ] Logo pelo `AttachmentService` com `TenantLogo` no `AttachmentOwnerRegistry`; rota `GET /api/v1/public/tenant-logo` com cache e rate limit.
-- [ ] `shared.number_formats`, `INumberFormatAdmin`, formato efetivo no `NumberSequenceService` e "próximo número" com `ON CONFLICT … GREATEST`.
-- [ ] Parâmetros em `tenant_settings`, seeds, `ITenantParameters` em `Identity.Contracts`, evento `PayrollChargesChanged`.
-- [ ] Abas Empresa, Numeração e Parâmetros na ordem nova; três arquivos de ajuda.
+- [x] `settings.company_profile`, endpoints do perfil e `LogoUrl`/nome fantasia no `tenant-context`.
+- [x] Logo pelo `AttachmentService` com `TenantLogo` no `AttachmentOwnerRegistry`; rota `GET /api/v1/public/tenant-logo` com cache e rate limit.
+- [x] `shared.number_formats`, `INumberFormatAdmin`, formato efetivo no `NumberSequenceService` e "próximo número" com `ON CONFLICT … GREATEST`.
+- [x] Parâmetros em `tenant_settings`, seeds, `ITenantParameters` em `Identity.Contracts`, evento `PayrollChargesChanged`.
+- [x] Abas Empresa, Numeração e Parâmetros na ordem nova; três arquivos de ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, cybersecurity (rota pública do logo e upload), @qa.
@@ -149,3 +149,4 @@ Checklist do @po (Pax), 18/10/2026.
 | 18/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 18/10/2026 | 0.3 | Decisões do PO (D1, tabela 1.1) e ADR 0016; garantia para a CAD-02a, validador para a CAD-01a; ordem 6 do Marco B | River (SM) |
 | 18/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 19/10/2026 | 1.0 | Implementada. Desvios: o logo publicado é o anexo `TenantLogo` mais recente com `Clean`, sem a coluna `logo_attachment_id` (o anexo pendente não derruba o anterior); a confirmação da numeração diz "O próximo número de {tipo} sairá como …", para concordar com todos os tipos; "Ver cargos" depois de salvar os encargos entra com a CAD-04a | @dev |

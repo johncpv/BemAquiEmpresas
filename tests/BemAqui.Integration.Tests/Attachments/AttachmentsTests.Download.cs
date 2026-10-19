@@ -63,7 +63,8 @@ public partial class AttachmentsTests
             services.GetRequiredService<AttachmentOwnerRegistry>(),
             new DenyAllPermissionChecker(),
             services.GetRequiredService<BemAqui.BuildingBlocks.Identity.ICurrentUser>(),
-            TimeProvider.System);
+            TimeProvider.System,
+            services);
 
         var download = await denied.DownloadAsync(uploaded.Value.Id);
 

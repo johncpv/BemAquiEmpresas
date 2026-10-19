@@ -31,6 +31,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<TenantSetting> TenantSettings => Set<TenantSetting>();
 
+    public DbSet<CompanyProfile> CompanyProfiles => Set<CompanyProfile>();
+
     public DbSet<CatalogModule> CatalogModules => Set<CatalogModule>();
 
     public DbSet<CatalogModuleAction> CatalogModuleActions => Set<CatalogModuleAction>();

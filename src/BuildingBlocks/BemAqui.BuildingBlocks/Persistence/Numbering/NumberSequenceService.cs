@@ -8,7 +8,8 @@ public sealed class NumberSequenceService(BemAquiDbContext db, TimeProvider cloc
 {
     public async Task<string> NextAsync(string docType, CancellationToken cancellationToken = default)
     {
-        if (!NumberFormats.Defaults.TryGetValue(docType, out var format))
+        // Formato efetivo na mesma transação: o do tenant, se mudou, ou o padrão (CAD-06 CA 10).
+        if (await NumberFormatAdmin.EffectiveAsync(db, docType, cancellationToken) is not { } format)
         {
             throw new ArgumentException($"Tipo de documento sem numeração definida: '{docType}'.", nameof(docType));
         }

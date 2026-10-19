@@ -18,6 +18,9 @@ public sealed class AuthRateLimitOptions
 
     /// <summary>Pergunte ao BemAqui (FND-15), por IP + tenant: cada pergunta pode virar uma chamada paga ao provedor de IA.</summary>
     public int AskPerMinute { get; set; } = 10;
+
+    /// <summary>Logo público do tenant (CAD-06 CA 7), por IP + tenant.</summary>
+    public int LogoPerMinute { get; set; } = 60;
 }
 
 /// <summary>
@@ -28,6 +31,7 @@ public static class AuthRateLimiting
 {
     public const string PathPrefix = "/api/v1/auth";
     public const string AskPath = "/api/v1/ajuda/perguntar";
+    public const string LogoPath = "/api/v1/public/tenant-logo";
     public const string Message = "Muitas tentativas em pouco tempo. Aguarde um pouco e tente de novo.";
 
     public static IServiceCollection AddAuthRateLimiting(this IServiceCollection services, IConfiguration configuration)
@@ -44,6 +48,15 @@ public static class AuthRateLimiting
                         ? RateLimitPartition.GetFixedWindowLimiter("ask|" + TenantKey(http) + "|" + (http.Connection.RemoteIpAddress?.ToString() ?? "-"), _ => new FixedWindowRateLimiterOptions
                         {
                             PermitLimit = options.AskPerMinute,
+                            Window = TimeSpan.FromMinutes(1),
+                            QueueLimit = 0,
+                        })
+                        : RateLimitPartition.GetNoLimiter(string.Empty)),
+                PartitionedRateLimiter.Create<HttpContext, string>(http =>
+                    http.Request.Path.StartsWithSegments(LogoPath, StringComparison.OrdinalIgnoreCase)
+                        ? RateLimitPartition.GetFixedWindowLimiter("logo|" + TenantKey(http) + "|" + (http.Connection.RemoteIpAddress?.ToString() ?? "-"), _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = options.LogoPerMinute,
                             Window = TimeSpan.FromMinutes(1),
                             QueueLimit = 0,
                         })

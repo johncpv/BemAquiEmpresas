@@ -8,7 +8,7 @@ import { NavigationContext } from './navigation-context'
  * Menu derivado de /me/permissions (FND-06d): nenhuma lista fixa no front. Quando o backend manda X-Perm-Version nova,
  * a consulta é invalidada e dock, paleta e rotas são remontados (CA 6). <c>modules</c> fixo só em testes e na galeria.
  */
-export function NavigationProvider({ modules, tenantName = 'Empresa', children }: { modules?: readonly PermissionModule[]; tenantName?: string; children: ReactNode }) {
+export function NavigationProvider({ modules, tenantName = 'Empresa', tenantLogo, children }: { modules?: readonly PermissionModule[]; tenantName?: string; tenantLogo?: string | null; children: ReactNode }) {
   const token = useSyncExternalStore(onSessionChange, getAccessToken, () => null)
   const query = useGetMyPermissions({ query: { enabled: !modules && !!token, staleTime: 60_000 } })
   const source = modules ?? query.data?.modules
@@ -16,7 +16,7 @@ export function NavigationProvider({ modules, tenantName = 'Empresa', children }
 
   const value = useMemo(() => {
     const navigation = buildNavigation(source ?? [])
-    return { ...navigation, tenantName, status, retry: () => void query.refetch() } as const
-  }, [source, tenantName, status, query])
+    return { ...navigation, tenantName, tenantLogo, status, retry: () => void query.refetch() } as const
+  }, [source, tenantName, tenantLogo, status, query])
   return <NavigationContext.Provider value={value}>{children}</NavigationContext.Provider>
 }

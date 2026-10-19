@@ -351,6 +351,47 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("audit_log", "audit");
                 });
 
+            modelBuilder.Entity("BemAqui.BuildingBlocks.Persistence.Numbering.NumberFormatOverride", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Digits")
+                        .HasColumnType("integer")
+                        .HasColumnName("digits");
+
+                    b.Property<string>("DocType")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("doc_type");
+
+                    b.Property<string>("Prefix")
+                        .IsRequired()
+                        .HasMaxLength(6)
+                        .HasColumnType("character varying(6)")
+                        .HasColumnName("prefix");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<bool>("Yearly")
+                        .HasColumnType("boolean")
+                        .HasColumnName("yearly");
+
+                    b.HasKey("Id")
+                        .HasName("pk_number_formats");
+
+                    b.HasIndex("DocType")
+                        .IsUnique()
+                        .HasDatabaseName("ix_number_formats_doc_type");
+
+                    b.ToTable("number_formats", "shared");
+                });
+
             modelBuilder.Entity("BemAqui.BuildingBlocks.Persistence.Numbering.NumberSequence", b =>
                 {
                     b.Property<Guid>("Id")
@@ -710,6 +751,94 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDatabaseName("ix_module_actions_module_code_action");
 
                     b.ToTable("module_actions", "identity");
+                });
+
+            modelBuilder.Entity("BemAqui.Identity.Domain.CompanyProfile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("City")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("city");
+
+                    b.Property<string>("CityIbge")
+                        .HasMaxLength(7)
+                        .HasColumnType("character varying(7)")
+                        .HasColumnName("city_ibge");
+
+                    b.Property<string>("Complement")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("complement");
+
+                    b.Property<string>("District")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("district");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)")
+                        .HasColumnName("email");
+
+                    b.Property<string>("LegalName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("legal_name");
+
+                    b.Property<string>("MunicipalRegistration")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("municipal_registration");
+
+                    b.Property<string>("Number")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("number");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(11)
+                        .HasColumnType("character varying(11)")
+                        .HasColumnName("phone");
+
+                    b.Property<string>("State")
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)")
+                        .HasColumnName("state");
+
+                    b.Property<string>("StateRegistration")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("state_registration");
+
+                    b.Property<string>("Street")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("street");
+
+                    b.Property<string>("TradeName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("trade_name");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("ZipCode")
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)")
+                        .HasColumnName("zip_code");
+
+                    b.HasKey("Id")
+                        .HasName("pk_company_profile");
+
+                    b.ToTable("company_profile", "settings");
                 });
 
             modelBuilder.Entity("BemAqui.Identity.Domain.Group", b =>

@@ -20,10 +20,21 @@ public static class PersistenceServiceCollectionExtensions
         services.TryAddScoped<AuditOrigin>();
         services.TryAddScoped<AuditSaveChangesInterceptor>();
         services.TryAddScoped<INumberSequence, NumberSequenceService>();
+        services.TryAddScoped<INumberFormatAdmin, NumberFormatAdmin>();
         services.TryAddSingleton(sp => new AuditableEntityRegistry(sp.GetServices<AuditableEntity>()));
         services.TryAddScoped<IPermissionChecker, DenyAllPermissionChecker>();
         services.TryAddScoped<AuditHistory>();
-        services.TryAddSingleton<AttachmentOwnerRegistry>();
+        // Donos de anexo inscritos pelos módulos (AddAttachmentOwner); testes ainda podem registrar direto no registry.
+        services.TryAddSingleton(sp =>
+        {
+            var registry = new AttachmentOwnerRegistry();
+            foreach (var owner in sp.GetServices<AttachmentOwnerRegistration>())
+            {
+                registry.Register(owner.OwnerType, owner.Rules);
+            }
+
+            return registry;
+        });
         services.TryAddSingleton<IFileStorage, LocalFileStorage>();
         services.TryAddSingleton<IVirusScanner, ClamAvScanner>();
         services.TryAddScoped<AttachmentService>();
