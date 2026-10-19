@@ -40,6 +40,19 @@ function financeApi() {
 }
 
 test.describe('financeiro (CAD-05b)', () => {
+  test('conta importada do Dolibarr mostra a Tag e pede o saldo inicial (MIG-01b CA 16 e 17)', async ({ page }) => {
+    const imported = { id: '0199f0e0-0000-7000-8000-0000000000c1', name: 'Inter PJ', kind: 'Bank', bankCode: '077', bankName: 'Banco Inter', agency: '0001', account: '12345678-9', openingBalance: null, openingDate: null, isActive: true, isDefault: true, importSource: 'dolibarr:llx_bank_account:3', masked: false, createdAt: '2026-10-19T12:00:00Z' }
+    await mockApi(page, { ...financeApi(), 'GET /api/v1/finance/bank-accounts': (r: Route) => json(r, { items: [imported], page: 1, pageSize: 20, total: 1 }) })
+    await page.goto('/app/financeiro/contas')
+    await expect(page.getByText('Importado do Dolibarr')).toBeVisible()
+    await expect(page.getByText('llx_bank_account:3')).toBeVisible()
+    await expect(page.getByText('Saldo inicial não informado')).toBeVisible()
+    await page.getByRole('button', { name: 'Informar saldo inicial de Inter PJ' }).click()
+    await expect(page.getByRole('dialog', { name: 'Conta Inter PJ' })).toBeVisible()
+    await expect(page.getByRole('textbox', { name: /Saldo inicial/ })).toBeFocused()
+  })
+
+
   test('cadastra a conta sem saldo e vê o atalho para informar o saldo (CA 1, 4 e 6)', async ({ page }) => {
     await mockApi(page, financeApi())
     await page.goto('/app/financeiro/contas')

@@ -25,3 +25,5 @@ Cadastrar as contas bancárias e os caixas da empresa, com o saldo de partida. O
 **Por que vejo a agência e a conta com asteriscos?** Seu grupo só consulta o financeiro. Os dados completos aparecem para quem pode editar.
 
 **Como tiro uma conta de uso?** Inative. Conta com movimentação não pode ser excluída. A conta padrão precisa ser trocada antes.
+
+**Por que a conta importada está sem saldo?** A importação traz só o cadastro da conta. O saldo começa no BemAqui: clique em **Informar saldo inicial** e informe o saldo e a data.

@@ -4,5 +4,7 @@
     <ProjectReference Include="..\BemAqui.Migrations.Domain\BemAqui.Migrations.Domain.csproj" />
     <ProjectReference Include="..\BemAqui.Migrations.Contracts\BemAqui.Migrations.Contracts.csproj" />
     <ProjectReference Include="..\..\Platform\BemAqui.Platform.Contracts\BemAqui.Platform.Contracts.csproj" />
+    <ProjectReference Include="..\..\Parties\BemAqui.Parties.Contracts\BemAqui.Parties.Contracts.csproj" />
+    <ProjectReference Include="..\..\Finance\BemAqui.Finance.Contracts\BemAqui.Finance.Contracts.csproj" />
   </ItemGroup>
 </Project>

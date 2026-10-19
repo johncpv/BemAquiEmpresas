@@ -9,6 +9,7 @@ import { useTableFilters, useTableSearch } from '@/components/data-table/table-s
 import { Money } from '@/components/ui/money'
 import { NextSteps } from '@/components/ui/next-steps'
 import { StatusChip } from '@/components/ui/status-chip'
+import { ImportedTag } from '@/components/ui/imported-tag'
 import { Tag } from '@/components/ui/tag'
 import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
@@ -34,7 +35,12 @@ export function BankAccountsPage() {
   const close = () => { setEditing(null); if (conta) void navigate({ to: '.', search: (p: Record<string, unknown>) => ({ ...p, conta: undefined }) } as never) }
 
   const columns: ColumnDef<BankAccountDetail>[] = [
-    { id: 'name', header: 'Nome', cell: ({ row: { original: a } }) => <button type="button" onClick={() => setEditing({ account: a })} className="font-semibold text-primary hover:underline">{a.name}</button> },
+    { id: 'name', header: 'Nome', cell: ({ row: { original: a } }) => (
+      <span className="flex flex-wrap items-center gap-1.5">
+        <button type="button" onClick={() => setEditing({ account: a })} className="font-semibold text-primary hover:underline">{a.name}</button>
+        <ImportedTag source={a.importSource} />
+      </span>
+    ) },
     { id: 'kind', header: 'Tipo', cell: ({ row: { original: a } }) => (a.kind === 'Bank' ? 'Banco' : 'Caixa') },
     { id: 'bank', header: 'Banco, agência e conta', meta: { secondary: true }, cell: ({ row: { original: a } }) => (a.kind === 'Bank' ? <span className="tabular-nums">{a.bankCode} {a.bankName} · {a.agency} · {a.account}</span> : '—') },
     {

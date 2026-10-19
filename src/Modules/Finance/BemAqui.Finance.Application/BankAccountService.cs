@@ -48,7 +48,10 @@ public sealed partial class BankAccountService(
         return account is null ? NotFound() : ToDetail(account, await CanSeeFullAsync(cancellationToken));
     }
 
-    public async Task<Result<BankAccountDetail>> CreateAsync(BankAccountInput input, CancellationToken cancellationToken = default)
+    public Task<Result<BankAccountDetail>> CreateAsync(BankAccountInput input, CancellationToken cancellationToken = default) => CreateAsync(input, true, cancellationToken);
+
+    /// <param name="active">Falso só na importação (conta encerrada no Dolibarr, MIG-01b CA 15): entra inativa e nunca vira padrão.</param>
+    public async Task<Result<BankAccountDetail>> CreateAsync(BankAccountInput input, bool active, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(input);
         if (FinanceValidation.BankAccount(input) is { } invalid)
@@ -56,12 +59,12 @@ public sealed partial class BankAccountService(
             return invalid;
         }
 
-        var account = new BankAccount { CreatedAt = clock.GetUtcNow() };
+        var account = new BankAccount { CreatedAt = clock.GetUtcNow(), IsActive = active };
         Apply(account, input);
         account.OpeningBalance = input.OpeningBalance;
         account.OpeningDate = input.OpeningDate;
         // A primeira conta ativa já nasce padrão (CA 6).
-        var makeDefault = input.IsDefault || !await db.BankAccounts.AnyAsync(a => a.IsActive && a.IsDefault, cancellationToken);
+        var makeDefault = active && (input.IsDefault || !await db.BankAccounts.AnyAsync(a => a.IsActive && a.IsDefault, cancellationToken));
         db.BankAccounts.Add(account);
         return await SaveAsync(account, makeDefault, cancellationToken);
     }

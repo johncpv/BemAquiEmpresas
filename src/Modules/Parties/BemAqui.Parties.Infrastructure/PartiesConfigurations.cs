@@ -26,6 +26,7 @@ internal sealed class PartyConfiguration : IEntityTypeConfiguration<Party>
         b.Property(e => e.Email).HasMaxLength(254);
         b.Property(e => e.Phone).HasMaxLength(11);
         b.Property(e => e.Notes).HasMaxLength(2000);
+        b.Property(e => e.ImportSource).HasMaxLength(100);
 
         // Um documento por cadastro não excluído (CA 4 e 5); sem documento é permitido (tabela 1.1).
         // Índices com nome: o EF fundiria dois índices sem nome na mesma coluna (e GIN não pode ser único).

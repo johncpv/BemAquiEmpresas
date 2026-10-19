@@ -17,6 +17,8 @@ public static class FinanceInfrastructure
         services.TryAddScoped<BankAccountService>();
         services.TryAddScoped<PaymentTermService>();
         services.TryAddScoped<IPaymentTerms, PaymentTermsContract>();
+        services.TryAddScoped<IPaymentTermImport, PaymentTermImport>();
+        services.TryAddScoped<IBankAccountImport, BankAccountImport>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ITenantSeeder, PaymentTermSeeder>());
         services.AddAuditableEntity<BankAccount>("finance");
         services.AddAuditableEntity<PaymentTerm>("finance");

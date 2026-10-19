@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { createBankAccount, updateBankAccount } from '@/api/generated/bemaqui'
 import type { BankAccountDetail, BankAccountInput } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
+import { ImportedTag } from '@/components/ui/imported-tag'
 import { SidePanel } from '@/components/ui/side-panel'
 import { toastDone } from '@/components/ui/toast'
 import { BankAccountActions } from './BankAccountActions'
@@ -47,6 +48,7 @@ export function BankAccountPanel({ account, focusBalance, onClose, onSaved }: { 
         </>
       )}
     >
+      {account?.importSource ? <div className="mb-3"><ImportedTag source={account.importSource} /></div> : null}
       <BankAccountFields draft={draft} onChange={(patch) => setDraft((d) => ({ ...d, ...patch }))} readOnly={readOnly} isDefault={account?.isDefault ?? false} focusBalance={focusBalance} error={error} />
     </SidePanel>
   )

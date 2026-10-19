@@ -56,6 +56,9 @@ public sealed class Party : Entity, IAuditable, ISoftDeletable
     /// <summary>Condição de pagamento padrão (CAD-05b CA 16): só o id de <c>finance.payment_terms</c>, validado por <c>IPaymentTerms</c>.</summary>
     public Guid? DefaultPaymentTermId { get; set; }
 
+    /// <summary>Origem da importação (ex.: <c>dolibarr:llx_societe:42</c>), gravada só pelo <c>IPartyImport</c> (MIG-01b CA 17).</summary>
+    public string? ImportSource { get; set; }
+
     public DateTimeOffset CreatedAt { get; init; }
 
     public bool IsDeleted { get; private set; }

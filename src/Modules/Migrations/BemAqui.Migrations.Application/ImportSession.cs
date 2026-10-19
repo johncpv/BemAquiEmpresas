@@ -65,6 +65,26 @@ public sealed class ImportSession
         }
     }
 
+    /// <summary>
+    /// Tabela de apoio (UFs, tipos, categorias): lida sem contar no total, porque não vira cadastro e não entra na soma do
+    /// relatório (CA 17).
+    /// </summary>
+    public async Task<IReadOnlyList<SourceRow>> LookupAsync(SnapshotTable table, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(table);
+        var rows = new List<SourceRow>();
+        await foreach (var row in _source.ReadAsync(table, cancellationToken))
+        {
+            rows.Add(row);
+        }
+
+        return rows;
+    }
+
+    /// <summary>Se algum registro de origem já aponta para este destino (fusão por documento, MIG-01b CA 6).</summary>
+    public Task<bool> TargetHasRefAsync(string targetType, Guid targetId, CancellationToken cancellationToken = default) =>
+        _db.ExternalRefs.AnyAsync(r => r.TargetType == targetType && r.TargetId == targetId, cancellationToken);
+
     /// <summary>Chave externa de uma linha já importada (ex.: o terceiro de um contato).</summary>
     public Task<ExternalRef?> FindRefAsync(string sourceTable, string sourceId, CancellationToken cancellationToken = default) =>
         _db.ExternalRefs.AsNoTracking().FirstOrDefaultAsync(r => r.Source == ExternalRef.Dolibarr && r.SourceTable == sourceTable && r.SourceId == sourceId, cancellationToken);
@@ -113,6 +133,7 @@ public sealed class ImportSession
                     SourceHash = hash, TargetXmin = xmin, ImportedAt = _clock.GetUtcNow(), LastRunId = RunId,
                 });
                 await _db.SaveChangesAsync(ct);
+                await SyncXminAsync(type, id, xmin, ct);
             }
 
             return (created, null);
@@ -145,10 +166,19 @@ public sealed class ImportSession
             existing.TargetXmin = newXmin;
             existing.LastRunId = RunId;
             await _db.SaveChangesAsync(ct);
+            await SyncXminAsync(existing.TargetType, existing.TargetId, newXmin, ct);
         }
 
         return (updated with { TargetType = updated.TargetType ?? existing.TargetType, TargetId = updated.TargetId ?? existing.TargetId }, null);
     }
+
+    /// <summary>
+    /// Vários registros de origem podem apontar para o mesmo destino (fusão, MIG-01b CA 6): depois de gravar, todos passam a ter
+    /// o xmin novo, senão a próxima mudança de um deles pareceria edição no BemAqui (conflito falso).
+    /// </summary>
+    private Task<int> SyncXminAsync(string targetType, Guid targetId, long xmin, CancellationToken ct) =>
+        _db.ExternalRefs.Where(r => r.TargetType == targetType && r.TargetId == targetId && r.TargetXmin != xmin)
+            .ExecuteUpdateAsync(u => u.SetProperty(r => r.TargetXmin, xmin), ct);
 
     private void Add(SourceRow row, string hash, RowResult result, IReadOnlyList<FieldDifference>? differences = null)
     {

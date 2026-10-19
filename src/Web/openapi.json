@@ -5285,6 +5285,12 @@
                 "$ref": "#/components/schemas/PaymentTermRef"
               }
             ]
+          },
+          "importSource": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

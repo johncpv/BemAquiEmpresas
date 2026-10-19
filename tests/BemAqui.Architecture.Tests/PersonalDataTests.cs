@@ -12,7 +12,7 @@ public class PersonalDataTests
 {
     private static readonly Dictionary<string, string[]> NonSensitive = new(StringComparer.Ordinal)
     {
-        ["Party"] = ["Id", "Kind", "LegalName", "TradeName", "SearchText", "StateRegistration", "MunicipalRegistration", "TaxRegime", "IsActive", "DefaultPaymentTermId", "CreatedAt", "IsDeleted", "DeletedAt", "Roles", "Addresses", "Contacts"],
+        ["Party"] = ["Id", "Kind", "LegalName", "TradeName", "SearchText", "StateRegistration", "MunicipalRegistration", "TaxRegime", "IsActive", "DefaultPaymentTermId", "ImportSource", "CreatedAt", "IsDeleted", "DeletedAt", "Roles", "Addresses", "Contacts"],
         ["PartyRole"] = ["Id", "PartyId", "Role"],
         ["PartyAddress"] = ["Id", "PartyId", "Kind", "ZipCode", "Street", "Number", "Complement", "District", "City", "IbgeCode", "State", "IsDefault"],
         ["PartyContact"] = ["Id", "PartyId", "Role", "ReceivesBilling"],

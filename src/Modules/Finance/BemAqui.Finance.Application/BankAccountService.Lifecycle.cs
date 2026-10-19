@@ -64,7 +64,8 @@ public sealed partial class BankAccountService
         {
             if (makeDefault)
             {
-                await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+                // Dentro de uma transação de fora (ex.: a importação, MIG-01b), usa a dela.
+                await using var transaction = db.Database.CurrentTransaction is null ? await db.Database.BeginTransactionAsync(cancellationToken) : null;
                 foreach (var previous in await db.BankAccounts.Where(a => a.IsDefault && a.Id != account.Id).ToListAsync(cancellationToken))
                 {
                     previous.IsDefault = false;
@@ -73,7 +74,10 @@ public sealed partial class BankAccountService
                 await db.SaveChangesAsync(cancellationToken);
                 account.IsDefault = true;
                 await db.SaveChangesAsync(cancellationToken);
-                await transaction.CommitAsync(cancellationToken);
+                if (transaction is not null)
+                {
+                    await transaction.CommitAsync(cancellationToken);
+                }
             }
             else
             {

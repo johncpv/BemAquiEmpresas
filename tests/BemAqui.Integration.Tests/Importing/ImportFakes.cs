@@ -12,7 +12,12 @@ namespace BemAqui.Integration.Tests.Importing;
 /// <summary>Snapshot em memória: as linhas de <c>llx_societe</c> que o teste monta, com o CNPJ da empresa no MAIN_INFO_SIREN.</summary>
 internal sealed class FakeSnapshot(string? siren = "47.225.005/0001-86") : ISnapshotSource
 {
-    public List<Dictionary<string, object?>> Societe { get; } = [];
+    /// <summary>Linhas por tabela da lista fixa (nome do Dolibarr).</summary>
+    public Dictionary<string, List<Dictionary<string, object?>>> Rows { get; } = new(StringComparer.Ordinal);
+
+    public List<Dictionary<string, object?>> Societe => Table("llx_societe");
+
+    public List<Dictionary<string, object?>> Table(string name) => Rows.TryGetValue(name, out var rows) ? rows : Rows[name] = [];
 
     public static Dictionary<string, object?> Company(int rowid, string name, string? document, string? email = null, int entity = 1) => new()
     {
@@ -27,9 +32,11 @@ internal sealed class FakeSnapshot(string? siren = "47.225.005/0001-86") : ISnap
     public async IAsyncEnumerable<SourceRow> ReadAsync(SnapshotTable table, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         await Task.Yield();
-        foreach (var values in Societe.OrderBy(v => (int)v["rowid"]!))
+        string Key(Dictionary<string, object?> v) => string.Join('-', table.Key.Select(k => Convert.ToString(v.GetValueOrDefault(k), System.Globalization.CultureInfo.InvariantCulture)));
+        foreach (var values in Table(table.Name).OrderBy(v => Key(v).PadLeft(20, '0'), StringComparer.Ordinal))
         {
-            yield return new SourceRow(table, Convert.ToString(values["rowid"], System.Globalization.CultureInfo.InvariantCulture)!, new Dictionary<string, object?>(values));
+            // Como a fonte real: só as colunas da lista fixa, com as ausentes em null.
+            yield return new SourceRow(table, Key(values), table.Columns.ToDictionary(c => c.Name, c => values.GetValueOrDefault(c.Name)));
         }
     }
 

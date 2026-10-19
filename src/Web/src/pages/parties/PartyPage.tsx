@@ -9,6 +9,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { NextSteps } from '@/components/ui/next-steps'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
+import { ImportedTag } from '@/components/ui/imported-tag'
 import { Tag } from '@/components/ui/tag'
 import { useUrlTab } from '@/components/ui/url-tab'
 import { UrlTabs } from '@/components/ui/url-tabs'
@@ -58,6 +59,7 @@ export function PartyPage() {
             <StatusChip tone={party.isActive ? 'ok' : 'neutral'}>{party.isActive ? 'Ativo' : 'Inativo'}</StatusChip>
             {party.roles.map((r) => <Tag key={r}>{ROLE_LABELS[r]}</Tag>)}
             {party.document ? <span className="text-sm text-muted-foreground tabular-nums">{party.document}</span> : <Tag>Sem documento</Tag>}
+            <ImportedTag source={party.importSource} />
             <Link to="/app/cadastros/terceiros" className="ml-2 text-sm font-semibold text-primary">Voltar à lista</Link>
           </div>
           <div className="flex flex-wrap gap-2">
