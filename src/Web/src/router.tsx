@@ -30,6 +30,9 @@ import { ComponentsMold, CreateMold, DetailMold, PanelMold } from '@/dev/molds/l
 import { BankAccountsPage } from '@/pages/finance/BankAccountsPage'
 import { NewPaymentTermPage, PaymentTermPage } from '@/pages/finance/PaymentTermPage'
 import { PaymentTermsPage } from '@/pages/finance/PaymentTermsPage'
+import { LocationsPage } from '@/pages/inventory/LocationsPage'
+import { CalendarPage } from '@/pages/production/CalendarPage'
+import { WorkCentersPage } from '@/pages/production/WorkCentersPage'
 import { NewPartyPage } from '@/pages/parties/NewPartyPage'
 import { PartiesPage } from '@/pages/parties/PartiesPage'
 import { PartyPage } from '@/pages/parties/PartyPage'
@@ -92,6 +95,12 @@ const partiesRoute = createRoute({ getParentRoute: () => appRoute, path: 'cadast
 const newPartyRoute = createRoute({ getParentRoute: () => appRoute, path: 'cadastros/terceiros/novo', component: gated('parties', NewPartyPage) })
 const partyRoute = createRoute({ getParentRoute: () => appRoute, path: 'cadastros/terceiros/$id', component: gated('parties', PartyPage) })
 // Financeiro (CAD-05b): contas e caixas e condições de pagamento.
+// Estoque e Produção (CAD-03): locais, centros de trabalho e calendário.
+const inventoryRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque', beforeLoad: () => { throw redirect({ to: '/app/estoque/locais' }) } })
+const locationsRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/locais', component: gated('inventory', LocationsPage) })
+const productionRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao', beforeLoad: () => { throw redirect({ to: '/app/producao/centros-de-trabalho' }) } })
+const workCentersRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/centros-de-trabalho', component: gated('production', WorkCentersPage) })
+const calendarRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/calendario', component: gated('production', CalendarPage) })
 const financeRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro', beforeLoad: () => { throw redirect({ to: '/app/financeiro/contas' }) } })
 const bankAccountsRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/contas', component: gated('finance', BankAccountsPage), validateSearch: (s: Record<string, unknown>): { conta?: string } => ({ conta: text(s.conta) }) })
 const paymentTermsRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/condicoes-de-pagamento', component: gated('finance', PaymentTermsPage) })
@@ -141,6 +150,7 @@ export const routeTree = rootRoute.addChildren([
   inviteRoute,
   appRoute.addChildren([appIndexRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute,
     aiSettingsRoute, importRunsRoute, importRunRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute,
+    inventoryRootRoute, locationsRoute, productionRootRoute, workCentersRoute, calendarRoute,
     financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
   platformLoginRoute,
   platformPasswordRoute,

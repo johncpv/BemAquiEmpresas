@@ -26,6 +26,8 @@ import type {
 import type {
   AcceptInviteRequest,
   AccessTokenResponse,
+  AddHolidaysInput,
+  AddHolidaysResult,
   AddressData,
   AddressInput,
   AiSettingsDto,
@@ -35,6 +37,10 @@ import type {
   BankAccountDetail,
   BankAccountInput,
   BankInfo,
+  CalendarDetail,
+  CalendarExceptionDetail,
+  CalendarExceptionInput,
+  CalendarInput,
   ChallengeRequest,
   CheckPartyDocumentParams,
   CnpjLookupResult,
@@ -55,6 +61,7 @@ import type {
   GroupSummary,
   HelpAnswer,
   HelpDocument,
+  HolidaySuggestion,
   ImportRunDetail,
   InstallmentDue,
   InviteAcceptedResponse,
@@ -62,12 +69,17 @@ import type {
   InviteTokenRequest,
   InviteUserRequest,
   ListBankAccountsParams,
+  ListCalendarExceptionsParams,
   ListImportPendingParams,
   ListImportRunsParams,
+  ListLocationsParams,
   ListMyNotificationsParams,
   ListPartiesParams,
   ListPaymentTermsParams,
   ListTenantsParams,
+  ListWorkCentersParams,
+  LocationDetail,
+  LocationInput,
   LoginRequest,
   LoginResponse,
   LookupCnpjParams,
@@ -82,9 +94,11 @@ import type {
   PagedListOfBankAccountDetail,
   PagedListOfImportPendingItem,
   PagedListOfImportRunRow,
+  PagedListOfLocationDetail,
   PagedListOfPartyListItem,
   PagedListOfPaymentTermDetail,
   PagedListOfTenantRow,
+  PagedListOfWorkCenterDetail,
   PartyDetail,
   PartySearchHit,
   PaymentTermDetail,
@@ -111,6 +125,7 @@ import type {
   SecuritySettingsDto,
   SetGroupMembersRequest,
   SetUserGroupsRequest,
+  Shift,
   SplitPreviewRequest,
   SuspendTenantRequest,
   TenantDetail,
@@ -124,7 +139,9 @@ import type {
   UploadCompanyLogoBody,
   UserInvited,
   UserRow,
-  VerifyTwoFactorRequest
+  VerifyTwoFactorRequest,
+  WorkCenterDetail,
+  WorkCenterInput
 } from './model';
 
 import { apiFetch } from '../http';
@@ -8162,6 +8179,1945 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getRemovePartyContactMutationOptions(options), queryClient);
+    }
+
+export const getListWorkCentersUrl = (params?: ListWorkCentersParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/production/work-centers?${stringifiedParams}` : `/api/v1/production/work-centers`
+}
+
+export const listWorkCenters = async (params?: ListWorkCentersParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfWorkCenterDetail> => {
+
+  return apiFetch<PagedListOfWorkCenterDetail>(getListWorkCentersUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListWorkCentersQueryKey = (params?: ListWorkCentersParams,) => {
+    return [
+    `/api/v1/production/work-centers`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListWorkCentersQueryOptions = <TData = Awaited<ReturnType<typeof listWorkCenters>>, TError = unknown>(params?: ListWorkCentersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWorkCenters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListWorkCentersQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listWorkCenters>>> = ({ signal }) => listWorkCenters(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listWorkCenters>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListWorkCentersQueryResult = NonNullable<Awaited<ReturnType<typeof listWorkCenters>>>
+export type ListWorkCentersQueryError = unknown
+
+
+export function useListWorkCenters<TData = Awaited<ReturnType<typeof listWorkCenters>>, TError = unknown>(
+ params: undefined |  ListWorkCentersParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWorkCenters>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listWorkCenters>>,
+          TError,
+          Awaited<ReturnType<typeof listWorkCenters>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListWorkCenters<TData = Awaited<ReturnType<typeof listWorkCenters>>, TError = unknown>(
+ params?: ListWorkCentersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWorkCenters>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listWorkCenters>>,
+          TError,
+          Awaited<ReturnType<typeof listWorkCenters>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListWorkCenters<TData = Awaited<ReturnType<typeof listWorkCenters>>, TError = unknown>(
+ params?: ListWorkCentersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWorkCenters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListWorkCenters<TData = Awaited<ReturnType<typeof listWorkCenters>>, TError = unknown>(
+ params?: ListWorkCentersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWorkCenters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListWorkCentersQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateWorkCenterUrl = () => {
+
+
+
+
+  return `/api/v1/production/work-centers`
+}
+
+export const createWorkCenter = async (workCenterInput: WorkCenterInput, options?: Parameters<typeof apiFetch>[1]): Promise<WorkCenterDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<WorkCenterDetail>(getCreateWorkCenterUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(workCenterInput)
+  }
+);}
+
+
+
+
+
+export const getCreateWorkCenterMutationKey = () => ['createWorkCenter'] as const;
+
+export const getCreateWorkCenterMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createWorkCenter>>, TError,CreateWorkCenterMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createWorkCenter>>, TError,CreateWorkCenterMutationVariables, TContext> => {
+
+const mutationKey = getCreateWorkCenterMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createWorkCenter>>, CreateWorkCenterMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createWorkCenter(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateWorkCenterMutationResult = NonNullable<Awaited<ReturnType<typeof createWorkCenter>>>
+    export type CreateWorkCenterMutationBody = WorkCenterInput
+    export type CreateWorkCenterMutationError = unknown
+    export type CreateWorkCenterMutationVariables = {data: WorkCenterInput}
+
+    export const useCreateWorkCenter = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createWorkCenter>>, TError,CreateWorkCenterMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createWorkCenter>>,
+        TError,
+        CreateWorkCenterMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateWorkCenterMutationOptions(options), queryClient);
+    }
+
+export const getGetSuggestedShiftsUrl = () => {
+
+
+
+
+  return `/api/v1/production/work-centers/suggested-shifts`
+}
+
+export const getSuggestedShifts = async ( options?: Parameters<typeof apiFetch>[1]): Promise<Shift[]> => {
+
+  return apiFetch<Shift[]>(getGetSuggestedShiftsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSuggestedShiftsQueryKey = () => {
+    return [
+    `/api/v1/production/work-centers/suggested-shifts`
+    ] as const;
+    }
+
+
+export const getGetSuggestedShiftsQueryOptions = <TData = Awaited<ReturnType<typeof getSuggestedShifts>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSuggestedShifts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSuggestedShiftsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSuggestedShifts>>> = ({ signal }) => getSuggestedShifts({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSuggestedShifts>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetSuggestedShiftsQueryResult = NonNullable<Awaited<ReturnType<typeof getSuggestedShifts>>>
+export type GetSuggestedShiftsQueryError = unknown
+
+
+export function useGetSuggestedShifts<TData = Awaited<ReturnType<typeof getSuggestedShifts>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSuggestedShifts>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSuggestedShifts>>,
+          TError,
+          Awaited<ReturnType<typeof getSuggestedShifts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSuggestedShifts<TData = Awaited<ReturnType<typeof getSuggestedShifts>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSuggestedShifts>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSuggestedShifts>>,
+          TError,
+          Awaited<ReturnType<typeof getSuggestedShifts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSuggestedShifts<TData = Awaited<ReturnType<typeof getSuggestedShifts>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSuggestedShifts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetSuggestedShifts<TData = Awaited<ReturnType<typeof getSuggestedShifts>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSuggestedShifts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSuggestedShiftsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetWorkCenterUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/work-centers/${id}`
+}
+
+export const getWorkCenter = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<WorkCenterDetail> => {
+
+  return apiFetch<WorkCenterDetail>(getGetWorkCenterUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetWorkCenterQueryKey = (id: string,) => {
+    return [
+    `/api/v1/production/work-centers/${id}`
+    ] as const;
+    }
+
+
+export const getGetWorkCenterQueryOptions = <TData = Awaited<ReturnType<typeof getWorkCenter>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWorkCenter>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetWorkCenterQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getWorkCenter>>> = ({ signal }) => getWorkCenter(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getWorkCenter>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetWorkCenterQueryResult = NonNullable<Awaited<ReturnType<typeof getWorkCenter>>>
+export type GetWorkCenterQueryError = unknown
+
+
+export function useGetWorkCenter<TData = Awaited<ReturnType<typeof getWorkCenter>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWorkCenter>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getWorkCenter>>,
+          TError,
+          Awaited<ReturnType<typeof getWorkCenter>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetWorkCenter<TData = Awaited<ReturnType<typeof getWorkCenter>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWorkCenter>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getWorkCenter>>,
+          TError,
+          Awaited<ReturnType<typeof getWorkCenter>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetWorkCenter<TData = Awaited<ReturnType<typeof getWorkCenter>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWorkCenter>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetWorkCenter<TData = Awaited<ReturnType<typeof getWorkCenter>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWorkCenter>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetWorkCenterQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateWorkCenterUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/work-centers/${id}`
+}
+
+export const updateWorkCenter = async (id: string,
+    workCenterInput: WorkCenterInput, options?: Parameters<typeof apiFetch>[1]): Promise<WorkCenterDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<WorkCenterDetail>(getUpdateWorkCenterUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(workCenterInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateWorkCenterMutationKey = () => ['updateWorkCenter'] as const;
+
+export const getUpdateWorkCenterMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateWorkCenter>>, TError,UpdateWorkCenterMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateWorkCenter>>, TError,UpdateWorkCenterMutationVariables, TContext> => {
+
+const mutationKey = getUpdateWorkCenterMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateWorkCenter>>, UpdateWorkCenterMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateWorkCenter(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateWorkCenterMutationResult = NonNullable<Awaited<ReturnType<typeof updateWorkCenter>>>
+    export type UpdateWorkCenterMutationBody = WorkCenterInput
+    export type UpdateWorkCenterMutationError = unknown
+    export type UpdateWorkCenterMutationVariables = {id: string;data: WorkCenterInput}
+
+    export const useUpdateWorkCenter = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateWorkCenter>>, TError,UpdateWorkCenterMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateWorkCenter>>,
+        TError,
+        UpdateWorkCenterMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateWorkCenterMutationOptions(options), queryClient);
+    }
+
+export const getDeleteWorkCenterUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/work-centers/${id}`
+}
+
+export const deleteWorkCenter = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDeleteWorkCenterUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteWorkCenterMutationKey = () => ['deleteWorkCenter'] as const;
+
+export const getDeleteWorkCenterMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteWorkCenter>>, TError,DeleteWorkCenterMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteWorkCenter>>, TError,DeleteWorkCenterMutationVariables, TContext> => {
+
+const mutationKey = getDeleteWorkCenterMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteWorkCenter>>, DeleteWorkCenterMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteWorkCenter(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteWorkCenterMutationResult = NonNullable<Awaited<ReturnType<typeof deleteWorkCenter>>>
+
+    export type DeleteWorkCenterMutationError = unknown
+    export type DeleteWorkCenterMutationVariables = {id: string}
+
+    export const useDeleteWorkCenter = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteWorkCenter>>, TError,DeleteWorkCenterMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteWorkCenter>>,
+        TError,
+        DeleteWorkCenterMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeleteWorkCenterMutationOptions(options), queryClient);
+    }
+
+export const getInactivateWorkCenterUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/work-centers/${id}/inactivate`
+}
+
+export const inactivateWorkCenter = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<WorkCenterDetail> => {
+
+  return apiFetch<WorkCenterDetail>(getInactivateWorkCenterUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getInactivateWorkCenterMutationKey = () => ['inactivateWorkCenter'] as const;
+
+export const getInactivateWorkCenterMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inactivateWorkCenter>>, TError,InactivateWorkCenterMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof inactivateWorkCenter>>, TError,InactivateWorkCenterMutationVariables, TContext> => {
+
+const mutationKey = getInactivateWorkCenterMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof inactivateWorkCenter>>, InactivateWorkCenterMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  inactivateWorkCenter(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type InactivateWorkCenterMutationResult = NonNullable<Awaited<ReturnType<typeof inactivateWorkCenter>>>
+
+    export type InactivateWorkCenterMutationError = unknown
+    export type InactivateWorkCenterMutationVariables = {id: string}
+
+    export const useInactivateWorkCenter = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inactivateWorkCenter>>, TError,InactivateWorkCenterMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof inactivateWorkCenter>>,
+        TError,
+        InactivateWorkCenterMutationVariables,
+        TContext
+      > => {
+      return useMutation(getInactivateWorkCenterMutationOptions(options), queryClient);
+    }
+
+export const getReactivateWorkCenterUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/work-centers/${id}/reactivate`
+}
+
+export const reactivateWorkCenter = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<WorkCenterDetail> => {
+
+  return apiFetch<WorkCenterDetail>(getReactivateWorkCenterUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getReactivateWorkCenterMutationKey = () => ['reactivateWorkCenter'] as const;
+
+export const getReactivateWorkCenterMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reactivateWorkCenter>>, TError,ReactivateWorkCenterMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reactivateWorkCenter>>, TError,ReactivateWorkCenterMutationVariables, TContext> => {
+
+const mutationKey = getReactivateWorkCenterMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reactivateWorkCenter>>, ReactivateWorkCenterMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  reactivateWorkCenter(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReactivateWorkCenterMutationResult = NonNullable<Awaited<ReturnType<typeof reactivateWorkCenter>>>
+
+    export type ReactivateWorkCenterMutationError = unknown
+    export type ReactivateWorkCenterMutationVariables = {id: string}
+
+    export const useReactivateWorkCenter = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reactivateWorkCenter>>, TError,ReactivateWorkCenterMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reactivateWorkCenter>>,
+        TError,
+        ReactivateWorkCenterMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReactivateWorkCenterMutationOptions(options), queryClient);
+    }
+
+export const getGetDefaultCalendarUrl = () => {
+
+
+
+
+  return `/api/v1/production/calendars/default`
+}
+
+export const getDefaultCalendar = async ( options?: Parameters<typeof apiFetch>[1]): Promise<CalendarDetail> => {
+
+  return apiFetch<CalendarDetail>(getGetDefaultCalendarUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDefaultCalendarQueryKey = () => {
+    return [
+    `/api/v1/production/calendars/default`
+    ] as const;
+    }
+
+
+export const getGetDefaultCalendarQueryOptions = <TData = Awaited<ReturnType<typeof getDefaultCalendar>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDefaultCalendar>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDefaultCalendarQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDefaultCalendar>>> = ({ signal }) => getDefaultCalendar({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDefaultCalendar>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetDefaultCalendarQueryResult = NonNullable<Awaited<ReturnType<typeof getDefaultCalendar>>>
+export type GetDefaultCalendarQueryError = unknown
+
+
+export function useGetDefaultCalendar<TData = Awaited<ReturnType<typeof getDefaultCalendar>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDefaultCalendar>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDefaultCalendar>>,
+          TError,
+          Awaited<ReturnType<typeof getDefaultCalendar>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDefaultCalendar<TData = Awaited<ReturnType<typeof getDefaultCalendar>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDefaultCalendar>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDefaultCalendar>>,
+          TError,
+          Awaited<ReturnType<typeof getDefaultCalendar>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDefaultCalendar<TData = Awaited<ReturnType<typeof getDefaultCalendar>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDefaultCalendar>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetDefaultCalendar<TData = Awaited<ReturnType<typeof getDefaultCalendar>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDefaultCalendar>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetDefaultCalendarQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateCalendarUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/calendars/${id}`
+}
+
+export const updateCalendar = async (id: string,
+    calendarInput: CalendarInput, options?: Parameters<typeof apiFetch>[1]): Promise<CalendarDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<CalendarDetail>(getUpdateCalendarUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(calendarInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateCalendarMutationKey = () => ['updateCalendar'] as const;
+
+export const getUpdateCalendarMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCalendar>>, TError,UpdateCalendarMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateCalendar>>, TError,UpdateCalendarMutationVariables, TContext> => {
+
+const mutationKey = getUpdateCalendarMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCalendar>>, UpdateCalendarMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateCalendar(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateCalendarMutationResult = NonNullable<Awaited<ReturnType<typeof updateCalendar>>>
+    export type UpdateCalendarMutationBody = CalendarInput
+    export type UpdateCalendarMutationError = unknown
+    export type UpdateCalendarMutationVariables = {id: string;data: CalendarInput}
+
+    export const useUpdateCalendar = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCalendar>>, TError,UpdateCalendarMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateCalendar>>,
+        TError,
+        UpdateCalendarMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateCalendarMutationOptions(options), queryClient);
+    }
+
+export const getSuggestHolidaysUrl = (calendarId: string,
+    year: number,) => {
+
+
+
+
+  return `/api/v1/production/calendars/${calendarId}/holidays/${year}`
+}
+
+export const suggestHolidays = async (calendarId: string,
+    year: number, options?: Parameters<typeof apiFetch>[1]): Promise<HolidaySuggestion[]> => {
+
+  return apiFetch<HolidaySuggestion[]>(getSuggestHolidaysUrl(calendarId,year),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getSuggestHolidaysQueryKey = (calendarId: string,
+    year: number,) => {
+    return [
+    `/api/v1/production/calendars/${calendarId}/holidays/${year}`
+    ] as const;
+    }
+
+
+export const getSuggestHolidaysQueryOptions = <TData = Awaited<ReturnType<typeof suggestHolidays>>, TError = unknown>(calendarId: string,
+    year: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof suggestHolidays>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSuggestHolidaysQueryKey(calendarId,year);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof suggestHolidays>>> = ({ signal }) => suggestHolidays(calendarId,year, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: calendarId !== null && calendarId !== undefined && year !== null && year !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof suggestHolidays>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type SuggestHolidaysQueryResult = NonNullable<Awaited<ReturnType<typeof suggestHolidays>>>
+export type SuggestHolidaysQueryError = unknown
+
+
+export function useSuggestHolidays<TData = Awaited<ReturnType<typeof suggestHolidays>>, TError = unknown>(
+ calendarId: string,
+    year: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof suggestHolidays>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof suggestHolidays>>,
+          TError,
+          Awaited<ReturnType<typeof suggestHolidays>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSuggestHolidays<TData = Awaited<ReturnType<typeof suggestHolidays>>, TError = unknown>(
+ calendarId: string,
+    year: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof suggestHolidays>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof suggestHolidays>>,
+          TError,
+          Awaited<ReturnType<typeof suggestHolidays>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSuggestHolidays<TData = Awaited<ReturnType<typeof suggestHolidays>>, TError = unknown>(
+ calendarId: string,
+    year: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof suggestHolidays>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useSuggestHolidays<TData = Awaited<ReturnType<typeof suggestHolidays>>, TError = unknown>(
+ calendarId: string,
+    year: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof suggestHolidays>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getSuggestHolidaysQueryOptions(calendarId,year,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getAddHolidaysUrl = (calendarId: string,) => {
+
+
+
+
+  return `/api/v1/production/calendars/${calendarId}/holidays`
+}
+
+export const addHolidays = async (calendarId: string,
+    addHolidaysInput: AddHolidaysInput, options?: Parameters<typeof apiFetch>[1]): Promise<AddHolidaysResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<AddHolidaysResult>(getAddHolidaysUrl(calendarId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(addHolidaysInput)
+  }
+);}
+
+
+
+
+
+export const getAddHolidaysMutationKey = () => ['addHolidays'] as const;
+
+export const getAddHolidaysMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addHolidays>>, TError,AddHolidaysMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addHolidays>>, TError,AddHolidaysMutationVariables, TContext> => {
+
+const mutationKey = getAddHolidaysMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addHolidays>>, AddHolidaysMutationVariables> = (props) => {
+          const {calendarId,data} = props ?? {};
+
+          return  addHolidays(calendarId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddHolidaysMutationResult = NonNullable<Awaited<ReturnType<typeof addHolidays>>>
+    export type AddHolidaysMutationBody = AddHolidaysInput
+    export type AddHolidaysMutationError = unknown
+    export type AddHolidaysMutationVariables = {calendarId: string;data: AddHolidaysInput}
+
+    export const useAddHolidays = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addHolidays>>, TError,AddHolidaysMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof addHolidays>>,
+        TError,
+        AddHolidaysMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAddHolidaysMutationOptions(options), queryClient);
+    }
+
+export const getListCalendarExceptionsUrl = (calendarId: string,
+    params: ListCalendarExceptionsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/production/calendars/${calendarId}/exceptions?${stringifiedParams}` : `/api/v1/production/calendars/${calendarId}/exceptions`
+}
+
+export const listCalendarExceptions = async (calendarId: string,
+    params: ListCalendarExceptionsParams, options?: Parameters<typeof apiFetch>[1]): Promise<CalendarExceptionDetail[]> => {
+
+  return apiFetch<CalendarExceptionDetail[]>(getListCalendarExceptionsUrl(calendarId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListCalendarExceptionsQueryKey = (calendarId: string,
+    params?: ListCalendarExceptionsParams,) => {
+    return [
+    `/api/v1/production/calendars/${calendarId}/exceptions`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListCalendarExceptionsQueryOptions = <TData = Awaited<ReturnType<typeof listCalendarExceptions>>, TError = unknown>(calendarId: string,
+    params: ListCalendarExceptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCalendarExceptions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCalendarExceptionsQueryKey(calendarId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCalendarExceptions>>> = ({ signal }) => listCalendarExceptions(calendarId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: calendarId !== null && calendarId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCalendarExceptions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListCalendarExceptionsQueryResult = NonNullable<Awaited<ReturnType<typeof listCalendarExceptions>>>
+export type ListCalendarExceptionsQueryError = unknown
+
+
+export function useListCalendarExceptions<TData = Awaited<ReturnType<typeof listCalendarExceptions>>, TError = unknown>(
+ calendarId: string,
+    params: ListCalendarExceptionsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCalendarExceptions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listCalendarExceptions>>,
+          TError,
+          Awaited<ReturnType<typeof listCalendarExceptions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListCalendarExceptions<TData = Awaited<ReturnType<typeof listCalendarExceptions>>, TError = unknown>(
+ calendarId: string,
+    params: ListCalendarExceptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCalendarExceptions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listCalendarExceptions>>,
+          TError,
+          Awaited<ReturnType<typeof listCalendarExceptions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListCalendarExceptions<TData = Awaited<ReturnType<typeof listCalendarExceptions>>, TError = unknown>(
+ calendarId: string,
+    params: ListCalendarExceptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCalendarExceptions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListCalendarExceptions<TData = Awaited<ReturnType<typeof listCalendarExceptions>>, TError = unknown>(
+ calendarId: string,
+    params: ListCalendarExceptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCalendarExceptions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListCalendarExceptionsQueryOptions(calendarId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateCalendarExceptionUrl = (calendarId: string,) => {
+
+
+
+
+  return `/api/v1/production/calendars/${calendarId}/exceptions`
+}
+
+export const createCalendarException = async (calendarId: string,
+    calendarExceptionInput: CalendarExceptionInput, options?: Parameters<typeof apiFetch>[1]): Promise<CalendarExceptionDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<CalendarExceptionDetail>(getCreateCalendarExceptionUrl(calendarId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(calendarExceptionInput)
+  }
+);}
+
+
+
+
+
+export const getCreateCalendarExceptionMutationKey = () => ['createCalendarException'] as const;
+
+export const getCreateCalendarExceptionMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCalendarException>>, TError,CreateCalendarExceptionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createCalendarException>>, TError,CreateCalendarExceptionMutationVariables, TContext> => {
+
+const mutationKey = getCreateCalendarExceptionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCalendarException>>, CreateCalendarExceptionMutationVariables> = (props) => {
+          const {calendarId,data} = props ?? {};
+
+          return  createCalendarException(calendarId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateCalendarExceptionMutationResult = NonNullable<Awaited<ReturnType<typeof createCalendarException>>>
+    export type CreateCalendarExceptionMutationBody = CalendarExceptionInput
+    export type CreateCalendarExceptionMutationError = unknown
+    export type CreateCalendarExceptionMutationVariables = {calendarId: string;data: CalendarExceptionInput}
+
+    export const useCreateCalendarException = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCalendarException>>, TError,CreateCalendarExceptionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createCalendarException>>,
+        TError,
+        CreateCalendarExceptionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateCalendarExceptionMutationOptions(options), queryClient);
+    }
+
+export const getUpdateCalendarExceptionUrl = (calendarId: string,
+    exceptionId: string,) => {
+
+
+
+
+  return `/api/v1/production/calendars/${calendarId}/exceptions/${exceptionId}`
+}
+
+export const updateCalendarException = async (calendarId: string,
+    exceptionId: string,
+    calendarExceptionInput: CalendarExceptionInput, options?: Parameters<typeof apiFetch>[1]): Promise<CalendarExceptionDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<CalendarExceptionDetail>(getUpdateCalendarExceptionUrl(calendarId,exceptionId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(calendarExceptionInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateCalendarExceptionMutationKey = () => ['updateCalendarException'] as const;
+
+export const getUpdateCalendarExceptionMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCalendarException>>, TError,UpdateCalendarExceptionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateCalendarException>>, TError,UpdateCalendarExceptionMutationVariables, TContext> => {
+
+const mutationKey = getUpdateCalendarExceptionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCalendarException>>, UpdateCalendarExceptionMutationVariables> = (props) => {
+          const {calendarId,exceptionId,data} = props ?? {};
+
+          return  updateCalendarException(calendarId,exceptionId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateCalendarExceptionMutationResult = NonNullable<Awaited<ReturnType<typeof updateCalendarException>>>
+    export type UpdateCalendarExceptionMutationBody = CalendarExceptionInput
+    export type UpdateCalendarExceptionMutationError = unknown
+    export type UpdateCalendarExceptionMutationVariables = {calendarId: string;exceptionId: string;data: CalendarExceptionInput}
+
+    export const useUpdateCalendarException = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCalendarException>>, TError,UpdateCalendarExceptionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateCalendarException>>,
+        TError,
+        UpdateCalendarExceptionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateCalendarExceptionMutationOptions(options), queryClient);
+    }
+
+export const getDeleteCalendarExceptionUrl = (calendarId: string,
+    exceptionId: string,) => {
+
+
+
+
+  return `/api/v1/production/calendars/${calendarId}/exceptions/${exceptionId}`
+}
+
+export const deleteCalendarException = async (calendarId: string,
+    exceptionId: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDeleteCalendarExceptionUrl(calendarId,exceptionId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteCalendarExceptionMutationKey = () => ['deleteCalendarException'] as const;
+
+export const getDeleteCalendarExceptionMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCalendarException>>, TError,DeleteCalendarExceptionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteCalendarException>>, TError,DeleteCalendarExceptionMutationVariables, TContext> => {
+
+const mutationKey = getDeleteCalendarExceptionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteCalendarException>>, DeleteCalendarExceptionMutationVariables> = (props) => {
+          const {calendarId,exceptionId} = props ?? {};
+
+          return  deleteCalendarException(calendarId,exceptionId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteCalendarExceptionMutationResult = NonNullable<Awaited<ReturnType<typeof deleteCalendarException>>>
+
+    export type DeleteCalendarExceptionMutationError = unknown
+    export type DeleteCalendarExceptionMutationVariables = {calendarId: string;exceptionId: string}
+
+    export const useDeleteCalendarException = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCalendarException>>, TError,DeleteCalendarExceptionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteCalendarException>>,
+        TError,
+        DeleteCalendarExceptionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeleteCalendarExceptionMutationOptions(options), queryClient);
+    }
+
+export const getListLocationsUrl = (params?: ListLocationsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/inventory/locations?${stringifiedParams}` : `/api/v1/inventory/locations`
+}
+
+export const listLocations = async (params?: ListLocationsParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfLocationDetail> => {
+
+  return apiFetch<PagedListOfLocationDetail>(getListLocationsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListLocationsQueryKey = (params?: ListLocationsParams,) => {
+    return [
+    `/api/v1/inventory/locations`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListLocationsQueryOptions = <TData = Awaited<ReturnType<typeof listLocations>>, TError = unknown>(params?: ListLocationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLocations>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListLocationsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listLocations>>> = ({ signal }) => listLocations(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listLocations>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListLocationsQueryResult = NonNullable<Awaited<ReturnType<typeof listLocations>>>
+export type ListLocationsQueryError = unknown
+
+
+export function useListLocations<TData = Awaited<ReturnType<typeof listLocations>>, TError = unknown>(
+ params: undefined |  ListLocationsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLocations>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listLocations>>,
+          TError,
+          Awaited<ReturnType<typeof listLocations>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListLocations<TData = Awaited<ReturnType<typeof listLocations>>, TError = unknown>(
+ params?: ListLocationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLocations>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listLocations>>,
+          TError,
+          Awaited<ReturnType<typeof listLocations>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListLocations<TData = Awaited<ReturnType<typeof listLocations>>, TError = unknown>(
+ params?: ListLocationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLocations>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListLocations<TData = Awaited<ReturnType<typeof listLocations>>, TError = unknown>(
+ params?: ListLocationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLocations>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListLocationsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateLocationUrl = () => {
+
+
+
+
+  return `/api/v1/inventory/locations`
+}
+
+export const createLocation = async (locationInput: LocationInput, options?: Parameters<typeof apiFetch>[1]): Promise<LocationDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<LocationDetail>(getCreateLocationUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(locationInput)
+  }
+);}
+
+
+
+
+
+export const getCreateLocationMutationKey = () => ['createLocation'] as const;
+
+export const getCreateLocationMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createLocation>>, TError,CreateLocationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createLocation>>, TError,CreateLocationMutationVariables, TContext> => {
+
+const mutationKey = getCreateLocationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createLocation>>, CreateLocationMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createLocation(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateLocationMutationResult = NonNullable<Awaited<ReturnType<typeof createLocation>>>
+    export type CreateLocationMutationBody = LocationInput
+    export type CreateLocationMutationError = unknown
+    export type CreateLocationMutationVariables = {data: LocationInput}
+
+    export const useCreateLocation = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createLocation>>, TError,CreateLocationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createLocation>>,
+        TError,
+        CreateLocationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateLocationMutationOptions(options), queryClient);
+    }
+
+export const getGetLocationUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/locations/${id}`
+}
+
+export const getLocation = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<LocationDetail> => {
+
+  return apiFetch<LocationDetail>(getGetLocationUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLocationQueryKey = (id: string,) => {
+    return [
+    `/api/v1/inventory/locations/${id}`
+    ] as const;
+    }
+
+
+export const getGetLocationQueryOptions = <TData = Awaited<ReturnType<typeof getLocation>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLocation>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLocationQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLocation>>> = ({ signal }) => getLocation(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLocation>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetLocationQueryResult = NonNullable<Awaited<ReturnType<typeof getLocation>>>
+export type GetLocationQueryError = unknown
+
+
+export function useGetLocation<TData = Awaited<ReturnType<typeof getLocation>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLocation>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLocation>>,
+          TError,
+          Awaited<ReturnType<typeof getLocation>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLocation<TData = Awaited<ReturnType<typeof getLocation>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLocation>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLocation>>,
+          TError,
+          Awaited<ReturnType<typeof getLocation>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLocation<TData = Awaited<ReturnType<typeof getLocation>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLocation>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetLocation<TData = Awaited<ReturnType<typeof getLocation>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLocation>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetLocationQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateLocationUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/locations/${id}`
+}
+
+export const updateLocation = async (id: string,
+    locationInput: LocationInput, options?: Parameters<typeof apiFetch>[1]): Promise<LocationDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<LocationDetail>(getUpdateLocationUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(locationInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateLocationMutationKey = () => ['updateLocation'] as const;
+
+export const getUpdateLocationMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateLocation>>, TError,UpdateLocationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateLocation>>, TError,UpdateLocationMutationVariables, TContext> => {
+
+const mutationKey = getUpdateLocationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateLocation>>, UpdateLocationMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateLocation(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateLocationMutationResult = NonNullable<Awaited<ReturnType<typeof updateLocation>>>
+    export type UpdateLocationMutationBody = LocationInput
+    export type UpdateLocationMutationError = unknown
+    export type UpdateLocationMutationVariables = {id: string;data: LocationInput}
+
+    export const useUpdateLocation = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateLocation>>, TError,UpdateLocationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateLocation>>,
+        TError,
+        UpdateLocationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateLocationMutationOptions(options), queryClient);
+    }
+
+export const getDeleteLocationUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/locations/${id}`
+}
+
+export const deleteLocation = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDeleteLocationUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteLocationMutationKey = () => ['deleteLocation'] as const;
+
+export const getDeleteLocationMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteLocation>>, TError,DeleteLocationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteLocation>>, TError,DeleteLocationMutationVariables, TContext> => {
+
+const mutationKey = getDeleteLocationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteLocation>>, DeleteLocationMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteLocation(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteLocationMutationResult = NonNullable<Awaited<ReturnType<typeof deleteLocation>>>
+
+    export type DeleteLocationMutationError = unknown
+    export type DeleteLocationMutationVariables = {id: string}
+
+    export const useDeleteLocation = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteLocation>>, TError,DeleteLocationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteLocation>>,
+        TError,
+        DeleteLocationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeleteLocationMutationOptions(options), queryClient);
+    }
+
+export const getInactivateLocationUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/locations/${id}/inactivate`
+}
+
+export const inactivateLocation = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<LocationDetail> => {
+
+  return apiFetch<LocationDetail>(getInactivateLocationUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getInactivateLocationMutationKey = () => ['inactivateLocation'] as const;
+
+export const getInactivateLocationMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inactivateLocation>>, TError,InactivateLocationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof inactivateLocation>>, TError,InactivateLocationMutationVariables, TContext> => {
+
+const mutationKey = getInactivateLocationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof inactivateLocation>>, InactivateLocationMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  inactivateLocation(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type InactivateLocationMutationResult = NonNullable<Awaited<ReturnType<typeof inactivateLocation>>>
+
+    export type InactivateLocationMutationError = unknown
+    export type InactivateLocationMutationVariables = {id: string}
+
+    export const useInactivateLocation = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inactivateLocation>>, TError,InactivateLocationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof inactivateLocation>>,
+        TError,
+        InactivateLocationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getInactivateLocationMutationOptions(options), queryClient);
+    }
+
+export const getReactivateLocationUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/locations/${id}/reactivate`
+}
+
+export const reactivateLocation = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<LocationDetail> => {
+
+  return apiFetch<LocationDetail>(getReactivateLocationUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getReactivateLocationMutationKey = () => ['reactivateLocation'] as const;
+
+export const getReactivateLocationMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reactivateLocation>>, TError,ReactivateLocationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reactivateLocation>>, TError,ReactivateLocationMutationVariables, TContext> => {
+
+const mutationKey = getReactivateLocationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reactivateLocation>>, ReactivateLocationMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  reactivateLocation(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReactivateLocationMutationResult = NonNullable<Awaited<ReturnType<typeof reactivateLocation>>>
+
+    export type ReactivateLocationMutationError = unknown
+    export type ReactivateLocationMutationVariables = {id: string}
+
+    export const useReactivateLocation = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reactivateLocation>>, TError,ReactivateLocationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reactivateLocation>>,
+        TError,
+        ReactivateLocationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReactivateLocationMutationOptions(options), queryClient);
     }
 
 export const getListBanksUrl = () => {

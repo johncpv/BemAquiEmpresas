@@ -3,10 +3,14 @@ using BemAqui.Finance.Application;
 using BemAqui.Finance.Domain;
 using BemAqui.Identity.Application;
 using BemAqui.Identity.Domain;
+using BemAqui.Inventory.Application;
+using BemAqui.Inventory.Domain;
 using BemAqui.Migrations.Application;
 using BemAqui.Migrations.Domain;
 using BemAqui.Parties.Application;
 using BemAqui.Parties.Domain;
+using BemAqui.Production.Application;
+using BemAqui.Production.Domain;
 using Microsoft.EntityFrameworkCore;
 
 namespace BemAqui.Host.Persistence;
@@ -15,7 +19,7 @@ namespace BemAqui.Host.Persistence;
 /// DbContext único do banco de tenant (ADR 0006): tabelas compartilhadas da base e, conforme as stories
 /// avançam, as configurações de cada módulo. A conexão por tenant chega na FND-02.
 /// </summary>
-public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) : BemAquiDbContext(options), IIdentityDb, IPartiesDb, IMigrationDb, IFinanceDb
+public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) : BemAquiDbContext(options), IIdentityDb, IPartiesDb, IMigrationDb, IFinanceDb, IInventoryDb, IProductionDb
 {
     public DbSet<User> Users => Set<User>();
 
@@ -66,6 +70,14 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
     public DbSet<BankAccount> BankAccounts => Set<BankAccount>();
 
     public DbSet<PaymentTerm> PaymentTerms => Set<PaymentTerm>();
+
+    public DbSet<Location> Locations => Set<Location>();
+
+    public DbSet<WorkCenter> WorkCenters => Set<WorkCenter>();
+
+    public DbSet<Calendar> Calendars => Set<Calendar>();
+
+    public DbSet<CalendarExceptionDay> CalendarExceptions => Set<CalendarExceptionDay>();
 
     public DbSet<ImportRun> ImportRuns => Set<ImportRun>();
 

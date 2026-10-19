@@ -1,4 +1,6 @@
+using System.Reflection;
 using BemAqui.BuildingBlocks.Modules;
+using BemAqui.Inventory.Infrastructure;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,11 +11,9 @@ public sealed class InventoryModule : IModule
 {
     public string Code => "inventory";
 
-    public void AddServices(IServiceCollection services, IConfiguration configuration)
-    {
-    }
+    public Assembly? PersistenceAssembly => typeof(InventoryInfrastructure).Assembly;
 
-    public void MapEndpoints(IEndpointRouteBuilder endpoints)
-    {
-    }
+    public void AddServices(IServiceCollection services, IConfiguration configuration) => services.AddInventoryInfrastructure();
+
+    public void MapEndpoints(IEndpointRouteBuilder endpoints) => endpoints.MapInventoryEndpoints();
 }
