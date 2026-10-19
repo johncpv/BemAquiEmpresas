@@ -20,8 +20,16 @@ public static class FinanceInfrastructure
         services.TryAddScoped<IPaymentTermImport, PaymentTermImport>();
         services.TryAddScoped<IBankAccountImport, BankAccountImport>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ITenantSeeder, PaymentTermSeeder>());
+        // Plano de contas e centros de custo (CAD-05a).
+        services.TryAddScoped<AccountService>();
+        services.TryAddScoped<IChartOfAccounts>(sp => sp.GetRequiredService<AccountService>());
+        services.TryAddScoped<CostCenterService>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<ITenantSeeder, ChartOfAccountsSeeder>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<ITenantSeeder, CostCentersSeeder>());
         services.AddAuditableEntity<BankAccount>("finance");
         services.AddAuditableEntity<PaymentTerm>("finance");
+        services.AddAuditableEntity<Account>("finance");
+        services.AddAuditableEntity<CostCenter>("finance");
         return services;
     }
 }

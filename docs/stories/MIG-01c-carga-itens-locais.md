@@ -5,7 +5,7 @@
 | ID | MIG-01c |
 | Título | Importar `llx_c_units`, `llx_categorie` (produto), `llx_product` (com `elev_garantia`), `llx_product_fournisseur_price` e `llx_entrepot`, com de-para de unidade e de tipo, sem saldo nem custo |
 | Tamanho | M (quebra da MIG-01) |
-| Status | Review |
+| Status | Done |
 | Requisitos | R-TER-5 (produtos) · R-EST-1 · R-EST-2 · R-EST-3 · R-PRJ-7 (garantia, P-11) |
 | Dependências | MIG-01a, MIG-01b (fornecedores dos códigos), CAD-03 (locais e ALM), CAD-02a (itens, unidades, categorias, garantia), CAD-02b (códigos do fornecedor) |
 | Bloqueia | GOL-01 |
@@ -82,17 +82,17 @@ Como **almoxarife**, quero **trazer do Dolibarr os produtos com unidade, NCM, ga
   - a coluna do NCM na base real (`customcode` ou extrafield), confirmada no inventário da MIG-01a.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade e integração (PostgreSQL + MariaDB) passando.
-- [ ] `IItemImport` e `ILocationImport` nos Contracts; coluna `import_source` por migration.
-- [ ] De-para de unidades e tipos documentado e aceito pelo PO.
-- [ ] Simulação e carga na homologação conferidas com o PO; ajuda atualizada.
-- [ ] Story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade e integração (PostgreSQL + MariaDB) passando.
+- [x] `IItemImport` e `ILocationImport` nos Contracts; coluna `import_source` por migration.
+- [x] De-para de unidades e tipos documentado e aceito pelo PO.
+- [x] Simulação e carga na homologação conferidas com o PO; ajuda atualizada.
+- [x] Story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `UnitsLoader`, `CategoriesLoader`, `LocationsLoader`, `ItemsLoader`, `SupplierCodesLoader`.
-- [ ] `IItemImport`, `ILocationImport` e `import_source`.
-- [ ] Fixture com serviço, produto com lote, com série, sem NCM, com `ref` repetido, depósito único e sub-depósito.
+- [x] `UnitsLoader`, `CategoriesLoader`, `LocationsLoader`, `ItemsLoader`, `SupplierCodesLoader`.
+- [x] `IItemImport`, `ILocationImport` e `import_source`.
+- [x] Fixture com serviço, produto com lote, com série, sem NCM, com `ref` repetido, depósito único e sub-depósito.
 
 ## Quality gates
 - Agentes previstos: @dev, @data-engineer, @qa.
@@ -126,3 +126,4 @@ Checklist do @po (Pax), 18/10/2026.
 | 18/10/2026 | 0.3 | Decisões do PO: só cadastros (ADR 0017), tabela 1.1; correções da revisão pré-Fase 1; ordem 10 do Marco B | River (SM) |
 | 18/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
 | 19/10/2026 | 1.0 | Implementada; aguarda a conferência da simulação e da carga real com o PO. Base real (API, 19/10/2026): 34 produtos sem unidade, sem NCM e sem `elev_garantia`; 4 depósitos (ALMOX, PA e dois sub-depósitos do ALMOX); nenhuma categoria de produto. Decisões de implementação: a chave `none` do mapa `units` dá a unidade do produto sem unidade; o mapa `locations` liga um depósito a um local existente; código do local saneado do `ref` (até 20, `DEP-{id}` sem nada aproveitável); item com o mesmo código já cadastrado é vinculado; o de-para de tipo aceita o ref ou o id. Correção junto: os serviços do Inventory só adicionam a entidade depois das validações (a importação usa um contexto para a carga toda) | @dev |
+| 19/10/2026 | 1.1 | Carga real na homologação conferida e aceita pelo PO (John): 34 itens (29 componentes e 4 produtos acabados inativos sem NCM, 1 serviço), ALMOX ligado ao ALM, PA e dois sub-depósitos como locais; staging expurgada | @dev |

@@ -423,6 +423,85 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("number_sequences", "shared");
                 });
 
+            modelBuilder.Entity("BemAqui.Finance.Domain.Account", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("AcceptsEntries")
+                        .HasColumnType("boolean")
+                        .HasColumnName("accepts_entries");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("code");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<string>("DreGroup")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("dre_group");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid?>("ParentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("parent_id");
+
+                    b.Property<string>("SeedKey")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("seed_key");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("type");
+
+                    b.HasKey("Id")
+                        .HasName("pk_chart_of_accounts");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasDatabaseName("ix_chart_of_accounts_code")
+                        .HasFilter("NOT is_deleted");
+
+                    b.HasIndex("ParentId")
+                        .HasDatabaseName("ix_chart_of_accounts_parent_id");
+
+                    b.HasIndex("SeedKey")
+                        .IsUnique()
+                        .HasDatabaseName("ix_chart_of_accounts_seed_key")
+                        .HasFilter("seed_key IS NOT NULL");
+
+                    b.ToTable("chart_of_accounts", "finance");
+                });
+
             modelBuilder.Entity("BemAqui.Finance.Domain.BankAccount", b =>
                 {
                     b.Property<Guid>("Id")
@@ -500,6 +579,69 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasFilter("is_default");
 
                     b.ToTable("bank_accounts", "finance");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.CostCenter", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("code");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid?>("ParentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("parent_id");
+
+                    b.Property<string>("SeedKey")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("seed_key");
+
+                    b.HasKey("Id")
+                        .HasName("pk_cost_centers");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasDatabaseName("ix_cost_centers_code")
+                        .HasFilter("NOT is_deleted");
+
+                    b.HasIndex("ParentId")
+                        .HasDatabaseName("ix_cost_centers_parent_id");
+
+                    b.HasIndex("SeedKey")
+                        .IsUnique()
+                        .HasDatabaseName("ix_cost_centers_seed_key")
+                        .HasFilter("seed_key IS NOT NULL");
+
+                    b.ToTable("cost_centers", "finance");
                 });
 
             modelBuilder.Entity("BemAqui.Finance.Domain.PaymentTerm", b =>
@@ -2527,6 +2669,24 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDatabaseName("ix_work_centers_calendar_id");
 
                     b.ToTable("work_centers", "production");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.Account", b =>
+                {
+                    b.HasOne("BemAqui.Finance.Domain.Account", null)
+                        .WithMany()
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_chart_of_accounts_chart_of_accounts_parent_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.CostCenter", b =>
+                {
+                    b.HasOne("BemAqui.Finance.Domain.CostCenter", null)
+                        .WithMany()
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_cost_centers_cost_centers_parent_id");
                 });
 
             modelBuilder.Entity("BemAqui.Identity.Domain.GroupGrant", b =>

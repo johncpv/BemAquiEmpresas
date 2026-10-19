@@ -3,6 +3,8 @@ import { Link } from '@tanstack/react-router'
 const TABS = [
   { to: '/app/financeiro/contas', label: 'Contas e caixas' },
   { to: '/app/financeiro/condicoes-de-pagamento', label: 'Condições de pagamento' },
+  { to: '/app/financeiro/plano-de-contas', label: 'Plano de contas' },
+  { to: '/app/financeiro/centros-de-custo', label: 'Centros de custo' },
 ] as const
 
 /** Abas do Financeiro (CAD-05b): cada aba é uma rota própria (FND-09b CA 8). */
