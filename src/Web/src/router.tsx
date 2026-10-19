@@ -30,7 +30,13 @@ import { ComponentsMold, CreateMold, DetailMold, PanelMold } from '@/dev/molds/l
 import { BankAccountsPage } from '@/pages/finance/BankAccountsPage'
 import { NewPaymentTermPage, PaymentTermPage } from '@/pages/finance/PaymentTermPage'
 import { PaymentTermsPage } from '@/pages/finance/PaymentTermsPage'
+import { CategoriesPage } from '@/pages/inventory/CategoriesPage'
+import { ItemPage } from '@/pages/inventory/ItemPage'
+import { ItemsPage } from '@/pages/inventory/ItemsPage'
 import { LocationsPage } from '@/pages/inventory/LocationsPage'
+import { NewItemPage } from '@/pages/inventory/NewItemPage'
+import { UnitsPage } from '@/pages/inventory/UnitsPage'
+import { WarrantyPage } from '@/pages/inventory/WarrantyPage'
 import { CalendarPage } from '@/pages/production/CalendarPage'
 import { WorkCentersPage } from '@/pages/production/WorkCentersPage'
 import { NewPartyPage } from '@/pages/parties/NewPartyPage'
@@ -96,8 +102,15 @@ const newPartyRoute = createRoute({ getParentRoute: () => appRoute, path: 'cadas
 const partyRoute = createRoute({ getParentRoute: () => appRoute, path: 'cadastros/terceiros/$id', component: gated('parties', PartyPage) })
 // Financeiro (CAD-05b): contas e caixas e condições de pagamento.
 // Estoque e Produção (CAD-03): locais, centros de trabalho e calendário.
-const inventoryRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque', beforeLoad: () => { throw redirect({ to: '/app/estoque/locais' }) } })
+const inventoryRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque', beforeLoad: () => { throw redirect({ to: '/app/estoque/itens' }) } })
 const locationsRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/locais', component: gated('inventory', LocationsPage) })
+// Itens, unidades, categorias e garantia padrão (CAD-02a).
+const itemsRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/itens', component: gated('inventory', ItemsPage) })
+const newItemRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/itens/novo', component: gated('inventory', NewItemPage) })
+const itemRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/itens/$id', component: gated('inventory', ItemPage) })
+const unitsRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/unidades', component: gated('inventory', UnitsPage) })
+const categoriesRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/categorias', component: gated('inventory', CategoriesPage) })
+const warrantyRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/garantia', component: gated('inventory', WarrantyPage) })
 const productionRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao', beforeLoad: () => { throw redirect({ to: '/app/producao/centros-de-trabalho' }) } })
 const workCentersRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/centros-de-trabalho', component: gated('production', WorkCentersPage) })
 const calendarRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/calendario', component: gated('production', CalendarPage) })
@@ -150,7 +163,7 @@ export const routeTree = rootRoute.addChildren([
   inviteRoute,
   appRoute.addChildren([appIndexRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute,
     aiSettingsRoute, importRunsRoute, importRunRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute,
-    inventoryRootRoute, locationsRoute, productionRootRoute, workCentersRoute, calendarRoute,
+    inventoryRootRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, productionRootRoute, workCentersRoute, calendarRoute,
     financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
   platformLoginRoute,
   platformPasswordRoute,

@@ -114,14 +114,13 @@ test.describe('produção e estoque (CAD-03)', () => {
     await expect(page.getByRole('button', { name: '03/04/2026', exact: true })).toBeVisible()
   })
 
-  test('Estoque abre em Locais com o ALM padrão (CA 3)', async ({ page }) => {
+  test('Locais mostra o ALM padrão (CA 3)', async ({ page }) => {
     const { api } = productionApi()
     await mockApi(page, api)
-    await page.goto('/app/estoque')
-    await expect(page).toHaveURL(/\/app\/estoque\/locais$/)
+    await page.goto('/app/estoque/locais')
     await expect(page.getByText('Onde o material fica guardado.')).toBeVisible()
     await expect(page.getByRole('button', { name: 'ALM' })).toBeVisible()
-    await expect(page.getByText('Padrão')).toBeVisible()
+    await expect(page.getByText('Padrão', { exact: true })).toBeVisible()
     await noSeriousViolations(page)
   })
 })

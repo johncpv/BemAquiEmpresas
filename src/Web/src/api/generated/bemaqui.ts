@@ -41,6 +41,8 @@ import type {
   CalendarExceptionDetail,
   CalendarExceptionInput,
   CalendarInput,
+  CategoryDetail,
+  CategoryInput,
   ChallengeRequest,
   CheckPartyDocumentParams,
   CnpjLookupResult,
@@ -68,15 +70,21 @@ import type {
   InviteInfo,
   InviteTokenRequest,
   InviteUserRequest,
+  ItemDetail,
+  ItemInput,
+  ItemSearchHit,
+  ItemType,
   ListBankAccountsParams,
   ListCalendarExceptionsParams,
   ListImportPendingParams,
   ListImportRunsParams,
+  ListItemsParams,
   ListLocationsParams,
   ListMyNotificationsParams,
   ListPartiesParams,
   ListPaymentTermsParams,
   ListTenantsParams,
+  ListUnitsParams,
   ListWorkCentersParams,
   LocationDetail,
   LocationInput,
@@ -94,6 +102,7 @@ import type {
   PagedListOfBankAccountDetail,
   PagedListOfImportPendingItem,
   PagedListOfImportRunRow,
+  PagedListOfItemListItem,
   PagedListOfLocationDetail,
   PagedListOfPartyListItem,
   PagedListOfPaymentTermDetail,
@@ -121,6 +130,7 @@ import type {
   ResetPasswordRequest,
   SaveGroupRequest,
   SaveModuleReleaseRequest,
+  SearchItemsParams,
   SearchPartiesParams,
   SecuritySettingsDto,
   SetGroupMembersRequest,
@@ -134,12 +144,16 @@ import type {
   TotpSetup,
   TwoFactorActivatedResponse,
   TwoFactorStatus,
+  UnitDetail,
+  UnitInput,
   UpdatePartyRequest,
   UploadAttachmentBody,
   UploadCompanyLogoBody,
   UserInvited,
   UserRow,
   VerifyTwoFactorRequest,
+  WarrantyDefaultDetail,
+  WarrantyDefaultInput,
   WorkCenterDetail,
   WorkCenterInput
 } from './model';
@@ -10118,6 +10132,1787 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getReactivateLocationMutationOptions(options), queryClient);
+    }
+
+export const getListItemsUrl = (params?: ListItemsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/inventory/items?${stringifiedParams}` : `/api/v1/inventory/items`
+}
+
+export const listItems = async (params?: ListItemsParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfItemListItem> => {
+
+  return apiFetch<PagedListOfItemListItem>(getListItemsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListItemsQueryKey = (params?: ListItemsParams,) => {
+    return [
+    `/api/v1/inventory/items`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListItemsQueryOptions = <TData = Awaited<ReturnType<typeof listItems>>, TError = unknown>(params?: ListItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listItems>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListItemsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listItems>>> = ({ signal }) => listItems(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listItems>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListItemsQueryResult = NonNullable<Awaited<ReturnType<typeof listItems>>>
+export type ListItemsQueryError = unknown
+
+
+export function useListItems<TData = Awaited<ReturnType<typeof listItems>>, TError = unknown>(
+ params: undefined |  ListItemsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listItems>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listItems>>,
+          TError,
+          Awaited<ReturnType<typeof listItems>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListItems<TData = Awaited<ReturnType<typeof listItems>>, TError = unknown>(
+ params?: ListItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listItems>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listItems>>,
+          TError,
+          Awaited<ReturnType<typeof listItems>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListItems<TData = Awaited<ReturnType<typeof listItems>>, TError = unknown>(
+ params?: ListItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listItems>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListItems<TData = Awaited<ReturnType<typeof listItems>>, TError = unknown>(
+ params?: ListItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listItems>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListItemsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateItemUrl = () => {
+
+
+
+
+  return `/api/v1/inventory/items`
+}
+
+export const createItem = async (itemInput: ItemInput, options?: Parameters<typeof apiFetch>[1]): Promise<ItemDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ItemDetail>(getCreateItemUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(itemInput)
+  }
+);}
+
+
+
+
+
+export const getCreateItemMutationKey = () => ['createItem'] as const;
+
+export const getCreateItemMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createItem>>, TError,CreateItemMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createItem>>, TError,CreateItemMutationVariables, TContext> => {
+
+const mutationKey = getCreateItemMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createItem>>, CreateItemMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createItem(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateItemMutationResult = NonNullable<Awaited<ReturnType<typeof createItem>>>
+    export type CreateItemMutationBody = ItemInput
+    export type CreateItemMutationError = unknown
+    export type CreateItemMutationVariables = {data: ItemInput}
+
+    export const useCreateItem = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createItem>>, TError,CreateItemMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createItem>>,
+        TError,
+        CreateItemMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateItemMutationOptions(options), queryClient);
+    }
+
+export const getSearchItemsUrl = (params?: SearchItemsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/inventory/items/search?${stringifiedParams}` : `/api/v1/inventory/items/search`
+}
+
+export const searchItems = async (params?: SearchItemsParams, options?: Parameters<typeof apiFetch>[1]): Promise<ItemSearchHit[]> => {
+
+  return apiFetch<ItemSearchHit[]>(getSearchItemsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getSearchItemsQueryKey = (params?: SearchItemsParams,) => {
+    return [
+    `/api/v1/inventory/items/search`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getSearchItemsQueryOptions = <TData = Awaited<ReturnType<typeof searchItems>>, TError = unknown>(params?: SearchItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchItems>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSearchItemsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchItems>>> = ({ signal }) => searchItems(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof searchItems>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type SearchItemsQueryResult = NonNullable<Awaited<ReturnType<typeof searchItems>>>
+export type SearchItemsQueryError = unknown
+
+
+export function useSearchItems<TData = Awaited<ReturnType<typeof searchItems>>, TError = unknown>(
+ params: undefined |  SearchItemsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchItems>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof searchItems>>,
+          TError,
+          Awaited<ReturnType<typeof searchItems>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSearchItems<TData = Awaited<ReturnType<typeof searchItems>>, TError = unknown>(
+ params?: SearchItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchItems>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof searchItems>>,
+          TError,
+          Awaited<ReturnType<typeof searchItems>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSearchItems<TData = Awaited<ReturnType<typeof searchItems>>, TError = unknown>(
+ params?: SearchItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchItems>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useSearchItems<TData = Awaited<ReturnType<typeof searchItems>>, TError = unknown>(
+ params?: SearchItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchItems>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getSearchItemsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetItemUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/items/${id}`
+}
+
+export const getItem = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<ItemDetail> => {
+
+  return apiFetch<ItemDetail>(getGetItemUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetItemQueryKey = (id: string,) => {
+    return [
+    `/api/v1/inventory/items/${id}`
+    ] as const;
+    }
+
+
+export const getGetItemQueryOptions = <TData = Awaited<ReturnType<typeof getItem>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItem>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetItemQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getItem>>> = ({ signal }) => getItem(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getItem>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetItemQueryResult = NonNullable<Awaited<ReturnType<typeof getItem>>>
+export type GetItemQueryError = unknown
+
+
+export function useGetItem<TData = Awaited<ReturnType<typeof getItem>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItem>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getItem>>,
+          TError,
+          Awaited<ReturnType<typeof getItem>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetItem<TData = Awaited<ReturnType<typeof getItem>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItem>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getItem>>,
+          TError,
+          Awaited<ReturnType<typeof getItem>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetItem<TData = Awaited<ReturnType<typeof getItem>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItem>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetItem<TData = Awaited<ReturnType<typeof getItem>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItem>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetItemQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateItemUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/items/${id}`
+}
+
+export const updateItem = async (id: string,
+    itemInput: ItemInput, options?: Parameters<typeof apiFetch>[1]): Promise<ItemDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ItemDetail>(getUpdateItemUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(itemInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateItemMutationKey = () => ['updateItem'] as const;
+
+export const getUpdateItemMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateItem>>, TError,UpdateItemMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateItem>>, TError,UpdateItemMutationVariables, TContext> => {
+
+const mutationKey = getUpdateItemMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateItem>>, UpdateItemMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateItem(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateItemMutationResult = NonNullable<Awaited<ReturnType<typeof updateItem>>>
+    export type UpdateItemMutationBody = ItemInput
+    export type UpdateItemMutationError = unknown
+    export type UpdateItemMutationVariables = {id: string;data: ItemInput}
+
+    export const useUpdateItem = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateItem>>, TError,UpdateItemMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateItem>>,
+        TError,
+        UpdateItemMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateItemMutationOptions(options), queryClient);
+    }
+
+export const getDeleteItemUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/items/${id}`
+}
+
+export const deleteItem = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDeleteItemUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteItemMutationKey = () => ['deleteItem'] as const;
+
+export const getDeleteItemMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteItem>>, TError,DeleteItemMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteItem>>, TError,DeleteItemMutationVariables, TContext> => {
+
+const mutationKey = getDeleteItemMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteItem>>, DeleteItemMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteItem(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteItemMutationResult = NonNullable<Awaited<ReturnType<typeof deleteItem>>>
+
+    export type DeleteItemMutationError = unknown
+    export type DeleteItemMutationVariables = {id: string}
+
+    export const useDeleteItem = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteItem>>, TError,DeleteItemMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteItem>>,
+        TError,
+        DeleteItemMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeleteItemMutationOptions(options), queryClient);
+    }
+
+export const getInactivateItemUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/items/${id}/inactivate`
+}
+
+export const inactivateItem = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<ItemDetail> => {
+
+  return apiFetch<ItemDetail>(getInactivateItemUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getInactivateItemMutationKey = () => ['inactivateItem'] as const;
+
+export const getInactivateItemMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inactivateItem>>, TError,InactivateItemMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof inactivateItem>>, TError,InactivateItemMutationVariables, TContext> => {
+
+const mutationKey = getInactivateItemMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof inactivateItem>>, InactivateItemMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  inactivateItem(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type InactivateItemMutationResult = NonNullable<Awaited<ReturnType<typeof inactivateItem>>>
+
+    export type InactivateItemMutationError = unknown
+    export type InactivateItemMutationVariables = {id: string}
+
+    export const useInactivateItem = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inactivateItem>>, TError,InactivateItemMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof inactivateItem>>,
+        TError,
+        InactivateItemMutationVariables,
+        TContext
+      > => {
+      return useMutation(getInactivateItemMutationOptions(options), queryClient);
+    }
+
+export const getReactivateItemUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/items/${id}/reactivate`
+}
+
+export const reactivateItem = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<ItemDetail> => {
+
+  return apiFetch<ItemDetail>(getReactivateItemUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getReactivateItemMutationKey = () => ['reactivateItem'] as const;
+
+export const getReactivateItemMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reactivateItem>>, TError,ReactivateItemMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reactivateItem>>, TError,ReactivateItemMutationVariables, TContext> => {
+
+const mutationKey = getReactivateItemMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reactivateItem>>, ReactivateItemMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  reactivateItem(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReactivateItemMutationResult = NonNullable<Awaited<ReturnType<typeof reactivateItem>>>
+
+    export type ReactivateItemMutationError = unknown
+    export type ReactivateItemMutationVariables = {id: string}
+
+    export const useReactivateItem = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reactivateItem>>, TError,ReactivateItemMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reactivateItem>>,
+        TError,
+        ReactivateItemMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReactivateItemMutationOptions(options), queryClient);
+    }
+
+export const getListUnitsUrl = (params?: ListUnitsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/inventory/units?${stringifiedParams}` : `/api/v1/inventory/units`
+}
+
+export const listUnits = async (params?: ListUnitsParams, options?: Parameters<typeof apiFetch>[1]): Promise<UnitDetail[]> => {
+
+  return apiFetch<UnitDetail[]>(getListUnitsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListUnitsQueryKey = (params?: ListUnitsParams,) => {
+    return [
+    `/api/v1/inventory/units`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListUnitsQueryOptions = <TData = Awaited<ReturnType<typeof listUnits>>, TError = unknown>(params?: ListUnitsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listUnits>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListUnitsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listUnits>>> = ({ signal }) => listUnits(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listUnits>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListUnitsQueryResult = NonNullable<Awaited<ReturnType<typeof listUnits>>>
+export type ListUnitsQueryError = unknown
+
+
+export function useListUnits<TData = Awaited<ReturnType<typeof listUnits>>, TError = unknown>(
+ params: undefined |  ListUnitsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listUnits>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listUnits>>,
+          TError,
+          Awaited<ReturnType<typeof listUnits>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListUnits<TData = Awaited<ReturnType<typeof listUnits>>, TError = unknown>(
+ params?: ListUnitsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listUnits>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listUnits>>,
+          TError,
+          Awaited<ReturnType<typeof listUnits>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListUnits<TData = Awaited<ReturnType<typeof listUnits>>, TError = unknown>(
+ params?: ListUnitsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listUnits>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListUnits<TData = Awaited<ReturnType<typeof listUnits>>, TError = unknown>(
+ params?: ListUnitsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listUnits>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListUnitsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateUnitUrl = () => {
+
+
+
+
+  return `/api/v1/inventory/units`
+}
+
+export const createUnit = async (unitInput: UnitInput, options?: Parameters<typeof apiFetch>[1]): Promise<UnitDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<UnitDetail>(getCreateUnitUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(unitInput)
+  }
+);}
+
+
+
+
+
+export const getCreateUnitMutationKey = () => ['createUnit'] as const;
+
+export const getCreateUnitMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createUnit>>, TError,CreateUnitMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createUnit>>, TError,CreateUnitMutationVariables, TContext> => {
+
+const mutationKey = getCreateUnitMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createUnit>>, CreateUnitMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createUnit(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateUnitMutationResult = NonNullable<Awaited<ReturnType<typeof createUnit>>>
+    export type CreateUnitMutationBody = UnitInput
+    export type CreateUnitMutationError = unknown
+    export type CreateUnitMutationVariables = {data: UnitInput}
+
+    export const useCreateUnit = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createUnit>>, TError,CreateUnitMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createUnit>>,
+        TError,
+        CreateUnitMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateUnitMutationOptions(options), queryClient);
+    }
+
+export const getUpdateUnitUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/units/${id}`
+}
+
+export const updateUnit = async (id: string,
+    unitInput: UnitInput, options?: Parameters<typeof apiFetch>[1]): Promise<UnitDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<UnitDetail>(getUpdateUnitUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(unitInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateUnitMutationKey = () => ['updateUnit'] as const;
+
+export const getUpdateUnitMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateUnit>>, TError,UpdateUnitMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateUnit>>, TError,UpdateUnitMutationVariables, TContext> => {
+
+const mutationKey = getUpdateUnitMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateUnit>>, UpdateUnitMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateUnit(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateUnitMutationResult = NonNullable<Awaited<ReturnType<typeof updateUnit>>>
+    export type UpdateUnitMutationBody = UnitInput
+    export type UpdateUnitMutationError = unknown
+    export type UpdateUnitMutationVariables = {id: string;data: UnitInput}
+
+    export const useUpdateUnit = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateUnit>>, TError,UpdateUnitMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateUnit>>,
+        TError,
+        UpdateUnitMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateUnitMutationOptions(options), queryClient);
+    }
+
+export const getDeleteUnitUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/units/${id}`
+}
+
+export const deleteUnit = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDeleteUnitUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteUnitMutationKey = () => ['deleteUnit'] as const;
+
+export const getDeleteUnitMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteUnit>>, TError,DeleteUnitMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteUnit>>, TError,DeleteUnitMutationVariables, TContext> => {
+
+const mutationKey = getDeleteUnitMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteUnit>>, DeleteUnitMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteUnit(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteUnitMutationResult = NonNullable<Awaited<ReturnType<typeof deleteUnit>>>
+
+    export type DeleteUnitMutationError = unknown
+    export type DeleteUnitMutationVariables = {id: string}
+
+    export const useDeleteUnit = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteUnit>>, TError,DeleteUnitMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteUnit>>,
+        TError,
+        DeleteUnitMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeleteUnitMutationOptions(options), queryClient);
+    }
+
+export const getInactivateUnitUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/units/${id}/inactivate`
+}
+
+export const inactivateUnit = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<UnitDetail> => {
+
+  return apiFetch<UnitDetail>(getInactivateUnitUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getInactivateUnitMutationKey = () => ['inactivateUnit'] as const;
+
+export const getInactivateUnitMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inactivateUnit>>, TError,InactivateUnitMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof inactivateUnit>>, TError,InactivateUnitMutationVariables, TContext> => {
+
+const mutationKey = getInactivateUnitMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof inactivateUnit>>, InactivateUnitMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  inactivateUnit(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type InactivateUnitMutationResult = NonNullable<Awaited<ReturnType<typeof inactivateUnit>>>
+
+    export type InactivateUnitMutationError = unknown
+    export type InactivateUnitMutationVariables = {id: string}
+
+    export const useInactivateUnit = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inactivateUnit>>, TError,InactivateUnitMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof inactivateUnit>>,
+        TError,
+        InactivateUnitMutationVariables,
+        TContext
+      > => {
+      return useMutation(getInactivateUnitMutationOptions(options), queryClient);
+    }
+
+export const getReactivateUnitUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/units/${id}/reactivate`
+}
+
+export const reactivateUnit = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<UnitDetail> => {
+
+  return apiFetch<UnitDetail>(getReactivateUnitUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getReactivateUnitMutationKey = () => ['reactivateUnit'] as const;
+
+export const getReactivateUnitMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reactivateUnit>>, TError,ReactivateUnitMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reactivateUnit>>, TError,ReactivateUnitMutationVariables, TContext> => {
+
+const mutationKey = getReactivateUnitMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reactivateUnit>>, ReactivateUnitMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  reactivateUnit(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReactivateUnitMutationResult = NonNullable<Awaited<ReturnType<typeof reactivateUnit>>>
+
+    export type ReactivateUnitMutationError = unknown
+    export type ReactivateUnitMutationVariables = {id: string}
+
+    export const useReactivateUnit = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reactivateUnit>>, TError,ReactivateUnitMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reactivateUnit>>,
+        TError,
+        ReactivateUnitMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReactivateUnitMutationOptions(options), queryClient);
+    }
+
+export const getListItemCategoriesUrl = () => {
+
+
+
+
+  return `/api/v1/inventory/categories`
+}
+
+export const listItemCategories = async ( options?: Parameters<typeof apiFetch>[1]): Promise<CategoryDetail[]> => {
+
+  return apiFetch<CategoryDetail[]>(getListItemCategoriesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListItemCategoriesQueryKey = () => {
+    return [
+    `/api/v1/inventory/categories`
+    ] as const;
+    }
+
+
+export const getListItemCategoriesQueryOptions = <TData = Awaited<ReturnType<typeof listItemCategories>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listItemCategories>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListItemCategoriesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listItemCategories>>> = ({ signal }) => listItemCategories({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listItemCategories>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListItemCategoriesQueryResult = NonNullable<Awaited<ReturnType<typeof listItemCategories>>>
+export type ListItemCategoriesQueryError = unknown
+
+
+export function useListItemCategories<TData = Awaited<ReturnType<typeof listItemCategories>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listItemCategories>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listItemCategories>>,
+          TError,
+          Awaited<ReturnType<typeof listItemCategories>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListItemCategories<TData = Awaited<ReturnType<typeof listItemCategories>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listItemCategories>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listItemCategories>>,
+          TError,
+          Awaited<ReturnType<typeof listItemCategories>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListItemCategories<TData = Awaited<ReturnType<typeof listItemCategories>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listItemCategories>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListItemCategories<TData = Awaited<ReturnType<typeof listItemCategories>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listItemCategories>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListItemCategoriesQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateItemCategoryUrl = () => {
+
+
+
+
+  return `/api/v1/inventory/categories`
+}
+
+export const createItemCategory = async (categoryInput: CategoryInput, options?: Parameters<typeof apiFetch>[1]): Promise<CategoryDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<CategoryDetail>(getCreateItemCategoryUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(categoryInput)
+  }
+);}
+
+
+
+
+
+export const getCreateItemCategoryMutationKey = () => ['createItemCategory'] as const;
+
+export const getCreateItemCategoryMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createItemCategory>>, TError,CreateItemCategoryMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createItemCategory>>, TError,CreateItemCategoryMutationVariables, TContext> => {
+
+const mutationKey = getCreateItemCategoryMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createItemCategory>>, CreateItemCategoryMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createItemCategory(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateItemCategoryMutationResult = NonNullable<Awaited<ReturnType<typeof createItemCategory>>>
+    export type CreateItemCategoryMutationBody = CategoryInput
+    export type CreateItemCategoryMutationError = unknown
+    export type CreateItemCategoryMutationVariables = {data: CategoryInput}
+
+    export const useCreateItemCategory = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createItemCategory>>, TError,CreateItemCategoryMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createItemCategory>>,
+        TError,
+        CreateItemCategoryMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateItemCategoryMutationOptions(options), queryClient);
+    }
+
+export const getUpdateItemCategoryUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/categories/${id}`
+}
+
+export const updateItemCategory = async (id: string,
+    categoryInput: CategoryInput, options?: Parameters<typeof apiFetch>[1]): Promise<CategoryDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<CategoryDetail>(getUpdateItemCategoryUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(categoryInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateItemCategoryMutationKey = () => ['updateItemCategory'] as const;
+
+export const getUpdateItemCategoryMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateItemCategory>>, TError,UpdateItemCategoryMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateItemCategory>>, TError,UpdateItemCategoryMutationVariables, TContext> => {
+
+const mutationKey = getUpdateItemCategoryMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateItemCategory>>, UpdateItemCategoryMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateItemCategory(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateItemCategoryMutationResult = NonNullable<Awaited<ReturnType<typeof updateItemCategory>>>
+    export type UpdateItemCategoryMutationBody = CategoryInput
+    export type UpdateItemCategoryMutationError = unknown
+    export type UpdateItemCategoryMutationVariables = {id: string;data: CategoryInput}
+
+    export const useUpdateItemCategory = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateItemCategory>>, TError,UpdateItemCategoryMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateItemCategory>>,
+        TError,
+        UpdateItemCategoryMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateItemCategoryMutationOptions(options), queryClient);
+    }
+
+export const getDeleteItemCategoryUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/categories/${id}`
+}
+
+export const deleteItemCategory = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDeleteItemCategoryUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteItemCategoryMutationKey = () => ['deleteItemCategory'] as const;
+
+export const getDeleteItemCategoryMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteItemCategory>>, TError,DeleteItemCategoryMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteItemCategory>>, TError,DeleteItemCategoryMutationVariables, TContext> => {
+
+const mutationKey = getDeleteItemCategoryMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteItemCategory>>, DeleteItemCategoryMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteItemCategory(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteItemCategoryMutationResult = NonNullable<Awaited<ReturnType<typeof deleteItemCategory>>>
+
+    export type DeleteItemCategoryMutationError = unknown
+    export type DeleteItemCategoryMutationVariables = {id: string}
+
+    export const useDeleteItemCategory = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteItemCategory>>, TError,DeleteItemCategoryMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteItemCategory>>,
+        TError,
+        DeleteItemCategoryMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeleteItemCategoryMutationOptions(options), queryClient);
+    }
+
+export const getInactivateItemCategoryUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/categories/${id}/inactivate`
+}
+
+export const inactivateItemCategory = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<CategoryDetail> => {
+
+  return apiFetch<CategoryDetail>(getInactivateItemCategoryUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getInactivateItemCategoryMutationKey = () => ['inactivateItemCategory'] as const;
+
+export const getInactivateItemCategoryMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inactivateItemCategory>>, TError,InactivateItemCategoryMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof inactivateItemCategory>>, TError,InactivateItemCategoryMutationVariables, TContext> => {
+
+const mutationKey = getInactivateItemCategoryMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof inactivateItemCategory>>, InactivateItemCategoryMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  inactivateItemCategory(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type InactivateItemCategoryMutationResult = NonNullable<Awaited<ReturnType<typeof inactivateItemCategory>>>
+
+    export type InactivateItemCategoryMutationError = unknown
+    export type InactivateItemCategoryMutationVariables = {id: string}
+
+    export const useInactivateItemCategory = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inactivateItemCategory>>, TError,InactivateItemCategoryMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof inactivateItemCategory>>,
+        TError,
+        InactivateItemCategoryMutationVariables,
+        TContext
+      > => {
+      return useMutation(getInactivateItemCategoryMutationOptions(options), queryClient);
+    }
+
+export const getReactivateItemCategoryUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/categories/${id}/reactivate`
+}
+
+export const reactivateItemCategory = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<CategoryDetail> => {
+
+  return apiFetch<CategoryDetail>(getReactivateItemCategoryUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getReactivateItemCategoryMutationKey = () => ['reactivateItemCategory'] as const;
+
+export const getReactivateItemCategoryMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reactivateItemCategory>>, TError,ReactivateItemCategoryMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reactivateItemCategory>>, TError,ReactivateItemCategoryMutationVariables, TContext> => {
+
+const mutationKey = getReactivateItemCategoryMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reactivateItemCategory>>, ReactivateItemCategoryMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  reactivateItemCategory(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReactivateItemCategoryMutationResult = NonNullable<Awaited<ReturnType<typeof reactivateItemCategory>>>
+
+    export type ReactivateItemCategoryMutationError = unknown
+    export type ReactivateItemCategoryMutationVariables = {id: string}
+
+    export const useReactivateItemCategory = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reactivateItemCategory>>, TError,ReactivateItemCategoryMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reactivateItemCategory>>,
+        TError,
+        ReactivateItemCategoryMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReactivateItemCategoryMutationOptions(options), queryClient);
+    }
+
+export const getListWarrantyDefaultsUrl = () => {
+
+
+
+
+  return `/api/v1/inventory/warranty-defaults`
+}
+
+export const listWarrantyDefaults = async ( options?: Parameters<typeof apiFetch>[1]): Promise<WarrantyDefaultDetail[]> => {
+
+  return apiFetch<WarrantyDefaultDetail[]>(getListWarrantyDefaultsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListWarrantyDefaultsQueryKey = () => {
+    return [
+    `/api/v1/inventory/warranty-defaults`
+    ] as const;
+    }
+
+
+export const getListWarrantyDefaultsQueryOptions = <TData = Awaited<ReturnType<typeof listWarrantyDefaults>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWarrantyDefaults>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListWarrantyDefaultsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listWarrantyDefaults>>> = ({ signal }) => listWarrantyDefaults({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listWarrantyDefaults>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListWarrantyDefaultsQueryResult = NonNullable<Awaited<ReturnType<typeof listWarrantyDefaults>>>
+export type ListWarrantyDefaultsQueryError = unknown
+
+
+export function useListWarrantyDefaults<TData = Awaited<ReturnType<typeof listWarrantyDefaults>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWarrantyDefaults>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listWarrantyDefaults>>,
+          TError,
+          Awaited<ReturnType<typeof listWarrantyDefaults>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListWarrantyDefaults<TData = Awaited<ReturnType<typeof listWarrantyDefaults>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWarrantyDefaults>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listWarrantyDefaults>>,
+          TError,
+          Awaited<ReturnType<typeof listWarrantyDefaults>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListWarrantyDefaults<TData = Awaited<ReturnType<typeof listWarrantyDefaults>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWarrantyDefaults>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListWarrantyDefaults<TData = Awaited<ReturnType<typeof listWarrantyDefaults>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWarrantyDefaults>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListWarrantyDefaultsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateWarrantyDefaultUrl = (itemType: ItemType,) => {
+
+
+
+
+  return `/api/v1/inventory/warranty-defaults/${itemType}`
+}
+
+export const updateWarrantyDefault = async (itemType: ItemType,
+    warrantyDefaultInput: WarrantyDefaultInput, options?: Parameters<typeof apiFetch>[1]): Promise<WarrantyDefaultDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<WarrantyDefaultDetail>(getUpdateWarrantyDefaultUrl(itemType),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(warrantyDefaultInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateWarrantyDefaultMutationKey = () => ['updateWarrantyDefault'] as const;
+
+export const getUpdateWarrantyDefaultMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateWarrantyDefault>>, TError,UpdateWarrantyDefaultMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateWarrantyDefault>>, TError,UpdateWarrantyDefaultMutationVariables, TContext> => {
+
+const mutationKey = getUpdateWarrantyDefaultMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateWarrantyDefault>>, UpdateWarrantyDefaultMutationVariables> = (props) => {
+          const {itemType,data} = props ?? {};
+
+          return  updateWarrantyDefault(itemType,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateWarrantyDefaultMutationResult = NonNullable<Awaited<ReturnType<typeof updateWarrantyDefault>>>
+    export type UpdateWarrantyDefaultMutationBody = WarrantyDefaultInput
+    export type UpdateWarrantyDefaultMutationError = unknown
+    export type UpdateWarrantyDefaultMutationVariables = {itemType: ItemType;data: WarrantyDefaultInput}
+
+    export const useUpdateWarrantyDefault = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateWarrantyDefault>>, TError,UpdateWarrantyDefaultMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateWarrantyDefault>>,
+        TError,
+        UpdateWarrantyDefaultMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateWarrantyDefaultMutationOptions(options), queryClient);
     }
 
 export const getListBanksUrl = () => {

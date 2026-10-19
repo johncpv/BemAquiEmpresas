@@ -1,6 +1,6 @@
 import { forwardRef, type InputHTMLAttributes, useState } from 'react'
 import { formatBrDecimal, parseBrDecimal } from '@/lib/decimal'
-import { cboMask, cepMask, cnpjMask, cpfMask, documentMask, type MaskSpec, ncmMask, phoneMask } from '@/lib/masks'
+import { cboMask, cepMask, cestMask, cnpjMask, cpfMask, documentMask, type MaskSpec, ncmMask, phoneMask } from '@/lib/masks'
 import { cn } from '@/lib/utils'
 import { inputClass } from './form-utils'
 
@@ -37,6 +37,7 @@ export const CnpjInput = forwardRef<HTMLInputElement, Fixed>((p, ref) => <Masked
 export const CepInput = forwardRef<HTMLInputElement, Fixed>((p, ref) => <MaskedInput ref={ref} mask={cepMask} {...p} />)
 export const PhoneInput = forwardRef<HTMLInputElement, Fixed>((p, ref) => <MaskedInput ref={ref} mask={phoneMask} {...p} />)
 export const NcmInput = forwardRef<HTMLInputElement, Fixed>((p, ref) => <MaskedInput ref={ref} mask={ncmMask} {...p} />)
+export const CestInput = forwardRef<HTMLInputElement, Fixed>((p, ref) => <MaskedInput ref={ref} mask={cestMask} {...p} />)
 export const CboInput = forwardRef<HTMLInputElement, Fixed>((p, ref) => <MaskedInput ref={ref} mask={cboMask} {...p} />)
 
 export interface DecimalInputProps extends BaseProps {
