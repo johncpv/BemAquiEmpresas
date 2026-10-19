@@ -9,6 +9,14 @@ public interface IInventoryDb
 {
     DbSet<Location> Locations { get; }
 
+    DbSet<MeasureUnit> Units { get; }
+
+    DbSet<ItemCategory> ItemCategories { get; }
+
+    DbSet<WarrantyDefault> WarrantyDefaults { get; }
+
+    DbSet<Item> Items { get; }
+
     /// <summary>Para trocar o local padrão em dois passos numa transação (o índice único parcial é checado a cada comando).</summary>
     DatabaseFacade Database { get; }
 

@@ -5,7 +5,7 @@
 | ID | CAD-02a |
 | Título | Cadastro de itens (matéria-prima, componente, produto acabado, consumo, serviço) com NCM, CEST, origem, unidade de estoque, estoque mínimo, lote e série e garantia; unidades, categorias em árvore e garantia padrão por tipo no Inventory |
 | Tamanho | M (quebra da CAD-02: conversões e códigos do fornecedor foram para a CAD-02b) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-EST-1 · R-EST-8 (indicadores de lote e série; a rastreabilidade é a EST-04) · R-PLT-3 (seed de unidades) · R-PRJ-7 (garantia, P-11) · R-PRP-1 · R-PRP-3 · R-SEC-5 · PRD §6 Desempenho |
 | Dependências | CAD-03 (schema `inventory` e `inventory.delete`), FND-09d (moldes, `NcmInput`, `QuantityInput`, `TreeTable`); Fase 0 (FND-06c, FND-07, FND-09c, FND-14) |
 | Bloqueia | CAD-02b, MIG-01c, COM-01, ENG-02, EST-01, CMP-01 |
@@ -107,23 +107,23 @@ Como **almoxarife e engenharia**, quero **cadastrar cada item com tipo, unidade,
 - Nenhum ponto em aberto.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
-- [ ] Migration criada (não destrutiva) e seeds de unidades e garantia.
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Telas com estados de carregando, vazio, vazio filtrado e erro.
-- [ ] Ajuda de cada tela e aba; teste de cobertura passando.
-- [ ] Padrões comuns dos cadastros e próximos passos aplicados.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` conferido; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
+- [x] Migration criada (não destrutiva) e seeds de unidades e garantia.
+- [x] Permissões só do `ModuleCatalog`.
+- [x] Telas com estados de carregando, vazio, vazio filtrado e erro.
+- [x] Ajuda de cada tela e aba; teste de cobertura passando.
+- [x] Padrões comuns dos cadastros e próximos passos aplicados.
+- [x] Auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` conferido; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `ItemType` em `Inventory.Contracts`; entidades `Unit`, `ItemCategory`, `Item`, `WarrantyDefault`.
-- [ ] `IInventoryDb`, migration, seeds de unidades e garantia.
-- [ ] `IItemUsage` (implementação inicial) e `IItems`; provedor da busca da topbar.
-- [ ] Endpoints `/api/v1/inventory/items`, `/units`, `/categories`, `/warranty-defaults` com `RequireModule("inventory")`.
-- [ ] Telas e ajuda.
+- [x] `ItemType` em `Inventory.Contracts`; entidades `Unit`, `ItemCategory`, `Item`, `WarrantyDefault`.
+- [x] `IInventoryDb`, migration, seeds de unidades e garantia.
+- [x] `IItemUsage` (implementação inicial) e `IItems`; provedor da busca da topbar.
+- [x] Endpoints `/api/v1/inventory/items`, `/units`, `/categories`, `/warranty-defaults` com `RequireModule("inventory")`.
+- [x] Telas e ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, @qa.
@@ -156,3 +156,4 @@ Checklist do @po (Pax), 18/10/2026.
 | 18/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 18/10/2026 | 0.3 | Decisões do PO (D1, D10, tabela 1.1) e ADR 0016; garantia no Inventory; ordem 8 do Marco B | River (SM) |
 | 18/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 19/10/2026 | 1.0 | Implementada. Desvios: validação responde 422 (convenção da API), não 400 (o custo médio no corpo continua 400); a entidade da unidade se chama `MeasureUnit`; `IItemUsageProvider` fica em `Inventory.Contracts` (BOM e códigos do fornecedor são de outros módulos); a busca usa a coluna `search_text` normalizada com pg_trgm, como em Parties, sem a extensão `unaccent`; a faixa de próximos passos oferece "Cadastrar outro item" e "Duplicar este item" até a CAD-02b trazer conversões e códigos do fornecedor, junto com as abas | @dev |

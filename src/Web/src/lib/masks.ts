@@ -47,6 +47,7 @@ export const cnpjMask: MaskSpec = { ...documentMask, format: (v) => applyPattern
 export const cpfMask = digits(CPF_PATTERN)
 export const cepMask = digits('99999-999')
 export const ncmMask = digits('9999.99.99')
+export const cestMask = digits('99.999.99')
 export const cboMask = digits('9999-99')
 
 /** Telefone fixo (10 dígitos) ou celular (11), com DDD. */

@@ -73,6 +73,14 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<Location> Locations => Set<Location>();
 
+    public DbSet<MeasureUnit> Units => Set<MeasureUnit>();
+
+    public DbSet<ItemCategory> ItemCategories => Set<ItemCategory>();
+
+    public DbSet<WarrantyDefault> WarrantyDefaults => Set<WarrantyDefault>();
+
+    public DbSet<Item> Items => Set<Item>();
+
     public DbSet<WorkCenter> WorkCenters => Set<WorkCenter>();
 
     public DbSet<Calendar> Calendars => Set<Calendar>();
