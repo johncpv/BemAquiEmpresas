@@ -3,6 +3,7 @@ using BemAqui.BuildingBlocks.Email;
 using BemAqui.BuildingBlocks.Identity;
 using BemAqui.BuildingBlocks.Jobs;
 using BemAqui.BuildingBlocks.Logging;
+using BemAqui.BuildingBlocks.Lookups;
 using BemAqui.BuildingBlocks.Messaging;
 using BemAqui.BuildingBlocks.Notifications;
 using BemAqui.BuildingBlocks.Security;
@@ -91,6 +92,7 @@ try
     builder.Services.AddTenantPersistence();
     builder.Services.AddSingleton<BemAqui.Platform.Application.Provisioning.ITenantDatabaseMigrator, TenantDatabaseMigrator>();
     builder.Services.AddBemAquiEmail(builder.Configuration);
+    builder.Services.AddBemAquiLookups(builder.Configuration);
     builder.Services.AddBemAquiMessaging(builder.Configuration, HostEvents.Register);
 
     // Endurecimento HTTP (FND-02b): proxy confiável, JWT preso ao tenant e ao host, SignalR. Sem CORS (mesma origem).

@@ -25,6 +25,7 @@ export const newPartySchema = z
     district: z.string(),
     city: z.string(),
     state: z.string(),
+    ibgeCode: z.string(),
     contactName: z.string(),
     contactEmail: optionalEmail,
     contactPhone: optionalPhone,
@@ -49,7 +50,7 @@ const hasAddress = (v: NewPartyValues) => [v.zipCode, v.street, v.number, v.dist
 
 export const emptyParty = (role: PartyRoleKind = 'Customer'): NewPartyValues => ({
   document: '', kind: 'PJ', legalName: '', tradeName: '', roles: [role], email: '', phone: '',
-  zipCode: '', street: '', number: '', complement: '', district: '', city: '', state: '',
+  zipCode: '', street: '', number: '', complement: '', district: '', city: '', state: '', ibgeCode: '',
   contactName: '', contactEmail: '', contactPhone: '',
 })
 
@@ -64,7 +65,7 @@ export function toCreateRequest(v: NewPartyValues): CreatePartyRequest {
     email: text(v.email),
     phone: text(v.phone),
     billingAddress: hasAddress(v)
-      ? { kind: 'Billing', zipCode: v.zipCode, street: v.street.trim(), number: v.number.trim(), complement: text(v.complement), district: v.district.trim(), city: v.city.trim(), ibgeCode: null, state: v.state, isDefault: true }
+      ? { kind: 'Billing', zipCode: v.zipCode, street: v.street.trim(), number: v.number.trim(), complement: text(v.complement), district: v.district.trim(), city: v.city.trim(), ibgeCode: text(v.ibgeCode), state: v.state, isDefault: true }
       : null,
     mainContact: text(v.contactName) ? { name: v.contactName.trim(), role: null, email: text(v.contactEmail), phone: text(v.contactPhone), receivesBilling: true } : null,
   } as CreatePartyRequest

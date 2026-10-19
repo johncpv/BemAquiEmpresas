@@ -5,7 +5,7 @@
 | ID | CAD-01b |
 | Título | Consulta de CNPJ e de CEP na BrasilAPI, com adaptadores `ICnpjLookup` e `ICepLookup`, cache, limites, cadastro manual quando falha e "Atualizar pela Receita" |
 | Tamanho | M (quebra da CAD-01; ganhou o CEP na revisão pré-Fase 1) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-TER-1 (consulta automática por CNPJ) · R-PRP-3 (CNPJ e CEP preenchem o cadastro) · R-PRP-7 (sugere, o usuário confirma) · PRD §6 Observabilidade (alerta de integração) |
 | Dependências | CAD-01a; FND-09d (`CepInput`, `DocumentInput`); Fase 0 (FND-12 alerta de integração, FND-04 rate limit) |
 | Bloqueia | — (CAD-06 e CAD-04b reaproveitam o `ICepLookup`) |
@@ -127,3 +127,4 @@ Checklist do @po (Pax), 18/10/2026.
 | 18/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 18/10/2026 | 0.3 | Decisões do PO (tabela 1.1: BrasilAPI, CEP, cache) e CAs de segurança da revisão pré-Fase 1; ordem 5 do Marco A | River (SM) |
 | 18/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 19/10/2026 | 1.0 | Implementada. Validação responde 422 (convenção da API). O CEP v2 da BrasilAPI não traz o código IBGE: ele vem da lista de municípios da UF (`/api/ibge/municipios/v1/{uf}`), em cache. O limite por usuário fica num filtro do endpoint, depois da autenticação. "Usar estes dados" também preenche e-mail e telefone do terceiro, que ganharam campos no formulário | Dev |

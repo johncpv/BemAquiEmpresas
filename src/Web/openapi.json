@@ -1998,6 +1998,74 @@
         }
       }
     },
+    "/api/v1/parties/cnpj/{cnpj}": {
+      "get": {
+        "tags": [
+          "Terceiros"
+        ],
+        "operationId": "LookupCnpj",
+        "parameters": [
+          {
+            "name": "cnpj",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "partyId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CnpjLookupResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/parties/cep/{cep}": {
+      "get": {
+        "tags": [
+          "Terceiros"
+        ],
+        "operationId": "LookupCep",
+        "parameters": [
+          {
+            "name": "cep",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddressData"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/parties/document-check": {
       "get": {
         "tags": [
@@ -3158,6 +3226,46 @@
           }
         }
       },
+      "AddressData": {
+        "required": [
+          "zipCode",
+          "street",
+          "district",
+          "city",
+          "state",
+          "ibgeCode"
+        ],
+        "type": "object",
+        "properties": {
+          "zipCode": {
+            "type": "string"
+          },
+          "street": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "district": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "city": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "ibgeCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "AddressInput": {
         "required": [
           "kind",
@@ -3564,6 +3672,146 @@
         "properties": {
           "challenge": {
             "type": "string"
+          }
+        }
+      },
+      "CnpjAddress": {
+        "required": [
+          "zipCode",
+          "street",
+          "number",
+          "complement",
+          "district",
+          "city",
+          "state",
+          "ibgeCode"
+        ],
+        "type": "object",
+        "properties": {
+          "zipCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "street": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "number": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "complement": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "district": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "city": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "state": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ibgeCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "CnpjData": {
+        "required": [
+          "document",
+          "legalName",
+          "tradeName",
+          "situation",
+          "address",
+          "phone",
+          "email"
+        ],
+        "type": "object",
+        "properties": {
+          "document": {
+            "type": "string"
+          },
+          "legalName": {
+            "type": "string"
+          },
+          "tradeName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "situation": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "address": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CnpjAddress"
+              }
+            ]
+          },
+          "phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "activeAtReceita": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CnpjLookupResult": {
+        "required": [
+          "data",
+          "lookedUpAt",
+          "fromCache"
+        ],
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CnpjData"
+          },
+          "lookedUpAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fromCache": {
+            "type": "boolean"
           }
         }
       },

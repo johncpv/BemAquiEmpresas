@@ -1516,6 +1516,41 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("import_runs", "migration");
                 });
 
+            modelBuilder.Entity("BemAqui.Parties.Domain.CnpjLookupCache", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Document")
+                        .IsRequired()
+                        .HasMaxLength(14)
+                        .HasColumnType("character varying(14)")
+                        .HasColumnName("document");
+
+                    b.Property<DateTimeOffset>("LookedUpAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("looked_up_at");
+
+                    b.Property<string>("Payload")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("payload");
+
+                    b.HasKey("Id")
+                        .HasName("pk_cnpj_lookups");
+
+                    b.HasIndex("Document")
+                        .IsUnique()
+                        .HasDatabaseName("ix_cnpj_lookups_document");
+
+                    b.HasIndex("LookedUpAt")
+                        .HasDatabaseName("ix_cnpj_lookups_looked_up_at");
+
+                    b.ToTable("cnpj_lookups", "parties");
+                });
+
             modelBuilder.Entity("BemAqui.Parties.Domain.Party", b =>
                 {
                     b.Property<Guid>("Id")

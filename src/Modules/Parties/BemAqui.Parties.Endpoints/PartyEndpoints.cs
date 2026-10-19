@@ -31,6 +31,11 @@ internal static class PartyEndpoints
         // Condições ativas para o seletor da aba Dados (CAD-05b CA 16): o Finance responde pelo contrato, sem exigir finance.view.
         parties.MapGet("/payment-terms", async (PartyService service, CancellationToken ct) => Results.Ok(await service.PaymentTermOptionsAsync(ct)))
             .RequirePermission("parties.view").WithName("ListPartyPaymentTerms").Produces<IReadOnlyList<PaymentTermOption>>();
+        // Consultas públicas (CAD-01b): quem cria ou edita terceiros; limite por usuário e circuit breaker no provedor.
+        parties.MapGet("/cnpj/{cnpj}", async (string cnpj, Guid? partyId, CnpjLookupService service, CancellationToken ct) => (await service.LookupAsync(cnpj, partyId, ct)).ToHttpResult())
+            .RequireAnyPermission("parties.create", "parties.edit").AddEndpointFilter<LookupRateLimitFilter>().WithName("LookupCnpj").Produces<CnpjLookupResult>();
+        parties.MapGet("/cep/{cep}", async (string cep, BemAqui.BuildingBlocks.Lookups.ICepLookup lookup, CancellationToken ct) => (await lookup.LookupAsync(cep, ct)).ToHttpResult())
+            .RequireAnyPermission("parties.create", "parties.edit").AddEndpointFilter<LookupRateLimitFilter>().WithName("LookupCep").Produces<BemAqui.BuildingBlocks.Lookups.AddressData>();
         parties.MapGet("/document-check", async (string? document, PartyService service, CancellationToken ct) => Results.Ok(await service.CheckDocumentAsync(document, ct)))
             .RequirePermission("parties.view").WithName("CheckPartyDocument").Produces<DocumentCheck>();
         parties.MapGet("/{id:guid}", async (Guid id, PartyService service, CancellationToken ct) => (await service.GetAsync(id, ct)).ToHttpResult())

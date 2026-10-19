@@ -83,3 +83,15 @@ internal sealed class PartyContactConfiguration : IEntityTypeConfiguration<Party
         b.HasIndex(e => e.PartyId);
     }
 }
+
+internal sealed class CnpjLookupCacheConfiguration : IEntityTypeConfiguration<CnpjLookupCache>
+{
+    public void Configure(EntityTypeBuilder<CnpjLookupCache> b)
+    {
+        b.ToTable("cnpj_lookups", PartiesSchema.Name);
+        b.Property(e => e.Document).HasMaxLength(14);
+        b.Property(e => e.Payload).HasColumnType("jsonb");
+        b.HasIndex(e => e.Document).IsUnique().HasDatabaseName("ix_cnpj_lookups_document");
+        b.HasIndex(e => e.LookedUpAt);
+    }
+}

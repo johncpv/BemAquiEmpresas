@@ -7,6 +7,7 @@
 
 export * from './acceptInviteRequest';
 export * from './accessTokenResponse';
+export * from './addressData';
 export * from './addressInput';
 export * from './addressKind';
 export * from './aiProviderInfo';
@@ -21,6 +22,9 @@ export * from './bankAccountKind';
 export * from './bankInfo';
 export * from './challengeRequest';
 export * from './checkPartyDocumentParams';
+export * from './cnpjAddress';
+export * from './cnpjData';
+export * from './cnpjLookupResult';
 export * from './confirmTwoFactorRequest';
 export * from './confirmWithChallengeRequest';
 export * from './contactInput';
@@ -63,6 +67,7 @@ export * from './listPaymentTermsParams';
 export * from './listTenantsParams';
 export * from './loginRequest';
 export * from './loginResponse';
+export * from './lookupCnpjParams';
 export * from './matrixEntry';
 export * from './messageResponse';
 export * from './moduleRelease';

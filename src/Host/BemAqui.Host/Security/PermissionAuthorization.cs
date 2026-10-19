@@ -8,9 +8,12 @@ using Microsoft.Extensions.Options;
 
 namespace BemAqui.Host.Security;
 
+/// <summary>Uma ou mais ações do mesmo módulo, separadas por <c>|</c>; basta ter uma.</summary>
 public sealed record PermissionRequirement(string Permission) : IAuthorizationRequirement
 {
     public string Module => Permission[..Permission.IndexOf('.', StringComparison.Ordinal)];
+
+    public IReadOnlyList<string> Alternatives => Permission.Split('|');
 }
 
 /// <summary>Policy dinâmica <c>perm:{modulo}.{acao}</c> (02-arquitetura §3): usuário autenticado + requisito de permissão.</summary>
@@ -57,7 +60,7 @@ public sealed class PermissionHandler : AuthorizationHandler<PermissionRequireme
 
         var effective = await http.RequestServices.GetRequiredService<IPermissionService>().GetAsync(userId, http.RequestAborted);
         http.Response.Headers[EffectivePermissions.Header] = effective.Version; // o front recarrega /me/permissions se mudou
-        if (effective.Has(requirement.Permission))
+        if (requirement.Alternatives.Any(effective.Has))
         {
             context.Succeed(requirement);
         }
