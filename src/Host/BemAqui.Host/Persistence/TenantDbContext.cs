@@ -1,6 +1,8 @@
 using BemAqui.BuildingBlocks.Persistence;
 using BemAqui.Finance.Application;
 using BemAqui.Finance.Domain;
+using BemAqui.HR.Application;
+using BemAqui.HR.Domain;
 using BemAqui.Identity.Application;
 using BemAqui.Identity.Domain;
 using BemAqui.Inventory.Application;
@@ -19,7 +21,7 @@ namespace BemAqui.Host.Persistence;
 /// DbContext único do banco de tenant (ADR 0006): tabelas compartilhadas da base e, conforme as stories
 /// avançam, as configurações de cada módulo. A conexão por tenant chega na FND-02.
 /// </summary>
-public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) : BemAquiDbContext(options), IIdentityDb, IPartiesDb, IMigrationDb, IFinanceDb, IInventoryDb, IProductionDb
+public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) : BemAquiDbContext(options), IIdentityDb, IPartiesDb, IMigrationDb, IFinanceDb, IInventoryDb, IProductionDb, IHrDb
 {
     public DbSet<User> Users => Set<User>();
 
@@ -94,6 +96,12 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
     public DbSet<Calendar> Calendars => Set<Calendar>();
 
     public DbSet<CalendarExceptionDay> CalendarExceptions => Set<CalendarExceptionDay>();
+
+    public DbSet<JobPosition> JobPositions => Set<JobPosition>();
+
+    public DbSet<WorkSchedule> WorkSchedules => Set<WorkSchedule>();
+
+    public DbSet<LaborUnion> LaborUnions => Set<LaborUnion>();
 
     public DbSet<ImportRun> ImportRuns => Set<ImportRun>();
 

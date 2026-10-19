@@ -5,7 +5,7 @@
 | ID | CAD-04a |
 | Título | Cargos com CBO, faixa e salário de referência (sensíveis, por rota própria) e custo-hora calculado (salário × (1 + % encargos) ÷ horas mensais) ou ajustado; jornadas com seed "44 h seg–sex" e sindicatos |
 | Tamanho | M (quebra da CAD-04: o cadastro de funcionários foi para a CAD-04b e a CAD-04c) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-RH-2 · R-RH-1 (jornada e sindicato como cadastros de apoio) · R-PRD-4 (preparação) · R-SEC-5 · R-SEC-10 (`hr.view_sensitive`) · PRD §6 LGPD |
 | Dependências | CAD-06 (% de encargos e `PayrollChargesChanged`), CAD-03 (centro de trabalho padrão), CAD-01a (`BrazilianDocuments`, para o CNPJ do sindicato), FND-09d (`RowsEditor`, `MoneyInput`, `CboInput`); Fase 0 |
 | Bloqueia | CAD-04b, PRD-04, COM-01 (horas por centro no custo do orçamento) |
@@ -96,23 +96,23 @@ Como **RH e proprietário**, quero **cadastrar os cargos com a faixa salarial e 
 - Nenhum ponto em aberto.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
-- [ ] Migration criada (schema `hr`, não destrutiva) e seed da jornada.
-- [ ] Permissões só do `ModuleCatalog` (inclui `hr.view_sensitive`).
-- [ ] Telas com estados de carregando, vazio, erro e "Dados protegidos".
-- [ ] Ajuda das três telas; teste de cobertura passando.
-- [ ] Padrões comuns dos cadastros e próximos passos aplicados.
-- [ ] Auditoria ligada, com `[PersonalData]` nos campos de salário e `SensitiveRead`.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` conferido; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
+- [x] Migration criada (schema `hr`, não destrutiva) e seed da jornada.
+- [x] Permissões só do `ModuleCatalog` (inclui `hr.view_sensitive`).
+- [x] Telas com estados de carregando, vazio, erro e "Dados protegidos".
+- [x] Ajuda das três telas; teste de cobertura passando.
+- [x] Padrões comuns dos cadastros e próximos passos aplicados.
+- [x] Auditoria ligada, com `[PersonalData]` nos campos de salário e `SensitiveRead`.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` conferido; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] Entidades `JobPosition`, `WorkSchedule`, `LaborUnion`; `HourlyCostCalculator`.
-- [ ] `IHrDb`, migration, seed da jornada, handler de `PayrollChargesChanged` com inbox.
-- [ ] `IHourlyCost` em `HR.Contracts`; `IAuditWriter.RecordReadAsync` e o padrão `/sensitive`.
-- [ ] Comandos separados com `UnmappedMemberHandling.Disallow`; filtro de ordenação sensível.
-- [ ] Endpoints `/api/v1/hr/positions` (+ `/summary`, `/{id}/sensitive`, faixa, ajuste), `/schedules`, `/unions`; telas e ajuda.
+- [x] Entidades `JobPosition`, `WorkSchedule`, `LaborUnion`; `HourlyCostCalculator`.
+- [x] `IHrDb`, migration, seed da jornada, handler de `PayrollChargesChanged` com inbox.
+- [x] `IHourlyCost` em `HR.Contracts`; `IAuditWriter.RecordReadAsync` e o padrão `/sensitive`.
+- [x] Comandos separados com `UnmappedMemberHandling.Disallow`; filtro de ordenação sensível.
+- [x] Endpoints `/api/v1/hr/positions` (+ `/summary`, `/{id}/sensitive`, faixa, ajuste), `/schedules`, `/unions`; telas e ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, cybersecurity (LGPD, rotas sensíveis), @qa.
@@ -145,3 +145,4 @@ Checklist do @po (Pax), 18/10/2026.
 | 18/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 18/10/2026 | 0.3 | Decisões do PO (D1, tabela 1.1) e CAs de segurança da revisão pré-Fase 1; ordem 12 do Marco C | River (SM) |
 | 18/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 19/10/2026 | 1.0 | Implementada. Desvios: validação responde 422 (convenção da API), não 400 (o corpo com membro desconhecido continua 400); a coluna "funcionários no cargo" e o próximo passo "Cadastrar funcionário neste cargo" entram com a CAD-04b; o resumo `GET /hr/positions/summary` também traz o % de encargos vigente, para a prévia do custo-hora (o RH não tem `settings.view`); centros de trabalho para o seletor por `GET /hr/positions/work-centers`, via `IWorkCenters` (o RH não tem `production.view`); a ação exigida para o histórico passou a ser declarada por entidade no registro de auditoria (`view_sensitive` no HR); dia da semana da jornada em ISO (1 = segunda) | @dev |

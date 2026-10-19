@@ -29,4 +29,7 @@ public static class AuditActions
     public const string Created = "Created";
     public const string Updated = "Updated";
     public const string Deleted = "Deleted";
+
+    /// <summary>Leitura de dado sensível pela rota <c>/sensitive</c> (ADR 0016): quem e quando, sem os valores.</summary>
+    public const string SensitiveRead = "SensitiveRead";
 }

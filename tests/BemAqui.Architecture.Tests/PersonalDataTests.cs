@@ -36,6 +36,31 @@ public class PersonalDataTests
         Violations(auditable, NonSensitive).Should().BeEmpty();
     }
 
+    /// <summary>CAD-04a CA 14: o mesmo fail-closed no HR, e os DTOs de lista e resumo sem nenhuma propriedade de salário.</summary>
+    private static readonly Dictionary<string, string[]> HrNonSensitive = new(StringComparer.Ordinal)
+    {
+        ["JobPosition"] = ["Id", "Name", "Cbo", "DefaultWorkCenterId", "WorkScheduleId", "MonthlyHours", "HourlyCost", "HourlyCostManual", "IsActive", "CreatedAt", "IsDeleted", "DeletedAt"],
+        ["WorkSchedule"] = ["Id", "Name", "Days", "WeeklyHours", "IsActive", "SeedKey", "CreatedAt", "IsDeleted", "DeletedAt"],
+        ["LaborUnion"] = ["Id", "Name", "Document", "BaseMonth", "IsActive", "CreatedAt", "IsDeleted", "DeletedAt"],
+    };
+
+    [Fact]
+    public void Entidades_auditaveis_do_HR_so_tem_dado_pessoal_marcado_e_listas_sem_salario()
+    {
+        var domain = Solution.Assemblies.Single(a => a.GetName().Name == "BemAqui.HR.Domain");
+        var auditable = domain.GetTypes().Where(t => t.IsClass && typeof(IAuditable).IsAssignableFrom(t)).ToList();
+        auditable.Should().NotBeEmpty();
+        Violations(auditable, HrNonSensitive).Should().BeEmpty();
+
+        var application = Solution.Assemblies.Single(a => a.GetName().Name == "BemAqui.HR.Application");
+        var sensitive = auditable.SelectMany(t => t.GetProperties().Where(p => p.GetCustomAttribute<PersonalDataAttribute>() is not null).Select(p => p.Name)).ToHashSet(StringComparer.Ordinal);
+        foreach (var dto in new[] { "PositionDetail", "PositionSummary" })
+        {
+            var type = application.GetTypes().Single(t => t.Name == dto);
+            type.GetProperties().Select(p => p.Name).Should().NotIntersectWith(sensitive, dto + " é de lista ou resumo e não pode ter salário");
+        }
+    }
+
     private sealed class Leaky : IAuditable
     {
         public string Cpf { get; set; } = string.Empty;

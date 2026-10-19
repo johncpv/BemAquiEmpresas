@@ -52,6 +52,7 @@ public static class CliCommand
         new BemAqui.Finance.Endpoints.FinanceModule().AddServices(builder.Services, builder.Configuration);
         new BemAqui.Inventory.Endpoints.InventoryModule().AddServices(builder.Services, builder.Configuration);
         new BemAqui.Production.Endpoints.ProductionModule().AddServices(builder.Services, builder.Configuration);
+        new BemAqui.HR.Endpoints.HRModule().AddServices(builder.Services, builder.Configuration);
         new BemAqui.Migrations.Endpoints.MigrationModule().AddServices(builder.Services, builder.Configuration);
         builder.Services.AddTenantPersistence();
         builder.Services.Configure<BemAqui.Host.Tenancy.PlatformHostOptions>(builder.Configuration.GetSection(BemAqui.Host.Tenancy.PlatformHostOptions.Section));
