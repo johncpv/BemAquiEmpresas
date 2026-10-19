@@ -92,11 +92,6 @@ public sealed partial class BankAccountService(
             return Error.Conflict("bank_account_has_movement", "A conta já tem movimentação. Ajuste o saldo por um lançamento.");
         }
 
-        if (account.IsDefault && !input.IsDefault)
-        {
-            return Error.Conflict("bank_account_is_default", "Escolha outra conta padrão antes.");
-        }
-
         Apply(account, input);
         account.OpeningBalance = input.OpeningBalance;
         account.OpeningDate = input.OpeningDate;

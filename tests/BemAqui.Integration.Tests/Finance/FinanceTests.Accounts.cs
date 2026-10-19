@@ -37,6 +37,8 @@ public partial class FinanceTests
 
         var second = await CreatedAsync(await owner.PostAsJsonAsync("/api/v1/finance/bank-accounts", Bank("Conta B", isDefault: true)));
         (await QueryAsync(db => db.BankAccounts.Where(a => a.IsDefault).Select(a => a.Id).ToListAsync())).Should().Equal(second);
+        (await owner.PutAsJsonAsync($"/api/v1/finance/bank-accounts/{second}", Bank("Conta B editada"))).StatusCode.Should().Be(HttpStatusCode.OK, "editar sem marcar padrão não desmarca a padrão");
+        (await QueryAsync(db => db.BankAccounts.Where(a => a.IsDefault).Select(a => a.Id).ToListAsync())).Should().Equal(second);
 
         var inactivate = await owner.PostAsync($"/api/v1/finance/bank-accounts/{second}/inactivate", null);
         inactivate.StatusCode.Should().Be(HttpStatusCode.Conflict);

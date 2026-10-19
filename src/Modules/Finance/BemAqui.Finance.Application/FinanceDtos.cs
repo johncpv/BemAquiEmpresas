@@ -2,7 +2,10 @@ using BemAqui.Finance.Contracts;
 
 namespace BemAqui.Finance.Application;
 
-/// <summary>Criação e edição de conta (CA 1 a 3). No tipo Caixa, banco, agência e conta são ignorados.</summary>
+/// <summary>
+/// Criação e edição de conta (CA 1 a 3). No tipo Caixa, banco, agência e conta são ignorados. <c>IsDefault</c> quer dizer
+/// "tornar padrão": falso não desmarca, porque a padrão só muda quando outra conta vira padrão (CA 6).
+/// </summary>
 public sealed record BankAccountInput(
     string Name,
     BankAccountKind Kind,
