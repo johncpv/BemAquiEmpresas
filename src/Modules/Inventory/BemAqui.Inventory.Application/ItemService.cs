@@ -84,7 +84,6 @@ public sealed partial class ItemService(IInventoryDb db, IEnumerable<IItemUsageP
 
         var item = new Item { CreatedAt = clock.GetUtcNow() };
         Apply(item, valid);
-        db.Items.Add(item);
         return await SaveAsync(item, cancellationToken);
     }
 

@@ -5947,6 +5947,12 @@
           "childCount": {
             "type": "integer",
             "format": "int32"
+          },
+          "importSource": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -7743,6 +7749,7 @@
           "isActive",
           "isDefault",
           "seedKey",
+          "importSource",
           "createdAt"
         ],
         "type": "object",
@@ -7764,6 +7771,12 @@
             "type": "boolean"
           },
           "seedKey": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "importSource": {
             "type": [
               "null",
               "string"

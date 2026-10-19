@@ -21,3 +21,7 @@ Cadastrar tudo o que a empresa compra, fabrica, consome ou vende: matérias-prim
 **Posso ter dois itens com o mesmo código?** Não. O código é único, para não haver confusão no estoque e nas notas.
 
 **Onde vejo o saldo do item?** O saldo entra com o módulo de movimentos de estoque.
+
+**Os produtos do Dolibarr já estão aqui?** Sim, depois da importação. Eles aparecem com a etiqueta "Importado do Dolibarr" e a referência de origem. O custo médio e o saldo não vêm do Dolibarr: o saldo inicial é digitado no estoque.
+
+**Por que o item importado está inativo?** Matéria-prima, componente e produto acabado sem NCM entram inativos. Abra o item, preencha o NCM de 8 dígitos, salve e clique em **Reativar**.

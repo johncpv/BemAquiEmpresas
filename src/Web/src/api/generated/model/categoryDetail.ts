@@ -13,4 +13,6 @@ export interface CategoryDetail {
   isActive: boolean;
   itemCount: number;
   childCount: number;
+  /** @nullable */
+  importSource?: string | null;
 }

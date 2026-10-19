@@ -9,7 +9,7 @@ public sealed class CategoryService(IInventoryDb db, TimeProvider clock)
 {
     public async Task<IReadOnlyList<CategoryDetail>> ListAsync(CancellationToken cancellationToken = default) =>
         await db.ItemCategories.AsNoTracking().OrderBy(c => c.Name)
-            .Select(c => new CategoryDetail(c.Id, c.Name, c.ParentId, c.IsActive, db.Items.Count(i => i.CategoryId == c.Id), db.ItemCategories.Count(k => k.ParentId == c.Id)))
+            .Select(c => new CategoryDetail(c.Id, c.Name, c.ParentId, c.IsActive, db.Items.Count(i => i.CategoryId == c.Id), db.ItemCategories.Count(k => k.ParentId == c.Id), c.ImportSource))
             .ToListAsync(cancellationToken);
 
     public async Task<Result<CategoryDetail>> CreateAsync(CategoryInput input, CancellationToken cancellationToken = default)
@@ -109,7 +109,7 @@ public sealed class CategoryService(IInventoryDb db, TimeProvider clock)
     }
 
     private async Task<CategoryDetail> DetailAsync(ItemCategory c, CancellationToken cancellationToken) =>
-        new(c.Id, c.Name, c.ParentId, c.IsActive, await db.Items.CountAsync(i => i.CategoryId == c.Id, cancellationToken), await db.ItemCategories.CountAsync(k => k.ParentId == c.Id, cancellationToken));
+        new(c.Id, c.Name, c.ParentId, c.IsActive, await db.Items.CountAsync(i => i.CategoryId == c.Id, cancellationToken), await db.ItemCategories.CountAsync(k => k.ParentId == c.Id, cancellationToken), c.ImportSource);
 
     private static Error NotFound() => Error.NotFound("category_not_found", "Categoria não encontrada.");
 }

@@ -5,7 +5,7 @@
 | ID | MIG-01c |
 | Título | Importar `llx_c_units`, `llx_categorie` (produto), `llx_product` (com `elev_garantia`), `llx_product_fournisseur_price` e `llx_entrepot`, com de-para de unidade e de tipo, sem saldo nem custo |
 | Tamanho | M (quebra da MIG-01) |
-| Status | Ready |
+| Status | Review |
 | Requisitos | R-TER-5 (produtos) · R-EST-1 · R-EST-2 · R-EST-3 · R-PRJ-7 (garantia, P-11) |
 | Dependências | MIG-01a, MIG-01b (fornecedores dos códigos), CAD-03 (locais e ALM), CAD-02a (itens, unidades, categorias, garantia), CAD-02b (códigos do fornecedor) |
 | Bloqueia | GOL-01 |
@@ -125,3 +125,4 @@ Checklist do @po (Pax), 18/10/2026.
 | 18/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 18/10/2026 | 0.3 | Decisões do PO: só cadastros (ADR 0017), tabela 1.1; correções da revisão pré-Fase 1; ordem 10 do Marco B | River (SM) |
 | 18/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 19/10/2026 | 1.0 | Implementada; aguarda a conferência da simulação e da carga real com o PO. Base real (API, 19/10/2026): 34 produtos sem unidade, sem NCM e sem `elev_garantia`; 4 depósitos (ALMOX, PA e dois sub-depósitos do ALMOX); nenhuma categoria de produto. Decisões de implementação: a chave `none` do mapa `units` dá a unidade do produto sem unidade; o mapa `locations` liga um depósito a um local existente; código do local saneado do `ref` (até 20, `DEP-{id}` sem nada aproveitável); item com o mesmo código já cadastrado é vinculado; o de-para de tipo aceita o ref ou o id. Correção junto: os serviços do Inventory só adicionam a entidade depois das validações (a importação usa um contexto para a carga toda) | @dev |

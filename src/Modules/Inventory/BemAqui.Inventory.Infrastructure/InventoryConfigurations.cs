@@ -18,6 +18,7 @@ internal sealed class LocationConfiguration : IEntityTypeConfiguration<Location>
         b.Property(e => e.Code).HasMaxLength(20);
         b.Property(e => e.Name).HasMaxLength(100);
         b.Property(e => e.SeedKey).HasMaxLength(50);
+        b.Property(e => e.ImportSource).HasMaxLength(100);
         // Código único entre os não excluídos (CA 7); um só padrão (CA 4); seed uma vez por tenant, mesmo excluído (CA 3).
         b.HasIndex(e => e.Code).IsUnique().HasFilter("NOT is_deleted").HasDatabaseName(LocationService.CodeIndex);
         b.HasIndex(e => e.IsDefault).IsUnique().HasFilter("is_default").HasDatabaseName(LocationService.DefaultIndex);

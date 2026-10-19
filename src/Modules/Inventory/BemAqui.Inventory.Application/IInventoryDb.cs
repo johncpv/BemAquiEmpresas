@@ -24,5 +24,8 @@ public interface IInventoryDb
     /// <summary>Para trocar o local padrão em dois passos numa transação (o índice único parcial é checado a cada comando).</summary>
     DatabaseFacade Database { get; }
 
+    /// <summary>Para adicionar a entidade nova só depois das validações (a importação usa um contexto para a carga toda).</summary>
+    Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<TEntity> Entry<TEntity>(TEntity entity) where TEntity : class;
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

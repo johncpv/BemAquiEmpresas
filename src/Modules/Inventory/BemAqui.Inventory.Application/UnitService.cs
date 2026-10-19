@@ -28,7 +28,6 @@ public sealed partial class UnitService(IInventoryDb db, TimeProvider clock)
 
         var unit = new MeasureUnit { CreatedAt = clock.GetUtcNow() };
         Apply(unit, input);
-        db.Units.Add(unit);
         return await SaveAsync(unit, cancellationToken);
     }
 
@@ -115,12 +114,18 @@ public sealed partial class UnitService(IInventoryDb db, TimeProvider clock)
             return Duplicate(unit.Code);
         }
 
+        if (db.Entry(unit).State == EntityState.Detached)
+        {
+            db.Units.Add(unit);
+        }
+
         try
         {
             await db.SaveChangesAsync(cancellationToken);
         }
         catch (DbUpdateException ex) when (DbErrors.IsUniqueViolation(ex, CodeIndex))
         {
+            db.Entry(unit).State = EntityState.Detached;
             return Duplicate(unit.Code);
         }
 

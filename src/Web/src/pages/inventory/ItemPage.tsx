@@ -8,6 +8,7 @@ import { RecordHistory } from '@/components/history/RecordHistory'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Money } from '@/components/ui/money'
 import { NextSteps } from '@/components/ui/next-steps'
+import { ImportedTag } from '@/components/ui/imported-tag'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Tag } from '@/components/ui/tag'
@@ -52,6 +53,7 @@ export function ItemPage() {
           <div className="flex flex-wrap items-center gap-1.5">
             <StatusChip tone={item.isActive ? 'ok' : 'neutral'}>{item.isActive ? 'Ativo' : 'Inativo'}</StatusChip>
             <Tag>{TYPE_LABELS[item.type]}</Tag>
+            <ImportedTag source={item.importSource} />
             <span className="text-sm text-muted-foreground">Custo médio: <Money value={item.averageCost} /></span>
             <Link to="/app/estoque/itens" className="ml-2 text-sm font-semibold text-primary">Voltar à lista</Link>
           </div>

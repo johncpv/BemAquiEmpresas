@@ -52,7 +52,6 @@ public sealed partial class LocationService(IInventoryDb db, IEnumerable<ILocati
         Apply(location, input);
         // O primeiro local ativo já nasce padrão.
         var makeDefault = input.IsDefault || !await db.Locations.AnyAsync(l => l.IsActive && l.IsDefault, cancellationToken);
-        db.Locations.Add(location);
         return await SaveAsync(location, makeDefault, cancellationToken);
     }
 
@@ -157,6 +156,11 @@ public sealed partial class LocationService(IInventoryDb db, IEnumerable<ILocati
         if (await db.Locations.AnyAsync(l => l.Code == location.Code && l.Id != location.Id, cancellationToken))
         {
             return Duplicate(location.Code);
+        }
+
+        if (db.Entry(location).State == EntityState.Detached)
+        {
+            db.Locations.Add(location);
         }
 
         try

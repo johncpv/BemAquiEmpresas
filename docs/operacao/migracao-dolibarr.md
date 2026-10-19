@@ -53,6 +53,28 @@ Exemplo de de-para:
 } }
 ```
 
+### Cargas da MIG-01c (`--entities units,item-categories,locations,items,supplier-codes`)
+Rodam nesta ordem, depois da MIG-01b, porque o item aponta para a unidade e para a categoria, e o código do fornecedor aponta para o item e para o terceiro:
+
+| Entidade | Origem | Regras |
+|---|---|---|
+| `units` | `llx_c_units` | Só as unidades usadas pelos produtos ou pelos preços de fornecedor; as outras ficam como ignoradas. De-para `units` (código ou id → código do BemAqui, ou `criar`). Sem de-para, vale o mesmo código, e `U` vira UN. Unidade que o BemAqui não tem vai para erro. A chave `none` do mesmo mapa diz a unidade do produto que não tem nenhuma. |
+| `item-categories` | `llx_categorie` (tipo 0) | Viram a árvore de categorias, com os pais antes dos filhos. Categorias de fornecedor e de cliente ficam como ignoradas. |
+| `locations` | `llx_entrepot` | Um único depósito ativo é ligado ao ALM. Com vários, cada um vira local, com o código saneado do `ref` (até 20 caracteres, letras, números e hífen; sem nada aproveitável, `DEP-{id}`); o sub-depósito leva o nome do pai ("ALMOX / Chapa Inox"). De-para `locations` (id → código de um local do BemAqui) liga a um local existente. A carga nunca troca o local padrão: o relatório sugere um. `statut` 0 entra inativo. |
+| `items` | `llx_product` e `llx_product_extrafields` | Código = `ref`, nome = `label`, NCM = `customcode` só com 8 dígitos, estoque mínimo = `seuil_stock_alerte`, ativo quando `tosell` ou `tobuy`. `fk_product_type` 1 = Serviço; os outros pelo de-para `item-types` (ref ou id → `RawMaterial`, `Component`, `Finished`, `Consumable`, ou `materia-prima`, `componente`, `produto-acabado`, `consumo`); sem de-para, Componente com aviso. `tobatch` 1 = lote, 2 = série. `elev_garantia` em meses; vazio ou inválido usa a garantia padrão do tipo. Matéria-prima, Componente e Produto acabado sem NCM entram inativos, com o aviso "sem NCM: ativar depois de preencher". Produto em várias categorias fica na primeira. `ref` repetido vai para erro. Código que já existe no BemAqui é vinculado. Sem custo, saldo nem lote. |
+| `supplier-codes` | `llx_product_fournisseur_price` | Código = `ref_fourn`, unidade do fornecedor = código da `fk_unit` (ou o de-para `supplier-units`, id → texto), fator do de-para `supplier-factors` (id → número), padrão 1. Fornecedor ou produto não importado e linha sem `ref_fourn` ficam como ignorados; o mesmo código do mesmo fornecedor em dois produtos vai para erro. Nenhum preço é lido. |
+
+Exemplo de de-para:
+```json
+{ "maps": {
+  "units": { "none": "UN", "CX": "criar" },
+  "item-types": { "ELV-QT-001": "produto-acabado", "MP-0001": "materia-prima" },
+  "locations": { "1": "ALM" },
+  "supplier-units": { "12": "CX" },
+  "supplier-factors": { "12": "25" }
+} }
+```
+
 ### O que não migra (decidido em 18/10/2026)
 - **Lançamentos e financeiro transacional:** `llx_facture*`, `llx_paiement*`, `llx_paiementfourn*`, `llx_bank`, `llx_product_stock`, `llx_product_batch`, `llx_product_lot`, `llx_stock_mouvement`, custo médio (`pmp`). O saldo inicial de estoque é digitado na EST-01 e o das contas na CAD-05b.
 - **Sem destino na Fase 1:** `llx_propal`, `llx_commande`, `llx_mrp_mo`, `llx_bom_bom`, `llx_projet`, usuários (`llx_user`: são convidados), funcionários (CAD-04b, por minimização), plano contábil (o gerencial vem do seed da CAD-05a), modos de pagamento (`llx_c_paiement`, Fase 2).

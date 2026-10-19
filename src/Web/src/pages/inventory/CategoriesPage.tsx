@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { getListItemCategoriesQueryKey, useListItemCategories } from '@/api/generated/bemaqui'
 import type { CategoryDetail } from '@/api/generated/model'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
+import { ImportedTag } from '@/components/ui/imported-tag'
 import { StatusChip } from '@/components/ui/status-chip'
 import { TreeTable, type TreeNode } from '@/components/ui/tree-table'
 import { Can } from '@/pages/ModuleGate'
@@ -36,7 +37,12 @@ export function CategoriesPage() {
         <EmptyState title="Nenhuma categoria cadastrada." description="As categorias são opcionais e podem ter subcategorias." action={newButton} />
       ) : (
         <TreeTable<Node> label="Categorias de itens" nodes={toTree(query.data)}
-          renderLabel={(n) => <button type="button" onClick={() => setEditing({ category: n.category })} className="font-semibold text-primary hover:underline">{n.label}</button>}
+          renderLabel={(n) => (
+            <span className="inline-flex flex-wrap items-center gap-1.5">
+              <button type="button" onClick={() => setEditing({ category: n.category })} className="font-semibold text-primary hover:underline">{n.label}</button>
+              <ImportedTag source={n.category.importSource} />
+            </span>
+          )}
           columns={[
             { header: 'Itens', numeric: true, cell: (n) => n.category.itemCount },
             { header: 'Situação', cell: (n) => <StatusChip tone={n.category.isActive ? 'ok' : 'neutral'}>{n.category.isActive ? 'Ativa' : 'Inativa'}</StatusChip> },
