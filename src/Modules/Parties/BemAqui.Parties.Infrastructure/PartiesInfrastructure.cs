@@ -15,6 +15,7 @@ public static class PartiesInfrastructure
         services.TryAddSingleton(TimeProvider.System);
         services.TryAddScoped<PartyService>();
         services.TryAddScoped<IParties, PartiesContract>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.Finance.Contracts.IPaymentTermUsageProvider, PartyPaymentTermUsage>());
         services.AddAuditableEntity<Party>("parties");
         services.AddAuditableEntity<PartyRole>("parties");
         services.AddAuditableEntity<PartyAddress>("parties");

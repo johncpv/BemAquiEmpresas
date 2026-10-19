@@ -44,13 +44,13 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
   inventory: { slug: 'estoque', icon: Boxes },
   purchasing: { slug: 'compras', icon: ShoppingCart },
   assets: { slug: 'patrimonio', icon: Tag },
-  finance: { slug: 'financeiro', icon: Wallet },
+  finance: { slug: 'financeiro', icon: Wallet, tabs: [{ slug: 'contas', label: 'Contas e caixas' }, { slug: 'condicoes-de-pagamento', label: 'Condições de pagamento' }] },
   fiscal: { slug: 'fiscal', icon: Receipt },
   hr: { slug: 'rh', icon: Users },
   kiosk: { slug: 'painel-tv', icon: MonitorPlay },
   shopfloor: { slug: 'operador', icon: HardHat },
   identity: { slug: 'acessos', icon: ShieldCheck, tabs: [{ slug: 'usuarios', label: 'Usuários' }, { slug: 'grupos', label: 'Grupos' }] },
-  settings: { slug: 'configuracoes', icon: Settings, tabs: [{ slug: 'seguranca', label: 'Segurança' }, { slug: 'ia', label: 'Inteligência artificial' }] },
+  settings: { slug: 'configuracoes', icon: Settings, tabs: [{ slug: 'seguranca', label: 'Segurança' }, { slug: 'ia', label: 'Inteligência artificial' }, { slug: 'importacao', label: 'Importação do Dolibarr' }] },
 }
 
 /** Mesmo formato de MyModule em GET /api/v1/me/permissions (FND-06c/06d). */

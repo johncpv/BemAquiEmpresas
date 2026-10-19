@@ -24,6 +24,9 @@ import { PlatformSetPasswordPage } from '@/platform/PlatformSetPasswordPage'
 import { TenantDetailPage } from '@/platform/TenantDetailPage'
 import { TenantsPage } from '@/platform/TenantsPage'
 import { ComponentsMold, CreateMold, DetailMold, PanelMold } from '@/dev/molds/lazy'
+import { BankAccountsPage } from '@/pages/finance/BankAccountsPage'
+import { NewPaymentTermPage, PaymentTermPage } from '@/pages/finance/PaymentTermPage'
+import { PaymentTermsPage } from '@/pages/finance/PaymentTermsPage'
 import { NewPartyPage } from '@/pages/parties/NewPartyPage'
 import { PartiesPage } from '@/pages/parties/PartiesPage'
 import { PartyPage } from '@/pages/parties/PartyPage'
@@ -81,6 +84,12 @@ const partiesRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'ca
 const partiesRoute = createRoute({ getParentRoute: () => appRoute, path: 'cadastros/terceiros', component: gated('parties', PartiesPage) })
 const newPartyRoute = createRoute({ getParentRoute: () => appRoute, path: 'cadastros/terceiros/novo', component: gated('parties', NewPartyPage) })
 const partyRoute = createRoute({ getParentRoute: () => appRoute, path: 'cadastros/terceiros/$id', component: gated('parties', PartyPage) })
+// Financeiro (CAD-05b): contas e caixas e condições de pagamento.
+const financeRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro', beforeLoad: () => { throw redirect({ to: '/app/financeiro/contas' }) } })
+const bankAccountsRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/contas', component: gated('finance', BankAccountsPage), validateSearch: (s: Record<string, unknown>): { conta?: string } => ({ conta: text(s.conta) }) })
+const paymentTermsRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/condicoes-de-pagamento', component: gated('finance', PaymentTermsPage) })
+const newPaymentTermRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/condicoes-de-pagamento/nova', component: gated('finance', NewPaymentTermPage) })
+const paymentTermRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/condicoes-de-pagamento/$id', component: gated('finance', PaymentTermPage) })
 // Moldes de tela da FND-09d, dentro do shell, para o PO aprovar no contexto real.
 const moldsRoute = createRoute({ getParentRoute: () => appRoute, path: 'dev/moldes', beforeLoad: () => { throw redirect({ to: '/app/dev/moldes/cadastro' }) } })
 const createMoldRoute = createRoute({ getParentRoute: () => appRoute, path: 'dev/moldes/cadastro', component: CreateMold })
@@ -124,7 +133,8 @@ export const routeTree = rootRoute.addChildren([
   resetRoute,
   inviteRoute,
   appRoute.addChildren([appIndexRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, securityRoute,
-    aiSettingsRoute, importRunsRoute, importRunRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
+    aiSettingsRoute, importRunsRoute, importRunRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute,
+    financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
   platformLoginRoute,
   platformPasswordRoute,
   platformRoute.addChildren([platformIndexRoute, tenantsRoute, tenantRoute]),

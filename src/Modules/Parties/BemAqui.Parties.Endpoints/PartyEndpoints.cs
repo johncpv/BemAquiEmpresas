@@ -28,6 +28,9 @@ internal static class PartyEndpoints
             .RequirePermission("parties.view").WithName("ListParties").Produces<PagedList<PartyListItem>>();
         parties.MapGet("/search", async (string? q, PartyService service, CancellationToken ct) => Results.Ok(await service.SearchHitsAsync(q, ct)))
             .RequirePermission("parties.view").WithName("SearchParties").Produces<IReadOnlyList<PartySearchHit>>();
+        // Condições ativas para o seletor da aba Dados (CAD-05b CA 16): o Finance responde pelo contrato, sem exigir finance.view.
+        parties.MapGet("/payment-terms", async (PartyService service, CancellationToken ct) => Results.Ok(await service.PaymentTermOptionsAsync(ct)))
+            .RequirePermission("parties.view").WithName("ListPartyPaymentTerms").Produces<IReadOnlyList<PaymentTermOption>>();
         parties.MapGet("/document-check", async (string? document, PartyService service, CancellationToken ct) => Results.Ok(await service.CheckDocumentAsync(document, ct)))
             .RequirePermission("parties.view").WithName("CheckPartyDocument").Produces<DocumentCheck>();
         parties.MapGet("/{id:guid}", async (Guid id, PartyService service, CancellationToken ct) => (await service.GetAsync(id, ct)).ToHttpResult())

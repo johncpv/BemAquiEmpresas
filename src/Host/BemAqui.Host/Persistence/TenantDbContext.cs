@@ -1,4 +1,6 @@
 using BemAqui.BuildingBlocks.Persistence;
+using BemAqui.Finance.Application;
+using BemAqui.Finance.Domain;
 using BemAqui.Identity.Application;
 using BemAqui.Identity.Domain;
 using BemAqui.Migrations.Application;
@@ -13,7 +15,7 @@ namespace BemAqui.Host.Persistence;
 /// DbContext único do banco de tenant (ADR 0006): tabelas compartilhadas da base e, conforme as stories
 /// avançam, as configurações de cada módulo. A conexão por tenant chega na FND-02.
 /// </summary>
-public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) : BemAquiDbContext(options), IIdentityDb, IPartiesDb, IMigrationDb
+public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) : BemAquiDbContext(options), IIdentityDb, IPartiesDb, IMigrationDb, IFinanceDb
 {
     public DbSet<User> Users => Set<User>();
 
@@ -56,6 +58,10 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
     public DbSet<PartyAddress> PartyAddresses => Set<PartyAddress>();
 
     public DbSet<PartyContact> PartyContacts => Set<PartyContact>();
+
+    public DbSet<BankAccount> BankAccounts => Set<BankAccount>();
+
+    public DbSet<PaymentTerm> PaymentTerms => Set<PaymentTerm>();
 
     public DbSet<ImportRun> ImportRuns => Set<ImportRun>();
 

@@ -5,7 +5,7 @@
 | ID | CAD-05b |
 | Título | Contas bancárias e caixas com saldo inicial opcional, conta padrão e troca protegida dos dados bancários; condições de pagamento do Finance com divisão de parcelas; condição padrão no terceiro |
 | Tamanho | M (quebra da CAD-05) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-FIN-2 (contas bancárias e caixas, saldo inicial) · R-TER-2 (condições padrão de pagamento do terceiro) · R-PRP-1 · R-SEC-5 |
 | Dependências | CAD-01a (terceiro, para a condição padrão), FND-09d (moldes, `RowsEditor`, `MoneyInput`); Fase 0 (FND-07, FND-09c, FND-14). Não depende da CAD-05a |
 | Bloqueia | MIG-01b (condições e contas do Dolibarr), FIN-01, FIN-02, FIN-04, CMP-03, BNK-01 |
@@ -148,3 +148,4 @@ Checklist do @po (Pax), 18/10/2026.
 | 18/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 18/10/2026 | 0.3 | Decisões do PO (D1, D10, tabela 1.1, contas do Dolibarr sem saldo) e correções da revisão pré-Fase 1; ordem 3 do Marco A | River (SM) |
 | 18/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 19/10/2026 | 1.0 | Implementada. Erros de validação respondem 422 (convenção da API desde a FND-09c), e não 400 como no texto dos CAs; mensagens iguais. Notificação do CA 9 pelo novo `IUserDirectory` (membros do Proprietário, sem acesso às tabelas do Identity). Condições ativas para a aba Dados do terceiro em `GET /api/v1/parties/payment-terms` (`parties.view`), lidas por `IPaymentTerms` | Dev |

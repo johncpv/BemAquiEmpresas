@@ -26,7 +26,14 @@ public sealed record PartyDetail(
     bool IsActive,
     IReadOnlyList<PartyAddressDto> Addresses,
     IReadOnlyList<PartyContactDto> Contacts,
-    DateTimeOffset CreatedAt);
+    DateTimeOffset CreatedAt,
+    PaymentTermRef? DefaultPaymentTerm = null);
+
+/// <summary>Condição padrão do terceiro, com o nome e se ainda está ativa (inativa continua aparecendo, com o chip "Inativa").</summary>
+public sealed record PaymentTermRef(Guid Id, string Name, bool IsActive);
+
+/// <summary>Condição ativa para o seletor da aba Dados (CA 16).</summary>
+public sealed record PaymentTermOption(Guid Id, string Name);
 
 public sealed record AddressInput(AddressKind Kind, string ZipCode, string Street, string Number, string? Complement, string District, string City, string? IbgeCode, string State, bool IsDefault = false);
 
@@ -46,7 +53,8 @@ public sealed record CreatePartyRequest(
     string? Phone = null,
     string? Notes = null,
     AddressInput? BillingAddress = null,
-    ContactInput? MainContact = null);
+    ContactInput? MainContact = null,
+    Guid? DefaultPaymentTermId = null);
 
 public sealed record UpdatePartyRequest(
     PartyKind Kind,
@@ -59,7 +67,8 @@ public sealed record UpdatePartyRequest(
     TaxRegime TaxRegime,
     string? Email,
     string? Phone,
-    string? Notes);
+    string? Notes,
+    Guid? DefaultPaymentTermId = null);
 
 /// <summary>Conferência do documento ao sair do campo (CA 4 e 6), antes de qualquer outra ação.</summary>
 public sealed record DocumentCheck(bool Valid, bool Exists, Guid? Id, string? Name, bool Deleted, IReadOnlyList<PartyRoleKind> Roles);

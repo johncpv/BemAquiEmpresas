@@ -27,4 +27,6 @@ export interface UpdatePartyRequest {
   phone: string | null;
   /** @nullable */
   notes: string | null;
+  /** @nullable */
+  defaultPaymentTermId?: string | null;
 }

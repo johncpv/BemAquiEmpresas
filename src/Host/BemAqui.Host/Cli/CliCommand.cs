@@ -48,6 +48,8 @@ public static class CliCommand
         new BemAqui.Identity.Endpoints.IdentityModule().AddServices(builder.Services, builder.Configuration);
         // A importação grava nos destinos pelos I*Import dos módulos donos (ADR 0017).
         new BemAqui.Parties.Endpoints.PartiesModule().AddServices(builder.Services, builder.Configuration);
+        // O seed das condições de pagamento (CAD-05b) roda no migrate de todos os tenants.
+        new BemAqui.Finance.Endpoints.FinanceModule().AddServices(builder.Services, builder.Configuration);
         new BemAqui.Migrations.Endpoints.MigrationModule().AddServices(builder.Services, builder.Configuration);
         builder.Services.AddTenantPersistence();
         builder.Services.Configure<BemAqui.Host.Tenancy.PlatformHostOptions>(builder.Configuration.GetSection(BemAqui.Host.Tenancy.PlatformHostOptions.Section));

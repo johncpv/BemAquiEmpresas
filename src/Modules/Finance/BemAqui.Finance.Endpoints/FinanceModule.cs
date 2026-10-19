@@ -1,4 +1,6 @@
+using System.Reflection;
 using BemAqui.BuildingBlocks.Modules;
+using BemAqui.Finance.Infrastructure;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,11 +11,9 @@ public sealed class FinanceModule : IModule
 {
     public string Code => "finance";
 
-    public void AddServices(IServiceCollection services, IConfiguration configuration)
-    {
-    }
+    public Assembly? PersistenceAssembly => typeof(FinanceInfrastructure).Assembly;
 
-    public void MapEndpoints(IEndpointRouteBuilder endpoints)
-    {
-    }
+    public void AddServices(IServiceCollection services, IConfiguration configuration) => services.AddFinanceInfrastructure();
+
+    public void MapEndpoints(IEndpointRouteBuilder endpoints) => endpoints.MapFinanceEndpoints();
 }
