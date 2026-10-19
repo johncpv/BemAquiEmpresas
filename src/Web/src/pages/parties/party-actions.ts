@@ -15,6 +15,7 @@ export function updateFrom(detail: PartyDetail, patch: Partial<Parameters<typeof
     email: detail.email,
     phone: detail.phone,
     notes: detail.notes,
+    defaultPaymentTermId: detail.defaultPaymentTerm?.id ?? null,
     ...patch,
   })
 }

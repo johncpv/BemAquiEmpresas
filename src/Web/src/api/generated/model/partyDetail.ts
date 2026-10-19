@@ -8,6 +8,7 @@ import type { PartyAddressDto } from './partyAddressDto';
 import type { PartyContactDto } from './partyContactDto';
 import type { PartyKind } from './partyKind';
 import type { PartyRoleKind } from './partyRoleKind';
+import type { PaymentTermRef } from './paymentTermRef';
 import type { TaxRegime } from './taxRegime';
 
 export interface PartyDetail {
@@ -34,4 +35,5 @@ export interface PartyDetail {
   addresses: PartyAddressDto[];
   contacts: PartyContactDto[];
   createdAt: string;
+  defaultPaymentTerm?: null | PaymentTermRef;
 }

@@ -36,6 +36,7 @@ public static class IdentityInfrastructure
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ITwoFactorRequirementRule, ApproverRequiresTwoFactorRule>());
         services.TryAddScoped<BemAqui.BuildingBlocks.Identity.IPermissionService, PermissionService>();
         services.TryAddScoped<GroupService>();
+        services.TryAddScoped<BemAqui.BuildingBlocks.Identity.IUserDirectory, UserDirectory>();
         services.TryAddScoped<UserService>();
         services.TryAddScoped<SecuritySettings>();
         services.TryAddScoped<Preferences>();

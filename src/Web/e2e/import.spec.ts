@@ -21,7 +21,7 @@ test.describe('importação do Dolibarr (MIG-01a)', () => {
     await mockApi(page, { 'GET /api/v1/settings/import-runs': (r: Route) => json(r, { items: [], page: 1, pageSize: 20, total: 0 }) })
     await page.goto('/app/configuracoes/importacao')
     await expect(page.getByText('Nenhuma importação feita.')).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Importação do Dolibarr' })).toHaveAttribute('aria-current', 'page')
+    await expect(page.getByRole('navigation', { name: 'Configurações', exact: true }).getByRole('link', { name: 'Importação do Dolibarr' })).toHaveAttribute('aria-current', 'page')
     await expect(page.getByRole('button', { name: /Importar|Executar/ })).toHaveCount(0)
     await page.getByRole('button', { name: 'Ver o passo a passo' }).click()
     await expect(page.getByRole('dialog', { name: 'Ajuda' })).toBeVisible()

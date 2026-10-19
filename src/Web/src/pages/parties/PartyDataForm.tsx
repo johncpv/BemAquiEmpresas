@@ -1,6 +1,9 @@
 import { Controller } from 'react-hook-form'
+import { listPartyPaymentTerms } from '@/api/generated/bemaqui'
 import type { PartyDetail, PartyRoleKind, TaxRegime } from '@/api/generated/model'
 import { ChipGroup } from '@/components/form/choice'
+import { Combobox } from '@/components/form/combobox'
+import { StatusChip } from '@/components/ui/status-chip'
 import { Field, FormError } from '@/components/form/form'
 import { applyServerErrors, inputClass, useZodForm } from '@/components/form/form-utils'
 import { DocumentInput, PhoneInput } from '@/components/form/inputs'
@@ -22,7 +25,14 @@ const schema = z.object({
   email: z.union([z.literal(''), z.email('E-mail inválido.')]),
   phone: z.string().refine((v) => v === '' || v.length === 10 || v.length === 11, 'Telefone com DDD: 10 ou 11 dígitos.'),
   notes: z.string().max(2000, 'Use até 2.000 caracteres.'),
+  defaultPaymentTermId: z.string().nullable(),
 })
+
+/** Condições ativas do Finance (CAD-05b CA 16), filtradas pelo termo digitado. */
+const searchTerms = async (term: string) => {
+  const t = term.trim().toLowerCase()
+  return (await listPartyPaymentTerms()).filter((o) => !t || o.name.toLowerCase().includes(t)).map((o) => ({ id: o.id, label: o.name }))
+}
 
 /** Aba Dados (CA 10 e 15): papéis, dados fiscais e contato do cadastro. Sem parties.edit, fica só leitura. */
 export function PartyDataForm({ party, canEdit, onSaved }: { party: PartyDetail; canEdit: boolean; onSaved: (p: PartyDetail) => void }) {
@@ -33,6 +43,7 @@ export function PartyDataForm({ party, canEdit, onSaved }: { party: PartyDetail;
       document: onlyAlnum(party.document ?? ''), legalName: party.legalName, tradeName: party.tradeName ?? '', roles: party.roles,
       stateRegistration: party.stateRegistration ?? '', municipalRegistration: party.municipalRegistration ?? '', taxRegime: party.taxRegime,
       email: party.email ?? '', phone: party.phone ?? '', notes: party.notes ?? '',
+      defaultPaymentTermId: party.defaultPaymentTerm?.id ?? null,
     },
   })
   const errors = form.formState.errors
@@ -43,7 +54,7 @@ export function PartyDataForm({ party, canEdit, onSaved }: { party: PartyDetail;
       const saved = await updateFrom(party, {
         document: text(v.document), legalName: v.legalName.trim(), tradeName: party.kind === 'PF' ? null : text(v.tradeName), roles: v.roles as PartyRoleKind[],
         stateRegistration: text(v.stateRegistration), municipalRegistration: text(v.municipalRegistration), taxRegime: v.taxRegime as TaxRegime,
-        email: text(v.email), phone: text(v.phone), notes: text(v.notes),
+        email: text(v.email), phone: text(v.phone), notes: text(v.notes), defaultPaymentTermId: v.defaultPaymentTermId,
       })
       form.reset(form.getValues())
       onSaved(saved)
@@ -75,6 +86,20 @@ export function PartyDataForm({ party, canEdit, onSaved }: { party: PartyDetail;
             <select {...p} {...form.register('taxRegime')} className={inputClass}>
               {Object.entries(TAX_REGIME_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
             </select>
+          )}
+        </Field>
+        <Field label="Condição de pagamento padrão" error={errors.defaultPaymentTermId?.message} dica="Vem preenchida nos orçamentos, pedidos e títulos deste terceiro. Dá para trocar em cada documento.">
+          {(p) => (
+            <div className="flex items-center gap-2">
+              <div className="flex-1">
+                <Controller control={form.control} name="defaultPaymentTermId" render={({ field }) => (
+                  <Combobox {...p} queryKey={['party-payment-terms']} search={searchTerms} value={field.value} placeholder="Sem condição padrão"
+                    selected={party.defaultPaymentTerm && party.defaultPaymentTerm.id === field.value ? { id: party.defaultPaymentTerm.id, label: party.defaultPaymentTerm.name } : undefined}
+                    onChange={(o) => field.onChange(o?.id ?? null)} disabled={!canEdit} />
+                )} />
+              </div>
+              {party.defaultPaymentTerm && !party.defaultPaymentTerm.isActive && form.watch('defaultPaymentTermId') === party.defaultPaymentTerm.id ? <StatusChip tone="neutral">Inativa</StatusChip> : null}
+            </div>
           )}
         </Field>
         <Field label="E-mail" error={errors.email?.message}>{(p) => <input {...p} type="email" {...form.register('email')} className={inputClass} />}</Field>

@@ -53,6 +53,9 @@ public sealed class Party : Entity, IAuditable, ISoftDeletable
 
     public bool IsActive { get; set; } = true;
 
+    /// <summary>Condição de pagamento padrão (CAD-05b CA 16): só o id de <c>finance.payment_terms</c>, validado por <c>IPaymentTerms</c>.</summary>
+    public Guid? DefaultPaymentTermId { get; set; }
+
     public DateTimeOffset CreatedAt { get; init; }
 
     public bool IsDeleted { get; private set; }

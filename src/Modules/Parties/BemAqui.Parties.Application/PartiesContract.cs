@@ -8,7 +8,7 @@ public sealed class PartiesContract(IPartiesDb db) : IParties
 {
     public async Task<PartySummary?> FindAsync(Guid id, CancellationToken cancellationToken = default) =>
         await db.Parties.IgnoreQueryFilters().AsNoTracking().Where(p => p.Id == id)
-            .Select(p => new PartySummary(p.Id, p.Kind, p.LegalName, p.TradeName, p.Document, p.Roles.Select(r => r.Role).ToList(), p.IsActive, p.IsDeleted))
+            .Select(p => new PartySummary(p.Id, p.Kind, p.LegalName, p.TradeName, p.Document, p.Roles.Select(r => r.Role).ToList(), p.IsActive, p.IsDeleted, p.DefaultPaymentTermId))
             .FirstOrDefaultAsync(cancellationToken);
 
     public async Task<IReadOnlyList<PartySummary>> SearchAsync(string? term, PartyRoleKind? role, int limit = 20, CancellationToken cancellationToken = default)
@@ -26,7 +26,7 @@ public sealed class PartiesContract(IPartiesDb db) : IParties
         }
 
         return await parties.OrderBy(p => p.SearchText).Take(Math.Clamp(limit, 1, 100))
-            .Select(p => new PartySummary(p.Id, p.Kind, p.LegalName, p.TradeName, p.Document, p.Roles.Select(x => x.Role).ToList(), p.IsActive, false))
+            .Select(p => new PartySummary(p.Id, p.Kind, p.LegalName, p.TradeName, p.Document, p.Roles.Select(x => x.Role).ToList(), p.IsActive, false, p.DefaultPaymentTermId))
             .ToListAsync(cancellationToken);
     }
 

@@ -31,4 +31,6 @@ export interface CreatePartyRequest {
   notes?: string | null;
   billingAddress?: null | AddressInput;
   mainContact?: null | ContactInput;
+  /** @nullable */
+  defaultPaymentTermId?: string | null;
 }

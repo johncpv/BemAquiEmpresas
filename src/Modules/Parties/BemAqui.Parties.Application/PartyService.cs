@@ -10,7 +10,7 @@ namespace BemAqui.Parties.Application;
 /// Cadastro de terceiros (CAD-01a): um cadastro só por documento, com papéis, endereços e contatos. O documento é
 /// opcional; quando existe, é válido e único entre os não excluídos (índice único parcial, CA 5).
 /// </summary>
-public sealed partial class PartyService(IPartiesDb db, IEnumerable<IPartyUsageProvider> usages, TimeProvider clock)
+public sealed partial class PartyService(IPartiesDb db, IEnumerable<IPartyUsageProvider> usages, BemAqui.Finance.Contracts.IPaymentTerms paymentTerms, TimeProvider clock)
 {
     public const string DocumentIndex = "ix_parties_document_unique";
     public const string ExistsCode = "party_exists";
@@ -36,7 +36,7 @@ public sealed partial class PartyService(IPartiesDb db, IEnumerable<IPartyUsageP
     public async Task<Result<PartyDetail>> GetAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var party = await Load(id).AsNoTracking().FirstOrDefaultAsync(cancellationToken);
-        return party is null ? NotFound() : ToDetail(party);
+        return party is null ? NotFound() : ToDetail(party) with { DefaultPaymentTerm = await TermRefAsync(party.DefaultPaymentTermId, cancellationToken) };
     }
 
     public async Task<Result<PartyDetail>> CreateAsync(CreatePartyRequest request, CancellationToken cancellationToken = default)
@@ -56,7 +56,12 @@ public sealed partial class PartyService(IPartiesDb db, IEnumerable<IPartyUsageP
             return duplicate;
         }
 
-        var party = new Party { Kind = request.Kind, CreatedAt = clock.GetUtcNow(), TaxRegime = request.TaxRegime ?? TaxRegime.NotInformed };
+        if (await InvalidTermAsync(request.DefaultPaymentTermId, null, cancellationToken) is { } badTerm)
+        {
+            return badTerm;
+        }
+
+        var party = new Party { Kind = request.Kind, CreatedAt = clock.GetUtcNow(), TaxRegime = request.TaxRegime ?? TaxRegime.NotInformed, DefaultPaymentTermId = request.DefaultPaymentTermId };
         Apply(party, request.Kind, document, request.LegalName, request.TradeName, request.StateRegistration, request.MunicipalRegistration, party.TaxRegime, request.Email, request.Phone, request.Notes);
         party.Roles.AddRange(request.Roles.Distinct().Select(r => new PartyRole { PartyId = party.Id, Role = r }));
         if (request.BillingAddress is { } billing)
@@ -94,7 +99,13 @@ public sealed partial class PartyService(IPartiesDb db, IEnumerable<IPartyUsageP
             return duplicate;
         }
 
+        if (await InvalidTermAsync(request.DefaultPaymentTermId, party.DefaultPaymentTermId, cancellationToken) is { } badTerm)
+        {
+            return badTerm;
+        }
+
         Apply(party, request.Kind, document, request.LegalName, request.TradeName, request.StateRegistration, request.MunicipalRegistration, request.TaxRegime, request.Email, request.Phone, request.Notes);
+        party.DefaultPaymentTermId = request.DefaultPaymentTermId;
         var wanted = request.Roles.Distinct().ToHashSet();
         db.PartyRoles.RemoveRange(party.Roles.Where(r => !wanted.Contains(r.Role)));
         foreach (var role in wanted.Where(w => party.Roles.All(r => r.Role != w)))
