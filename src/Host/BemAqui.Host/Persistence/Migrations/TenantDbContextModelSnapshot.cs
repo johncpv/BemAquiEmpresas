@@ -1433,6 +1433,71 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("user_preferences", "identity");
                 });
 
+            modelBuilder.Entity("BemAqui.Inventory.Domain.Location", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("code");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_default");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("SeedKey")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("seed_key");
+
+                    b.HasKey("Id")
+                        .HasName("pk_locations");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasDatabaseName("ix_locations_code")
+                        .HasFilter("NOT is_deleted");
+
+                    b.HasIndex("IsDefault")
+                        .IsUnique()
+                        .HasDatabaseName("ix_locations_default")
+                        .HasFilter("is_default");
+
+                    b.HasIndex("SeedKey")
+                        .IsUnique()
+                        .HasDatabaseName("ix_locations_seed_key")
+                        .HasFilter("seed_key IS NOT NULL");
+
+                    b.ToTable("locations", "inventory");
+                });
+
             modelBuilder.Entity("BemAqui.Migrations.Domain.ExternalRef", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1947,6 +2012,146 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("party_roles", "parties");
                 });
 
+            modelBuilder.Entity("BemAqui.Production.Domain.Calendar", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_default");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("WorkingDays")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("working_days");
+
+                    b.HasKey("Id")
+                        .HasName("pk_calendars");
+
+                    b.HasIndex("IsDefault")
+                        .IsUnique()
+                        .HasDatabaseName("ix_calendars_default")
+                        .HasFilter("is_default");
+
+                    b.ToTable("calendars", "production");
+                });
+
+            modelBuilder.Entity("BemAqui.Production.Domain.CalendarExceptionDay", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CalendarId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("calendar_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date")
+                        .HasColumnName("date");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("description");
+
+                    b.Property<decimal>("HoursAvailable")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasColumnName("hours_available");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("type");
+
+                    b.HasKey("Id")
+                        .HasName("pk_calendar_exceptions");
+
+                    b.HasIndex("CalendarId", "Date")
+                        .IsUnique()
+                        .HasDatabaseName("ix_calendar_exceptions_date");
+
+                    b.ToTable("calendar_exceptions", "production");
+                });
+
+            modelBuilder.Entity("BemAqui.Production.Domain.WorkCenter", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CalendarId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("calendar_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<decimal>("HoursPerDay")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasColumnName("hours_per_day");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<string>("Line")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("line");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Shifts")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("shifts");
+
+                    b.HasKey("Id")
+                        .HasName("pk_work_centers");
+
+                    b.HasIndex("CalendarId")
+                        .HasDatabaseName("ix_work_centers_calendar_id");
+
+                    b.ToTable("work_centers", "production");
+                });
+
             modelBuilder.Entity("BemAqui.Identity.Domain.GroupGrant", b =>
                 {
                     b.HasOne("BemAqui.Identity.Domain.Group", null)
@@ -2082,6 +2287,26 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_party_roles_parties_party_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Production.Domain.CalendarExceptionDay", b =>
+                {
+                    b.HasOne("BemAqui.Production.Domain.Calendar", null)
+                        .WithMany()
+                        .HasForeignKey("CalendarId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_calendar_exceptions_calendars_calendar_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Production.Domain.WorkCenter", b =>
+                {
+                    b.HasOne("BemAqui.Production.Domain.Calendar", null)
+                        .WithMany()
+                        .HasForeignKey("CalendarId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_work_centers_calendars_calendar_id");
                 });
 
             modelBuilder.Entity("BemAqui.Parties.Domain.Party", b =>

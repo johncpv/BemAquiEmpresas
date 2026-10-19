@@ -95,9 +95,9 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 - **bom_lines**: bom_id, item_id, quantity, unit_id, scrap_pct, notes
 
 ## production
-- **work_centers** (CAD-03): name, line, hours_per_day (numeric(5,2), derivado dos turnos), shifts (JSON, sem turno que vira o dia), calendar_id, is_active
-- **calendars** (CAD-03): name, is_default (um padrão por tenant no MVP), working_days (JSON)
-- **calendar_exceptions** (CAD-03): calendar_id, date (único por calendário), type (Holiday/Shutdown), hours_available, description
+- **work_centers** (CAD-03): name, line, hours_per_day (numeric(5,2), derivado dos turnos), shifts (jsonb `[{start,end}]` em "HH:mm", sem turno que vira o dia nem sobreposição), calendar_id, is_active, created_at (antes dela a capacidade é 0); soft delete; nome único sem diferenciar maiúsculas
+- **calendars** (CAD-03): name, is_default (um padrão por tenant no MVP), working_days (jsonb com os nomes dos dias, ex.: `["Monday", …]`, enum `Weekday`)
+- **calendar_exceptions** (CAD-03): calendar_id, date (único por calendário), type (Holiday/Stoppage), hours_available (numeric(5,2), 0 a 24), description; entidade `CalendarExceptionDay` (o analisador proíbe tipo terminado em Exception); excluída de verdade, com auditoria
 - **production_orders**: number, type (Fabrication/Installation/Maintenance), project_id, project_item_id, product_id, quantity, status (Open/InProgress/Paused/Quality/Completed/Cancelled), priority, planned_start, planned_end, actual_start, actual_end, executor_party_id (instalação terceirizada), serial_numbers
 - **production_order_steps**: order_id, sequence, name, work_center_id, standard_hours, status (Waiting/Ready/InProgress/Paused/Done/Rejected), planned_start, planned_end, actual_start, actual_end, checklist_result (JSON)
 - **labor_entries**: order_step_id, employee_id, started_at, ended_at, paused_minutes, hourly_cost_snapshot, cost, notes
@@ -112,7 +112,7 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 - **warranty_defaults** (CAD-02a, ADR 0016): item_type (único), months (nulo = sem garantia); seed Finished 12, Component 3, Service 3
 - **item_unit_conversions** (CAD-02b): item_id, from_unit_id, to_unit_id, factor (numeric(18,6); resultado com 4 casas, AwayFromZero)
 - **item_supplier_codes** (CAD-02b): item_id, party_id, supplier_code, supplier_unit (texto livre), conversion_factor (de-para da NF de entrada); import_source (MIG-01c)
-- **locations** (CAD-03): name, code, is_default, is_active, seed_key (seed "ALM — Almoxarifado principal"); import_source (MIG-01c)
+- **locations** (CAD-03): name, code, is_default (único), is_active, seed_key (seed "ALM — Almoxarifado principal"); código único entre os não excluídos; soft delete; import_source (MIG-01c)
 - **lots**: item_id, lot_number, supplier_party_id, received_at, expiry
 - **serials**: item_id, serial_number, production_order_id, status (InStock/Shipped), project_id
 - **stock_balances**: item_id, location_id, lot_id, quantity_on_hand, quantity_reserved (disponível = on_hand − reserved)

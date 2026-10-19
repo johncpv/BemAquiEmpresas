@@ -1,4 +1,6 @@
+using System.Reflection;
 using BemAqui.BuildingBlocks.Modules;
+using BemAqui.Production.Infrastructure;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,11 +11,9 @@ public sealed class ProductionModule : IModule
 {
     public string Code => "production";
 
-    public void AddServices(IServiceCollection services, IConfiguration configuration)
-    {
-    }
+    public Assembly? PersistenceAssembly => typeof(ProductionInfrastructure).Assembly;
 
-    public void MapEndpoints(IEndpointRouteBuilder endpoints)
-    {
-    }
+    public void AddServices(IServiceCollection services, IConfiguration configuration) => services.AddProductionInfrastructure();
+
+    public void MapEndpoints(IEndpointRouteBuilder endpoints) => endpoints.MapProductionEndpoints();
 }

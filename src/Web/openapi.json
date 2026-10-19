@@ -2797,6 +2797,805 @@
         }
       }
     },
+    "/api/v1/production/work-centers": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "ListWorkCenters",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeInactive",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfWorkCenterDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "CreateWorkCenter",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkCenterInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkCenterDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/work-centers/suggested-shifts": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "GetSuggestedShifts",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Shift"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/work-centers/{id}": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "GetWorkCenter",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkCenterDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "UpdateWorkCenter",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkCenterInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkCenterDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "DeleteWorkCenter",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/production/work-centers/{id}/inactivate": {
+      "post": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "InactivateWorkCenter",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkCenterDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/work-centers/{id}/reactivate": {
+      "post": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "ReactivateWorkCenter",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkCenterDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/calendars/default": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "GetDefaultCalendar",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/calendars/{id}": {
+      "put": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "UpdateCalendar",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalendarInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/calendars/{calendarId}/holidays/{year}": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "SuggestHolidays",
+        "parameters": [
+          {
+            "name": "calendarId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "year",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HolidaySuggestion"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/calendars/{calendarId}/holidays": {
+      "post": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "AddHolidays",
+        "parameters": [
+          {
+            "name": "calendarId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddHolidaysInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddHolidaysResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/calendars/{calendarId}/exceptions": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "ListCalendarExceptions",
+        "parameters": [
+          {
+            "name": "calendarId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CalendarExceptionDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "CreateCalendarException",
+        "parameters": [
+          {
+            "name": "calendarId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalendarExceptionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarExceptionDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/calendars/{calendarId}/exceptions/{exceptionId}": {
+      "put": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "UpdateCalendarException",
+        "parameters": [
+          {
+            "name": "calendarId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "exceptionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalendarExceptionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarExceptionDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "DeleteCalendarException",
+        "parameters": [
+          {
+            "name": "calendarId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "exceptionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/locations": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "ListLocations",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeInactive",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfLocationDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "CreateLocation",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LocationInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/locations/{id}": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetLocation",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "UpdateLocation",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LocationInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "DeleteLocation",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/locations/{id}/inactivate": {
+      "post": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "InactivateLocation",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/locations/{id}/reactivate": {
+      "post": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "ReactivateLocation",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/banks": {
       "get": {
         "tags": [
@@ -3485,6 +4284,37 @@
           }
         }
       },
+      "AddHolidaysInput": {
+        "required": [
+          "holidays"
+        ],
+        "type": "object",
+        "properties": {
+          "holidays": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HolidayToAdd"
+            }
+          }
+        }
+      },
+      "AddHolidaysResult": {
+        "required": [
+          "added",
+          "skipped"
+        ],
+        "type": "object",
+        "properties": {
+          "added": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "skipped": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "AddressData": {
         "required": [
           "zipCode",
@@ -3920,6 +4750,113 @@
           },
           "name": {
             "type": "string"
+          }
+        }
+      },
+      "CalendarDetail": {
+        "required": [
+          "id",
+          "name",
+          "isDefault",
+          "workingDays"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "workingDays": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Weekday"
+            }
+          }
+        }
+      },
+      "CalendarExceptionDetail": {
+        "required": [
+          "id",
+          "calendarId",
+          "date",
+          "type",
+          "hoursAvailable",
+          "description"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "calendarId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "type": {
+            "$ref": "#/components/schemas/CalendarExceptionType"
+          },
+          "hoursAvailable": {
+            "type": "number",
+            "format": "double"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "CalendarExceptionInput": {
+        "required": [
+          "date",
+          "type",
+          "hoursAvailable",
+          "description"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "type": {
+            "$ref": "#/components/schemas/CalendarExceptionType"
+          },
+          "hoursAvailable": {
+            "type": "number",
+            "format": "double"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "CalendarExceptionType": {
+        "enum": [
+          "Holiday",
+          "Stoppage"
+        ]
+      },
+      "CalendarInput": {
+        "required": [
+          "workingDays"
+        ],
+        "type": "object",
+        "properties": {
+          "workingDays": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Weekday"
+            }
           }
         }
       },
@@ -4965,6 +5902,46 @@
           }
         }
       },
+      "HolidaySuggestion": {
+        "required": [
+          "date",
+          "name",
+          "optional",
+          "alreadyAdded"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "name": {
+            "type": "string"
+          },
+          "optional": {
+            "type": "boolean"
+          },
+          "alreadyAdded": {
+            "type": "boolean"
+          }
+        }
+      },
+      "HolidayToAdd": {
+        "required": [
+          "date",
+          "description"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
       "IFormFile": {
         "type": "string",
         "format": "binary"
@@ -5310,6 +6287,65 @@
               "type": "string",
               "format": "uuid"
             }
+          }
+        }
+      },
+      "LocationDetail": {
+        "required": [
+          "id",
+          "code",
+          "name",
+          "isActive",
+          "isDefault",
+          "seedKey",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "seedKey": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "LocationInput": {
+        "required": [
+          "code",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -5796,6 +6832,35 @@
           }
         }
       },
+      "PagedListOfLocationDetail": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LocationDetail"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "PagedListOfNotificationDto": {
         "required": [
           "items",
@@ -5896,6 +6961,35 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/TenantRow"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PagedListOfWorkCenterDetail": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkCenterDetail"
             }
           },
           "page": {
@@ -6700,6 +7794,21 @@
           }
         }
       },
+      "Shift": {
+        "required": [
+          "start",
+          "end"
+        ],
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "string"
+          },
+          "end": {
+            "type": "string"
+          }
+        }
+      },
       "SplitPreviewRequest": {
         "required": [
           "installments",
@@ -7142,6 +8251,91 @@
             ]
           }
         }
+      },
+      "Weekday": {
+        "enum": [
+          "Sunday",
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday"
+        ]
+      },
+      "WorkCenterDetail": {
+        "required": [
+          "id",
+          "name",
+          "line",
+          "shifts",
+          "hoursPerDay",
+          "calendarId",
+          "isActive",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "line": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "shifts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Shift"
+            }
+          },
+          "hoursPerDay": {
+            "type": "number",
+            "format": "double"
+          },
+          "calendarId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "WorkCenterInput": {
+        "required": [
+          "name",
+          "line",
+          "shifts"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "line": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "shifts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Shift"
+            }
+          }
+        }
       }
     }
   },
@@ -7178,6 +8372,12 @@
     },
     {
       "name": "Terceiros"
+    },
+    {
+      "name": "Produ\u00E7\u00E3o"
+    },
+    {
+      "name": "Estoque"
     },
     {
       "name": "Financeiro"

@@ -5,7 +5,7 @@
 | ID | CAD-03 |
 | Título | Locais de estoque com local padrão, centros de trabalho com horas por dia derivadas dos turnos, calendário padrão do tenant com feriados e paradas, contrato de capacidade diária e ação `delete` em `inventory` e `production` |
 | Tamanho | M (re-estimada: o backlog dizia P; são dois módulos, o calendário com feriados sugeridos e o contrato de capacidade usado pelo planejamento) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-EST-2 · R-PLN-1 · R-SEC-5 · R-PRP-1 |
 | Dependências | FND-09d (moldes, `RowsEditor`, `TimeInput`); Fase 0 (FND-06, FND-06c, FND-07, FND-09c, FND-14) |
 | Bloqueia | CAD-02a (schema `inventory` e `inventory.delete`), CAD-04a (centro de trabalho padrão do cargo), MIG-01c (locais), ENG-01, EST-01, PLN-01 |
@@ -102,23 +102,23 @@ Como **supervisor de produção e almoxarife**, quero **cadastrar os locais de e
 - Nenhum ponto em aberto.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
-- [ ] Migrations criadas (schemas `inventory` e `production`, não destrutivas); seeds idempotentes (local e calendário padrão) e `delete` no catálogo.
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Telas com estados de carregando, vazio, vazio filtrado e erro.
-- [ ] Ajuda das três telas escrita; teste de cobertura passando.
-- [ ] Padrões comuns dos cadastros e próximos passos aplicados.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` conferido; fixture "planejamento-base" documentada; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
+- [x] Migrations criadas (schemas `inventory` e `production`, não destrutivas); seeds idempotentes (local e calendário padrão) e `delete` no catálogo.
+- [x] Permissões só do `ModuleCatalog`.
+- [x] Telas com estados de carregando, vazio, vazio filtrado e erro.
+- [x] Ajuda das três telas escrita; teste de cobertura passando.
+- [x] Padrões comuns dos cadastros e próximos passos aplicados.
+- [x] Auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` conferido; fixture "planejamento-base" documentada; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `delete` em `inventory` e `production` no `ModuleCatalog`.
-- [ ] `Location` (Inventory) e `WorkCenter`, `Calendar`, `CalendarException` (Production), com as regras de turno, padrão e uso.
-- [ ] `IWorkCenterCapacity` (por id) e `IWorkCenters` em `Production.Contracts`; `ILocations` em `Inventory.Contracts`.
-- [ ] Gerador de feriados nacionais com testes; seeds do local e do calendário padrão.
-- [ ] Endpoints, telas e ajuda; fixture "planejamento-base".
+- [x] `delete` em `inventory` e `production` no `ModuleCatalog`.
+- [x] `Location` (Inventory) e `WorkCenter`, `Calendar`, `CalendarException` (Production), com as regras de turno, padrão e uso.
+- [x] `IWorkCenterCapacity` (por id) e `IWorkCenters` em `Production.Contracts`; `ILocations` em `Inventory.Contracts`.
+- [x] Gerador de feriados nacionais com testes; seeds do local e do calendário padrão.
+- [x] Endpoints, telas e ajuda; fixture "planejamento-base".
 
 ## Quality gates
 - Agentes previstos: @dev, @qa.
@@ -151,3 +151,4 @@ Checklist do @po (Pax), 18/10/2026.
 | 18/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 18/10/2026 | 0.3 | Decisões do PO (D1, D10, tabela 1.1) e ADR 0016; ordem 7 do Marco B | River (SM) |
 | 18/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 19/10/2026 | 1.0 | Implementada. Desvios: validação responde 422 (convenção da API), não 400; a entidade da exceção se chama `CalendarExceptionDay` (regra CA1711), a tabela continua `calendar_exceptions`; dias úteis com o enum `Weekday` em texto; Carnaval sugerido na segunda e na terça; extras: nome do centro único e `GET /work-centers/suggested-shifts` para os turnos do último centro. Fixture "planejamento-base": `tests/BemAqui.Integration.Tests/Production/PlanningBase.cs` (calendário próprio seg–sex, feriado 20/11/2026, parada de 4 h em 18/11/2026, Corte 8,00 h e Montagem 8,80 h) | @dev |
