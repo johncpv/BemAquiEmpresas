@@ -5,7 +5,7 @@
 | ID | CAD-02b |
 | Título | Fator de conversão de unidade por item (ex.: compra em kg, consumo em m²), serviço `IUnitConversion` e de-para do código e da unidade do fornecedor |
 | Tamanho | M (quebra da CAD-02) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-EST-3 · R-FIS-5 (de-para de itens do fornecedor, preparação) · R-PRP-3 · R-SEC-5 |
 | Dependências | CAD-02a (itens e unidades), CAD-01a (fornecedores), FND-09d (`RowsEditor`, `Combobox`) |
 | Bloqueia | MIG-01c (códigos do fornecedor do Dolibarr), EST-01, CMP-03, CMP-04, FIS-04, ENG-02 |
@@ -87,22 +87,22 @@ Como **almoxarife e comprador**, quero **dizer quanto vale cada unidade de compr
 - Nenhum ponto em aberto.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
-- [ ] Migration criada (não destrutiva).
-- [ ] Permissões usadas só do `ModuleCatalog`.
-- [ ] Abas com estados de carregando, vazio e erro.
-- [ ] Ajuda das abas escrita; teste de cobertura passando.
-- [ ] Padrões e próximo passo propositivos avaliados.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado (precisão do fator); story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
+- [x] Migration criada (não destrutiva).
+- [x] Permissões usadas só do `ModuleCatalog`.
+- [x] Abas com estados de carregando, vazio e erro.
+- [x] Ajuda das abas escrita; teste de cobertura passando.
+- [x] Padrões e próximo passo propositivos avaliados.
+- [x] Auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` atualizado (precisão do fator); story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `ItemUnitConversion` e `ItemSupplierCode` com as regras de par e unicidade.
-- [ ] `UnitConverter` (Domain) + `IUnitConversion` e `IItemSupplierCodes` em `Inventory.Contracts`.
-- [ ] Endpoints em `/api/v1/inventory/items/{id}/conversions` e `/supplier-codes`.
-- [ ] Abas Conversões e Fornecedores; ajuda.
+- [x] `ItemUnitConversion` e `ItemSupplierCode` com as regras de par e unicidade.
+- [x] `UnitConverter` (Domain) + `IUnitConversion` e `IItemSupplierCodes` em `Inventory.Contracts`.
+- [x] Endpoints em `/api/v1/inventory/items/{id}/conversions` e `/supplier-codes`.
+- [x] Abas Conversões e Fornecedores; ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, @qa.
@@ -136,3 +136,4 @@ Checklist do @po (Pax), 18/10/2026.
 | 18/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 18/10/2026 | 0.3 | Decisões do PO (D1, tabela 1.1) e correções da revisão pré-Fase 1 (§2.4, §2.5); ordem 9 do Marco B | River (SM) |
 | 18/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 19/10/2026 | 1.0 | Implementada. Desvios: validação e terceiro sem papel Fornecedor respondem 422 (convenção da API), não 400; as abas usam lista e painel lateral, não o `RowsEditor` (cada linha tem verbo próprio, "Salvar conversão"); o histórico de cada conversão e de cada código fica no painel dela (o histórico da aba do item mostra o item); o terceiro com código de fornecedor passa a não ser excluído (`IPartyUsageProvider`), só inativado; o `Convert` responde 409 `unit_conversion_missing` | @dev |

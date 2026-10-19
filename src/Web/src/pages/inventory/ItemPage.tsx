@@ -11,14 +11,17 @@ import { NextSteps } from '@/components/ui/next-steps'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Tag } from '@/components/ui/tag'
+import { useUrlTab } from '@/components/ui/url-tab'
 import { UrlTabs } from '@/components/ui/url-tabs'
 import { Can } from '@/pages/ModuleGate'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { TYPE_LABELS } from './item-labels'
+import { ItemConversions } from './ItemConversions'
 import { ItemDataForm } from './ItemDataForm'
+import { ItemSupplierCodes } from './ItemSupplierCodes'
 
-/** Item (CAD-02a, molde "detalhe com abas"): Dados e Histórico de alterações; Conversões e Fornecedores entram com a CAD-02b. */
+/** Item (CAD-02a, molde "detalhe com abas"): Dados, Conversões e Fornecedores (CAD-02b) e Histórico de alterações. */
 export function ItemPage() {
   const { id } = useParams({ strict: false }) as { id: string }
   const search = useSearch({ strict: false }) as Record<string, unknown>
@@ -27,6 +30,9 @@ export function ItemPage() {
   const query = useGetItem(id)
   const canEdit = useCan('inventory.edit')
   const [steps, setSteps] = useState(search.novo === '1')
+  const [, setTab] = useUrlTab('dados')
+  const [addingConversion, setAddingConversion] = useState(false)
+  const [addingCode, setAddingCode] = useState(false)
 
   if (query.isPending) return <div className="space-y-3"><Skeleton className="h-10 w-2/3" /><Skeleton className="h-96" /></div>
   if (query.isError || !query.data) {
@@ -71,16 +77,19 @@ export function ItemPage() {
           </div>
         </div>
       </PageHeading>
-      {steps ? (
+      {steps && canEdit ? (
         <div className="mb-4">
           <NextSteps onDismiss={() => setSteps(false)} steps={[
-            { label: 'Cadastrar outro item', onSelect: () => void navigate({ to: '/app/estoque/itens/novo' }) },
+            { label: 'Cadastrar conversão', onSelect: () => { setTab('conversoes'); setAddingConversion(true) } },
+            { label: 'Vincular código do fornecedor', onSelect: () => { setTab('fornecedores'); setAddingCode(true) } },
             { label: 'Duplicar este item', onSelect: duplicate },
           ]} />
         </div>
       ) : null}
       <UrlTabs label="Seções do item" fallback="dados" tabs={[
         { id: 'dados', label: 'Dados', keepMounted: true, content: <ItemDataForm key={item.id} item={item} canEdit={canEdit} onSaved={setItem} /> },
+        { id: 'conversoes', label: 'Conversões', content: <ItemConversions item={item} canEdit={canEdit} adding={addingConversion} onAddingChange={setAddingConversion} /> },
+        { id: 'fornecedores', label: 'Fornecedores', content: <ItemSupplierCodes item={item} canEdit={canEdit} adding={addingCode} onAddingChange={setAddingCode} /> },
         { id: 'historico', label: 'Histórico de alterações', content: <RecordHistory entity="Item" id={item.id} /> },
       ]} />
     </>

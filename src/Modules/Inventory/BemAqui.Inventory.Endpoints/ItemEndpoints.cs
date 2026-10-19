@@ -17,6 +17,7 @@ internal static partial class ItemEndpoints
         MapItems(inventory.MapGroup("/items"));
         MapUnits(inventory.MapGroup("/units"));
         MapCategories(inventory.MapGroup("/categories"));
+        MapItemLinks(inventory);
         inventory.MapGet("/warranty-defaults", async (WarrantyDefaultService service, CancellationToken ct) => Results.Ok(await service.ListAsync(ct)))
             .RequirePermission("inventory.view").WithName("ListWarrantyDefaults").Produces<IReadOnlyList<WarrantyDefaultDetail>>();
         inventory.MapPut("/warranty-defaults/{itemType}", async (ItemType itemType, WarrantyDefaultInput input, WarrantyDefaultService service, CancellationToken ct) =>

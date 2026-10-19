@@ -115,3 +115,77 @@ test.describe('itens (CAD-02a)', () => {
     await expect(page.getByRole('option', { name: /LUV-01 Luva de raspa/ })).toBeVisible()
   })
 })
+
+const M2 = { id: '0199f0e0-0000-7000-8000-0000000000b3', code: 'M2', name: 'Metro quadrado', isActive: true, seedKey: 'm2', itemCount: 0 }
+const CHAPA = {
+  id: '0199f0e0-0000-7000-8000-0000000000d1', type: 'RawMaterial', code: 'CH-2MM', name: 'Chapa de aço 2 mm', unitId: KG.id, unitCode: 'KG', categoryId: null, categoryName: null, ncm: '72085100', cest: null,
+  origin: 0, minStock: 0, tracksLot: true, tracksSerial: false, warrantyMonths: null, averageCost: 0, isActive: true, importSource: null, createdAt: '2026-10-19T12:00:00Z',
+}
+
+/** Item pronto, com as rotas das abas Conversões e Fornecedores (CAD-02b). */
+function linksApi() {
+  const conversions: Record<string, unknown>[] = []
+  const posted: unknown[] = []
+  const code = (id: string) => [UN, KG, M2].find((u) => u.id === id)?.code
+  const api: Record<string, (r: Route) => Promise<void> | void> = {
+    ...itemsApi().api,
+    'GET /api/v1/inventory/units': (r) => json(r, [UN, KG, M2]),
+    'GET /api/v1/inventory/items/*': (r) => json(r, CHAPA),
+    'GET /api/v1/inventory/items/*/conversions': (r) => json(r, conversions),
+    'POST /api/v1/inventory/items/*/conversions': (r) => {
+      const b = r.request().postDataJSON() as { fromUnitId: string; toUnitId: string; factor: number }
+      posted.push(b)
+      const c = { ...b, id: crypto.randomUUID(), itemId: CHAPA.id, fromUnitCode: code(b.fromUnitId), toUnitCode: code(b.toUnitId) }
+      conversions.push(c)
+      return json(r, c, 201)
+    },
+    'GET /api/v1/inventory/items/*/supplier-codes': (r) => json(r, []),
+    'GET /api/v1/inventory/supplier-options': (r) => json(r, [{ id: '0199f0e0-0000-7000-8000-0000000000e9', name: 'Condomínio Sol', document: null }]),
+    'POST /api/v1/inventory/items/*/supplier-codes': (r) => json(r, { code: 'party_not_supplier', detail: 'Condomínio Sol não é fornecedor. Adicione o papel Fornecedor no cadastro.', errors: { partyId: ['Condomínio Sol não é fornecedor. Adicione o papel Fornecedor no cadastro.'] } }, 422),
+  }
+  return { api, posted }
+}
+
+test.describe('conversões e fornecedores do item (CAD-02b)', () => {
+  test('cadastra 1 M2 = 15,7 KG só pelo teclado e vê a prévia de 100 KG (CA 1)', async ({ page }) => {
+    const { api, posted } = linksApi()
+    await mockApi(page, api)
+    await page.goto(`/app/estoque/itens/${CHAPA.id}?aba=conversoes`)
+    await expect(page.getByText('Este item não tem conversões.')).toBeVisible()
+    await page.getByRole('button', { name: 'Nova conversão' }).focus()
+    await page.keyboard.press('Enter')
+    const panel = page.getByRole('dialog', { name: 'Nova conversão' })
+    await expect(panel.getByRole('combobox', { name: /Para/ })).toHaveValue(KG.id)
+    await panel.getByRole('combobox', { name: /De \(1 unidade de\)/ }).focus()
+    await page.keyboard.press('ArrowDown')
+    await page.keyboard.press('ArrowDown')
+    await page.keyboard.press('ArrowDown')
+    await expect(panel.getByRole('combobox', { name: /De \(1 unidade de\)/ })).toHaveValue(M2.id)
+    await page.keyboard.press('Tab')
+    await page.keyboard.press('Tab')
+    await page.keyboard.type('15,7')
+    await expect(panel.getByText(/Converter 100 KG em M2 → 6,3694/)).toBeVisible()
+    await noSeriousViolations(page)
+    await panel.getByRole('button', { name: 'Salvar conversão' }).focus()
+    await page.keyboard.press('Enter')
+    await expect(page.getByText('Conversão salva')).toBeVisible()
+    expect(posted[0]).toEqual({ fromUnitId: M2.id, toUnitId: KG.id, factor: 15.7 })
+    await expect(page.getByRole('button', { name: '1 M2 = 15,7 KG' })).toBeVisible()
+  })
+
+  test('terceiro sem o papel Fornecedor mostra o motivo e leva ao cadastro (CA 9)', async ({ page }) => {
+    const { api } = linksApi()
+    await mockApi(page, api)
+    await page.goto(`/app/estoque/itens/${CHAPA.id}?aba=fornecedores`)
+    await expect(page.getByText('Nenhum código de fornecedor.')).toBeVisible()
+    await page.getByRole('button', { name: 'Vincular fornecedor' }).click()
+    const panel = page.getByRole('dialog', { name: 'Vincular fornecedor' })
+    await panel.getByRole('combobox', { name: /Fornecedor/ }).click()
+    await page.getByPlaceholder('Digite para buscar').fill('Cond')
+    await page.getByRole('option', { name: /Condomínio Sol/ }).click()
+    await panel.getByRole('textbox', { name: /Código do fornecedor/ }).fill('7781')
+    await panel.getByRole('button', { name: 'Salvar código do fornecedor' }).click()
+    await expect(panel.getByText('Condomínio Sol não é fornecedor. Adicione o papel Fornecedor no cadastro.')).toBeVisible()
+    await expect(panel.getByRole('link', { name: 'Abrir o cadastro do terceiro' })).toHaveAttribute('href', '/app/cadastros/terceiros/0199f0e0-0000-7000-8000-0000000000e9')
+  })
+})

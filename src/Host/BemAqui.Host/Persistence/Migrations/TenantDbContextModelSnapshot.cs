@@ -1597,6 +1597,116 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("item_categories", "inventory");
                 });
 
+            modelBuilder.Entity("BemAqui.Inventory.Domain.ItemSupplierCode", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("ConversionFactor")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)")
+                        .HasColumnName("conversion_factor");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_id");
+
+                    b.Property<Guid>("PartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("party_id");
+
+                    b.Property<string>("SupplierCode")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("supplier_code");
+
+                    b.Property<string>("SupplierUnit")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("supplier_unit");
+
+                    b.HasKey("Id")
+                        .HasName("pk_item_supplier_codes");
+
+                    b.HasIndex("ItemId")
+                        .HasDatabaseName("ix_item_supplier_codes_item_id");
+
+                    b.HasIndex("PartyId", "SupplierCode")
+                        .IsUnique()
+                        .HasDatabaseName("ix_item_supplier_codes_party_code")
+                        .HasFilter("NOT is_deleted");
+
+                    b.ToTable("item_supplier_codes", "inventory");
+                });
+
+            modelBuilder.Entity("BemAqui.Inventory.Domain.ItemUnitConversion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<decimal>("Factor")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)")
+                        .HasColumnName("factor");
+
+                    b.Property<Guid>("FromUnitId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("from_unit_id");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_id");
+
+                    b.Property<Guid>("ToUnitId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("to_unit_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_item_unit_conversions");
+
+                    b.HasIndex("FromUnitId")
+                        .HasDatabaseName("ix_item_unit_conversions_from_unit_id");
+
+                    b.HasIndex("ToUnitId")
+                        .HasDatabaseName("ix_item_unit_conversions_to_unit_id");
+
+                    b.HasIndex("ItemId", "FromUnitId", "ToUnitId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_item_unit_conversions_pair")
+                        .HasFilter("NOT is_deleted");
+
+                    b.ToTable("item_unit_conversions", "inventory");
+                });
+
             modelBuilder.Entity("BemAqui.Inventory.Domain.Location", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2519,6 +2629,40 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasForeignKey("ParentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_item_categories_item_categories_parent_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Inventory.Domain.ItemSupplierCode", b =>
+                {
+                    b.HasOne("BemAqui.Inventory.Domain.Item", null)
+                        .WithMany()
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_item_supplier_codes_items_item_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Inventory.Domain.ItemUnitConversion", b =>
+                {
+                    b.HasOne("BemAqui.Inventory.Domain.MeasureUnit", null)
+                        .WithMany()
+                        .HasForeignKey("FromUnitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_item_unit_conversions_units_from_unit_id");
+
+                    b.HasOne("BemAqui.Inventory.Domain.Item", null)
+                        .WithMany()
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_item_unit_conversions_items_item_id");
+
+                    b.HasOne("BemAqui.Inventory.Domain.MeasureUnit", null)
+                        .WithMany()
+                        .HasForeignKey("ToUnitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_item_unit_conversions_units_to_unit_id");
                 });
 
             modelBuilder.Entity("BemAqui.Migrations.Domain.ImportItem", b =>
