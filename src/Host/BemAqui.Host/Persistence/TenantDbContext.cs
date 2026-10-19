@@ -81,6 +81,10 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<Item> Items => Set<Item>();
 
+    public DbSet<ItemUnitConversion> ItemUnitConversions => Set<ItemUnitConversion>();
+
+    public DbSet<ItemSupplierCode> ItemSupplierCodes => Set<ItemSupplierCode>();
+
     public DbSet<WorkCenter> WorkCenters => Set<WorkCenter>();
 
     public DbSet<Calendar> Calendars => Set<Calendar>();

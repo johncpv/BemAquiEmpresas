@@ -60,3 +60,32 @@ internal sealed class ItemConfiguration : IEntityTypeConfiguration<Item>
         b.HasIndex(e => new { e.Type, e.IsActive }).HasDatabaseName("ix_items_type_active");
     }
 }
+
+internal sealed class ItemUnitConversionConfiguration : IEntityTypeConfiguration<ItemUnitConversion>
+{
+    public void Configure(EntityTypeBuilder<ItemUnitConversion> b)
+    {
+        b.ToTable("item_unit_conversions", InventorySchema.Name);
+        b.Property(e => e.Factor).HasPrecision(18, 6);
+        b.HasOne<Item>().WithMany().HasForeignKey(e => e.ItemId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne<MeasureUnit>().WithMany().HasForeignKey(e => e.FromUnitId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne<MeasureUnit>().WithMany().HasForeignKey(e => e.ToUnitId).OnDelete(DeleteBehavior.Restrict);
+        // O par na mesma ordem é único no item; a ordem inversa é conferida no serviço (CA 2).
+        b.HasIndex(e => new { e.ItemId, e.FromUnitId, e.ToUnitId }).IsUnique().HasFilter("NOT is_deleted").HasDatabaseName(ItemConversionService.PairIndex);
+    }
+}
+
+internal sealed class ItemSupplierCodeConfiguration : IEntityTypeConfiguration<ItemSupplierCode>
+{
+    public void Configure(EntityTypeBuilder<ItemSupplierCode> b)
+    {
+        b.ToTable("item_supplier_codes", InventorySchema.Name);
+        b.Property(e => e.SupplierCode).HasMaxLength(60);
+        b.Property(e => e.SupplierUnit).HasMaxLength(10);
+        b.Property(e => e.ConversionFactor).HasPrecision(18, 6);
+        b.HasOne<Item>().WithMany().HasForeignKey(e => e.ItemId).OnDelete(DeleteBehavior.Restrict);
+        // Um código por fornecedor entre os não excluídos (CA 10); sem FK para parties (outro módulo, ADR 0006).
+        b.HasIndex(e => new { e.PartyId, e.SupplierCode }).IsUnique().HasFilter("NOT is_deleted").HasDatabaseName(ItemSupplierCodeService.CodeIndex);
+        b.HasIndex(e => e.ItemId).HasDatabaseName("ix_item_supplier_codes_item_id");
+    }
+}

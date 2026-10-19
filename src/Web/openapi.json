@@ -4245,6 +4245,38 @@
         }
       }
     },
+    "/api/v1/inventory/supplier-options": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "ListSupplierOptions",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SupplierOption"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/inventory/warranty-defaults": {
       "get": {
         "tags": [
@@ -4304,6 +4336,314 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/items/{itemId}/conversions": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "ListItemConversions",
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ConversionDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "CreateItemConversion",
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConversionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversionDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/items/{itemId}/conversions/{conversionId}": {
+      "put": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "UpdateItemConversion",
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "conversionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConversionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversionDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "DeleteItemConversion",
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "conversionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/items/{itemId}/supplier-codes": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "ListItemSupplierCodes",
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SupplierCodeDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "CreateItemSupplierCode",
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupplierCodeInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierCodeDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/items/{itemId}/supplier-codes/{codeId}": {
+      "put": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "UpdateItemSupplierCode",
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "codeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupplierCodeInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierCodeDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "DeleteItemSupplierCode",
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "codeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -6089,6 +6429,68 @@
           },
           "receivesBilling": {
             "type": "boolean"
+          }
+        }
+      },
+      "ConversionDetail": {
+        "required": [
+          "id",
+          "itemId",
+          "fromUnitId",
+          "fromUnitCode",
+          "toUnitId",
+          "toUnitCode",
+          "factor"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fromUnitId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fromUnitCode": {
+            "type": "string"
+          },
+          "toUnitId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "toUnitCode": {
+            "type": "string"
+          },
+          "factor": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "ConversionInput": {
+        "required": [
+          "fromUnitId",
+          "toUnitId",
+          "factor"
+        ],
+        "type": "object",
+        "properties": {
+          "fromUnitId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "toUnitId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "factor": {
+            "type": "number",
+            "format": "double"
           }
         }
       },
@@ -8902,6 +9304,110 @@
           "baseDate": {
             "type": "string",
             "format": "date"
+          }
+        }
+      },
+      "SupplierCodeDetail": {
+        "required": [
+          "id",
+          "itemId",
+          "partyId",
+          "partyName",
+          "partyDocument",
+          "partyDeleted",
+          "supplierCode",
+          "supplierUnit",
+          "conversionFactor"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "partyDocument": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "partyDeleted": {
+            "type": "boolean"
+          },
+          "supplierCode": {
+            "type": "string"
+          },
+          "supplierUnit": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "conversionFactor": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "SupplierCodeInput": {
+        "required": [
+          "partyId",
+          "supplierCode",
+          "supplierUnit",
+          "conversionFactor"
+        ],
+        "type": "object",
+        "properties": {
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "supplierCode": {
+            "type": "string"
+          },
+          "supplierUnit": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "conversionFactor": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "SupplierOption": {
+        "required": [
+          "id",
+          "name",
+          "document"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "document": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

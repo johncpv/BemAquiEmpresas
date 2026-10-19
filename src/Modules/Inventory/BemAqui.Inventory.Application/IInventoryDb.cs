@@ -17,6 +17,10 @@ public interface IInventoryDb
 
     DbSet<Item> Items { get; }
 
+    DbSet<ItemUnitConversion> ItemUnitConversions { get; }
+
+    DbSet<ItemSupplierCode> ItemSupplierCodes { get; }
+
     /// <summary>Para trocar o local padrão em dois passos numa transação (o índice único parcial é checado a cada comando).</summary>
     DatabaseFacade Database { get; }
 

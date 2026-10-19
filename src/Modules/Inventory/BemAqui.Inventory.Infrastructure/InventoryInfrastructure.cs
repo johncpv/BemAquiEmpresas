@@ -3,6 +3,7 @@ using BemAqui.BuildingBlocks.Tenancy;
 using BemAqui.Inventory.Application;
 using BemAqui.Inventory.Contracts;
 using BemAqui.Inventory.Domain;
+using BemAqui.Parties.Contracts;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -23,6 +24,12 @@ public static class InventoryInfrastructure
         services.TryAddScoped<CategoryService>();
         services.TryAddScoped<WarrantyDefaultService>();
         services.TryAddScoped<IItems, ItemsContract>();
+        // Conversões e códigos do fornecedor (CAD-02b).
+        services.TryAddScoped<ItemConversionService>();
+        services.TryAddScoped<IUnitConversion>(sp => sp.GetRequiredService<ItemConversionService>());
+        services.TryAddScoped<ItemSupplierCodeService>();
+        services.TryAddScoped<IItemSupplierCodes>(sp => sp.GetRequiredService<ItemSupplierCodeService>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IPartyUsageProvider, ItemSupplierCodeService>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ITenantSeeder, UnitSeeder>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ITenantSeeder, WarrantyDefaultSeeder>());
         services.AddAuditableEntity<Location>("inventory");
@@ -30,6 +37,8 @@ public static class InventoryInfrastructure
         services.AddAuditableEntity<ItemCategory>("inventory");
         services.AddAuditableEntity<WarrantyDefault>("inventory");
         services.AddAuditableEntity<Item>("inventory");
+        services.AddAuditableEntity<ItemUnitConversion>("inventory");
+        services.AddAuditableEntity<ItemSupplierCode>("inventory");
         return services;
     }
 }

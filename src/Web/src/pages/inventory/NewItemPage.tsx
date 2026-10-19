@@ -1,6 +1,6 @@
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
-import { createItem, useGetItem } from '@/api/generated/bemaqui'
+import { createItem, useGetItem, useListWarrantyDefaults } from '@/api/generated/bemaqui'
 import type { ItemDetail } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { FormError } from '@/components/form/form'
@@ -15,7 +15,10 @@ import { ItemFields } from './ItemFields'
 export function NewItemPage() {
   const { duplicar } = useSearch({ strict: false }) as { duplicar?: string }
   const source = useGetItem(duplicar ?? '', { query: { enabled: !!duplicar } })
-  if (duplicar && source.isPending) return <Skeleton className="h-96 max-w-3xl" />
+  // A garantia padrão precisa estar carregada antes da escolha do tipo, que a usa como sugestão (CA 12).
+  const warranties = useListWarrantyDefaults()
+  if ((duplicar && source.isPending) || warranties.isPending) return <Skeleton className="h-96 max-w-3xl" />
+  if (warranties.isError) return <ErrorState onRetry={() => warranties.refetch()} />
   if (duplicar && (source.isError || !source.data)) return <ErrorState title="Não foi possível carregar o item a duplicar." onRetry={() => source.refetch()} />
   return <NewItemForm key={duplicar ?? 'novo'} source={duplicar ? source.data : undefined} />
 }
