@@ -10,6 +10,9 @@ public static class HostEvents
     public static void Register(IntegrationEventRegistry events)
     {
         ArgumentNullException.ThrowIfNull(events);
-        events.AddEmailEvents().AddEvent<UserActivated>().AddEvent<PayrollChargesChanged>();
+        events.AddEmailEvents().AddEvent<UserActivated>()
+            // CAD-06 → CAD-04a: o % de encargos recalcula o custo-hora dos cargos.
+            .AddHandler<PayrollChargesChanged, BemAqui.HR.Application.PayrollChargesChangedHandler>()
+            .AddEvent<BemAqui.HR.Contracts.HourlyCostChanged>();
     }
 }

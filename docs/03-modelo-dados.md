@@ -63,11 +63,11 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 - As condições de pagamento pertencem ao Finance (`finance.payment_terms`, ADR 0016)
 
 ## hr
-- **job_positions** (CAD-04a): name, cbo, salary_min, salary_max, reference_salary (padrão na média da faixa), monthly_hours (semanais × 5, editável), hourly_cost (numeric(18,6), calculado/ajustável), hourly_cost_manual, work_center_id (padrão), is_active. Faixa e salário de referência são `[PersonalData]` e só saem em `/sensitive`
+- **job_positions** (CAD-04a): name, cbo, salary_min, salary_max, reference_salary (padrão na média da faixa), monthly_hours (semanais × 5, editável), hourly_cost (numeric(18,6), calculado/ajustável), hourly_cost_manual, default_work_center_id (padrão, só o id de `production.work_centers`), work_schedule_id, is_active; nome único entre os não excluídos; soft delete. Faixa e salário de referência são `[PersonalData]` e só saem em `/sensitive`
 - **employees** (CAD-04b, base): name, registration (matrícula, texto opcional, única), cpf, rg, pis, ctps_number, ctps_series, voter_id, birth_date, zip, street, number, complement, district, city, state, phone, email, admission_date, termination_date, job_position_id, base_salary, work_schedule_id, union_id, status (Active/Terminated; OnLeave na CAD-04c). **CAD-04c:** bank_code, bank_agency, bank_account, bank_account_type, pix_key_type, pix_key, transport_voucher, insalubrity_pct (10/20/40), hazard_pay, cnh_number, cnh_category, cnh_expiry, military_certificate. Campos pessoais `[PersonalData]`, só em `/sensitive`
 - **employee_dependents** (CAD-04c): employee_id, name, cpf (só quando ir_dependent), birth_date, kinship, ir_dependent, family_allowance
 - **employee_history**: employee_id, type (Salary/Position na CAD-04b; Leave na CAD-04c), effective_date, old_value, new_value, reason (Leave: até 200 caracteres, sem CID)
-- **work_schedules** (CAD-04a): name, weekly_hours, days (JSON com entradas/saídas), is_active, seed_key (seed "44 h — seg a sex 08:00–17:48")
+- **work_schedules** (CAD-04a): name, weekly_hours, days (jsonb `[{weekday, start, end, breakMinutes}]`, dia da semana ISO: 1 = segunda … 7 = domingo), is_active, seed_key (seed "44 h — seg a sex 08:00–17:48")
 - **unions** (CAD-04a): name, document (CNPJ), base_month, is_active
 - **time_entries**: employee_id, at, type (In/Out/BreakStart/BreakEnd), source (PWA/Manual), lat, lng, justification, approved_by
 - **timesheets**: employee_id, period (ano-mês), worked_hours, overtime_hours, absences, hour_bank_balance, status (Open/Closed)

@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { getGetTenantParametersQueryKey, savePayrollCharges, savePricingMode, useGetTenantParameters } from '@/api/generated/bemaqui'
+import { getGetTenantParametersQueryKey, savePayrollCharges, savePricingMode, useGetPositionsSummary, useGetTenantParameters } from '@/api/generated/bemaqui'
 import { PricingMode, type TenantParametersDto } from '@/api/generated/model'
 import { RecordHistory } from '@/components/history/RecordHistory'
 import { ToggleGroup } from '@/components/form/choice'
@@ -9,6 +9,7 @@ import { PercentInput } from '@/components/form/inputs'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { PageHeading } from '@/shell/PageHeading'
+import { useCan } from '@/pages/use-can'
 import { SettingsTabs } from '../SettingsTabs'
 import { useCanSettings } from '../use-can-settings'
 
@@ -50,6 +51,10 @@ function ChargesSection({ params, canEdit }: { params: TenantParametersDto; canE
   const pct = value === null ? NaN : Number(value)
   const error = value === null ? 'Informe o percentual.' : pct < 0 || pct > 200 ? 'Informe um percentual entre 0 e 200, com até 2 casas.' : undefined
   const dirty = pct !== params.payrollChargesPct
+  // Com hr.view, o diálogo diz quantos cargos mudam (CAD-04a CA 7); sem, o texto genérico.
+  const canHr = useCan('hr.view')
+  const positions = useGetPositionsSummary({ query: { enabled: canHr } })
+  const impact = canHr && typeof positions.data?.calculated === 'number' ? (positions.data.calculated === 1 ? '1 cargo será recalculado.' : positions.data.calculated + ' cargos serão recalculados.') : 'Os cargos com custo-hora calculado serão recalculados.'
 
   return (
     <FormSection title="Encargos" description="Usado no custo-hora dos cargos (RH) e no custo das ordens de serviço.">
@@ -59,7 +64,7 @@ function ChargesSection({ params, canEdit }: { params: TenantParametersDto; canE
       {canEdit ? (
         <div className="flex justify-end">
           <ConfirmDialog verb="Salvar % de encargos" done="% de encargos salvo" title="Salvar % de encargos?"
-            description="Os cargos com custo-hora calculado serão recalculados."
+            description={impact}
             onConfirm={async () => saved(await savePayrollCharges({ pct }))}
             trigger={<button type="button" disabled={!dirty || !!error} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60">Salvar % de encargos</button>} />
         </div>
