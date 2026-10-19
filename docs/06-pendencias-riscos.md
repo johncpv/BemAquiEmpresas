@@ -23,6 +23,7 @@ Regra: item pendente não é implementado até ter decisão registrada aqui (dat
 | P-15 | Retenções (ISS/INSS/IR) sobre serviço tomado de instalador terceirizado | COM-06, FIN-02 | Contadora | Fase 2 | 16/10/2026 (John): **opcional**. O título a pagar tem campos de retenção, preenchidos quando aplicável, sem cálculo automático no MVP |
 | P-16 | Rateio de frete/IPI/ICMS-ST no custo de entrada do material | EST-01, CMP-04 | Contadora | Fase 3 | 16/10/2026 (John): **sim**, frete e IPI entram no custo de entrada (rateio proporcional ao valor dos itens) |
 | P-17 | DRE gerencial por competência ou por caixa | FIN-08 | Contadora/PO | Fase 4 | 16/10/2026 (John): **competência, pela data da venda** (receita na data da venda/emissão, despesa na data do documento) |
+| P-18 | Mensagens do sistema (sucesso, alerta, validação, erro) num aviso no meio da tela, no lugar do toast no rodapé. Hoje o toast "Terceiro salvo" aparece no canto inferior, sem destaque e escondido atrás do dock. Pedido do PO em 19/10/2026, a fazer no momento certo; muda o padrão da FND-09c e pede ADR (WCAG: sucesso que some sozinho não pode bloquear; erro precisa de foco e de ação) | — (padrão de UI de todas as telas) | PO/UX | Antes das telas da Fase 2 | Aberta |
 
 ## Riscos
 
