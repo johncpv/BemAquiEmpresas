@@ -62,5 +62,6 @@ public sealed partial class PartyService
         p.StateRegistration, p.MunicipalRegistration, p.TaxRegime, p.Email, p.Phone, p.Notes, p.IsActive,
         p.Addresses.OrderBy(a => a.Kind).ThenByDescending(a => a.IsDefault).Select(ToDto).ToList(),
         p.Contacts.OrderByDescending(c => c.ReceivesBilling).ThenBy(c => c.Name).Select(ToDto).ToList(),
-        p.CreatedAt);
+        p.CreatedAt,
+        ImportSource: p.ImportSource);
 }

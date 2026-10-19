@@ -34,5 +34,7 @@ export const entityLabel = (entity: string) => ENTITY_LABELS[entity] ?? entity
 export function targetHref(type: string | null, id: string | null): string | undefined {
   if (!type || !id) return undefined
   if (type === 'party') return `/app/cadastros/terceiros/${id}`
+  if (type === 'bank_account') return `/app/financeiro/contas?conta=${id}`
+  if (type === 'payment_term') return `/app/financeiro/condicoes-de-pagamento/${id}`
   return undefined
 }

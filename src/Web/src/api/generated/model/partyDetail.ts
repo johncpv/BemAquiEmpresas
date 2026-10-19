@@ -36,4 +36,6 @@ export interface PartyDetail {
   contacts: PartyContactDto[];
   createdAt: string;
   defaultPaymentTerm?: null | PaymentTermRef;
+  /** @nullable */
+  importSource?: string | null;
 }

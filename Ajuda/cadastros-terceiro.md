@@ -25,3 +25,5 @@ Mostra e altera os dados do terceiro: documento, nomes, papéis, dados fiscais, 
 **O que é o regime tributário?** É a forma como o terceiro paga impostos (Simples Nacional, Lucro Presumido etc.). Ele influencia notas e custos; na dúvida, confira com a contadora.
 
 **Quem vê as alterações?** Toda alteração fica na aba **Histórico de alterações**, com quem fez e quando. Documento, e-mail e telefone aparecem mascarados no histórico.
+
+**O que é "Importado do Dolibarr"?** O terceiro veio da importação. Ao lado aparece a referência de origem (ex.: llx_societe:42), para conferir no Dolibarr enquanto ele estiver no ar.

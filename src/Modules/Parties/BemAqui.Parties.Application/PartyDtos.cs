@@ -27,7 +27,8 @@ public sealed record PartyDetail(
     IReadOnlyList<PartyAddressDto> Addresses,
     IReadOnlyList<PartyContactDto> Contacts,
     DateTimeOffset CreatedAt,
-    PaymentTermRef? DefaultPaymentTerm = null);
+    PaymentTermRef? DefaultPaymentTerm = null,
+    string? ImportSource = null);
 
 /// <summary>Condição padrão do terceiro, com o nome e se ainda está ativa (inativa continua aparecendo, com o chip "Inativa").</summary>
 public sealed record PaymentTermRef(Guid Id, string Name, bool IsActive);

@@ -1,4 +1,5 @@
 using BemAqui.Migrations.Application;
+using BemAqui.Migrations.Application.Loaders;
 using BemAqui.Migrations.Application.Snapshot;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,6 +18,11 @@ public static class MigrationInfrastructure
         services.TryAddScoped<StagingService>();
         services.TryAddScoped<ImportQueries>();
         services.TryAddSingleton<ISnapshotSourceFactory, SnapshotSourceFactory>();
+        // Cargas da MIG-01b, na ordem do Order: condições, contas, terceiros, contatos.
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IDolibarrLoader, PaymentTermsLoader>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IDolibarrLoader, BankAccountsLoader>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IDolibarrLoader, PartiesLoader>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IDolibarrLoader, ContactsLoader>());
         return services;
     }
 }

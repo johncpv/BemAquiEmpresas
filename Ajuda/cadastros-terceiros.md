@@ -21,3 +21,5 @@ Reúne num cadastro só os clientes, fornecedores, instaladores e transportadora
 **Por que a busca por parte do CPF não encontra nada?** Para evitar a busca de pessoas por pedaços do documento, o CPF só é encontrado inteiro. O CNPJ, que é público, aceita busca por parte.
 
 **O que significa "Sem documento"?** O terceiro foi salvo sem CPF ou CNPJ. Ele pode ser usado normalmente, mas não recebe nota fiscal nem boleto até o documento ser informado.
+
+**Os clientes do Dolibarr já estão aqui?** Depois da importação, sim: clientes e fornecedores do Dolibarr aparecem nesta lista, com a marca **Importado do Dolibarr** no detalhe. Registros do Dolibarr com o mesmo CNPJ viram um terceiro só, com todos os papéis. O que não entrou, e por quê, fica em Configurações → Importação do Dolibarr.

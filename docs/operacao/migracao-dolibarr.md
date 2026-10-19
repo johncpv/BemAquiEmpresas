@@ -32,6 +32,27 @@ Nomes do Dolibarr padrão. No `llx_societe`, o `idprof1` a `idprof4` da tela sã
 - **De-para (`--mapping`):** JSON `{ "maps": { "<nome>": { "<valor no Dolibarr>": "<valor no BemAqui>" } } }`. Os nomes dos mapas são definidos pelas cargas (MIG-01b e MIG-01c).
 - **Reexecução:** mesmo conteúdo sai como "sem alteração". Conteúdo mudou e o registro não foi editado no BemAqui: "atualizado". Editado no BemAqui depois da carga: "conflito", sem sobrescrever, com os dois valores.
 
+### Cargas da MIG-01b (`--entities payment-terms,bank-accounts,parties,contacts`)
+Rodam nesta ordem, porque o terceiro aponta para a condição padrão:
+
+| Entidade | Origem | Regras |
+|---|---|---|
+| `payment-terms` | `llx_c_payment_term` | De-para `payment-terms` (id → `seed_key` ou nome). Sem de-para: `nbjour` 0 liga ao "À vista" e 30 ao "30 dias". O resto é criado com uma parcela de 100% em `nbjour` dias. Regra de fim de mês (`type_cdr`) só gera aviso. |
+| `bank-accounts` | `llx_bank_account` | `courant` 2 = Caixa, o resto = Banco. O banco vem de `code_banque` ou do de-para `bank-codes`, e a agência de `code_guichet` ou de `bank-agencies`. Sem banco, a conta vai para erro e é cadastrada à mão. Entra sem saldo; `clos` = 1 entra inativa. |
+| `parties` | `llx_societe` | `client` 1/3 = Cliente, 2 = Cliente com "Prospect no Dolibarr"; `fournisseur` 1 = Fornecedor. Papéis especiais pelo de-para `special-roles` (id → `Installer`/`Carrier`) ou `special-role-categories` (categoria de fornecedor → papel). Documento do `idprof1` (`siren`): inválido vai para erro; ausente entra sem documento, PF se o tipo for `TE_PRIVATE`. O mesmo CNPJ na carga vira um terceiro só, com os dados do registro mais recente. CNPJ já cadastrado à mão é vinculado, sem sobrescrever. `status` 0 entra inativo. Notas em texto, com o prefixo da origem. Endereço com CEP, cidade e UF vira o de cobrança, com o bairro "Não informado" (o Dolibarr não tem bairro); sem eles, aviso. |
+| `contacts` | `llx_socpeople` | Só de terceiro importado e ativo. E-mail inválido entra vazio, com aviso. |
+
+Exemplo de de-para:
+```json
+{ "maps": {
+  "special-roles": { "57": "Installer" },
+  "special-role-categories": { "6": "Carrier" },
+  "payment-terms": { "1": "a-vista" },
+  "bank-codes": { "1": "077" },
+  "bank-agencies": { "1": "0001" }
+} }
+```
+
 ### O que não migra (decidido em 18/10/2026)
 - **Lançamentos e financeiro transacional:** `llx_facture*`, `llx_paiement*`, `llx_paiementfourn*`, `llx_bank`, `llx_product_stock`, `llx_product_batch`, `llx_product_lot`, `llx_stock_mouvement`, custo médio (`pmp`). O saldo inicial de estoque é digitado na EST-01 e o das contas na CAD-05b.
 - **Sem destino na Fase 1:** `llx_propal`, `llx_commande`, `llx_mrp_mo`, `llx_bom_bom`, `llx_projet`, usuários (`llx_user`: são convidados), funcionários (CAD-04b, por minimização), plano contábil (o gerencial vem do seed da CAD-05a), modos de pagamento (`llx_c_paiement`, Fase 2).

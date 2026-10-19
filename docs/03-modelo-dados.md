@@ -54,7 +54,7 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 - **email_logs** (schema `shared`, FND-08): to (`[PersonalData]`), template, subject, model (jsonb), status (Queued/Sent/Failed/Skipped), attempts, error, related_type, related_id, created_at, sent_at
 
 ## parties
-- **parties** (CAD-01a): kind (PF/PJ), document (opcional; único parcial `WHERE NOT is_deleted AND document IS NOT NULL`; `[PersonalData]`), legal_name, trade_name, state_registration, municipal_registration, tax_regime, email, phone, notes, is_active (CAD-01a); default_payment_term_id (CAD-05b, só o id de `finance.payment_terms`); import_source (MIG-01b)
+- **parties** (CAD-01a): kind (PF/PJ), document (opcional; único parcial `WHERE NOT is_deleted AND document IS NOT NULL`; `[PersonalData]`), legal_name, trade_name, state_registration, municipal_registration, tax_regime, email, phone, notes, is_active (CAD-01a); default_payment_term_id (CAD-05b, só o id de `finance.payment_terms`); import_source (MIG-01b, ex.: `dolibarr:llx_societe:42`, gravado só pelo `IPartyImport`)
 - **party_roles** (CAD-01a): party_id, role (Customer/Supplier/Installer/Carrier); único por terceiro e papel
 - **party_addresses** (CAD-01a): party_id, type (Billing/Delivery/Site), zip, street, number, complement, district, city, city_ibge, state, is_default (CAD-01a; único por terceiro e tipo)
 - **party_contacts** (CAD-01a): party_id, name, role, email, phone, receives_billing

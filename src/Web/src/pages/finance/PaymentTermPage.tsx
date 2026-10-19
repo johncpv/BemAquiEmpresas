@@ -5,6 +5,7 @@ import type { PaymentTermDetail, PaymentTermInput } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { ErrorState, Skeleton } from '@/components/ui/states'
+import { ImportedTag } from '@/components/ui/imported-tag'
 import { StatusChip } from '@/components/ui/status-chip'
 import { toastDone } from '@/components/ui/toast'
 import { Can } from '@/pages/ModuleGate'
@@ -58,6 +59,7 @@ export function PaymentTermPage() {
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <Link to={LIST} className="text-sm font-semibold text-primary">Voltar às condições</Link>
           <StatusChip tone={term.isActive ? 'ok' : 'neutral'}>{term.isActive ? 'Ativa' : 'Inativa'}</StatusChip>
+          <ImportedTag source={term.importSource} />
         </div>
       </PageHeading>
       <PaymentTermForm key={JSON.stringify(term.installments) + term.name} term={term} canEdit={canEdit} onSubmit={submit} />

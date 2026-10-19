@@ -5,7 +5,7 @@
 | ID | MIG-01b |
 | Título | Importar `llx_societe` (papéis, documento, endereço, situação), `llx_socpeople`, `llx_c_payment_term` (de-para com o seed) e `llx_bank_account` (só o cadastro, sem saldo), juntando documentos repetidos num terceiro com vários papéis |
 | Tamanho | M (quebra da MIG-01) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-TER-5 · R-TER-1 · R-TER-2 · R-FIN-2 (cadastro das contas) · PRD §6 LGPD |
 | Dependências | MIG-01a, CAD-01a, CAD-05b. ~~Pré-condição: painel da plataforma fora do modo aberto~~ (dispensada pelo PO em 18/10/2026, adendo da ADR 0018). Origem: API REST do Dolibarr (ADR 0017, adendo 2) |
 | Bloqueia | MIG-01c (fornecedores dos códigos do fornecedor), GOL-01 |
@@ -138,5 +138,6 @@ Checklist do @po (Pax), 18/10/2026.
 |---|---|---|---|
 | 18/10/2026 | 0.1 | Story detalhada (quebra da MIG-01) | River (SM) |
 | 18/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
+| 19/10/2026 | 1.0 | Implementada. Ordem das cargas: condições, contas, terceiros, contatos (o terceiro aponta para a condição). Bairro "Não informado" no endereço importado (o Dolibarr não tem bairro e o BemAqui exige). Papel especial soma ao de Fornecedor. Origem pela API REST (adendo 2 da ADR 0017); a fixture de teste é em memória, sem MariaDB | Dev |
 | 18/10/2026 | 0.3 | Decisões do PO: só cadastros, contas sem saldo, tabela 1.1, D8; correções da revisão pré-Fase 1; ordem 4 do Marco A; arquivo renomeado | River (SM) |
 | 18/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
