@@ -26,6 +26,9 @@ import type {
 import type {
   AcceptInviteRequest,
   AccessTokenResponse,
+  AccountDetail,
+  AccountInput,
+  AccountSuggestion,
   AddHolidaysInput,
   AddHolidaysResult,
   AddressData,
@@ -54,6 +57,9 @@ import type {
   ContactInput,
   ConversionDetail,
   ConversionInput,
+  CostCenterDetail,
+  CostCenterInput,
+  CostCenterSuggestion,
   CreatePartyRequest,
   CurrentSession,
   DisableTwoFactorRequest,
@@ -140,6 +146,8 @@ import type {
   SetUserGroupsRequest,
   Shift,
   SplitPreviewRequest,
+  SuggestAccountParams,
+  SuggestCostCenterParams,
   SupplierCodeDetail,
   SupplierCodeInput,
   SupplierOption,
@@ -13996,6 +14004,1138 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getReactivatePaymentTermMutationOptions(options), queryClient);
+    }
+
+export const getListAccountsUrl = () => {
+
+
+
+
+  return `/api/v1/finance/chart-of-accounts`
+}
+
+export const listAccounts = async ( options?: Parameters<typeof apiFetch>[1]): Promise<AccountDetail[]> => {
+
+  return apiFetch<AccountDetail[]>(getListAccountsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAccountsQueryKey = () => {
+    return [
+    `/api/v1/finance/chart-of-accounts`
+    ] as const;
+    }
+
+
+export const getListAccountsQueryOptions = <TData = Awaited<ReturnType<typeof listAccounts>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAccounts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAccountsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAccounts>>> = ({ signal }) => listAccounts({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAccounts>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListAccountsQueryResult = NonNullable<Awaited<ReturnType<typeof listAccounts>>>
+export type ListAccountsQueryError = unknown
+
+
+export function useListAccounts<TData = Awaited<ReturnType<typeof listAccounts>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAccounts>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAccounts>>,
+          TError,
+          Awaited<ReturnType<typeof listAccounts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAccounts<TData = Awaited<ReturnType<typeof listAccounts>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAccounts>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAccounts>>,
+          TError,
+          Awaited<ReturnType<typeof listAccounts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAccounts<TData = Awaited<ReturnType<typeof listAccounts>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAccounts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListAccounts<TData = Awaited<ReturnType<typeof listAccounts>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAccounts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListAccountsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateAccountUrl = () => {
+
+
+
+
+  return `/api/v1/finance/chart-of-accounts`
+}
+
+export const createAccount = async (accountInput: AccountInput, options?: Parameters<typeof apiFetch>[1]): Promise<AccountDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<AccountDetail>(getCreateAccountUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(accountInput)
+  }
+);}
+
+
+
+
+
+export const getCreateAccountMutationKey = () => ['createAccount'] as const;
+
+export const getCreateAccountMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAccount>>, TError,CreateAccountMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createAccount>>, TError,CreateAccountMutationVariables, TContext> => {
+
+const mutationKey = getCreateAccountMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createAccount>>, CreateAccountMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createAccount(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateAccountMutationResult = NonNullable<Awaited<ReturnType<typeof createAccount>>>
+    export type CreateAccountMutationBody = AccountInput
+    export type CreateAccountMutationError = unknown
+    export type CreateAccountMutationVariables = {data: AccountInput}
+
+    export const useCreateAccount = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAccount>>, TError,CreateAccountMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createAccount>>,
+        TError,
+        CreateAccountMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateAccountMutationOptions(options), queryClient);
+    }
+
+export const getSuggestAccountUrl = (params?: SuggestAccountParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/finance/chart-of-accounts/suggestion?${stringifiedParams}` : `/api/v1/finance/chart-of-accounts/suggestion`
+}
+
+export const suggestAccount = async (params?: SuggestAccountParams, options?: Parameters<typeof apiFetch>[1]): Promise<AccountSuggestion> => {
+
+  return apiFetch<AccountSuggestion>(getSuggestAccountUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getSuggestAccountQueryKey = (params?: SuggestAccountParams,) => {
+    return [
+    `/api/v1/finance/chart-of-accounts/suggestion`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getSuggestAccountQueryOptions = <TData = Awaited<ReturnType<typeof suggestAccount>>, TError = unknown>(params?: SuggestAccountParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof suggestAccount>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSuggestAccountQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof suggestAccount>>> = ({ signal }) => suggestAccount(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof suggestAccount>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type SuggestAccountQueryResult = NonNullable<Awaited<ReturnType<typeof suggestAccount>>>
+export type SuggestAccountQueryError = unknown
+
+
+export function useSuggestAccount<TData = Awaited<ReturnType<typeof suggestAccount>>, TError = unknown>(
+ params: undefined |  SuggestAccountParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof suggestAccount>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof suggestAccount>>,
+          TError,
+          Awaited<ReturnType<typeof suggestAccount>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSuggestAccount<TData = Awaited<ReturnType<typeof suggestAccount>>, TError = unknown>(
+ params?: SuggestAccountParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof suggestAccount>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof suggestAccount>>,
+          TError,
+          Awaited<ReturnType<typeof suggestAccount>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSuggestAccount<TData = Awaited<ReturnType<typeof suggestAccount>>, TError = unknown>(
+ params?: SuggestAccountParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof suggestAccount>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useSuggestAccount<TData = Awaited<ReturnType<typeof suggestAccount>>, TError = unknown>(
+ params?: SuggestAccountParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof suggestAccount>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getSuggestAccountQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateAccountUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/finance/chart-of-accounts/${id}`
+}
+
+export const updateAccount = async (id: string,
+    accountInput: AccountInput, options?: Parameters<typeof apiFetch>[1]): Promise<AccountDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<AccountDetail>(getUpdateAccountUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(accountInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateAccountMutationKey = () => ['updateAccount'] as const;
+
+export const getUpdateAccountMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAccount>>, TError,UpdateAccountMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAccount>>, TError,UpdateAccountMutationVariables, TContext> => {
+
+const mutationKey = getUpdateAccountMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAccount>>, UpdateAccountMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateAccount(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAccountMutationResult = NonNullable<Awaited<ReturnType<typeof updateAccount>>>
+    export type UpdateAccountMutationBody = AccountInput
+    export type UpdateAccountMutationError = unknown
+    export type UpdateAccountMutationVariables = {id: string;data: AccountInput}
+
+    export const useUpdateAccount = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAccount>>, TError,UpdateAccountMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateAccount>>,
+        TError,
+        UpdateAccountMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateAccountMutationOptions(options), queryClient);
+    }
+
+export const getDeleteAccountUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/finance/chart-of-accounts/${id}`
+}
+
+export const deleteAccount = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDeleteAccountUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteAccountMutationKey = () => ['deleteAccount'] as const;
+
+export const getDeleteAccountMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAccount>>, TError,DeleteAccountMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteAccount>>, TError,DeleteAccountMutationVariables, TContext> => {
+
+const mutationKey = getDeleteAccountMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteAccount>>, DeleteAccountMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteAccount(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteAccountMutationResult = NonNullable<Awaited<ReturnType<typeof deleteAccount>>>
+
+    export type DeleteAccountMutationError = unknown
+    export type DeleteAccountMutationVariables = {id: string}
+
+    export const useDeleteAccount = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAccount>>, TError,DeleteAccountMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteAccount>>,
+        TError,
+        DeleteAccountMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeleteAccountMutationOptions(options), queryClient);
+    }
+
+export const getInactivateAccountUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/finance/chart-of-accounts/${id}/inactivate`
+}
+
+export const inactivateAccount = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<AccountDetail> => {
+
+  return apiFetch<AccountDetail>(getInactivateAccountUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getInactivateAccountMutationKey = () => ['inactivateAccount'] as const;
+
+export const getInactivateAccountMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inactivateAccount>>, TError,InactivateAccountMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof inactivateAccount>>, TError,InactivateAccountMutationVariables, TContext> => {
+
+const mutationKey = getInactivateAccountMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof inactivateAccount>>, InactivateAccountMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  inactivateAccount(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type InactivateAccountMutationResult = NonNullable<Awaited<ReturnType<typeof inactivateAccount>>>
+
+    export type InactivateAccountMutationError = unknown
+    export type InactivateAccountMutationVariables = {id: string}
+
+    export const useInactivateAccount = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inactivateAccount>>, TError,InactivateAccountMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof inactivateAccount>>,
+        TError,
+        InactivateAccountMutationVariables,
+        TContext
+      > => {
+      return useMutation(getInactivateAccountMutationOptions(options), queryClient);
+    }
+
+export const getReactivateAccountUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/finance/chart-of-accounts/${id}/reactivate`
+}
+
+export const reactivateAccount = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<AccountDetail> => {
+
+  return apiFetch<AccountDetail>(getReactivateAccountUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getReactivateAccountMutationKey = () => ['reactivateAccount'] as const;
+
+export const getReactivateAccountMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reactivateAccount>>, TError,ReactivateAccountMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reactivateAccount>>, TError,ReactivateAccountMutationVariables, TContext> => {
+
+const mutationKey = getReactivateAccountMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reactivateAccount>>, ReactivateAccountMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  reactivateAccount(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReactivateAccountMutationResult = NonNullable<Awaited<ReturnType<typeof reactivateAccount>>>
+
+    export type ReactivateAccountMutationError = unknown
+    export type ReactivateAccountMutationVariables = {id: string}
+
+    export const useReactivateAccount = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reactivateAccount>>, TError,ReactivateAccountMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reactivateAccount>>,
+        TError,
+        ReactivateAccountMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReactivateAccountMutationOptions(options), queryClient);
+    }
+
+export const getListCostCentersUrl = () => {
+
+
+
+
+  return `/api/v1/finance/cost-centers`
+}
+
+export const listCostCenters = async ( options?: Parameters<typeof apiFetch>[1]): Promise<CostCenterDetail[]> => {
+
+  return apiFetch<CostCenterDetail[]>(getListCostCentersUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListCostCentersQueryKey = () => {
+    return [
+    `/api/v1/finance/cost-centers`
+    ] as const;
+    }
+
+
+export const getListCostCentersQueryOptions = <TData = Awaited<ReturnType<typeof listCostCenters>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCostCenters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCostCentersQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCostCenters>>> = ({ signal }) => listCostCenters({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCostCenters>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListCostCentersQueryResult = NonNullable<Awaited<ReturnType<typeof listCostCenters>>>
+export type ListCostCentersQueryError = unknown
+
+
+export function useListCostCenters<TData = Awaited<ReturnType<typeof listCostCenters>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCostCenters>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listCostCenters>>,
+          TError,
+          Awaited<ReturnType<typeof listCostCenters>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListCostCenters<TData = Awaited<ReturnType<typeof listCostCenters>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCostCenters>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listCostCenters>>,
+          TError,
+          Awaited<ReturnType<typeof listCostCenters>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListCostCenters<TData = Awaited<ReturnType<typeof listCostCenters>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCostCenters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListCostCenters<TData = Awaited<ReturnType<typeof listCostCenters>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCostCenters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListCostCentersQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateCostCenterUrl = () => {
+
+
+
+
+  return `/api/v1/finance/cost-centers`
+}
+
+export const createCostCenter = async (costCenterInput: CostCenterInput, options?: Parameters<typeof apiFetch>[1]): Promise<CostCenterDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<CostCenterDetail>(getCreateCostCenterUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(costCenterInput)
+  }
+);}
+
+
+
+
+
+export const getCreateCostCenterMutationKey = () => ['createCostCenter'] as const;
+
+export const getCreateCostCenterMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCostCenter>>, TError,CreateCostCenterMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createCostCenter>>, TError,CreateCostCenterMutationVariables, TContext> => {
+
+const mutationKey = getCreateCostCenterMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCostCenter>>, CreateCostCenterMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createCostCenter(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateCostCenterMutationResult = NonNullable<Awaited<ReturnType<typeof createCostCenter>>>
+    export type CreateCostCenterMutationBody = CostCenterInput
+    export type CreateCostCenterMutationError = unknown
+    export type CreateCostCenterMutationVariables = {data: CostCenterInput}
+
+    export const useCreateCostCenter = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCostCenter>>, TError,CreateCostCenterMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createCostCenter>>,
+        TError,
+        CreateCostCenterMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateCostCenterMutationOptions(options), queryClient);
+    }
+
+export const getSuggestCostCenterUrl = (params?: SuggestCostCenterParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/finance/cost-centers/suggestion?${stringifiedParams}` : `/api/v1/finance/cost-centers/suggestion`
+}
+
+export const suggestCostCenter = async (params?: SuggestCostCenterParams, options?: Parameters<typeof apiFetch>[1]): Promise<CostCenterSuggestion> => {
+
+  return apiFetch<CostCenterSuggestion>(getSuggestCostCenterUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getSuggestCostCenterQueryKey = (params?: SuggestCostCenterParams,) => {
+    return [
+    `/api/v1/finance/cost-centers/suggestion`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getSuggestCostCenterQueryOptions = <TData = Awaited<ReturnType<typeof suggestCostCenter>>, TError = unknown>(params?: SuggestCostCenterParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof suggestCostCenter>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSuggestCostCenterQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof suggestCostCenter>>> = ({ signal }) => suggestCostCenter(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof suggestCostCenter>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type SuggestCostCenterQueryResult = NonNullable<Awaited<ReturnType<typeof suggestCostCenter>>>
+export type SuggestCostCenterQueryError = unknown
+
+
+export function useSuggestCostCenter<TData = Awaited<ReturnType<typeof suggestCostCenter>>, TError = unknown>(
+ params: undefined |  SuggestCostCenterParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof suggestCostCenter>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof suggestCostCenter>>,
+          TError,
+          Awaited<ReturnType<typeof suggestCostCenter>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSuggestCostCenter<TData = Awaited<ReturnType<typeof suggestCostCenter>>, TError = unknown>(
+ params?: SuggestCostCenterParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof suggestCostCenter>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof suggestCostCenter>>,
+          TError,
+          Awaited<ReturnType<typeof suggestCostCenter>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSuggestCostCenter<TData = Awaited<ReturnType<typeof suggestCostCenter>>, TError = unknown>(
+ params?: SuggestCostCenterParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof suggestCostCenter>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useSuggestCostCenter<TData = Awaited<ReturnType<typeof suggestCostCenter>>, TError = unknown>(
+ params?: SuggestCostCenterParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof suggestCostCenter>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getSuggestCostCenterQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateCostCenterUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/finance/cost-centers/${id}`
+}
+
+export const updateCostCenter = async (id: string,
+    costCenterInput: CostCenterInput, options?: Parameters<typeof apiFetch>[1]): Promise<CostCenterDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<CostCenterDetail>(getUpdateCostCenterUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(costCenterInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateCostCenterMutationKey = () => ['updateCostCenter'] as const;
+
+export const getUpdateCostCenterMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCostCenter>>, TError,UpdateCostCenterMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateCostCenter>>, TError,UpdateCostCenterMutationVariables, TContext> => {
+
+const mutationKey = getUpdateCostCenterMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCostCenter>>, UpdateCostCenterMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateCostCenter(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateCostCenterMutationResult = NonNullable<Awaited<ReturnType<typeof updateCostCenter>>>
+    export type UpdateCostCenterMutationBody = CostCenterInput
+    export type UpdateCostCenterMutationError = unknown
+    export type UpdateCostCenterMutationVariables = {id: string;data: CostCenterInput}
+
+    export const useUpdateCostCenter = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCostCenter>>, TError,UpdateCostCenterMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateCostCenter>>,
+        TError,
+        UpdateCostCenterMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateCostCenterMutationOptions(options), queryClient);
+    }
+
+export const getDeleteCostCenterUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/finance/cost-centers/${id}`
+}
+
+export const deleteCostCenter = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDeleteCostCenterUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteCostCenterMutationKey = () => ['deleteCostCenter'] as const;
+
+export const getDeleteCostCenterMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCostCenter>>, TError,DeleteCostCenterMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteCostCenter>>, TError,DeleteCostCenterMutationVariables, TContext> => {
+
+const mutationKey = getDeleteCostCenterMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteCostCenter>>, DeleteCostCenterMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteCostCenter(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteCostCenterMutationResult = NonNullable<Awaited<ReturnType<typeof deleteCostCenter>>>
+
+    export type DeleteCostCenterMutationError = unknown
+    export type DeleteCostCenterMutationVariables = {id: string}
+
+    export const useDeleteCostCenter = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCostCenter>>, TError,DeleteCostCenterMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteCostCenter>>,
+        TError,
+        DeleteCostCenterMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeleteCostCenterMutationOptions(options), queryClient);
+    }
+
+export const getInactivateCostCenterUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/finance/cost-centers/${id}/inactivate`
+}
+
+export const inactivateCostCenter = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<CostCenterDetail> => {
+
+  return apiFetch<CostCenterDetail>(getInactivateCostCenterUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getInactivateCostCenterMutationKey = () => ['inactivateCostCenter'] as const;
+
+export const getInactivateCostCenterMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inactivateCostCenter>>, TError,InactivateCostCenterMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof inactivateCostCenter>>, TError,InactivateCostCenterMutationVariables, TContext> => {
+
+const mutationKey = getInactivateCostCenterMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof inactivateCostCenter>>, InactivateCostCenterMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  inactivateCostCenter(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type InactivateCostCenterMutationResult = NonNullable<Awaited<ReturnType<typeof inactivateCostCenter>>>
+
+    export type InactivateCostCenterMutationError = unknown
+    export type InactivateCostCenterMutationVariables = {id: string}
+
+    export const useInactivateCostCenter = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inactivateCostCenter>>, TError,InactivateCostCenterMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof inactivateCostCenter>>,
+        TError,
+        InactivateCostCenterMutationVariables,
+        TContext
+      > => {
+      return useMutation(getInactivateCostCenterMutationOptions(options), queryClient);
+    }
+
+export const getReactivateCostCenterUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/finance/cost-centers/${id}/reactivate`
+}
+
+export const reactivateCostCenter = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<CostCenterDetail> => {
+
+  return apiFetch<CostCenterDetail>(getReactivateCostCenterUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getReactivateCostCenterMutationKey = () => ['reactivateCostCenter'] as const;
+
+export const getReactivateCostCenterMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reactivateCostCenter>>, TError,ReactivateCostCenterMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reactivateCostCenter>>, TError,ReactivateCostCenterMutationVariables, TContext> => {
+
+const mutationKey = getReactivateCostCenterMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reactivateCostCenter>>, ReactivateCostCenterMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  reactivateCostCenter(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReactivateCostCenterMutationResult = NonNullable<Awaited<ReturnType<typeof reactivateCostCenter>>>
+
+    export type ReactivateCostCenterMutationError = unknown
+    export type ReactivateCostCenterMutationVariables = {id: string}
+
+    export const useReactivateCostCenter = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reactivateCostCenter>>, TError,ReactivateCostCenterMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reactivateCostCenter>>,
+        TError,
+        ReactivateCostCenterMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReactivateCostCenterMutationOptions(options), queryClient);
     }
 
 export const getListImportRunsUrl = (params?: ListImportRunsParams,) => {

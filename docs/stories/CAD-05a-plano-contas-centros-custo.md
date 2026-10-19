@@ -5,7 +5,7 @@
 | ID | CAD-05a |
 | Título | Plano de contas gerencial em árvore com seed v1 editável (máscara `9.9.99`, grupos da DRE, contas "A classificar") e centros de custo, com excluir sem uso e inativar com uso |
 | Tamanho | M (quebra da CAD-05, que somava plano de contas, centros de custo, contas bancárias e condições de pagamento) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-FIN-1 · R-PLT-3 (seed do plano de contas padrão) · R-FIN-13 (grupo da DRE, preparação) · R-SEC-5 · R-PRP-1 |
 | Dependências | CAD-05b (schema `finance` e padrões do módulo), FND-09d (`TreeTable`, painel lateral); Fase 0 (FND-06c, FND-07, FND-09c, FND-14) |
 | Bloqueia | Nenhuma story da Fase 1. Fora dela: FIN-01, FIN-02, FIN-08 |
@@ -104,22 +104,22 @@ Como **financeiro**, quero **um plano de contas gerencial pronto, em árvore, qu
 - Nenhum ponto em aberto. A contadora pode revisar o plano depois, pela própria tela.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
-- [ ] Migration criada (não destrutiva) e seeds idempotentes.
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Telas com estados de carregando, vazio, vazio filtrado e erro.
-- [ ] Ajuda das duas telas; teste de cobertura passando.
-- [ ] Padrões comuns dos cadastros e próximos passos aplicados.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` conferido; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
+- [x] Migration criada (não destrutiva) e seeds idempotentes.
+- [x] Permissões só do `ModuleCatalog`.
+- [x] Telas com estados de carregando, vazio, vazio filtrado e erro.
+- [x] Ajuda das duas telas; teste de cobertura passando.
+- [x] Padrões comuns dos cadastros e próximos passos aplicados.
+- [x] Auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` conferido; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] Entidades `ChartAccount` e `CostCenter` com regras de árvore, tipo, máscara e código.
-- [ ] Migration, `ChartOfAccountsSeeder` e `CostCentersSeeder`.
-- [ ] `IAccountUsage` + `IAccountUsageProvider`; `IChartOfAccounts` em `Finance.Contracts`.
-- [ ] Endpoints `/api/v1/finance/chart-of-accounts` e `/api/v1/finance/cost-centers`; telas e ajuda.
+- [x] Entidades `ChartAccount` e `CostCenter` com regras de árvore, tipo, máscara e código.
+- [x] Migration, `ChartOfAccountsSeeder` e `CostCentersSeeder`.
+- [x] `IAccountUsage` + `IAccountUsageProvider`; `IChartOfAccounts` em `Finance.Contracts`.
+- [x] Endpoints `/api/v1/finance/chart-of-accounts` e `/api/v1/finance/cost-centers`; telas e ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, @qa.
@@ -152,3 +152,4 @@ Checklist do @po (Pax), 18/10/2026.
 | 18/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 18/10/2026 | 0.3 | Decisões do PO (D1, D10, tabela 1.1); ordem 11 do Marco C | River (SM) |
 | 18/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 19/10/2026 | 1.0 | Implementada. Desvios: validação responde 422 (convenção da API), não 400; grupos da DRE do seed: 1.3 e 3.5 em Resultado financeiro, 1.4 em Outros resultados, 2.5 em Deduções; quem tem filhas não troca de código nem de pai (as filhas teriam o prefixo errado); trocar o tipo de uma conta com filhas pede trocar as filhas antes; reativar exige o pai ativo; centros de custo usam a mesma máscara 9.9.99 | @dev |

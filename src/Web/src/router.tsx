@@ -30,6 +30,8 @@ import { ComponentsMold, CreateMold, DetailMold, PanelMold } from '@/dev/molds/l
 import { BankAccountsPage } from '@/pages/finance/BankAccountsPage'
 import { NewPaymentTermPage, PaymentTermPage } from '@/pages/finance/PaymentTermPage'
 import { PaymentTermsPage } from '@/pages/finance/PaymentTermsPage'
+import { ChartOfAccountsPage } from '@/pages/finance/ChartOfAccountsPage'
+import { CostCentersPage } from '@/pages/finance/CostCentersPage'
 import { CategoriesPage } from '@/pages/inventory/CategoriesPage'
 import { ItemPage } from '@/pages/inventory/ItemPage'
 import { ItemsPage } from '@/pages/inventory/ItemsPage'
@@ -118,6 +120,9 @@ const financeRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'fi
 const bankAccountsRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/contas', component: gated('finance', BankAccountsPage), validateSearch: (s: Record<string, unknown>): { conta?: string } => ({ conta: text(s.conta) }) })
 const paymentTermsRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/condicoes-de-pagamento', component: gated('finance', PaymentTermsPage) })
 const newPaymentTermRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/condicoes-de-pagamento/nova', component: gated('finance', NewPaymentTermPage) })
+// Plano de contas e centros de custo (CAD-05a).
+const chartRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/plano-de-contas', component: gated('finance', ChartOfAccountsPage) })
+const costCentersRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/centros-de-custo', component: gated('finance', CostCentersPage) })
 const paymentTermRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/condicoes-de-pagamento/$id', component: gated('finance', PaymentTermPage) })
 // Moldes de tela da FND-09d, dentro do shell, para o PO aprovar no contexto real.
 const moldsRoute = createRoute({ getParentRoute: () => appRoute, path: 'dev/moldes', beforeLoad: () => { throw redirect({ to: '/app/dev/moldes/cadastro' }) } })
@@ -164,7 +169,7 @@ export const routeTree = rootRoute.addChildren([
   appRoute.addChildren([appIndexRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute,
     aiSettingsRoute, importRunsRoute, importRunRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute,
     inventoryRootRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, productionRootRoute, workCentersRoute, calendarRoute,
-    financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
+    financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
   platformLoginRoute,
   platformPasswordRoute,
   platformRoute.addChildren([platformIndexRoute, tenantsRoute, tenantRoute]),
