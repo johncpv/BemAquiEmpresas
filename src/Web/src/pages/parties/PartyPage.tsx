@@ -20,6 +20,7 @@ import { ROLE_LABELS } from './labels'
 import { PartyAddresses } from './PartyAddresses'
 import { PartyContacts } from './PartyContacts'
 import { PartyDataForm } from './PartyDataForm'
+import { ReceitaUpdate } from './ReceitaUpdate'
 
 /** Ação permitida em parties (o mesmo critério do <Can>), para formulários em modo leitura. */
 function useCanParties(action: string) {
@@ -40,6 +41,7 @@ export function PartyPage() {
   const [steps, setSteps] = useState(search.novo === '1')
   const [addingAddress, setAddingAddress] = useState<AddressKind | null>(null)
   const [addingContact, setAddingContact] = useState(false)
+  const [receita, setReceita] = useState(false)
   const setParty = (p: PartyDetail) => client.setQueryData(getGetPartyQueryKey(id), p)
 
   if (query.isPending) return <div className="space-y-3"><Skeleton className="h-10 w-2/3" /><Skeleton className="h-64" /></div>
@@ -64,6 +66,9 @@ export function PartyPage() {
           </div>
           <div className="flex flex-wrap gap-2">
             <Can perm="parties.edit">
+              {party.kind === 'PJ' && party.document ? (
+                <button type="button" onClick={() => setReceita(true)} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Atualizar pela Receita</button>
+              ) : null}
               {party.isActive ? (
                 <ConfirmDialog verb="Inativar" done="Terceiro inativado" title="Inativar este terceiro?" description="Ele some dos seletores e continua nos documentos que já o usam. Dá para reativar."
                   onConfirm={() => setActive(false)} trigger={<button type="button" className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Inativar terceiro</button>} />
@@ -100,6 +105,7 @@ export function PartyPage() {
         { id: 'contatos', label: `Contatos (${party.contacts.length})`, content: <PartyContacts party={party} canEdit={canEdit} onSaved={setParty} adding={addingContact} onAddingChange={setAddingContact} /> },
         { id: 'historico', label: 'Histórico de alterações', content: <RecordHistory entity="Party" id={party.id} /> },
       ]} />
+      {receita ? <ReceitaUpdate party={party} onClose={() => setReceita(false)} onSaved={setParty} /> : null}
     </>
   )
 }

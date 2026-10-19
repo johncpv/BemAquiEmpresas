@@ -58,6 +58,7 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 - **party_roles** (CAD-01a): party_id, role (Customer/Supplier/Installer/Carrier); único por terceiro e papel
 - **party_addresses** (CAD-01a): party_id, type (Billing/Delivery/Site), zip, street, number, complement, district, city, city_ibge, state, is_default (CAD-01a; único por terceiro e tipo)
 - **party_contacts** (CAD-01a): party_id, name, role, email, phone, receives_billing
+- **cnpj_lookups** (CAD-01b): document (único), payload (jsonb, sem o quadro societário), looked_up_at. Cache da consulta de CNPJ por tenant, apagado aos 30 dias por um job diário
 - **cnpj_lookups** (CAD-01b): document, payload (jsonb, sem QSA), looked_up_at; cache por tenant, expurgado aos 30 dias
 - As condições de pagamento pertencem ao Finance (`finance.payment_terms`, ADR 0016)
 

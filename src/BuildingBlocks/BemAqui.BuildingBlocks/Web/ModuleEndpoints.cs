@@ -36,6 +36,23 @@ public static class ModuleEndpoints
     }
 
     /// <summary>
+    /// Exige uma das ações do mesmo módulo (policy <c>perm:modulo.a|modulo.b</c>), ex.: consultar CNPJ com <c>parties.create</c>
+    /// ou <c>parties.edit</c> (CAD-01b CA 11). Mesmas respostas 403 do <see cref="RequirePermission{TBuilder}"/>.
+    /// </summary>
+    public static TBuilder RequireAnyPermission<TBuilder>(this TBuilder builder, params string[] permissions)
+        where TBuilder : IEndpointConventionBuilder
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(permissions);
+        if (permissions.Length == 0 || permissions.Any(p => !ModuleCatalog.IsKnownPermission(p)) || permissions.Select(p => p.Split('.')[0]).Distinct().Count() != 1)
+        {
+            throw new ArgumentException("Permissões fora do ModuleCatalog ou de módulos diferentes: " + string.Join(", ", permissions), nameof(permissions));
+        }
+
+        return builder.RequireAuthorization(PermissionPolicyPrefix + string.Join('|', permissions));
+    }
+
+    /// <summary>
     /// Camada 1 do controle de acesso (CLAUDE.md): módulo não liberado para o tenant responde 403
     /// <c>module_not_released</c>, antes da checagem de grupo e ação (FND-06 CA 4). Use no grupo de rotas do módulo.
     /// </summary>

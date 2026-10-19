@@ -12,6 +12,7 @@ import { Tag } from '@/components/ui/tag'
 import { toastDone } from '@/components/ui/toast'
 import { z } from '@/lib/zod'
 import { ADDRESS_LABELS, STATES } from './labels'
+import { emptyOnly, useCepLookup } from './lookups'
 
 const schema = z.object({
   kind: z.enum(['Billing', 'Delivery', 'Site']),
@@ -73,6 +74,13 @@ function AddressPanel({ party, address, kind, onClose, onSaved }: { party: Party
       : blank(kind),
   })
   const errors = form.formState.errors
+  // CEP completo preenche só os campos vazios (CAD-01b CA 10).
+  const cep = useCepLookup((a) => {
+    const current = form.getValues() as unknown as Record<string, string>
+    for (const [key, value] of Object.entries(emptyOnly(current, { street: a.street, district: a.district, city: a.city, state: a.state, ibgeCode: a.ibgeCode }))) {
+      form.setValue(key as never, value as never, { shouldDirty: true })
+    }
+  })
   const save = async () => {
     let ok = false
     await form.handleSubmit(async (v) => {
@@ -106,8 +114,8 @@ function AddressPanel({ party, address, kind, onClose, onSaved }: { party: Party
             </select>
           )}
         </Field>
-        <Field label="CEP" required error={errors.zipCode?.message}>
-          {(p) => <Controller control={form.control} name="zipCode" render={({ field }) => <CepInput {...p} value={field.value} onChange={field.onChange} />} />}
+        <Field label="CEP" required error={errors.zipCode?.message} hint={cep.message} hintLive>
+          {(p) => <Controller control={form.control} name="zipCode" render={({ field }) => <CepInput {...p} value={field.value} onChange={(v) => { field.onChange(v); void cep.onCep(v) }} />} />}
         </Field>
         <Field label="Logradouro" required error={errors.street?.message}>{(p) => <input {...p} {...form.register('street')} className={inputClass} />}</Field>
         <div className="grid grid-cols-2 gap-3">

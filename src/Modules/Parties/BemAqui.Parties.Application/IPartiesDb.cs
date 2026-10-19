@@ -15,6 +15,8 @@ public interface IPartiesDb
 
     DbSet<PartyContact> PartyContacts { get; }
 
+    DbSet<CnpjLookupCache> CnpjLookups { get; }
+
     /// <summary>Para trocar o endereço padrão em dois passos numa transação (o índice único parcial é checado a cada comando).</summary>
     DatabaseFacade Database { get; }
 

@@ -130,7 +130,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-1--cadastros-e-mi
 - Requisitos: R-TER-5, R-TER-1, R-TER-2, R-FIN-2.
 - CA: só depois da allowlist da plataforma fechada (ADR 0018); mesmo documento vira um terceiro com vários papéis; prospects como Cliente, encerrados inativos, instaladores pela lista do PO; condições por de-para com o seed; contas sem saldo e sem `opening_date`; nada de `birthday`, IBAN, BIC ou titular; relatório pelo total lido.
 
-**CAD-01b [ ] Consulta de CNPJ e de CEP (M)** — Marco A, ordem 5 — [story](stories/CAD-01b-consulta-cnpj.md)
+**CAD-01b [x] Consulta de CNPJ e de CEP (M)** — Marco A, ordem 5 — [story](stories/CAD-01b-consulta-cnpj.md)
 - Requisitos: R-TER-1, R-PRP-3, R-PRP-7.
 - CA: BrasilAPI para CNPJ e CEP, sem reserva automática; só grava com confirmação; cache de 30 dias por tenant, sem QSA; falha não trava o cadastro e conta para o alerta; regex, sem redirect, resposta até 64 KB, limite global e circuit breaker.
 

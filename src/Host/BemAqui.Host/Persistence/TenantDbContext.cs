@@ -59,6 +59,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<PartyContact> PartyContacts => Set<PartyContact>();
 
+    public DbSet<CnpjLookupCache> CnpjLookups => Set<CnpjLookupCache>();
+
     public DbSet<BankAccount> BankAccounts => Set<BankAccount>();
 
     public DbSet<PaymentTerm> PaymentTerms => Set<PaymentTerm>();

@@ -13,6 +13,8 @@ internal sealed class RecurringJobsRegistrar(IRecurringJobManager recurring) : I
     {
         recurring.AddOrUpdate<MigrationStagingRecurringJob>(MigrationStagingRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             MigrationStagingRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
+        recurring.AddOrUpdate<BemAqui.Parties.Application.CnpjLookupPurgeRecurringJob>(BemAqui.Parties.Application.CnpjLookupPurgeRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
+            BemAqui.Parties.Application.CnpjLookupPurgeRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         return Task.CompletedTask;
     }
 

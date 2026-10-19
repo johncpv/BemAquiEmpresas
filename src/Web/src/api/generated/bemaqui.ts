@@ -26,6 +26,7 @@ import type {
 import type {
   AcceptInviteRequest,
   AccessTokenResponse,
+  AddressData,
   AddressInput,
   AiSettingsDto,
   AiSettingsRequest,
@@ -36,6 +37,7 @@ import type {
   BankInfo,
   ChallengeRequest,
   CheckPartyDocumentParams,
+  CnpjLookupResult,
   ConfirmTwoFactorRequest,
   ConfirmWithChallengeRequest,
   ContactInput,
@@ -65,6 +67,7 @@ import type {
   ListTenantsParams,
   LoginRequest,
   LoginResponse,
+  LookupCnpjParams,
   MessageResponse,
   ModuleRelease,
   ModuleSummary,
@@ -6128,6 +6131,211 @@ export function useListPartyPaymentTerms<TData = Awaited<ReturnType<typeof listP
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getListPartyPaymentTermsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getLookupCnpjUrl = (cnpj: string,
+    params?: LookupCnpjParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/parties/cnpj/${cnpj}?${stringifiedParams}` : `/api/v1/parties/cnpj/${cnpj}`
+}
+
+export const lookupCnpj = async (cnpj: string,
+    params?: LookupCnpjParams, options?: Parameters<typeof apiFetch>[1]): Promise<CnpjLookupResult> => {
+
+  return apiFetch<CnpjLookupResult>(getLookupCnpjUrl(cnpj,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getLookupCnpjQueryKey = (cnpj: string,
+    params?: LookupCnpjParams,) => {
+    return [
+    `/api/v1/parties/cnpj/${cnpj}`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getLookupCnpjQueryOptions = <TData = Awaited<ReturnType<typeof lookupCnpj>>, TError = unknown>(cnpj: string,
+    params?: LookupCnpjParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof lookupCnpj>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getLookupCnpjQueryKey(cnpj,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof lookupCnpj>>> = ({ signal }) => lookupCnpj(cnpj,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: cnpj !== null && cnpj !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof lookupCnpj>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type LookupCnpjQueryResult = NonNullable<Awaited<ReturnType<typeof lookupCnpj>>>
+export type LookupCnpjQueryError = unknown
+
+
+export function useLookupCnpj<TData = Awaited<ReturnType<typeof lookupCnpj>>, TError = unknown>(
+ cnpj: string,
+    params: undefined |  LookupCnpjParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof lookupCnpj>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof lookupCnpj>>,
+          TError,
+          Awaited<ReturnType<typeof lookupCnpj>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useLookupCnpj<TData = Awaited<ReturnType<typeof lookupCnpj>>, TError = unknown>(
+ cnpj: string,
+    params?: LookupCnpjParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof lookupCnpj>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof lookupCnpj>>,
+          TError,
+          Awaited<ReturnType<typeof lookupCnpj>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useLookupCnpj<TData = Awaited<ReturnType<typeof lookupCnpj>>, TError = unknown>(
+ cnpj: string,
+    params?: LookupCnpjParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof lookupCnpj>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useLookupCnpj<TData = Awaited<ReturnType<typeof lookupCnpj>>, TError = unknown>(
+ cnpj: string,
+    params?: LookupCnpjParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof lookupCnpj>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getLookupCnpjQueryOptions(cnpj,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getLookupCepUrl = (cep: string,) => {
+
+
+
+
+  return `/api/v1/parties/cep/${cep}`
+}
+
+export const lookupCep = async (cep: string, options?: Parameters<typeof apiFetch>[1]): Promise<AddressData> => {
+
+  return apiFetch<AddressData>(getLookupCepUrl(cep),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getLookupCepQueryKey = (cep: string,) => {
+    return [
+    `/api/v1/parties/cep/${cep}`
+    ] as const;
+    }
+
+
+export const getLookupCepQueryOptions = <TData = Awaited<ReturnType<typeof lookupCep>>, TError = unknown>(cep: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof lookupCep>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getLookupCepQueryKey(cep);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof lookupCep>>> = ({ signal }) => lookupCep(cep, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: cep !== null && cep !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof lookupCep>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type LookupCepQueryResult = NonNullable<Awaited<ReturnType<typeof lookupCep>>>
+export type LookupCepQueryError = unknown
+
+
+export function useLookupCep<TData = Awaited<ReturnType<typeof lookupCep>>, TError = unknown>(
+ cep: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof lookupCep>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof lookupCep>>,
+          TError,
+          Awaited<ReturnType<typeof lookupCep>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useLookupCep<TData = Awaited<ReturnType<typeof lookupCep>>, TError = unknown>(
+ cep: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof lookupCep>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof lookupCep>>,
+          TError,
+          Awaited<ReturnType<typeof lookupCep>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useLookupCep<TData = Awaited<ReturnType<typeof lookupCep>>, TError = unknown>(
+ cep: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof lookupCep>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useLookupCep<TData = Awaited<ReturnType<typeof lookupCep>>, TError = unknown>(
+ cep: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof lookupCep>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getLookupCepQueryOptions(cep,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

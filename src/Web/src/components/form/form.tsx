@@ -9,6 +9,8 @@ interface FieldProps {
   /** Aviso que não bloqueia o envio (FND-09d CA 14): âmbar, com ícone. */
   warning?: string
   hint?: string
+  /** A dica muda sozinha (ex.: "Consultando o CEP…"): anuncia ao leitor de tela. */
+  hintLive?: boolean
   /** "obrigatório" em texto no rótulo e aria-required no controle (FND-09d CA 15). */
   required?: boolean
   /** Explicação curta do termo (Dica com o nome do campo, FND-09d CA 20). */
@@ -17,7 +19,7 @@ interface FieldProps {
 }
 
 /** Campo com rótulo, dica, aviso e InlineError ligados por aria-describedby. */
-export function Field({ label, error, warning, hint, required, dica, children }: FieldProps) {
+export function Field({ label, error, warning, hint, hintLive, required, dica, children }: FieldProps) {
   const id = useId()
   const describedBy = [hint ? `${id}-hint` : '', warning && !error ? `${id}-warning` : '', error ? `${id}-error` : ''].filter(Boolean).join(' ') || undefined
   return (
@@ -31,7 +33,7 @@ export function Field({ label, error, warning, hint, required, dica, children }:
         {dica ? <Dica texto={dica} nome={label} /> : null}
       </div>
       {children({ id, 'aria-invalid': !!error, 'aria-describedby': describedBy, ...(required ? { 'aria-required': true } : {}) })}
-      {hint ? <p id={`${id}-hint`} className="text-xs text-muted-foreground">{hint}</p> : null}
+      {hint ? <p id={`${id}-hint`} aria-live={hintLive ? 'polite' : undefined} className="text-xs text-muted-foreground">{hint}</p> : null}
       {warning && !error ? (
         <p id={`${id}-warning`} role="status" className="flex items-start gap-1 text-xs font-medium text-warn-ink">
           <AlertTriangle aria-hidden="true" className="mt-px size-3.5 shrink-0" />
