@@ -23,6 +23,12 @@ public static class MigrationInfrastructure
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IDolibarrLoader, BankAccountsLoader>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IDolibarrLoader, PartiesLoader>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IDolibarrLoader, ContactsLoader>());
+        // MIG-01c: unidades, categorias, locais, itens e códigos do fornecedor.
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IDolibarrLoader, UnitsLoader>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IDolibarrLoader, ItemCategoriesLoader>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IDolibarrLoader, LocationsLoader>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IDolibarrLoader, ItemsLoader>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IDolibarrLoader, SupplierCodesLoader>());
         return services;
     }
 }

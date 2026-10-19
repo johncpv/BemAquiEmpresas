@@ -13,5 +13,7 @@ export interface LocationDetail {
   isDefault: boolean;
   /** @nullable */
   seedKey: string | null;
+  /** @nullable */
+  importSource: string | null;
   createdAt: string;
 }

@@ -19,6 +19,9 @@ public sealed class Location : Entity, IAuditable, ISoftDeletable
     /// <summary>Chave do seed (<c>alm</c>); null para os criados pelo tenant.</summary>
     public string? SeedKey { get; init; }
 
+    /// <summary>Origem da importação (ex.: <c>dolibarr:llx_entrepot:3</c>), gravada só pela MIG-01c.</summary>
+    public string? ImportSource { get; set; }
+
     public DateTimeOffset CreatedAt { get; init; }
 
     public bool IsDeleted { get; private set; }

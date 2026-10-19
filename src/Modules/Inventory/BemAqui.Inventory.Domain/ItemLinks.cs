@@ -47,6 +47,10 @@ public sealed class ItemSupplierCode : Entity, IAuditable, ISoftDeletable
 
     public decimal ConversionFactor { get; set; } = 1m;
 
+    /// <summary>Origem da importação (ex.: <c>dolibarr:llx_product_fournisseur_price:3</c>), gravada só pela MIG-01c.</summary>
+    public string? ImportSource { get; set; }
+
+
     public DateTimeOffset CreatedAt { get; init; }
 
     public bool IsDeleted { get; private set; }

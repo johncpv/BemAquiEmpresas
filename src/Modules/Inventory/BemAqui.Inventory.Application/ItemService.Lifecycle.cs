@@ -131,12 +131,18 @@ public sealed partial class ItemService
             return Duplicate(item.Code);
         }
 
+        if (db.Entry(item).State == EntityState.Detached)
+        {
+            db.Items.Add(item);
+        }
+
         try
         {
             await db.SaveChangesAsync(cancellationToken);
         }
         catch (DbUpdateException ex) when (DbErrors.IsUniqueViolation(ex, CodeIndex))
         {
+            db.Entry(item).State = EntityState.Detached;
             return Duplicate(item.Code);
         }
 

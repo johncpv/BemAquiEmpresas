@@ -6,5 +6,6 @@
     <ProjectReference Include="..\..\Platform\BemAqui.Platform.Contracts\BemAqui.Platform.Contracts.csproj" />
     <ProjectReference Include="..\..\Parties\BemAqui.Parties.Contracts\BemAqui.Parties.Contracts.csproj" />
     <ProjectReference Include="..\..\Finance\BemAqui.Finance.Contracts\BemAqui.Finance.Contracts.csproj" />
+    <ProjectReference Include="..\..\Inventory\BemAqui.Inventory.Contracts\BemAqui.Inventory.Contracts.csproj" />
   </ItemGroup>
 </Project>

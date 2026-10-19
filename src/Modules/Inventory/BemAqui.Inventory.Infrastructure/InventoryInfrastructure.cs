@@ -24,6 +24,9 @@ public static class InventoryInfrastructure
         services.TryAddScoped<CategoryService>();
         services.TryAddScoped<WarrantyDefaultService>();
         services.TryAddScoped<IItems, ItemsContract>();
+        // Escrita da importação do Dolibarr (MIG-01c): só o módulo Migrations usa.
+        services.TryAddScoped<IItemImport, ItemImport>();
+        services.TryAddScoped<ILocationImport, LocationImport>();
         // Conversões e códigos do fornecedor (CAD-02b).
         services.TryAddScoped<ItemConversionService>();
         services.TryAddScoped<IUnitConversion>(sp => sp.GetRequiredService<ItemConversionService>());

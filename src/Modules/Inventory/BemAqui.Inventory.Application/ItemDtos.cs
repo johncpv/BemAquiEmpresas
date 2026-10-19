@@ -10,7 +10,7 @@ public sealed record UnitDetail(Guid Id, string Code, string Name, bool IsActive
 public sealed record CategoryInput(string Name, Guid? ParentId);
 
 /// <summary>Categoria plana; a tela monta a árvore pelo <c>ParentId</c> (CA 3).</summary>
-public sealed record CategoryDetail(Guid Id, string Name, Guid? ParentId, bool IsActive, int ItemCount, int ChildCount);
+public sealed record CategoryDetail(Guid Id, string Name, Guid? ParentId, bool IsActive, int ItemCount, int ChildCount, string? ImportSource = null);
 
 public sealed record WarrantyDefaultDetail(Guid Id, ItemType ItemType, int? Months);
 

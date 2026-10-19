@@ -13,6 +13,7 @@ internal sealed class MeasureUnitConfiguration : IEntityTypeConfiguration<Measur
         b.Property(e => e.Code).HasMaxLength(6);
         b.Property(e => e.Name).HasMaxLength(60);
         b.Property(e => e.SeedKey).HasMaxLength(50);
+        b.Property(e => e.ImportSource).HasMaxLength(100);
         b.HasIndex(e => e.Code).IsUnique().HasFilter("NOT is_deleted").HasDatabaseName(UnitService.CodeIndex);
         b.HasIndex(e => e.SeedKey).IsUnique().HasFilter("seed_key IS NOT NULL").HasDatabaseName("ix_units_seed_key");
     }
@@ -24,6 +25,7 @@ internal sealed class ItemCategoryConfiguration : IEntityTypeConfiguration<ItemC
     {
         b.ToTable("item_categories", InventorySchema.Name);
         b.Property(e => e.Name).HasMaxLength(80);
+        b.Property(e => e.ImportSource).HasMaxLength(100);
         b.HasOne<ItemCategory>().WithMany().HasForeignKey(e => e.ParentId).OnDelete(DeleteBehavior.Restrict);
     }
 }
@@ -82,6 +84,7 @@ internal sealed class ItemSupplierCodeConfiguration : IEntityTypeConfiguration<I
         b.ToTable("item_supplier_codes", InventorySchema.Name);
         b.Property(e => e.SupplierCode).HasMaxLength(60);
         b.Property(e => e.SupplierUnit).HasMaxLength(10);
+        b.Property(e => e.ImportSource).HasMaxLength(100);
         b.Property(e => e.ConversionFactor).HasPrecision(18, 6);
         b.HasOne<Item>().WithMany().HasForeignKey(e => e.ItemId).OnDelete(DeleteBehavior.Restrict);
         // Um código por fornecedor entre os não excluídos (CA 10); sem FK para parties (outro módulo, ADR 0006).

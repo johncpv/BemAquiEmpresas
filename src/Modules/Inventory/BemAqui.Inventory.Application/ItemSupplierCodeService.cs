@@ -44,7 +44,6 @@ public sealed class ItemSupplierCodeService(IInventoryDb db, IParties parties, T
         }
 
         var row = new ItemSupplierCode { ItemId = itemId, CreatedAt = clock.GetUtcNow() };
-        db.ItemSupplierCodes.Add(row);
         return await SaveAsync(row, input, cancellationToken);
     }
 
@@ -131,12 +130,18 @@ public sealed class ItemSupplierCodeService(IInventoryDb db, IParties parties, T
         row.SupplierCode = code;
         row.SupplierUnit = unit;
         row.ConversionFactor = input.ConversionFactor;
+        if (db.Entry(row).State == EntityState.Detached)
+        {
+            db.ItemSupplierCodes.Add(row);
+        }
+
         try
         {
             await db.SaveChangesAsync(cancellationToken);
         }
         catch (DbUpdateException ex) when (DbErrors.IsUniqueViolation(ex, CodeIndex))
         {
+            db.Entry(row).State = EntityState.Detached;
             return Taken(code, party, "outro item");
         }
 

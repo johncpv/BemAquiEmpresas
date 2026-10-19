@@ -106,12 +106,12 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 - **downtimes**: work_center_id, asset_id, reason, started_at, ended_at
 
 ## inventory
-- **units** (CAD-02a, classe `MeasureUnit`): code (até 6, maiúsculas, único entre os não excluídos; seed UN, KG, M, M2, M3, L, PC), name, is_active, seed_key; soft delete; em uso por item não inativa nem exclui; import_source entra com a MIG-01c
-- **item_categories** (CAD-02a): name (único entre as irmãs, sem acento nem caixa), parent_id (sem ciclo), is_active; soft delete; com itens ou filhas só inativa; import_source entra com a MIG-01c
+- **units** (CAD-02a, classe `MeasureUnit`): code (até 6, maiúsculas, único entre os não excluídos; seed UN, KG, M, M2, M3, L, PC), name, is_active, seed_key; soft delete; em uso por item não inativa nem exclui; import_source (MIG-01c)
+- **item_categories** (CAD-02a): name (único entre as irmãs, sem acento nem caixa), parent_id (sem ciclo), is_active; soft delete; com itens ou filhas só inativa; import_source (MIG-01c)
 - **items** (CAD-02a): code (digitado, único), name, type (`ItemType` em `Inventory.Contracts`: RawMaterial/Component/Finished/Consumable/Service), category_id, unit_id (estoque), ncm (obrigatório para item ativo de RawMaterial/Component/Finished), cest, origin, min_stock, tracks_lot, tracks_serial, warranty_months (CAD-02a), average_cost (numeric(18,6), só leitura, EST-01), is_active, search_text (código e nome sem acento, índice pg_trgm); código único entre os não excluídos; min_stock numeric(18,4); soft delete; import_source (MIG-01c)
 - **warranty_defaults** (CAD-02a, ADR 0016): item_type (único), months (nulo = sem garantia); seed Finished 12, Component 3, Service 3
 - **item_unit_conversions** (CAD-02b): item_id, from_unit_id, to_unit_id, factor (numeric(18,6); resultado com 4 casas, AwayFromZero), "1 from = factor to", uma das unidades sempre a de estoque; par único no item nas duas ordens (índice na mesma ordem, a inversa conferida no serviço); soft delete
-- **item_supplier_codes** (CAD-02b): item_id, party_id, supplier_code, supplier_unit (texto livre), conversion_factor (numeric(18,6), "1 supplier_unit = fator na unidade de estoque"; de-para da NF de entrada); (party_id, supplier_code) único entre os não excluídos; party_id só validado por `IParties`, sem FK; soft delete; import_source entra com a MIG-01c
+- **item_supplier_codes** (CAD-02b): item_id, party_id, supplier_code, supplier_unit (texto livre), conversion_factor (numeric(18,6), "1 supplier_unit = fator na unidade de estoque"; de-para da NF de entrada); (party_id, supplier_code) único entre os não excluídos; party_id só validado por `IParties`, sem FK; soft delete; import_source (MIG-01c)
 - **locations** (CAD-03): name, code, is_default (único), is_active, seed_key (seed "ALM — Almoxarifado principal"); código único entre os não excluídos; soft delete; import_source (MIG-01c)
 - **lots**: item_id, lot_number, supplier_party_id, received_at, expiry
 - **serials**: item_id, serial_number, production_order_id, status (InStock/Shipped), project_id

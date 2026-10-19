@@ -22,5 +22,5 @@ public sealed class LocationsContract(IInventoryDb db) : ILocations
         await db.Locations.AsNoTracking().Where(l => l.IsDefault && l.IsActive)
             .Select(l => new LocationOption(l.Id, l.Code, l.Name, l.IsActive, l.IsDefault)).FirstOrDefaultAsync(cancellationToken);
 
-    internal static LocationDetail ToDetail(Location l) => new(l.Id, l.Code, l.Name, l.IsActive, l.IsDefault, l.SeedKey, l.CreatedAt);
+    internal static LocationDetail ToDetail(Location l) => new(l.Id, l.Code, l.Name, l.IsActive, l.IsDefault, l.SeedKey, l.ImportSource, l.CreatedAt);
 }

@@ -14,6 +14,9 @@ public sealed class MeasureUnit : Entity, IAuditable, ISoftDeletable
 
     public string? SeedKey { get; init; }
 
+    /// <summary>Origem da importação (ex.: <c>dolibarr:llx_c_units:3</c>), gravada só pela MIG-01c.</summary>
+    public string? ImportSource { get; set; }
+
     public DateTimeOffset CreatedAt { get; init; }
 
     public bool IsDeleted { get; private set; }
@@ -35,6 +38,10 @@ public sealed class ItemCategory : Entity, IAuditable, ISoftDeletable
     public Guid? ParentId { get; set; }
 
     public bool IsActive { get; set; } = true;
+
+    /// <summary>Origem da importação (ex.: <c>dolibarr:llx_categorie:3</c>), gravada só pela MIG-01c.</summary>
+    public string? ImportSource { get; set; }
+
 
     public DateTimeOffset CreatedAt { get; init; }
 

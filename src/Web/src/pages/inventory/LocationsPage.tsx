@@ -5,6 +5,7 @@ import { getListLocationsQueryKey, useListLocations } from '@/api/generated/bema
 import type { LocationDetail } from '@/api/generated/model'
 import { DataTable } from '@/components/data-table/DataTable'
 import { useTableFilters, useTableSearch } from '@/components/data-table/table-search'
+import { ImportedTag } from '@/components/ui/imported-tag'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
@@ -21,7 +22,7 @@ export function LocationsPage() {
 
   const columns: ColumnDef<LocationDetail>[] = [
     { id: 'code', header: 'Código', cell: ({ row: { original: l } }) => <button type="button" onClick={() => setEditing({ location: l })} className="font-mono font-semibold text-primary hover:underline">{l.code}</button> },
-    { id: 'name', header: 'Nome', cell: ({ row: { original: l } }) => l.name },
+    { id: 'name', header: 'Nome', cell: ({ row: { original: l } }) => <span className="flex flex-wrap items-center gap-1.5">{l.name}<ImportedTag source={l.importSource} /></span> },
     {
       id: 'status', header: 'Situação', cell: ({ row: { original: l } }) => (
         <span className="flex flex-wrap gap-1">
