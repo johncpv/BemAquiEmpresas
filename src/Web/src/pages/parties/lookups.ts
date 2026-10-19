@@ -28,7 +28,8 @@ export function useCnpjLookup() {
 }
 
 /** Consulta de CEP (CA 10): dispara ao completar os 8 dígitos; o chamador preenche só os campos vazios. */
-export function useCepLookup(onFound: (address: AddressData) => void) {
+/** <c>lookup</c>: rota da consulta (terceiros por padrão; Configurações usa a dela, com <c>settings.edit</c>). */
+export function useCepLookup(onFound: (address: AddressData) => void, lookup: (cep: string) => Promise<AddressData> = lookupCep) {
   const [state, setState] = useState<LookupState<AddressData>>({ status: 'idle' })
   const [last, setLast] = useState('')
   const onCep = async (cep: string) => {
@@ -36,7 +37,7 @@ export function useCepLookup(onFound: (address: AddressData) => void) {
     setLast(cep)
     setState({ status: 'loading' })
     try {
-      const value = await lookupCep(cep)
+      const value = await lookup(cep)
       if (!value?.city) throw new Error('sem dados')
       setState({ status: 'done', value })
       onFound(value)

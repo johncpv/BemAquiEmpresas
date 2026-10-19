@@ -22,10 +22,27 @@ public sealed class PlatformModule : IModule
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
     {
         // Rota anônima (ADR 0009): só o que a tela de login precisa mostrar antes de autenticar.
-        endpoints.MapGet("/public/tenant-context", (TenantContextHolder context) =>
-                context.Resolved is { } t
-                    ? Results.Ok(new TenantPublicContext(t.TradeName ?? t.LegalName, LogoUrl: null, t.Tenant.Status.ToString()))
-                    : Results.NotFound())
+        // Nome e logo vêm do perfil da empresa no banco do tenant (CAD-06 CA 4 e 7); o logo só como URL, nunca data URI.
+        endpoints.MapGet("/public/tenant-context", async (TenantContextHolder context, IServiceProvider services, CancellationToken ct) =>
+            {
+                if (context.Resolved is not { } t)
+                {
+                    return Results.NotFound();
+                }
+
+                TenantBrand? brand = null;
+                try
+                {
+                    brand = t.Tenant.Status == TenantStatus.Active && services.GetService<ITenantBranding>() is { } branding ? await branding.GetAsync(ct) : null;
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    // A tela de login nunca cai por causa do perfil (ex.: banco do tenant ainda não migrado): vale o catálogo.
+                }
+
+                var logo = brand?.LogoVersion is { } version ? "/api/v1/public/tenant-logo?v=" + version : null;
+                return Results.Ok(new TenantPublicContext(brand?.Name ?? t.TradeName ?? t.LegalName, logo, t.Tenant.Status.ToString()));
+            })
             .AllowAnonymous()
             .WithName("GetTenantPublicContext").Produces<TenantPublicContext>()
             .WithTags("Plataforma");

@@ -28,4 +28,12 @@ public static class NumberFormats
         ["MAN"] = new("MAN", true, 4),
         ["PAT"] = new("PAT", false, 5),
     };
+
+    /// <summary>Nome de cada tipo na tela (CA 9) e na confirmação ("O próximo orçamento sairá como...").</summary>
+    public static IReadOnlyDictionary<string, string> Labels { get; } = new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+        ["ORC"] = "Orçamento", ["CTR"] = "Contrato", ["PRJ"] = "Projeto", ["OS"] = "Ordem de serviço", ["NC"] = "Não conformidade",
+        ["SC"] = "Solicitação de compra", ["COT"] = "Cotação", ["PC"] = "Pedido de compra", ["REC"] = "Recebimento",
+        ["CR"] = "Conta a receber", ["CP"] = "Conta a pagar", ["OP"] = "Ordem de pagamento", ["MAN"] = "Manutenção", ["PAT"] = "Patrimônio",
+    };
 }

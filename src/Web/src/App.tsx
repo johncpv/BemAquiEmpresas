@@ -9,7 +9,7 @@ export function App({ appRouter = router }: { appRouter?: typeof router }) {
   const platform = window.location.pathname.startsWith('/plataforma')
   const tenant = useGetTenantPublicContext({ query: { retry: false, staleTime: Infinity, enabled: !platform } })
   return (
-    <NavigationProvider tenantName={platform ? 'BemAqui Plataforma' : (tenant.data?.name ?? 'Empresa')}>
+    <NavigationProvider tenantName={platform ? 'BemAqui Plataforma' : (tenant.data?.name ?? 'Empresa')} tenantLogo={platform ? null : tenant.data?.logoUrl}>
       <RouterProvider router={appRouter} />
     </NavigationProvider>
   )

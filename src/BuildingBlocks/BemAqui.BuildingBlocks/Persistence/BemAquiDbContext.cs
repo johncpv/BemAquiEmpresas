@@ -23,6 +23,8 @@ public abstract class BemAquiDbContext(DbContextOptions options) : DbContext(opt
 
     public DbSet<NumberSequence> NumberSequences => Set<NumberSequence>();
 
+    public DbSet<NumberFormatOverride> NumberFormatOverrides => Set<NumberFormatOverride>();
+
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
@@ -56,6 +58,15 @@ public abstract class BemAquiDbContext(DbContextOptions options) : DbContext(opt
             b.HasKey(e => e.Id);
             b.Property(e => e.DocType).HasMaxLength(16);
             b.HasIndex(e => new { e.DocType, e.Year }).IsUnique();
+        });
+
+        modelBuilder.Entity<NumberFormatOverride>(b =>
+        {
+            b.ToTable("number_formats", SharedSchema);
+            b.HasKey(e => e.Id);
+            b.Property(e => e.DocType).HasMaxLength(16);
+            b.Property(e => e.Prefix).HasMaxLength(6);
+            b.HasIndex(e => e.DocType).IsUnique();
         });
 
         modelBuilder.Entity<OutboxMessage>(b =>

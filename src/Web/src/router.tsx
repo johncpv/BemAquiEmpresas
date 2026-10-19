@@ -11,6 +11,9 @@ import { GroupsPage } from '@/pages/access/GroupsPage'
 import { UsersPage } from '@/pages/access/UsersPage'
 import { ModuleGate } from '@/pages/ModuleGate'
 import { SecurityPage } from '@/pages/settings/SecurityPage'
+import { CompanyPage } from '@/pages/settings/company/CompanyPage'
+import { NumberingPage } from '@/pages/settings/numbering/NumberingPage'
+import { ParametersPage } from '@/pages/settings/parameters/ParametersPage'
 import { AiSettingsPage } from '@/pages/settings/AiSettingsPage'
 import { ImportRunPage } from '@/pages/settings/import/ImportRunPage'
 import { ImportRunsPage } from '@/pages/settings/import/ImportRunsPage'
@@ -73,7 +76,11 @@ const gated = (code: string, Page: () => React.ReactNode) => () => <ModuleGate c
 const accessRoute = createRoute({ getParentRoute: () => appRoute, path: 'acessos', beforeLoad: () => { throw redirect({ to: '/app/acessos/usuarios' }) } })
 const usersRoute = createRoute({ getParentRoute: () => appRoute, path: 'acessos/usuarios', component: gated('identity', UsersPage) })
 const groupsRoute = createRoute({ getParentRoute: () => appRoute, path: 'acessos/grupos', component: gated('identity', GroupsPage), validateSearch: (s: Record<string, unknown>): { grupo?: string } => ({ grupo: text(s.grupo) }) })
-const settingsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes', beforeLoad: () => { throw redirect({ to: '/app/configuracoes/seguranca' }) } })
+const settingsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes', beforeLoad: () => { throw redirect({ to: '/app/configuracoes/empresa' }) } })
+// Configurações da empresa (CAD-06): Empresa, Numeração e Parâmetros vêm antes de Segurança.
+const companyRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/empresa', component: gated('settings', CompanyPage) })
+const numberingRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/numeracao', component: gated('settings', NumberingPage) })
+const parametersRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/parametros', component: gated('settings', ParametersPage) })
 const securityRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/seguranca', component: gated('settings', SecurityPage) })
 const aiSettingsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/ia', component: gated('settings', AiSettingsPage) })
 // Importação do Dolibarr (MIG-01a): só leitura; a carga é pela CLI.
@@ -132,7 +139,7 @@ export const routeTree = rootRoute.addChildren([
   forgotRoute,
   resetRoute,
   inviteRoute,
-  appRoute.addChildren([appIndexRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, securityRoute,
+  appRoute.addChildren([appIndexRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute,
     aiSettingsRoute, importRunsRoute, importRunRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute,
     financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
   platformLoginRoute,

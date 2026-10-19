@@ -11,18 +11,46 @@ public sealed record AttachmentDto(Guid Id, string FileName, string ContentType,
 
 public sealed record AttachmentContent(Stream Content, string ContentType, string FileName);
 
+/// <summary>
+/// Regras de um dono de anexos: o módulo (ler = <c>view</c>, gravar = <c>edit</c>), e opcionalmente os tipos aceitos, o
+/// tamanho máximo, o maior lado da imagem e a conferência de que o documento dono existe (CAD-06 CA 8).
+/// </summary>
+public sealed record AttachmentOwnerRules(
+    string Module,
+    IReadOnlyCollection<string>? ContentTypes = null,
+    long? MaxSize = null,
+    int? MaxImageSide = null,
+    Func<IServiceProvider, Guid, CancellationToken, Task<bool>>? OwnerExists = null);
+
+/// <summary>Inscrição de um dono de anexo por um módulo, no <c>AddServices</c>.</summary>
+public sealed record AttachmentOwnerRegistration(string OwnerType, AttachmentOwnerRules Rules);
+
+public static class AttachmentOwnerServiceCollectionExtensions
+{
+    public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddAttachmentOwner(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, string ownerType, AttachmentOwnerRules rules)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, new AttachmentOwnerRegistration(ownerType, rules));
+        return services;
+    }
+}
+
 /// <summary>Qual módulo é dono de cada tipo de documento que aceita anexos (permissão do dono vale para o anexo).</summary>
 public sealed class AttachmentOwnerRegistry
 {
-    private readonly Dictionary<string, string> _owners = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, AttachmentOwnerRules> _owners = new(StringComparer.Ordinal);
 
-    public AttachmentOwnerRegistry Register(string ownerType, string moduleCode)
+    public AttachmentOwnerRegistry Register(string ownerType, string moduleCode) => Register(ownerType, new AttachmentOwnerRules(moduleCode));
+
+    public AttachmentOwnerRegistry Register(string ownerType, AttachmentOwnerRules rules)
     {
-        _owners[ownerType] = moduleCode;
+        _owners[ownerType] = rules;
         return this;
     }
 
-    public string? ModuleOf(string ownerType) => _owners.GetValueOrDefault(ownerType);
+    public string? ModuleOf(string ownerType) => _owners.GetValueOrDefault(ownerType)?.Module;
+
+    public AttachmentOwnerRules? RulesOf(string ownerType) => _owners.GetValueOrDefault(ownerType);
 }
 
 /// <summary>Upload e download de anexos com allowlist, magic bytes, ClamAV e permissão do documento dono (FND-07 CA 18 a 21).</summary>
@@ -33,7 +61,8 @@ public sealed class AttachmentService(
     AttachmentOwnerRegistry owners,
     IPermissionChecker permissions,
     ICurrentUser currentUser,
-    TimeProvider clock)
+    TimeProvider clock,
+    IServiceProvider services)
 {
     private const int HeadSize = 4096;
 
@@ -63,6 +92,11 @@ public sealed class AttachmentService(
         if (type is null)
         {
             return Error.Validation("attachment.type_not_allowed", "Tipo de arquivo não permitido. Envie PDF, imagem (PNG, JPG, WEBP), XML, planilha, documento, CSV, desenho (DWG, DXF) ou ZIP.");
+        }
+
+        if (await CheckRulesAsync(owners.RulesOf(ownerType)!, ownerId, type, buffer, cancellationToken) is { } refused)
+        {
+            return refused;
         }
 
         buffer.Position = 0;
@@ -132,6 +166,27 @@ public sealed class AttachmentService(
             .OrderByDescending(a => a.CreatedAt)
             .ToListAsync(cancellationToken);
         return items.Select(ToDto).ToList();
+    }
+
+    private async Task<Error?> CheckRulesAsync(AttachmentOwnerRules rules, Guid ownerId, AllowedFileType type, MemoryStream buffer, CancellationToken ct)
+    {
+        if (rules.ContentTypes is { } types && !types.Contains(type.ContentType))
+        {
+            var names = string.Join(", ", AttachmentPolicy.Types.Where(t => types.Contains(t.ContentType)).Select(t => t.Name));
+            return Error.Validation("attachment.type_not_allowed", "Tipo de arquivo não permitido aqui. Envie " + names + ".");
+        }
+
+        if (rules.MaxSize is { } max && buffer.Length > max)
+        {
+            return Error.Validation("attachment.size", $"O arquivo precisa ter até {max / 1024 / 1024} MB.");
+        }
+
+        if (rules.MaxImageSide is { } side && (ImageInfo.TryGetSize(buffer.GetBuffer().AsSpan(0, (int)buffer.Length)) is not { } size || size.Width > side || size.Height > side || size.Width <= 0 || size.Height <= 0))
+        {
+            return Error.Validation("attachment.image_too_large", $"A imagem precisa ter até {side} px no maior lado.");
+        }
+
+        return rules.OwnerExists is { } exists && !await exists(services, ownerId, ct) ? Error.NotFound(Error.Codes.NotFound, "O documento deste anexo não existe.") : null;
     }
 
     private static Error Forbidden() => Error.Forbidden(Error.Codes.Forbidden, "Você não tem acesso a esta funcionalidade. Fale com o administrador.");

@@ -21,6 +21,8 @@ public interface IIdentityDb
 
     DbSet<TenantSetting> TenantSettings { get; }
 
+    DbSet<CompanyProfile> CompanyProfiles { get; }
+
     DbSet<CatalogModule> CatalogModules { get; }
 
     DbSet<CatalogModuleAction> CatalogModuleActions { get; }

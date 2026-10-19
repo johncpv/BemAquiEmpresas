@@ -218,3 +218,26 @@ internal sealed class SeedPatchConfiguration : IEntityTypeConfiguration<SeedPatc
         b.HasIndex(e => e.Key).IsUnique();
     }
 }
+
+internal sealed class CompanyProfileConfiguration : IEntityTypeConfiguration<CompanyProfile>
+{
+    public void Configure(EntityTypeBuilder<CompanyProfile> b)
+    {
+        // Schema próprio das configurações da empresa (ADR 0016).
+        b.ToTable("company_profile", "settings");
+        b.Property(e => e.LegalName).HasMaxLength(200);
+        b.Property(e => e.TradeName).HasMaxLength(200);
+        b.Property(e => e.StateRegistration).HasMaxLength(20);
+        b.Property(e => e.MunicipalRegistration).HasMaxLength(20);
+        b.Property(e => e.ZipCode).HasMaxLength(8);
+        b.Property(e => e.Street).HasMaxLength(200);
+        b.Property(e => e.Number).HasMaxLength(20);
+        b.Property(e => e.Complement).HasMaxLength(100);
+        b.Property(e => e.District).HasMaxLength(100);
+        b.Property(e => e.City).HasMaxLength(100);
+        b.Property(e => e.CityIbge).HasMaxLength(7);
+        b.Property(e => e.State).HasMaxLength(2);
+        b.Property(e => e.Phone).HasMaxLength(11);
+        b.Property(e => e.Email).HasMaxLength(254);
+    }
+}

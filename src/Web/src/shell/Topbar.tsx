@@ -6,6 +6,7 @@ import { useNavigation } from '@/navigation/navigation-context'
 import { ThemeToggle } from '@/theme/ThemeToggle'
 import { NotificationsBell } from './NotificationsBell'
 import { UserMenu } from './UserMenu'
+import { TenantMark } from './TenantMark'
 
 interface TopbarProps {
   area?: NavArea
@@ -20,7 +21,7 @@ interface TopbarProps {
  * A 400px a busca vira ícone e o tema vai para o menu do usuário. Sub-telas viram abas com rota própria.
  */
 export function Topbar({ area, module, tab, onSearch, onHelp }: TopbarProps) {
-  const { tenantName } = useNavigation()
+  const { tenantName, tenantLogo } = useNavigation()
   const mobile = useMediaQuery(MOBILE)
   const iconButton = 'grid size-9 place-items-center rounded-sm border border-border bg-card'
 
@@ -28,9 +29,7 @@ export function Topbar({ area, module, tab, onSearch, onHelp }: TopbarProps) {
     <header className="sticky top-0 z-10 border-b border-border bg-background/90 backdrop-blur">
       <div className="flex items-center gap-3 px-4 py-3 sm:gap-3.5 sm:px-6">
         <Link to="/app" className="flex items-center gap-2.5">
-          <span aria-hidden="true" className="grid size-[34px] place-items-center rounded-[8px] bg-signal font-display text-[15px] font-extrabold text-signal-foreground font-widest">
-            {tenantName.charAt(0).toUpperCase()}
-          </span>
+          <TenantMark name={tenantName} logoUrl={tenantLogo} />
           <b className={mobile ? 'sr-only' : 'font-display text-[15px] font-bold font-wider'}>{tenantName}</b>
         </Link>
 

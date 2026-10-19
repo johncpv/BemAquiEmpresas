@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using BemAqui.BuildingBlocks.Attachments;
 
 using BemAqui.BuildingBlocks.Persistence.Auditing;
 using BemAqui.Identity.Application;
@@ -49,6 +51,16 @@ public static class IdentityInfrastructure
         services.AddAuditableEntity<Group>("identity");
         services.AddAuditableEntity<User>("identity");
         services.AddAuditableEntity<TenantSetting>("settings");
+        // Configurações da empresa (CAD-06): perfil, logo, numeração e parâmetros.
+        services.TryAddScoped<CompanySettings>();
+        services.TryAddScoped<BemAqui.BuildingBlocks.Tenancy.ITenantBranding>(sp => sp.GetRequiredService<CompanySettings>());
+        services.TryAddScoped<TenantParametersService>();
+        services.TryAddScoped<BemAqui.Identity.Contracts.ITenantParameters>(sp => sp.GetRequiredService<TenantParametersService>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Tenancy.ITenantSeeder, TenantParametersSeeder>());
+        services.AddAuditableEntity<CompanyProfile>("settings");
+        services.AddAuditableEntity<BemAqui.BuildingBlocks.Persistence.Numbering.NumberFormatOverride>("settings");
+        services.AddAttachmentOwner(CompanyProfile.LogoOwnerType, new AttachmentOwnerRules("settings", CompanySettings.LogoTypes, CompanySettings.LogoMaxSize, CompanySettings.LogoMaxSide,
+            async (sp, id, ct) => await sp.GetRequiredService<IIdentityDb>().CompanyProfiles.AnyAsync(p => p.Id == id, ct)));
         services.AddAuditableEntity<AiSettings>("settings");
         services.TryAddScoped<BemAqui.Platform.Contracts.ITenantOwnerOnboarding, IdentityOwnerOnboarding>();
         return services;

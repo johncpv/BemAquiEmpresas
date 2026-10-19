@@ -1,6 +1,9 @@
 import { Link } from '@tanstack/react-router'
 
 const TABS = [
+  { to: '/app/configuracoes/empresa', label: 'Empresa' },
+  { to: '/app/configuracoes/numeracao', label: 'Numeração' },
+  { to: '/app/configuracoes/parametros', label: 'Parâmetros' },
   { to: '/app/configuracoes/seguranca', label: 'Segurança' },
   { to: '/app/configuracoes/ia', label: 'Inteligência artificial' },
   { to: '/app/configuracoes/importacao', label: 'Importação do Dolibarr' },
