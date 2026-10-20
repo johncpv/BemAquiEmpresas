@@ -7532,6 +7532,474 @@
         }
       }
     },
+    "/api/v1/finance/payables": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ListPayables",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "situation",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "partyId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "dueFrom",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "dueTo",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayablePage"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "CreatePayable",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayableInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayablesCreated"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/payables/{id}": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetPayable",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayableDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "UpdatePayable",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayableUpdateInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayableDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/payables/{id}/payment-method": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetPayablePaymentMethod",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentDetailsView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "SetPayablePaymentMethod",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentMethodInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentDetailsView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/payables/installments": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "CreatePayableInstallments",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayableInstallmentsInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayablesCreated"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/payables/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "CancelPayable",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayableDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/suppliers": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ListFinanceSuppliers",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FinanceSupplierOption"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/recurring-expenses": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ListRecurringExpenses",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RecurringExpenseDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "CreateRecurringExpense",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecurringExpenseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecurringExpenseDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/recurring-expenses/{id}": {
+      "put": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "UpdateRecurringExpense",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecurringExpenseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecurringExpenseDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "DeleteRecurringExpense",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/settings/import-runs": {
       "get": {
         "tags": [
@@ -8444,6 +8912,10 @@
           "at": {
             "type": "string",
             "format": "date-time"
+          },
+          "isPayable": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -9432,7 +9904,12 @@
         "enum": [
           "Manual",
           "Opening",
-          "Contract"
+          "Contract",
+          "Recurring",
+          "Installer",
+          "Purchase",
+          "Payroll",
+          "Maintenance"
         ]
       },
       "DreGroup": {
@@ -10052,6 +10529,37 @@
           }
         },
         "additionalProperties": false
+      },
+      "FinanceSupplierOption": {
+        "required": [
+          "id",
+          "name",
+          "document",
+          "defaultPaymentTermId"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "document": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "defaultPaymentTermId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
       },
       "ForgotPasswordRequest": {
         "required": [
@@ -11761,6 +12269,35 @@
           }
         }
       },
+      "PagedListOfPayableDetail": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayableDetail"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "PagedListOfPaymentTermDetail": {
         "required": [
           "items",
@@ -12227,6 +12764,610 @@
           }
         }
       },
+      "PayableDetail": {
+        "required": [
+          "id",
+          "number",
+          "partyId",
+          "partyName",
+          "description",
+          "accountId",
+          "accountName",
+          "costCenterId",
+          "amount",
+          "retentionIss",
+          "retentionInss",
+          "retentionIr",
+          "retentionPcc",
+          "netAmount",
+          "paidAmount",
+          "balance",
+          "issueDate",
+          "dueDate",
+          "isEstimate",
+          "status",
+          "isOverdue",
+          "isDueToday",
+          "origin",
+          "originId",
+          "installmentGroupId",
+          "competence",
+          "paymentMethod",
+          "paymentMethodChangedAt",
+          "cancelReason",
+          "cancelledAt",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "accountName": {
+            "type": "string"
+          },
+          "costCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "retentionIss": {
+            "type": "number",
+            "format": "double"
+          },
+          "retentionInss": {
+            "type": "number",
+            "format": "double"
+          },
+          "retentionIr": {
+            "type": "number",
+            "format": "double"
+          },
+          "retentionPcc": {
+            "type": "number",
+            "format": "double"
+          },
+          "netAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "paidAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "balance": {
+            "type": "number",
+            "format": "double"
+          },
+          "issueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "isEstimate": {
+            "type": "boolean"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PayableStatus"
+          },
+          "isOverdue": {
+            "type": "boolean"
+          },
+          "isDueToday": {
+            "type": "boolean"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/DocumentOrigin"
+          },
+          "originId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "installmentGroupId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "competence": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "paymentMethod": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PaymentMethodKind"
+              }
+            ]
+          },
+          "paymentMethodChangedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "cancelReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cancelledAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "PayableInput": {
+        "required": [
+          "partyId",
+          "description",
+          "accountId",
+          "costCenterId",
+          "amount",
+          "issueDate",
+          "dueDate",
+          "retentionIss",
+          "retentionInss",
+          "retentionIr",
+          "retentionPcc",
+          "paymentDetails"
+        ],
+        "type": "object",
+        "properties": {
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": {
+            "type": "string"
+          },
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "costCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "issueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "retentionIss": {
+            "type": "number",
+            "format": "double"
+          },
+          "retentionInss": {
+            "type": "number",
+            "format": "double"
+          },
+          "retentionIr": {
+            "type": "number",
+            "format": "double"
+          },
+          "retentionPcc": {
+            "type": "number",
+            "format": "double"
+          },
+          "paymentDetails": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PaymentDetailsInput"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "PayableInstallmentsInput": {
+        "required": [
+          "partyId",
+          "description",
+          "accountId",
+          "costCenterId",
+          "amount",
+          "issueDate",
+          "paymentTermId",
+          "baseDate",
+          "retentionIss",
+          "retentionInss",
+          "retentionIr",
+          "retentionPcc",
+          "paymentDetails"
+        ],
+        "type": "object",
+        "properties": {
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": {
+            "type": "string"
+          },
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "costCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "issueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "paymentTermId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "baseDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "retentionIss": {
+            "type": "number",
+            "format": "double"
+          },
+          "retentionInss": {
+            "type": "number",
+            "format": "double"
+          },
+          "retentionIr": {
+            "type": "number",
+            "format": "double"
+          },
+          "retentionPcc": {
+            "type": "number",
+            "format": "double"
+          },
+          "paymentDetails": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PaymentDetailsInput"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "PayablePage": {
+        "required": [
+          "page",
+          "totals"
+        ],
+        "type": "object",
+        "properties": {
+          "page": {
+            "$ref": "#/components/schemas/PagedListOfPayableDetail"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/PayableTotals"
+          }
+        }
+      },
+      "PayablesCreated": {
+        "required": [
+          "items",
+          "holderWarning",
+          "boletoWarning"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayableDetail"
+            }
+          },
+          "holderWarning": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "boletoWarning": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PayableStatus": {
+        "enum": [
+          "Planned",
+          "Open",
+          "AwaitingApproval",
+          "Approved",
+          "PartiallyPaid",
+          "Paid",
+          "Cancelled"
+        ]
+      },
+      "PayableTotals": {
+        "required": [
+          "open",
+          "overdue"
+        ],
+        "type": "object",
+        "properties": {
+          "open": {
+            "type": "number",
+            "format": "double"
+          },
+          "overdue": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "PayableUpdateInput": {
+        "required": [
+          "description",
+          "accountId",
+          "costCenterId",
+          "amount",
+          "dueDate",
+          "retentionIss",
+          "retentionInss",
+          "retentionIr",
+          "retentionPcc",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "costCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "retentionIss": {
+            "type": "number",
+            "format": "double"
+          },
+          "retentionInss": {
+            "type": "number",
+            "format": "double"
+          },
+          "retentionIr": {
+            "type": "number",
+            "format": "double"
+          },
+          "retentionPcc": {
+            "type": "number",
+            "format": "double"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PaymentDetailsInput": {
+        "required": [
+          "kind"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/PaymentMethodKind"
+          },
+          "pixKeyType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PixKeyType"
+              }
+            ]
+          },
+          "pixKey": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "holderName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "holderDocument": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "barcode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "bankCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "agency": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "account": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "accountType": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "PaymentDetailsView": {
+        "required": [
+          "details",
+          "holderWarning",
+          "boletoWarning"
+        ],
+        "type": "object",
+        "properties": {
+          "details": {
+            "$ref": "#/components/schemas/PaymentDetailsInput"
+          },
+          "holderWarning": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "boletoWarning": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PaymentMethodInput": {
+        "required": [
+          "paymentDetails",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "paymentDetails": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PaymentDetailsInput"
+              }
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PaymentMethodKind": {
+        "enum": [
+          "Pix",
+          "Boleto",
+          "Ted",
+          "Other",
+          null
+        ]
+      },
       "PaymentTermDetail": {
         "required": [
           "id",
@@ -12338,6 +13479,16 @@
             "format": "double"
           }
         }
+      },
+      "PixKeyType": {
+        "enum": [
+          "Cpf",
+          "Cnpj",
+          "Email",
+          "Phone",
+          "Random",
+          null
+        ]
       },
       "PlatformChallengeRequest": {
         "required": [
@@ -13211,6 +14362,171 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "RecurringExpenseDetail": {
+        "required": [
+          "id",
+          "description",
+          "partyId",
+          "partyName",
+          "accountId",
+          "costCenterId",
+          "amount",
+          "dueDay",
+          "start",
+          "end",
+          "leadDays",
+          "isActive",
+          "paymentMethod",
+          "nextDueDates",
+          "hasPayables"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": {
+            "type": "string"
+          },
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "costCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "dueDay": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "start": {
+            "type": "string",
+            "format": "date"
+          },
+          "end": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "leadDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "paymentMethod": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PaymentMethodKind"
+              }
+            ]
+          },
+          "nextDueDates": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          "hasPayables": {
+            "type": "boolean"
+          }
+        }
+      },
+      "RecurringExpenseInput": {
+        "required": [
+          "description",
+          "partyId",
+          "accountId",
+          "costCenterId",
+          "amount",
+          "dueDay",
+          "start",
+          "end",
+          "leadDays",
+          "paymentDetails"
+        ],
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "costCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "dueDay": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "start": {
+            "type": "string",
+            "format": "date"
+          },
+          "end": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "leadDays": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "paymentDetails": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PaymentDetailsInput"
+              }
+            ]
           }
         },
         "additionalProperties": false

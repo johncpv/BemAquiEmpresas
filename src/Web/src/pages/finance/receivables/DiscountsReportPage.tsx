@@ -62,7 +62,7 @@ export function DiscountsReportPage() {
                   <tbody>
                     {query.data.cancellations.map((c) => (
                       <tr key={c.receivableId} className="border-b border-border last:border-0">
-                        <td className="px-3 py-2"><Link to="/app/financeiro/receber/$id" params={{ id: c.receivableId }} className="font-mono font-semibold text-primary">{c.number}</Link></td>
+                        <td className="px-3 py-2"><Link to={c.isPayable ? '/app/financeiro/pagar/$id' : '/app/financeiro/receber/$id'} params={{ id: c.receivableId }} className="font-mono font-semibold text-primary">{c.number}</Link></td>
                         <td className="px-3 py-2">{c.partyName}</td>
                         <td className="px-3 py-2 text-right"><Money value={c.balance} /></td>
                         <td className="px-3 py-2">{c.reason}</td>

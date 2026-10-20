@@ -5,7 +5,7 @@
 | ID | FIN-02 |
 | Título | Títulos a pagar manuais e parcelados, com origem, forma de pagamento (Pix, boleto, TED), campos de retenção e trava enquanto estão em ordem de pagamento; contrato para outros módulos criarem títulos (instalador, compra, folha); despesas recorrentes geradas por job sem duplicar |
 | Tamanho | M |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-FIN-4 (CP: compras, folha, instaladores, recorrentes, manual) · R-FIN-6 (despesas recorrentes por regra) · R-FIN-5 (base da OP: o aprovador vê para onde vai o dinheiro) · R-FIN-1 · R-COM-4 (numeração CP) · R-PRP-1 · R-SEC-5 |
 | Dependências | FIN-01 (molde de título, provedores de uso, parcelamento, parâmetros do Finance, relatório de descontos e cancelamentos), FND-09e, CAD-05a, CAD-05b, CAD-01a, CAD-06; Fase 0 (FND-07 `TenantJob`/recorrente global, FND-09c, FND-14) |
 | Bloqueia | FIN-00 (implantação), FIN-05, FIN-03a (OP agrupa títulos a pagar), COM-06 (CP do instalador), CMP-03/CMP-04 (previsão e confirmação do CP), RH-02 (CP de salários), PAT-03 |
@@ -101,22 +101,22 @@ Decididos pelo PO em 20/10/2026 (seção 1.1 e D8, D9):
 4. P-18 decidida (ADR 0021).
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
-- [ ] Migration criada (não destrutiva).
-- [ ] Permissões só do `ModuleCatalog`; job registrado no `RecurringJobsRegistrar`.
-- [ ] Telas com estados de carregando, vazio, vazio filtrado e erro; modo leitura.
-- [ ] Ajuda das telas e abas; teste de cobertura passando.
-- [ ] Padrões comuns da Fase 2 e próximos passos aplicados.
-- [ ] Auditoria ligada (com dados de pagamento mascarados).
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
+- [x] Migration criada (não destrutiva).
+- [x] Permissões só do `ModuleCatalog`; job registrado no `RecurringJobsRegistrar`.
+- [x] Telas com estados de carregando, vazio, vazio filtrado e erro; modo leitura.
+- [x] Ajuda das telas e abas; teste de cobertura passando.
+- [x] Padrões comuns da Fase 2 e próximos passos aplicados.
+- [x] Auditoria ligada (com dados de pagamento mascarados).
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] Entidades `Payable` e `RecurringExpense`; `PaymentMethod` e o validador de linha digitável e chave Pix.
-- [ ] `IPayables` (`CreateFromOriginAsync`, `ConfirmAsync`, `UpdatePlannedAsync`, `CancelFromOriginAsync`, `ByProjectAsync`) em `Finance.Contracts`.
-- [ ] `GenerateRecurringPayablesJob` (`TenantJob`) e o recorrente global.
-- [ ] Endpoints `/api/v1/finance/payables` e `/api/v1/finance/recurring-expenses`; telas e ajuda.
+- [x] Entidades `Payable` e `RecurringExpense`; `PaymentMethod` e o validador de linha digitável e chave Pix.
+- [x] `IPayables` (`CreateFromOriginAsync`, `ConfirmAsync`, `UpdatePlannedAsync`, `CancelFromOriginAsync`, `ByProjectAsync`) em `Finance.Contracts`.
+- [x] `GenerateRecurringPayablesJob` (`TenantJob`) e o recorrente global.
+- [x] Endpoints `/api/v1/finance/payables` e `/api/v1/finance/recurring-expenses`; telas e ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, @qa, cybersecurity (forma de pagamento e trava em OP).
@@ -150,3 +150,4 @@ Checklist do @po (Pax), 20/10/2026 (revalidação depois das decisões do PO e d
 | 19/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 20/10/2026 | 0.3 | Decisões do PO (D8, D9, seção 1.1) e correções da revisão pré-Fase 2 (§2.1, §2.2-C1, A4, A5, M8, §2.3); CAs renumerados | River (SM) |
 | 20/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 20/10/2026 | 1.0 | Implementada. Desvios: idempotência pelo filtro comum (sem `client_request_id`); seletor de fornecedor pela rota nova `GET /finance/suppliers` (fornecedor ou instalador, documento só de PJ); as retenções do parcelamento ficam na primeira parcela; a forma de pagamento sai mascarada também no detalhe (`GET /payables/{id}/payment-method`), e a leitura completa para quem paga entra com a FIN-03a; o detalhe tem as abas Dados (com as retenções), Forma de pagamento e Histórico; "Origem cancelada" pela tela entra quando cada origem expuser o próprio estado (COM-06); `IPayables` escolhe a conta pela origem (instalador "2.3", demais "3.9"); a lista ainda não tem a seleção múltipla "Criar ordem de pagamento" (FIN-03a) | @dev |

@@ -38,6 +38,12 @@ public static class FinanceInfrastructure
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IAccountUsageProvider, FinanceUsage>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ICostCenterUsageProvider, FinanceUsage>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IPartyUsageProvider, FinanceUsage>());
+        // Contas a pagar e recorrentes (FIN-02).
+        services.TryAddScoped<PayableService>();
+        services.TryAddScoped<IPayables, PayablesContract>();
+        services.TryAddScoped<RecurringExpenseService>();
+        services.AddAuditableEntity<Payable>("finance");
+        services.AddAuditableEntity<RecurringExpense>("finance");
         services.AddAuditableEntity<Receivable>("finance");
         services.AddAuditableEntity<ReceivableSettlement>("finance");
         services.AddAuditableEntity<FinancialTransaction>("finance");

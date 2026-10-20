@@ -186,7 +186,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-2--comercial-proj
 - Requisitos: R-FIN-3, R-FIN-1, R-FIN-2, R-COM-4, R-COM-2, R-PRP-1, R-PRP-7, R-SEC-5.
 - CA: título manual e parcelado por `IPaymentTerms.SplitAsync`, com idempotência; baixa total ou parcial com juros, multa e desconto cria transação na conta, na mesma transação; "Quitar o saldo com desconto" sem transação; `paid_amount = Σ baixas` (teste de propriedade); "Vencido" calculado; limites de desconto, cancelamento e data retroativa (D8) e relatório de descontos e cancelamentos; vencimento da parcela do contrato editável com motivo (D14); título nunca apagado; baixa concorrente recusada com 409.
 
-**FIN-02 [ ] Contas a pagar e recorrentes (M)** — 2.1a, ordem 2 — [story](stories/FIN-02-contas-a-pagar-recorrentes.md)
+**FIN-02 [x] Contas a pagar e recorrentes (M)** — 2.1a, ordem 2 — [story](stories/FIN-02-contas-a-pagar-recorrentes.md)
 - Requisitos: R-FIN-4, R-FIN-6, R-FIN-5, R-FIN-1, R-COM-4, R-PRP-1, R-SEC-5.
 - CA: título manual e parcelado com retenções digitadas (P-15); forma de pagamento (Pix, boleto, TED) com aviso de titular diferente (D9); título travado enquanto está em OP; sem baixa fora da OP (teste de arquitetura); `IPayables` idempotente por origem, com data estimada; recorrente gera título com antecedência, sem duplicar, inclusive em paralelo e com dois tenants.
 
