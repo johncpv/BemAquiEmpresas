@@ -59,6 +59,9 @@ public interface IPayables
 
     Task<Result> CancelFromOriginAsync(DocumentOrigin origin, Guid originId, string reason, CancellationToken cancellationToken = default);
 
+    /// <summary>Título gerado por uma origem (COM-06: o título do instalador na OS); null se não existe.</summary>
+    Task<PayableRef?> FindByOriginAsync(DocumentOrigin origin, Guid originId, CancellationToken cancellationToken = default);
+
     /// <summary>Títulos a pagar com o projeto (COM-05 CA 6, 8): base do realizado por natureza.</summary>
     Task<IReadOnlyList<ProjectPayable>> ByProjectAsync(Guid projectId, CancellationToken cancellationToken = default);
 }

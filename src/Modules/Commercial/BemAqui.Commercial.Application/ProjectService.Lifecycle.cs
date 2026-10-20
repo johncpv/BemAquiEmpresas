@@ -52,6 +52,12 @@ public sealed partial class ProjectService
             return Error.Conflict("project_not_deliverable", "Só projeto em produção ou fabricado tem a entrega registrada.");
         }
 
+        // D15: com OS de instalação aberta, a entrega vem do aceite técnico (COM-04b CA 10, COM-06).
+        if ((await installations.ByProjectAsync(project.Id, cancellationToken)).Any(o => o.Status is Production.Contracts.InstallationState.Open or Production.Contracts.InstallationState.InProgress))
+        {
+            return Error.Conflict("installation_open", "Há OS de instalação aberta: a entrega é registrada pelo aceite técnico.");
+        }
+
         var needsFabrication = project.Status != ProjectStatus.Fabricated
             && await db.ContractMilestones.AnyAsync(m => m.ContractId == project.ContractId && m.TriggerEvent == TriggerEvent.FabricationDone, cancellationToken);
         if (needsFabrication)

@@ -5,7 +5,7 @@
 | ID | COM-06 |
 | Título | OS de instalação criada a partir do projeto, com executor terceirizado (papel Instalador), valor combinado que gera o CP previsto do instalador com data estimada, vinculado ao projeto, etapas e checklist de entrega técnica; aceite técnico que confirma o CP, entrega o projeto e libera o recebível do marco |
 | Tamanho | G (re-estimada de M: cria a primeira tabela de OS do Production e a cadeia de eventos entre três módulos) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-PRJ-3 (OS de instalação por item/projeto, executor terceirizado, etapas, checklist de entrega técnica) · R-FIN-4 (CP de instaladores) · R-PRJ-6 (aceite técnico libera parcela) · R-COM-4 (numeração OS) · R-COM-3 · R-PRP-2 · R-PRP-7 |
 | Dependências | COM-04a (`IProjects`), COM-04b (liberação por `TechnicalAcceptance`, registro de gatilhos), COM-05 (aba Itens e OS), FIN-02 (`IPayables`), FIN-03a (OP), CAD-01a (papel Instalador), FND-09e |
 | Bloqueia | PRD-01 (reaproveita `production_orders`), PNL-01 (instalações em andamento), DSH-01 (entregas) |
@@ -102,16 +102,16 @@ Decididos pelo PO em 20/10/2026 (seção 1.1, item 27):
 **Pré-condição externa:** nenhuma (P-22 decidida: modelo configurável com padrão sugerido).
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers, cadeia até o recebível), arquitetura e E2E passando.
-- [ ] Migration criada (não destrutiva); seed das etapas e do checklist idempotente; seed patch de permissões.
-- [ ] Permissões só do `ModuleCatalog`; dono de anexo `ProductionOrder` registrado com `OwnerExists`.
-- [ ] Telas com estados, inclusive a 400 px.
-- [ ] Ajuda da lista e de cada aba; teste de cobertura passando.
-- [ ] Confirmação com impacto financeiro e próximos passos aplicados.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` (máquina da OS de instalação) atualizados; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers, cadeia até o recebível), arquitetura e E2E passando.
+- [x] Migration criada (não destrutiva); seed das etapas e do checklist idempotente; seed patch de permissões.
+- [x] Permissões só do `ModuleCatalog`; dono de anexo `ProductionOrder` registrado com `OwnerExists`.
+- [x] Telas com estados, inclusive a 400 px.
+- [x] Ajuda da lista e de cada aba; teste de cobertura passando.
+- [x] Confirmação com impacto financeiro e próximos passos aplicados.
+- [x] Auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` (máquina da OS de instalação) atualizados; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
 - [ ] `IProductionDb` com `ProductionOrder` e `ProductionOrderStep` (tipo Installation).
@@ -152,3 +152,4 @@ Checklist do @po (Pax), 20/10/2026 (revalidação depois das decisões do PO e d
 | 20/10/2026 | 0.3 | Decisões do PO (seção 1.1) e correções da revisão pré-Fase 2 (§2.1-M13, A3, §2.2 baixos, §2.3); pré-condição P-22; CAs renumerados | River (SM) |
 | 20/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` com pré-condição externa | Pax (PO) |
 | 20/10/2026 | 0.5 | P-22 decidida pelo PO: modelo de etapas e checklist configurável por tenant, com padrão sugerido no seed (CA 4); sem pré-condição externa | River (SM) |
+| 20/10/2026 | 1.0 | Implementada. Desvios: a OS nasce também com o projeto em "Instalando" (OS adicional depois de uma cancelada); o checklist da OS fica em `production_order_checklist`, linha a linha, no lugar de um `checklist_result` em JSON; o instalador sugerido é o último usado com o mesmo cliente (a cidade da obra fica para depois); o seletor de instaladores é do próprio Production (`/production/installations/installers`, com `production.create`); a lista Instalações virou a primeira aba da Produção; "Combinado · Orçado" na OP com `projects.view_cost` pelo `IProjects.BudgetedAsync`; `IPayables.FindByOriginAsync` novo; o Finance libera cancelar o título do instalador de OS cancelada (`IInstallationOrders.StatusAsync`) com "Origem cancelada:" | @dev |

@@ -147,6 +147,16 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<CalendarExceptionDay> CalendarExceptions => Set<CalendarExceptionDay>();
 
+    public DbSet<BemAqui.Production.Domain.ProductionOrder> ProductionOrders => Set<BemAqui.Production.Domain.ProductionOrder>();
+
+    public DbSet<BemAqui.Production.Domain.ProductionOrderStep> ProductionOrderSteps => Set<BemAqui.Production.Domain.ProductionOrderStep>();
+
+    public DbSet<BemAqui.Production.Domain.ProductionOrderChecklistItem> ProductionOrderChecklist => Set<BemAqui.Production.Domain.ProductionOrderChecklistItem>();
+
+    public DbSet<BemAqui.Production.Domain.ProductionOrderProjectItem> ProductionOrderProjectItems => Set<BemAqui.Production.Domain.ProductionOrderProjectItem>();
+
+    public DbSet<BemAqui.Production.Domain.InstallationTemplateLine> InstallationTemplate => Set<BemAqui.Production.Domain.InstallationTemplateLine>();
+
     public DbSet<JobPosition> JobPositions => Set<JobPosition>();
 
     public DbSet<WorkSchedule> WorkSchedules => Set<WorkSchedule>();

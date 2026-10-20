@@ -196,7 +196,9 @@ public sealed partial class PayableService
             return Error.Conflict("payable_not_open", $"O título {payable.Number} não está em aberto.");
         }
 
-        if (!EditableOrigins.Contains(payable.Origin))
+        // Título de OS de instalação cancelada fica órfão: o financeiro cancela (ADR 0019 §4, COM-06 CA 13).
+        var orphan = payable.Origin == DocumentOrigin.Installer && payable.OriginId is { } orderId && await InstallationCancelledAsync(orderId, cancellationToken);
+        if (!EditableOrigins.Contains(payable.Origin) && !orphan)
         {
             return OriginProtected(payable);
         }
@@ -216,7 +218,7 @@ public sealed partial class PayableService
 
         Expect(payable, input.Version);
         payable.Status = PayableStatus.Cancelled;
-        payable.CancelReason = input.Reason.Trim();
+        payable.CancelReason = (orphan ? "Origem cancelada: " : string.Empty) + input.Reason.Trim();
         payable.CancelledAt = clock.GetUtcNow();
         payable.CancelledBy = currentUser.UserId;
         var who = currentUser.UserId is { } me ? await users.DisplayNameAsync(me, cancellationToken) ?? "um usuário" : "o sistema";
@@ -318,6 +320,19 @@ public sealed partial class PayableService
         return costCenterId is { } center && !await db.CostCenters.AnyAsync(c => c.Id == center && c.IsActive, ct)
             ? ReceivableService.Invalid("costCenterId", "Escolha um centro de custo ativo.")
             : null;
+    }
+
+    private async Task<bool> InstallationCancelledAsync(Guid orderId, CancellationToken ct)
+    {
+        foreach (var source in installations)
+        {
+            if (await source.StatusAsync(orderId, ct) == BemAqui.Production.Contracts.InstallationState.Cancelled)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static Error OriginProtected(Payable payable) =>

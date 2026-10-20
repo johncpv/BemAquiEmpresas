@@ -1,8 +1,10 @@
 import { Link } from '@tanstack/react-router'
 
 const TABS = [
+  { to: '/app/producao/instalacoes', label: 'Instalações' },
   { to: '/app/producao/centros-de-trabalho', label: 'Centros de trabalho' },
   { to: '/app/producao/calendario', label: 'Calendário' },
+  { to: '/app/producao/modelo-instalacao', label: 'Modelo da OS de instalação' },
 ] as const
 
 /** Abas da Produção (CAD-03): cada aba é uma rota própria (FND-09b CA 8). */

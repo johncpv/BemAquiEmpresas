@@ -6678,6 +6678,491 @@
         }
       }
     },
+    "/api/v1/production/installations": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "ListInstallations",
+        "parameters": [
+          {
+            "name": "situation",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstallationPage"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "CreateInstallation",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InstallationCreateInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstallationDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/installations/defaults": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "GetInstallationDefaults",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstallationDefaults"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/installations/installers": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "ListInstallers",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InstallerOption"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/installations/{id}": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "GetInstallation",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstallationDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "UpdateInstallation",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InstallationUpdateInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstallationDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/installations/{id}/start": {
+      "post": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "StartInstallation",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InstallationDateInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstallationDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/installations/{id}/steps/{stepId}/complete": {
+      "post": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "CompleteInstallationStep",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "stepId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InstallationVersionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstallationDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/installations/{id}/checklist/{itemId}": {
+      "put": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "MarkInstallationChecklist",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InstallationChecklistInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstallationDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/installations/{id}/accept": {
+      "post": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "AcceptInstallation",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InstallationAcceptInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstallationAcceptResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/installations/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "CancelInstallation",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InstallationCancelInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstallationDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/installation-template": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "GetInstallationTemplate",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstallationTemplateView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "SaveInstallationTemplate",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InstallationTemplateInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstallationTemplateView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/inventory/locations": {
       "get": {
         "tags": [
@@ -12857,6 +13342,13 @@
           }
         }
       },
+      "ChecklistResult": {
+        "enum": [
+          "Done",
+          "NotApplicable",
+          null
+        ]
+      },
       "CnpjAddress": {
         "required": [
           "zipCode",
@@ -15691,6 +16183,625 @@
           }
         }
       },
+      "InstallationAcceptInput": {
+        "required": [
+          "date",
+          "acceptedByName",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "acceptedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "InstallationAcceptResult": {
+        "required": [
+          "payableId",
+          "payableNumber",
+          "payableDueDate"
+        ],
+        "type": "object",
+        "properties": {
+          "payableId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "payableNumber": {
+            "type": "string"
+          },
+          "payableDueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          }
+        }
+      },
+      "InstallationCancelInput": {
+        "required": [
+          "reason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "InstallationChecklistInput": {
+        "required": [
+          "result",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "result": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ChecklistResult"
+              }
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "InstallationChecklistView": {
+        "required": [
+          "id",
+          "sequence",
+          "text",
+          "result",
+          "markedAt",
+          "markedByName"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "text": {
+            "type": "string"
+          },
+          "result": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ChecklistResult"
+              }
+            ]
+          },
+          "markedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "markedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "InstallationCreateInput": {
+        "required": [
+          "projectId",
+          "projectItemIds",
+          "installerId",
+          "contractValue",
+          "plannedStart",
+          "plannedEnd"
+        ],
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectItemIds": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "installerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contractValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "plannedStart": {
+            "type": "string",
+            "format": "date"
+          },
+          "plannedEnd": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "InstallationDateInput": {
+        "required": [
+          "date",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "InstallationDefaults": {
+        "required": [
+          "items",
+          "suggestedValue",
+          "suggestedInstallerId",
+          "suggestedInstallerName"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InstallationItemOption"
+            }
+          },
+          "suggestedValue": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "suggestedInstallerId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "suggestedInstallerName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "InstallationDetail": {
+        "required": [
+          "id",
+          "number",
+          "projectId",
+          "projectNumber",
+          "projectName",
+          "contractId",
+          "installerId",
+          "installerName",
+          "contractValue",
+          "plannedStart",
+          "plannedEnd",
+          "status",
+          "startedOn",
+          "acceptedOn",
+          "acceptedByName",
+          "cancelReason",
+          "steps",
+          "checklist",
+          "items",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": "string"
+          },
+          "projectName": {
+            "type": "string"
+          },
+          "contractId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "installerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "installerName": {
+            "type": "string"
+          },
+          "contractValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "plannedStart": {
+            "type": "string",
+            "format": "date"
+          },
+          "plannedEnd": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProductionOrderStatus"
+          },
+          "startedOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "acceptedOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "acceptedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cancelReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InstallationStepView"
+            }
+          },
+          "checklist": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InstallationChecklistView"
+            }
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InstallationItemOption"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "payable": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PayableRef"
+              }
+            ]
+          }
+        }
+      },
+      "InstallationItemOption": {
+        "required": [
+          "id",
+          "sequence",
+          "description",
+          "quantity",
+          "coveredBy"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "coveredBy": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "InstallationPage": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InstallationSummary"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "InstallationStepView": {
+        "required": [
+          "id",
+          "sequence",
+          "name",
+          "completedAt",
+          "completedByName"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "completedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "completedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "InstallationSummary": {
+        "required": [
+          "id",
+          "number",
+          "projectId",
+          "projectNumber",
+          "projectName",
+          "installerId",
+          "installerName",
+          "plannedStart",
+          "plannedEnd",
+          "status",
+          "stepsDone",
+          "stepsTotal"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": "string"
+          },
+          "projectName": {
+            "type": "string"
+          },
+          "installerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "installerName": {
+            "type": "string"
+          },
+          "plannedStart": {
+            "type": "string",
+            "format": "date"
+          },
+          "plannedEnd": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProductionOrderStatus"
+          },
+          "stepsDone": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "stepsTotal": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "InstallationTemplateInput": {
+        "required": [
+          "steps",
+          "checklist"
+        ],
+        "type": "object",
+        "properties": {
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "checklist": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "InstallationTemplateView": {
+        "required": [
+          "steps",
+          "checklist"
+        ],
+        "type": "object",
+        "properties": {
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "checklist": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "InstallationUpdateInput": {
+        "required": [
+          "contractValue",
+          "plannedStart",
+          "plannedEnd",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "contractValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "plannedStart": {
+            "type": "string",
+            "format": "date"
+          },
+          "plannedEnd": {
+            "type": "string",
+            "format": "date"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "InstallationVersionInput": {
+        "required": [
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "InstallerOption": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
       "Installment": {
         "required": [
           "days",
@@ -18324,6 +19435,43 @@
           }
         }
       },
+      "PayableRef": {
+        "required": [
+          "id",
+          "number",
+          "status",
+          "amount",
+          "dueDate",
+          "isEstimate"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PayableStatus"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "isEstimate": {
+            "type": "boolean"
+          }
+        }
+      },
       "PayablesCreated": {
         "required": [
           "items",
@@ -18884,6 +20032,13 @@
           },
           "paidTotal": {
             "type": "number",
+            "format": "double"
+          },
+          "installationBudget": {
+            "type": [
+              "null",
+              "number"
+            ],
             "format": "double"
           }
         }
@@ -19549,6 +20704,14 @@
             "$ref": "#/components/schemas/PricingMode"
           }
         }
+      },
+      "ProductionOrderStatus": {
+        "enum": [
+          "Open",
+          "InProgress",
+          "Completed",
+          "Cancelled"
+        ]
       },
       "ProjectBudgetLine": {
         "required": [

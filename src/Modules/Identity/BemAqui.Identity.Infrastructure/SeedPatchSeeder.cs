@@ -41,6 +41,11 @@ public sealed class SeedPatchSeeder : ITenantSeeder
             ("commercial", "projects", ["view_cost"]),
             ("finance", "projects", ["view_cost"]),
         ]),
+        // COM-06 CA 1: a Engenharia cria a OS de instalação a partir do projeto.
+        new("installation-orders-permissions",
+        [
+            ("engineering", "production", ["create"]),
+        ]),
     ];
 
     public int Order => 25;

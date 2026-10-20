@@ -22,4 +22,6 @@ export interface PaymentOrderItemView {
   payment: PaymentDetailsInput;
   warnings: string[];
   paidTotal: number;
+  /** @nullable */
+  installationBudget?: number | null;
 }

@@ -29,6 +29,7 @@ public sealed partial class PayableService(
     IUserDirectory users,
     ICurrentUser currentUser,
     IProjects projects,
+    IEnumerable<BemAqui.Production.Contracts.IInstallationOrders> installations,
     TimeProvider clock)
 {
     public const string NumberIndex = "ix_payables_number";

@@ -110,6 +110,8 @@ Fase 2 (decisões do PO de 20/10/2026, revisão pré-Fase 2 e ADR 0019): cada ta
 - **production_orders**: number, type (Fabrication/Installation/Maintenance), project_id, project_item_id, product_id, quantity, status (Open/InProgress/Paused/Quality/Completed/Cancelled), priority, planned_start, planned_end, actual_start, actual_end, executor_party_id (instalação terceirizada), serial_numbers. Criada na COM-06 para o tipo Installation, com contract_value, accepted_on, accepted_by_name (`[PersonalData]`), cancel_reason
 - **production_order_project_items** (COM-06): production_order_id, project_item_id (um item em no máximo uma OS de instalação não cancelada)
 - **production_order_steps** (COM-06): order_id, sequence, name, work_center_id (nulo na instalação), standard_hours, status (Waiting/Ready/InProgress/Paused/Done/Rejected), planned_start, planned_end, actual_start, actual_end, checklist_result (JSON com usuário e data por item)
+- **production_order_checklist** (COM-06): order_id, sequence, text, result (Done/NotApplicable), marked_at, marked_by — o `checklist_result` da OS de instalação, linha a linha
+- **installation_template** (COM-06, P-22): kind (Step/Checklist), sequence, text — modelo do tenant copiado por toda OS de instalação nova; seed com o padrão sugerido
 - **labor_entries**: order_step_id, employee_id, started_at, ended_at, paused_minutes, hourly_cost_snapshot, cost, notes
 - **step_pauses**: labor_entry_id, reason (Material/Machine/Break/Other), started_at, ended_at
 - **non_conformities**: number, order_id, order_step_id, description, cause, action, responsible_user_id, return_to_step_id, status (Open/InAction/Closed), cost

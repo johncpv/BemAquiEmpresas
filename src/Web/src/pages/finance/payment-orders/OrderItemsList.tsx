@@ -13,6 +13,11 @@ export function OrderItemsList({ items, compact }: { items: PaymentOrderItemView
             <Money value={i.approvedTotal} className="font-semibold" />
           </div>
           <p className="text-xs text-muted-foreground">Para: {destination(i.payment)}</p>
+          {typeof i.installationBudget === 'number' ? (
+            <p className={i.netAmount > i.installationBudget ? 'rounded border border-warn-soft bg-warn-soft px-2 py-1 text-xs text-warn-ink' : 'text-xs text-muted-foreground'}>
+              Combinado <Money value={i.netAmount} /> · Orçado <Money value={i.installationBudget} />{i.netAmount > i.installationBudget ? ' — acima do orçado de instalação' : ''}
+            </p>
+          ) : null}
           {i.amount < i.netAmount ? <p className="text-xs">Pagamento parcial: <Money value={i.amount} /> de <Money value={i.netAmount} /></p> : null}
           {i.warnings.map((w) => <p key={w} className="rounded border border-warn-soft bg-warn-soft px-2 py-1 text-xs text-warn-ink">{w}</p>)}
         </li>

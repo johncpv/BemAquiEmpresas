@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from '@tanstack/react-router'
 import { getGetContractQueryKey, getGetProjectQueryKey, useGetProject } from '@/api/generated/bemaqui'
 import { RecordHistory } from '@/components/history/RecordHistory'
 import { StageIndicator } from '@/components/ui/stage-indicator'
-import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
+import { ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Tag } from '@/components/ui/tag'
 import { UrlTabs } from '@/components/ui/url-tabs'
@@ -15,10 +15,9 @@ import { ProjectCostsTab } from './ProjectCostsTab'
 import { ProjectDocumentsTab } from './ProjectDocumentsTab'
 import { ProjectEventDialog } from './ProjectEventDialog'
 import { ProjectFinancialTab } from './ProjectFinancialTab'
+import { ProjectItemsTab } from './ProjectItemsTab'
 import { ProjectSummaryTab } from './ProjectSummaryTab'
 import { ProjectTimelineTab } from './ProjectTimelineTab'
-
-const qty = (v: number) => v.toLocaleString('pt-BR', { maximumFractionDigits: 4 })
 
 /** Projeto 360 (COM-05): cabeçalho com a etapa e as ações; abas na URL; aba sem permissão some. */
 export function ProjectPage() {
@@ -63,11 +62,7 @@ export function ProjectPage() {
       ) : null}
       <UrlTabs label="Seções do projeto" fallback="resumo" tabs={[
         { id: 'resumo', label: 'Resumo', content: <ProjectSummaryTab project={p} onSaved={refresh} onCosts={() => void navigate({ to: '/app/projetos/$id', params: { id }, search: { aba: 'custos' } } as never)} /> },
-        { id: 'itens', label: 'Itens e OS', content: p.items.length === 0 ? <EmptyState title="Projeto sem itens." /> : (
-          <ul className="divide-y divide-border rounded-md border border-border bg-card text-sm" aria-label="Itens do projeto">
-            {p.items.map((i) => <li key={i.id} className="flex flex-wrap justify-between gap-2 p-3"><span><b>{i.sequence}.</b> {i.description}<span className="block text-xs text-muted-foreground">Ainda sem OS</span></span><span className="tabular-nums">{qty(i.quantity)}</span></li>)}
-          </ul>
-        ) },
+        { id: 'itens', label: 'Itens e OS', content: <ProjectItemsTab project={p} /> },
         ...(canFinance ? [{ id: 'financeiro', label: 'Financeiro', content: <ProjectFinancialTab projectId={id} /> }] : []),
         ...(canCost ? [{ id: 'custos', label: 'Custos', content: <ProjectCostsTab projectId={id} /> }] : []),
         { id: 'documentos', label: 'Documentos', content: <ProjectDocumentsTab projectId={id} contractId={p.contractId} /> },

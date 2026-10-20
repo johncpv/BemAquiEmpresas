@@ -20,7 +20,7 @@ namespace BemAqui.Finance.Application;
 /// </summary>
 public sealed partial class PaymentOrderService(
     IFinanceDb db, IParties parties, IUserDirectory users, IPermissionChecker permissions, ICurrentUser currentUser, INumberSequence numbers,
-    INotificationService notifications, IEventPublisher events, IFinanceParameters parameters, TimeProvider clock)
+    INotificationService notifications, IEventPublisher events, IFinanceParameters parameters, BemAqui.Commercial.Contracts.IProjects projects, TimeProvider clock)
 {
     public const string DocType = "OP";
     public const string NotificationType = "finance.payment_order";
@@ -83,10 +83,36 @@ public sealed partial class PaymentOrderService(
         var names = await NamesAsync(decisions.Select(d => d.DecidedBy).Append(order.RequestedBy), ct);
         var isRequester = order.RequestedBy is { } r && r == currentUser.UserId;
         var canDecide = order.Status == PaymentOrderStatus.Pending && await permissions.HasPermissionAsync("finance", "approve", ct) && (await DecisionRuleAsync(order, ct)).Allowed;
+        var views = items.Select(i => ItemView(i, paid.GetValueOrDefault(i.PayableId))).ToList();
+        views = await WithInstallationBudgetAsync(views, ct);
         return new PaymentOrderDetail(
-            Summary(order, items.Count, names), items.Select(i => ItemView(i, paid.GetValueOrDefault(i.PayableId))).ToList(),
+            Summary(order, items.Count, names), views,
             decisions.Select(d => new PaymentOrderDecisionView(d.Kind, d.Decision, d.Comment, d.DecidedBy is { } u ? names.GetValueOrDefault(u) : null, d.DecidedAt, d.SelfApproved)).ToList(),
             isRequester, canDecide, order.CancelReason, order.ReversalReason, order.PaidOn, order.BankAccountId, order.Version);
+    }
+
+    /// <summary>
+    /// "Combinado · Orçado" no título do instalador (COM-06 CA 15): orçado de Instalação do projeto, só com <c>projects.view_cost</c>.
+    /// </summary>
+    private async Task<List<PaymentOrderItemView>> WithInstallationBudgetAsync(List<PaymentOrderItemView> views, CancellationToken ct)
+    {
+        if (!await permissions.HasPermissionAsync("projects", "view_cost", ct))
+        {
+            return views;
+        }
+
+        var ids = views.Select(v => v.PayableId).ToList();
+        var installers = await db.Payables.AsNoTracking().Where(p => ids.Contains(p.Id) && p.Origin == DocumentOrigin.Installer && p.ProjectId != null)
+            .ToDictionaryAsync(p => p.Id, p => p.ProjectId!.Value, ct);
+        var result = new List<PaymentOrderItemView>();
+        foreach (var view in views)
+        {
+            result.Add(installers.TryGetValue(view.PayableId, out var project)
+                ? view with { InstallationBudget = await projects.BudgetedAsync(project, CostType.Installation, ct) }
+                : view);
+        }
+
+        return result;
     }
 
     private PaymentOrderItemView ItemView(PaymentOrderItem item, decimal paid)

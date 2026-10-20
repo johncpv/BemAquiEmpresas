@@ -5015,6 +5015,254 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("calendar_exceptions", "production");
                 });
 
+            modelBuilder.Entity("BemAqui.Production.Domain.InstallationTemplateLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)")
+                        .HasColumnName("kind");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("text");
+
+                    b.HasKey("Id")
+                        .HasName("pk_installation_template");
+
+                    b.ToTable("installation_template", "production");
+                });
+
+            modelBuilder.Entity("BemAqui.Production.Domain.ProductionOrder", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AcceptedByName")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("accepted_by_name");
+
+                    b.Property<DateOnly?>("AcceptedOn")
+                        .HasColumnType("date")
+                        .HasColumnName("accepted_on");
+
+                    b.Property<string>("CancelReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("cancel_reason");
+
+                    b.Property<DateTimeOffset?>("CancelledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("cancelled_at");
+
+                    b.Property<Guid?>("CancelledBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cancelled_by");
+
+                    b.Property<Guid>("ContractId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_id");
+
+                    b.Property<decimal>("ContractValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("contract_value");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<Guid>("InstallerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("installer_id");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("number");
+
+                    b.Property<DateOnly>("PlannedEnd")
+                        .HasColumnType("date")
+                        .HasColumnName("planned_end");
+
+                    b.Property<DateOnly>("PlannedStart")
+                        .HasColumnType("date")
+                        .HasColumnName("planned_start");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<DateOnly?>("StartedOn")
+                        .HasColumnType("date")
+                        .HasColumnName("started_on");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("type");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_production_orders");
+
+                    b.HasIndex("InstallerId")
+                        .HasDatabaseName("ix_production_orders_installer_id");
+
+                    b.HasIndex("Number")
+                        .IsUnique()
+                        .HasDatabaseName("ix_production_orders_number");
+
+                    b.HasIndex("ProjectId", "Type")
+                        .HasDatabaseName("ix_production_orders_project_id_type");
+
+                    b.ToTable("production_orders", "production");
+                });
+
+            modelBuilder.Entity("BemAqui.Production.Domain.ProductionOrderChecklistItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("MarkedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("marked_at");
+
+                    b.Property<Guid?>("MarkedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("marked_by");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("order_id");
+
+                    b.Property<string>("Result")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("result");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("text");
+
+                    b.HasKey("Id")
+                        .HasName("pk_production_order_checklist");
+
+                    b.HasIndex("OrderId")
+                        .HasDatabaseName("ix_production_order_checklist_order_id");
+
+                    b.ToTable("production_order_checklist", "production");
+                });
+
+            modelBuilder.Entity("BemAqui.Production.Domain.ProductionOrderProjectItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("order_id");
+
+                    b.Property<Guid>("ProjectItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_item_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_production_order_project_items");
+
+                    b.HasIndex("ProjectItemId")
+                        .HasDatabaseName("ix_production_order_project_items_project_item_id");
+
+                    b.HasIndex("OrderId", "ProjectItemId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_production_order_project_items_order_id_project_item_id");
+
+                    b.ToTable("production_order_project_items", "production");
+                });
+
+            modelBuilder.Entity("BemAqui.Production.Domain.ProductionOrderStep", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("completed_at");
+
+                    b.Property<Guid?>("CompletedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("completed_by");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("order_id");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.Property<Guid?>("WorkCenterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("work_center_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_production_order_steps");
+
+                    b.HasIndex("OrderId")
+                        .HasDatabaseName("ix_production_order_steps_order_id");
+
+                    b.ToTable("production_order_steps", "production");
+                });
+
             modelBuilder.Entity("BemAqui.Production.Domain.WorkCenter", b =>
                 {
                     b.Property<Guid>("Id")
@@ -5442,6 +5690,36 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_calendar_exceptions_calendars_calendar_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Production.Domain.ProductionOrderChecklistItem", b =>
+                {
+                    b.HasOne("BemAqui.Production.Domain.ProductionOrder", null)
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_production_order_checklist_production_orders_order_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Production.Domain.ProductionOrderProjectItem", b =>
+                {
+                    b.HasOne("BemAqui.Production.Domain.ProductionOrder", null)
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_production_order_project_items_production_orders_order_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Production.Domain.ProductionOrderStep", b =>
+                {
+                    b.HasOne("BemAqui.Production.Domain.ProductionOrder", null)
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_production_order_steps_production_orders_order_id");
                 });
 
             modelBuilder.Entity("BemAqui.Production.Domain.WorkCenter", b =>

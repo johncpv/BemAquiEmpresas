@@ -1,5 +1,7 @@
 using BemAqui.Production.Domain;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace BemAqui.Production.Application;
 
@@ -12,5 +14,20 @@ public interface IProductionDb
 
     DbSet<CalendarExceptionDay> CalendarExceptions { get; }
 
+    DbSet<ProductionOrder> ProductionOrders { get; }
+
+    DbSet<ProductionOrderStep> ProductionOrderSteps { get; }
+
+    DbSet<ProductionOrderChecklistItem> ProductionOrderChecklist { get; }
+
+    DbSet<ProductionOrderProjectItem> ProductionOrderProjectItems { get; }
+
+    DbSet<InstallationTemplateLine> InstallationTemplate { get; }
+
+    DatabaseFacade Database { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+
+    EntityEntry<TEntity> Entry<TEntity>(TEntity entity)
+        where TEntity : class;
 }
