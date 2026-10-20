@@ -5,7 +5,7 @@
 | ID | COM-06 |
 | Título | OS de instalação criada a partir do projeto, com executor terceirizado (papel Instalador), valor combinado que gera o CP previsto do instalador com data estimada, vinculado ao projeto, etapas e checklist de entrega técnica; aceite técnico que confirma o CP, entrega o projeto e libera o recebível do marco |
 | Tamanho | G (re-estimada de M: cria a primeira tabela de OS do Production e a cadeia de eventos entre três módulos) |
-| Status | Ready (com pré-condição externa: checklist padrão validado com a Konebras, P-22) |
+| Status | Ready |
 | Requisitos | R-PRJ-3 (OS de instalação por item/projeto, executor terceirizado, etapas, checklist de entrega técnica) · R-FIN-4 (CP de instaladores) · R-PRJ-6 (aceite técnico libera parcela) · R-COM-4 (numeração OS) · R-COM-3 · R-PRP-2 · R-PRP-7 |
 | Dependências | COM-04a (`IProjects`), COM-04b (liberação por `TechnicalAcceptance`, registro de gatilhos), COM-05 (aba Itens e OS), FIN-02 (`IPayables`), FIN-03a (OP), CAD-01a (papel Instalador), FND-09e |
 | Bloqueia | PRD-01 (reaproveita `production_orders`), PNL-01 (instalações em andamento), DSH-01 (entregas) |
@@ -30,7 +30,7 @@ Como **responsável pelo projeto**, quero **abrir a OS de instalação para o in
 **Criar a OS**
 2. **Dado** `production.create` e um projeto `Planned`, `InProgress` ou `Fabricated`, **quando** clico "Nova OS de instalação" no projeto, escolho os itens do projeto (padrão: todos), o instalador (terceiro ativo com papel Instalador; 422 "Escolha um terceiro com o papel Instalador."), o valor combinado (`numeric(18,2)`, > 0, padrão: o orçado de Instalação do projeto ainda sem OS, quando o usuário tem `projects.view_cost`), a data prevista de início e fim (`date`) e clico "Criar OS de instalação", **então** a OS nasce `Open` com número `OS-2026-00001` (`INumberSequence`, tipo `OS`), tipo `Installation`, e as etapas e o checklist padrão (CA 4).
 3. **Dado** a OS criada, **quando** grava, **então** na mesma transação o Production chama `IPayables.CreateFromOriginAsync(Installer, osId, instalador, projeto, Installation, valor, sem vencimento, estimatedDueDate, …, planned: true)` com a **data estimada** = `planned_end` + a primeira parcela da condição padrão do instalador (sem condição, o próprio `planned_end`), e o título a pagar nasce `Planned` com a marca de estimativa (entra no fluxo de caixa com a `Tag` "Estimado", FIN-05 CA 5), natureza Instalação, descrição "Instalação {OS} — {projeto}"; um rollback da OS desfaz o título.
-4. **Dado** a OS nova, **quando** abro, **então** ela tem as etapas padrão Preparação da obra, Montagem na obra, Testes e ajustes e Entrega técnica, e o checklist de entrega técnica padrão validado com a Konebras (P-22; proposta inicial: equipamento instalado conforme projeto, testes de segurança feitos, cliente orientado, documentação entregue, área limpa), editáveis enquanto a OS está `Open`.
+4. **Dado** a OS nova, **quando** abro, **então** ela tem as etapas padrão Preparação da obra, Montagem na obra, Testes e ajustes e Entrega técnica, e o checklist de entrega técnica vindo do **modelo configurável do tenant** (P-22, decidida em 20/10/2026: em Produção → Configurações → Modelo da OS de instalação, com `production.edit`, o tenant edita as etapas e os itens do checklist; o seed traz o modelo padrão sugerido: equipamento instalado conforme projeto, testes de segurança feitos, cliente orientado, documentação entregue, área limpa); etapas e checklist da OS continuam editáveis enquanto ela está `Open`, e mudar o modelo não altera as OS já criadas.
 5. **Dado** um item do projeto já coberto por outra OS de instalação não cancelada, **quando** tento incluí-lo, **então** 422 "O item {descrição} já está na {OS}."
 
 **Execução**
@@ -94,12 +94,12 @@ Como **responsável pelo projeto**, quero **abrir a OS de instalação para o in
 ## Pontos em aberto
 Decididos pelo PO em 20/10/2026 (seção 1.1, item 27):
 1. OS de instalação no módulo `production`, com seed patch para a Engenharia (a Supervisão já tem as ações); aceite com `production.approve`.
-2. Etapas padrão do CA 4; checklist padrão **a validar com a Konebras antes da story (P-22, pré-condição externa)**.
+2. Etapas padrão do CA 4; checklist configurável por tenant com modelo padrão sugerido no seed (P-22, decidida em 20/10/2026).
 3. CP `Planned` com data estimada na criação e `Open` no aceite, vencendo pela condição padrão do instalador.
 4. Uma OS cobre um ou mais itens (padrão: todos); o projeto fica `Delivered` quando todas as OS não canceladas estão concluídas.
 5. P-18 decidida (ADR 0021).
 
-**Pré-condição externa:** P-22, checklist padrão de entrega técnica validado com a Konebras (o PO traz a lista; sem ela, vale a proposta do CA 4, editável por OS).
+**Pré-condição externa:** nenhuma (P-22 decidida: modelo configurável com padrão sugerido).
 
 ## Definition of Done
 - [ ] Critérios de aceite atendidos.
@@ -151,3 +151,4 @@ Checklist do @po (Pax), 20/10/2026 (revalidação depois das decisões do PO e d
 | 19/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 20/10/2026 | 0.3 | Decisões do PO (seção 1.1) e correções da revisão pré-Fase 2 (§2.1-M13, A3, §2.2 baixos, §2.3); pré-condição P-22; CAs renumerados | River (SM) |
 | 20/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` com pré-condição externa | Pax (PO) |
+| 20/10/2026 | 0.5 | P-22 decidida pelo PO: modelo de etapas e checklist configurável por tenant, com padrão sugerido no seed (CA 4); sem pré-condição externa | River (SM) |

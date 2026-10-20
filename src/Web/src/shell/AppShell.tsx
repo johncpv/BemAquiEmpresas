@@ -1,5 +1,6 @@
 import { Outlet, useRouterState } from '@tanstack/react-router'
 import { useState } from 'react'
+import { MessageRegion } from '@/components/ui/message-region'
 import { AppHelp } from '@/help/AppHelp'
 import { useHelp } from '@/help/help-context'
 import { areaOf, findModuleBySlug } from '@/navigation/modules'
@@ -34,6 +35,7 @@ function Shell() {
       </a>
       <Topbar area={area} module={module && !module.locked && module.enabled ? module : undefined} tab={tab} onSearch={() => setPalette(true)} onHelp={() => help.setOpen(true)} />
       <main id="conteudo" className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+        <MessageRegion />
         <Outlet />
       </main>
       <Dock activeAreaId={area?.id} />

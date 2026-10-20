@@ -7,7 +7,7 @@ import { Field, FormError } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { DateInput, DecimalInput } from '@/components/form/inputs'
 import { SidePanel } from '@/components/ui/side-panel'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { HOURS_DICA } from './calendar'
 
 type Draft = { date: string; type: CalendarExceptionType; hours: string | null; description: string }
@@ -25,7 +25,7 @@ export function ExceptionPanel({ calendarId, exception, canEdit, onClose, onSave
     try {
       if (exception) await updateCalendarException(calendarId, exception.id, input)
       else await createCalendarException(calendarId, input)
-      toastDone('Exceção salva')
+      notifySuccess('Exceção salva')
       onSaved()
       return true
     } catch (e) {

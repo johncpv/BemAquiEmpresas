@@ -5,7 +5,7 @@ import { Field } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { SidePanel } from '@/components/ui/side-panel'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { Dica } from '@/help/Dica'
 import { draftErrors, type NumberingDraft, previewNext, toDraft } from './numbering-preview'
 
@@ -27,7 +27,7 @@ export function NumberingPanel({ row, canEdit, onClose, onSaved }: { row: Number
 
   return (
     <SidePanel open onOpenChange={(o) => !o && onClose()} title={`Numeração: ${row.label}`} description="Vale do próximo número em diante." dirty={dirty && canEdit}
-      onSave={async () => { if (!valid) return false; try { await save(); toastDone('Numeração salva'); return true } catch { return false } }}
+      onSave={async () => { if (!valid) return false; try { await save(); notifySuccess('Numeração salva'); return true } catch { return false } }}
       footer={(
         <>
           <button type="button" onClick={onClose} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Voltar</button>

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { cancelInvite, deactivateUser, reactivateUser, resendInvite } from '@/api/generated/bemaqui'
 import type { UserRow } from '@/api/generated/model'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { toastDone, toastError } from '@/components/ui/toast'
+import { notifyError, notifySuccess } from '@/components/ui/messages'
 import { UserGroupsDialog } from './UserGroupsDialog'
 
 /** Ações da linha (FND-06c CA 7, 9 e 11): grupos, reenviar/cancelar convite, desativar com confirmação e reativar. */
@@ -14,9 +14,9 @@ export function UserRowActions({ user, refresh }: { user: UserRow; refresh: () =
     try {
       await action()
       await refresh()
-      toastDone(done)
+      notifySuccess(done)
     } catch (e) {
-      toastError(e instanceof Error ? e.message : 'Não foi possível concluir.')
+      notifyError(e instanceof Error ? e.message : 'Não foi possível concluir.')
     }
   }
 

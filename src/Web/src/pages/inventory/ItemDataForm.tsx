@@ -4,7 +4,7 @@ import type { ItemDetail } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { FormError } from '@/components/form/form'
 import { UnsavedChangesGuard } from '@/components/form/UnsavedChangesGuard'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { draftErrors, fromItem, toInput } from './item-draft'
 import { ItemFields } from './ItemFields'
 
@@ -21,7 +21,7 @@ export function ItemDataForm({ item, canEdit, onSaved }: { item: ItemDetail; can
     if (Object.keys(local).length) return false
     try {
       const saved = await updateItem(item.id, toInput(draft))
-      toastDone('Item salvo')
+      notifySuccess('Item salvo')
       setInitial(fromItem(saved))
       setDraft(fromItem(saved))
       onSaved(saved)

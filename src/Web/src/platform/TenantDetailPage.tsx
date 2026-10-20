@@ -1,11 +1,12 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { getGetTenantQueryKey, useGetTenant } from '@/api/generated/bemaqui'
 import { StageIndicator } from '@/components/ui/stage-indicator'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
+import { NextSteps } from '@/components/ui/next-steps'
 import { formatDateTime } from '@/lib/format'
 import { PageHeading } from '@/shell/PageHeading'
 import { STEP_LABEL, TENANT_STATUS, type TenantStatusName } from './status'
@@ -23,15 +24,17 @@ export function TenantDetailPage() {
   const client = useQueryClient()
   const detail = useGetTenant(key, { query: { refetchInterval: (q) => (q.state.data?.tenant.status === 'Provisioning' ? 3000 : false) } })
   const previous = useRef<string | undefined>(undefined)
+  const [provisioned, setProvisioned] = useState(false)
   const status = detail.data?.tenant.status
   const tab = (t: string) => void navigate({ to: '.', search: { aba: t }, replace: true } as never)
 
   useEffect(() => {
     if (previous.current === 'Provisioning' && status === 'Active') {
-      toastDone('Provisionamento concluído. Convite enviado ao proprietário.', { label: 'Liberar módulos', onSelect: () => tab('modulos') })
+      notifySuccess('Provisionamento concluído. Convite enviado ao proprietário.')
+      setProvisioned(true)
     }
     previous.current = status
-  })
+  }, [status])
 
   if (detail.isPending) return <Skeleton className="h-80" />
   if (detail.isError) return <ErrorState title="Não foi possível carregar o tenant." onRetry={() => detail.refetch()} />
@@ -51,6 +54,7 @@ export function TenantDetailPage() {
           <StatusChip tone={tone}>{label}</StatusChip> {tenant.legalName} · {tenant.document ?? 'sem CNPJ'} · {domains[0] ?? 'sem endereço'}
         </p>
       </PageHeading>
+      {provisioned ? <div className="mb-4"><NextSteps onDismiss={() => setProvisioned(false)} steps={[{ label: 'Liberar módulos', onSelect: () => { setProvisioned(false); tab('modulos') } }]} /></div> : null}
       <nav aria-label="Seções do tenant" className="mb-4 flex gap-1 border-b border-border">
         {[['geral', 'Visão geral'], ['modulos', 'Módulos']].map(([id, text]) => (
           <button key={id} type="button" onClick={() => tab(id)} aria-current={(aba ?? 'geral') === id ? 'page' : undefined} className="border-b-2 border-transparent px-3 pb-2 text-sm font-medium text-muted-foreground aria-[current=page]:border-signal aria-[current=page]:text-foreground">

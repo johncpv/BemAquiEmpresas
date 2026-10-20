@@ -9,7 +9,7 @@ import { Field, FormError, FormSection } from '@/components/form/form'
 import { applyServerErrors, inputClass, useZodForm } from '@/components/form/form-utils'
 import { CepInput, DocumentInput, PhoneInput } from '@/components/form/inputs'
 import { UnsavedChangesGuard } from '@/components/form/UnsavedChangesGuard'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { documentKind } from '@/lib/masks'
 import { Dica } from '@/help/Dica'
 import { PageHeading } from '@/shell/PageHeading'
@@ -70,7 +70,7 @@ export function NewPartyPage() {
     try {
       const created = await createParty(toCreateRequest(values))
       setSaved(true)
-      toastDone('Terceiro salvo')
+      notifySuccess('Terceiro salvo')
       await open(created.id, true)
     } catch (e) {
       if (e instanceof ApiError && (e.code === 'party_exists' || e.code === 'party_deleted')) {
@@ -84,7 +84,7 @@ export function NewPartyPage() {
     try {
       const party = await run()
       setSaved(true)
-      toastDone(done)
+      notifySuccess(done)
       await open(party.id)
     } catch (e) {
       applyServerErrors(form, e)

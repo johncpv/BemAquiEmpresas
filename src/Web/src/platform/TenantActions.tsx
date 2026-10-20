@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { reactivateTenant, resumeTenantProvisioning, suspendTenant } from '@/api/generated/bemaqui'
 import type { TenantRow } from '@/api/generated/model'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 
 /** Ações do tenant (FND-03b CA 4 a 6): retomar, copiar link, suspender com motivo e reativar. */
 export function TenantActions({ tenant, host, failed, refresh }: { tenant: TenantRow; host?: string; failed: boolean; refresh: () => Promise<void> }) {
@@ -11,12 +11,12 @@ export function TenantActions({ tenant, host, failed, refresh }: { tenant: Tenan
   return (
     <div className="flex flex-wrap gap-2">
       {tenant.status === 'Provisioning' && failed ? (
-        <button type="button" onClick={async () => { await resumeTenantProvisioning(tenant.key); toastDone('Provisionamento retomado'); await refresh() }} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">
+        <button type="button" onClick={async () => { await resumeTenantProvisioning(tenant.key); notifySuccess('Provisionamento retomado'); await refresh() }} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">
           Retomar provisionamento
         </button>
       ) : null}
       {host ? (
-        <button type="button" onClick={() => { void navigator.clipboard?.writeText('https://' + host); toastDone('Link copiado') }} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">
+        <button type="button" onClick={() => { void navigator.clipboard?.writeText('https://' + host); notifySuccess('Link copiado') }} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">
           Copiar link de acesso
         </button>
       ) : null}

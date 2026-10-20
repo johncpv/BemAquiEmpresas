@@ -1,7 +1,7 @@
 import { deleteAccount, inactivateAccount, reactivateAccount } from '@/api/generated/bemaqui'
 import type { AccountDetail } from '@/api/generated/model'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { Can } from '@/pages/ModuleGate'
 
 /** Inativar, reativar e excluir a conta (CA 12 a 14). Excluir recusado por lançamento oferece "Inativar". */
@@ -14,7 +14,7 @@ export function AccountActions({ account, onDone }: { account: AccountDetail; on
             onConfirm={async () => { await inactivateAccount(account.id); onDone() }}
             trigger={<button type="button" className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Inativar</button>} />
         ) : (
-          <button type="button" onClick={async () => { await reactivateAccount(account.id); toastDone('Reativada'); onDone() }} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Reativar</button>
+          <button type="button" onClick={async () => { await reactivateAccount(account.id); notifySuccess('Reativada'); onDone() }} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Reativar</button>
         )}
       </Can>
       <Can perm="finance.delete">

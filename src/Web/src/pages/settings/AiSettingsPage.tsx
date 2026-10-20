@@ -3,8 +3,10 @@ import { useState } from 'react'
 import { getGetAiSettingsQueryKey, removeAiSettings, useGetAiSettings } from '@/api/generated/bemaqui'
 import type { AiSettingsDto } from '@/api/generated/model'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { NextSteps } from '@/components/ui/next-steps'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
+import { useHelp } from '@/help/help-context'
 import { formatDateTime } from '@/lib/format'
 import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
@@ -19,6 +21,8 @@ export function AiSettingsPage() {
   const client = useQueryClient()
   const settings = useGetAiSettings()
   const [editing, setEditing] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const help = useHelp()
   const refresh = () => client.invalidateQueries({ queryKey: getGetAiSettingsQueryKey() })
 
   return (
@@ -27,8 +31,9 @@ export function AiSettingsPage() {
         <p className="mt-2 text-muted-foreground">O Pergunte ao BemAqui usa este provedor para responder com base só nos textos de ajuda. Nenhum dado da empresa é enviado.</p>
       </PageHeading>
       <SettingsTabs />
+      {saved && !editing ? <div className="mb-4 max-w-xl"><NextSteps onDismiss={() => setSaved(false)} steps={[{ label: 'Perguntar ao BemAqui', onSelect: () => help.setOpen(true) }]} /></div> : null}
       {settings.isPending ? <Skeleton className="h-48 max-w-xl" /> : settings.isError ? <ErrorState onRetry={() => settings.refetch()} /> : editing ? (
-        <AiSettingsForm settings={settings.data} onDone={async () => { await refresh(); setEditing(false) }} onCancel={() => setEditing(false)} />
+        <AiSettingsForm settings={settings.data} onDone={async () => { await refresh(); setEditing(false); setSaved(true) }} onCancel={() => setEditing(false)} />
       ) : settings.data.configured ? (
         <Summary settings={settings.data} onEdit={() => setEditing(true)} onRemoved={refresh} />
       ) : (

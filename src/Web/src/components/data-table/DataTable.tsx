@@ -1,7 +1,7 @@
 import { type ColumnDef, flexRender, getCoreRowModel, type RowData, useReactTable } from '@tanstack/react-table'
-import { ArrowDown, ArrowUp, Search } from 'lucide-react'
+import { ArrowDown, ArrowUp, ChevronDown, ChevronRight, Search } from 'lucide-react'
 import { useNavigate } from '@tanstack/react-router'
-import { type ReactNode, useEffect, useState } from 'react'
+import { Fragment, type ReactNode, useEffect, useState } from 'react'
 import { ApiError } from '@/api/http'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { cn } from '@/lib/utils'
@@ -52,6 +52,12 @@ interface DataTableProps<T> {
   rowHref?: (row: T) => string
   /** Sem busca de texto quando o servidor não filtra por texto (ex.: execuções da importação). */
   searchable?: boolean
+  /** Seleção por checkbox (FND-09e CA 10), pelos ids de getRowId; `rowLabel` dá o nome acessível de cada linha. */
+  selectable?: { selected: string[]; onChange: (ids: string[]) => void; rowLabel: (row: T) => string }
+  /** Rodapé de totais do filtro inteiro (vindo do servidor), por id de coluna; a primeira célula diz "Total do filtro". */
+  totals?: Record<string, ReactNode>
+  /** Linha expansível por teclado (aria-expanded), com o conteúdo abaixo dela. */
+  expandable?: { render: (row: T) => ReactNode; label: (row: T) => string }
 }
 
 export interface TableFilter {
@@ -68,7 +74,8 @@ const cellClass = (secondary?: boolean, numeric?: boolean) =>
  * Tabela padrão (FND-09c CA 4 a 7): paginação, ordenação e busca no servidor, refletidas na URL; estados de carregando,
  * vazio, vazio por filtro e erro; colunas secundárias somem a 400px.
  */
-export function DataTable<T>({ columns, query, empty, label, searchPlaceholder = 'Buscar', getRowId, filters = [], inactiveFilter, rowHref, searchable = true }: DataTableProps<T>) {
+export function DataTable<T>({ columns, query, empty, label, searchPlaceholder = 'Buscar', getRowId, filters = [], inactiveFilter, rowHref, searchable = true, selectable, totals, expandable }: DataTableProps<T>) {
+  const [expanded, setExpanded] = useState<Set<string>>(() => new Set())
   const [search, setSearch] = useTableSearch()
   const navigate = useNavigate()
   const values = useTableFilters(filters.map((f) => f.key))
@@ -88,6 +95,8 @@ export function DataTable<T>({ columns, query, empty, label, searchPlaceholder =
   // oxlint-disable-next-line react/incompatible-library
   const table = useReactTable({ data: data?.items ?? [], columns, getRowId, manualPagination: true, manualSorting: true, rowCount: data?.total ?? 0, getCoreRowModel: getCoreRowModel() })
   const pages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1
+  const pageIds = table.getRowModel().rows.map((r) => r.id)
+  const extraColumns = (expandable ? 1 : 0) + (selectable ? 1 : 0)
 
   const toggleSort = (field: string) =>
     setSearch({ sort: search.sort === field ? '-' + field : search.sort === '-' + field ? undefined : field, page: 1 })
@@ -118,6 +127,13 @@ export function DataTable<T>({ columns, query, empty, label, searchPlaceholder =
           <thead className="border-b border-border text-xs text-muted-foreground">
             {table.getHeaderGroups().map((group) => (
               <tr key={group.id}>
+                {expandable ? <th scope="col" className="w-8 px-2"><span className="sr-only">Detalhes</span></th> : null}
+                {selectable ? (
+                  <th scope="col" className="w-8 px-3">
+                    <input type="checkbox" aria-label="Selecionar todos desta página" className="size-4 accent-primary" checked={pageIds.length > 0 && pageIds.every((id) => selectable.selected.includes(id))}
+                      onChange={(e) => selectable.onChange(e.target.checked ? [...new Set([...selectable.selected, ...pageIds])] : selectable.selected.filter((id) => !pageIds.includes(id)))} />
+                  </th>
+                ) : null}
                 {group.headers.map((header) => {
                   const meta = header.column.columnDef.meta
                   const field = meta?.sortField
@@ -142,7 +158,21 @@ export function DataTable<T>({ columns, query, empty, label, searchPlaceholder =
           </thead>
           <tbody>
             {table.getRowModel().rows.map((row) => (
-              <tr key={row.id} className="border-b border-border last:border-0">
+              <Fragment key={row.id}>
+              <tr className="border-b border-border last:border-0">
+                {expandable ? (
+                  <td className="px-2">
+                    <button type="button" aria-expanded={expanded.has(row.id)} aria-controls={`${row.id}-detalhe`} aria-label={`Detalhes de ${expandable.label(row.original)}`} onClick={() => setExpanded((s) => { const n = new Set(s); if (n.has(row.id)) n.delete(row.id); else n.add(row.id); return n })} className="grid size-7 place-items-center rounded-sm">
+                      {expanded.has(row.id) ? <ChevronDown aria-hidden="true" className="size-4" /> : <ChevronRight aria-hidden="true" className="size-4" />}
+                    </button>
+                  </td>
+                ) : null}
+                {selectable ? (
+                  <td className="px-3">
+                    <input type="checkbox" aria-label={`Selecionar ${selectable.rowLabel(row.original)}`} className="size-4 accent-primary" checked={selectable.selected.includes(row.id)}
+                      onChange={(e) => selectable.onChange(e.target.checked ? [...selectable.selected, row.id] : selectable.selected.filter((id) => id !== row.id))} />
+                  </td>
+                ) : null}
                 {row.getVisibleCells().map((c, i) => {
                   const content = flexRender(c.column.columnDef.cell, c.getContext())
                   const href = i === 0 && rowHref ? rowHref(row.original) : undefined
@@ -157,8 +187,24 @@ export function DataTable<T>({ columns, query, empty, label, searchPlaceholder =
                   )
                 })}
               </tr>
+              {expandable && expanded.has(row.id) ? (
+                <tr id={`${row.id}-detalhe`} className="border-b border-border bg-muted/40">
+                  <td colSpan={extraColumns + row.getVisibleCells().length} className="px-3 py-2">{expandable.render(row.original)}</td>
+                </tr>
+              ) : null}
+              </Fragment>
             ))}
           </tbody>
+          {totals ? (
+            <tfoot className="border-t-2 border-border font-semibold">
+              <tr>
+                {extraColumns > 0 ? <td colSpan={extraColumns} /> : null}
+                {table.getVisibleLeafColumns().map((col, i) => (
+                  <td key={col.id} className={cellClass(col.columnDef.meta?.secondary, col.columnDef.meta?.numeric)}>{totals[col.id] ?? (i === 0 ? 'Total do filtro' : null)}</td>
+                ))}
+              </tr>
+            </tfoot>
+          ) : null}
         </table>
       </div>
     )
@@ -190,6 +236,11 @@ export function DataTable<T>({ columns, query, empty, label, searchPlaceholder =
             </label>
           ) : null}
         </div>
+      ) : null}
+      {selectable ? (
+        <p aria-live="polite" className={cn('px-3 py-2 text-sm', selectable.selected.length === 0 && 'sr-only')}>
+          {selectable.selected.length === 1 ? '1 selecionado' : `${selectable.selected.length} selecionados`}
+        </p>
       ) : null}
       {body}
       {data && data.total > 0 ? (

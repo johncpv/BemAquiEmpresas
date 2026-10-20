@@ -6,7 +6,7 @@ import { Field, FormError } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { RecordHistory } from '@/components/history/RecordHistory'
 import { SidePanel } from '@/components/ui/side-panel'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { useCan } from '@/pages/use-can'
 import { AccountActions } from './AccountActions'
 import { ACCOUNT_TYPES, DRE_GROUPS } from './chart'
@@ -43,7 +43,7 @@ export function AccountPanel({ account, parent, all, onClose, onSaved }: { accou
     try {
       if (account) await updateAccount(account.id, input)
       else await createAccount(input)
-      toastDone('Conta contábil salva')
+      notifySuccess('Conta contábil salva')
       onSaved()
       return true
     } catch (e) {

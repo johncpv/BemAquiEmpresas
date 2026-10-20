@@ -14,23 +14,26 @@ public interface INotificationService
 {
     /// <summary>Adiciona a notificação ao DbContext do comando, para gravar junto com ele. Sem link válido, é recusada.</summary>
     Result Notify(Guid userId, string type, string title, string link);
+
+    /// <summary>
+    /// Grava já, uma vez só por usuário e chave (FND-09e CA 16): a mesma <paramref name="dedupKey"/> enviada de novo, mesmo
+    /// em paralelo, não duplica. Para avisos de jobs (vencimento, recorrentes).
+    /// </summary>
+    Task<Result> NotifyOnceAsync(Guid userId, string type, string title, string link, string dedupKey, CancellationToken cancellationToken = default);
 }
 
 /// <summary>Notificações (FND-07 CA 22 e 23). Todo alerta leva à ação (R-PRP-5) e cada usuário só vê as suas.</summary>
 public sealed class NotificationService(BemAquiDbContext db, ICurrentUser currentUser, TimeProvider clock) : INotificationService
 {
+    public const string DedupIndex = "ux_notifications_user_dedup";
+
     private const char Backslash = (char)92;
 
     public Result Notify(Guid userId, string type, string title, string link)
     {
-        if (userId == Guid.Empty || string.IsNullOrWhiteSpace(type) || string.IsNullOrWhiteSpace(title))
+        if (Validate(userId, type, title, link) is { } invalid)
         {
-            return Error.Validation("notification.invalid", "Notificação sem destinatário, tipo ou título.");
-        }
-
-        if (!IsAppLink(link))
-        {
-            return Error.Validation("notification.link_required", "Toda notificação precisa de um link para a tela onde a ação acontece.");
+            return invalid;
         }
 
         db.Notifications.Add(new Notification
@@ -41,6 +44,26 @@ public sealed class NotificationService(BemAquiDbContext db, ICurrentUser curren
             Link = link,
             CreatedAt = clock.GetUtcNow(),
         });
+        return Result.Success();
+    }
+
+    public async Task<Result> NotifyOnceAsync(Guid userId, string type, string title, string link, string dedupKey, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(dedupKey) || dedupKey.Length > 200)
+        {
+            return Error.Validation("notification.invalid", "Chave de deduplicação vazia ou longa demais.");
+        }
+
+        if (Validate(userId, type, title, link) is { } invalid)
+        {
+            return invalid;
+        }
+
+        // ON CONFLICT com o índice único parcial: a segunda gravação (inclusive concorrente) não faz nada.
+        var text = title.Length > 200 ? title[..200] : title;
+        await db.Database.ExecuteSqlInterpolatedAsync(
+            $"INSERT INTO shared.notifications (id, user_id, type, title, link, created_at, dedup_key) VALUES ({Guid.CreateVersion7()}, {userId}, {type}, {text}, {link}, {clock.GetUtcNow()}, {dedupKey}) ON CONFLICT (user_id, dedup_key) WHERE dedup_key IS NOT NULL DO NOTHING",
+            cancellationToken);
         return Result.Success();
     }
 
@@ -77,6 +100,16 @@ public sealed class NotificationService(BemAquiDbContext db, ICurrentUser curren
         notification.ReadAt ??= clock.GetUtcNow();
         await db.SaveChangesAsync(cancellationToken);
         return Result.Success();
+    }
+
+    private static Error? Validate(Guid userId, string type, string title, string link)
+    {
+        if (userId == Guid.Empty || string.IsNullOrWhiteSpace(type) || string.IsNullOrWhiteSpace(title))
+        {
+            return Error.Validation("notification.invalid", "Notificação sem destinatário, tipo ou título.");
+        }
+
+        return IsAppLink(link) ? null : Error.Validation("notification.link_required", "Toda notificação precisa de um link para a tela onde a ação acontece.");
     }
 
     // Só rota relativa do próprio app: evita link vazio e open redirect ("//site", "https://...").

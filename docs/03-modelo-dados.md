@@ -53,6 +53,7 @@ Fase 2 (decisões do PO de 20/10/2026, revisão pré-Fase 2 e ADR 0019): cada ta
 - **outbox_messages** (schema `shared`, FND-07b): id (v7), type, payload (jsonb), occurred_at, attempts, next_attempt_at, processed_at, dead_lettered_at, error, correlation_id
 - **inbox_messages** (schema `shared`, FND-07b): message_id, handler (PK composta), processed_at — entrega idempotente por handler
 - **notifications** (schema `shared`, FND-07c): user_id, type, title, link (obrigatório, rota relativa do app), created_at, read_at; dedup_key (FND-09e: texto anulável, único parcial em `(user_id, dedup_key)`, ADR 0019 §12)
+- **idempotency_records** (schema `shared`, FND-09e, adendo da ADR 0019 §3): key (uuid, PK, o `Idempotency-Key`), scope (método e rota), body_hash (SHA-256), status_code e response (texto) preenchidos quando o primeiro envio termina com sucesso, created_at
 - **email_logs** (schema `shared`, FND-08): to (`[PersonalData]`), template, subject, model (jsonb), status (Queued/Sent/Failed/Skipped), attempts, error, related_type, related_id, created_at, sent_at; attachment_ids (uuid[]) e cc (até 3, `[PersonalData]`) (COM-03, ADR 0019 §7)
 
 ## parties

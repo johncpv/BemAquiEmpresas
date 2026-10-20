@@ -9,7 +9,7 @@ import { NextSteps } from '@/components/ui/next-steps'
 import { SidePanel } from '@/components/ui/side-panel'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Tag } from '@/components/ui/tag'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { useUrlTab } from '@/components/ui/url-tab'
 import { UrlTabs } from '@/components/ui/url-tabs'
 import { PageHeading } from '@/shell/PageHeading'
@@ -44,7 +44,7 @@ export default function DetailMold() {
       focusFirstInvalid(tab)
       return
     }
-    toastDone('Terceiro salvo')
+    notifySuccess('Terceiro salvo')
   }
 
   const header = (
@@ -83,7 +83,7 @@ export default function DetailMold() {
           <NextSteps onDismiss={() => setSteps(false)} steps={[
             { label: 'Adicionar endereço de obra', onSelect: () => { setTab('enderecos'); setAddress(true) } },
             { label: 'Adicionar contato', onSelect: () => setTab('contatos') },
-            { label: 'Criar orçamento', onSelect: () => toastDone('Abriria o orçamento com este cliente (COM-01)') },
+            { label: 'Criar orçamento', onSelect: () => notifySuccess('Abriria o orçamento com este cliente (COM-01)') },
           ]} />
         </div>
       ) : null}

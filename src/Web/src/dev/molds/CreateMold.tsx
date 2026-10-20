@@ -7,7 +7,7 @@ import { Field, FormError, FormSection } from '@/components/form/form'
 import { inputClass, useZodForm } from '@/components/form/form-utils'
 import { CepInput, DocumentInput, MoneyInput, PhoneInput } from '@/components/form/inputs'
 import { SidePanel } from '@/components/ui/side-panel'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { compareDecimal } from '@/lib/decimal'
 import { documentKind, isValidDocument } from '@/lib/masks'
 import { z } from '@/lib/zod'
@@ -60,7 +60,7 @@ export default function CreateMold() {
 
   const submit = form.handleSubmit(async () => {
     await new Promise((r) => setTimeout(r, 400))
-    toastDone('Terceiro salvo')
+    notifySuccess('Terceiro salvo')
     void navigate({ to: '/app/dev/moldes/detalhe', search: { novo: '1' } } as never)
   })
 
@@ -151,7 +151,7 @@ export default function CreateMold() {
         footer={(
           <>
             <button type="button" onClick={() => setCreating(null)} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Voltar</button>
-            <button type="button" onClick={() => { const o = { id: 'nova', label: newTerm }; setTerm(o); form.setValue('paymentTermId', o.id); setCreating(null); toastDone('Condição salva') }} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Salvar condição</button>
+            <button type="button" onClick={() => { const o = { id: 'nova', label: newTerm }; setTerm(o); form.setValue('paymentTermId', o.id); setCreating(null); notifySuccess('Condição salva') }} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Salvar condição</button>
           </>
         )}
       >

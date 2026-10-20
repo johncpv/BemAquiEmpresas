@@ -4,7 +4,7 @@ import { setUserGroups, useListGroups } from '@/api/generated/bemaqui'
 import type { UserRow } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { FormError } from '@/components/form/form'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 
 /** Grupos do usuário: o que entra passa pela delegação no servidor (ADR 0008); erro aparece aqui com o motivo. */
 export function UserGroupsDialog({ user, open, onOpenChange, onSaved }: { user: UserRow; open: boolean; onOpenChange: (o: boolean) => void; onSaved: () => Promise<void> }) {
@@ -18,7 +18,7 @@ export function UserGroupsDialog({ user, open, onOpenChange, onSaved }: { user: 
       await setUserGroups(user.id, { groupIds: [...selected] })
       await onSaved()
       onOpenChange(false)
-      toastDone('Grupos salvos')
+      notifySuccess('Grupos salvos')
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Não foi possível salvar os grupos.')
     }

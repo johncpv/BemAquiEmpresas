@@ -4,7 +4,7 @@ import { forgotPassword, resetPassword } from '@/api/generated/bemaqui'
 import { ApiError } from '@/api/http'
 import { Field, FormError } from '@/components/form/form'
 import { applyServerErrors, inputClass, useZodForm } from '@/components/form/form-utils'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { z } from '@/lib/zod'
 import { AuthLayout } from './AuthLayout'
 import { newPasswordSchema } from './password-schema'
@@ -54,7 +54,7 @@ export function ResetPasswordPage() {
   const submit = form.handleSubmit(async ({ password }) => {
     try {
       await resetPassword({ token, password })
-      toastDone('Senha redefinida. Entre com a senha nova.')
+      notifySuccess('Senha redefinida. Entre com a senha nova.')
       await navigate({ to: '/entrar' })
     } catch (e) {
       if (e instanceof ApiError && e.code === 'auth.link_expired') setExpired(e.message)

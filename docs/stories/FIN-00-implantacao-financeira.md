@@ -5,7 +5,7 @@
 | ID | FIN-00 |
 | Título | Data de corte única, saldo das contas na data de corte, lançamento rápido dos títulos a receber e a pagar em aberto pelo saldo (origem `Opening`) e relatório de conferência "saldo do sistema = saldo do banco"; primeira carga de dado financeiro real na homologação (ADR 0020) |
 | Tamanho | M (nova, decisão D2 da revisão pré-Fase 2) |
-| Status | Ready (com pré-condição externa: backup verificado e teste de restauração antes da primeira carga real) |
+| Status | Ready |
 | Requisitos | R-FIN-2 (saldo inicial das contas) · R-FIN-3 · R-FIN-4 · R-FIN-1 · R-PRP-1 · R-PRP-3 · R-SEC-5 |
 | Dependências | FIN-01 (títulos a receber, parâmetros do Finance), FIN-02 (títulos a pagar, forma de pagamento), CAD-05b (contas bancárias e saldo inicial), FND-09e (`RowsEditor`, idempotência); **ADR 0020**; **pré-condição:** backup diário verificado e teste de restauração do tenant `konebras` (FND-10b) |
 | Bloqueia | Uso real do financeiro na homologação: FIN-05 com dado real, FIN-06a, FIN-03a (pagar os títulos de implantação) |
@@ -42,7 +42,7 @@ Como **financeiro**, quero **começar o BemAqui numa data de corte, com o saldo 
 11. **Dado** os títulos de origem `Opening`, **quando** outros relatórios os leem, **então** ficam **fora** do DRE por competência (a FIN-08 lê `origin`; a regra fica registrada no `03-modelo-dados.md`) e do cálculo de pontualidade (FIN-06b), e **dentro** do aging (FIN-06a) e do fluxo de caixa (FIN-05); as listas mostram a `Tag` "Implantação".
 
 **Pré-condição da primeira carga real (ADR 0020)**
-12. **Dado** o deploy desta story na homologação, **quando** o PO vai fazer a primeira carga real no tenant `konebras`, **então** existe em `docs/operacao/restauracao.md` o registro do teste de restauração do tenant `konebras` feito com o backup real (data, duração, segredos decifrados), com data posterior ao início do backup diário, e o último dump do bucket tem data e tamanho esperados (passo manual do runbook, conferido pelo PO).
+12. **Dado** o deploy desta story na homologação, **quando** o PO vai fazer a primeira carga real no tenant `konebras`, **então** o backup diário da homologação está no ar (o teste de restauração é recomendado e não bloqueia: adendo da ADR 0020, PO em 20/10/2026), e, quando feito, existe em `docs/operacao/restauracao.md` o registro do teste de restauração do tenant `konebras` feito com o backup real (data, duração, segredos decifrados), com data posterior ao início do backup diário, e o último dump do bucket tem data e tamanho esperados (passo manual do runbook, conferido pelo PO).
 13. **Dado** os testes manuais, E2E e smoke desta story, **quando** rodam na homologação, **então** usam um tenant de teste (ex.: `demo`), nunca o `konebras` (ADR 0020); o pipeline recusa E2E contra o host da Konebras.
 
 **Permissões e auditoria**
@@ -129,3 +129,4 @@ Checklist do @po (Pax), 20/10/2026.
 |---|---|---|---|
 | 20/10/2026 | 0.1 | Story nova (D2 da revisão pré-Fase 2, ADR 0020) | River (SM) |
 | 20/10/2026 | 0.2 | Validação do PO: 10/10, `Ready` com pré-condição externa | Pax (PO) |
+| 20/10/2026 | 0.3 | PO liberou a primeira carga real sem esperar o teste de restauração (adendo da ADR 0020); CA 12 ajustado | River (SM) |

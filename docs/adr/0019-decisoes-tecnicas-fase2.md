@@ -28,6 +28,7 @@
 - No reenvio com a mesma chave, o servidor devolve o resultado original (mesmo status e mesmo corpo, com o id do documento já criado), sem gravar de novo.
 - Mesma chave com corpo diferente responde 422 `idempotency_key_reused`.
 - Os comandos com documento-pai (baixa, aprovação, pagamento) já são protegidos pelo `xmin` e pela transição de estado.
+- **Adendo de 20/10/2026 (FND-09e):** em vez de uma coluna `client_request_id` em cada tabela de documento, o filtro `.RequireIdempotencyKey()` grava a chave numa tabela única, `shared.idempotency_records` (chave, método e rota, hash do corpo, status e corpo da resposta como texto). Assim a regra vale igual para todo comando, sem migration por documento. A resposta guardada é devolvida idêntica no reenvio; uma recusa (4xx) não fica guardada, para o usuário corrigir e reenviar; enquanto o primeiro envio está em andamento, o segundo recebe 409 `idempotency_in_progress`. O expurgo dos registros antigos entra com o primeiro job que precisar (sugestão: 30 dias).
 
 ### 4. Título órfão de origem cancelada (A3)
 - O título de origem `Contract` ou `Installer` só muda de valor e é cancelado pela origem (FIN-01 CA 14, FIN-02 CA 9).

@@ -10,7 +10,7 @@ import { NextSteps } from '@/components/ui/next-steps'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Tag } from '@/components/ui/tag'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { useUrlTab } from '@/components/ui/url-tab'
 import { UrlTabs } from '@/components/ui/url-tabs'
 import { Can } from '@/pages/ModuleGate'
@@ -62,7 +62,7 @@ export function EmployeePage() {
   ]
   const terminatedSteps = canUsers && user ? [{
     label: `Desativar o usuário ${user.name}`,
-    onSelect: async () => { await deactivateUser(user.userId); toastDone('Usuário desativado'); setSteps(null); void client.invalidateQueries({ queryKey: getGetEmployeeUserQueryKey(id) }) },
+    onSelect: async () => { await deactivateUser(user.userId); notifySuccess('Usuário desativado'); setSteps(null); void client.invalidateQueries({ queryKey: getGetEmployeeUserQueryKey(id) }) },
   }] : []
   const shown = steps === 'created' ? createdSteps : steps === 'terminated' ? terminatedSteps : []
 

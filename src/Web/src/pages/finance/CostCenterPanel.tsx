@@ -7,7 +7,7 @@ import { inputClass } from '@/components/form/form-utils'
 import { RecordHistory } from '@/components/history/RecordHistory'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { SidePanel } from '@/components/ui/side-panel'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { Can } from '@/pages/ModuleGate'
 import { useCan } from '@/pages/use-can'
 
@@ -33,7 +33,7 @@ export function CostCenterPanel({ center, parent, all, onClose, onSaved }: { cen
     try {
       if (center) await updateCostCenter(center.id, input)
       else await createCostCenter(input)
-      toastDone('Centro de custo salvo')
+      notifySuccess('Centro de custo salvo')
       onSaved()
       return true
     } catch (e) {
@@ -48,7 +48,7 @@ export function CostCenterPanel({ center, parent, all, onClose, onSaved }: { cen
         {center.isActive ? (
           <ConfirmDialog verb="Inativar" done="Inativado" title={`Inativar o centro ${center.code}?`} description="Ele some dos seletores e continua nos relatórios."
             onConfirm={async () => { await inactivateCostCenter(center.id); onSaved() }} trigger={<button type="button" className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Inativar</button>} />
-        ) : <button type="button" onClick={async () => { await reactivateCostCenter(center.id); toastDone('Reativado'); onSaved() }} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Reativar</button>}
+        ) : <button type="button" onClick={async () => { await reactivateCostCenter(center.id); notifySuccess('Reativado'); onSaved() }} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Reativar</button>}
       </Can>
       <Can perm="finance.delete">
         <ConfirmDialog verb="Excluir" done="Excluído" destructive title={`Excluir o centro ${center.code}?`} description="Só dá para excluir centro sem lançamentos e sem centros filhos."

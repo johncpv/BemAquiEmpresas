@@ -43,6 +43,7 @@ try
     });
 
     builder.Services.AddProblemDetails();
+    builder.Services.AddExceptionHandler<BemAqui.BuildingBlocks.Web.ConcurrencyExceptionHandler>();
     // Secret entra como texto write-only (ADR 0007): no contrato é string, nunca objeto, e nunca aparece numa resposta.
     builder.Services.AddOpenApi(o => o.AddSchemaTransformer((schema, context, _) =>
     {

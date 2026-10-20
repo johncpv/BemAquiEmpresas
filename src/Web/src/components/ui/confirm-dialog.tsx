@@ -1,20 +1,28 @@
 import * as Dialog from '@radix-ui/react-dialog'
-import { type ReactNode, useState } from 'react'
+import { ShieldAlert } from 'lucide-react'
+import { type ReactNode, useEffect, useId, useRef, useState } from 'react'
 import { ApiError } from '@/api/http'
 import { cn } from '@/lib/utils'
 import { DialogMessage } from './dialog-message'
-import { type NextStep, toastDone } from './toast'
+import { notifySuccess } from './messages'
+
+/** Pré-condição de uma ação (FND-09e CA 5): o que falta aparece antes de confirmar, com o caminho para corrigir. */
+export interface Precondition {
+  ok: boolean
+  text: string
+  fix?: { label: string; onSelect: () => void }
+}
 
 interface ConfirmDialogProps {
   /** Verbo da ação, repetido no botão de confirmar (ex.: "Desativar"). */
   verb: string
-  /** Particípio para o toast de sucesso (ex.: "Desativado"). */
+  /** Particípio da mensagem de sucesso (ex.: "Desativado"), na região do topo (ADR 0021). */
   done: string
   title: string
   description?: ReactNode
+  /** Só para "Estornar…" e "Cancelar…" (padrão 1 da Fase 2). */
   destructive?: boolean
   onConfirm: () => Promise<unknown>
-  nextStep?: NextStep
   /** Sem trigger, o diálogo é aberto de fora por open/onOpenChange. */
   trigger?: ReactNode
   open?: boolean
@@ -28,69 +36,130 @@ interface ConfirmDialogProps {
   children?: ReactNode
   /** Chamado ao abrir: o chamador reinicia os campos. */
   onOpen?: () => void
+  /** "lg": cerca de 640 px e tela cheia a 400 px, para ações com efeito financeiro (FND-09e CA 4). */
+  size?: 'md' | 'lg'
+  /** Impacto da ação (valores, conta, títulos afetados, saldo antes e depois), acima do botão. */
+  impact?: ReactNode
+  /** O que falta para confirmar; com alguma pendente, o botão fica desabilitado e diz por quê (CA 5). */
+  preconditions?: Precondition[]
+  /** Erro com campos (422): o chamador põe cada erro no seu campo (applyServerErrors) e devolve true (CA 6). */
+  onFieldErrors?: (error: ApiError) => boolean
+  /** 409 concurrency_conflict: "Recarregar" busca a versão atual (ADR 0019). */
+  onReload?: () => Promise<unknown>
+  /** Quem aprova ou paga sem o 2FA configurado (regra da FND-06c CA 12): estado único, sem confirmar (CA 7). */
+  twoFactorRequired?: boolean
 }
 
-/** Confirmação com o mesmo verbo da ação (FND-09c CA 11); erro do servidor fica no diálogo, com o motivo. */
-export function ConfirmDialog({ verb, done, title, description, destructive, onConfirm, nextStep, trigger, recovery, children, onOpen, open: controlled, onOpenChange }: ConfirmDialogProps) {
+const TWO_FACTOR_SETUP = '/app/conta/seguranca'
+
+const contentClass = (size: 'md' | 'lg', centered: boolean) => cn(
+  'fixed left-1/2 z-50 flex max-h-[calc(100dvh-32px)] -translate-x-1/2 flex-col overflow-hidden rounded-md border border-border bg-popover text-popover-foreground shadow-lg',
+  size === 'lg'
+    ? 'top-1/2 w-[min(640px,calc(100vw-32px))] -translate-y-1/2 max-sm:inset-0 max-sm:max-h-none max-sm:w-full max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-none'
+    : cn('w-[min(420px,calc(100vw-32px))]', centered ? 'top-1/2 -translate-y-1/2' : 'top-1/3'),
+)
+
+/** Confirmação com o mesmo verbo da ação (FND-09c CA 11); erro do servidor fica no diálogo, com o motivo e o foco. */
+export function ConfirmDialog(props: ConfirmDialogProps) {
+  const { verb, done, title, description, destructive, onConfirm, trigger, recovery, children, onOpen, open: controlled, onOpenChange, size = 'md', impact, preconditions = [], onFieldErrors, onReload, twoFactorRequired } = props
   const [own, setOwn] = useState(false)
   const open = controlled ?? own
   const setOpen = (o: boolean) => { setOwn(o); onOpenChange?.(o) }
   const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [errorCode, setErrorCode] = useState<string | undefined>()
+  const [error, setError] = useState<{ message: string; code?: string } | null>(null)
+  const alertRef = useRef<HTMLDivElement>(null)
+  const pendingId = useId()
+  const pending = preconditions.filter((p) => !p.ok)
+  const blocked = pending.length > 0 || !!twoFactorRequired
 
-  const confirm = async () => {
+  useEffect(() => {
+    if (error) alertRef.current?.focus()
+  }, [error])
+
+  const fail = (e: unknown) => {
+    if (e instanceof ApiError && Object.keys(e.fields).length > 0 && onFieldErrors?.(e)) {
+      setError(null)
+      return
+    }
+
+    setError({ message: e instanceof ApiError || e instanceof DialogMessage ? e.message : 'Não foi possível concluir. Tente de novo.', code: e instanceof ApiError ? e.code : undefined })
+  }
+
+  const run = async (action: () => Promise<unknown>, message?: string) => {
     setBusy(true)
     setError(null)
     try {
-      await onConfirm()
+      await action()
       setOpen(false)
-      toastDone(done, nextStep)
+      if (message) notifySuccess(message)
     } catch (e) {
-      setError(e instanceof ApiError || e instanceof DialogMessage ? e.message : 'Não foi possível concluir. Tente de novo.')
-      setErrorCode(e instanceof ApiError ? e.code : undefined)
+      fail(e)
     } finally {
       setBusy(false)
     }
   }
 
-  const recover = async () => {
-    if (!recovery) return
+  const reload = async () => {
+    if (!onReload) return
     setBusy(true)
     try {
-      await recovery.onSelect()
-      setOpen(false)
-      if (recovery.done) toastDone(recovery.done)
-    } catch (e) {
-      setError(e instanceof ApiError ? e.message : 'Não foi possível concluir. Tente de novo.')
+      await onReload()
+      setError(null)
     } finally {
       setBusy(false)
     }
   }
 
+  const button = 'rounded-md border border-border bg-card px-3 py-1.5 font-semibold text-foreground'
   return (
     <Dialog.Root open={open} onOpenChange={(o) => { setOpen(o); setError(null); if (o) onOpen?.() }}>
       {trigger ? <Dialog.Trigger asChild>{trigger}</Dialog.Trigger> : null}
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-foreground/30" />
-        <Dialog.Content role="alertdialog" className={cn('fixed left-1/2 z-50 max-h-[calc(100dvh-32px)] w-[min(420px,calc(100vw-32px))] -translate-x-1/2 overflow-y-auto rounded-md', children ? 'top-1/2 -translate-y-1/2' : 'top-1/3', ' border border-border bg-popover p-5 text-popover-foreground shadow-lg')}>
-          <Dialog.Title className="text-base font-semibold">{title}</Dialog.Title>
-          {description ? <Dialog.Description className="mt-1 text-sm text-muted-foreground">{description}</Dialog.Description> : null}
-          {children ? <div className="mt-4 space-y-3">{children}</div> : null}
-          {error ? <p role="alert" className="mt-3 text-sm text-crit-ink">{error}</p> : null}
-          {error && recovery && (recovery.when?.(errorCode) ?? true) ? (
-            <button type="button" disabled={busy} onClick={recover} className="mt-2 rounded-md border border-border px-3 py-1.5 text-sm font-semibold">
-              {recovery.verb}
-            </button>
-          ) : null}
-          <div className="mt-5 flex justify-end gap-2">
+        <Dialog.Content role="alertdialog" className={contentClass(size, !!children || !!impact)}>
+          <div className="flex-1 overflow-y-auto p-5">
+            <Dialog.Title className="text-base font-semibold">{title}</Dialog.Title>
+            {description ? <Dialog.Description className="mt-1 text-sm text-muted-foreground">{description}</Dialog.Description> : null}
+            {twoFactorRequired ? (
+              <div className="mt-4 flex items-start gap-2 rounded-md border border-warn-soft bg-warn-soft px-3 py-2 text-sm text-warn-ink">
+                <ShieldAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+                <p className="flex-1">
+                  Para {verb.toLowerCase()}, ative a verificação em duas etapas.{' '}
+                  <a href={TWO_FACTOR_SETUP} target="_blank" rel="noopener" className="font-semibold underline">Ativar agora</a>
+                </p>
+              </div>
+            ) : null}
+            {children ? <div className="mt-4 space-y-3">{children}</div> : null}
+            {impact ? <div role="group" aria-label="Impacto" className="mt-4 rounded-md border border-border bg-muted px-3 py-2 text-sm tabular-nums">{impact}</div> : null}
+            {pending.length > 0 ? (
+              <div id={pendingId} className="mt-4 space-y-1 text-sm">
+                <p className="font-semibold">Antes de {verb.toLowerCase()}:</p>
+                <ul className="list-disc space-y-1 pl-5">
+                  {pending.map((p) => (
+                    <li key={p.text}>
+                      {p.text}
+                      {p.fix ? <> <button type="button" onClick={() => { setOpen(false); p.fix?.onSelect() }} className="font-semibold text-primary underline">{p.fix.label}</button></> : null}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {error ? (
+              <div ref={alertRef} tabIndex={-1} role="alert" className="mt-4 space-y-2 rounded-md border border-crit-soft bg-crit-soft px-3 py-2 text-sm text-crit-ink outline-none">
+                <p>{error.message}</p>
+                {(error.code === 'concurrency_conflict' && onReload) || (recovery && (recovery.when?.(error.code) ?? true)) ? (
+                  <div className="flex flex-wrap gap-2">
+                    {error.code === 'concurrency_conflict' && onReload ? <button type="button" disabled={busy} onClick={() => void reload()} className={button}>Recarregar</button> : null}
+                    {recovery && (recovery.when?.(error.code) ?? true) ? <button type="button" disabled={busy} onClick={() => void run(recovery.onSelect, recovery.done)} className={button}>{recovery.verb}</button> : null}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+          <div className="flex justify-end gap-2 border-t border-border px-5 py-3">
             <Dialog.Close className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Voltar</Dialog.Close>
-            <button
-              type="button"
-              disabled={busy}
-              onClick={confirm}
-              className={cn('rounded-md px-3 py-2 text-sm font-semibold disabled:opacity-60', destructive ? 'bg-crit text-critical-foreground' : 'bg-primary text-primary-foreground')}
-            >
+            <button type="button" disabled={busy || blocked} aria-describedby={pending.length > 0 ? pendingId : undefined} onClick={() => { if (!blocked) void run(onConfirm, done) }}
+              className={cn('rounded-md px-3 py-2 text-sm font-semibold disabled:opacity-60', destructive ? 'bg-crit text-critical-foreground' : 'bg-primary text-primary-foreground')}>
               {verb}
             </button>
           </div>

@@ -5,7 +5,7 @@
 | ID | FND-09e |
 | Título | Mensagens no topo do conteúdo (ADR 0021), `ConfirmDialog` grande com formulário e erro por campo, `applyServerErrors` com caminhos aninhados, `RowsEditor` com modelo de colunas, `DataTable` com seleção, totais e linha expansível, tokens de gráfico com Recharts, menu do Financeiro em dois grupos e as convenções de concorrência, idempotência, deduplicação de notificações e fronteira de contratos (ADR 0019) |
 | Tamanho | M (nova, revisão pré-Fase 2 §3) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | PRD §6 (Usabilidade, Acessibilidade) · R-PRP-2 · R-PRP-7 · R-COM-2 · R-SEC-5 |
 | Dependências | FND-09c (DataTable, estados, formulário), FND-09d (`ConfirmDialog`, `RowsEditor`, `NextSteps`), FND-09b (menu), FND-07 (notificações, auditoria); ADR 0019 e ADR 0021 aceitas |
 | Bloqueia | Todas as stories da Fase 2 com tela ou documento (a começar pela FIN-01) |
@@ -82,24 +82,24 @@ Como **desenvolvedor das telas e dos documentos da Fase 2**, quero **os componen
 Nenhum. A P-18 foi decidida (ADR 0021) e o 2FA por ação foi adiado pelo PO (P-19).
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
-- [ ] Migration criada (não destrutiva): `dedup_key` em `shared.notifications`.
-- [ ] Nenhuma permissão nova.
-- [ ] Telas das Fases 0 e 1 migradas para a região de mensagens, com os estados que já tinham.
-- [ ] Ajudas que citavam o toast atualizadas; teste de cobertura passando.
-- [ ] Próximos passos fora da mensagem de sucesso em todas as telas.
-- [ ] Auditoria: allowlist do CA 14 documentada.
-- [ ] OpenAPI e cliente Orval regenerados (campo `version` nos DTOs de teste, quando houver).
-- [ ] `docs/03-modelo-dados.md` atualizado (`notifications.dedup_key`); story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
+- [x] Migration criada (não destrutiva): `dedup_key` em `shared.notifications`.
+- [x] Nenhuma permissão nova.
+- [x] Telas das Fases 0 e 1 migradas para a região de mensagens, com os estados que já tinham.
+- [x] Ajudas que citavam o toast atualizadas; teste de cobertura passando.
+- [x] Próximos passos fora da mensagem de sucesso em todas as telas.
+- [x] Auditoria: allowlist do CA 14 documentada.
+- [x] OpenAPI e cliente Orval regenerados (campo `version` nos DTOs de teste, quando houver).
+- [x] `docs/03-modelo-dados.md` atualizado (`notifications.dedup_key`); story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `MessageRegion`, `notifySuccess`, `notifyError` (Web); remover `toastDone`/`toastError` e o `nextStep` do `ConfirmDialog`.
-- [ ] `ConfirmDialog` com `size`, `preconditions`, formulário e estado de 2FA; `applyServerErrors` aninhado.
-- [ ] `RowsEditor` com modelo de colunas; `DataTable` com `selectable`, `totals` e `expandable`; `Chart` e tokens `--chart-*`.
-- [ ] Menu da área Financeiro em grupos (`modules.ts` com `group`).
-- [ ] `IConcurrencyVersioned`, middleware de 409, `.RequireIdempotencyKey()` e `useIdempotencyKey()`, `dedup_key`.
-- [ ] Testes de arquitetura (CA 14, 17).
+- [x] `MessageRegion`, `notifySuccess`, `notifyError` (Web); remover `toastDone`/`toastError` e o `nextStep` do `ConfirmDialog`.
+- [x] `ConfirmDialog` com `size`, `preconditions`, formulário e estado de 2FA; `applyServerErrors` aninhado.
+- [x] `RowsEditor` com modelo de colunas; `DataTable` com `selectable`, `totals` e `expandable`; `Chart` e tokens `--chart-*`.
+- [x] Menu da área Financeiro em grupos (`modules.ts` com `group`).
+- [x] `IConcurrencyVersioned`, middleware de 409, `.RequireIdempotencyKey()` e `useIdempotencyKey()`, `dedup_key`.
+- [x] Testes de arquitetura (CA 14, 17).
 
 ## Quality gates
 - Agentes previstos: @dev, design (região de mensagens, diálogo grande, 400 px), @qa.
@@ -130,3 +130,4 @@ Checklist do @po (Pax), 20/10/2026.
 |---|---|---|---|
 | 20/10/2026 | 0.1 | Story nova (revisão pré-Fase 2 §3, ADR 0019 e 0021) | River (SM) |
 | 20/10/2026 | 0.2 | Validação do PO: 10/10, `Ready` | Pax (PO) |
+| 20/10/2026 | 1.0 | Implementada. Desvios: idempotência numa tabela única `shared.idempotency_records` em vez de `client_request_id` por documento (adendo da ADR 0019 §3), com 409 `idempotency_in_progress` para o envio paralelo; o método de notificação deduplicada é `NotifyOnceAsync` e grava na hora (não junto do SaveChanges do comando); a região de mensagens fica fixa no topo da área de conteúdo, no fluxo da página (não cobre o formulário), também nas telas de entrada e na plataforma; "Ativar agora" abre a configuração do 2FA em outra aba, para o diálogo não perder o preenchido; o teste de posse de tabela aceita mais de um schema por módulo (o Identity tem `identity` e `settings`) e recusa schema dividido entre módulos; a allowlist de escrita em massa lista os 7 arquivos atuais com o motivo | @dev |

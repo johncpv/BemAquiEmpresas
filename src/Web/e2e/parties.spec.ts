@@ -64,6 +64,7 @@ test.describe('terceiros (CAD-01a)', () => {
   })
 
   test('lista e detalhe sem violação séria, sem rolagem horizontal e abas pelo teclado (CA 16, 22, 23)', async ({ page }) => {
+    test.setTimeout(60_000) // axe em várias páginas
     const api = partiesApi()
     api.parties.push({ id: '0199f0e0-0000-7000-8000-000000000001', kind: 'PF', document: '***.456.789-**', legalName: 'José Instalador', tradeName: null, roles: ['Installer'], isActive: true, addresses: [], contacts: [] })
     await mockApi(page, api.handlers)

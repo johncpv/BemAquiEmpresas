@@ -4,7 +4,7 @@ import type { PositionDetail } from '@/api/generated/model'
 import { Field, FormSection } from '@/components/form/form'
 import { MoneyInput } from '@/components/form/inputs'
 import { StatusChip } from '@/components/ui/status-chip'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { Dica } from '@/help/Dica'
 import { formatMoney } from '@/lib/format'
 import { useCan } from '@/pages/use-can'
@@ -24,10 +24,10 @@ export function PositionCost({ position, onSaved }: { position: PositionDetail; 
       {canEdit ? (
         <div className="flex flex-wrap items-end gap-2">
           <Field label="Novo custo-hora">{(p) => <MoneyInput {...p} value={manual} onChange={setManual} />}</Field>
-          <button type="button" disabled={manual === null} onClick={async () => { onSaved(await setPositionHourlyCost(position.id, { value: Number(manual) })); setManual(null); toastDone('Custo-hora ajustado') }}
+          <button type="button" disabled={manual === null} onClick={async () => { onSaved(await setPositionHourlyCost(position.id, { value: Number(manual) })); setManual(null); notifySuccess('Custo-hora ajustado') }}
             className="rounded-md border border-border px-3 py-2 text-sm font-semibold disabled:opacity-60">Ajustar custo-hora</button>
           {position.hourlyCostManual ? (
-            <button type="button" onClick={async () => { onSaved(await resetPositionHourlyCost(position.id)); toastDone('Voltou ao calculado') }} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Voltar ao calculado</button>
+            <button type="button" onClick={async () => { onSaved(await resetPositionHourlyCost(position.id)); notifySuccess('Voltou ao calculado') }} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Voltar ao calculado</button>
           ) : null}
         </div>
       ) : null}

@@ -17,6 +17,7 @@
 
 ### Backup e restauração antes da primeira carga real
 - **Pré-condição da FIN-00:** o backup diário cifrado da homologação (FND-10b) está no ar e verificado (último dump com tamanho e data esperados no bucket) e **um teste de restauração do tenant `konebras`** foi feito com o backup real, num ambiente separado, registrado em `docs/operacao/restauracao.md` (data, duração, conferência dos segredos).
+- **Adendo de 20/10/2026 (PO):** a primeira carga real da FIN-00 está liberada sem esperar o teste de restauração. O backup diário continua obrigatório e o teste de restauração passa a ser recomendado (fazer assim que possível e depois mensalmente), sem bloquear a carga.
 - Depois disso, a restauração é testada uma vez por mês (risco "Perda de até 24 h de dados", `06-pendencias-riscos.md`).
 
 ### Migrations

@@ -35,6 +35,8 @@ public abstract class BemAquiDbContext(DbContextOptions options) : DbContext(opt
 
     public DbSet<EmailLog> EmailLogs => Set<EmailLog>();
 
+    public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
@@ -107,6 +109,17 @@ public abstract class BemAquiDbContext(DbContextOptions options) : DbContext(opt
             b.Property(e => e.Title).HasMaxLength(200);
             b.Property(e => e.Link).HasMaxLength(512);
             b.HasIndex(e => new { e.UserId, e.ReadAt, e.CreatedAt });
+            b.Property(e => e.DedupKey).HasMaxLength(200);
+            b.HasIndex(e => new { e.UserId, e.DedupKey }).IsUnique().HasFilter("dedup_key IS NOT NULL").HasDatabaseName(NotificationService.DedupIndex);
+        });
+
+        modelBuilder.Entity<IdempotencyRecord>(b =>
+        {
+            b.ToTable("idempotency_records", SharedSchema);
+            b.HasKey(e => e.Key);
+            b.Property(e => e.Scope).HasMaxLength(256);
+            b.Property(e => e.BodyHash).HasMaxLength(64);
+            b.HasIndex(e => e.CreatedAt);
         });
 
         modelBuilder.Entity<EmailLog>(b =>
@@ -126,11 +139,21 @@ public abstract class BemAquiDbContext(DbContextOptions options) : DbContext(opt
 
         ConfigureModules(modelBuilder);
         ApplySoftDeleteFilter(modelBuilder);
+        ApplyConcurrencyTokens(modelBuilder);
     }
 
     /// <summary>Configurações dos módulos (assemblies <c>*.Infrastructure</c>).</summary>
     protected virtual void ConfigureModules(ModelBuilder modelBuilder)
     {
+    }
+
+    /// <summary>Documento <see cref="IConcurrencyVersioned"/>: <c>Version</c> é o <c>xmin</c> do PostgreSQL (ADR 0019).</summary>
+    private static void ApplyConcurrencyTokens(ModelBuilder modelBuilder)
+    {
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes().Where(t => typeof(IConcurrencyVersioned).IsAssignableFrom(t.ClrType)))
+        {
+            modelBuilder.Entity(entityType.ClrType).Property(nameof(IConcurrencyVersioned.Version)).IsRowVersion();
+        }
     }
 
     private static void ApplySoftDeleteFilter(ModelBuilder modelBuilder)

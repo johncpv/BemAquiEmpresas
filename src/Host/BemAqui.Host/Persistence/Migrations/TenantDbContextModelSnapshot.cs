@@ -259,6 +259,11 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<string>("DedupKey")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("dedup_key");
+
                     b.Property<string>("Link")
                         .IsRequired()
                         .HasMaxLength(512)
@@ -287,6 +292,11 @@ namespace BemAqui.Host.Persistence.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_notifications");
+
+                    b.HasIndex("UserId", "DedupKey")
+                        .IsUnique()
+                        .HasDatabaseName("ux_notifications_user_dedup")
+                        .HasFilter("dedup_key IS NOT NULL");
 
                     b.HasIndex("UserId", "ReadAt", "CreatedAt")
                         .HasDatabaseName("ix_notifications_user_id_read_at_created_at");
@@ -349,6 +359,46 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDatabaseName("ix_audit_log_entity_entity_id_at");
 
                     b.ToTable("audit_log", "audit");
+                });
+
+            modelBuilder.Entity("BemAqui.BuildingBlocks.Persistence.IdempotencyRecord", b =>
+                {
+                    b.Property<Guid>("Key")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("key");
+
+                    b.Property<string>("BodyHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("body_hash");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Response")
+                        .HasColumnType("text")
+                        .HasColumnName("response");
+
+                    b.Property<string>("Scope")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("scope");
+
+                    b.Property<int?>("StatusCode")
+                        .HasColumnType("integer")
+                        .HasColumnName("status_code");
+
+                    b.HasKey("Key")
+                        .HasName("pk_idempotency_records");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_idempotency_records_created_at");
+
+                    b.ToTable("idempotency_records", "shared");
                 });
 
             modelBuilder.Entity("BemAqui.BuildingBlocks.Persistence.Numbering.NumberFormatOverride", b =>

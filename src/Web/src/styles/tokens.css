@@ -43,6 +43,12 @@
   --info-ink: #0a4f63;
   --signal: #f2a93b; /* --led: marca, item ativo e indicador de etapa; nunca estado */
   --signal-foreground: #1a1205;
+  --chart-1: #2148c0; /* séries de gráfico (FND-09e CA 11): >= 3:1 contra o card */
+  --chart-2: #0e6f8a;
+  --chart-3: #a35a00;
+  --chart-4: #7a3fb0;
+  --chart-5: #2f7d5b;
+  --chart-6: #b0306a;
   --radius-s: 6px;
   --radius-m: 10px;
 }
@@ -85,6 +91,12 @@
     --info-ink: #84d8eb;
     --signal: #f2a93b;
     --signal-foreground: #1a1205;
+    --chart-1: #8fa8ff;
+    --chart-2: #4fc3dc;
+    --chart-3: #f0b25a;
+    --chart-4: #c39bff;
+    --chart-5: #5fd39a;
+    --chart-6: #ff8fb8;
   }
 }
 
@@ -126,6 +138,12 @@
   --info-ink: #84d8eb;
   --signal: #f2a93b;
   --signal-foreground: #1a1205;
+  --chart-1: #8fa8ff;
+  --chart-2: #4fc3dc;
+  --chart-3: #f0b25a;
+  --chart-4: #c39bff;
+  --chart-5: #5fd39a;
+  --chart-6: #ff8fb8;
 }
 
 /* Painel da TV: sempre escuro, texto grande (revisão §2.4). */

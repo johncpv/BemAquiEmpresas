@@ -14,7 +14,7 @@ const detail = (system: boolean) => ({
 const groups = [detail(true).group, detail(false).group]
 
 test.describe('Usuários e acessos e Segurança (FND-06b/06c)', () => {
-  test('matriz: habilitar marca Ver, alteração não salva e Salvar grupo com o toast (CA 1, 3)', async ({ page }) => {
+  test('matriz: habilitar marca Ver, alteração não salva e Salvar grupo com a mensagem (CA 1, 3)', async ({ page }) => {
     let saved: unknown
     await mockApi(page, {
       'GET /api/v1/identity/groups': (r) => json(r, groups),

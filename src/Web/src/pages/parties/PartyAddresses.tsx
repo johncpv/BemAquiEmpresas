@@ -9,7 +9,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { EmptyState } from '@/components/ui/states'
 import { SidePanel } from '@/components/ui/side-panel'
 import { Tag } from '@/components/ui/tag'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { z } from '@/lib/zod'
 import { ADDRESS_LABELS, STATES } from './labels'
 import { emptyOnly, useCepLookup } from './lookups'
@@ -50,7 +50,7 @@ export function PartyAddresses({ party, canEdit, onSaved, adding, onAddingChange
               </div>
               {canEdit ? (
                 <div className="flex flex-wrap gap-1">
-                  {!a.isDefault ? <button type="button" onClick={async () => { onSaved(await updatePartyAddress(party.id, a.id, { ...a, isDefault: true })); toastDone('Endereço padrão alterado') }} className="rounded-md border border-border px-2 py-1 text-xs font-semibold">Tornar padrão</button> : null}
+                  {!a.isDefault ? <button type="button" onClick={async () => { onSaved(await updatePartyAddress(party.id, a.id, { ...a, isDefault: true })); notifySuccess('Endereço padrão alterado') }} className="rounded-md border border-border px-2 py-1 text-xs font-semibold">Tornar padrão</button> : null}
                   <button type="button" onClick={() => setEditing(a)} className="rounded-md border border-border px-2 py-1 text-xs font-semibold">Editar</button>
                   <ConfirmDialog verb="Remover" done="Endereço removido" destructive title="Remover este endereço?" description={a.isDefault ? 'Ele é o padrão: outro endereço do mesmo tipo passa a ser o padrão.' : undefined}
                     onConfirm={async () => onSaved(await removePartyAddress(party.id, a.id))}
@@ -87,7 +87,7 @@ function AddressPanel({ party, address, kind, onClose, onSaved }: { party: Party
       const body = { ...v, complement: v.complement.trim() || null, ibgeCode: v.ibgeCode || null }
       try {
         onSaved(address ? await updatePartyAddress(party.id, address.id, body) : await addPartyAddress(party.id, body))
-        toastDone('Endereço salvo')
+        notifySuccess('Endereço salvo')
         ok = true
         onClose()
       } catch (e) {

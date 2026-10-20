@@ -4,7 +4,7 @@ import { ApiError } from '@/api/http'
 import { FormError } from '@/components/form/form'
 import { SidePanel } from '@/components/ui/side-panel'
 import { ErrorState, Skeleton } from '@/components/ui/states'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { formatDate } from '@/lib/format'
 import { weekdayOf } from './calendar'
 
@@ -24,7 +24,7 @@ export function HolidaysPanel({ calendarId, year, onClose, onSaved }: { calendar
     setError(null)
     try {
       const result = await addHolidays(calendarId, { holidays: items.filter((h) => selected.has(h.date)).map((h) => ({ date: h.date, description: h.name })) })
-      toastDone(result.added === 1 ? '1 feriado adicionado' : `${result.added} feriados adicionados`)
+      notifySuccess(result.added === 1 ? '1 feriado adicionado' : `${result.added} feriados adicionados`)
       onSaved()
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Não foi possível adicionar os feriados.')

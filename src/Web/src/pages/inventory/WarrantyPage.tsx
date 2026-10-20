@@ -8,7 +8,7 @@ import { inputClass } from '@/components/form/form-utils'
 import { RecordHistory } from '@/components/history/RecordHistory'
 import { SidePanel } from '@/components/ui/side-panel'
 import { ErrorState, Skeleton } from '@/components/ui/states'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { DICAS, TYPE_LABELS } from './item-labels'
@@ -57,7 +57,7 @@ function WarrantyPanel({ row, onClose, onSaved }: { row: WarrantyDefaultDetail; 
     if (invalid) return false
     try {
       await updateWarrantyDefault(row.itemType, { months: value === '' ? null : Number(value) })
-      toastDone('Garantia padrão salva')
+      notifySuccess('Garantia padrão salva')
       onSaved()
       return true
     } catch (e) {

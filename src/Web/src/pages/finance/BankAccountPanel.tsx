@@ -4,7 +4,7 @@ import type { BankAccountDetail, BankAccountInput } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { ImportedTag } from '@/components/ui/imported-tag'
 import { SidePanel } from '@/components/ui/side-panel'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { BankAccountActions } from './BankAccountActions'
 import { type Draft, toDraft } from './bank-account-draft'
 import { BankAccountFields } from './BankAccountFields'
@@ -29,7 +29,7 @@ export function BankAccountPanel({ account, focusBalance, onClose, onSaved }: { 
     try {
       if (account) await updateBankAccount(account.id, input)
       else await createBankAccount(input)
-      toastDone('Conta bancária salva')
+      notifySuccess('Conta bancária salva')
       onSaved(!account)
       return true
     } catch (e) {

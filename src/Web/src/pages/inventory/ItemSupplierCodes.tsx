@@ -13,7 +13,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { SidePanel } from '@/components/ui/side-panel'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 
 const factorText = (n: number) => new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 6 }).format(n)
 const searchSuppliers = async (term: string) => (await listSupplierOptions({ q: term })).map((s) => ({ id: s.id, label: s.name, hint: s.document ?? undefined }))
@@ -74,7 +74,7 @@ function SupplierCodePanel({ item, code, canEdit, onClose, onSaved }: { item: It
     try {
       if (code) await updateItemSupplierCode(item.id, code.id, input)
       else await createItemSupplierCode(item.id, input)
-      toastDone('Código do fornecedor salvo')
+      notifySuccess('Código do fornecedor salvo')
       onSaved()
       return true
     } catch (e) {

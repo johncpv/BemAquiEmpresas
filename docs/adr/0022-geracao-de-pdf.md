@@ -11,6 +11,7 @@
 - **Limites:** até 300 itens e observações de até 2.000 caracteres por documento; acima disso, 422 antes de gerar. Tempo de geração conferido em teste (COM-03).
 - **Imagens:** só o logo `Clean` do tenant (ADR 0016), lido pelo `IFileStorage`. Nenhuma URL externa é buscada na geração.
 - **Licença:** a licença Community do QuestPDF só vale para empresa com receita bruta anual abaixo do limite da licença (hoje, US$ 1 milhão). Esta ADR **não decide** a elegibilidade: **pré-condição da COM-03, "o PO confirma a elegibilidade da Community ou adquire a licença"**, registrada em `06-pendencias-riscos.md` (P-21). A licença escolhida é configurada na subida (`QuestPDF.Settings.License`) e reavaliada a cada novo tenant ou mudança de receita (ADR 0009).
+- **Adendo de 20/10/2026 (PO):** usar a licença **Community** (`LicenseType.Community`). A P-21 está decidida; a reavaliação acima continua valendo.
 
 ## Consequências
 - A COM-03 implementa o `IPdfRenderer`, o registro da fonte, o teste na imagem Alpine e o `QuotePdfDocument`.

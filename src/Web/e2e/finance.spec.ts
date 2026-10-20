@@ -71,6 +71,7 @@ test.describe('financeiro (CAD-05b)', () => {
   })
 
   test('cria 30/60/90 dias só pelo teclado e confere a prévia (CA 11 e 13)', async ({ page }) => {
+    test.setTimeout(60_000) // axe em várias páginas
     await mockApi(page, financeApi())
     await page.goto('/app/financeiro/condicoes-de-pagamento/nova')
     await page.getByRole('textbox', { name: /Nome/ }).fill('30/60/90 dias')

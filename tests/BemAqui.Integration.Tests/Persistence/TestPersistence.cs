@@ -30,12 +30,26 @@ public sealed class SampleCustomer : Entity, IAuditable, ISoftDeletable
     }
 }
 
+/// <summary>Documento de exemplo com concorrência otimista pelo xmin (FND-09e CA 13).</summary>
+[DocumentName("O documento de teste")]
+public sealed class SampleDocument : Entity, IConcurrencyVersioned
+{
+    public required string Name { get; set; }
+
+    public uint Version { get; set; }
+}
+
 public sealed class SampleDbContext(DbContextOptions<SampleDbContext> options) : BemAquiDbContext(options)
 {
     public DbSet<SampleCustomer> Customers => Set<SampleCustomer>();
 
-    protected override void ConfigureModules(ModelBuilder modelBuilder) =>
+    public DbSet<SampleDocument> Documents => Set<SampleDocument>();
+
+    protected override void ConfigureModules(ModelBuilder modelBuilder)
+    {
         modelBuilder.Entity<SampleCustomer>(b => b.ToTable("customers", "sample"));
+        modelBuilder.Entity<SampleDocument>(b => b.ToTable("documents", "sample"));
+    }
 }
 
 /// <summary>Relógio controlável para testes de virada de ano.</summary>

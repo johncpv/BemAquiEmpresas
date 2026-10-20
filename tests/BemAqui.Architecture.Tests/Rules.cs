@@ -28,6 +28,15 @@ public static class Rules
             .Select(x => $"{x.Project.Name} referencia {x.Reference} (Contracts só depende de Contracts e SharedKernel)")
             .ToList();
 
+    /// <summary>Contracts não referencia o Contracts de outro módulo; vocabulário comum fica no SharedKernel (ADR 0019).</summary>
+    public static IReadOnlyList<string> ContractsCrossReferences(IEnumerable<ProjectInfo> projects) =>
+        projects
+            .Where(p => p.Layer == "Contracts")
+            .SelectMany(p => p.ProjectReferences.Select(r => (Project: p, Target: Solution.Classify(r), Reference: r)))
+            .Where(x => x.Target.Module is not null && x.Target.Module != x.Project.Module && x.Target.Layer == "Contracts")
+            .Select(x => $"{x.Project.Name} referencia {x.Reference} (Contracts não depende de outro Contracts)")
+            .ToList();
+
     /// <summary>Nenhum projeto usa MediatR ou AutoMapper (licença comercial).</summary>
     public static IReadOnlyList<string> ForbiddenPackages(IEnumerable<ProjectInfo> projects) =>
         projects

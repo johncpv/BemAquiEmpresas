@@ -43,7 +43,7 @@ test.describe('componentes de tela (FND-09c)', () => {
     await expect(page.getByText('Já existe um usuário com esse e-mail.').first()).toBeVisible()
   })
 
-  test('confirmação usa o mesmo verbo e o toast o particípio (CA 11)', async ({ page }) => {
+  test('confirmação usa o mesmo verbo e a mensagem o particípio (CA 11)', async ({ page }) => {
     await page.goto('/dev/galeria')
     await page.getByRole('button', { name: 'Desativar usuário' }).click()
     await page.getByRole('alertdialog').getByRole('button', { name: 'Desativar' }).click()

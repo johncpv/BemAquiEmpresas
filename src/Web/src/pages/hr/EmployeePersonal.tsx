@@ -7,7 +7,7 @@ import { inputClass } from '@/components/form/form-utils'
 import { CepInput, CpfInput, DateInput, PhoneInput } from '@/components/form/inputs'
 import { UnsavedChangesGuard } from '@/components/form/UnsavedChangesGuard'
 import { ErrorState, Skeleton } from '@/components/ui/states'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { emptyOnly, useCepLookup } from '@/pages/parties/lookups'
 import { useCan } from '@/pages/use-can'
 import { EMPLOYEE_DICAS } from './employee'
@@ -53,7 +53,7 @@ function PersonalForm({ employee, data, canEdit }: { employee: EmployeeDetail; d
         zipCode: nil(draft.zipCode), street: nil(draft.street), number: nil(draft.number), complement: nil(draft.complement), district: nil(draft.district), city: nil(draft.city), state: nil(draft.state.toUpperCase()),
         phone: nil(draft.phone), email: nil(draft.email),
       })
-      toastDone('Dados pessoais salvos')
+      notifySuccess('Dados pessoais salvos')
       setInitial(draft)
       return true
     } catch (e) {

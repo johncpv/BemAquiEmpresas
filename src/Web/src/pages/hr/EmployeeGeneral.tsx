@@ -6,7 +6,7 @@ import { Field, FormError, FormSection } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { DateInput } from '@/components/form/inputs'
 import { UnsavedChangesGuard } from '@/components/form/UnsavedChangesGuard'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { EMPLOYEE_DICAS } from './employee'
 import { EmployeeUser } from './EmployeeUser'
 
@@ -24,7 +24,7 @@ export function EmployeeGeneral({ employee, canEdit, onSaved, linking, onLinking
   const save = async () => {
     try {
       const saved = await updateEmployee(employee.id, { name: draft.name.trim(), registration: draft.registration.trim() || null, workScheduleId: draft.workScheduleId || null, unionId: draft.unionId || null, admissionDate: draft.admissionDate })
-      toastDone('Dados gerais salvos')
+      notifySuccess('Dados gerais salvos')
       onSaved(saved)
       return true
     } catch (e) {

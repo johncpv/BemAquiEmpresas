@@ -25,6 +25,8 @@ export const AREAS: readonly Area[] = [
 export interface Tab {
   slug: string
   label: string
+  /** Grupo da aba quando o módulo agrupa as sub-telas (Financeiro, FND-09e CA 12). */
+  group?: string
 }
 
 /** Parte de tela de cada módulo do ModuleCatalog: rota, ícone e sub-telas (abas na topbar, CA 8). */
@@ -33,6 +35,9 @@ export interface ModuleUi {
   icon: LucideIcon
   tabs?: readonly Tab[]
 }
+
+const CASH = 'Caixa e pagamentos'
+const SETUP = 'Configuração financeira'
 
 export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
   dashboard: { slug: 'painel', icon: LayoutDashboard },
@@ -44,7 +49,12 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
   inventory: { slug: 'estoque', icon: Boxes, tabs: [{ slug: 'itens', label: 'Itens' }, { slug: 'locais', label: 'Locais' }, { slug: 'unidades', label: 'Unidades' }, { slug: 'categorias', label: 'Categorias' }, { slug: 'garantia', label: 'Garantia padrão' }] },
   purchasing: { slug: 'compras', icon: ShoppingCart },
   assets: { slug: 'patrimonio', icon: Tag },
-  finance: { slug: 'financeiro', icon: Wallet, tabs: [{ slug: 'contas', label: 'Contas e caixas' }, { slug: 'condicoes-de-pagamento', label: 'Condições de pagamento' }, { slug: 'plano-de-contas', label: 'Plano de contas' }, { slug: 'centros-de-custo', label: 'Centros de custo' }] },
+  finance: { slug: 'financeiro', icon: Wallet, tabs: [
+    { slug: 'contas', label: 'Contas e caixas', group: CASH },
+    { slug: 'plano-de-contas', label: 'Plano de contas', group: SETUP },
+    { slug: 'centros-de-custo', label: 'Centros de custo', group: SETUP },
+    { slug: 'condicoes-de-pagamento', label: 'Condições de pagamento', group: SETUP },
+  ] },
   fiscal: { slug: 'fiscal', icon: Receipt },
   hr: { slug: 'rh', icon: Users, tabs: [{ slug: 'funcionarios', label: 'Funcionários' }, { slug: 'cargos', label: 'Cargos' }, { slug: 'jornadas', label: 'Jornadas' }, { slug: 'sindicatos', label: 'Sindicatos' }] },
   kiosk: { slug: 'painel-tv', icon: MonitorPlay },
@@ -110,3 +120,6 @@ export function findModuleBySlug(modules: readonly NavModule[], slug: string): N
 export function areaOf(areas: readonly NavArea[], module: NavModule): NavArea | undefined {
   return areas.find((a) => a.name === module.area)
 }
+
+/** Grupos das abas do Financeiro, na ordem: operação primeiro, configuração depois (D12). */
+export const FINANCE_GROUPS = [CASH, SETUP].map((label) => ({ label, tabs: (MODULE_UI.finance.tabs ?? []).filter((t) => t.group === label) }))

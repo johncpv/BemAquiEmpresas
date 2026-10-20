@@ -7,14 +7,19 @@ export function useZodForm<TIn extends FieldValues, TOut extends FieldValues>(sc
   return useForm<TIn, unknown, TOut>({ resolver: zodResolver(schema), mode: 'onTouched', shouldFocusError: true, ...options })
 }
 
+/** Caminho do ProblemDetails ("lines[2].unitCost") para o do React Hook Form ("lines.2.unitCost"). */
+export const toFormPath = (name: string) => name.replace(/\[(\d+)\]/g, (_, n: string) => '.' + n)
+
 /**
- * ProblemDetails do servidor nos campos (FND-09c CA 9): <c>errors</c> por campo vão para cada campo; o resto vai para o
- * topo do formulário (root.server). Devolve true se tratou o erro.
+ * ProblemDetails do servidor nos campos (FND-09c CA 9, FND-09e CA 8): <c>errors</c> por campo vão para cada campo,
+ * inclusive em linhas ("milestones[0].percent"); o resto vai para o topo do formulário (root.server). Devolve true se
+ * tratou o erro.
  */
 export function applyServerErrors<T extends FieldValues>(form: UseFormReturn<T, unknown, unknown>, error: unknown): boolean {
   if (!(error instanceof ApiError)) return false
-  const fields = Object.entries(error.fields)
-  const known = fields.filter(([name]) => name in form.getValues())
+  const fields = Object.entries(error.fields).map(([name, messages]) => [toFormPath(name), messages] as const)
+  const values = form.getValues() as Record<string, unknown>
+  const known = fields.filter(([path]) => path.split('.')[0] in values && form.getValues(path as Path<T>) !== undefined)
   known.forEach(([name, messages], i) => form.setError(name as Path<T>, { type: 'server', message: messages[0] }, { shouldFocus: i === 0 }))
   if (known.length === 0 || known.length < fields.length) form.setError('root.server', { type: 'server', message: error.message })
   return true

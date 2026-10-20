@@ -8,7 +8,7 @@ import { Field, FormError } from '@/components/form/form'
 import { applyServerErrors, inputClass, useZodForm } from '@/components/form/form-utils'
 import { DocumentInput, PhoneInput } from '@/components/form/inputs'
 import { UnsavedChangesGuard } from '@/components/form/UnsavedChangesGuard'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { isValidCnpj, isValidCpf, onlyAlnum } from '@/lib/masks'
 import { z } from '@/lib/zod'
 import { ROLE_OPTIONS, TAX_REGIME_LABELS } from './labels'
@@ -58,7 +58,7 @@ export function PartyDataForm({ party, canEdit, onSaved }: { party: PartyDetail;
       })
       form.reset(form.getValues())
       onSaved(saved)
-      toastDone('Terceiro salvo')
+      notifySuccess('Terceiro salvo')
     } catch (e) {
       applyServerErrors(form, e)
     }
