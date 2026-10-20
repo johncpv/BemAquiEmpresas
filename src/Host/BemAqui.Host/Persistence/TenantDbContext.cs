@@ -93,6 +93,14 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<OpeningBatch> OpeningBatches => Set<OpeningBatch>();
 
+    public DbSet<PaymentOrder> PaymentOrders => Set<PaymentOrder>();
+
+    public DbSet<PaymentOrderItem> PaymentOrderItems => Set<PaymentOrderItem>();
+
+    public DbSet<PaymentOrderApproval> PaymentOrderApprovals => Set<PaymentOrderApproval>();
+
+    public DbSet<PayableSettlement> PayableSettlements => Set<PayableSettlement>();
+
     public DbSet<Location> Locations => Set<Location>();
 
     public DbSet<MeasureUnit> Units => Set<MeasureUnit>();

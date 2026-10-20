@@ -1,9 +1,12 @@
+using BemAqui.BuildingBlocks.Attachments;
 using BemAqui.BuildingBlocks.Persistence.Auditing;
 using BemAqui.BuildingBlocks.Tenancy;
 using BemAqui.Finance.Application;
 using BemAqui.Finance.Contracts;
 using BemAqui.Finance.Domain;
 using BemAqui.Parties.Contracts;
+using BemAqui.SharedKernel;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -48,6 +51,18 @@ public static class FinanceInfrastructure
         services.TryAddScoped<CashFlowService>();
         // Inadimplência e aviso dos vencidos (FIN-06a).
         services.TryAddScoped<AgingService>();
+        // Ordens de pagamento (FIN-03a): comprovante só em OP paga, lido com finance.view e gravado com finance.pay.
+        services.TryAddScoped<PaymentOrderService>();
+        services.AddAuditableEntity<PaymentOrder>("finance");
+        services.AddAuditableEntity<PaymentOrderItem>("finance");
+        services.AddAuditableEntity<PaymentOrderApproval>("finance");
+        services.AddAuditableEntity<PayableSettlement>("finance");
+        services.AddAttachmentOwner(PaymentOrderService.AttachmentOwner, new AttachmentOwnerRules("finance", ["application/pdf", "image/png", "image/jpeg"], 10 * 1024 * 1024,
+            OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IFinanceDb>().PaymentOrders.AnyAsync(o => o.Id == id, ct),
+            ReadAction: "view", WriteAction: "pay",
+            CanAttach: async (sp, id, ct) => await sp.GetRequiredService<IFinanceDb>().PaymentOrders.AnyAsync(o => o.Id == id && o.Status == PaymentOrderStatus.Paid, ct)
+                ? null
+                : Error.Conflict("attachment.owner_state", "Anexe o comprovante depois do pagamento.")));
         services.AddAuditableEntity<OpeningSetup>("finance");
         services.AddAuditableEntity<OpeningBatch>("finance");
         services.AddAuditableEntity<Payable>("finance");

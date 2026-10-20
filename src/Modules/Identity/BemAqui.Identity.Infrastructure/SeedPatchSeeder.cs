@@ -28,6 +28,11 @@ public sealed class SeedPatchSeeder : ITenantSeeder
             ("warehouse", "parties", ["view", "create", "edit"]),
             ("engineering", "parties", ["view"]),
         ]),
+        // ADR 0008 adendo D5: o Financeiro paga a OP aprovada; aprovar continua só com o Proprietário (FIN-03a CA 1).
+        new("finance-pay-financeiro",
+        [
+            ("finance", "finance", ["pay"]),
+        ]),
     ];
 
     public int Order => 25;

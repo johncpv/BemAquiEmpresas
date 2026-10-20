@@ -32,6 +32,14 @@ public interface IFinanceDb
 
     DbSet<OpeningBatch> OpeningBatches { get; }
 
+    DbSet<PaymentOrder> PaymentOrders { get; }
+
+    DbSet<PaymentOrderItem> PaymentOrderItems { get; }
+
+    DbSet<PaymentOrderApproval> PaymentOrderApprovals { get; }
+
+    DbSet<PayableSettlement> PayableSettlements { get; }
+
     /// <summary>Para trocar a conta padrão em dois passos numa transação (o índice único parcial é checado a cada comando).</summary>
     DatabaseFacade Database { get; }
 

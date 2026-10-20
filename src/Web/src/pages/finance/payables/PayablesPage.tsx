@@ -1,4 +1,5 @@
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
+import { useState } from 'react'
 import type { ColumnDef } from '@tanstack/react-table'
 import { useListPayables } from '@/api/generated/bemaqui'
 import type { PayableDetail } from '@/api/generated/model'
@@ -11,6 +12,8 @@ import { formatDate } from '@/lib/format'
 import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
 import { FinanceTabs } from '../FinanceTabs'
+import { useCan } from '@/pages/use-can'
+import { today } from '../receivables/receivables'
 import { METHOD_LABELS, ORIGIN_LABELS, PAYABLE_SITUATIONS, payableSituation } from './payables'
 
 /** Financeiro → A pagar (FIN-02): o que a empresa precisa pagar, por vencimento; só a OP aprovada paga. */
@@ -20,6 +23,13 @@ export function PayablesPage() {
   const query = useListPayables({ q: search.q, situation: situacao || undefined, page: search.page, pageSize: search.pageSize, sort: search.sort })
   const table = { ...query, data: query.data?.page }
   const totals = query.data?.totals
+  const navigate = useNavigate()
+  const canCreate = useCan('finance.create')
+  const [selected, setSelected] = useState<string[]>([])
+  const limit = new Date(Date.parse(today() + 'T00:00:00Z') + 7 * 86_400_000).toISOString().slice(0, 10)
+  const payable = (p: PayableDetail) => (p.status === 'Open' || p.status === 'PartiallyPaid') && !!p.paymentMethod
+  const dueSoon = (query.data?.page.items ?? []).filter((p) => payable(p) && !!p.dueDate && p.dueDate <= limit).map((p) => p.id)
+  const createOrder = () => void navigate({ to: '/app/financeiro/ordens-de-pagamento/nova', search: { titulos: selected.join(',') } } as never)
 
   const columns: ColumnDef<PayableDetail>[] = [
     { id: 'number', header: 'Número', meta: { sortField: 'number' }, cell: ({ row: { original: p } }) => <span className="font-mono">{p.number}</span> },
@@ -42,11 +52,18 @@ export function PayablesPage() {
         </div>
       </PageHeading>
       <FinanceTabs />
+      {canCreate ? (
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          {dueSoon.length > 0 ? <button type="button" onClick={() => setSelected([...new Set([...selected, ...dueSoon])])} className="rounded-md border border-border px-3 py-1.5 text-sm font-semibold">Selecionar os que vencem até {formatDate(limit)}</button> : null}
+          {selected.length > 0 ? <button type="button" onClick={createOrder} className="rounded-md bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground">Criar ordem de pagamento ({selected.length})</button> : null}
+        </div>
+      ) : null}
       <DataTable
         label="Títulos a pagar"
         columns={columns}
         query={table}
         getRowId={(p) => p.id}
+        selectable={canCreate ? { selected, onChange: setSelected, rowLabel: (p) => `título ${p.number}` } : undefined}
         rowHref={(p) => `/app/financeiro/pagar/${p.id}`}
         rowClassName={(p) => (p.isOverdue ? 'border-l-4 border-l-crit' : undefined)}
         searchPlaceholder="Buscar pelo número ou descrição"

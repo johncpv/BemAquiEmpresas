@@ -10,4 +10,6 @@ export interface FinanceLimits {
   discountApprovalAmount: number;
   cancelApprovalAmount: number;
   backdateDays: number;
+  ownerCanApproveOwn?: boolean;
+  paymentTolerance?: number;
 }

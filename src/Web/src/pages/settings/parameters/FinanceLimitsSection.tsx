@@ -26,10 +26,12 @@ function LimitsForm({ limits, canEdit }: { limits: FinanceLimits; canEdit: boole
   const [discount, setDiscount] = useState<string | null>(String(limits.discountApprovalAmount))
   const [cancel, setCancel] = useState<string | null>(String(limits.cancelApprovalAmount))
   const [days, setDays] = useState(String(limits.backdateDays))
+  const [ownApproval, setOwnApproval] = useState(limits.ownerCanApproveOwn ?? false)
+  const [tolerance, setTolerance] = useState<string | null>(String(limits.paymentTolerance ?? 0))
   const [error, setError] = useState<{ message: string; fields: Record<string, string[]> } | null>(null)
   const save = async () => {
     try {
-      const saved = await updateFinanceLimits({ discountApprovalPct: Number(pct ?? 0), discountApprovalAmount: Number(discount ?? 0), cancelApprovalAmount: Number(cancel ?? 0), backdateDays: Number(days || 0) })
+      const saved = await updateFinanceLimits({ discountApprovalPct: Number(pct ?? 0), discountApprovalAmount: Number(discount ?? 0), cancelApprovalAmount: Number(cancel ?? 0), backdateDays: Number(days || 0), ownerCanApproveOwn: ownApproval, paymentTolerance: Number(tolerance ?? 0) })
       client.setQueryData(getGetFinanceLimitsQueryKey(), saved)
       notifySuccess('Limites do financeiro salvos')
     } catch (e) {
@@ -49,7 +51,12 @@ function LimitsForm({ limits, canEdit }: { limits: FinanceLimits; canEdit: boole
           <Field label="Data retroativa: dias" error={field('backdateDays')} hint="Baixa com data mais antiga que isso pede motivo.">
             {(p) => <input {...p} inputMode="numeric" maxLength={3} value={days} onChange={(e) => setDays(e.target.value.replace(/\D/g, ''))} className={inputClass + ' tabular-nums'} />}
           </Field>
+          <Field label="Tolerância no pagamento" error={field('paymentTolerance')} hint="Quanto o pagamento pode passar do aprovado sem nova aprovação.">{(p) => <MoneyInput {...p} value={tolerance} onChange={setTolerance} />}</Field>
         </div>
+        <label className="flex items-start gap-2 text-sm">
+          <input type="checkbox" checked={ownApproval} onChange={(e) => setOwnApproval(e.target.checked)} className="mt-0.5 size-4 accent-primary" />
+          <span><b>Proprietário aprova a própria ordem</b><span className="block text-xs text-muted-foreground">Com mais de um Proprietário, quem solicitou a ordem também pode aprová-la. A troca avisa todos os Proprietários.</span></span>
+        </label>
         {canEdit ? <button type="button" onClick={() => void save()} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Salvar limites</button> : null}
       </fieldset>
     </FormSection>

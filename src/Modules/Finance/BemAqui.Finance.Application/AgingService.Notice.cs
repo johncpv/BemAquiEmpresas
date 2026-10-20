@@ -26,13 +26,8 @@ public sealed partial class AgingService
             ? $"1 título a receber venceu ontem ({ReceivableService.Money(due.Total)})."
             : $"{due.Count} títulos a receber venceram ontem ({ReceivableService.Money(due.Total)}).";
         var sent = 0;
-        foreach (var user in await users.ActiveUserIdsAsync(cancellationToken))
+        foreach (var user in await users.UsersWithPermissionAsync("finance.edit", cancellationToken))
         {
-            if (!(await permissions.GetAsync(user, cancellationToken)).Has("finance.edit"))
-            {
-                continue;
-            }
-
             var result = await notifications.NotifyOnceAsync(user, NoticeType, title, "/app/financeiro/receber?situacao=vencido&vencimento=ontem", $"overdue:{yesterday:yyyy-MM-dd}", cancellationToken);
             sent += result.IsSuccess ? 1 : 0;
         }

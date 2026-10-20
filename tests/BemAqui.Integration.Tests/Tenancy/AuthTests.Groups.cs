@@ -61,7 +61,7 @@ public partial class AuthTests
             detail.GetProperty("modules").EnumerateArray().Single(m => m.GetProperty("code").GetString() == module)
                 .GetProperty("actions").EnumerateArray().Select(a => a.GetString()!).ToList();
         var finance = await JsonAsync(await owner.Client.GetAsync("/api/v1/identity/groups/" + await GroupIdAsync("finance")));
-        Actions(finance, "finance").Should().BeEquivalentTo(["view", "create", "edit"], "o Financeiro não aprova por padrão");
+        Actions(finance, "finance").Should().BeEquivalentTo(["view", "create", "edit", "pay"], "o Financeiro paga a OP aprovada (seed patch D5), mas não aprova");
         Actions(await JsonAsync(await owner.Client.GetAsync("/api/v1/identity/groups/" + await GroupIdAsync("hr"))), "hr").Should().Contain("view_sensitive");
         var approve = finance.GetProperty("modules").EnumerateArray().Single(m => m.GetProperty("code").GetString() == "finance")
             .GetProperty("available").EnumerateArray().Single(a => a.GetProperty("code").GetString() == "approve");

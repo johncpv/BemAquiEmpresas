@@ -8,7 +8,7 @@ public sealed class PartiesContract(IPartiesDb db) : IParties
 {
     public async Task<PartySummary?> FindAsync(Guid id, CancellationToken cancellationToken = default) =>
         await db.Parties.IgnoreQueryFilters().AsNoTracking().Where(p => p.Id == id)
-            .Select(p => new PartySummary(p.Id, p.Kind, p.LegalName, p.TradeName, p.Document, p.Roles.Select(r => r.Role).ToList(), p.IsActive, p.IsDeleted, p.DefaultPaymentTermId))
+            .Select(p => new PartySummary(p.Id, p.Kind, p.LegalName, p.TradeName, p.Document, p.Roles.Select(r => r.Role).ToList(), p.IsActive, p.IsDeleted, p.DefaultPaymentTermId, p.CreatedAt))
             .FirstOrDefaultAsync(cancellationToken);
 
     public async Task<IReadOnlyList<PartySummary>> FindManyAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default)
@@ -20,7 +20,7 @@ public sealed class PartiesContract(IPartiesDb db) : IParties
         }
 
         return await db.Parties.IgnoreQueryFilters().AsNoTracking().Where(p => ids.Contains(p.Id))
-            .Select(p => new PartySummary(p.Id, p.Kind, p.LegalName, p.TradeName, p.Document, p.Roles.Select(r => r.Role).ToList(), p.IsActive, p.IsDeleted, p.DefaultPaymentTermId))
+            .Select(p => new PartySummary(p.Id, p.Kind, p.LegalName, p.TradeName, p.Document, p.Roles.Select(r => r.Role).ToList(), p.IsActive, p.IsDeleted, p.DefaultPaymentTermId, p.CreatedAt))
             .ToListAsync(cancellationToken);
     }
 
@@ -39,7 +39,7 @@ public sealed class PartiesContract(IPartiesDb db) : IParties
         }
 
         return await parties.OrderBy(p => p.SearchText).Take(Math.Clamp(limit, 1, 100))
-            .Select(p => new PartySummary(p.Id, p.Kind, p.LegalName, p.TradeName, p.Document, p.Roles.Select(x => x.Role).ToList(), p.IsActive, false, p.DefaultPaymentTermId))
+            .Select(p => new PartySummary(p.Id, p.Kind, p.LegalName, p.TradeName, p.Document, p.Roles.Select(x => x.Role).ToList(), p.IsActive, false, p.DefaultPaymentTermId, p.CreatedAt))
             .ToListAsync(cancellationToken);
     }
 

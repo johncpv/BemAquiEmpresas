@@ -166,6 +166,9 @@ public sealed class FinancialTransaction : Entity, IAuditable
 
     public Guid? SettlementId { get; init; }
 
+    /// <summary>Título a pagar do pagamento da OP (FIN-03a).</summary>
+    public Guid? PayableId { get; init; }
+
     public Guid? ReversesTransactionId { get; init; }
 
     public DateTimeOffset CreatedAt { get; init; }
