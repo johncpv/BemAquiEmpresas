@@ -92,3 +92,5 @@
 - **Consistência (CA 3):** a API não tem transação consistente. Vale a hora do início da leitura. O risco é baixo: o volume é pequeno (inventário de 18/10/2026: 118 terceiros, 0 contatos, 34 produtos, 4 depósitos, 3 contas, 13 condições, 7 categorias de fornecedor), o Dolibarr é pouco usado durante a carga e a reexecução é idempotente.
 - **Risco aceito:** a chave é de um usuário do Dolibarr sem perfil de admin, mas que pode ter permissão de escrita. O BemAqui só faz GET, e há teste que reprova qualquer outro método. Na GOL-01, a chave deixa de ser usada pelo BemAqui e o secret é apagado.
 - **Inventário (CA 1):** feito pela API em 18/10/2026, no Dolibarr 21.0.4. Os campos usados estão em `DolibarrApiMap` e no runbook. O PO registrou o aceite do mapeamento.
+
+- Ver ADR 0020 (na GOL-01 a carga final traz só os cadastros alterados depois da última carga; o financeiro já está no banco promovido da homologação).

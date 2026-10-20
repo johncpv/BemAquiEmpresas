@@ -46,8 +46,9 @@ Stories detalhadas da Fase 0 do BemAqui Empresas, uma por arquivo. Fonte: `docs/
 | ∥ | FND-09b | Shell do backoffice e navegação | M | PRD §6 Usabilidade, R-COM-2 | 09a (sino: 07) | [FND-09b](FND-09b-shell-navegacao.md) |
 | ∥ | FND-09c | DataTable, estados e formulário base | M | PRD §6 Desempenho, R-SEC-5, R-PRP-2 | 09a (histórico: 07) | [FND-09c](FND-09c-datatable-estados-formulario.md) |
 | 19 | FND-09d | Componentes de formulário e moldes de tela (nova, D7 da revisão pré-Fase 1) | G | PRD §6 Usabilidade, R-PRP-1, R-PRP-2, R-PRP-3, R-AJD-4 | 09a, 09b, 09c | [FND-09d](FND-09d-componentes-formulario.md) |
+| 20 | FND-09e | Componentes e convenções compartilhados da Fase 2 (nova, revisão pré-Fase 2 §3) | M | PRD §6 Usabilidade, R-PRP-2, R-PRP-7, R-COM-2, R-SEC-5 | 09c, 09d, 07; ADR 0019, 0021 | [FND-09e](FND-09e-componentes-convencoes-fase2.md) |
 
-Total: 22 stories (P: 1 · M: 13 · G: 8).
+Total: 23 stories (P: 1 · M: 14 · G: 8).
 
 ## Ordem de execução
 Base: revisão §2.3 (`FND-01 → FND-07 → FND-02 → FND-03 → FND-08 → FND-04 → FND-05 → FND-06/06b/06c/06d → FND-10`, com a FND-09 em paralelo desde a FND-01), acrescida das stories novas:
@@ -59,6 +60,7 @@ FND-01 → FND-11 → FND-07 → FND-02 → FND-03a → FND-08 → FND-12 → FN
 Em paralelo, desde a FND-01:  FND-09a → FND-09b
                                      └→ FND-09c
 Antes da Fase 1 (D7):          FND-09d (depois da 09a, 09b e 09c)
+Antes da Fase 2:               FND-09e (depois da 09c e da 09d; antes da FIN-01)
 ```
 
 Por que as novas entram onde entram:
@@ -69,6 +71,7 @@ Por que as novas entram onde entram:
 - **FND-10** fecha a fundação de segurança; **FND-14/15** vêm depois porque dependem das permissões efetivas. A FND-14 pode começar em paralelo à FND-10.
 - Telas que dependem da FND-09 (FND-03b, 04, 05, 06b, 06c, 06d, 14, 15) só fecham depois da 09a e da 09c (e da 09b quando usam o shell).
 - **FND-09d** (nova em 18/10/2026, decisão D7): moldes e componentes de formulário que todos os cadastros da Fase 1 usam. Fecha a Fase 0 e vem antes do Marco A. O PO valida a FND-09a/09b no início dela.
+- **FND-09e** (nova em 20/10/2026, revisão pré-Fase 2 §3): componentes e convenções que as telas e os documentos da Fase 2 usam (mensagens da ADR 0021, diálogo financeiro, editor de linhas, tabela com totais, gráficos, concorrência, idempotência). Vem antes da FIN-01; o detalhe está na [terceira parte](#fase-2--comercial-projetos-e-financeiro-núcleo).
 
 ## Escolhas de quebra feitas nesta preparação
 - **FND-03** → 03a (serviço, CLI e migrator) e 03b (tela do super admin), conforme a revisão.
@@ -266,117 +269,155 @@ Nenhum ponto bloqueante nas stories `Ready`. Ficam com o PO:
 
 # Fase 2 — Comercial, Projetos e Financeiro núcleo
 
-Stories detalhadas da Fase 2, uma por arquivo, escritas pelo @sm (River) e validadas pelo @po (Pax) em 19/10/2026. Fonte: `docs/01` a `06`, ADRs 0001–0018, o código das Fases 0 e 1 (contratos `IParties`, `IItems`, `IHourlyCost`, `IWorkCenters`, `IPaymentTerms`, `IChartOfAccounts`, `ITenantParameters` e os building blocks) e o protótipo. A Definition of Ready, a legenda e a escala de tamanho são as mesmas das fases anteriores. Todas estão `Draft` com GO condicional: entram em `Ready` quando o PO decidir os pontos em aberto de cada uma (todos com padrão recomendado).
+Stories detalhadas da Fase 2, uma por arquivo, escritas pelo @sm (River) e validadas pelo @po (Pax) em 19/10/2026, e revistas em 20/10/2026 depois das decisões do PO sobre a revisão `docs/revisoes/2026-10-20-revisao-pre-fase2.md`. Fonte: `docs/01` a `06`, ADRs 0001–0022, o código das Fases 0 e 1 (contratos `IParties`, `IItems`, `IHourlyCost`, `IWorkCenters`, `IPaymentTerms`, `IChartOfAccounts`, `ITenantParameters`, anexos, e-mail, outbox, notificações, `RecurringJobsRegistrar`, `ModuleCatalog`, `GroupSeeder` e `SeedPatchSeeder`) e o protótipo. A Definition of Ready, a legenda e a escala de tamanho são as mesmas das fases anteriores.
+
+## Decisões do PO (20/10/2026, John)
+- **Aprovadas como recomendado na revisão:** D2, D3, D4, D5, D6, D7, D8, D9, D11, D12, D13, D14, D15, D16, D17 e a seção 1.1 inteira (os 29 pontos em aberto, com os ajustes da revisão).
+- **D7 (custo e margem):** veem Proprietário, Comercial e Financeiro, pelas ações `quotes.view_cost` e `projects.view_cost` (ADR 0003, ADR 0019 §20); DTO sem custo para os demais; o PDF nunca mostra custo.
+- **D1, alternativa (b), "promover a homologação":** os dados reais entram na homologação (`homolog.konebras.com.br`) a partir da FIN-00, e na GOL-01 (Fase 5) o banco do tenant da homologação vira o de produção; `app.konebras.com.br` continua no Dolibarr até a GOL-01 (ADR 0020).
+- **Segurança aplicada como CA:** §2.2-C1 (pago = aprovado), A2 (fracionamento), A3 (regra por conta com teto), A4/D9 (forma de pagamento congelada na OP e avisos), A5/D8 (limites, relatório e notificação), M2 (e-mail do orçamento), M4, M8 e os baixos; anexos que suportam o que as stories pedem (§2.1-M1); `Idempotency-Key` em todos os comandos sem documento-pai (§2.1-A2).
+- **Adiadas para depois do término do planejamento atual (não aplicadas):** §2.2-A1, 2FA a cada ação (continua só no login, FND-06c), e D10, estorno de pagamento com `finance.approve` (continua com `finance.pay`). Registradas como **P-19** e **P-20** em `06-pendencias-riscos.md`.
+- **Arquitetura e design:** §2.1 e §2.3 aplicadas como correção, exceto o que conflitava com os adiamentos (o filtro `RequireTwoFactor` saiu da FND-09e; o estado de 2FA no diálogo ficou só para a regra que já existe).
+- **ADRs novas:** **0019** (decisões técnicas da Fase 2, com D7), **0020** (homologação promovida a produção, D1), **0021** (mensagens e próximos passos, D11, resolve a P-18), **0022** (geração de PDF, D17). **Adendos:** ADR 0008 (D5) e ADR 0016 (M6 dono dos parâmetros, M7 número com revisão).
 
 ## Índice
 | Ordem | ID | Título | Tam. | Status | Requisitos | Depende de | Arquivo |
 |---|---|---|---|---|---|---|---|
-| 1 (2.1) | FIN-01 | Contas a receber: títulos, parcelas, baixa, juros/multa/desconto, estorno | G | Draft | R-FIN-3, R-FIN-1, R-FIN-2, R-COM-4 | CAD-05a, CAD-05b, CAD-01a, CAD-06 | [FIN-01](FIN-01-contas-a-receber.md) |
-| 2 (2.1) | FIN-02 | Contas a pagar e despesas recorrentes | M | Draft | R-FIN-4, R-FIN-6, R-FIN-1, R-COM-4 | FIN-01 | [FIN-02](FIN-02-contas-a-pagar-recorrentes.md) |
-| 3 (2.1) | FIN-03a | Ordem de pagamento: criar, aprovar/reprovar, pagar | G | Draft | R-FIN-5, R-COM-2, R-COM-4, R-SEC-2 | FIN-02, FIN-01, FND-06c | [FIN-03a](FIN-03a-ordem-de-pagamento.md) |
-| 4 (2.1) | FIN-04 | Movimentação bancária: extrato, saldo e transferências | P | Draft | R-FIN-2, R-FIN-10 | FIN-01, FIN-03a | [FIN-04](FIN-04-movimentacao-bancaria.md) |
-| 5 (2.1) | FIN-05 | Fluxo de caixa base: realizado + projetado | M | Draft | R-FIN-10, R-PRP-5 | FIN-01 a FIN-04 | [FIN-05](FIN-05-fluxo-de-caixa-base.md) |
-| 6 (2.2) | COM-01a | Orçamento: itens, composição de custo, preço e margem | G | Draft | R-COML-1, R-COM-4, R-PRP-1, R-PRP-3 | CAD-01a, CAD-02a, CAD-03, CAD-04a, CAD-06 | [COM-01a](COM-01a-orcamento-itens-custo-preco.md) |
-| 7 (2.2) | COM-01b | Orçamento: marcos, validade, perda e cópia | M | Draft | R-COML-6, R-COML-4, R-COML-2, R-COML-9 | COM-01a, CAD-05b | [COM-01b](COM-01b-orcamento-marcos-validade-copia.md) |
-| 8 (2.2) | COM-02 | Revisões, expiração e comparação | M | Draft | R-COML-3, R-COML-4, R-COM-2 | COM-01a, COM-01b | [COM-02](COM-02-revisoes-validade.md) |
-| 9 (2.2) | COM-03 | PDF e envio do orçamento | M | Draft | R-COML-5, R-COM-1, R-COM-3 | COM-02, CAD-06, FND-08 | [COM-03](COM-03-pdf-envio-orcamento.md) |
-| 10 (2.3) | COM-04a | Aprovação: contrato, projeto, itens e orçamento do projeto | G | Draft | R-COML-7, R-PRJ-1, R-PRJ-2, R-COM-3, R-COM-4 | COM-02, COM-01b | [COM-04a](COM-04a-aprovacao-contrato-projeto.md) |
-| 11 (2.3) | COM-04b | Recebíveis do contrato, liberação por marco, cancelamento | M | Draft | R-COML-7, R-PRJ-6, R-FIN-3, R-COM-2 | COM-04a, FIN-01 | [COM-04b](COM-04b-recebiveis-marcos-contrato.md) |
-| 12 (2.3) | COM-05 | Projeto 360 | M | Draft | R-PRJ-1, R-PRJ-4, R-PRJ-2, R-PRJ-5 (parte) | COM-04a, COM-04b, FIN-02 | [COM-05](COM-05-projeto-360.md) |
-| 13 (2.3) | COM-06 | OS de instalação | G | Draft | R-PRJ-3, R-FIN-4, R-PRJ-6, R-COM-4 | COM-04a, COM-04b, COM-05, FIN-02 | [COM-06](COM-06-os-instalacao.md) |
-| 14 (2.4) | FIN-03b | Alçadas configuráveis, multinível e link no e-mail | M | Draft | R-FIN-5, R-COM-1, R-COM-2 | FIN-03a, FND-08 | [FIN-03b](FIN-03b-alcadas-multinivel.md) |
-| 15 (2.4) | FIN-06 | Inadimplência, aging, pontualidade e histórico do terceiro | M | Draft | R-FIN-12, R-TER-4, R-TER-3, R-COM-2 | FIN-01, COM-04b | [FIN-06](FIN-06-inadimplencia-aging.md) |
-| 16 (2.4) | COM-07 | Aditivo de contrato (D) | M | Draft | R-COML-8, R-PRJ-5 | COM-04b, COM-05, COM-01b | [COM-07](COM-07-aditivo-contrato.md) |
-| 17 (2.4) | COM-08 | Funil comercial (D) | P | Draft | R-COML-9 | COM-01b, COM-02, COM-04a | [COM-08](COM-08-funil-comercial.md) |
+| 0 (Fase 0) | FND-09e | Componentes e convenções compartilhados da Fase 2 | M | Ready | PRD §6, R-PRP-2, R-PRP-7, R-COM-2, R-SEC-5 | FND-09c, FND-09d, FND-07; ADR 0019, 0021 | [FND-09e](FND-09e-componentes-convencoes-fase2.md) |
+| 1 (2.1a) | FIN-01 | Contas a receber: títulos, parcelas, baixa, quitação com desconto, estorno, limites | G | Ready | R-FIN-3, R-FIN-1, R-FIN-2, R-COM-4, R-COM-2 | FND-09e, CAD-05a, CAD-05b, CAD-01a, CAD-06 | [FIN-01](FIN-01-contas-a-receber.md) |
+| 2 (2.1a) | FIN-02 | Contas a pagar, forma de pagamento e despesas recorrentes | M | Ready | R-FIN-4, R-FIN-6, R-FIN-5, R-FIN-1, R-COM-4 | FIN-01 | [FIN-02](FIN-02-contas-a-pagar-recorrentes.md) |
+| 3 (2.1a) | FIN-00 | Implantação financeira (data de corte, saldos, títulos em aberto) | M | Ready (pré-condição externa) | R-FIN-2, R-FIN-3, R-FIN-4, R-FIN-1 | FIN-01, FIN-02, CAD-05b; ADR 0020; backup e restauração | [FIN-00](FIN-00-implantacao-financeira.md) |
+| 4 (2.1a) | FIN-05 | Fluxo de caixa base: realizado + projetado | M | Ready | R-FIN-10, R-FIN-2, R-PRP-5 | FIN-01, FIN-02, FIN-00 | [FIN-05](FIN-05-fluxo-de-caixa-base.md) |
+| 5 (2.1a) | FIN-06a | Inadimplência por cliente (aging) e aviso diário | P | Ready | R-FIN-12 (parte), R-COM-2, R-PRP-5 | FIN-01, FIN-00 | [FIN-06a](FIN-06a-aging-aviso-diario.md) |
+| 6 (2.1b) | FIN-03a | Ordem de pagamento: criar, aprovar/reprovar, pagar | G | Ready | R-FIN-5, R-COM-2, R-COM-3, R-COM-4, R-SEC-2 | FIN-02, FIN-01, FIN-05, FND-06c | [FIN-03a](FIN-03a-ordem-de-pagamento.md) |
+| 7 (2.1b) | FIN-04 | Movimentação bancária, transferências e lançamento sem OP | M | Ready | R-FIN-2, R-FIN-1, R-FIN-10 | FIN-01, FIN-03a, FIN-05 | [FIN-04](FIN-04-movimentacao-bancaria.md) |
+| 8 (2.2) | COM-01a | Orçamento: itens, composição de custo, preço e margem | G | Ready | R-COML-1, R-COM-4, R-PRP-1, R-PRP-3 | FND-09e, CAD-01a, CAD-02a, CAD-03, CAD-04a, CAD-06 | [COM-01a](COM-01a-orcamento-itens-custo-preco.md) |
+| 9 (2.2) | COM-01b | Orçamento: marcos, validade, perda e cópia | M | Ready | R-COML-6, R-COML-4, R-COML-2, R-COML-9 | COM-01a, CAD-05b | [COM-01b](COM-01b-orcamento-marcos-validade-copia.md) |
+| 10 (2.2) | COM-02 | Revisões, expiração, prorrogação e comparação | M | Ready | R-COML-3, R-COML-4, R-COM-2 | COM-01a, COM-01b | [COM-02](COM-02-revisoes-validade.md) |
+| 11 (2.2) | COM-03 | PDF e envio do orçamento | M | Ready (pré-condições externas) | R-COML-5, R-COM-1, R-COM-3 | COM-02, CAD-06, FND-08, FIN-03a; ADR 0022; P-21 | [COM-03](COM-03-pdf-envio-orcamento.md) |
+| 12 (2.3) | COM-04a | Aprovação: contrato, projeto, itens e orçamento do projeto | G | Ready | R-COML-7, R-PRJ-1, R-PRJ-2, R-FIN-1, R-COM-3, R-COM-4 | COM-02, COM-01b, FIN-02 | [COM-04a](COM-04a-aprovacao-contrato-projeto.md) |
+| 13 (2.3) | COM-04b | Recebíveis do contrato, liberação por marco, entrega manual, cancelamento | M | Ready | R-COML-7, R-PRJ-6, R-FIN-3, R-COM-2 | COM-04a, FIN-01, FND-09e | [COM-04b](COM-04b-recebiveis-marcos-contrato.md) |
+| 14 (2.3) | COM-04c | Contrato de implantação (contrato já em andamento) | P | Ready | R-COML-7, R-PRJ-1, R-PRJ-6, R-FIN-3 | COM-04a, COM-04b, FIN-00 | [COM-04c](COM-04c-contrato-de-implantacao.md) |
+| 15 (2.3) | COM-05 | Projeto 360 | M | Ready | R-PRJ-1, R-PRJ-4, R-PRJ-2, R-PRJ-5 (parte) | COM-04a, COM-04b, FIN-02 | [COM-05](COM-05-projeto-360.md) |
+| 16 (2.3) | COM-06 | OS de instalação | G | Ready (pré-condição externa) | R-PRJ-3, R-FIN-4, R-PRJ-6, R-COM-4 | COM-04a, COM-04b, COM-05, FIN-02, FIN-03a; P-22 | [COM-06](COM-06-os-instalacao.md) |
+| 17 (2.4) | FIN-06b | Inadimplência por projeto, pontualidade e histórico do terceiro | M | Ready | R-FIN-12 (parte), R-TER-4, R-TER-3 | FIN-06a, COM-04b, COM-01a, COM-04a | [FIN-06b](FIN-06b-inadimplencia-projeto-pontualidade.md) |
+| 18 (2.4) | COM-07 | Aditivo de contrato (D) | M | Ready | R-COML-8, R-PRJ-5 | COM-04b, COM-05, COM-01b | [COM-07](COM-07-aditivo-contrato.md) |
+| 19 (2.4) | FIN-03b | Alçadas configuráveis, multinível e link no e-mail | M | Ready | R-FIN-5, R-COM-1, R-COM-2 | FIN-03a, FND-08 | [FIN-03b](FIN-03b-alcadas-multinivel.md) |
+| 20 (2.4) | COM-08 | Funil comercial (D) | P | Ready | R-COML-9 | COM-01b, COM-02, COM-04a | [COM-08](COM-08-funil-comercial.md) |
 
-Total da Fase 2: 17 stories (P: 2 · M: 10 · G: 5), todas `Draft` com GO condicional.
+Total da Fase 2: 20 stories (P: 3 · M: 12 · G: 5), todas `Ready`; três com pré-condição externa explícita (FIN-00, COM-03, COM-06). Antes delas, a FND-09e (Fase 0, M, `Ready`).
 
-## Ordem de execução
+## Ordem de execução (D13, seção 4 da revisão)
 ```
-Marco 2.1 — caixa e pagamentos:   FIN-01 → FIN-02 → FIN-03a → FIN-04 → FIN-05
-Marco 2.2 — orçamento real:       COM-01a → COM-01b → COM-02 → COM-03
-Marco 2.3 — do contrato ao caixa: COM-04a → COM-04b → COM-05 → COM-06
-Marco 2.4 — controles e D:        FIN-03b → FIN-06 → COM-07 (D) → COM-08 (D)
+Pré:  ADR 0019 + ADR 0021 (P-18) + adendos às ADRs 0008 e 0016 + ADR 0020 (D1) + FND-09e
+2.1a "Ver o caixa":     FIN-01 → FIN-02 → FIN-00 (implantação) → FIN-05 → FIN-06a (aging + aviso)
+2.1b "Pagar com OP":    FIN-03a → FIN-04 (+ lançamento sem OP)
+2.2  Orçamento:         COM-01a → COM-01b → COM-02 → COM-03
+2.3  Contrato ao caixa: COM-04a (+ cost_type) → COM-04b (+ entrega manual) → COM-04c (implantação de contrato) → COM-05 → COM-06
+2.4  Controles e D:     FIN-06b → COM-07 (D) → FIN-03b → COM-08 (D)
 ```
 
 Por que esta ordem:
-- **Marco 2.1 primeiro:** é o resultado da fase no PRD §7 ("primeiro ganho financeiro: OP aprovada e caixa projetado") e a métrica "100% dos pagamentos passando por OP aprovada". Não depende do Comercial nem da P-01, e o PO valida na homologação já com as contas, condições e terceiros reais da Fase 1. A FIN-01 vem antes porque cria as transações e o molde de título que a FIN-02, a FIN-03a e a COM-04b usam.
-- **FIN-01 antes da COM-04:** o Finance é o dono dos títulos e reage ao `ContractSigned` (`04-fluxos` §2, ADR 0006). Assim a COM-04b só escreve o consumidor, sem criar tabela do Finance às pressas. A FIN-02 não é pré-requisito da COM-04, só da COM-05 e da COM-06.
-- **Marco 2.2:** o comercial passa a orçar no sistema; a COM-03 fecha o marco, mas a COM-04a não depende dela ("Marcar como enviado" já existe na COM-01a).
-- **Marco 2.3:** liga orçamento, contrato, projeto e recebíveis; a COM-06 fecha o ciclo (o aceite técnico libera a última parcela e confirma o CP do instalador).
-- **Marco 2.4:** a FIN-03b pode esperar porque a regra padrão "Proprietário aprova tudo" já vale desde a FIN-03a (PRD R-FIN-5, ADR 0010 item 3); a FIN-06 precisa dos títulos do contrato; COM-07 e COM-08 são **D** no PRD e ficam por último. Se o PO precisar do aditivo antes do go-live, ele entra antes da FIN-06.
-- Os Marcos 2.1 e 2.2 são independentes: podem trocar de lugar se o PO preferir ver o orçamento primeiro, desde que a FIN-01 venha antes da COM-04b.
+- **Financeiro primeiro:** não depende da P-01, usa os cadastros reais da Fase 1 e entrega o resultado da fase no PRD §7 ("OP aprovada e caixa projetado"). **Os dados reais entram na homologação a partir da FIN-00** (ADR 0020): saldos das contas na data de corte e títulos em aberto; os contratos em andamento entram com a COM-04c.
+- **FND-09e antes da FIN-01:** mensagens (P-18), diálogo financeiro, editor de linhas, tabela com totais, gráficos e as convenções de concorrência e idempotência, para nenhuma tela improvisar a sua versão.
+- **FIN-00 entre a FIN-02 e a FIN-05:** a implantação precisa dos dois tipos de título e o fluxo de caixa só faz sentido com o saldo real.
+- **FIN-05 antes da FIN-03a e da FIN-04:** o fluxo de caixa passa a ser dono da consulta de saldo atual; pagamentos e transferências entram no realizado sem código novo, porque são transações.
+- **FIN-06a no 2.1a e FIN-06b no 2.4:** o aging por cliente e o aviso diário só dependem dos títulos; a visão por projeto, a pontualidade e a aba do terceiro dependem do Comercial.
+- **COM-04c logo depois da COM-04b:** o modo de implantação mexe no consumidor do `ContractSigned`, que nasce na COM-04b.
+- **FIN-03b no fim (D5):** o padrão "Proprietário aprova tudo" já vale desde a FIN-03a, e a delegação a outro grupo fica para quando houver mais de um aprovador.
+- **COM-07 e COM-08** são **D** no PRD.
 
-## Quebras e re-estimativas
-- **COM-01** (maior que G) → **01a** (itens, composição de custo, preço, margem) e **01b** (marcos, validade, perda, cópia).
-- **COM-04** (maior que G) → **04a** (contrato, projeto, itens e orçamento do projeto numa transação) e **04b** (recebíveis pelo outbox, liberação por marco, cancelamento e conclusão).
-- **FIN-03** (maior que G) → **03a** (OP, aprovação padrão, pagamento) e **03b** (alçadas configuráveis, multinível, e-mail).
-- **Re-estimadas:** FIN-01 (M → G: cria transações e baixas), COM-06 (M → G: primeira OS do Production e cadeia de eventos entre três módulos), FIN-06 (P → M: recebeu R-TER-3 e R-TER-4).
+## Quebras, stories novas e re-estimativas
+- **COM-01** → 01a e 01b; **COM-04** → 04a, 04b e **04c** (nova); **FIN-03** → 03a e 03b; **FIN-06** → **06a** (aging por cliente e aviso diário, P) e **06b** (por projeto, pontualidade e aba do terceiro, M). O arquivo `FIN-06-inadimplencia-aging.md` foi substituído pelos dois.
+- **Novas:** **FND-09e** (componentes e convenções da revisão §3, M, Fase 0), **FIN-00** (implantação financeira, D2, M) e **COM-04c** (contrato de implantação, D3, P).
+- **Decisão do SM sobre o "contrato de implantação" (D3):** virou a **COM-04c (P)**, e não um acréscimo à COM-04a, porque a COM-04a já é G (o comando de aprovação, o snapshot, o projeto e o campo de projeto no título a pagar) e o modo de implantação mexe também no consumidor do Finance, que só existe na COM-04b. A data de assinatura editável em toda aprovação ficou na COM-04a.
+- **Re-estimadas:** FIN-01 (M → G), COM-06 (M → G), FIN-04 (P → M: recebeu o lançamento bancário sem OP, D4).
 
 ## Padrões comuns a todos os documentos (Fase 2)
 Valem para orçamento, contrato, projeto, OS, títulos e OP, além dos "Padrões comuns a todos os cadastros" da Fase 1. Cada story só repete o que é específico dela.
-1. **Numeração:** `INumberSequence` na mesma transação do documento (CR e CP com 5 dígitos, OP com 4, OS com 5, ORC, CTR e PRJ com 4), com índice único; o número nunca é reaproveitado. As revisões do orçamento mantêm o número (exceção proposta à ADR 0016, COM-02).
+1. **Numeração:** `INumberSequence` na mesma transação do documento (CR e CP com 5 dígitos, OP com 4, OS com 5, ORC, CTR e PRJ com 4), com índice único; o número nunca é reaproveitado. As revisões do orçamento mantêm o número (ADR 0016 adendo M7).
 2. **Nunca apagar o que tem efeito:** título, baixa, transação, OP, contrato e OS são cancelados (motivo obrigatório) ou estornados (lançamento inverso). Só o rascunho sem efeito (orçamento rev. 0, despesa recorrente sem título) tem exclusão lógica.
-3. **Tipos:** dinheiro `numeric(18,2)` com `AwayFromZero`; quantidade e horas `numeric(18,4)`; custo unitário `numeric(18,6)`; percentuais `numeric(7,4)`; no rateio, a última parcela absorve a diferença; nunca `double`.
-4. **Datas:** de negócio em `date` (emissão, vencimento, baixa, validade, assinatura, aceite); instantes em `timestamptz`; "hoje" é `BusinessTime.Today` (America/Sao_Paulo); "Vencido" é calculado, nunca gravado.
-5. **Ids e concorrência:** Guid v7; `xmin` em todo documento (409 "… mudou desde que você abriu. Recarregue."); transições de estado por `UPDATE … WHERE status = …`, para impedir dupla aprovação, baixa ou pagamento.
-6. **Efeito financeiro com confirmação (R-PRP-7):** o diálogo mostra o impacto (valores, conta, títulos criados ou cancelados) e o botão repete o verbo; o toast confirma com o particípio ("Aprovada", "Pagamento registrado").
-7. **Permissões:** as 3 camadas em todo endpoint (`RequireModule` + `perm:`); `*.approve` e `finance.pay` são reservadas ao Proprietário (ADR 0008) e exigem 2FA (FND-06c CA 12); "Aguardando você" só mostra o que o usuário pode decidir.
-8. **Fronteiras:** referência entre módulos só por id; leitura pelos `*.Contracts` do dono (`IProjects`, `IReceivables`, `IPayables`, `IInstallationOrders` e `ICustomerPaymentStats` são propostas novas); reação entre módulos pelo outbox, com consumidor idempotente pela inbox; payload de evento sem dado pessoal.
+3. **Tipos e arredondamento:** dinheiro `numeric(18,2)` com `AwayFromZero`; quantidade e horas `numeric(18,4)`; custo unitário `numeric(18,6)`; percentuais `numeric(7,4)` (margem `numeric(9,4)`); arredonda só no total da linha; parcelas e marcos pelo `PaymentTermSplitter`; orçamento do projeto pelo maior resto; nunca `double` (ADR 0019 §9).
+4. **Datas:** de negócio em `date`; instantes em `timestamptz`; "hoje" é `BusinessTime.Today` (America/Sao_Paulo); "Vencido" é calculado, nunca gravado.
+5. **Concorrência e transições:** Guid v7; `xmin` em todo documento, com `version` no DTO e 409 `concurrency_conflict` "… mudou desde que você abriu. Recarregue." com "Recarregar"; transição de estado pela entidade rastreada, nunca por `UPDATE` cru (ADR 0019 §2).
+6. **Idempotência:** todo comando sem documento-pai (título manual, parcelamento, implantação, OP, transferência, lançamento sem OP, envio do orçamento, aditivo) exige `Idempotency-Key` e devolve o resultado original no reenvio (ADR 0019 §3).
+7. **Permissões:** as 3 camadas em todo endpoint (`RequireModule` + `perm:`); `*.approve` e `finance.pay` são reservadas ao Proprietário para conceder (ADR 0008; o Financeiro recebe `finance.pay` por seed patch, adendo D5); quem tem essas ações tem 2FA obrigatório **no login** (FND-06c CA 12; 2FA a cada ação adiado, P-19); custo e margem com `quotes.view_cost`/`projects.view_cost`, DTO sem custo para os demais; "Aguardando você" só mostra o que o usuário pode decidir.
+8. **Fronteiras:** referência entre módulos só por id; leitura pelos `*.Contracts` do dono (`IProjects`, `IContracts`, `IReceivables`, `IPayables`, `IInstallationOrders`, `ICustomerPaymentStats`, `IFinanceParameters`, `ICommercialParameters`); `*.Contracts` não referencia outro `*.Contracts` (vocabulário comum no SharedKernel: `CostType`, `MilestoneTrigger`, `TriggerEvent`, `DocumentOrigin`); reação entre módulos pelo outbox, com consumidor idempotente pela inbox e registro de gatilhos para os eventos fora de ordem; payload de evento sem dado pessoal e sem texto livre.
 9. **IDOR:** toda rota `/{paiId}/filhos/{id}` confere o vínculo; ids de outro módulo são validados pelo Contracts do dono.
-10. **Validação:** 422 com mensagens PT-BR (convenção da API desde a FND-09c; corpo com membro desconhecido continua 400).
+10. **Validação:** 422 com mensagens PT-BR no campo, inclusive em linhas de editor (`lines[n].campo`); valores vindos do cliente são revalidados no servidor e no consumidor (§2.2-M8).
 11. **Provedores de uso:** quem guarda o id de terceiro, conta contábil, centro de custo, conta bancária, item, centro de trabalho ou condição implementa o `I*UsageProvider` correspondente, para o cadastro só inativar.
-12. **Listas e números:** DataTable server-side com filtros na URL, menos de 1 s com 50 mil registros; valores com `Money` e `tabular-nums`; chips por situação (ok, alerta, crítico, informativo, neutro), com o texto sempre visível.
-13. **Telas:** carregando, vazio com ação, erro com "Tentar de novo" e modo leitura; ajuda por tela e por aba (`Ajuda/<chave>.md`); "Próximos passos" depois de cada conclusão; alerta e notificação com link direto para a ação (R-PRP-5).
-14. **Migrations:** uma por story, não destrutiva, regerada no rebase; o `docs/03-modelo-dados.md` é atualizado na story que cria a tabela ou coluna (as marcadas "proposta" nas stories).
+12. **Parâmetros:** cada módulo é dono dos seus (`finance.parameters`, `commercial.parameters`); Configurações → Parâmetros só monta a tela, com `settings.edit` (ADR 0016 adendo M6).
+13. **Jobs e notificações:** recorrentes no `RecurringJobsRegistrar` com o fuso de São Paulo; todo job idempotente, com teste de execução dupla e de dois tenants; argumentos só com ids; notificação com `dedup_key` quando pode repetir; notificação dentro do próprio módulo é síncrona (ADR 0019 §12, §18).
+14. **Anexos e e-mail:** regras por dono (ação de leitura e de escrita, `OwnerExists` obrigatório, tipos e tamanho da ADR 0019 §7); arquivo gerado pelo sistema por `StoreGeneratedAsync`; e-mail com anexo só depois do `Clean`.
+15. **Migrations:** uma por story, não destrutiva, regerada no rebase, testada sobre cópia do banco do tenant `konebras` antes do deploy (ADR 0020); o `docs/03-modelo-dados.md` é atualizado na story que cria a tabela ou coluna.
 
-## Validação do PO (19/10/2026)
-As 17 stories passaram pela checklist de 10 itens das fases anteriores (seção "Validação do PO" em cada arquivo): **10/10 em todas, veredito GO condicional, status `Draft`**. Correções da revalidação cruzada, além das registradas em cada story:
-- **FIN-01:** campo de projeto oculto até a COM-04a (a FIN-01 vem antes na ordem).
-- **FIN-02:** conta de Ativo aceita no título a pagar (imobilizado também passa por OP).
-- **FIN-03a e FIN-04:** ponto em aberto novo: o Financeiro do seed não tem `finance.pay` (hoje só o Proprietário pagaria e transferiria).
-- **COM-01a, COM-01b e FIN-03a:** os parâmetros novos de Configurações entram também na ajuda `configuracoes-parametros.md` ("mudou a tela, muda a ajuda").
-- **COM-02:** o índice único em `(number, revision)` conflita com a ADR 0016 e virou ponto em aberto (adendo à ADR).
-- **COM-05:** o campo "Natureza do custo" no título a pagar e a ajuda da FIN-02 entram nas tarefas.
-- **COM-07:** dependência da COM-01b (editor de marcos).
+## Padrões comuns da Fase 2 (telas, revisão §2.3)
+Entregues pela FND-09e (componentes) e aplicados em cada story.
+1. **Ação com efeito financeiro:** diálogo grande (`size="lg"`, cerca de 640 px, tela cheia a 400 px) com o impacto (valores, conta, títulos afetados, saldo antes e depois); botão com o mesmo verbo; próximo passo no `NextSteps`; `recovery` quando o servidor recusa; estilo `destructive` só para estornar e cancelar.
+2. **Pré-condições antes de confirmar:** o diálogo lista o que falta, com link para corrigir e o botão desabilitado com o motivo; o 422 é só defesa.
+3. **Erros:** 422 sempre no campo, inclusive em linhas de editor e dentro de diálogos (`applyServerErrors` com caminhos aninhados); contador por aba; 409 de concorrência com "Recarregar".
+4. **Valores:** todo % com o rótulo do que é ("Markup 40,00% · Margem 28,57%"); valor digitado à mão com `Tag` e "Voltar ao sugerido"; margem negativa no chip crítico "Preço abaixo do custo"; totais ao vivo num rodapé fixo, anunciados com espera de cerca de 500 ms.
+5. **Somas que precisam fechar:** mostrar o que falta ("Faltam 10,00%"), com "Dividir igualmente" e "Ajustar o último".
+6. **Situação:** o mesmo mapa de chips em todas as listas (Previsto e Cancelado neutros, Em aberto info, Vence hoje alerta, Vencido crítico, Pago e Aprovado ok); faixa lateral vermelha para atrasado e âmbar para risco.
+7. **Etapa:** `StageIndicator` com letra explícita por etapa e rótulo visível; a lista de etapas do projeto está na COM-04a (P Planejado, E Em produção, F Fabricado, I Instalando, T Entregue, C Encerrado).
+8. **Detalhe de documento:** cabeçalho com número, revisão, chip e contraparte; resumo em "facts" (4 → 2 colunas a 400 px); abas na URL; faixa de modo leitura que explica por quê e oferece a saída ("Nova revisão").
+9. **Estados:** skeleton por aba; vazio com verbo e ação; processamento assíncrono com tempo limite (cerca de 30 s, depois o estado de demora); sem permissão, a aba some.
+10. **Gráficos:** Recharts pelo `Chart`, com tokens `--chart-*` claros e escuros; realizado e projetado distinguidos pelo traço (contínuo × tracejado); tabela equivalente acessível por teclado.
+11. **400 px:** cada story declara as colunas secundárias (número, contraparte, vencimento, valor e situação ficam sempre); editores de linha viram cartões; checklist de obra com alvos de 56 px; E2E de 400 px e teclado em toda tela com editor ou diálogo financeiro.
+12. **2FA no momento da decisão:** só para a regra que já existe (FND-06c CA 12): estado único dentro do diálogo ("Para aprovar, ative a verificação em duas etapas." com "Ativar agora"), sem perder o preenchido. O pedido do código a cada ação está adiado (P-19).
+13. **Mensagens (ADR 0021):** sucesso numa região `role="status"` no topo do conteúdo, sem bloquear, por no mínimo 5 s; erro sempre dentro do diálogo ou formulário, com foco; próximo passo sempre no `NextSteps`, nunca na mensagem.
+14. **Navegação (D12):** o Financeiro tem dois grupos, "Caixa e pagamentos" (A receber, A pagar, Ordens de pagamento, Contas e extrato, Fluxo de caixa, Inadimplência) e "Configuração financeira" (Plano de contas, Centros de custo, Condições, Recorrentes, Alçadas, Implantação financeira); Contratos e Projetos entram na área Comercial e Instalações na área Fábrica, cada um na sua story; toda story declara a sua entrada no `modules.ts`.
+
+## Validação do PO (20/10/2026)
+Primeira validação (19/10/2026): as 17 stories originais com 10/10 e GO condicional, todas `Draft`. Depois das decisões do PO e da revisão pré-Fase 2, o @po (Pax) revalidou cada story alterada e as novas com a mesma checklist de 10 itens:
+- **10/10 e `Ready`:** FND-09e, FIN-01, FIN-02, FIN-00, FIN-05, FIN-06a, FIN-03a, FIN-04, COM-01a, COM-01b, COM-02, COM-03, COM-04a, COM-04b, COM-04c, COM-05, COM-06, FIN-06b, COM-07, FIN-03b e COM-08. Os NO-GOs da revisão (COM-03 e COM-04b) foram resolvidos pelas ADRs 0022 e 0019 §1.
+- **Pré-condições externas explícitas** (não são decisão de story; bloqueiam o passo indicado, não o desenvolvimento):
+  - FIN-00: backup diário verificado e teste de restauração do tenant `konebras` com o backup real, antes da primeira carga real (ADR 0020, FND-10b);
+  - COM-03: P-21, o PO confirma a elegibilidade da licença Community do QuestPDF ou adquire a licença (ADR 0022); SPF, DKIM e DMARC no domínio de envio — antes do deploy em homologação;
+  - COM-06: P-22, checklist padrão de entrega técnica validado com a Konebras (sem ele, vale a proposta da story, editável por OS).
+- **Correções da revalidação cruzada:**
+  - FIN-05 deixou de depender da FIN-03a e da FIN-04 (nova ordem) e passou a ser dona da consulta de saldo atual;
+  - FIN-03b: o exemplo deixou de dar `finance.approve` ao Financeiro do seed (D5);
+  - COM-04a ganhou o campo de projeto e a natureza do custo no título a pagar (item 26), que saíram da COM-05, e passou a depender da FIN-02;
+  - COM-06: o seed patch só acrescenta `production.create` à Engenharia; a Supervisão de produção já tem `production.approve` e, portanto, também registra o aceite técnico (o aceite não move dinheiro: o CP segue para OP aprovada);
+  - COM-03 passou a depender da FIN-03a (regras de anexo por dono).
 
 ## Pré-condições da fase
-- **P-18** (mensagens no meio da tela, `06-pendencias-riscos`): aberta e vale para todas as telas da fase. Decidir a ADR antes da FIN-01.
-- **P-01** (regime tributário): aberta; a COM-01a usa imposto digitado até a decisão.
-- Adendo à **ADR 0016** para o número com revisão do orçamento (COM-02).
+- ADRs 0019, 0020, 0021 e 0022 aceitas; adendos às ADRs 0008 e 0016 registrados (20/10/2026).
+- **P-01** (regime tributário): aberta; não bloqueia (a COM-01a usa imposto digitado, decisão do PO na seção 1.1, item 16).
+- Pré-condições externas: FIN-00 (backup e restauração), COM-03 (P-21 e SPF/DKIM/DMARC), COM-06 (P-22).
+
+## Rastreabilidade da revisão pré-Fase 2
+| Item da revisão | Onde entra |
+|---|---|
+| D1 (b) | ADR 0020; FIN-00 (CA 12, 13); GOL-01 no backlog |
+| D2 | FIN-00 |
+| D3 | COM-04a (CA 2, data de assinatura) e COM-04c |
+| D4 | FIN-04 (CA 11–13) |
+| D5 | ADR 0008 adendo; FIN-03a (CA 1); FIN-03b no fim da fase |
+| D6 | FIN-03a (CA 9, 10); COM-07 (CA 9) |
+| D7 | ADR 0019 §20; COM-01a (CA 1–3); COM-02, COM-04a, COM-05 (CA 10), COM-07 |
+| D8 | FIN-01 (CA 13, 14, 17, 18, 22); FIN-02 (CA 12); FIN-03a (CA 18); FIN-04 (CA 7, 14) |
+| D9 | FIN-02 (CA 6–8); FIN-03a (CA 4, 6, 15) |
+| D10 | Adiada (P-20); FIN-03a CA 21 com `finance.pay` |
+| D11 | ADR 0021; FND-09e (CA 1–3) |
+| D12 | FND-09e (CA 12); entrada no menu em cada story |
+| D13 | Ordem acima |
+| D14 | FIN-01 (CA 19); COM-04b |
+| D15 | COM-04b (CA 10) |
+| D16 | COM-02 (CA 6, 7); COM-08 (CA 6) |
+| D17 | ADR 0022; COM-03 (CA 1, 5, 6) |
+| Seção 1.1 (29 pontos) | "Pontos em aberto" de cada story, como decididos |
+| §2.1 (C1 a M14, baixos) | ADR 0019; FND-09e; FIN-01, FIN-02, FIN-03a, FIN-03b, COM-01a, COM-01b, COM-03, COM-04a, COM-04b, COM-06, COM-07 |
+| §2.2 (C1, A2 a A5, M2, M4, M8, baixos) | CAs **[Segurança]** em FIN-01, FIN-02, FIN-03a, FIN-03b, FIN-04, COM-01b, COM-03, COM-04a, COM-06, COM-07, FIN-05, FIN-06a, FIN-06b, COM-08 |
+| §2.2-A1 | Adiada (P-19) |
+| §2.3 | Padrões comuns da Fase 2 acima; ajustes de tela em cada story |
+| §3 | FND-09e (sem o filtro `RequireTwoFactor`) |
+| §4 | Ordem acima |
 
 ## Pontos em aberto da Fase 2
-Todos com recomendação; o detalhe está em cada story.
-
-**Financeiro**
-1. Permissão da baixa e do estorno de recebimento: `finance.edit` (FIN-01).
-2. Juros e multa digitados na baixa; parâmetros opcionais, sem seed, para sugerir depois (FIN-01).
-3. Dia não útil: vencimento não ajustado e "Vencido" a partir do dia seguinte; rever na BNK-01 (FIN-01).
-4. Título do contrato: valor e vencimento só mudam pelo contrato ou pelo aditivo (FIN-01).
-5. Recorrente gerada com antecedência (`lead_days`, padrão 10 dias) (FIN-02).
-6. Campo de retenção PIS/COFINS/CSLL além de ISS, INSS e IR, sem cálculo (FIN-02).
-7. Proprietário aprova a própria OP: parâmetro ligado por padrão, com a marca "Aprovada pelo próprio solicitante" (FIN-03a).
-8. Pagador diferente do aprovador não é exigido no MVP (FIN-03a).
-9. Comprovante de pagamento opcional (FIN-03a).
-10. Financeiro do seed sem `finance.pay`: *seed patch* concedendo `finance.pay` ao Financeiro, com `finance.approve` só no Proprietário (FIN-03a, FIN-04).
-11. Transferência entre contas com `finance.pay`; sem lançamento avulso de tarifa antes da BNK-03 (FIN-04).
-12. Fluxo de caixa: vencidos em aberto no dia de hoje; recebível de marco sem data fora da série; projeção só consolidada (FIN-05).
-13. Alçadas editadas só pelo Proprietário; regra por conta só quando todos os títulos são da mesma conta; o mesmo aprovador não decide dois níveis; substituto fora do MVP (FIN-03b).
-14. Atraso médio ponderado pelo valor, últimos 12 meses; aviso diário consolidado para `finance.edit` (FIN-06).
-
-**Comercial e projetos**
-15. % padrão de markup/margem em Configurações, seed vazio (COM-01a).
-16. Impostos estimados digitados enquanto a P-01 está aberta (COM-01a).
-17. Mão de obra pelo custo-hora do **cargo**, com o centro guardado para a capacidade (COM-01a).
-18. Composição de custo por unidade do item (COM-01a).
-19. Custo e margem visíveis com `quotes.view` e `projects.view`; o PDF nunca os mostra (COM-01a, COM-05).
-20. Eventos-gatilho: "Entrega" e "Aceite técnico" no aceite da OS de instalação; "Fabricação concluída" manual até a PRD-06 (COM-01b, COM-04b).
-21. Validade padrão de 15 dias; lista fixa de motivos de perda; um marco = um recebível (COM-01b).
-22. Sem nova revisão de orçamento perdido (usar a cópia); alerta de vencimento 3 dias antes (COM-02).
-23. PDF sem assinatura; o PDF gerado passa pelo ClamAV e o e-mail espera `Clean` (COM-03).
-24. Nome e responsável padrão do projeto; aprovação permitida mesmo com `projects` bloqueado (configuração inválida do plano); todo item do orçamento vira item do projeto (COM-04a).
-25. Conta dos títulos do contrato: "1.1 Venda de equipamentos" (senão "1.9"); cancelar contrato com `projects.approve` (COM-04b).
-26. Natureza do custo (`cost_type`) obrigatória no título a pagar com projeto (COM-05).
-27. OS de instalação no módulo `production` (como no 03), com *seed patch* para Engenharia e Supervisão; etapas e checklist padrão; CP `Planned` na criação e `Open` no aceite; uma OS cobre um ou mais itens (COM-06).
-28. Aditivo negativo reduz os títulos futuros sem baixa, do último para o primeiro; o autor não aprova o próprio aditivo (COM-07).
-29. Funil: conversão = aprovados ÷ decididos; autor no lugar de "vendedor" (COM-08).
+Nenhum ponto bloqueante nas stories. Os 29 pontos do README anterior foram decididos pelo PO em 20/10/2026 (seção 1.1 da revisão) e estão registrados em cada story como "decididos". Ficam com o PO:
+1. **P-19** (2FA a cada ação) e **P-20** (estorno de pagamento com `finance.approve`): revisar depois do término do planejamento atual.
+2. **P-21** (licença do QuestPDF) antes do deploy da COM-03 e **P-22** (checklist da OS de instalação com a Konebras) antes da COM-06.
+3. **Backup verificado e teste de restauração** do tenant `konebras` (FND-10b) antes da primeira carga real da FIN-00.
+4. **P-01** (regime tributário) continua aberta, sem bloquear a fase.

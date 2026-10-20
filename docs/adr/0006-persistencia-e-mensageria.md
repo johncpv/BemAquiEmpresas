@@ -43,3 +43,5 @@
 ## Consequências
 - O teste de arquitetura da FND-01 implementa as regras de estrutura.
 - A FND-07 implementa o outbox, a inbox e o `TenantJob<T>`, e a FND-03a implementa o migrator.
+
+- Ver ADR 0019 (registro de eventos de gatilho, concorrência com `xmin`, idempotência, deduplicação de notificações e jobs, Contracts × Contracts).

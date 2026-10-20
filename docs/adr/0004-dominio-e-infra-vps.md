@@ -29,3 +29,5 @@ O cliente quer o sistema no domínio dele. A VPS já roda vários projetos atrá
   - (a) registro A `adm.konebras.com.br` → 2.25.82.127 no Cloudflare, DNS-only (nuvem cinza), criado pelo PO;
   - (b) certificado para `adm.konebras.com.br`;
   - (c) backup do Dolibarr e do MariaDB antes da troca.
+
+- Ver ADR 0020 (a homologação recebe os dados reais e é promovida a produção na GOL-01; `app.konebras.com.br` continua no Dolibarr até lá).

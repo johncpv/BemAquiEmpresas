@@ -10,3 +10,5 @@
   - Uma ação específica só entra no catálogo quando a necessidade é real: um requisito de segurança ou LGPD, ou uma separação de função exigida pelo negócio. Do contrário, usar as ações padrão.
 - Motivo: o código de permissão fica uniforme (policy `perm:{modulo}.{acao}`, cache, `<Can>`), sem uma explosão de permissões por entidade, e ainda cobre os casos reais de dado sensível.
 - Consequências: `identity.modules.applicable_actions` passa a guardar as ações padrão e também as específicas, com rótulo e descrição. A CAD-04 usa `hr.view_sensitive`. O grupo Proprietário recebe todas as ações, inclusive as específicas.
+
+- Ver ADR 0019 (ações específicas `quotes.view_cost` e `projects.view_cost`, por sigilo comercial).

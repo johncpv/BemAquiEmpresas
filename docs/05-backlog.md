@@ -10,7 +10,7 @@ Regra: não comece uma fase sem a anterior concluída, exceto quando indicado.
 
 Stories detalhadas em [`docs/stories/`](stories/README.md), com critérios de aceite completos, ordem de execução, Definition of Ready e pontos em aberto. A linha `Requisitos:` usa o prefixo `R-` (ADR 0005 D9). Aqui fica o resumo de cada uma.
 
-**Ordem de execução** (revisão pré-Fase 0 §2.3 + stories novas): FND-01 → FND-11 → FND-07 → FND-02 → FND-03a → FND-08 → FND-12 → FND-04 → FND-05 → FND-13 → FND-03b → FND-06 → FND-06b → FND-06c → FND-06d → FND-10 → FND-14 → FND-15. Em paralelo desde a FND-01: FND-09a → FND-09b e FND-09c. Antes da Fase 1: FND-09d (D7 da revisão pré-Fase 1).
+**Ordem de execução** (revisão pré-Fase 0 §2.3 + stories novas): FND-01 → FND-11 → FND-07 → FND-02 → FND-03a → FND-08 → FND-12 → FND-04 → FND-05 → FND-13 → FND-03b → FND-06 → FND-06b → FND-06c → FND-06d → FND-10 → FND-14 → FND-15. Em paralelo desde a FND-01: FND-09a → FND-09b e FND-09c. Antes da Fase 1: FND-09d (D7 da revisão pré-Fase 1). Antes da Fase 2: FND-09e (revisão pré-Fase 2 §3).
 
 **Definition of Ready:** story sem CA testável não entra em execução.
 
@@ -89,6 +89,10 @@ Stories detalhadas em [`docs/stories/`](stories/README.md), com critérios de ac
 **FND-09d [x] Componentes de formulário e moldes de tela (G)** — moldes aprovados pelo PO em 18/10/2026 — [story](stories/FND-09d-componentes-formulario.md)
 - Requisitos: PRD §6 (Usabilidade), R-PRP-1, R-PRP-2, R-PRP-3, R-AJD-4.
 - CA: pré-requisito "PO valida FND-09a/09b e aprova os moldes"; três moldes (cadastro em seções, detalhe com abas na URL, painel lateral); máscaras (CNPJ/CPF inclusive alfanumérico, CEP, telefone, NCM, CBO), números no padrão brasileiro, Combobox com criação rápida, chips acessíveis, ToggleGroup, Sheet, TreeTable `treegrid`, editor de linhas, data/hora, aviso `warning`, "obrigatório" com `aria-required`, faixa "Próximos passos", `ConfirmDialog` com `recovery`, `Tag` e tom neutro, filtros na URL, `Dica` de 24 px; CAs de teclado e 400 px.
+
+**FND-09e [ ] Componentes e convenções compartilhados da Fase 2 (M)** — nova (revisão pré-Fase 2 §3), antes da FIN-01 — [story](stories/FND-09e-componentes-convencoes-fase2.md)
+- Requisitos: PRD §6 (Usabilidade, Acessibilidade), R-PRP-2, R-PRP-7, R-COM-2, R-SEC-5.
+- CA: mensagens numa região `role="status"` no topo do conteúdo, erro dentro do diálogo e próximo passo só no `NextSteps` (ADR 0021, resolve a P-18); `ConfirmDialog` grande com formulário, pré-condições e erro por campo; `applyServerErrors` com caminhos aninhados; `RowsEditor` com modelo de colunas; `DataTable` com seleção, totais e linha expansível; tokens de gráfico e `Chart`; menu do Financeiro em dois grupos (D12); `xmin` com 409, `Idempotency-Key`, `dedup_key` nas notificações, regra Contracts × Contracts e teste de posse de tabela (ADR 0019). Sem o filtro de 2FA por ação (P-19).
 
 **FND-10 [~] Deploy em homologação (G)** — FND-10a [x] (repositório) · FND-10b [ ] (VPS, aguarda o PO; ADR 0015) — [story](stories/FND-10-deploy-homologacao.md)
 - Requisitos: PRD §6 (Backup, Disponibilidade, Segurança).
@@ -172,81 +176,93 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-1--cadastros-e-mi
 
 ## Fase 2 — Comercial, Projetos e Financeiro núcleo
 
-Stories detalhadas em [`docs/stories/`](stories/README.md#fase-2--comercial-projetos-e-financeiro-núcleo), com critérios de aceite completos, ordem de execução, padrões comuns aos documentos e a validação do PO (19/10/2026). As 17 stories estão `Draft` com GO condicional: entram em `Ready` quando o PO decidir os pontos em aberto de cada uma (todos com recomendação). Pré-condições da fase: **P-18** (mensagens no meio da tela) antes da primeira tela, **P-01** (impostos do orçamento; a COM-01a usa imposto digitado até lá) e adendo à **ADR 0016** para o número com revisão do orçamento (COM-02).
+Stories detalhadas em [`docs/stories/`](stories/README.md#fase-2--comercial-projetos-e-financeiro-núcleo), com critérios de aceite completos, ordem de execução, padrões comuns e a validação do PO. As stories foram escritas e validadas em 19/10/2026 e revistas em 20/10/2026 com as decisões do PO sobre a revisão pré-Fase 2 (`docs/revisoes/2026-10-20-revisao-pre-fase2.md`, ADRs 0019 a 0022, adendos às ADRs 0008 e 0016). **Todas estão `Ready`**; FIN-00, COM-03 e COM-06 têm pré-condição externa explícita. Adiadas pelo PO para depois do término do planejamento atual: 2FA a cada ação (P-19) e estorno de pagamento com `finance.approve` (P-20).
 
-**Ordem de execução:** **Marco 2.1, caixa e pagamentos:** FIN-01 → FIN-02 → FIN-03a → FIN-04 → FIN-05 → **Marco 2.2, orçamento real:** COM-01a → COM-01b → COM-02 → COM-03 → **Marco 2.3, do contrato ao caixa:** COM-04a → COM-04b → COM-05 → COM-06 → **Marco 2.4, controles e desejáveis:** FIN-03b → FIN-06 → COM-07 (D) → COM-08 (D). A FIN-01 vem antes da COM-04 porque o Finance é o dono dos títulos e cria os recebíveis ao receber o `ContractSigned`; a FIN-03b espera porque a regra padrão "Proprietário aprova tudo" já vale na FIN-03a; COM-07 e COM-08 são D no PRD.
+**Ordem de execução (seção 4 da revisão):** **Pré:** ADRs 0019, 0020, 0021 e 0022, adendos às ADRs 0008 e 0016 e a FND-09e (Fase 0) → **2.1a "Ver o caixa":** FIN-01 → FIN-02 → FIN-00 → FIN-05 → FIN-06a → **2.1b "Pagar com OP":** FIN-03a → FIN-04 → **2.2 Orçamento:** COM-01a → COM-01b → COM-02 → COM-03 → **2.3 Contrato ao caixa:** COM-04a → COM-04b → COM-04c → COM-05 → COM-06 → **2.4 Controles e D:** FIN-06b → COM-07 (D) → FIN-03b → COM-08 (D). Os dados financeiros reais entram na homologação a partir da FIN-00, e o banco do tenant da homologação é promovido a produção na GOL-01 (ADR 0020).
 
-**Quebras:** COM-01 → 01a/01b · COM-04 → 04a/04b · FIN-03 → 03a/03b. **Re-estimadas:** FIN-01 (M → G), COM-06 (M → G), FIN-06 (P → M, recebeu R-TER-3 e R-TER-4).
+**Quebras e novas:** COM-01 → 01a/01b · COM-04 → 04a/04b/04c · FIN-03 → 03a/03b · FIN-06 → 06a/06b. **Novas:** FND-09e (Fase 0), FIN-00 (D2), COM-04c (D3). **Re-estimadas:** FIN-01 (M → G), COM-06 (M → G), FIN-04 (P → M, recebeu o lançamento sem OP).
 
-**FIN-01 [ ] Contas a receber (G)** — Marco 2.1, ordem 1 — re-estimada — [story](stories/FIN-01-contas-a-receber.md)
-- Requisitos: R-FIN-3, R-FIN-1, R-FIN-2, R-COM-4, R-PRP-1, R-PRP-7, R-SEC-5.
-- CA: título manual e parcelado por `IPaymentTerms.SplitAsync`; baixa total ou parcial com juros, multa e desconto cria transação na conta, na mesma transação; `paid_amount = Σ baixas` (teste de propriedade); "Vencido" calculado, nunca gravado; estorno por lançamento inverso e cancelamento com motivo; título nunca apagado; baixa concorrente recusada.
+**FIN-01 [ ] Contas a receber (G)** — 2.1a, ordem 1 — re-estimada — [story](stories/FIN-01-contas-a-receber.md)
+- Requisitos: R-FIN-3, R-FIN-1, R-FIN-2, R-COM-4, R-COM-2, R-PRP-1, R-PRP-7, R-SEC-5.
+- CA: título manual e parcelado por `IPaymentTerms.SplitAsync`, com idempotência; baixa total ou parcial com juros, multa e desconto cria transação na conta, na mesma transação; "Quitar o saldo com desconto" sem transação; `paid_amount = Σ baixas` (teste de propriedade); "Vencido" calculado; limites de desconto, cancelamento e data retroativa (D8) e relatório de descontos e cancelamentos; vencimento da parcela do contrato editável com motivo (D14); título nunca apagado; baixa concorrente recusada com 409.
 
-**FIN-02 [ ] Contas a pagar e recorrentes (M)** — Marco 2.1, ordem 2 — [story](stories/FIN-02-contas-a-pagar-recorrentes.md)
-- Requisitos: R-FIN-4, R-FIN-6, R-FIN-1, R-COM-4, R-PRP-1, R-SEC-5.
-- CA: título manual e parcelado com retenções digitadas (P-15); sem baixa fora da OP (teste de arquitetura); `IPayables` idempotente por origem para instalador, compra e folha; recorrente gera título com antecedência, sem duplicar, inclusive com execução paralela e dia 31.
+**FIN-02 [ ] Contas a pagar e recorrentes (M)** — 2.1a, ordem 2 — [story](stories/FIN-02-contas-a-pagar-recorrentes.md)
+- Requisitos: R-FIN-4, R-FIN-6, R-FIN-5, R-FIN-1, R-COM-4, R-PRP-1, R-SEC-5.
+- CA: título manual e parcelado com retenções digitadas (P-15); forma de pagamento (Pix, boleto, TED) com aviso de titular diferente (D9); título travado enquanto está em OP; sem baixa fora da OP (teste de arquitetura); `IPayables` idempotente por origem, com data estimada; recorrente gera título com antecedência, sem duplicar, inclusive em paralelo e com dois tenants.
 
-**FIN-03a [ ] Ordem de pagamento: criar, aprovar e pagar (G)** — Marco 2.1, ordem 3 — quebra da FIN-03 — [story](stories/FIN-03a-ordem-de-pagamento.md)
-- Requisitos: R-FIN-5, R-COM-2, R-COM-4, R-PRP-2, R-PRP-5, R-PRP-7, R-SEC-2, R-SEC-5.
-- CA: OP com 1+ títulos e valor por título (pagamento parcial); pagamento sem OP aprovada bloqueado na API em todos os caminhos; solicitante não aprova a própria OP (exceção configurável do Proprietário); reprovação exige comentário e devolve os títulos; aprovação e pagamento concorrentes gravam uma vez; 2FA para quem aprova ou paga; notificações; auditoria completa.
+**FIN-00 [ ] Implantação financeira (M)** — 2.1a, ordem 3 — nova (D2) — [story](stories/FIN-00-implantacao-financeira.md)
+- Requisitos: R-FIN-2, R-FIN-3, R-FIN-4, R-FIN-1, R-PRP-1, R-PRP-3, R-SEC-5.
+- CA: data de corte única; saldo das contas no fim do dia de corte; títulos a receber e a pagar em aberto lançados pelo saldo com origem `Opening` (fora do DRE por competência e da pontualidade); relatório de conferência "saldo do sistema = saldo do banco"; pré-condição da primeira carga real: backup verificado e teste de restauração (ADR 0020); testes nunca no tenant `konebras`.
 
-**FIN-04 [ ] Movimentação bancária e transferências (P)** — Marco 2.1, ordem 4 — [story](stories/FIN-04-movimentacao-bancaria.md)
-- Requisitos: R-FIN-2, R-FIN-10, R-PRP-7, R-SEC-5.
-- CA: extrato com saldo inicial, saldo anterior e saldo acumulado conferidos com dataset fixo; saldo atual por conta e consolidado; transferência com as duas pernas na mesma transação e estorno; sem edição de transação de título; 5 mil transações em menos de 1 s.
+**FIN-05 [ ] Fluxo de caixa base (M)** — 2.1a, ordem 4 — [story](stories/FIN-05-fluxo-de-caixa-base.md)
+- Requisitos: R-FIN-10, R-FIN-2, R-PRP-5, PRD §6 (Desempenho).
+- CA: valores conferem com a soma dos títulos, das recorrentes e das transações (dataset fixo); saldo atual pela consulta desta story; realizado até hoje e projetado depois; CP estimado do instalador como estimativa; diário, semanal e mensal batendo entre si; dia de menor saldo e alerta de caixa negativo acionável; menos de 2 s com 50 mil títulos.
 
-**FIN-05 [ ] Fluxo de caixa base (M)** — Marco 2.1, ordem 5 — [story](stories/FIN-05-fluxo-de-caixa-base.md)
-- Requisitos: R-FIN-10, R-PRP-5, PRD §6 (Desempenho).
-- CA: valores conferem com a soma dos títulos, das recorrentes e das transações (dataset fixo); realizado até hoje e projetado depois; diário, semanal e mensal batendo entre si; dia de menor saldo e alerta de caixa negativo acionável; recebível de marco sem data fora da série; menos de 2 s com 50 mil títulos.
+**FIN-06a [ ] Inadimplência por cliente e aviso diário (P)** — 2.1a, ordem 5 — quebra da FIN-06 — [story](stories/FIN-06a-aging-aviso-diario.md)
+- Requisitos: R-FIN-12 (parte), R-COM-2, R-PRP-5.
+- CA: vencidos por cliente nas faixas 0–30, 31–60, 61–90 e 90+ (dataset fixo, com títulos de implantação); aviso diário consolidado sem repetir (`dedup_key`), com teste de dois tenants.
 
-**COM-01a [ ] Orçamento: itens, composição de custo, preço e margem (G)** — Marco 2.2, ordem 6 — quebra da COM-01 — [story](stories/COM-01a-orcamento-itens-custo-preco.md)
-- Requisitos: R-COML-1, R-COM-4, R-PRP-1, R-PRP-3, R-SEC-5.
-- CA: preço = custo × (1 + markup) ou custo ÷ (1 − margem) conforme o modo do tenant, com % padrão; totais e margem recalculados ao vivo e gravados com as mesmas fórmulas; mão de obra pelo custo-hora do cargo (`IHourlyCost`), nunca por funcionário; material com custo digitado nesta fase (custo médio só na EST-01); imposto digitado enquanto a P-01 está aberta; orçamento enviado não é alterado.
+**FIN-03a [ ] Ordem de pagamento: criar, aprovar e pagar (G)** — 2.1b, ordem 6 — quebra da FIN-03 — [story](stories/FIN-03a-ordem-de-pagamento.md)
+- Requisitos: R-FIN-5, R-COM-2, R-COM-3, R-COM-4, R-PRP-2, R-PRP-5, R-PRP-7, R-SEC-2, R-SEC-5.
+- CA: `finance.pay` para o Financeiro por seed patch (D5); OP com 1+ títulos e retrato do envio (fornecedor, líquido, forma de pagamento); pagamento limitado ao aprovado + tolerância (409 `exceeds_approved`); avisos de titular, fornecedor novo e dados alterados; regra do solicitante pela D6; pagamento sem OP aprovada bloqueado em todos os caminhos; aprovação e pagamento concorrentes gravam uma vez; 2FA no login de quem aprova ou paga; estorno com `finance.pay` (estado `Reversed`); comprovante só em OP paga; auditoria completa.
 
-**COM-01b [ ] Orçamento: marcos, validade, perda e cópia (M)** — Marco 2.2, ordem 7 — quebra da COM-01 — [story](stories/COM-01b-orcamento-marcos-validade-copia.md)
+**FIN-04 [ ] Movimentação bancária, transferências e lançamento sem OP (M)** — 2.1b, ordem 7 — re-estimada — [story](stories/FIN-04-movimentacao-bancaria.md)
+- Requisitos: R-FIN-2, R-FIN-1, R-FIN-10, R-COM-2, R-PRP-7, R-SEC-5.
+- CA: extrato com saldo inicial, saldo anterior e saldo acumulado conferidos com dataset fixo; transferência com as duas pernas na mesma transação, idempotente, aviso acima do limite e aprovação para conta nova; lançamento bancário sem OP (tarifa, IOF, juros, rendimento) com conta do plano, motivo, aviso ao Proprietário e a lista "Movimentos sem OP" (D4); sem edição de transação de título; 5 mil transações em menos de 1 s.
+
+**COM-01a [ ] Orçamento: itens, composição de custo, preço e margem (G)** — 2.2, ordem 8 — quebra da COM-01 — [story](stories/COM-01a-orcamento-itens-custo-preco.md)
+- Requisitos: R-COML-1, R-COM-4, R-PRP-1, R-PRP-3, R-SEC-5, R-SEC-10.
+- CA: `quotes.view_cost` e `projects.view_cost` com seed patch para Comercial e Financeiro e DTO sem custo para os demais (D7); preço = custo × (1 + markup) ou custo ÷ (1 − margem) conforme o modo do tenant, com % padrão; editor de custo por natureza; totais e margem ao vivo e gravados com as mesmas fórmulas, arredondando só na linha; mão de obra pelo custo-hora do cargo; imposto digitado enquanto a P-01 está aberta; índices de número com revisão na primeira migration; orçamento enviado não é alterado.
+
+**COM-01b [ ] Orçamento: marcos, validade, perda e cópia (M)** — 2.2, ordem 9 — quebra da COM-01 — [story](stories/COM-01b-orcamento-marcos-validade-copia.md)
 - Requisitos: R-COML-6, R-COML-4, R-COML-2, R-COML-9, R-PRP-1, R-PRP-3.
-- CA: marcos por data ou evento com prazo após o evento; soma = 100% exigida para aprovar; "Preencher pela condição de pagamento"; validade padrão; perda com motivo da lista; copiar orçamento, itens ou projeto anterior.
+- CA: marcos por data ou evento com prazo após o evento, valores pelo `PaymentTermSplitter` e "Faltam X%"; soma = 100% exigida para aprovar; % revalidado no servidor; "Preencher pela condição de pagamento"; validade padrão; perda com motivo da lista; copiar orçamento, itens ou projeto anterior.
 
-**COM-02 [ ] Revisões e validade (M)** — Marco 2.2, ordem 8 — [story](stories/COM-02-revisoes-validade.md)
+**COM-02 [ ] Revisões, validade e prorrogação (M)** — 2.2, ordem 10 — [story](stories/COM-02-revisoes-validade.md)
 - Requisitos: R-COML-3, R-COML-4, R-COM-2, R-PRP-5.
-- CA: nova revisão congela a anterior (`Superseded`) com o mesmo número; só a revisão mais recente é editável/aprovável; histórico comparável lado a lado; job diário expira e avisa antes, sem repetir.
+- CA: nova revisão congela a anterior (`Superseded`) com o mesmo número; só a revisão mais recente é editável/aprovável; "Prorrogar validade" sem nova revisão (D16); histórico comparável lado a lado; job diário expira e avisa antes, sem repetir.
 
-**COM-03 [ ] PDF e envio do orçamento (M)** — Marco 2.2, ordem 9 — [story](stories/COM-03-pdf-envio-orcamento.md)
-- Requisitos: R-COML-5, R-COM-1, R-COM-3, R-PRP-2.
-- CA: PDF (QuestPDF) com o layout do tenant e sem custo nem margem (teste de extração de texto); PDF anexado ao orçamento e ao log de e-mail; envio pela fila com o anexo lido por id; destinatário fora dos contatos com confirmação.
+**COM-03 [ ] PDF e envio do orçamento (M)** — 2.2, ordem 11 — pré-condições: P-21 e SPF/DKIM/DMARC — [story](stories/COM-03-pdf-envio-orcamento.md)
+- Requisitos: R-COML-5, R-COM-1, R-COM-3, R-PRP-2, R-SEC-5.
+- CA: PDF pelo `IPdfRenderer` (QuestPDF, Archivo embutida, teste na imagem Alpine; ADR 0022) e sem custo nem margem (teste de extração de texto); PDF anexado como arquivo do sistema e ao log de e-mail; envio pela fila com anexo lido por id depois do `Clean`, cópia, Reply-To e limite diário; mensagem do usuário nunca vira template.
 
-**COM-04a [ ] Aprovação → contrato + projeto (G)** — Marco 2.3, ordem 10 — quebra da COM-04 — [story](stories/COM-04a-aprovacao-contrato-projeto.md)
-- Requisitos: R-COML-7, R-PRJ-1, R-PRJ-2, R-COM-3, R-COM-4, R-PRP-2, R-PRP-3, R-PRP-7, R-SEC-5.
-- CA: aprovar gera, numa transação, contrato `Active` com snapshot (sem dado pessoal), marcos, projeto com itens e orçamento do projeto por natureza, com `QuoteApproved` e `ContractSigned` no outbox (ADR 0005 D5); aprovação dupla gera um contrato só; anexar contrato assinado; próximo passo "Ver projeto criado".
+**COM-04a [ ] Aprovação → contrato + projeto (G)** — 2.3, ordem 12 — quebra da COM-04 — [story](stories/COM-04a-aprovacao-contrato-projeto.md)
+- Requisitos: R-COML-7, R-PRJ-1, R-PRJ-2, R-FIN-1, R-COM-3, R-COM-4, R-PRP-2, R-PRP-3, R-PRP-7, R-SEC-5.
+- CA: aprovar gera, numa transação, contrato `Active` com data de assinatura editável (D3), snapshot sem dado pessoal, marcos, projeto com itens e orçamento do projeto por natureza, com `QuoteApproved` e `ContractSigned` (com a conta de receita validada) no outbox; aprovação dupla gera um contrato só; projeto e natureza do custo no título a pagar; próximo passo "Ver projeto criado".
 
-**COM-04b [ ] Recebíveis do contrato e liberação por marco (M)** — Marco 2.3, ordem 11 — quebra da COM-04 — [story](stories/COM-04b-recebiveis-marcos-contrato.md)
+**COM-04b [ ] Recebíveis do contrato e liberação por marco (M)** — 2.3, ordem 13 — quebra da COM-04 — [story](stories/COM-04b-recebiveis-marcos-contrato.md)
 - Requisitos: R-COML-7, R-PRJ-6, R-FIN-3, R-COM-2, R-PRP-5, R-PRP-7.
-- CA: marcos por data = `Open`, por evento = `Planned`, criados pelo Finance ao receber `ContractSigned`, idempotente; evento do marco libera a parcela com vencimento = data do evento + prazo; "fabricação concluída" registrada à mão até a PRD-06; cancelar contrato cancela os recebíveis sem baixa; contrato concluído e projeto encerrado quando tudo é quitado.
+- CA: marcos por data = `Open`, por evento = `Planned`, criados pelo Finance ao receber `ContractSigned`, idempotente; registro de gatilhos para eventos fora de ordem; evento do marco libera a parcela com vencimento = data do evento + prazo; "fabricação concluída" e "entrega" (venda sem instalação, D15) registradas à mão; cancelar contrato cancela os recebíveis sem baixa; contrato concluído quando tudo é quitado e reaberto por estorno.
 
-**COM-05 [ ] Projeto 360 (M)** — Marco 2.3, ordem 12 — [story](stories/COM-05-projeto-360.md)
+**COM-04c [ ] Contrato de implantação (P)** — 2.3, ordem 14 — nova (D3) — [story](stories/COM-04c-contrato-de-implantacao.md)
+- Requisitos: R-COML-7, R-PRJ-1, R-PRJ-6, R-FIN-3, R-PRP-3, R-PRP-7.
+- CA: contrato já em andamento aprovado com data de assinatura e marcos no passado; marco "Recebido antes da implantação" não gera título e só vale até a data de corte; eventos já ocorridos registrados com a data real.
+
+**COM-05 [ ] Projeto 360 (M)** — 2.3, ordem 15 — [story](stories/COM-05-projeto-360.md)
 - Requisitos: R-PRJ-1, R-PRJ-4, R-PRJ-2, R-PRJ-5 (parte), R-COM-3, R-PRP-2, R-PRP-5.
-- CA: abas Resumo, Itens e OS, Financeiro, Custos, Documentos, Linha do tempo e Histórico na URL; Financeiro só com `finance.view`; orçado por natureza contra o lançado em contas a pagar, com margem projetada pela fórmula do `04-fluxos` §3.3.
+- CA: abas Resumo, Itens e OS, Financeiro, Custos, Documentos, Linha do tempo e Histórico na URL; Financeiro só com `finance.view`; Custos e margem só com `projects.view_cost`; orçado, realizado, projetado e desvio por natureza, com margem projetada pela fórmula do `04-fluxos` §3.3.
 
-**COM-06 [ ] OS de Instalação (G)** — Marco 2.3, ordem 13 — re-estimada — [story](stories/COM-06-os-instalacao.md)
+**COM-06 [ ] OS de Instalação (G)** — 2.3, ordem 16 — re-estimada — pré-condição: P-22 — [story](stories/COM-06-os-instalacao.md)
 - Requisitos: R-PRJ-3, R-FIN-4, R-PRJ-6, R-COM-4, R-COM-3, R-PRP-2, R-PRP-7.
-- CA: criar a partir do projeto com instalador e valor, que gera o CP previsto do instalador vinculado ao projeto na mesma transação; etapas e checklist de entrega técnica; aceite técnico confirma o CP e dispara o evento que entrega o projeto e libera o recebível vinculado.
+- CA: criar a partir do projeto com instalador e valor, que gera o CP previsto do instalador com data estimada, na mesma transação; etapas e checklist de entrega técnica (alvos de 56 px); aceite técnico confirma o CP e dispara o evento que entrega o projeto e libera o recebível vinculado; mudança de valor avisa o financeiro.
 
-**FIN-03b [ ] Alçadas multinível e aprovação pelo e-mail (M)** — Marco 2.4, ordem 14 — quebra da FIN-03 — [story](stories/FIN-03b-alcadas-multinivel.md)
-- Requisitos: R-FIN-5, R-COM-1, R-COM-2, R-PRP-5, R-SEC-5.
-- CA: regras por faixa de valor e por conta, com aprovador por grupo ou usuário; a mais específica vence; todas as aprovações do nível N antes do N+1; fora da alçada recusa mesmo com `finance.approve`; e-mail com link para a OP que exige login e não aprova sozinho.
+**FIN-06b [ ] Inadimplência por projeto, pontualidade e histórico do terceiro (M)** — 2.4, ordem 17 — quebra da FIN-06 — [story](stories/FIN-06b-inadimplencia-projeto-pontualidade.md)
+- Requisitos: R-FIN-12 (parte), R-TER-4, R-TER-3, R-PRP-5.
+- CA: vencidos por projeto; atraso médio do cliente (sem títulos de implantação) para a FIN-07; aba "Comercial e financeiro" no terceiro, com cada bloco pela permissão do módulo dono.
 
-**FIN-06 [ ] Inadimplência, aging e pontualidade (M)** — Marco 2.4, ordem 15 — re-estimada — [story](stories/FIN-06-inadimplencia-aging.md)
-- Requisitos: R-FIN-12, R-TER-4, R-TER-3, R-COM-2, R-PRP-5.
-- CA: vencidos por cliente e por projeto nas faixas 0–30, 31–60, 61–90 e 90+ (dataset fixo); aviso diário de título vencido; atraso médio do cliente para a FIN-07; aba "Comercial e financeiro" no terceiro, com cada bloco pela permissão do módulo dono.
-
-**COM-07 [ ] Aditivo de contrato (M)** — D — Marco 2.4, ordem 16 — [story](stories/COM-07-aditivo-contrato.md)
+**COM-07 [ ] Aditivo de contrato (M)** — D — 2.4, ordem 18 — [story](stories/COM-07-aditivo-contrato.md)
 - Requisitos: R-COML-8, R-PRJ-5, R-PRP-7, R-SEC-5.
-- CA: aditivo aprovado com `projects.approve` ajusta o orçado por natureza, a data prometida e os recebíveis futuros (cria os do acréscimo, reduz os sem baixa), sem mudar o contrato original; autor não aprova o próprio aditivo.
+- CA: aditivo em página própria com prévia "antes → depois", aprovado com `projects.approve`, ajusta o orçado por natureza, a data prometida e os recebíveis futuros (cria os do acréscimo, reduz os sem baixa), com revalidação no servidor e sem mudar o contrato original; autor não aprova o próprio aditivo (D6).
 
-**COM-08 [ ] Funil comercial (P)** — D — Marco 2.4, ordem 17 — [story](stories/COM-08-funil-comercial.md)
+**FIN-03b [ ] Alçadas multinível e aprovação pelo e-mail (M)** — 2.4, ordem 19 — quebra da FIN-03 — [story](stories/FIN-03b-alcadas-multinivel.md)
+- Requisitos: R-FIN-5, R-COM-1, R-COM-2, R-PRP-5, R-SEC-5.
+- CA: regras por faixa de valor e por conta (com teto), com aprovador por grupo ou usuário; a mais específica vence; valor de referência contra fracionamento; alçada viável; todas as aprovações do nível N antes do N+1; fora da alçada recusa mesmo com `finance.approve`; e-mail só com número, total e link, que exige login e não aprova sozinho.
+
+**COM-08 [ ] Funil comercial (P)** — D — 2.4, ordem 20 — [story](stories/COM-08-funil-comercial.md)
 - Requisitos: R-COML-9, PRD §5.14 (Comercial).
-- CA: orçamentos por situação no período (só a revisão corrente), conversão = aprovados ÷ decididos, motivos de perda, filtro por autor e drill-down.
+- CA: orçamentos por situação no período (só a revisão corrente), conversão = aprovados ÷ decididos, motivos de perda, filtro por autor, drill-down e "Vencendo" com "Prorrogar validade".
 
-_MIG-01e (títulos em aberto e histórico de pagamentos) não entra aqui: cancelada pelo PO em 18/10/2026. A pontualidade dos clientes (R-TER-4) começa com os títulos do BemAqui. O histórico comercial e financeiro do terceiro (R-TER-3) ficou na FIN-06 (aba "Comercial e financeiro" do terceiro)._
+_MIG-01e (títulos em aberto e histórico de pagamentos) não entra aqui: cancelada pelo PO em 18/10/2026. Os títulos em aberto entram pela FIN-00 (implantação financeira) e a pontualidade dos clientes (R-TER-4) começa com os títulos do BemAqui, sem os de implantação. O histórico comercial e financeiro do terceiro (R-TER-3) está na FIN-06b._
 
 ---
 
@@ -360,7 +376,7 @@ _MIG-01d (saldos iniciais de estoque) não entra aqui: cancelada pelo PO em 18/1
 
 **FIN-09 [ ] Régua de cobrança (M)** — D.
 
-**GOL-01 [ ] Go-live Konebras (M)** — Carga final do Dolibarr (só os cadastros: MIG-01b e MIG-01c com a infraestrutura da MIG-01a; ADR 0017), `DROP USER` do usuário somente leitura e remoção do segredo, treinamento, checklist de virada, acompanhamento da primeira semana.
+**GOL-01 [ ] Go-live Konebras (M)** — **Promoção da homologação a produção** (ADR 0020): o banco do tenant `konebras` da homologação, que já tem os dados reais desde a FIN-00, passa a ser o de produção, com a troca de DNS e domínio (`app.konebras.com.br` para o BemAqui e o Dolibarr para `adm.konebras.com.br`), dos segredos de produção e das chaves de Data Protection; carga final do Dolibarr só com os cadastros alterados depois da última carga (MIG-01b e MIG-01c com a infraestrutura da MIG-01a; ADR 0017), `DROP USER` do usuário somente leitura e remoção do segredo, treinamento, checklist de virada, acompanhamento da primeira semana.
 
 ---
 

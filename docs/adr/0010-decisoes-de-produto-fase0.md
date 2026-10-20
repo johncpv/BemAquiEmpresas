@@ -21,3 +21,4 @@
 | 14 | **Alertas:** chegam por e-mail. O monitor externo é o UptimeRobot (plano gratuito), fora da VPS. |
 
 - Ver ADR 0016 (seed patch para os tenants existentes, `delete` em `inventory` e `production`, garantia no Inventory: o item 2 fica com encargos, markup ou margem, IA, 2FA e numeração).
+- Ver ADR 0008, adendo de 20/10/2026 (`finance.pay` para o Financeiro por seed patch; `finance.approve` continua só no Proprietário).

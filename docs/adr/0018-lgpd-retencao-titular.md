@@ -48,3 +48,5 @@
 - O PO decidiu manter o painel da plataforma **sem allowlist de IP**. A pré-condição "painel fora do modo aberto antes da primeira carga real" deixa de valer, e a MIG-01b não recusa a carga por isso.
 - O painel continua protegido por senha com 2FA obrigatório, sessão própria, rate limit e auditoria de login (FND-13). O `Platform:AllowedNetworks` e o arquivo `.allow` do nginx continuam disponíveis para quando o PO quiser restringir.
 - **Risco aceito:** a tela de login do super admin fica exposta à internet. O que compensa é o 2FA e o bloqueio por tentativas.
+
+- Ver ADR 0020 (homologação com dado real de produção até a GOL-01).

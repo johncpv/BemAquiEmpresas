@@ -86,3 +86,30 @@
 - A CAD-04a (primeira story do HR) implementa a rota `/sensitive`, o `SensitiveRead` e os comandos separados para salário; a CAD-04b e a CAD-04c reaproveitam.
 - A CAD-05b cria `finance.payment_terms` e o campo de condição padrão no terceiro.
 - A CAD-03 inclui `delete` em `inventory` e `production`.
+
+## Adendo (20/10/2026, revisão pré-Fase 2, M6 e M7)
+
+### Dono dos parâmetros (M6)
+- **Cada módulo é dono dos próprios parâmetros.** Os parâmetros novos ficam numa tabela do schema do módulo (`<schema>.parameters`: `key` única, `value`, `updated_at`, `updated_by`; auditada) e são lidos pelo contrato do módulo (`IFinanceParameters` em `Finance.Contracts`, `ICommercialParameters` em `Commercial.Contracts`).
+- **Configurações só monta a tela.** Configurações → Parâmetros mostra uma seção por módulo, cada uma com o endpoint e a permissão de edição do módulo dono (`finance.edit` não basta: a edição de parâmetro exige `settings.edit`, conferida pelo endpoint do dono).
+- Os parâmetros que já existem em `identity.tenant_settings` (`security.require_2fa`, `payroll.charges_pct`, `pricing.mode`) ficam onde estão. Mudá-los de lugar exige migration com ADR.
+- Parâmetros da Fase 2 e donos:
+
+| Chave | Dono | Story |
+|---|---|---|
+| `pricing.default_pct`, `quotes.validity_days` | Commercial | COM-01a, COM-01b |
+| `finance.discount_approval_pct`, `finance.discount_approval_amount`, `finance.cancel_approval_amount`, `finance.backdate_days` | Finance | FIN-01 |
+| `finance.cutover_date`, `finance.cutover_completed_at` | Finance | FIN-00 |
+| `finance.owner_can_approve_own`, `finance.payment_tolerance` | Finance | FIN-03a |
+| `finance.transfer_notify_amount` | Finance | FIN-04 |
+| `finance.late_fine_pct`, `finance.late_interest_month_pct` (opcionais, sem seed) | Finance | FIN-01 (só a chave; a sugestão do valor fica para a BNK-01) |
+
+### Numeração com revisão (M7)
+- **Exceção à regra "índice único em `number`"** para o orçamento, que mantém o número em todas as revisões:
+  - índice único em `(number, revision)`;
+  - índice único parcial em `(number) WHERE is_current`.
+- Os dois índices e a coluna `is_current` nascem certos na **primeira migration de `commercial.quotes`** (COM-01a), para a COM-02 não precisar trocar índice.
+- O número continua vindo do `INumberSequence` (tipo `ORC`) só na revisão 0. As revisões seguintes copiam o número.
+- Nenhum outro documento tem essa exceção.
+
+- Ver ADR 0019 (decisões técnicas da Fase 2).

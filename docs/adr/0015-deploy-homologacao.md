@@ -58,3 +58,5 @@
   - restauração de um tenant num ambiente separado em 24 s, com os segredos decifrando.
 - O registro está em `docs/operacao/restauracao.md`. O exercício com o backup real da VPS faz parte da FND-10b.
 - Os CAs 12 (credencial sem delete) e 16 (monitor externo) só podem ser provados no provedor real, na FND-10b.
+
+- Ver ADR 0020 (o tenant `konebras` da homologação recebe dado real a partir da FIN-00 e é promovido a produção na GOL-01).
