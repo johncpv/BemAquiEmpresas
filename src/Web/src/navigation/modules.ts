@@ -52,6 +52,7 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
   finance: { slug: 'financeiro', icon: Wallet, tabs: [
     { slug: 'receber', label: 'A receber', group: CASH },
     { slug: 'pagar', label: 'A pagar', group: CASH },
+    { slug: 'fluxo-de-caixa', label: 'Fluxo de caixa', group: CASH },
     { slug: 'contas', label: 'Contas e caixas', group: CASH },
     { slug: 'plano-de-contas', label: 'Plano de contas', group: SETUP },
     { slug: 'centros-de-custo', label: 'Centros de custo', group: SETUP },

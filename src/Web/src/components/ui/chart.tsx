@@ -1,5 +1,5 @@
 import { useId } from 'react'
-import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 /** Série do gráfico: realizado em traço contínuo, projetado em tracejado (FND-09e CA 11, padrão 10 da Fase 2). */
 export interface ChartSeries {
@@ -19,6 +19,8 @@ interface ChartProps<T extends Record<string, unknown>> {
   height?: number
   /** Cabeçalho da primeira coluna da tabela (ex.: "Dia"). */
   xLabel?: string
+  /** Marcas verticais no eixo x (ex.: "Hoje" e o dia de menor saldo), com o rótulo no topo. */
+  references?: { x: string; label: string }[]
 }
 
 const COLORS = [1, 2, 3, 4, 5, 6].map((n) => `var(--chart-${n})`)
@@ -27,7 +29,7 @@ const COLORS = [1, 2, 3, 4, 5, 6].map((n) => `var(--chart-${n})`)
  * Gráfico de linhas com Recharts (FND-09e CA 11): cores só dos tokens --chart-1 a --chart-6, realizado × projetado pelo
  * traço, e a tabela equivalente, acessível por teclado, ligada ao gráfico por aria-describedby.
  */
-export function Chart<T extends Record<string, unknown>>({ title, data, xKey, series, format = (v) => v.toLocaleString('pt-BR'), height = 260, xLabel = 'Período' }: ChartProps<T>) {
+export function Chart<T extends Record<string, unknown>>({ title, data, xKey, series, format = (v) => v.toLocaleString('pt-BR'), height = 260, xLabel = 'Período', references = [] }: ChartProps<T>) {
   const tableId = useId()
   const value = (v: unknown) => (typeof v === 'number' ? format(v) : '—')
   return (
@@ -39,6 +41,7 @@ export function Chart<T extends Record<string, unknown>>({ title, data, xKey, se
             <XAxis dataKey={xKey as never} stroke="var(--muted-foreground)" tick={{ fontSize: 12 }} />
             <YAxis stroke="var(--muted-foreground)" tick={{ fontSize: 12 }} tickFormatter={(v: number) => format(v)} width={88} />
             <Tooltip formatter={(v) => value(v)} contentStyle={{ background: 'var(--popover)', border: '1px solid var(--border)', color: 'var(--popover-foreground)' }} />
+            {references.map((r) => <ReferenceLine key={r.label} x={r.x} stroke="var(--muted-foreground)" strokeDasharray="2 2" label={{ value: r.label, position: "insideTopLeft", fill: "var(--muted-foreground)", fontSize: 11 }} />)}
             {series.map((s, i) => (
               <Line key={s.key} type="monotone" dataKey={s.key} name={s.label} stroke={COLORS[i % COLORS.length]} strokeWidth={2} dot={false} strokeDasharray={s.kind === 'projected' ? '6 4' : undefined} isAnimationActive={false} />
             ))}

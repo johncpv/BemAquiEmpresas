@@ -2,7 +2,7 @@ import type { OpeningStatus } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import type { ComboOption } from '@/components/form/combobox'
 import { formatBrDecimal } from '@/lib/decimal'
-import { useNavigation } from '@/navigation/navigation-context'
+import { useCan } from '@/pages/use-can'
 
 /** Passos da implantação (FIN-00), na ordem: o id é a aba na URL e a aba da ajuda. */
 export const OPENING_STEPS = [
@@ -21,9 +21,7 @@ export const OPENING_DICAS = {
 
 /** Ação do Financeiro liberada para o usuário (o mesmo critério do <Can>). */
 export function useCanFinance(action: string) {
-  const { all } = useNavigation()
-  const module = all.find((m) => m.code === 'finance')
-  return !!module && !module.locked && module.actions.includes(action)
+  return useCan('finance.' + action)
 }
 
 /** Passo atual do progresso: o primeiro que falta. */
