@@ -10,6 +10,7 @@ modulo: finance
 Lançar uma conta a pagar: uma nota de fornecedor, um boleto ou uma despesa avulsa, de uma vez ou parcelada.
 
 ## Como usar
+- Se a despesa é de um projeto, escolha o **Projeto** e a **Natureza do custo** (sugerida pela conta). Com projeto, a natureza é obrigatória.
 - Escolha o **fornecedor** (fornecedores e instaladores ativos), a descrição e a **conta** (despesa, investimento ou financiamento).
 - Informe o valor, a emissão e o vencimento, ou parcele pela condição de pagamento.
 - Em **Retenções**, preencha só o que a nota destacar. O valor líquido aparece embaixo.

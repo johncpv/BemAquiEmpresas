@@ -30,6 +30,8 @@ public partial class ReceivablesTests(TenancyFixture tenancy) : IClassFixture<Te
     {
         public Task<bool?> IsCancelledAsync(Guid contractId, CancellationToken cancellationToken = default) =>
             Task.FromResult<bool?>(CancelledContracts.ContainsKey(contractId) ? true : null);
+
+        public Task<ContractInfo?> FindAsync(Guid contractId, CancellationToken cancellationToken = default) => Task.FromResult<ContractInfo?>(null);
     }
 
     private WebApplicationFactory<Program>? _factory;

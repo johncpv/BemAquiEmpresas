@@ -14,4 +14,5 @@ export const QuoteStatus = {
   Rejected: 'Rejected',
   Expired: 'Expired',
   Superseded: 'Superseded',
+  Approved: 'Approved',
 } as const;

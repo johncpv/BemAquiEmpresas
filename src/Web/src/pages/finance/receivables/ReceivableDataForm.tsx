@@ -7,12 +7,14 @@ import { inputClass } from '@/components/form/form-utils'
 import { MoneyInput } from '@/components/form/inputs'
 import { UnsavedChangesGuard } from '@/components/form/UnsavedChangesGuard'
 import { notifySuccess } from '@/components/ui/messages'
+import { type ProjectCost, ProjectCostFields } from '../payables/ProjectCostFields'
 
 /** Aba Dados (CA 19): descrição, conta, centro e valor (valor só em título manual sem baixa). */
 export function ReceivableDataForm({ receivable, canEdit, onSaved }: { receivable: ReceivableDetail; canEdit: boolean; onSaved: (r: ReceivableDetail) => void }) {
   const accounts = useListAccounts()
   const centers = useListCostCenters()
-  const initial = { description: receivable.description, accountId: receivable.accountId, costCenterId: receivable.costCenterId ?? '', amount: String(receivable.amount) as string | null }
+  const initial = { description: receivable.description, accountId: receivable.accountId, costCenterId: receivable.costCenterId ?? '', amount: String(receivable.amount) as string | null,
+    projectCost: { project: receivable.projectId ? { id: receivable.projectId, label: receivable.projectNumber ?? 'Projeto' } : null, costType: '' } as ProjectCost }
   const [draft, setDraft] = useState(initial)
   const [error, setError] = useState<{ message: string; fields: Record<string, string[]> } | null>(null)
   const dirty = JSON.stringify(draft) !== JSON.stringify(initial)
@@ -23,7 +25,7 @@ export function ReceivableDataForm({ receivable, canEdit, onSaved }: { receivabl
 
   const save = async () => {
     try {
-      const saved = await updateReceivable(receivable.id, { description: draft.description.trim(), accountId: draft.accountId, costCenterId: draft.costCenterId || null, projectId: receivable.projectId, amount: Number(draft.amount), version: receivable.version })
+      const saved = await updateReceivable(receivable.id, { description: draft.description.trim(), accountId: draft.accountId, costCenterId: draft.costCenterId || null, projectId: draft.projectCost.project?.id ?? null, amount: Number(draft.amount), version: receivable.version })
       notifySuccess('Título a receber salvo')
       onSaved(saved)
       return true
@@ -51,6 +53,7 @@ export function ReceivableDataForm({ receivable, canEdit, onSaved }: { receivabl
             </Field>
             <Field label="Valor" required error={field('amount')} hint={amountHint}>{(p) => <MoneyInput {...p} value={draft.amount} disabled={amountLocked} onChange={(amount) => set({ amount })} />}</Field>
           </div>
+          <ProjectCostFields value={draft.projectCost} onChange={(projectCost) => set({ projectCost })} withCostType={false} errors={{ projectId: field('projectId') }} disabled={receivable.origin === 'Contract'} />
         </FormSection>
         {canEdit ? <div className="flex justify-end"><button type="submit" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Salvar título a receber</button></div> : null}
       </fieldset>

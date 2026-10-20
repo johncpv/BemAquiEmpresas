@@ -9,10 +9,12 @@ namespace BemAqui.Commercial.Application;
 public sealed class CommercialUsage(ICommercialDb db) : IPartyUsageProvider, IItemUsageProvider, IWorkCenterUsageProvider
 {
     public async Task<string?> UsageAsync(Guid partyId, CancellationToken cancellationToken = default) =>
-        await db.Quotes.IgnoreQueryFilters().AnyAsync(q => q.PartyId == partyId, cancellationToken)
-        || await db.QuoteItemCosts.AnyAsync(c => c.PartyId == partyId, cancellationToken)
-            ? "orçamentos"
-            : null;
+        await db.Contracts.AnyAsync(c => c.PartyId == partyId, cancellationToken)
+            ? "contratos"
+            : await db.Quotes.IgnoreQueryFilters().AnyAsync(q => q.PartyId == partyId, cancellationToken)
+              || await db.QuoteItemCosts.AnyAsync(c => c.PartyId == partyId, cancellationToken)
+                ? "orçamentos"
+                : null;
 
     public Task<bool> HasMovementAsync(Guid itemId, CancellationToken cancellationToken = default) => Task.FromResult(false);
 

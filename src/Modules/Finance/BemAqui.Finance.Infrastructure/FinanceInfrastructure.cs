@@ -44,6 +44,7 @@ public static class FinanceInfrastructure
         // Contas a pagar e recorrentes (FIN-02).
         services.TryAddScoped<PayableService>();
         services.TryAddScoped<IPayables, PayablesContract>();
+        services.TryAddScoped<IReceivables, ReceivablesContract>();
         services.TryAddScoped<RecurringExpenseService>();
         // Implantação financeira (FIN-00).
         services.TryAddScoped<OpeningService>();

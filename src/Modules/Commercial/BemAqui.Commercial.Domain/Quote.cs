@@ -18,6 +18,9 @@ public enum QuoteStatus
 
     /// <summary>Trocado por uma revisão mais recente (COM-02 CA 1).</summary>
     Superseded,
+
+    /// <summary>Aprovado: virou contrato e projeto (COM-04a).</summary>
+    Approved,
 }
 
 /// <summary>Modo de preço gravado no orçamento (P-14): o que valia quando ele nasceu.</summary>
@@ -94,6 +97,10 @@ public sealed class Quote : Entity, IAuditable, IConcurrencyVersioned, ISoftDele
     public Guid? ParentQuoteId { get; set; }
 
     public DateTimeOffset? ExpiredAt { get; set; }
+
+    public DateTimeOffset? ApprovedAt { get; set; }
+
+    public Guid? ApprovedBy { get; set; }
 
     public DateTimeOffset CreatedAt { get; init; }
 

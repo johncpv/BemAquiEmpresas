@@ -13,4 +13,6 @@ export interface AttachmentDto {
   size: number;
   scanStatus: ScanStatus;
   createdAt: string;
+  /** @nullable */
+  uploadedByName?: string | null;
 }

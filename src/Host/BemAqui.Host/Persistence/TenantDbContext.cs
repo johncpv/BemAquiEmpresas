@@ -115,6 +115,16 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BemAqui.Commercial.Domain.CommercialParameter> CommercialParameters => Set<BemAqui.Commercial.Domain.CommercialParameter>();
 
+    public DbSet<BemAqui.Commercial.Domain.Contract> Contracts => Set<BemAqui.Commercial.Domain.Contract>();
+
+    public DbSet<BemAqui.Commercial.Domain.ContractMilestone> ContractMilestones => Set<BemAqui.Commercial.Domain.ContractMilestone>();
+
+    public DbSet<BemAqui.Commercial.Domain.Project> Projects => Set<BemAqui.Commercial.Domain.Project>();
+
+    public DbSet<BemAqui.Commercial.Domain.ProjectItem> ProjectItems => Set<BemAqui.Commercial.Domain.ProjectItem>();
+
+    public DbSet<BemAqui.Commercial.Domain.ProjectBudget> ProjectBudgets => Set<BemAqui.Commercial.Domain.ProjectBudget>();
+
     public DbSet<Location> Locations => Set<Location>();
 
     public DbSet<MeasureUnit> Units => Set<MeasureUnit>();

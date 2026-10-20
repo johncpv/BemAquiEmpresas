@@ -37,6 +37,10 @@ internal static partial class FinanceEndpoints
         suppliers.MapGet(string.Empty, async (string? q, PayableService service, CancellationToken ct) => Results.Ok(await service.SuppliersAsync(q, ct)))
             .RequirePermission("finance.view").WithName("ListFinanceSuppliers").Produces<IReadOnlyList<FinanceSupplierOption>>();
 
+    private static void MapProjects(RouteGroupBuilder projects) =>
+        projects.MapGet(string.Empty, async (string? q, PayableService service, CancellationToken ct) => Results.Ok(await service.ProjectsAsync(q, ct)))
+            .RequirePermission("finance.view").WithName("ListFinanceProjects").Produces<IReadOnlyList<FinanceProjectOption>>();
+
     private static void MapRecurringExpenses(RouteGroupBuilder recurring)
     {
         recurring.MapGet(string.Empty, async (RecurringExpenseService service, CancellationToken ct) => Results.Ok(await service.ListAsync(ct)))

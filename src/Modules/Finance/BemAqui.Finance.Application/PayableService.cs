@@ -4,6 +4,7 @@ using BemAqui.BuildingBlocks.Notifications;
 using BemAqui.BuildingBlocks.Paging;
 using BemAqui.BuildingBlocks.Persistence.Numbering;
 using BemAqui.BuildingBlocks.Time;
+using BemAqui.Commercial.Contracts;
 using BemAqui.Finance.Contracts;
 using BemAqui.Finance.Domain;
 using BemAqui.Parties.Contracts;
@@ -27,6 +28,7 @@ public sealed partial class PayableService(
     INotificationService notifications,
     IUserDirectory users,
     ICurrentUser currentUser,
+    IProjects projects,
     TimeProvider clock)
 {
     public const string NumberIndex = "ix_payables_number";
@@ -113,6 +115,10 @@ public sealed partial class PayableService(
     }
 
     /// <summary>Fornecedores e instaladores ativos (CA 2), com a condição padrão de cada um.</summary>
+    /// <summary>Projetos abertos para o campo "Projeto" dos títulos (COM-04a CA 18), sem exigir <c>projects.view</c>.</summary>
+    public async Task<IReadOnlyList<FinanceProjectOption>> ProjectsAsync(string? q, CancellationToken cancellationToken = default) =>
+        (await projects.SearchAsync(q, 20, cancellationToken)).Select(p => new FinanceProjectOption(p.Id, p.Number, p.Name)).ToList();
+
     public async Task<IReadOnlyList<FinanceSupplierOption>> SuppliersAsync(string? q, CancellationToken cancellationToken = default)
     {
         var found = (await parties.SearchAsync(q, PartyRoleKind.Supplier, 20, cancellationToken)).Concat(await parties.SearchAsync(q, PartyRoleKind.Installer, 20, cancellationToken));
@@ -136,10 +142,13 @@ public sealed partial class PayableService(
         var today = Today;
         var names = (await parties.FindManyAsync(payables.Select(p => p.PartyId).Distinct().ToList(), ct)).ToDictionary(p => p.Id, p => p.TradeName ?? p.LegalName);
         var accounts = (await chart.FindAsync(payables.Select(p => p.AccountId).Distinct().ToList(), ct)).ToDictionary(a => a.Id, a => a.Code + " " + a.Name);
+        var projectIds = payables.Where(p => p.ProjectId is not null).Select(p => p.ProjectId!.Value).Distinct().ToList();
+        var projectNumbers = (await projects.FindManyAsync(projectIds, ct)).ToDictionary(p => p.Id, p => p.Number);
         return payables.Select(p => new PayableDetail(
             p.Id, p.Number, p.PartyId, names.GetValueOrDefault(p.PartyId, string.Empty), p.Description, p.AccountId, accounts.GetValueOrDefault(p.AccountId, string.Empty), p.CostCenterId,
             p.Amount, p.RetentionIss, p.RetentionInss, p.RetentionIr, p.RetentionPcc, p.NetAmount, p.PaidAmount, p.Balance, p.IssueDate, p.DueDate, p.IsEstimate, p.Status,
-            p.IsOverdue(today), p.IsDueToday(today), p.Origin, p.OriginId, p.OpeningReference, p.InstallmentGroupId, p.Competence, p.PaymentMethod, p.PaymentMethodChangedAt, p.CancelReason, p.CancelledAt, p.Version)).ToList();
+            p.IsOverdue(today), p.IsDueToday(today), p.Origin, p.OriginId, p.OpeningReference, p.InstallmentGroupId, p.Competence, p.PaymentMethod, p.PaymentMethodChangedAt, p.CancelReason, p.CancelledAt, p.Version,
+            p.ProjectId, p.ProjectId is { } project ? projectNumbers.GetValueOrDefault(project) : null, p.CostType)).ToList();
     }
 
     private static Error? Stale(Payable payable, uint version) =>

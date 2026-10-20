@@ -93,7 +93,7 @@ Fase 2 (decisões do PO de 20/10/2026, revisão pré-Fase 2 e ADR 0019): cada ta
 - **contract_amendment_milestones** (COM-07): amendment_id e o mesmo formato de `contract_milestones`
 - **contract_amendment_reductions** (COM-07): amendment_id, receivable_id, new_amount (revalidado no servidor e no consumidor)
 - **projects** (COM-04a): number, contract_id, party_id, name, site_address_id, promised_date, forecast_date, status (Planned/InProgress/Fabricated/Installing/Delivered/Closed/Cancelled), priority (int para fila), manager_user_id, warranty_until; fabricated_on, delivered_on, delivered_manually, closed_at (COM-04b)
-- **project_items**: project_id, quote_item_id, description, quantity, product_id, routing_template_id
+- **project_items** (COM-04a): project_id, quote_item_id, sequence, description, quantity, item_id (item do estoque); routing_template_id (PRD-01)
 - **project_budget** (COM-04a): project_id, cost_type, budgeted_amount (do contrato, distribuído pelo maior resto; ajustado por aditivo, COM-07) — base do orçado × realizado; só sai com `projects.view_cost`
 - **project_costs** (view/tabela materializada): project_id, cost_type, source (StockIssue/Labor/Purchase/Payable/Payroll), source_id, amount, date
 

@@ -32,6 +32,8 @@ export interface Tab {
 /** Parte de tela de cada módulo do ModuleCatalog: rota, ícone e sub-telas (abas na topbar, CA 8). */
 export interface ModuleUi {
   slug: string
+  /** Outros caminhos do mesmo módulo (ex.: /app/projetos/$id em "Contratos e projetos"), para a topbar achar o módulo. */
+  aliases?: readonly string[]
   icon: LucideIcon
   tabs?: readonly Tab[]
 }
@@ -42,7 +44,7 @@ const SETUP = 'Configuração financeira'
 export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
   dashboard: { slug: 'painel', icon: LayoutDashboard },
   quotes: { slug: 'orcamentos', icon: FileText },
-  projects: { slug: 'projetos', icon: FolderKanban },
+  projects: { slug: 'contratos', aliases: ['projetos'], icon: FolderKanban },
   parties: { slug: 'cadastros', icon: Contact, tabs: [{ slug: 'terceiros', label: 'Terceiros' }] },
   engineering: { slug: 'engenharia', icon: DraftingCompass },
   production: { slug: 'producao', icon: Factory, tabs: [{ slug: 'centros-de-trabalho', label: 'Centros de trabalho' }, { slug: 'calendario', label: 'Calendário' }] },
@@ -84,6 +86,7 @@ export interface PermissionModule {
 
 export interface NavModule extends PermissionModule {
   slug: string
+  aliases: readonly string[]
   path: string
   icon: LucideIcon
   tabs: readonly Tab[]
@@ -105,7 +108,7 @@ export interface Navigation {
 
 const toNav = (m: PermissionModule): NavModule | null => {
   const ui = MODULE_UI[m.code]
-  return ui ? { ...m, slug: ui.slug, path: `/app/${ui.slug}`, icon: ui.icon, tabs: ui.tabs ?? [], locked: !m.released } : null
+  return ui ? { ...m, slug: ui.slug, aliases: ui.aliases ?? [], path: `/app/${ui.slug}`, icon: ui.icon, tabs: ui.tabs ?? [], locked: !m.released } : null
 }
 
 /** Visível no menu: liberado com acesso, ou não liberado (com cadeado). Liberado sem acesso fica oculto (CA 3). */
@@ -121,7 +124,7 @@ export function buildNavigation(modules: readonly PermissionModule[]): Navigatio
 }
 
 export function findModuleBySlug(modules: readonly NavModule[], slug: string): NavModule | undefined {
-  return modules.find((m) => m.slug === slug)
+  return modules.find((m) => m.slug === slug || m.aliases.includes(slug))
 }
 
 export function areaOf(areas: readonly NavArea[], module: NavModule): NavArea | undefined {
