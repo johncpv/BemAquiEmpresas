@@ -6,6 +6,7 @@
  */
 import type { DocumentOrigin } from './documentOrigin';
 import type { ReceivableStatus } from './receivableStatus';
+import type { TriggerEvent } from './triggerEvent';
 
 export interface ReceivableDetail {
   id: string;
@@ -45,4 +46,7 @@ export interface ReceivableDetail {
   version: number;
   /** @nullable */
   projectNumber?: string | null;
+  triggerEvent?: null | TriggerEvent;
+  /** @nullable */
+  contractId?: string | null;
 }

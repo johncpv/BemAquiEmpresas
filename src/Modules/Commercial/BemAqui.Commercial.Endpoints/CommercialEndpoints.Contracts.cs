@@ -32,12 +32,18 @@ internal static partial class CommercialEndpoints
             .RequirePermission("projects.view").WithName("ListContracts").Produces<ContractPage>();
         contracts.MapGet("/{id:guid}", async (Guid id, ContractService service, CancellationToken ct) => (await service.GetAsync(id, ct)).ToHttpResult())
             .RequirePermission("projects.view").WithName("GetContract").Produces<ContractDetail>();
+        contracts.MapPost("/{id:guid}/cancel", async (Guid id, ContractCancelInput input, ContractService service, CancellationToken ct) => (await service.CancelAsync(id, input, ct)).ToHttpResult())
+            .RequirePermission("projects.approve").WithName("CancelContract").Produces<ContractDetail>();
 
         var projects = api.MapGroup("/projects").WithTags("Contratos e projetos").RequireModule("projects");
         projects.MapGet("/{id:guid}", async (Guid id, ProjectService service, CancellationToken ct) => (await service.GetAsync(id, ct)).ToHttpResult())
             .RequirePermission("projects.view").WithName("GetProject").Produces<ProjectDetail>();
         projects.MapGet("/{id:guid}/budget", async (Guid id, ProjectService service, CancellationToken ct) => (await service.BudgetAsync(id, ct)).ToHttpResult())
             .RequirePermission("projects.view_cost").WithName("GetProjectBudget").Produces<IReadOnlyList<ProjectBudgetLine>>();
+        projects.MapPost("/{id:guid}/fabrication", async (Guid id, ProjectEventInput input, ProjectService service, CancellationToken ct) => (await service.RegisterFabricationAsync(id, input, ct)).ToHttpResult())
+            .RequirePermission("projects.edit").WithName("RegisterProjectFabrication").Produces<ProjectDetail>();
+        projects.MapPost("/{id:guid}/delivery", async (Guid id, ProjectEventInput input, ProjectService service, CancellationToken ct) => (await service.RegisterDeliveryAsync(id, input, ct)).ToHttpResult())
+            .RequirePermission("projects.approve").WithName("RegisterProjectDelivery").Produces<ProjectDetail>();
     }
 }
 

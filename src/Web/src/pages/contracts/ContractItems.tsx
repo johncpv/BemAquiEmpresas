@@ -1,8 +1,11 @@
 import type { ContractDetail, ContractMilestoneView } from '@/api/generated/model'
+import { Link } from '@tanstack/react-router'
 import { Money } from '@/components/ui/money'
+import { StatusChip } from '@/components/ui/status-chip'
 import { Dica } from '@/help/Dica'
 import { formatDate } from '@/lib/format'
 import { COST_SECTIONS } from '../quotes/quotes'
+import { situation } from '../finance/receivables/receivables'
 import { CONTRACT_DICAS } from './contracts'
 
 const EVENTS: Record<string, string> = { Signature: 'assinatura do contrato', FabricationDone: 'fabricação concluída', Delivered: 'entrega', TechnicalAcceptance: 'aceite técnico' }
@@ -39,10 +42,19 @@ export function ContractItems({ contract }: { contract: ContractDetail }) {
       <h3 className="text-sm font-semibold">Marcos de pagamento</h3>
       <ul className="divide-y divide-border rounded-md border border-border bg-card text-sm" aria-label="Marcos do contrato">
         {contract.milestones.map((m) => (
-          <li key={m.id} className="flex flex-wrap justify-between gap-2 p-3">
-            <span><b>{m.sequence}.</b> {m.description} · {qty(m.percent)}%</span>
-            <span className="text-muted-foreground">{when(m)}</span>
-            <Money value={m.amount} className="font-semibold" />
+          <li key={m.id} className="space-y-1 p-3">
+            <p className="flex flex-wrap justify-between gap-2">
+              <span><b>{m.sequence}.</b> {m.description} · {qty(m.percent)}%</span>
+              <span className="text-muted-foreground">{when(m)}</span>
+              <Money value={m.amount} className="font-semibold" />
+            </p>
+            {m.receivable ? (
+              <p className="flex flex-wrap items-center gap-2 text-xs">
+                <Link to={'/app/financeiro/receber/$id' as never} params={{ id: m.receivable.id } as never} className="font-mono font-semibold text-primary hover:underline">{m.receivable.number}</Link>
+                <StatusChip tone={situation({ status: m.receivable.status as never, isOverdue: false, isDueToday: false }).tone}>{situation({ status: m.receivable.status as never, isOverdue: false, isDueToday: false }).label}</StatusChip>
+                <span className="tabular-nums text-muted-foreground">{m.receivable.dueDate ? `vence ${formatDate(m.receivable.dueDate)}` : 'aguarda o marco'} · saldo <Money value={m.receivable.balance} /></span>
+              </p>
+            ) : m.hasReceivable ? <p className="text-xs text-muted-foreground">Parcela gerada</p> : null}
           </li>
         ))}
       </ul>

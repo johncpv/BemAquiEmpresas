@@ -4,6 +4,7 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { MilestoneReceivable } from './milestoneReceivable';
 import type { MilestoneTrigger } from './milestoneTrigger';
 import type { TriggerEvent } from './triggerEvent';
 
@@ -19,4 +20,6 @@ export interface ContractMilestoneView {
   dueDate: string | null;
   /** @nullable */
   daysAfterEvent: number | null;
+  hasReceivable?: boolean;
+  receivable?: null | MilestoneReceivable;
 }

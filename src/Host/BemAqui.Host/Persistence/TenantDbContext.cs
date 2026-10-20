@@ -79,6 +79,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<Receivable> Receivables => Set<Receivable>();
 
+    public DbSet<BemAqui.Finance.Domain.ProjectTriggerEvent> ProjectTriggerEvents => Set<BemAqui.Finance.Domain.ProjectTriggerEvent>();
+
     public DbSet<ReceivableSettlement> ReceivableSettlements => Set<ReceivableSettlement>();
 
     public DbSet<FinancialTransaction> FinancialTransactions => Set<FinancialTransaction>();

@@ -35,7 +35,7 @@ public sealed record WriteOffInput(DateOnly Date, string? BackdateReason, uint V
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record ReasonInput(string Reason, uint Version);
 
-public sealed record ReceivableListQuery(string? Q, string? Situation, Guid? PartyId, DateOnly? DueFrom, DateOnly? DueTo);
+public sealed record ReceivableListQuery(string? Q, string? Situation, Guid? PartyId, DateOnly? DueFrom, DateOnly? DueTo, Guid? ContractId = null);
 
 /// <summary>Título para a lista e o detalhe; <c>IsOverdue</c> e <c>IsDueToday</c> são calculados (CA 6 e 7).</summary>
 public sealed record ReceivableDetail(
@@ -66,7 +66,9 @@ public sealed record ReceivableDetail(
     string? CancelReason,
     DateTimeOffset? CancelledAt,
     uint Version,
-    string? ProjectNumber = null);
+    string? ProjectNumber = null,
+    TriggerEvent? TriggerEvent = null,
+    Guid? ContractId = null);
 
 /// <summary>Totais do filtro inteiro (rodapé da lista).</summary>
 public sealed record ReceivableTotals(decimal Open, decimal Overdue);

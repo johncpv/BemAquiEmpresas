@@ -28,6 +28,22 @@ internal sealed class ReceivableConfiguration : IEntityTypeConfiguration<Receiva
         b.HasIndex(e => e.PartyId);
         b.HasIndex(e => e.InstallmentGroupId);
         b.HasIndex(e => new { e.Origin, e.OriginId });
+        b.Property(e => e.TriggerEvent).HasConversion<string>().HasMaxLength(24);
+
+        // Uma parcela por marco do contrato (COM-04b CA 3): a reentrega do ContractSigned para aqui.
+        b.HasIndex(e => e.OriginId).IsUnique().HasFilter("origin = 'Contract'").HasDatabaseName(ReceivableService.ContractMilestoneIndex);
+        b.HasIndex(e => e.ContractId);
+        b.HasIndex(e => e.ProjectId);
+    }
+}
+
+internal sealed class ProjectTriggerEventConfiguration : IEntityTypeConfiguration<ProjectTriggerEvent>
+{
+    public void Configure(EntityTypeBuilder<ProjectTriggerEvent> b)
+    {
+        b.ToTable("project_trigger_events", FinanceSchema.Name);
+        b.Property(e => e.Event).HasConversion<string>().HasMaxLength(24);
+        b.HasIndex(e => new { e.ProjectId, e.Event }).IsUnique().HasDatabaseName(ReceivableService.TriggerEventIndex);
     }
 }
 

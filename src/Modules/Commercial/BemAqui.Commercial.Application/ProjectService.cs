@@ -1,5 +1,6 @@
 using BemAqui.BuildingBlocks.Authorization;
 using BemAqui.BuildingBlocks.Identity;
+using BemAqui.BuildingBlocks.Messaging;
 using BemAqui.Commercial.Contracts;
 using BemAqui.Commercial.Domain;
 using BemAqui.Parties.Contracts;
@@ -12,7 +13,7 @@ namespace BemAqui.Commercial.Application;
 /// Projeto, primeira versão (COM-04a CA 6, 7, 17): cabeçalho e itens; o orçado só com <c>projects.view_cost</c>. Também
 /// implementa <see cref="IProjects"/> e <see cref="IContracts"/> para os outros módulos (CA 21).
 /// </summary>
-public sealed class ProjectService(ICommercialDb db, IParties parties, IUserDirectory users, IPermissionChecker permissions) : IProjects, IContracts
+public sealed partial class ProjectService(ICommercialDb db, IParties parties, IUserDirectory users, IPermissionChecker permissions, IEventPublisher events, TimeProvider clock) : IProjects, IContracts
 {
     public async Task<Result<ProjectDetail>> GetAsync(Guid id, CancellationToken cancellationToken = default)
     {
@@ -22,7 +23,9 @@ public sealed class ProjectService(ICommercialDb db, IParties parties, IUserDire
             return NotFound();
         }
 
-        var contractNumber = await db.Contracts.AsNoTracking().Where(c => c.Id == project.ContractId).Select(c => c.Number).FirstAsync(cancellationToken);
+        var contract = await db.Contracts.AsNoTracking().Where(c => c.Id == project.ContractId).Select(c => new { c.Number, c.Status }).FirstAsync(cancellationToken);
+        var contractNumber = contract.Number;
+        var hasFabrication = await db.ContractMilestones.AnyAsync(m => m.ContractId == project.ContractId && m.TriggerEvent == TriggerEvent.FabricationDone, cancellationToken);
         var items = await db.ProjectItems.AsNoTracking().Where(i => i.ProjectId == id).OrderBy(i => i.Sequence)
             .Select(i => new ProjectItemView(i.Id, i.Sequence, i.Description, i.Quantity, i.ItemId, i.QuoteItemId)).ToListAsync(cancellationToken);
         var party = await parties.FindAsync(project.PartyId, cancellationToken);
@@ -31,7 +34,8 @@ public sealed class ProjectService(ICommercialDb db, IParties parties, IUserDire
         return new ProjectDetail(
             project.Id, project.Number, project.Name, project.Status, project.PartyId, party is null ? string.Empty : party.TradeName ?? party.LegalName, project.ContractId, contractNumber,
             project.SiteAddressId, site is null ? null : $"{site.Street}, {site.Number} — {site.City}/{site.State}", project.PromisedDate, project.ForecastDate, project.Priority,
-            project.ManagerUserId, manager, project.CreatedAt, items, project.Version);
+            project.ManagerUserId, manager, project.CreatedAt, items, project.Version, project.FabricatedOn, project.DeliveredOn, project.DeliveredManually, hasFabrication,
+            contract.Status.ToString());
     }
 
     public async Task<Result<IReadOnlyList<ProjectBudgetLine>>> BudgetAsync(Guid id, CancellationToken cancellationToken = default)

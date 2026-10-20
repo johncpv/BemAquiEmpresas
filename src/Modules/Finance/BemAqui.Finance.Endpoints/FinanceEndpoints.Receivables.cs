@@ -14,8 +14,8 @@ internal static partial class FinanceEndpoints
 {
     private static void MapReceivables(RouteGroupBuilder receivables)
     {
-        receivables.MapGet(string.Empty, async (string? q, string? situation, Guid? partyId, DateOnly? dueFrom, DateOnly? dueTo, int? page, int? pageSize, string? sort, ReceivableService service, CancellationToken ct) =>
-                Results.Ok(await service.ListAsync(new ReceivableListQuery(q, situation, partyId, dueFrom, dueTo), new PageRequest(page ?? 1, pageSize ?? PageRequest.DefaultPageSize, sort).Normalize(), ct)))
+        receivables.MapGet(string.Empty, async (string? q, string? situation, Guid? partyId, DateOnly? dueFrom, DateOnly? dueTo, Guid? contractId, int? page, int? pageSize, string? sort, ReceivableService service, CancellationToken ct) =>
+                Results.Ok(await service.ListAsync(new ReceivableListQuery(q, situation, partyId, dueFrom, dueTo, contractId), new PageRequest(page ?? 1, pageSize ?? PageRequest.DefaultPageSize, sort).Normalize(), ct)))
             .RequirePermission("finance.view").WithName("ListReceivables").Produces<ReceivablePage>();
         receivables.MapGet("/discounts-and-cancellations", async (DateOnly? from, DateOnly? to, ReceivableReports reports, TimeProvider clock, CancellationToken ct) =>
             {

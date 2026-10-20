@@ -59,7 +59,7 @@ public partial class QuoteTests
         contract.GetProperty("totalValue").GetDecimal().Should().Be(after.GetProperty("totalPrice").GetDecimal());
         contract.GetProperty("revenueAccount").GetString().Should().StartWith("1.1");
         contract.GetProperty("milestones").EnumerateArray().Select(m => m.GetProperty("percent").GetDecimal()).Should().Equal(30m, 70m);
-        contract.GetProperty("receivables").GetInt32().Should().Be(0);
+        contract.GetProperty("receivables").GetInt32().Should().BeInRange(0, 2, "o financeiro gera as parcelas pelo outbox (COM-04b)");
         var project = await JsonAsync(await owner.GetAsync($"/api/v1/projects/{projectId}"));
         project.GetProperty("status").GetString().Should().Be("Planned");
         project.GetProperty("promisedDate").GetString().Should().Be(Iso(signed.AddDays(90)));

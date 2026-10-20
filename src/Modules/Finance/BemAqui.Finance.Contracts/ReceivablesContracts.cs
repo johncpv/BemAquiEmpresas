@@ -52,4 +52,13 @@ public interface IFinanceParameters
 public interface IReceivables
 {
     Task<int> CountByOriginAsync(DocumentOrigin origin, Guid originId, CancellationToken cancellationToken = default);
+
+    /// <summary>Parcelas do contrato (COM-04b CA 14 e 16), na ordem do vencimento.</summary>
+    Task<IReadOnlyList<ContractReceivable>> ForContractAsync(Guid contractId, CancellationToken cancellationToken = default);
+
+    /// <summary>Títulos a receber do projeto (COM-05), na ordem do vencimento.</summary>
+    Task<IReadOnlyList<ContractReceivable>> ByProjectAsync(Guid projectId, CancellationToken cancellationToken = default);
 }
+
+/// <summary>Parcela do contrato vista pelo Commercial (COM-04b CA 14 e 16): o marco é o <c>origin_id</c>.</summary>
+public sealed record ContractReceivable(Guid Id, string Number, Guid MilestoneId, ReceivableStatus Status, DateOnly? DueDate, decimal Amount, decimal Balance, bool HasSettlement);

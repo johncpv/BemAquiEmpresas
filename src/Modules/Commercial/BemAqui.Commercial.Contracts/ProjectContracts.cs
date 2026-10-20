@@ -17,7 +17,7 @@ public interface IProjects
 }
 
 /// <summary>Marco do contrato no evento (sem dado pessoal).</summary>
-public sealed record ContractMilestoneInfo(Guid MilestoneId, int Sequence, string Description, decimal Amount, MilestoneTrigger Trigger, TriggerEvent? TriggerEvent, DateOnly? DueDate, int? DaysAfterEvent);
+public sealed record ContractMilestoneInfo(Guid MilestoneId, int Sequence, string Description, decimal Amount, MilestoneTrigger Trigger, TriggerEvent? TriggerEvent, DateOnly? DueDate, int? DaysAfterEvent, decimal Percent = 0);
 
 /// <summary>Orçamento aprovado (COM-04a CA 5).</summary>
 public sealed record QuoteApproved(Guid QuoteId, Guid ContractId) : IIntegrationEvent;
@@ -36,3 +36,39 @@ public enum ContractState
     Completed,
     Cancelled,
 }
+
+/// <summary>Marco do projeto atingido (COM-04b CA 6 a 11): o Finance libera as parcelas com esse gatilho.</summary>
+public interface IProjectMilestoneReached : IIntegrationEvent
+{
+    Guid ProjectId { get; }
+
+    Guid ContractId { get; }
+
+    DateOnly OccurredOn { get; }
+
+    TriggerEvent Event { get; }
+}
+
+/// <summary>Fabricação concluída (COM-04b CA 9: registro manual; PRD-06: automático).</summary>
+public sealed record ProjectFabricated(Guid ProjectId, Guid ContractId, DateOnly OccurredOn) : IProjectMilestoneReached
+{
+    [JsonIgnore]
+    public TriggerEvent Event => TriggerEvent.FabricationDone;
+}
+
+/// <summary>Entrega (COM-04b CA 10: venda sem instalação; COM-06: aceite técnico da OS).</summary>
+public sealed record ProjectDelivered(Guid ProjectId, Guid ContractId, DateOnly OccurredOn) : IProjectMilestoneReached
+{
+    [JsonIgnore]
+    public TriggerEvent Event => TriggerEvent.Delivered;
+}
+
+/// <summary>Aceite técnico (COM-04b CA 10; COM-06).</summary>
+public sealed record TechnicalAcceptance(Guid ProjectId, Guid ContractId, DateOnly OccurredOn) : IProjectMilestoneReached
+{
+    [JsonIgnore]
+    public TriggerEvent Event => TriggerEvent.TechnicalAcceptance;
+}
+
+/// <summary>Contrato cancelado (COM-04b CA 12), sem texto livre (ADR 0019 §19).</summary>
+public sealed record ContractCancelled(Guid ContractId, Guid ProjectId) : IIntegrationEvent;

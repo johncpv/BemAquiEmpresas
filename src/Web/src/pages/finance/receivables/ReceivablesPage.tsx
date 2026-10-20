@@ -11,7 +11,9 @@ import { formatDate } from '@/lib/format'
 import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
 import { FinanceTabs } from '../FinanceTabs'
-import { situation, SITUATION_OPTIONS, today } from './receivables'
+import { Dica } from '@/help/Dica'
+import { DeadLetterBanner } from './DeadLetterBanner'
+import { awaits, RECEIVABLE_DICAS, situation, SITUATION_OPTIONS, today } from './receivables'
 
 const PERIODS = [
   { value: 'ontem', label: 'Venceram ontem' },
@@ -35,8 +37,8 @@ function period(value: string | undefined): { dueFrom?: string; dueTo?: string }
 /** Financeiro → A receber (FIN-01): o que os clientes devem, por vencimento; "Vencido" calculado; totais do filtro no rodapé. */
 export function ReceivablesPage() {
   const [search] = useTableSearch()
-  const { situacao, vencimento, cliente } = useTableFilters(['situacao', 'vencimento', 'cliente'])
-  const query = useListReceivables({ q: search.q, situation: situacao || undefined, partyId: cliente || undefined, ...period(vencimento), page: search.page, pageSize: search.pageSize, sort: search.sort })
+  const { situacao, vencimento, cliente, contrato } = useTableFilters(['situacao', 'vencimento', 'cliente', 'contrato'])
+  const query = useListReceivables({ q: search.q, situation: situacao || undefined, partyId: cliente || undefined, contractId: contrato || undefined, ...period(vencimento), page: search.page, pageSize: search.pageSize, sort: search.sort })
   const table = { ...query, data: query.data?.page }
   const totals = query.data?.totals
 
@@ -47,7 +49,11 @@ export function ReceivablesPage() {
     { id: 'due', header: 'Vencimento', meta: { sortField: 'dueDate' }, cell: ({ row: { original: r } }) => <span className="tabular-nums">{r.dueDate ? formatDate(r.dueDate) : '—'}</span> },
     { id: 'amount', header: 'Valor', meta: { numeric: true, secondary: true, sortField: 'amount' }, cell: ({ row: { original: r } }) => <Money value={r.amount} /> },
     { id: 'balance', header: 'Saldo', meta: { numeric: true }, cell: ({ row: { original: r } }) => <Money value={r.balance} /> },
-    { id: 'status', header: 'Situação', cell: ({ row: { original: r } }) => { const s = situation(r); return <StatusChip tone={s.tone}>{s.label}</StatusChip> } },
+    { id: 'status', header: 'Situação', cell: ({ row: { original: r } }) => {
+      const s = situation(r)
+      const wait = awaits(r)
+      return <span className="flex flex-col items-start gap-0.5"><StatusChip tone={s.tone}>{s.label}</StatusChip>{wait ? <span className="text-xs text-muted-foreground">{wait}</span> : null}</span>
+    } },
   ]
 
   return (
@@ -64,6 +70,13 @@ export function ReceivablesPage() {
         </div>
       </PageHeading>
       <FinanceTabs />
+      <DeadLetterBanner />
+      {contrato ? (
+        <p role="note" className="mb-3 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+          Mostrando as parcelas de um contrato.<Dica nome="Previsto" texto={RECEIVABLE_DICAS.previsto} />
+          <Link to={'/app/financeiro/receber' as never} search={((prev: Record<string, unknown>) => ({ ...prev, contrato: undefined })) as never} className="font-semibold text-primary hover:underline">Ver todos os títulos</Link>
+        </p>
+      ) : null}
       {cliente ? (
         <p role="note" className="mb-3 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
           Mostrando os títulos de um cliente, vindo da Inadimplência.

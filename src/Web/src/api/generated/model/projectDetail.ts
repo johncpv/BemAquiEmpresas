@@ -33,4 +33,12 @@ export interface ProjectDetail {
   createdAt: string;
   items: ProjectItemView[];
   version: number;
+  /** @nullable */
+  fabricatedOn?: string | null;
+  /** @nullable */
+  deliveredOn?: string | null;
+  deliveredManually?: boolean;
+  hasFabricationMilestone?: boolean;
+  /** @nullable */
+  contractStatus?: string | null;
 }

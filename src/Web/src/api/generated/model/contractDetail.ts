@@ -7,6 +7,7 @@
 import type { ContractMilestoneView } from './contractMilestoneView';
 import type { ContractSnapshot } from './contractSnapshot';
 import type { ContractStatus } from './contractStatus';
+import type { ProjectStatus } from './projectStatus';
 
 export interface ContractDetail {
   id: string;
@@ -35,4 +36,11 @@ export interface ContractDetail {
   snapshot: ContractSnapshot;
   receivables: number;
   version: number;
+  /** @nullable */
+  cancelReason?: string | null;
+  /** @nullable */
+  cancelledAt?: string | null;
+  /** @nullable */
+  completedAt?: string | null;
+  projectStatus?: null | ProjectStatus;
 }

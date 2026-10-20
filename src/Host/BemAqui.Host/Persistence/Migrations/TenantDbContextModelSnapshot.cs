@@ -512,6 +512,23 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<string>("CancelReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("cancel_reason");
+
+                    b.Property<DateTimeOffset?>("CancelledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("cancelled_at");
+
+                    b.Property<Guid?>("CancelledBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cancelled_by");
+
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("completed_at");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -647,6 +664,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<DateTimeOffset?>("ClosedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("closed_at");
+
                     b.Property<Guid>("ContractId")
                         .HasColumnType("uuid")
                         .HasColumnName("contract_id");
@@ -654,6 +675,18 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
+
+                    b.Property<bool>("DeliveredManually")
+                        .HasColumnType("boolean")
+                        .HasColumnName("delivered_manually");
+
+                    b.Property<DateOnly?>("DeliveredOn")
+                        .HasColumnType("date")
+                        .HasColumnName("delivered_on");
+
+                    b.Property<DateOnly?>("FabricatedOn")
+                        .HasColumnType("date")
+                        .HasColumnName("fabricated_on");
 
                     b.Property<DateOnly?>("ForecastDate")
                         .HasColumnType("date")
@@ -2261,6 +2294,45 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("payment_terms", "finance");
                 });
 
+            modelBuilder.Entity("BemAqui.Finance.Domain.ProjectTriggerEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ContractId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_id");
+
+                    b.Property<string>("Event")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)")
+                        .HasColumnName("event");
+
+                    b.Property<DateOnly>("OccurredOn")
+                        .HasColumnType("date")
+                        .HasColumnName("occurred_on");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<DateTimeOffset>("ReceivedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("received_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_project_trigger_events");
+
+                    b.HasIndex("ProjectId", "Event")
+                        .IsUnique()
+                        .HasDatabaseName("ux_project_trigger_events_project_event");
+
+                    b.ToTable("project_trigger_events", "finance");
+                });
+
             modelBuilder.Entity("BemAqui.Finance.Domain.Receivable", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2290,6 +2362,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("cancelled_by");
 
+                    b.Property<Guid?>("ContractId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_id");
+
                     b.Property<Guid?>("CostCenterId")
                         .HasColumnType("uuid")
                         .HasColumnName("cost_center_id");
@@ -2301,6 +2377,10 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<Guid?>("CreatedBy")
                         .HasColumnType("uuid")
                         .HasColumnName("created_by");
+
+                    b.Property<int?>("DaysAfterEvent")
+                        .HasColumnType("integer")
+                        .HasColumnName("days_after_event");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -2375,6 +2455,11 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("character varying(16)")
                         .HasColumnName("status");
 
+                    b.Property<string>("TriggerEvent")
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)")
+                        .HasColumnName("trigger_event");
+
                     b.Property<uint>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
@@ -2384,6 +2469,9 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_receivables");
 
+                    b.HasIndex("ContractId")
+                        .HasDatabaseName("ix_receivables_contract_id");
+
                     b.HasIndex("InstallmentGroupId")
                         .HasDatabaseName("ix_receivables_installment_group_id");
 
@@ -2391,8 +2479,16 @@ namespace BemAqui.Host.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_receivables_number");
 
+                    b.HasIndex("OriginId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_receivables_contract_milestone")
+                        .HasFilter("origin = 'Contract'");
+
                     b.HasIndex("PartyId")
                         .HasDatabaseName("ix_receivables_party_id");
+
+                    b.HasIndex("ProjectId")
+                        .HasDatabaseName("ix_receivables_project_id");
 
                     b.HasIndex("Origin", "OriginId")
                         .HasDatabaseName("ix_receivables_origin_origin_id");

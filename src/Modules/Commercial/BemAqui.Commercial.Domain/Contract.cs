@@ -36,6 +36,16 @@ public sealed class Contract : Entity, IAuditable, IConcurrencyVersioned
     [AuditOnCreateOnly]
     public string Snapshot { get; init; } = "{}";
 
+    /// <summary>Motivo do cancelamento (COM-04b CA 12), até 500 caracteres; não vai no evento.</summary>
+    public string? CancelReason { get; set; }
+
+    public DateTimeOffset? CancelledAt { get; set; }
+
+    public Guid? CancelledBy { get; set; }
+
+    /// <summary>Projeto entregue e parcelas quitadas (COM-04b CA 14); volta a nulo se uma baixa for estornada (CA 15).</summary>
+    public DateTimeOffset? CompletedAt { get; set; }
+
     public DateTimeOffset CreatedAt { get; init; }
 
     public Guid? CreatedBy { get; init; }
@@ -100,6 +110,16 @@ public sealed class Project : Entity, IAuditable, IConcurrencyVersioned
     public int? Priority { get; set; }
 
     public Guid? ManagerUserId { get; set; }
+
+    /// <summary>Fabricação concluída (COM-04b CA 9; PRD-06 automático).</summary>
+    public DateOnly? FabricatedOn { get; set; }
+
+    public DateOnly? DeliveredOn { get; set; }
+
+    /// <summary>Entrega registrada à mão, venda sem instalação (COM-04b CA 10, D15).</summary>
+    public bool DeliveredManually { get; set; }
+
+    public DateTimeOffset? ClosedAt { get; set; }
 
     public DateTimeOffset CreatedAt { get; init; }
 
