@@ -5027,6 +5027,160 @@
         }
       }
     },
+    "/api/v1/quotes/{id}/revisions": {
+      "post": {
+        "tags": [
+          "Or\u00E7amentos"
+        ],
+        "operationId": "NewQuoteRevision",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VersionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Or\u00E7amentos"
+        ],
+        "operationId": "ListQuoteRevisions",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/QuoteRevisionSummary"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/quotes/{id}/revisions/{revisionId}": {
+      "get": {
+        "tags": [
+          "Or\u00E7amentos"
+        ],
+        "operationId": "GetQuoteRevision",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "revisionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/quotes/{id}/extend-validity": {
+      "post": {
+        "tags": [
+          "Or\u00E7amentos"
+        ],
+        "operationId": "ExtendQuoteValidity",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExtendValidityInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/quotes/lookups/customers": {
       "get": {
         "tags": [
@@ -13280,6 +13434,23 @@
           }
         }
       },
+      "ExtendValidityInput": {
+        "required": [
+          "validUntil",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "validUntil": {
+            "type": "string",
+            "format": "date"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
       "FieldDifference": {
         "required": [
           "field",
@@ -18268,6 +18439,8 @@
           "validUntil",
           "lostReason",
           "lostDetail",
+          "isCurrent",
+          "parentQuoteId",
           "copiedFromNumber",
           "version"
         ],
@@ -18367,6 +18540,16 @@
               "null",
               "string"
             ]
+          },
+          "isCurrent": {
+            "type": "boolean"
+          },
+          "parentQuoteId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           },
           "copiedFromNumber": {
             "type": [
@@ -18811,11 +18994,63 @@
           "Margin"
         ]
       },
+      "QuoteRevisionSummary": {
+        "required": [
+          "id",
+          "revision",
+          "status",
+          "isCurrent",
+          "createdAt",
+          "createdByName",
+          "totalPrice",
+          "validUntil"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "$ref": "#/components/schemas/QuoteStatus"
+          },
+          "isCurrent": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "totalPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "validUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          }
+        }
+      },
       "QuoteStatus": {
         "enum": [
           "Draft",
           "Sent",
-          "Rejected"
+          "Rejected",
+          "Expired",
+          "Superseded"
         ]
       },
       "QuoteSummary": {
@@ -18893,6 +19128,11 @@
                 "$ref": "#/components/schemas/QuoteLostReason"
               }
             ]
+          },
+          "revisions": {
+            "type": "integer",
+            "format": "int32",
+            "default": 1
           }
         }
       },

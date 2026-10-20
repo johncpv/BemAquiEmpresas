@@ -35,6 +35,9 @@ export interface QuoteDetail {
   lostReason: null | QuoteLostReason;
   /** @nullable */
   lostDetail: string | null;
+  isCurrent: boolean;
+  /** @nullable */
+  parentQuoteId: string | null;
   /** @nullable */
   copiedFromNumber: string | null;
   version: number;

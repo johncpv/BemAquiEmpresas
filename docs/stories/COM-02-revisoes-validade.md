@@ -5,7 +5,7 @@
 | ID | COM-02 |
 | Título | Nova revisão que congela a anterior (`Superseded`), só a revisão mais recente editável e aprovável, prorrogação da validade sem nova revisão, job diário que expira orçamentos vencidos, alerta de vencimento, reabertura por nova revisão e comparação lado a lado |
 | Tamanho | M |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-COML-3 (revisões versionadas com histórico e comparação) · R-COML-4 (alerta de vencimento e status automático "expirado") · R-COM-2 (notificação) · R-PRP-5 |
 | Dependências | COM-01a (índices de número com revisão já criados, ADR 0016 adendo M7), COM-01b; FND-09e (`dedup_key`, concorrência); Fase 0 (FND-07 `TenantJob`, notificações) |
 | Bloqueia | COM-03 (PDF por revisão), COM-04a (aprova só a mais recente), COM-08 |
@@ -85,21 +85,21 @@ Decididos pelo PO em 20/10/2026 (seção 1.1, item 22, e D16):
 5. P-18 decidida (ADR 0021).
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
-- [ ] Migration criada (não destrutiva).
-- [ ] Permissões só do `ModuleCatalog`; job registrado.
-- [ ] Telas com estados.
-- [ ] Ajuda da aba, da comparação e da prorrogação; teste de cobertura passando.
-- [ ] Alertas acionáveis e próximos passos.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
+- [x] Migration criada (não destrutiva).
+- [x] Permissões só do `ModuleCatalog`; job registrado.
+- [x] Telas com estados.
+- [x] Ajuda da aba, da comparação e da prorrogação; teste de cobertura passando.
+- [x] Alertas acionáveis e próximos passos.
+- [x] Auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] Casos de uso `CreateQuoteRevision` (cópia profunda), `ReopenExpiredQuote` e `ExtendQuoteValidity`.
-- [ ] `ExpireQuotesJob` e o recorrente global.
-- [ ] `QuoteDiff` (Domain) e a tela de comparação.
+- [x] Casos de uso `CreateQuoteRevision` (cópia profunda), `ReopenExpiredQuote` e `ExtendQuoteValidity`.
+- [x] `ExpireQuotesJob` e o recorrente global.
+- [x] `QuoteDiff` (Domain) e a tela de comparação.
 
 ## Quality gates
 - Agentes previstos: @dev, @qa.
@@ -133,3 +133,4 @@ Checklist do @po (Pax), 20/10/2026 (revalidação depois das decisões do PO e d
 | 19/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 20/10/2026 | 0.3 | Decisões do PO (D7, D16, seção 1.1) e correções da revisão pré-Fase 2 (§2.1-C2, M7, M8, §2.3); CAs renumerados | River (SM) |
 | 20/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 20/10/2026 | 1.0 | Implementada. Desvios: a comparação é montada na tela com as duas revisões (`GET /quotes/{id}/revisions/{revId}`, que confere o mesmo número) e a margem vem por `/quotes/costs`, sem rota de comparação no servidor; o aviso de vencimento sai para orçamentos que vencem em até 3 dias (de hoje ao terceiro dia), uma vez por data de validade; a nova revisão grava primeiro a saída da anterior de corrente e depois a nova, na mesma transação, por causa do índice parcial; `QuoteExpired` publicado no outbox | @dev |

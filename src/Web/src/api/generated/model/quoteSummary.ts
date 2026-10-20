@@ -23,4 +23,5 @@ export interface QuoteSummary {
   /** @nullable */
   validUntil: string | null;
   lostReason: null | QuoteLostReason;
+  revisions?: number;
 }

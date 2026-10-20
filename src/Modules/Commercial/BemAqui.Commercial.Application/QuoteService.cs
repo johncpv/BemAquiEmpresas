@@ -23,7 +23,7 @@ namespace BemAqui.Commercial.Application;
 public sealed partial class QuoteService(
     ICommercialDb db, IParties parties, IItems items, IHourlyCost hourlyCost, IPositions positions, IWorkCenters workCenters, ITenantParameters tenantParameters,
     ICommercialParameters commercialParameters, INumberSequence numbers, IPermissionChecker permissions, ICurrentUser currentUser, IPaymentTerms paymentTerms, IEventPublisher events,
-    TimeProvider clock)
+    IUserDirectory users, TimeProvider clock)
 {
     public const string DocType = "ORC";
 
@@ -36,6 +36,7 @@ public sealed partial class QuoteService(
             "rascunho" => quotes.Where(x => x.Status == QuoteStatus.Draft),
             "enviado" => quotes.Where(x => x.Status == QuoteStatus.Sent),
             "perdido" => quotes.Where(x => x.Status == QuoteStatus.Rejected),
+            "expirado" => quotes.Where(x => x.Status == QuoteStatus.Expired),
             _ => quotes,
         };
         if (!string.IsNullOrWhiteSpace(q))
@@ -47,12 +48,12 @@ public sealed partial class QuoteService(
 
         var total = await quotes.CountAsync(cancellationToken);
         var rows = await quotes.OrderByDescending(x => x.CreatedAt).Skip(page.Skip).Take(page.PageSize)
-            .Select(x => new { Quote = x, Main = db.QuoteItems.Where(i => i.QuoteId == x.Id).OrderBy(i => i.Sequence).Select(i => i.Description).FirstOrDefault() })
+            .Select(x => new { Quote = x, Main = db.QuoteItems.Where(i => i.QuoteId == x.Id).OrderBy(i => i.Sequence).Select(i => i.Description).FirstOrDefault(), Revisions = db.Quotes.Count(o => o.Number == x.Number) })
             .ToListAsync(cancellationToken);
         var names = await NamesAsync(rows.Select(r => r.Quote.PartyId), cancellationToken);
         return new QuotePage(
             rows.Select(r => new QuoteSummary(r.Quote.Id, r.Quote.Number, r.Quote.Revision, r.Quote.Status, r.Quote.PartyId, names.GetValueOrDefault(r.Quote.PartyId, string.Empty), r.Main,
-                r.Quote.TotalPrice, r.Quote.SentAt, r.Quote.CreatedAt, r.Quote.ValidUntil, r.Quote.LostReason)).ToList(),
+                r.Quote.TotalPrice, r.Quote.SentAt, r.Quote.CreatedAt, r.Quote.ValidUntil, r.Quote.LostReason, r.Revisions)).ToList(),
             page.Page, page.PageSize, total);
     }
 
@@ -73,6 +74,7 @@ public sealed partial class QuoteService(
             lines.Select(l => new QuoteItemView(l.Id, l.Sequence, l.Kind, l.ItemId, l.ItemId is { } i ? itemNames.GetValueOrDefault(i) : null, l.Description, l.Quantity, l.UnitPrice,
                 l.PriceOverridden, QuotePricing.Money(l.Quantity * l.UnitPrice))).ToList(),
             quote.TotalPrice, quote.SentAt, quote.CreatedAt, quote.ValidUntil, quote.LostReason, quote.LostDetail,
+            quote.IsCurrent, quote.ParentQuoteId,
             quote.CopiedFromQuoteId is { } from ? await db.Quotes.IgnoreQueryFilters().Where(x => x.Id == from).Select(x => x.Number).FirstOrDefaultAsync(ct) : null, quote.Version);
     }
 
@@ -93,6 +95,11 @@ public sealed partial class QuoteService(
         if (quote is null)
         {
             return NotFound();
+        }
+
+        if (!quote.IsCurrent)
+        {
+            return NotCurrent();
         }
 
         if (quote.Status == QuoteStatus.Rejected)

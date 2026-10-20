@@ -536,6 +536,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("delivery_days");
 
+                    b.Property<DateTimeOffset?>("ExpiredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expired_at");
+
                     b.Property<bool>("IsCurrent")
                         .HasColumnType("boolean")
                         .HasColumnName("is_current");
@@ -577,6 +581,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
                         .HasColumnName("number");
+
+                    b.Property<Guid?>("ParentQuoteId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("parent_quote_id");
 
                     b.Property<Guid>("PartyId")
                         .HasColumnType("uuid")

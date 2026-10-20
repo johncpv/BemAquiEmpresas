@@ -18,6 +18,7 @@ public static class CommercialInfrastructure
         services.TryAddSingleton(TimeProvider.System);
         services.TryAddScoped<QuoteService>();
         services.TryAddScoped<QuoteLookups>();
+        services.TryAddScoped<QuoteExpiry>();
         services.TryAddScoped<CommercialParametersService>();
         services.TryAddScoped<ICommercialParameters>(sp => sp.GetRequiredService<CommercialParametersService>());
         services.TryAddScoped<CommercialUsage>();
