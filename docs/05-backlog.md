@@ -234,7 +234,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-2--comercial-proj
 - Requisitos: R-COML-7, R-PRJ-6, R-FIN-3, R-COM-2, R-PRP-5, R-PRP-7.
 - CA: marcos por data = `Open`, por evento = `Planned`, criados pelo Finance ao receber `ContractSigned`, idempotente; registro de gatilhos para eventos fora de ordem; evento do marco libera a parcela com vencimento = data do evento + prazo; "fabricação concluída" e "entrega" (venda sem instalação, D15) registradas à mão; cancelar contrato cancela os recebíveis sem baixa; contrato concluído quando tudo é quitado e reaberto por estorno.
 
-**COM-04c [ ] Contrato de implantação (P)** — 2.3, ordem 14 — nova (D3) — [story](stories/COM-04c-contrato-de-implantacao.md)
+**COM-04c [x] Contrato de implantação (P)** — 2.3, ordem 14 — nova (D3) — [story](stories/COM-04c-contrato-de-implantacao.md)
 - Requisitos: R-COML-7, R-PRJ-1, R-PRJ-6, R-FIN-3, R-PRP-3, R-PRP-7.
 - CA: contrato já em andamento aprovado com data de assinatura e marcos no passado; marco "Recebido antes da implantação" não gera título e só vale até a data de corte; eventos já ocorridos registrados com a data real.
 

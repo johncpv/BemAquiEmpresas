@@ -43,4 +43,5 @@ export interface ContractDetail {
   /** @nullable */
   completedAt?: string | null;
   projectStatus?: null | ProjectStatus;
+  isOnboarding?: boolean;
 }

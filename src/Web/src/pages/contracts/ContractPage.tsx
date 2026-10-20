@@ -5,6 +5,7 @@ import { RecordHistory } from '@/components/history/RecordHistory'
 import { Money } from '@/components/ui/money'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
+import { Tag } from '@/components/ui/tag'
 import { UrlTabs } from '@/components/ui/url-tabs'
 import { Dica } from '@/help/Dica'
 import { formatDate } from '@/lib/format'
@@ -33,6 +34,7 @@ export function ContractPage() {
       <PageHeading title={`${c.number} — ${c.partyName}`}>
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <StatusChip tone={CONTRACT_STATUS[c.status]?.tone ?? 'neutral'}>{CONTRACT_STATUS[c.status]?.label ?? c.status}</StatusChip>
+          {c.isOnboarding ? <Tag>Implantação</Tag> : null}
           {c.projectId ? <Link to={'/app/projetos/$id' as never} params={{ id: c.projectId } as never} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Ver projeto {c.projectNumber}</Link> : null}
           {cancellable ? <CancelContractDialog contract={c} onDone={() => client.invalidateQueries({ queryKey: getGetContractQueryKey(id) })} /> : null}
         </div>

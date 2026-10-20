@@ -5,7 +5,7 @@
 | ID | COM-04c |
 | Título | "Aprovar como contrato de implantação" para os contratos que já estavam em andamento antes do BemAqui: data de assinatura no passado, marcos com data no passado e a marca "Recebido antes da implantação" (sem gerar título), com os eventos já ocorridos registrados com a data real |
 | Tamanho | P (nova, decisão D3 da revisão pré-Fase 2) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-COML-7 (contrato e parcelas) · R-PRJ-1 · R-PRJ-6 · R-FIN-3 · R-PRP-3 (nada digitado duas vezes) · R-PRP-7 |
 | Dependências | COM-04a (aprovação, contrato, data de assinatura editável), COM-04b (consumidor do `ContractSigned`, registro de gatilhos, registro manual de fabricação e de entrega), FIN-00 (data de corte) |
 | Bloqueia | Uso real dos contratos em andamento na homologação (ADR 0020) |
@@ -62,16 +62,16 @@ Como **proprietário**, quero **registrar no sistema os contratos que já estava
 Nenhum. Decidido pelo PO em 20/10/2026 (D3); a forma (story própria) foi decidida pelo SM pelo tamanho da COM-04a.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers) e E2E passando.
-- [ ] Migration criada (não destrutiva).
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Diálogo com estados.
-- [ ] Ajuda atualizada; teste de cobertura passando.
-- [ ] Padrão preenchido (marcos antes da data de corte) e confirmação com impacto.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers) e E2E passando.
+- [x] Migration criada (não destrutiva).
+- [x] Permissões só do `ModuleCatalog`.
+- [x] Diálogo com estados.
+- [x] Ajuda atualizada; teste de cobertura passando.
+- [x] Padrão preenchido (marcos antes da data de corte) e confirmação com impacto.
+- [x] Auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
 - [ ] Modo de implantação no `ApproveQuoteHandler` e no diálogo.
@@ -107,3 +107,4 @@ Checklist do @po (Pax), 20/10/2026.
 |---|---|---|---|
 | 20/10/2026 | 0.1 | Story nova (D3 da revisão pré-Fase 2; quebra decidida pelo SM) | River (SM) |
 | 20/10/2026 | 0.2 | Validação do PO: 10/10, `Ready` | Pax (PO) |
+| 20/10/2026 | 1.0 | Implementada. Desvios: a data de corte vem do Finance por `IFinancialOpening` (contrato novo); "recebido antes" é conferido contra a data de corte só no marco por data e no marco na assinatura (os de outro evento não têm data na aprovação e são aceitos); a conclusão conta os marcos recebidos antes como quitados comparando o número de parcelas com o de marcos sem a marca; a notificação ao Proprietário sai na mesma transação da aprovação; o `IReceivables.ForContractAsync` não devolve os recebidos antes (o contrato mostra a marca pelo próprio marco) | @dev |

@@ -17,7 +17,7 @@ namespace BemAqui.Commercial.Application;
 /// </summary>
 public sealed partial class QuoteApprovalService(
     ICommercialDb db, QuoteService quotes, IParties parties, IChartOfAccounts chart, INumberSequence numbers, IPermissionChecker permissions, ICurrentUser currentUser,
-    IEventPublisher events, TimeProvider clock)
+    IEventPublisher events, IFinancialOpening opening, IUserDirectory users, BemAqui.BuildingBlocks.Notifications.INotificationService notifications, TimeProvider clock)
 {
     private static readonly string[] SuggestedAccounts = ["1.1", "1.9"];
 
@@ -35,8 +35,9 @@ public sealed partial class QuoteApprovalService(
         var suggested = SuggestedAccounts.Select(code => accounts.FirstOrDefault(a => a.Code == code && a.IsActive)).FirstOrDefault(a => a is not null);
         return new ApprovalPreview(
             await PreconditionsAsync(quote, conditions, cancellationToken), quote.TotalPrice, detail.Items.Count, quote.DeliveryDays,
-            conditions.Milestones.Select(m => new ApprovalMilestone(m.Description, m.Percent, m.Amount, When(m))).ToList(),
-            accounts.Where(a => a.IsActive).Select(a => new ApprovalAccount(a.Id, $"{a.Code} {a.Name}")).ToList(), suggested?.Id, await ProjectNameAsync(quote, detail, cancellationToken));
+            conditions.Milestones.Select(m => new ApprovalMilestone(m.Description, m.Percent, m.Amount, When(m), m.Id, m.Trigger, m.TriggerEvent, m.DueDate, m.DaysAfterEvent)).ToList(),
+            accounts.Where(a => a.IsActive).Select(a => new ApprovalAccount(a.Id, $"{a.Code} {a.Name}")).ToList(), suggested?.Id, await ProjectNameAsync(quote, detail, cancellationToken),
+            await opening.StatusAsync(cancellationToken) is var status ? new ApprovalOnboarding(status.CutoverDate, status.CompletedAt) : null);
     }
 
     /// <summary>Itens de atenção para quem vê custo (CA 3): margem negativa e preço digitado à mão; não bloqueia.</summary>

@@ -6,6 +6,7 @@ import { Money } from '@/components/ui/money'
 import { StageIndicator } from '@/components/ui/stage-indicator'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
+import { Tag } from '@/components/ui/tag'
 import { UrlTabs } from '@/components/ui/url-tabs'
 import { formatDate } from '@/lib/format'
 import { useCan } from '@/pages/use-can'
@@ -41,6 +42,7 @@ export function ProjectPage() {
     <>
       <PageHeading title={`${p.number} — ${p.name}`}>
         <div className="mt-2 flex flex-wrap items-center gap-3">
+          {p.isOnboarding ? <Tag>Implantação</Tag> : null}
           {stage < 0 ? <StatusChip tone="neutral">Cancelado</StatusChip> : <StageIndicator stages={PROJECT_STAGES} letters={PROJECT_LETTERS} current={stage} showLabel />}
           <Link to={'/app/contratos/$id' as never} params={{ id: p.contractId } as never} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Ver contrato {p.contractNumber}</Link>
           {canFabricate ? <ProjectEventDialog project={p} kind="fabrication" onDone={refresh} /> : null}

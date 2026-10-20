@@ -4,9 +4,13 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { OnboardingMilestoneInput } from './onboardingMilestoneInput';
 
 export interface ApproveInput {
   signedAt: string;
   revenueAccountId: string;
   version: number;
+  isOnboarding?: boolean;
+  /** @nullable */
+  milestones?: OnboardingMilestoneInput[] | null;
 }

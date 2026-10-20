@@ -111,3 +111,30 @@ test.describe('Parcelas e marcos do contrato (COM-04b)', () => {
     await expect(page.getByRole('list', { name: 'Marcos do contrato' }).getByText('vence 30/10/2026', { exact: false })).toBeVisible()
   })
 })
+
+test.describe('Contrato de implantação (COM-04c)', () => {
+  test('marca implantação, pré-marca o recebido antes do corte e envia no corpo', async ({ page }) => {
+    const approved: { body?: unknown } = {}
+    const onboardingPreview = {
+      ...preview, onboarding: { cutoverDate: '2026-09-30', completedAt: null },
+      milestones: [
+        { id: 'qm1', description: 'Sinal', percent: 30, amount: 30000, when: 'na assinatura do contrato', trigger: 'Event', triggerEvent: 'Signature', dueDate: null, daysAfterEvent: 0 },
+        { id: 'qm2', description: 'Entrega', percent: 70, amount: 70000, when: '10 dias após entrega', trigger: 'Event', triggerEvent: 'Delivered', dueDate: null, daysAfterEvent: 10 },
+      ],
+    }
+    await mockApi(page, { ...routes(approved), 'GET /api/v1/quotes/q1/approval': (r: Route) => json(r, onboardingPreview) })
+    await page.goto('/app/orcamentos/q1')
+    await page.getByRole('button', { name: 'Aprovar e gerar contrato' }).click()
+    const dialog = page.getByRole('alertdialog')
+    const signed = dialog.getByRole('textbox').first()
+    await signed.fill('')
+    await signed.pressSequentially('01082026')
+    await dialog.getByRole('checkbox', { name: 'Contrato de implantação (já estava em andamento)' }).check()
+    const list = dialog.getByRole('list', { name: 'Marcos da implantação' })
+    await expect(list.getByRole('checkbox').first()).toBeChecked()
+    await expect(list.getByRole('checkbox').nth(1)).not.toBeChecked()
+    await dialog.getByRole('button', { name: 'Aprovar e gerar contrato' }).click()
+    await expect(page.getByText('Aprovado: contrato e projeto criados. Gerando as parcelas…')).toBeVisible()
+    expect(approved.body).toMatchObject({ isOnboarding: true, signedAt: '2026-08-01', milestones: [{ milestoneId: 'qm1', receivedBefore: true }, { milestoneId: 'qm2', receivedBefore: false }] })
+  })
+})

@@ -53,8 +53,10 @@ public sealed class ContractCompletionConsumer(ICommercialDb db, IReceivables re
             return;
         }
 
+        // Marco recebido antes da implantação conta como quitado (COM-04c CA 5); os demais precisam do título pago ou cancelado.
         var parcels = await receivables.ForContractAsync(contract.Id, ct);
-        if (parcels.Count == 0 || parcels.Any(p => p.Status is not (ReceivableStatus.Paid or ReceivableStatus.Cancelled)))
+        var expected = await db.ContractMilestones.CountAsync(m => m.ContractId == contract.Id && !m.ReceivedBeforeOnboarding, ct);
+        if (parcels.Count < expected || parcels.Any(p => p.Status is not (ReceivableStatus.Paid or ReceivableStatus.Cancelled)))
         {
             return;
         }

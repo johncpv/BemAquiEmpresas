@@ -54,7 +54,7 @@ export function ContractItems({ contract }: { contract: ContractDetail }) {
                 <StatusChip tone={situation({ status: m.receivable.status as never, isOverdue: false, isDueToday: false }).tone}>{situation({ status: m.receivable.status as never, isOverdue: false, isDueToday: false }).label}</StatusChip>
                 <span className="tabular-nums text-muted-foreground">{m.receivable.dueDate ? `vence ${formatDate(m.receivable.dueDate)}` : 'aguarda o marco'} · saldo <Money value={m.receivable.balance} /></span>
               </p>
-            ) : m.hasReceivable ? <p className="text-xs text-muted-foreground">Parcela gerada</p> : null}
+            ) : m.receivedBeforeOnboarding ? <p className="text-xs text-muted-foreground">Recebido antes da implantação</p> : m.hasReceivable ? <p className="text-xs text-muted-foreground">Parcela gerada</p> : null}
           </li>
         ))}
       </ul>

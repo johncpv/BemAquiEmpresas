@@ -4,10 +4,19 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { MilestoneTrigger } from './milestoneTrigger';
+import type { TriggerEvent } from './triggerEvent';
 
 export interface ApprovalMilestone {
   description: string;
   percent: number;
   amount: number;
   when: string;
+  id: string;
+  trigger: MilestoneTrigger;
+  triggerEvent: null | TriggerEvent;
+  /** @nullable */
+  dueDate: string | null;
+  /** @nullable */
+  daysAfterEvent: number | null;
 }

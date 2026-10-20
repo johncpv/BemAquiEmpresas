@@ -3,7 +3,9 @@ namespace BemAqui.Commercial.Application;
 /// <summary>Pré-condição da aprovação (COM-04a CA 1): o que falta e em qual aba corrigir.</summary>
 public sealed record ApprovalPrecondition(bool Ok, string Text, string? FixTab);
 
-public sealed record ApprovalMilestone(string Description, decimal Percent, decimal Amount, string When);
+public sealed record ApprovalMilestone(
+    string Description, decimal Percent, decimal Amount, string When, Guid Id, SharedKernel.MilestoneTrigger Trigger, SharedKernel.TriggerEvent? TriggerEvent, DateOnly? DueDate,
+    int? DaysAfterEvent);
 
 public sealed record ApprovalAccount(Guid Id, string Label);
 
@@ -13,10 +15,10 @@ public sealed record ApprovalAlert(int Sequence, string Description, bool BelowC
 /// <summary>Diálogo "Aprovar e gerar contrato" (CA 1 a 3): pré-condições, o que vai ser criado, data e conta sugeridas.</summary>
 public sealed record ApprovalPreview(
     IReadOnlyList<ApprovalPrecondition> Preconditions, decimal TotalValue, int Items, int? DeliveryDays, IReadOnlyList<ApprovalMilestone> Milestones,
-    IReadOnlyList<ApprovalAccount> RevenueAccounts, Guid? SuggestedRevenueAccountId, string ProjectName);
+    IReadOnlyList<ApprovalAccount> RevenueAccounts, Guid? SuggestedRevenueAccountId, string ProjectName, ApprovalOnboarding? Onboarding = null);
 
 public sealed record ApprovalCostView(decimal? MarginPct, IReadOnlyList<ApprovalAlert> Alerts);
 
-public sealed record ApproveInput(DateOnly SignedAt, Guid RevenueAccountId, uint Version);
+public sealed record ApproveInput(DateOnly SignedAt, Guid RevenueAccountId, uint Version, bool IsOnboarding = false, IReadOnlyList<OnboardingMilestoneInput>? Milestones = null);
 
 public sealed record ApprovalResult(Guid ContractId, string ContractNumber, Guid ProjectId, string ProjectNumber);

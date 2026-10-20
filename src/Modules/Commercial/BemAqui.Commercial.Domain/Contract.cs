@@ -36,6 +36,9 @@ public sealed class Contract : Entity, IAuditable, IConcurrencyVersioned
     [AuditOnCreateOnly]
     public string Snapshot { get; init; } = "{}";
 
+    /// <summary>Contrato que já estava em andamento antes do sistema (COM-04c).</summary>
+    public bool IsOnboarding { get; init; }
+
     /// <summary>Motivo do cancelamento (COM-04b CA 12), até 500 caracteres; não vai no evento.</summary>
     public string? CancelReason { get; set; }
 
@@ -73,6 +76,9 @@ public sealed class ContractMilestone : Entity, IAuditable
     public DateOnly? DueDate { get; init; }
 
     public int? DaysAfterEvent { get; init; }
+
+    /// <summary>Recebido antes da implantação (COM-04c CA 2): o valor já está no saldo de corte; não gera título.</summary>
+    public bool ReceivedBeforeOnboarding { get; init; }
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter<ProjectStatus>))]

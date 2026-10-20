@@ -22,4 +22,5 @@ export interface ContractMilestoneView {
   daysAfterEvent: number | null;
   hasReceivable?: boolean;
   receivable?: null | MilestoneReceivable;
+  receivedBeforeOnboarding?: boolean;
 }

@@ -537,6 +537,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("created_by");
 
+                    b.Property<bool>("IsOnboarding")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_onboarding");
+
                     b.Property<string>("Number")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -632,6 +636,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasPrecision(7, 4)
                         .HasColumnType("numeric(7,4)")
                         .HasColumnName("percent");
+
+                    b.Property<bool>("ReceivedBeforeOnboarding")
+                        .HasColumnType("boolean")
+                        .HasColumnName("received_before_onboarding");
 
                     b.Property<int>("Sequence")
                         .HasColumnType("integer")

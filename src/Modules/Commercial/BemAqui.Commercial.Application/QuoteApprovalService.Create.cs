@@ -8,7 +8,8 @@ namespace BemAqui.Commercial.Application;
 public sealed partial class QuoteApprovalService
 {
     /// <summary>Contrato, marcos, projeto, itens, orçado e eventos (CA 5 a 8), no contexto da transação aberta.</summary>
-    private async Task<(Contract Contract, Project Project)> CreateAsync(Quote quote, ApproveInput input, string projectName, DateTimeOffset now, CancellationToken ct)
+    private async Task<(Contract Contract, Project Project)> CreateAsync(
+        Quote quote, ApproveInput input, Dictionary<Guid, OnboardingMilestoneInput> onboarding, string projectName, DateTimeOffset now, CancellationToken ct)
     {
         var items = await db.QuoteItems.AsNoTracking().Where(i => i.QuoteId == quote.Id).OrderBy(i => i.Sequence).ToListAsync(ct);
         var itemIds = items.Select(i => i.Id).ToList();
@@ -20,13 +21,14 @@ public sealed partial class QuoteApprovalService
         var contract = new Contract
         {
             Number = await numbers.NextAsync(ContractDocType, ct), QuoteId = quote.Id, PartyId = quote.PartyId, SignedAt = input.SignedAt, TotalValue = quote.TotalPrice,
-            RevenueAccountId = input.RevenueAccountId, Snapshot = ContractSnapshots.Serialize(quote, partyName, items, costs, milestones), CreatedAt = now, CreatedBy = currentUser.UserId,
+            RevenueAccountId = input.RevenueAccountId, Snapshot = ContractSnapshots.Serialize(quote, partyName, items, costs, milestones, input.IsOnboarding, onboarding), CreatedAt = now, CreatedBy = currentUser.UserId,
+            IsOnboarding = input.IsOnboarding,
         };
         db.Contracts.Add(contract);
         var contractMilestones = milestones.Select(m => new ContractMilestone
         {
             ContractId = contract.Id, Sequence = m.Sequence, Description = m.Description, Percent = m.Percent, Amount = m.Amount, Trigger = m.Trigger, TriggerEvent = m.TriggerEvent,
-            DueDate = m.DueDate, DaysAfterEvent = m.DaysAfterEvent,
+            DueDate = onboarding.GetValueOrDefault(m.Id)?.DueDate ?? m.DueDate, DaysAfterEvent = m.DaysAfterEvent, ReceivedBeforeOnboarding = onboarding.GetValueOrDefault(m.Id)?.ReceivedBefore ?? false,
         }).ToList();
         db.ContractMilestones.AddRange(contractMilestones);
 
@@ -45,13 +47,32 @@ public sealed partial class QuoteApprovalService
 
         events.Publish(new QuoteApproved(quote.Id, contract.Id));
         events.Publish(new ContractSigned(contract.Id, project.Id, contract.PartyId, contract.SignedAt, contract.TotalValue, contract.RevenueAccountId,
-            contractMilestones.Select(m => new ContractMilestoneInfo(m.Id, m.Sequence, m.Description, m.Amount, m.Trigger, m.TriggerEvent, m.DueDate, m.DaysAfterEvent, m.Percent)).ToList()));
+            contractMilestones.Select(m => new ContractMilestoneInfo(m.Id, m.Sequence, m.Description, m.Amount, m.Trigger, m.TriggerEvent, m.DueDate, m.DaysAfterEvent, m.Percent, m.ReceivedBeforeOnboarding)).ToList(),
+            contract.IsOnboarding));
         foreach (var item in projectItems)
         {
             events.Publish(new ProjectItemCreated(project.Id, item.Id, item.QuoteItemId, item.ItemId, item.Quantity));
         }
 
         return (contract, project);
+    }
+
+    /// <summary>Contrato de implantação (COM-04c CA 6): o Proprietário é avisado com os marcos recebidos antes.</summary>
+    private async Task NotifyOnboardingAsync(Contract contract, CancellationToken ct)
+    {
+        if (!contract.IsOnboarding)
+        {
+            return;
+        }
+
+        var received = db.ContractMilestones.Local.Where(m => m.ContractId == contract.Id && m.ReceivedBeforeOnboarding).ToList();
+        var who = currentUser.UserId is { } me ? await users.DisplayNameAsync(me, ct) ?? "um usuário" : "o sistema";
+        var total = received.Sum(m => m.Amount).ToString("C2", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"));
+        var title = $"Contrato de implantação {contract.Number} com {received.Count} {(received.Count == 1 ? "marco recebido" : "marcos recebidos")} antes ({total}), por {who}.";
+        foreach (var owner in await users.OwnerIdsAsync(ct))
+        {
+            notifications.Notify(owner, "commercial.onboarding_contract", title, "/app/contratos/" + contract.Id);
+        }
     }
 
     /// <summary>
