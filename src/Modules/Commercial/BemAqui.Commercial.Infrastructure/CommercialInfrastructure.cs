@@ -27,6 +27,7 @@ public static class CommercialInfrastructure
         services.AddAuditableEntity<Quote>("quotes");
         services.AddAuditableEntity<QuoteItem>("quotes");
         services.AddAuditableEntity<QuoteItemCost>("quotes", "view_cost");
+        services.AddAuditableEntity<QuoteMilestone>("quotes");
         services.AddAuditableEntity<CommercialParameter>("settings");
         return services;
     }

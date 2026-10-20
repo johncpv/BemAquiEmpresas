@@ -1,5 +1,7 @@
 using BemAqui.BuildingBlocks.Authorization;
 using BemAqui.BuildingBlocks.Identity;
+using BemAqui.BuildingBlocks.Messaging;
+using BemAqui.Finance.Contracts;
 using BemAqui.BuildingBlocks.Paging;
 using BemAqui.BuildingBlocks.Persistence.Numbering;
 using BemAqui.Commercial.Contracts;
@@ -20,7 +22,8 @@ namespace BemAqui.Commercial.Application;
 /// </summary>
 public sealed partial class QuoteService(
     ICommercialDb db, IParties parties, IItems items, IHourlyCost hourlyCost, IPositions positions, IWorkCenters workCenters, ITenantParameters tenantParameters,
-    ICommercialParameters commercialParameters, INumberSequence numbers, IPermissionChecker permissions, ICurrentUser currentUser, TimeProvider clock)
+    ICommercialParameters commercialParameters, INumberSequence numbers, IPermissionChecker permissions, ICurrentUser currentUser, IPaymentTerms paymentTerms, IEventPublisher events,
+    TimeProvider clock)
 {
     public const string DocType = "ORC";
 
@@ -32,6 +35,7 @@ public sealed partial class QuoteService(
         {
             "rascunho" => quotes.Where(x => x.Status == QuoteStatus.Draft),
             "enviado" => quotes.Where(x => x.Status == QuoteStatus.Sent),
+            "perdido" => quotes.Where(x => x.Status == QuoteStatus.Rejected),
             _ => quotes,
         };
         if (!string.IsNullOrWhiteSpace(q))
@@ -48,7 +52,7 @@ public sealed partial class QuoteService(
         var names = await NamesAsync(rows.Select(r => r.Quote.PartyId), cancellationToken);
         return new QuotePage(
             rows.Select(r => new QuoteSummary(r.Quote.Id, r.Quote.Number, r.Quote.Revision, r.Quote.Status, r.Quote.PartyId, names.GetValueOrDefault(r.Quote.PartyId, string.Empty), r.Main,
-                r.Quote.TotalPrice, r.Quote.SentAt, r.Quote.CreatedAt)).ToList(),
+                r.Quote.TotalPrice, r.Quote.SentAt, r.Quote.CreatedAt, r.Quote.ValidUntil, r.Quote.LostReason)).ToList(),
             page.Page, page.PageSize, total);
     }
 
@@ -68,7 +72,8 @@ public sealed partial class QuoteService(
             quote.DeliveryDays, quote.Notes, quote.PricingMode,
             lines.Select(l => new QuoteItemView(l.Id, l.Sequence, l.Kind, l.ItemId, l.ItemId is { } i ? itemNames.GetValueOrDefault(i) : null, l.Description, l.Quantity, l.UnitPrice,
                 l.PriceOverridden, QuotePricing.Money(l.Quantity * l.UnitPrice))).ToList(),
-            quote.TotalPrice, quote.SentAt, quote.CreatedAt, quote.Version);
+            quote.TotalPrice, quote.SentAt, quote.CreatedAt, quote.ValidUntil, quote.LostReason, quote.LostDetail,
+            quote.CopiedFromQuoteId is { } from ? await db.Quotes.IgnoreQueryFilters().Where(x => x.Id == from).Select(x => x.Number).FirstOrDefaultAsync(ct) : null, quote.Version);
     }
 
     /// <summary>Refaz custo, preço e margem do orçamento com as fórmulas do CA 15 (o servidor grava, o front só mostra).</summary>
@@ -78,6 +83,7 @@ public sealed partial class QuoteService(
         await db.QuoteItems.Where(i => i.QuoteId == quote.Id).LoadAsync(ct);
         var all = db.QuoteItems.Local.Where(i => i.QuoteId == quote.Id && db.Entry(i).State != EntityState.Deleted).ToList();
         (quote.TotalCost, quote.TotalPrice, quote.MarginPct) = QuotePricing.Totals(all.Select(i => (i.Quantity, i.UnitCost, i.UnitPrice)));
+        await RecalculateMilestonesAsync(quote, ct);
     }
 
     /// <summary>Rascunho editável, na versão que o usuário abriu (CA 17 e 21).</summary>
@@ -87,6 +93,11 @@ public sealed partial class QuoteService(
         if (quote is null)
         {
             return NotFound();
+        }
+
+        if (quote.Status == QuoteStatus.Rejected)
+        {
+            return Error.Conflict("quote_lost", "Orçamento perdido não é alterado.");
         }
 
         if (quote.Status != QuoteStatus.Draft)

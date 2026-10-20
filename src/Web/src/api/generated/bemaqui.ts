@@ -134,6 +134,7 @@ import type {
   ListPaymentOrdersParams,
   ListPaymentTermsParams,
   ListPositionsParams,
+  ListQuoteCopyOptionsParams,
   ListQuoteCostsParams,
   ListQuoteCustomersParams,
   ListQuoteInstallersParams,
@@ -214,6 +215,11 @@ import type {
   PricingModeInput,
   ProvisionAccepted,
   ProvisionTenantRequest,
+  QuoteConditions,
+  QuoteConditionsInput,
+  QuoteCopyInput,
+  QuoteCopyItemsInput,
+  QuoteCopyOption,
   QuoteCostDetail,
   QuoteCostSummary,
   QuoteCostsInput,
@@ -222,8 +228,11 @@ import type {
   QuoteHeaderInput,
   QuoteItemInput,
   QuoteItemOption,
+  QuoteLoseInput,
+  QuoteMilestoneInput,
   QuotePage,
   QuotePartyOption,
+  QuoteTermOption,
   ReasonInput,
   ReceivableDetail,
   ReceivableInput,
@@ -13037,6 +13046,733 @@ export function useGetLastMaterialCost<TData = Awaited<ReturnType<typeof getLast
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetLastMaterialCostQueryOptions(itemId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetQuoteConditionsUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/quotes/${id}/conditions`
+}
+
+export const getQuoteConditions = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<QuoteConditions> => {
+
+  return apiFetch<QuoteConditions>(getGetQuoteConditionsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetQuoteConditionsQueryKey = (id: string,) => {
+    return [
+    `/api/v1/quotes/${id}/conditions`
+    ] as const;
+    }
+
+
+export const getGetQuoteConditionsQueryOptions = <TData = Awaited<ReturnType<typeof getQuoteConditions>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuoteConditions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetQuoteConditionsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getQuoteConditions>>> = ({ signal }) => getQuoteConditions(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getQuoteConditions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetQuoteConditionsQueryResult = NonNullable<Awaited<ReturnType<typeof getQuoteConditions>>>
+export type GetQuoteConditionsQueryError = unknown
+
+
+export function useGetQuoteConditions<TData = Awaited<ReturnType<typeof getQuoteConditions>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuoteConditions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getQuoteConditions>>,
+          TError,
+          Awaited<ReturnType<typeof getQuoteConditions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetQuoteConditions<TData = Awaited<ReturnType<typeof getQuoteConditions>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuoteConditions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getQuoteConditions>>,
+          TError,
+          Awaited<ReturnType<typeof getQuoteConditions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetQuoteConditions<TData = Awaited<ReturnType<typeof getQuoteConditions>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuoteConditions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetQuoteConditions<TData = Awaited<ReturnType<typeof getQuoteConditions>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuoteConditions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetQuoteConditionsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSaveQuoteConditionsUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/quotes/${id}/conditions`
+}
+
+export const saveQuoteConditions = async (id: string,
+    quoteConditionsInput: QuoteConditionsInput, options?: Parameters<typeof apiFetch>[1]): Promise<QuoteConditions> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<QuoteConditions>(getSaveQuoteConditionsUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(quoteConditionsInput)
+  }
+);}
+
+
+
+
+
+export const getSaveQuoteConditionsMutationKey = () => ['saveQuoteConditions'] as const;
+
+export const getSaveQuoteConditionsMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveQuoteConditions>>, TError,SaveQuoteConditionsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveQuoteConditions>>, TError,SaveQuoteConditionsMutationVariables, TContext> => {
+
+const mutationKey = getSaveQuoteConditionsMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveQuoteConditions>>, SaveQuoteConditionsMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  saveQuoteConditions(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveQuoteConditionsMutationResult = NonNullable<Awaited<ReturnType<typeof saveQuoteConditions>>>
+    export type SaveQuoteConditionsMutationBody = QuoteConditionsInput
+    export type SaveQuoteConditionsMutationError = unknown
+    export type SaveQuoteConditionsMutationVariables = {id: string;data: QuoteConditionsInput}
+
+    export const useSaveQuoteConditions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveQuoteConditions>>, TError,SaveQuoteConditionsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof saveQuoteConditions>>,
+        TError,
+        SaveQuoteConditionsMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSaveQuoteConditionsMutationOptions(options), queryClient);
+    }
+
+export const getQuoteMilestonesFromTermUrl = (id: string,
+    termId: string,) => {
+
+
+
+
+  return `/api/v1/quotes/${id}/conditions/from-term/${termId}`
+}
+
+export const quoteMilestonesFromTerm = async (id: string,
+    termId: string, options?: Parameters<typeof apiFetch>[1]): Promise<QuoteMilestoneInput[]> => {
+
+  return apiFetch<QuoteMilestoneInput[]>(getQuoteMilestonesFromTermUrl(id,termId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getQuoteMilestonesFromTermQueryKey = (id: string,
+    termId: string,) => {
+    return [
+    `/api/v1/quotes/${id}/conditions/from-term/${termId}`
+    ] as const;
+    }
+
+
+export const getQuoteMilestonesFromTermQueryOptions = <TData = Awaited<ReturnType<typeof quoteMilestonesFromTerm>>, TError = unknown>(id: string,
+    termId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof quoteMilestonesFromTerm>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getQuoteMilestonesFromTermQueryKey(id,termId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof quoteMilestonesFromTerm>>> = ({ signal }) => quoteMilestonesFromTerm(id,termId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && termId !== null && termId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof quoteMilestonesFromTerm>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type QuoteMilestonesFromTermQueryResult = NonNullable<Awaited<ReturnType<typeof quoteMilestonesFromTerm>>>
+export type QuoteMilestonesFromTermQueryError = unknown
+
+
+export function useQuoteMilestonesFromTerm<TData = Awaited<ReturnType<typeof quoteMilestonesFromTerm>>, TError = unknown>(
+ id: string,
+    termId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof quoteMilestonesFromTerm>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof quoteMilestonesFromTerm>>,
+          TError,
+          Awaited<ReturnType<typeof quoteMilestonesFromTerm>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useQuoteMilestonesFromTerm<TData = Awaited<ReturnType<typeof quoteMilestonesFromTerm>>, TError = unknown>(
+ id: string,
+    termId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof quoteMilestonesFromTerm>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof quoteMilestonesFromTerm>>,
+          TError,
+          Awaited<ReturnType<typeof quoteMilestonesFromTerm>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useQuoteMilestonesFromTerm<TData = Awaited<ReturnType<typeof quoteMilestonesFromTerm>>, TError = unknown>(
+ id: string,
+    termId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof quoteMilestonesFromTerm>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useQuoteMilestonesFromTerm<TData = Awaited<ReturnType<typeof quoteMilestonesFromTerm>>, TError = unknown>(
+ id: string,
+    termId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof quoteMilestonesFromTerm>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getQuoteMilestonesFromTermQueryOptions(id,termId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getLoseQuoteUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/quotes/${id}/lose`
+}
+
+export const loseQuote = async (id: string,
+    quoteLoseInput: QuoteLoseInput, options?: Parameters<typeof apiFetch>[1]): Promise<QuoteDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<QuoteDetail>(getLoseQuoteUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(quoteLoseInput)
+  }
+);}
+
+
+
+
+
+export const getLoseQuoteMutationKey = () => ['loseQuote'] as const;
+
+export const getLoseQuoteMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof loseQuote>>, TError,LoseQuoteMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof loseQuote>>, TError,LoseQuoteMutationVariables, TContext> => {
+
+const mutationKey = getLoseQuoteMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof loseQuote>>, LoseQuoteMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  loseQuote(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LoseQuoteMutationResult = NonNullable<Awaited<ReturnType<typeof loseQuote>>>
+    export type LoseQuoteMutationBody = QuoteLoseInput
+    export type LoseQuoteMutationError = unknown
+    export type LoseQuoteMutationVariables = {id: string;data: QuoteLoseInput}
+
+    export const useLoseQuote = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof loseQuote>>, TError,LoseQuoteMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof loseQuote>>,
+        TError,
+        LoseQuoteMutationVariables,
+        TContext
+      > => {
+      return useMutation(getLoseQuoteMutationOptions(options), queryClient);
+    }
+
+export const getListQuoteCopyOptionsUrl = (params?: ListQuoteCopyOptionsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/quotes/copy-options?${stringifiedParams}` : `/api/v1/quotes/copy-options`
+}
+
+export const listQuoteCopyOptions = async (params?: ListQuoteCopyOptionsParams, options?: Parameters<typeof apiFetch>[1]): Promise<QuoteCopyOption[]> => {
+
+  return apiFetch<QuoteCopyOption[]>(getListQuoteCopyOptionsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListQuoteCopyOptionsQueryKey = (params?: ListQuoteCopyOptionsParams,) => {
+    return [
+    `/api/v1/quotes/copy-options`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListQuoteCopyOptionsQueryOptions = <TData = Awaited<ReturnType<typeof listQuoteCopyOptions>>, TError = unknown>(params?: ListQuoteCopyOptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteCopyOptions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListQuoteCopyOptionsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listQuoteCopyOptions>>> = ({ signal }) => listQuoteCopyOptions(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listQuoteCopyOptions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListQuoteCopyOptionsQueryResult = NonNullable<Awaited<ReturnType<typeof listQuoteCopyOptions>>>
+export type ListQuoteCopyOptionsQueryError = unknown
+
+
+export function useListQuoteCopyOptions<TData = Awaited<ReturnType<typeof listQuoteCopyOptions>>, TError = unknown>(
+ params: undefined |  ListQuoteCopyOptionsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteCopyOptions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listQuoteCopyOptions>>,
+          TError,
+          Awaited<ReturnType<typeof listQuoteCopyOptions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListQuoteCopyOptions<TData = Awaited<ReturnType<typeof listQuoteCopyOptions>>, TError = unknown>(
+ params?: ListQuoteCopyOptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteCopyOptions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listQuoteCopyOptions>>,
+          TError,
+          Awaited<ReturnType<typeof listQuoteCopyOptions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListQuoteCopyOptions<TData = Awaited<ReturnType<typeof listQuoteCopyOptions>>, TError = unknown>(
+ params?: ListQuoteCopyOptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteCopyOptions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListQuoteCopyOptions<TData = Awaited<ReturnType<typeof listQuoteCopyOptions>>, TError = unknown>(
+ params?: ListQuoteCopyOptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteCopyOptions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListQuoteCopyOptionsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCopyQuoteUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/quotes/${id}/copy`
+}
+
+export const copyQuote = async (id: string,
+    quoteCopyInput: QuoteCopyInput, options?: Parameters<typeof apiFetch>[1]): Promise<QuoteDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<QuoteDetail>(getCopyQuoteUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(quoteCopyInput)
+  }
+);}
+
+
+
+
+
+export const getCopyQuoteMutationKey = () => ['copyQuote'] as const;
+
+export const getCopyQuoteMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof copyQuote>>, TError,CopyQuoteMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof copyQuote>>, TError,CopyQuoteMutationVariables, TContext> => {
+
+const mutationKey = getCopyQuoteMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof copyQuote>>, CopyQuoteMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  copyQuote(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CopyQuoteMutationResult = NonNullable<Awaited<ReturnType<typeof copyQuote>>>
+    export type CopyQuoteMutationBody = QuoteCopyInput
+    export type CopyQuoteMutationError = unknown
+    export type CopyQuoteMutationVariables = {id: string;data: QuoteCopyInput}
+
+    export const useCopyQuote = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof copyQuote>>, TError,CopyQuoteMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof copyQuote>>,
+        TError,
+        CopyQuoteMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCopyQuoteMutationOptions(options), queryClient);
+    }
+
+export const getCopyQuoteItemsUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/quotes/${id}/copy-items`
+}
+
+export const copyQuoteItems = async (id: string,
+    quoteCopyItemsInput: QuoteCopyItemsInput, options?: Parameters<typeof apiFetch>[1]): Promise<QuoteDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<QuoteDetail>(getCopyQuoteItemsUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(quoteCopyItemsInput)
+  }
+);}
+
+
+
+
+
+export const getCopyQuoteItemsMutationKey = () => ['copyQuoteItems'] as const;
+
+export const getCopyQuoteItemsMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof copyQuoteItems>>, TError,CopyQuoteItemsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof copyQuoteItems>>, TError,CopyQuoteItemsMutationVariables, TContext> => {
+
+const mutationKey = getCopyQuoteItemsMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof copyQuoteItems>>, CopyQuoteItemsMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  copyQuoteItems(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CopyQuoteItemsMutationResult = NonNullable<Awaited<ReturnType<typeof copyQuoteItems>>>
+    export type CopyQuoteItemsMutationBody = QuoteCopyItemsInput
+    export type CopyQuoteItemsMutationError = unknown
+    export type CopyQuoteItemsMutationVariables = {id: string;data: QuoteCopyItemsInput}
+
+    export const useCopyQuoteItems = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof copyQuoteItems>>, TError,CopyQuoteItemsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof copyQuoteItems>>,
+        TError,
+        CopyQuoteItemsMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCopyQuoteItemsMutationOptions(options), queryClient);
+    }
+
+export const getListQuotePaymentTermsUrl = () => {
+
+
+
+
+  return `/api/v1/quotes/payment-terms`
+}
+
+export const listQuotePaymentTerms = async ( options?: Parameters<typeof apiFetch>[1]): Promise<QuoteTermOption[]> => {
+
+  return apiFetch<QuoteTermOption[]>(getListQuotePaymentTermsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListQuotePaymentTermsQueryKey = () => {
+    return [
+    `/api/v1/quotes/payment-terms`
+    ] as const;
+    }
+
+
+export const getListQuotePaymentTermsQueryOptions = <TData = Awaited<ReturnType<typeof listQuotePaymentTerms>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuotePaymentTerms>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListQuotePaymentTermsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listQuotePaymentTerms>>> = ({ signal }) => listQuotePaymentTerms({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listQuotePaymentTerms>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListQuotePaymentTermsQueryResult = NonNullable<Awaited<ReturnType<typeof listQuotePaymentTerms>>>
+export type ListQuotePaymentTermsQueryError = unknown
+
+
+export function useListQuotePaymentTerms<TData = Awaited<ReturnType<typeof listQuotePaymentTerms>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuotePaymentTerms>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listQuotePaymentTerms>>,
+          TError,
+          Awaited<ReturnType<typeof listQuotePaymentTerms>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListQuotePaymentTerms<TData = Awaited<ReturnType<typeof listQuotePaymentTerms>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuotePaymentTerms>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listQuotePaymentTerms>>,
+          TError,
+          Awaited<ReturnType<typeof listQuotePaymentTerms>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListQuotePaymentTerms<TData = Awaited<ReturnType<typeof listQuotePaymentTerms>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuotePaymentTerms>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListQuotePaymentTerms<TData = Awaited<ReturnType<typeof listQuotePaymentTerms>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuotePaymentTerms>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListQuotePaymentTermsQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

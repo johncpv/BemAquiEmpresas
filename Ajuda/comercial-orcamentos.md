@@ -11,7 +11,9 @@ Montar a pré-proposta para o cliente, item a item, com o custo estimado e o pre
 
 ## Como usar
 - Clique em **Novo orçamento**, escolha o cliente e clique em **Criar orçamento**.
-- A lista mostra o número, o cliente, a situação e o preço. Quem tem a permissão **Ver custo e margem** vê também o custo e a margem.
+- A lista mostra o número, o cliente, a situação, a validade e o preço. Quem tem a permissão **Ver custo e margem** vê também o custo e a margem.
+- **Copiar de…** cria um orçamento novo a partir de outro, com itens, custos, preços e marcos. Nada é digitado de novo.
+- No orçamento enviado, **Registrar perda** guarda o motivo (preço, prazo, concorrente, desistência, sem retorno ou outro).
 - Filtre por situação (rascunho ou enviado) e busque pelo número ou pelo cliente.
 
 ## Perguntas frequentes

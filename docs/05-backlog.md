@@ -214,7 +214,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-2--comercial-proj
 - Requisitos: R-COML-1, R-COM-4, R-PRP-1, R-PRP-3, R-SEC-5, R-SEC-10.
 - CA: `quotes.view_cost` e `projects.view_cost` com seed patch para Comercial e Financeiro e DTO sem custo para os demais (D7); preço = custo × (1 + markup) ou custo ÷ (1 − margem) conforme o modo do tenant, com % padrão; editor de custo por natureza; totais e margem ao vivo e gravados com as mesmas fórmulas, arredondando só na linha; mão de obra pelo custo-hora do cargo; imposto digitado enquanto a P-01 está aberta; índices de número com revisão na primeira migration; orçamento enviado não é alterado.
 
-**COM-01b [ ] Orçamento: marcos, validade, perda e cópia (M)** — 2.2, ordem 9 — quebra da COM-01 — [story](stories/COM-01b-orcamento-marcos-validade-copia.md)
+**COM-01b [x] Orçamento: marcos, validade, perda e cópia (M)** — 2.2, ordem 9 — quebra da COM-01 — [story](stories/COM-01b-orcamento-marcos-validade-copia.md)
 - Requisitos: R-COML-6, R-COML-4, R-COML-2, R-COML-9, R-PRP-1, R-PRP-3.
 - CA: marcos por data ou evento com prazo após o evento, valores pelo `PaymentTermSplitter` e "Faltam X%"; soma = 100% exigida para aprovar; % revalidado no servidor; "Preencher pela condição de pagamento"; validade padrão; perda com motivo da lista; copiar orçamento, itens ou projeto anterior.
 

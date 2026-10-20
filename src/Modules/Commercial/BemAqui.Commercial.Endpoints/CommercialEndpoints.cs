@@ -31,6 +31,7 @@ internal static partial class CommercialEndpoints
         quotes.MapDelete("/{id:guid}", async (Guid id, uint version, QuoteService service, CancellationToken ct) => (await service.DeleteAsync(id, version, ct)).ToHttpResult())
             .RequirePermission("quotes.delete").WithName("DeleteQuote");
         MapItems(quotes);
+        MapConditions(quotes);
         MapLookups(quotes.MapGroup("/lookups"));
         var commercial = api.MapGroup("/commercial").WithTags("Orçamentos");
         commercial.MapGet("/parameters", async (CommercialParametersService service, CancellationToken ct) => Results.Ok(await service.GetAsync(ct)))

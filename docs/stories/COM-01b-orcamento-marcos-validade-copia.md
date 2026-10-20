@@ -5,7 +5,7 @@
 | ID | COM-01b |
 | Título | Condições de pagamento por marco (percentual, valor, gatilho por data ou por evento, prazo após o evento), preenchimento a partir da condição de pagamento, validade com padrão, rejeição com motivo e cópia de orçamento ou projeto anterior |
 | Tamanho | M (quebra da COM-01) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-COML-6 (condições por marco, valor, evento-gatilho ou data) · R-COML-4 (validade; o alerta, a expiração e a prorrogação ficam na COM-02) · R-COML-2 (copiar orçamento/itens de orçamento ou projeto anterior) · R-COML-9 (motivo de perda, base do funil) · R-PRP-1 · R-PRP-3 |
 | Dependências | COM-01a; CAD-05b (`IPaymentTerms`, `PaymentTermSplitter`, condição padrão do terceiro); FND-09e (`RowsEditor`, erros por linha) |
 | Bloqueia | COM-02, COM-04a (aprovação exige marcos somando 100%), COM-08 |
@@ -91,21 +91,21 @@ Decididos pelo PO em 20/10/2026 (seção 1.1, itens 20 e 21, e D15):
 5. P-18 decidida (ADR 0021).
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers) e E2E passando.
-- [ ] Migration criada (não destrutiva); parâmetro com seed idempotente.
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Aba com estados de vazio, carregando e erro.
-- [ ] Ajuda da aba e da lista atualizada; teste de cobertura passando.
-- [ ] Padrões preenchidos e próximos passos aplicados.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado (`quote_milestones` no lugar do JSON); story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers) e E2E passando.
+- [x] Migration criada (não destrutiva); parâmetro com seed idempotente.
+- [x] Permissões só do `ModuleCatalog`.
+- [x] Aba com estados de vazio, carregando e erro.
+- [x] Ajuda da aba e da lista atualizada; teste de cobertura passando.
+- [x] Padrões preenchidos e próximos passos aplicados.
+- [x] Auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` atualizado (`quote_milestones` no lugar do JSON); story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] Entidade `QuoteMilestone`; uso do `PaymentTermSplitter`; `MilestoneTrigger` e `TriggerEvent` no SharedKernel.
-- [ ] Casos de uso de perda e cópia (orçamento, itens, projeto).
-- [ ] Endpoints `/api/v1/quotes/{id}/milestones`, `/lose`, `/copy`; aba e ajuda.
+- [x] Entidade `QuoteMilestone`; uso do `PaymentTermSplitter`; `MilestoneTrigger` e `TriggerEvent` no SharedKernel.
+- [x] Casos de uso de perda e cópia (orçamento, itens, projeto).
+- [x] Endpoints `/api/v1/quotes/{id}/milestones`, `/lose`, `/copy`; aba e ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, @qa.
@@ -139,3 +139,4 @@ Checklist do @po (Pax), 20/10/2026 (revalidação depois das decisões do PO e d
 | 19/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 20/10/2026 | 0.3 | Decisões do PO (seção 1.1, D15) e correções da revisão pré-Fase 2 (§2.1-M5, M6, M10, §2.2-M8, §2.3); CAs renumerados | River (SM) |
 | 20/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 20/10/2026 | 1.0 | Implementada. Desvios: marcos gravados inteiros com a validade (`PUT /quotes/{id}/conditions`), sem rota por marco; a divisão por percentual está no SharedKernel (`PercentSplit`, mesma regra do `PaymentTermSplitter`), porque o Commercial não referencia o domínio do Finance; a validade padrão (`quotes.validity_days`) vale 15 enquanto não gravada; "Copiar de projeto" (CA 15) entra com a COM-04a; o filtro por motivo da perda fica para o funil (COM-08), a lista filtra "Perdidos"; `QuoteLost` publicado no outbox | @dev |

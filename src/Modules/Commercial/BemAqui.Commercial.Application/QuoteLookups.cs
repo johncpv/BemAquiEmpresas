@@ -1,3 +1,4 @@
+using BemAqui.Finance.Contracts;
 using BemAqui.Inventory.Contracts;
 using BemAqui.Parties.Contracts;
 using BemAqui.HR.Contracts;
@@ -6,7 +7,7 @@ using BemAqui.Production.Contracts;
 namespace BemAqui.Commercial.Application;
 
 /// <summary>Seletores do orçamento pelos contratos dos donos (ADR 0006): cliente, contato, obra, item, cargo e centro.</summary>
-public sealed class QuoteLookups(IParties parties, IItems items, IPositions positions, IHourlyCost hourlyCost, IWorkCenters workCenters)
+public sealed class QuoteLookups(IParties parties, IItems items, IPositions positions, IHourlyCost hourlyCost, IWorkCenters workCenters, IPaymentTerms paymentTerms)
 {
     public async Task<IReadOnlyList<QuotePartyOption>> CustomersAsync(string? q, CancellationToken cancellationToken = default) =>
         (await parties.SearchAsync(q, PartyRoleKind.Customer, 20, cancellationToken))
@@ -34,6 +35,9 @@ public sealed class QuoteLookups(IParties parties, IItems items, IPositions posi
 
         return list;
     }
+
+    public async Task<IReadOnlyList<QuoteTermOption>> PaymentTermsAsync(CancellationToken cancellationToken = default) =>
+        (await paymentTerms.ActiveAsync(cancellationToken)).Select(t => new QuoteTermOption(t.Id, t.Name)).ToList();
 
     public async Task<IReadOnlyList<LaborWorkCenterOption>> WorkCentersAsync(CancellationToken cancellationToken = default) =>
         (await workCenters.ActiveAsync(cancellationToken)).Select(w => new LaborWorkCenterOption(w.Id, w.Name)).ToList();

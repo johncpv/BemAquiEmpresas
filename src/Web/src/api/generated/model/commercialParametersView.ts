@@ -9,4 +9,5 @@ export interface CommercialParametersView {
   /** @nullable */
   defaultPct: number | null;
   pricingMode: string;
+  validityDays?: number;
 }

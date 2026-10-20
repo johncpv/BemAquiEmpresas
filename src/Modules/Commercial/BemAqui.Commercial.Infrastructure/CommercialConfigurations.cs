@@ -21,6 +21,8 @@ internal sealed class QuoteConfiguration : IEntityTypeConfiguration<Quote>
         b.Property(e => e.TotalCost).HasPrecision(18, 2);
         b.Property(e => e.TotalPrice).HasPrecision(18, 2);
         b.Property(e => e.MarginPct).HasPrecision(9, 4);
+        b.Property(e => e.LostReason).HasConversion<string>().HasMaxLength(20);
+        b.Property(e => e.LostDetail).HasMaxLength(500);
         // Número com revisão (ADR 0016 adendo M7).
         b.HasIndex(e => new { e.Number, e.Revision }).IsUnique();
         b.HasIndex(e => e.Number).IsUnique().HasFilter("is_current").HasDatabaseName("ux_quotes_number_current");
@@ -60,6 +62,21 @@ internal sealed class QuoteItemCostConfiguration : IEntityTypeConfiguration<Quot
         b.HasIndex(e => e.ItemId);
         b.HasIndex(e => e.PartyId);
         b.HasIndex(e => e.WorkCenterId);
+    }
+}
+
+internal sealed class QuoteMilestoneConfiguration : IEntityTypeConfiguration<QuoteMilestone>
+{
+    public void Configure(EntityTypeBuilder<QuoteMilestone> b)
+    {
+        b.ToTable("quote_milestones", CommercialSchema.Name);
+        b.Property(e => e.Description).HasMaxLength(120);
+        b.Property(e => e.Percent).HasPrecision(7, 4);
+        b.Property(e => e.Amount).HasPrecision(18, 2);
+        b.Property(e => e.Trigger).HasConversion<string>().HasMaxLength(10);
+        b.Property(e => e.TriggerEvent).HasConversion<string>().HasMaxLength(24);
+        b.HasOne<Quote>().WithMany().HasForeignKey(e => e.QuoteId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => e.QuoteId);
     }
 }
 

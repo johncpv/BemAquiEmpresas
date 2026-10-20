@@ -516,6 +516,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("contact_id");
 
+                    b.Property<Guid?>("CopiedFromQuoteId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("copied_from_quote_id");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -539,6 +543,24 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
                         .HasColumnName("is_deleted");
+
+                    b.Property<DateTimeOffset?>("LostAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("lost_at");
+
+                    b.Property<Guid?>("LostBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("lost_by");
+
+                    b.Property<string>("LostDetail")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("lost_detail");
+
+                    b.Property<string>("LostReason")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("lost_reason");
 
                     b.Property<decimal?>("MarginPct")
                         .HasPrecision(9, 4)
@@ -593,6 +615,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("total_price");
+
+                    b.Property<DateOnly?>("ValidUntil")
+                        .HasColumnType("date")
+                        .HasColumnName("valid_until");
 
                     b.Property<uint>("Version")
                         .IsConcurrencyToken()
@@ -754,6 +780,65 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDatabaseName("ix_quote_item_costs_work_center_id");
 
                     b.ToTable("quote_item_costs", "commercial");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.QuoteMilestone", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<int?>("DaysAfterEvent")
+                        .HasColumnType("integer")
+                        .HasColumnName("days_after_event");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("description");
+
+                    b.Property<DateOnly?>("DueDate")
+                        .HasColumnType("date")
+                        .HasColumnName("due_date");
+
+                    b.Property<decimal>("Percent")
+                        .HasPrecision(7, 4)
+                        .HasColumnType("numeric(7,4)")
+                        .HasColumnName("percent");
+
+                    b.Property<Guid>("QuoteId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("quote_id");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.Property<string>("Trigger")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("trigger");
+
+                    b.Property<string>("TriggerEvent")
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)")
+                        .HasColumnName("trigger_event");
+
+                    b.HasKey("Id")
+                        .HasName("pk_quote_milestones");
+
+                    b.HasIndex("QuoteId")
+                        .HasDatabaseName("ix_quote_milestones_quote_id");
+
+                    b.ToTable("quote_milestones", "commercial");
                 });
 
             modelBuilder.Entity("BemAqui.Finance.Domain.Account", b =>
@@ -4582,6 +4667,16 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_quote_item_costs_quote_items_quote_item_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.QuoteMilestone", b =>
+                {
+                    b.HasOne("BemAqui.Commercial.Domain.Quote", null)
+                        .WithMany()
+                        .HasForeignKey("QuoteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_quote_milestones_quotes_quote_id");
                 });
 
             modelBuilder.Entity("BemAqui.Finance.Domain.Account", b =>

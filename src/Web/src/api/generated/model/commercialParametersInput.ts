@@ -8,4 +8,5 @@
 export interface CommercialParametersInput {
   /** @nullable */
   defaultPct: number | null;
+  validityDays?: number;
 }

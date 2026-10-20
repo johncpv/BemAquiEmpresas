@@ -4,4 +4,7 @@ namespace BemAqui.Commercial.Contracts;
 public interface ICommercialParameters
 {
     Task<decimal?> DefaultPricingPctAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Validade padrão do orçamento em dias (<c>quotes.validity_days</c>, 15 enquanto não definido).</summary>
+    Task<int> ValidityDaysAsync(CancellationToken cancellationToken = default);
 }

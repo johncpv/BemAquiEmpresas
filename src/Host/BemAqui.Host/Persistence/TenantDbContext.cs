@@ -111,6 +111,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BemAqui.Commercial.Domain.QuoteItemCost> QuoteItemCosts => Set<BemAqui.Commercial.Domain.QuoteItemCost>();
 
+    public DbSet<BemAqui.Commercial.Domain.QuoteMilestone> QuoteMilestones => Set<BemAqui.Commercial.Domain.QuoteMilestone>();
+
     public DbSet<BemAqui.Commercial.Domain.CommercialParameter> CommercialParameters => Set<BemAqui.Commercial.Domain.CommercialParameter>();
 
     public DbSet<Location> Locations => Set<Location>();
