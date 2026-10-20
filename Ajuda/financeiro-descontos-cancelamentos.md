@@ -7,7 +7,7 @@ modulo: finance
 ---
 
 ## Para que serve
-Ver o que deixou de entrar no caixa no período: descontos dados nas baixas e títulos cancelados, com quem decidiu.
+Ver o que deixou de entrar no caixa no período: descontos dados nas baixas e títulos cancelados, a receber e a pagar, com quem decidiu.
 
 ## Como usar
 - Escolha o período (vem o mês corrente).

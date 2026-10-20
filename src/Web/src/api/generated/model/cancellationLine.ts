@@ -14,4 +14,5 @@ export interface CancellationLine {
   /** @nullable */
   userId: string | null;
   at: string;
+  isPayable?: boolean;
 }

@@ -24,6 +24,10 @@ public interface IFinanceDb
 
     DbSet<FinanceParameter> FinanceParameters { get; }
 
+    DbSet<Payable> Payables { get; }
+
+    DbSet<RecurringExpense> RecurringExpenses { get; }
+
     /// <summary>Para trocar a conta padrão em dois passos numa transação (o índice único parcial é checado a cada comando).</summary>
     DatabaseFacade Database { get; }
 

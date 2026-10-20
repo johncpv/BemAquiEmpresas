@@ -12,4 +12,9 @@ export const DocumentOrigin = {
   Manual: 'Manual',
   Opening: 'Opening',
   Contract: 'Contract',
+  Recurring: 'Recurring',
+  Installer: 'Installer',
+  Purchase: 'Purchase',
+  Payroll: 'Payroll',
+  Maintenance: 'Maintenance',
 } as const;

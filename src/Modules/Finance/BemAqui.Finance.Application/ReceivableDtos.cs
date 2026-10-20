@@ -93,7 +93,8 @@ public sealed record SettlementView(
 
 public sealed record DiscountLine(Guid ReceivableId, string Number, string PartyName, DateOnly Date, decimal Discount, decimal BalanceBefore, decimal Pct, Guid? UserId, DateTimeOffset At, bool AboveLimit);
 
-public sealed record CancellationLine(Guid ReceivableId, string Number, string PartyName, decimal Balance, string Reason, Guid? UserId, DateTimeOffset At);
+/// <summary>Cancelamento do período; <c>IsPayable</c>: título a pagar (FIN-02), senão a receber.</summary>
+public sealed record CancellationLine(Guid ReceivableId, string Number, string PartyName, decimal Balance, string Reason, Guid? UserId, DateTimeOffset At, bool IsPayable = false);
 
 public sealed record DiscountsAndCancellations(DateOnly From, DateOnly To, IReadOnlyList<DiscountLine> Discounts, IReadOnlyList<CancellationLine> Cancellations, decimal TotalDiscount, decimal TotalCancelled);
 
