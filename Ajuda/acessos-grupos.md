@@ -22,7 +22,9 @@ Definir o que cada grupo de pessoas pode ver e fazer no sistema. O usuário rece
 3. Cada ação é marcada no grupo.
 
 ## Perguntas frequentes
-**Por que não consigo marcar uma ação?** Ninguém concede uma permissão que não tem. Aprovar, pagar, ver dados sensíveis e editar acessos ou configurações só o grupo Proprietário concede.
+**O que é "Ver custo e margem"?** Em Orçamentos e em Projetos, mostra custo, composição, markup e margem. Sem ela, a pessoa vê o preço, mas não o custo. Vem marcada no Comercial e no Financeiro.
+
+**Por que não consigo marcar uma ação?** Ninguém concede uma permissão que não tem. Aprovar, pagar, ver custo e margem, ver dados sensíveis e editar acessos ou configurações só o grupo Proprietário concede.
 
 **Posso editar o grupo Proprietário?** Não. Ele é do sistema, tem acesso total ao que está liberado e precisa ter ao menos um membro.
 

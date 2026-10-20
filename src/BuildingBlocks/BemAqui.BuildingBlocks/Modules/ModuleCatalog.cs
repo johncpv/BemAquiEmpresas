@@ -69,8 +69,10 @@ public static partial class ModuleCatalog
     public static IReadOnlyList<ModuleDefinition> All { get; } =
     [
         new("dashboard", "Painel do proprietário", ModuleAreas.Overview, 4, 10, "Indicadores de caixa, margem e produção num só lugar.", [StandardActions.View], []),
-        new("quotes", "Orçamentos", ModuleAreas.Commercial, 2, 20, "Orçamentos com custo e margem, até virar contrato.", CrudApprove, [], "gerar o contrato"),
-        new("projects", "Projetos", ModuleAreas.Commercial, 2, 30, "Contratos e projetos, com etapas e aditivos.", CrudApprove, [], "aditivos de contrato"),
+        new("quotes", "Orçamentos", ModuleAreas.Commercial, 2, 20, "Orçamentos com custo e margem, até virar contrato.", CrudApprove,
+            [new("view_cost", "Ver custo e margem", "Ver custo e margem do orçamento: composição, custo unitário, markup e margem (sigilo comercial, D7).")], "gerar o contrato"),
+        new("projects", "Projetos", ModuleAreas.Commercial, 2, 30, "Contratos e projetos, com etapas e aditivos.", CrudApprove,
+            [new("view_cost", "Ver custo e margem", "Ver orçado, custo lançado e margem do projeto (sigilo comercial, D7).")], "aditivos de contrato"),
         new("parties", "Cadastros", ModuleAreas.Commercial, 1, 40, "Clientes, fornecedores e instaladores.", Crud, []),
         new("engineering", "Engenharia", ModuleAreas.Factory, 3, 50, "Estrutura de produto (BOM) e roteiros de fabricação.", [StandardActions.View, StandardActions.Create, StandardActions.Edit, StandardActions.Approve], [], "liberar a BOM"),
         new("production", "Produção", ModuleAreas.Factory, 3, 60, "Ordens de serviço, Kanban, apontamentos e qualidade.", CrudApprove, [], "liberar na qualidade"),

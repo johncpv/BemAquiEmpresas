@@ -96,12 +96,12 @@ public sealed partial class GroupService
         return null;
     }
 
-    /// <summary>Ações reservadas ao Proprietário (ADR 0008): <c>*.approve</c>, <c>finance.pay</c>, <c>hr.view_sensitive</c>, <c>identity.edit</c> e <c>settings.edit</c>.</summary>
+    /// <summary>Ações reservadas ao Proprietário (ADR 0008): <c>*.approve</c>, <c>finance.pay</c>, <c>*.view_cost</c> (D7), <c>hr.view_sensitive</c>, <c>identity.edit</c> e <c>settings.edit</c>.</summary>
     public static bool IsSensitive(string permission)
     {
         ArgumentNullException.ThrowIfNull(permission);
         var action = permission[(permission.IndexOf('.', StringComparison.Ordinal) + 1)..];
-        return action is StandardActions.Approve or "pay" || permission is "hr.view_sensitive" or "identity.edit" or "settings.edit";
+        return action is StandardActions.Approve or "pay" or "view_cost" || permission is "hr.view_sensitive" or "identity.edit" or "settings.edit";
     }
 
     /// <summary>ADR 0008: ninguém altera um grupo de que é membro, a não ser o Proprietário.</summary>
