@@ -139,7 +139,7 @@ public sealed partial class PayableService(
         return payables.Select(p => new PayableDetail(
             p.Id, p.Number, p.PartyId, names.GetValueOrDefault(p.PartyId, string.Empty), p.Description, p.AccountId, accounts.GetValueOrDefault(p.AccountId, string.Empty), p.CostCenterId,
             p.Amount, p.RetentionIss, p.RetentionInss, p.RetentionIr, p.RetentionPcc, p.NetAmount, p.PaidAmount, p.Balance, p.IssueDate, p.DueDate, p.IsEstimate, p.Status,
-            p.IsOverdue(today), p.IsDueToday(today), p.Origin, p.OriginId, p.InstallmentGroupId, p.Competence, p.PaymentMethod, p.PaymentMethodChangedAt, p.CancelReason, p.CancelledAt, p.Version)).ToList();
+            p.IsOverdue(today), p.IsDueToday(today), p.Origin, p.OriginId, p.OpeningReference, p.InstallmentGroupId, p.Competence, p.PaymentMethod, p.PaymentMethodChangedAt, p.CancelReason, p.CancelledAt, p.Version)).ToList();
     }
 
     private static Error? Stale(Payable payable, uint version) =>

@@ -5,7 +5,7 @@
 | ID | FIN-00 |
 | Título | Data de corte única, saldo das contas na data de corte, lançamento rápido dos títulos a receber e a pagar em aberto pelo saldo (origem `Opening`) e relatório de conferência "saldo do sistema = saldo do banco"; primeira carga de dado financeiro real na homologação (ADR 0020) |
 | Tamanho | M (nova, decisão D2 da revisão pré-Fase 2) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-FIN-2 (saldo inicial das contas) · R-FIN-3 · R-FIN-4 · R-FIN-1 · R-PRP-1 · R-PRP-3 · R-SEC-5 |
 | Dependências | FIN-01 (títulos a receber, parâmetros do Finance), FIN-02 (títulos a pagar, forma de pagamento), CAD-05b (contas bancárias e saldo inicial), FND-09e (`RowsEditor`, idempotência); **ADR 0020**; **pré-condição:** backup diário verificado e teste de restauração do tenant `konebras` (FND-10b) |
 | Bloqueia | Uso real do financeiro na homologação: FIN-05 com dado real, FIN-06a, FIN-03a (pagar os títulos de implantação) |
@@ -84,21 +84,22 @@ Como **financeiro**, quero **começar o BemAqui numa data de corte, com o saldo 
 Nenhum. Decidido pelo PO em 20/10/2026 (D1 alternativa b, D2). Pré-condição externa, com dono definido: backup verificado e teste de restauração do tenant `konebras` (FND-10b, PO), antes da primeira carga real.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers) e E2E passando; passos manuais do CA 12 e 13 conferidos pelo PO.
-- [ ] Migration criada (não destrutiva).
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Tela com estados por passo.
-- [ ] Ajuda de cada passo; teste de cobertura passando.
-- [ ] Padrões preenchidos e próximos passos aplicados.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers) e E2E passando.
+- [ ] Passos manuais do CA 12 e 13 conferidos pelo PO (antes da primeira carga real).
+- [x] Migration criada (não destrutiva).
+- [x] Permissões só do `ModuleCatalog`.
+- [x] Tela com estados por passo.
+- [x] Ajuda de cada passo; teste de cobertura passando.
+- [x] Padrões preenchidos e próximos passos aplicados.
+- [x] Auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `OpeningBatch` e os casos de uso de lote (receber e pagar) sobre as entidades da FIN-01 e FIN-02.
-- [ ] Parâmetros `finance.cutover_date` e `finance.cutover_completed_at`; conferência e CSV.
-- [ ] Endpoints `/api/v1/finance/opening` (+ `/cutover`, `/balances`, `/receivables`, `/payables`, `/reconciliation`, `/complete`); tela em passos e ajuda.
+- [x] `OpeningBatch` e os casos de uso de lote (receber e pagar) sobre as entidades da FIN-01 e FIN-02.
+- [x] Parâmetros `finance.cutover_date` e `finance.cutover_completed_at`; conferência e CSV.
+- [x] Endpoints `/api/v1/finance/opening` (+ `/cutover`, `/balances`, `/receivables`, `/payables`, `/reconciliation`, `/complete`); tela em passos e ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, @qa, devops (pré-condição de backup e restauração).
@@ -130,3 +131,4 @@ Checklist do @po (Pax), 20/10/2026.
 | 20/10/2026 | 0.1 | Story nova (D2 da revisão pré-Fase 2, ADR 0020) | River (SM) |
 | 20/10/2026 | 0.2 | Validação do PO: 10/10, `Ready` com pré-condição externa | Pax (PO) |
 | 20/10/2026 | 0.3 | PO liberou a primeira carga real sem esperar o teste de restauração (adendo da ADR 0020); CA 12 ajustado | River (SM) |
+| 20/10/2026 | 1.0 | Implementada. Desvios: data de corte, conclusão (com o usuário) e observação ficam em `finance.opening_setup` (uma linha, com versão), porque `finance.parameters` só guarda número; idempotência do lote pelo filtro comum (`Idempotency-Key`, sem `client_request_id`); o lote vai de 1 a 500 linhas; a forma de pagamento do título a pagar de implantação é informada depois, no próprio título (a API aceita, o editor não mostra a coluna); o extrato digitado na conferência não é gravado (vai no CSV, gerado no navegador); o `RowsEditor` ganhou "Duplicar" e o `Combobox` ganhou `aria-label` | @dev |

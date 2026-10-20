@@ -35,6 +35,8 @@ export interface ReceivableDetail {
   /** @nullable */
   originId: string | null;
   /** @nullable */
+  openingReference: string | null;
+  /** @nullable */
   installmentGroupId: string | null;
   /** @nullable */
   cancelReason: string | null;

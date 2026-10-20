@@ -89,6 +89,10 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<RecurringExpense> RecurringExpenses => Set<RecurringExpense>();
 
+    public DbSet<OpeningSetup> OpeningSetups => Set<OpeningSetup>();
+
+    public DbSet<OpeningBatch> OpeningBatches => Set<OpeningBatch>();
+
     public DbSet<Location> Locations => Set<Location>();
 
     public DbSet<MeasureUnit> Units => Set<MeasureUnit>();

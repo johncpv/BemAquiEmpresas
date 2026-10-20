@@ -28,6 +28,10 @@ public interface IFinanceDb
 
     DbSet<RecurringExpense> RecurringExpenses { get; }
 
+    DbSet<OpeningSetup> OpeningSetups { get; }
+
+    DbSet<OpeningBatch> OpeningBatches { get; }
+
     /// <summary>Para trocar a conta padrão em dois passos numa transação (o índice único parcial é checado a cada comando).</summary>
     DatabaseFacade Database { get; }
 

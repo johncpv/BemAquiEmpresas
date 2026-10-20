@@ -193,7 +193,9 @@ public sealed partial class ReceivableService
         }
 
         var limits = await parameters.LimitsAsync(cancellationToken);
-        if (receivable.Balance > limits.CancelApprovalAmount && !await permissions.HasPermissionAsync("finance", "approve", cancellationToken))
+        // Título de implantação, com a implantação aberta, cancela sem o limite (FIN-00 CA 8).
+        var openingFree = receivable.Origin == DocumentOrigin.Opening && !await db.OpeningSetups.AnyAsync(s => s.CompletedAt != null, cancellationToken);
+        if (!openingFree && receivable.Balance > limits.CancelApprovalAmount && !await permissions.HasPermissionAsync("finance", "approve", cancellationToken))
         {
             return Error.Forbidden("cancel_requires_approval", $"Saldo acima de {Money(limits.CancelApprovalAmount)}: só quem aprova em Caixa e pagamentos pode cancelar.");
         }

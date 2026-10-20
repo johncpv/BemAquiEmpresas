@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, Copy, Plus, Trash2 } from 'lucide-react'
 import { type ReactNode, useRef, useState } from 'react'
 import { InlineError } from '@/components/ui/states'
 
@@ -27,6 +27,8 @@ interface RowsEditorProps<T> {
   min?: number
   max?: number
   reorder?: boolean
+  /** "Duplicar" em cada linha: a cópia entra logo abaixo, com o foco no primeiro campo (lançamento em lote, FIN-00). */
+  duplicate?: boolean
   disabled?: boolean
 }
 
@@ -38,7 +40,7 @@ const newKey = () => `r${++seed}`
  * estável (nunca o índice); cada botão diz o que faz e em qual linha; depois de remover, o foco vai para a linha
  * seguinte (ou para "Adicionar"); a 400 px as colunas viram um cartão empilhado.
  */
-export function RowsEditor<T>({ noun, rows, onChange, newRow, columns, headers = [], renderRow, rowError, summary, min = 0, max = 50, reorder, disabled }: RowsEditorProps<T>) {
+export function RowsEditor<T>({ noun, rows, onChange, newRow, columns, headers = [], renderRow, rowError, summary, min = 0, max = 50, reorder, duplicate, disabled }: RowsEditorProps<T>) {
   const [stored, setKeys] = useState<string[]>(() => rows.map(newKey))
   let keys = stored
   // Linhas trocadas de fora (reset do formulário): as chaves acompanham o tamanho, ajustadas durante o render.
@@ -75,6 +77,13 @@ export function RowsEditor<T>({ noun, rows, onChange, newRow, columns, headers =
     })
   }
 
+  const copy = (i: number) => {
+    const key = newKey()
+    setKeys([...keys.slice(0, i + 1), key, ...keys.slice(i + 1)])
+    onChange([...rows.slice(0, i + 1), { ...rows[i] }, ...rows.slice(i + 1)])
+    requestAnimationFrame(() => container.current?.querySelector<HTMLElement>(`[data-row="${key}"] input, [data-row="${key}"] button`)?.focus())
+  }
+
   const add = () => {
     setKeys([...keys, newKey()])
     onChange([...rows, newRow()])
@@ -108,6 +117,7 @@ export function RowsEditor<T>({ noun, rows, onChange, newRow, columns, headers =
                       <button type="button" disabled={disabled || i === rows.length - 1} onClick={() => swap(i, i + 1)} aria-label={`Descer ${noun} ${i + 1}`} className={iconButton}><ArrowDown aria-hidden="true" className="size-4" /></button>
                     </>
                   ) : null}
+                  {duplicate ? <button type="button" disabled={disabled || rows.length >= max} onClick={() => copy(i)} aria-label={`Duplicar ${noun} ${i + 1}`} className={iconButton}><Copy aria-hidden="true" className="size-4" /></button> : null}
                   <button type="button" disabled={disabled || rows.length <= min} onClick={() => remove(i)} aria-label={`Remover ${noun} ${i + 1}`} className={iconButton}><Trash2 aria-hidden="true" className="size-4" /></button>
                 </div>
               </div>

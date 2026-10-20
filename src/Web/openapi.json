@@ -8000,6 +8000,176 @@
         }
       }
     },
+    "/api/v1/finance/opening": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetOpening",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpeningStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/opening/cutover": {
+      "put": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "SetOpeningCutover",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CutoverInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpeningStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/opening/balances": {
+      "put": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "SaveOpeningBalances",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpeningBalancesInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpeningStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/opening/receivables": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "CreateOpeningReceivables",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpeningReceivablesInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpeningBatchResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/opening/payables": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "CreateOpeningPayables",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpeningPayablesInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpeningBatchResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/opening/complete": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "CompleteOpening",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompleteOpeningInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpeningStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/settings/import-runs": {
       "get": {
         "tags": [
@@ -9383,6 +9553,26 @@
         },
         "additionalProperties": false
       },
+      "CompleteOpeningInput": {
+        "required": [
+          "notes",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
       "ConfirmTwoFactorRequest": {
         "required": [
           "code"
@@ -9745,6 +9935,19 @@
             "format": "uuid"
           }
         }
+      },
+      "CutoverInput": {
+        "required": [
+          "cutoverDate"
+        ],
+        "type": "object",
+        "properties": {
+          "cutoverDate": {
+            "type": "string",
+            "format": "date"
+          }
+        },
+        "additionalProperties": false
       },
       "DisableTwoFactorRequest": {
         "required": [
@@ -12008,6 +12211,340 @@
           }
         }
       },
+      "OpeningAccount": {
+        "required": [
+          "id",
+          "name",
+          "openingBalance",
+          "openingDate",
+          "hasMovement",
+          "systemBalanceAtCutover"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "openingBalance": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "openingDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "hasMovement": {
+            "type": "boolean"
+          },
+          "systemBalanceAtCutover": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "OpeningBalanceLine": {
+        "required": [
+          "bankAccountId",
+          "balance"
+        ],
+        "type": "object",
+        "properties": {
+          "bankAccountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "balance": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OpeningBalancesInput": {
+        "required": [
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpeningBalanceLine"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "OpeningBatchResult": {
+        "required": [
+          "count",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "OpeningPartyTotal": {
+        "required": [
+          "partyId",
+          "partyName",
+          "count",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "OpeningPayableLine": {
+        "required": [
+          "partyId",
+          "description",
+          "reference",
+          "dueDate",
+          "balance",
+          "accountId",
+          "costCenterId",
+          "paymentDetails"
+        ],
+        "type": "object",
+        "properties": {
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": {
+            "type": "string"
+          },
+          "reference": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "balance": {
+            "type": "number",
+            "format": "double"
+          },
+          "accountId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "costCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "paymentDetails": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PaymentDetailsInput"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "OpeningPayablesInput": {
+        "required": [
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpeningPayableLine"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "OpeningReceivableLine": {
+        "required": [
+          "partyId",
+          "description",
+          "reference",
+          "issueDate",
+          "dueDate",
+          "balance",
+          "accountId",
+          "costCenterId"
+        ],
+        "type": "object",
+        "properties": {
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": {
+            "type": "string"
+          },
+          "reference": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "issueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "balance": {
+            "type": "number",
+            "format": "double"
+          },
+          "accountId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "costCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OpeningReceivablesInput": {
+        "required": [
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpeningReceivableLine"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "OpeningStatus": {
+        "required": [
+          "cutoverDate",
+          "suggestedCutover",
+          "completedAt",
+          "notes",
+          "hasMovement",
+          "accounts",
+          "receivables",
+          "payables",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "cutoverDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "suggestedCutover": {
+            "type": "string",
+            "format": "date"
+          },
+          "completedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "hasMovement": {
+            "type": "boolean"
+          },
+          "accounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpeningAccount"
+            }
+          },
+          "receivables": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpeningPartyTotal"
+            }
+          },
+          "payables": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpeningPartyTotal"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
       "PagedListOfAuditEntryDto": {
         "required": [
           "items",
@@ -12790,6 +13327,7 @@
           "isDueToday",
           "origin",
           "originId",
+          "openingReference",
           "installmentGroupId",
           "competence",
           "paymentMethod",
@@ -12895,6 +13433,12 @@
               "string"
             ],
             "format": "uuid"
+          },
+          "openingReference": {
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "installmentGroupId": {
             "type": [
@@ -14032,6 +14576,7 @@
           "isDueToday",
           "origin",
           "originId",
+          "openingReference",
           "installmentGroupId",
           "cancelReason",
           "cancelledAt",
@@ -14130,6 +14675,12 @@
               "string"
             ],
             "format": "uuid"
+          },
+          "openingReference": {
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "installmentGroupId": {
             "type": [

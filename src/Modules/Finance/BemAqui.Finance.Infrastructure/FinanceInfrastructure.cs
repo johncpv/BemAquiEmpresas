@@ -42,6 +42,10 @@ public static class FinanceInfrastructure
         services.TryAddScoped<PayableService>();
         services.TryAddScoped<IPayables, PayablesContract>();
         services.TryAddScoped<RecurringExpenseService>();
+        // Implantação financeira (FIN-00).
+        services.TryAddScoped<OpeningService>();
+        services.AddAuditableEntity<OpeningSetup>("finance");
+        services.AddAuditableEntity<OpeningBatch>("finance");
         services.AddAuditableEntity<Payable>("finance");
         services.AddAuditableEntity<RecurringExpense>("finance");
         services.AddAuditableEntity<Receivable>("finance");
