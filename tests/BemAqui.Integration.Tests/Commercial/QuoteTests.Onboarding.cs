@@ -31,7 +31,10 @@ public partial class QuoteTests
         var noCutover = await owner.SendAsync(Post($"{Base}/{id}/approve", Body(false)));
         noCutover.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
         (await noCutover.Content.ReadAsStringAsync()).Should().Contain("Defina a data de corte na Implantação financeira antes.");
-        (await owner.PutAsJsonAsync("/api/v1/finance/opening/cutover", new { cutoverDate = Iso(Today.AddDays(-30)) })).StatusCode.Should().Be(HttpStatusCode.OK);
+        // A data de corte é preparação (a FIN-00 tem os próprios testes); outro teste da classe pode já ter travado a tela.
+        var cutover = Today.AddDays(-30);
+        await WithDbAsync(db => db.Database.ExecuteSqlAsync($"UPDATE finance.opening_setup SET cutover_date = {cutover}"));
+        await WithDbAsync(db => db.Database.ExecuteSqlAsync($"INSERT INTO finance.opening_setup (id, cutover_date) SELECT {Guid.CreateVersion7()}, {cutover} WHERE NOT EXISTS (SELECT 1 FROM finance.opening_setup)"));
 
         // CA 3: recebido depois do corte vai pelo caixa.
         var late = await owner.SendAsync(Post($"{Base}/{id}/approve", Body(true)));
