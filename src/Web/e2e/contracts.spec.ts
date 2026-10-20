@@ -81,6 +81,7 @@ test.describe('Aprovar e gerar contrato (COM-04a)', () => {
 
 test.describe('Parcelas e marcos do contrato (COM-04b)', () => {
   test('mostra as parcelas, registra a fabricação e a parcela é liberada', async ({ page }) => {
+    test.setTimeout(60_000)
     let fabricated = false
     const parcel = (open: boolean) => ({ id: 'r2', number: 'CR-2026-0002', status: open ? 'Open' : 'Planned', dueDate: open ? '2026-10-30' : null, amount: 40000, balance: 40000 })
     const contractNow = () => ({

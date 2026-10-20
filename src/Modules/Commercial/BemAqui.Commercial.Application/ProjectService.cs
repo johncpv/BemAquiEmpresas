@@ -3,6 +3,7 @@ using BemAqui.BuildingBlocks.Identity;
 using BemAqui.BuildingBlocks.Messaging;
 using BemAqui.Commercial.Contracts;
 using BemAqui.Commercial.Domain;
+using BemAqui.Finance.Contracts;
 using BemAqui.Parties.Contracts;
 using BemAqui.SharedKernel;
 using Microsoft.EntityFrameworkCore;
@@ -13,8 +14,12 @@ namespace BemAqui.Commercial.Application;
 /// Projeto, primeira versão (COM-04a CA 6, 7, 17): cabeçalho e itens; o orçado só com <c>projects.view_cost</c>. Também
 /// implementa <see cref="IProjects"/> e <see cref="IContracts"/> para os outros módulos (CA 21).
 /// </summary>
-public sealed partial class ProjectService(ICommercialDb db, IParties parties, IUserDirectory users, IPermissionChecker permissions, IEventPublisher events, TimeProvider clock) : IProjects, IContracts
+public sealed partial class ProjectService(
+    ICommercialDb db, IParties parties, IUserDirectory users, IPermissionChecker permissions, IEventPublisher events, IReceivables receivables, IPayables payables, TimeProvider clock)
+    : IProjects, IContracts
 {
+    public const string AttachmentOwner = "Project";
+
     public async Task<Result<ProjectDetail>> GetAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var project = await db.Projects.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id, cancellationToken);

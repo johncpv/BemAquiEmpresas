@@ -238,7 +238,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-2--comercial-proj
 - Requisitos: R-COML-7, R-PRJ-1, R-PRJ-6, R-FIN-3, R-PRP-3, R-PRP-7.
 - CA: contrato já em andamento aprovado com data de assinatura e marcos no passado; marco "Recebido antes da implantação" não gera título e só vale até a data de corte; eventos já ocorridos registrados com a data real.
 
-**COM-05 [ ] Projeto 360 (M)** — 2.3, ordem 15 — [story](stories/COM-05-projeto-360.md)
+**COM-05 [x] Projeto 360 (M)** — 2.3, ordem 15 — [story](stories/COM-05-projeto-360.md)
 - Requisitos: R-PRJ-1, R-PRJ-4, R-PRJ-2, R-PRJ-5 (parte), R-COM-3, R-PRP-2, R-PRP-5.
 - CA: abas Resumo, Itens e OS, Financeiro, Custos, Documentos, Linha do tempo e Histórico na URL; Financeiro só com `finance.view`; Custos e margem só com `projects.view_cost`; orçado, realizado, projetado e desvio por natureza, com margem projetada pela fórmula do `04-fluxos` §3.3.
 

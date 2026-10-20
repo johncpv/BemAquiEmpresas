@@ -5649,7 +5649,180 @@
         }
       }
     },
+    "/api/v1/projects": {
+      "get": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "ListProjects",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "situation",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "partyId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "managerId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectListPage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/margins": {
+      "get": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "ListProjectMargins",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProjectMargin"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/received": {
+      "get": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "ListProjectReceived",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProjectReceived"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/projects/{id}": {
+      "put": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "UpdateProject",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectUpdateInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectDetail"
+                }
+              }
+            }
+          }
+        }
+      },
       "get": {
         "tags": [
           "Contratos e projetos"
@@ -5673,6 +5846,102 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProjectDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{id}/financial": {
+      "get": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "GetProjectFinancial",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectFinancial"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{id}/costs": {
+      "get": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "GetProjectCosts",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectCostView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{id}/timeline": {
+      "get": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "GetProjectTimeline",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProjectTimelineEntry"
+                  }
                 }
               }
             }
@@ -19297,6 +19566,84 @@
           }
         }
       },
+      "ProjectCostLine": {
+        "required": [
+          "costType",
+          "budgeted",
+          "realized",
+          "projected",
+          "deviation",
+          "deviationPct"
+        ],
+        "type": "object",
+        "properties": {
+          "costType": {
+            "$ref": "#/components/schemas/CostType"
+          },
+          "budgeted": {
+            "type": "number",
+            "format": "double"
+          },
+          "realized": {
+            "type": "number",
+            "format": "double"
+          },
+          "projected": {
+            "type": "number",
+            "format": "double"
+          },
+          "deviation": {
+            "type": "number",
+            "format": "double"
+          },
+          "deviationPct": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "ProjectCostView": {
+        "required": [
+          "lines",
+          "total",
+          "revenue",
+          "budgetedMarginPct",
+          "projectedMarginPct"
+        ],
+        "type": "object",
+        "properties": {
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectCostLine"
+            }
+          },
+          "total": {
+            "$ref": "#/components/schemas/ProjectCostLine"
+          },
+          "revenue": {
+            "type": "number",
+            "format": "double"
+          },
+          "budgetedMarginPct": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "projectedMarginPct": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
       "ProjectDetail": {
         "required": [
           "id",
@@ -19459,6 +19806,47 @@
           }
         }
       },
+      "ProjectFinancial": {
+        "required": [
+          "receivables",
+          "payables",
+          "received",
+          "toReceive",
+          "paid",
+          "toPay"
+        ],
+        "type": "object",
+        "properties": {
+          "receivables": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectReceivableView"
+            }
+          },
+          "payables": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectPayableView"
+            }
+          },
+          "received": {
+            "type": "number",
+            "format": "double"
+          },
+          "toReceive": {
+            "type": "number",
+            "format": "double"
+          },
+          "paid": {
+            "type": "number",
+            "format": "double"
+          },
+          "toPay": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "ProjectItemView": {
         "required": [
           "id",
@@ -19498,6 +19886,250 @@
           }
         }
       },
+      "ProjectListPage": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectListRow"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ProjectListRow": {
+        "required": [
+          "id",
+          "number",
+          "name",
+          "partyId",
+          "partyName",
+          "status",
+          "promisedDate",
+          "delayDays",
+          "contractValue",
+          "managerUserId",
+          "managerName",
+          "contractId"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProjectStatus"
+          },
+          "promisedDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "delayDays": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "contractValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "managerUserId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "managerName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "contractId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "ProjectMargin": {
+        "required": [
+          "id",
+          "marginPct"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "marginPct": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "ProjectPayableView": {
+        "required": [
+          "id",
+          "number",
+          "partyName",
+          "origin",
+          "costType",
+          "dueDate",
+          "amount",
+          "balance",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/DocumentOrigin"
+          },
+          "costType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CostType"
+              }
+            ]
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "balance": {
+            "type": "number",
+            "format": "double"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PayableStatus"
+          }
+        }
+      },
+      "ProjectReceivableView": {
+        "required": [
+          "id",
+          "number",
+          "description",
+          "status",
+          "dueDate",
+          "amount",
+          "balance"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ReceivableStatus"
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "balance": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "ProjectReceived": {
+        "required": [
+          "id",
+          "received",
+          "receivedPct"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "received": {
+            "type": "number",
+            "format": "double"
+          },
+          "receivedPct": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "ProjectStatus": {
         "enum": [
           "Planned",
@@ -19509,6 +20141,72 @@
           "Cancelled",
           null
         ]
+      },
+      "ProjectTimelineEntry": {
+        "required": [
+          "at",
+          "kind",
+          "title",
+          "who",
+          "link"
+        ],
+        "type": "object",
+        "properties": {
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "who": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "link": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ProjectUpdateInput": {
+        "required": [
+          "name",
+          "managerUserId",
+          "siteAddressId",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "managerUserId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "siteAddressId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
       },
       "ProvisionAccepted": {
         "required": [

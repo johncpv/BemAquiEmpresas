@@ -61,7 +61,8 @@ public interface IReceivables
 }
 
 /// <summary>Parcela do contrato vista pelo Commercial (COM-04b CA 14 e 16): o marco é o <c>origin_id</c>.</summary>
-public sealed record ContractReceivable(Guid Id, string Number, Guid MilestoneId, ReceivableStatus Status, DateOnly? DueDate, decimal Amount, decimal Balance, bool HasSettlement);
+public sealed record ContractReceivable(
+    Guid Id, string Number, Guid MilestoneId, ReceivableStatus Status, DateOnly? DueDate, decimal Amount, decimal Balance, bool HasSettlement, string? Description = null, DateTimeOffset? CreatedAt = null);
 
 /// <summary>Implantação financeira (FIN-00) vista pelos outros módulos: a data de corte limita o "recebido antes" (COM-04c CA 1, 3, 7).</summary>
 public sealed record FinancialOpeningInfo(DateOnly? CutoverDate, DateTimeOffset? CompletedAt);
