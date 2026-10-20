@@ -45,7 +45,7 @@ public sealed partial class QuoteApprovalService
 
         events.Publish(new QuoteApproved(quote.Id, contract.Id));
         events.Publish(new ContractSigned(contract.Id, project.Id, contract.PartyId, contract.SignedAt, contract.TotalValue, contract.RevenueAccountId,
-            contractMilestones.Select(m => new ContractMilestoneInfo(m.Id, m.Sequence, m.Description, m.Amount, m.Trigger, m.TriggerEvent, m.DueDate, m.DaysAfterEvent)).ToList()));
+            contractMilestones.Select(m => new ContractMilestoneInfo(m.Id, m.Sequence, m.Description, m.Amount, m.Trigger, m.TriggerEvent, m.DueDate, m.DaysAfterEvent, m.Percent)).ToList()));
         foreach (var item in projectItems)
         {
             events.Publish(new ProjectItemCreated(project.Id, item.Id, item.QuoteItemId, item.ItemId, item.Quantity));

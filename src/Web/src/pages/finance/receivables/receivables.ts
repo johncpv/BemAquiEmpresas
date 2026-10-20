@@ -29,8 +29,14 @@ export const RECEIVABLE_DICAS = {
   multa: 'Multa por atraso, informada à mão. Entra na conta junto com o principal.',
   desconto: 'Valor abatido nesta baixa. Acima do limite de Configurações → Parâmetros, só quem aprova pode confirmar.',
   quitar: 'Zera o saldo que o cliente não vai pagar (ex.: centavos), sem movimentar a conta. Conta como desconto.',
+  previsto: 'A parcela espera o marco acontecer para ganhar vencimento.',
   vencido: 'Título em aberto com vencimento antes de hoje. Vencimento em dia não útil passa a vencido só no dia seguinte.',
 }
+
+const AWAITS: Record<string, string> = { FabricationDone: 'fabricação concluída', Delivered: 'entrega', TechnicalAcceptance: 'aceite técnico', Signature: 'assinatura' }
+
+/** "Aguarda: fabricação concluída" na parcela prevista do contrato (COM-04b). */
+export const awaits = (r: Pick<ReceivableDetail, 'status' | 'triggerEvent'>) => (r.status === 'Planned' && r.triggerEvent ? `Aguarda: ${AWAITS[r.triggerEvent] ?? r.triggerEvent}` : null)
 
 export const toNumber = (s: string | null | undefined) => (s === null || s === undefined || s === '' ? 0 : Number(s))
 

@@ -18,6 +18,8 @@ public interface IFinanceDb
 
     DbSet<Receivable> Receivables { get; }
 
+    DbSet<ProjectTriggerEvent> ProjectTriggerEvents { get; }
+
     DbSet<ReceivableSettlement> ReceivableSettlements { get; }
 
     DbSet<FinancialTransaction> FinancialTransactions { get; }

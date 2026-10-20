@@ -5,7 +5,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type ProjectStatus = typeof ProjectStatus[keyof typeof ProjectStatus];
+export type ProjectStatus = typeof ProjectStatus[keyof typeof ProjectStatus] | null;
 
 
 export const ProjectStatus = {

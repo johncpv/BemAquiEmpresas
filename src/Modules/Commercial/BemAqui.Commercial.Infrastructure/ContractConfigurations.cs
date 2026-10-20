@@ -13,6 +13,7 @@ internal sealed class ContractConfiguration : IEntityTypeConfiguration<Contract>
         b.Property(e => e.Status).HasConversion<string>().HasMaxLength(12);
         b.Property(e => e.TotalValue).HasPrecision(18, 2);
         b.Property(e => e.Snapshot).HasColumnType("jsonb");
+        b.Property(e => e.CancelReason).HasMaxLength(500);
         b.HasOne<Quote>().WithMany().HasForeignKey(e => e.QuoteId).OnDelete(DeleteBehavior.Restrict);
 
         // Uma aprovação por orçamento (COM-04a CA 9): a concorrente para no índice, se passar do xmin.

@@ -11,12 +11,21 @@ public partial class QuoteTests
     private const string Cpf = "52998224725";
 
     /// <summary>Orçamento enviado de cliente PF (CPF canário), com composição de 3 naturezas e marcos 30/70.</summary>
-    private async Task<(Guid Id, JsonElement Quote, Guid Customer)> SentQuoteAsync(HttpClient owner)
+    private async Task<(Guid Id, JsonElement Quote, Guid Customer)> SentQuoteAsync(HttpClient owner, bool canary = true, object[]? milestones = null)
     {
         var (stock, position) = await CatalogAsync();
-        var party = await owner.PostAsJsonAsync("/api/v1/parties", new { kind = "PF", document = Cpf, legalName = "Ana Canário " + Guid.NewGuid().ToString("N")[..5], roles = new[] { "Customer" } });
-        party.StatusCode.Should().Be(HttpStatusCode.Created, await party.Content.ReadAsStringAsync());
-        var customer = (await JsonAsync(party)).GetProperty("id").GetGuid();
+        Guid customer;
+        if (canary)
+        {
+            var party = await owner.PostAsJsonAsync("/api/v1/parties", new { kind = "PF", document = Cpf, legalName = "Ana Canário " + Guid.NewGuid().ToString("N")[..5], roles = new[] { "Customer" } });
+            party.StatusCode.Should().Be(HttpStatusCode.Created, await party.Content.ReadAsStringAsync());
+            customer = (await JsonAsync(party)).GetProperty("id").GetGuid();
+        }
+        else
+        {
+            customer = await CustomerAsync(owner);
+        }
+
         var quote = await JsonAsync(await owner.SendAsync(Post(Base, new { partyId = customer, contactId = (Guid?)null, siteAddressId = (Guid?)null })));
         var id = quote.GetProperty("id").GetGuid();
         await WithDbAsync(db => db.Database.ExecuteSqlAsync($"UPDATE commercial.quotes SET delivery_days = 90 WHERE id = {id}"));
@@ -34,7 +43,7 @@ public partial class QuoteTests
         quote = await JsonAsync(await owner.GetAsync($"{Base}/{id}"));
         var conditions = await owner.PutAsJsonAsync($"{Base}/{id}/conditions", new
         {
-            milestones = new[] { Milestone("Sinal", 30m), Milestone("Entrega", 70m, triggerEvent: "Delivered", days: 10) }, validUntil = Iso(Today.AddDays(15)), version = Version(quote),
+            milestones = milestones ?? [Milestone("Sinal", 30m), Milestone("Entrega", 70m, triggerEvent: "Delivered", days: 10)], validUntil = Iso(Today.AddDays(15)), version = Version(quote),
         });
         conditions.StatusCode.Should().Be(HttpStatusCode.OK, await conditions.Content.ReadAsStringAsync());
         quote = await JsonAsync(await owner.GetAsync($"{Base}/{id}"));

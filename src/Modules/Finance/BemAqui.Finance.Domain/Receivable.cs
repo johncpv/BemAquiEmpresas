@@ -49,6 +49,15 @@ public sealed class Receivable : Entity, IAuditable, IConcurrencyVersioned
 
     public Guid? OriginId { get; set; }
 
+    /// <summary>Contrato da parcela (COM-04b): o <see cref="OriginId"/> é o marco.</summary>
+    public Guid? ContractId { get; set; }
+
+    /// <summary>Evento que libera a parcela <see cref="ReceivableStatus.Planned"/> (COM-04b CA 1).</summary>
+    public TriggerEvent? TriggerEvent { get; set; }
+
+    /// <summary>Dias corridos depois do evento para o vencimento liberado.</summary>
+    public int? DaysAfterEvent { get; set; }
+
     /// <summary>Parcelas lançadas juntas pela condição de pagamento.</summary>
     public Guid? InstallmentGroupId { get; set; }
 

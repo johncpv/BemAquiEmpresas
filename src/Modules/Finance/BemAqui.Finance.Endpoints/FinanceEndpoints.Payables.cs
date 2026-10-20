@@ -37,6 +37,15 @@ internal static partial class FinanceEndpoints
         suppliers.MapGet(string.Empty, async (string? q, PayableService service, CancellationToken ct) => Results.Ok(await service.SuppliersAsync(q, ct)))
             .RequirePermission("finance.view").WithName("ListFinanceSuppliers").Produces<IReadOnlyList<FinanceSupplierOption>>();
 
+    /// <summary>Eventos do Finance em dead-letter e "Reprocessar" (COM-04b CA 5), com finance.edit.</summary>
+    private static void MapDeadLetters(RouteGroupBuilder deadLetters)
+    {
+        deadLetters.MapGet(string.Empty, async (FinanceDeadLetters service, CancellationToken ct) => Results.Ok(await service.ListAsync(ct)))
+            .RequirePermission("finance.edit").WithName("ListFinanceDeadLetters").Produces<IReadOnlyList<FinanceDeadLetter>>();
+        deadLetters.MapPost("/{id:guid}/reprocess", async (Guid id, FinanceDeadLetters service, CancellationToken ct) => (await service.ReprocessAsync(id, ct)).ToHttpResult())
+            .RequirePermission("finance.edit").WithName("ReprocessFinanceDeadLetter");
+    }
+
     private static void MapProjects(RouteGroupBuilder projects) =>
         projects.MapGet(string.Empty, async (string? q, PayableService service, CancellationToken ct) => Results.Ok(await service.ProjectsAsync(q, ct)))
             .RequirePermission("finance.view").WithName("ListFinanceProjects").Produces<IReadOnlyList<FinanceProjectOption>>();

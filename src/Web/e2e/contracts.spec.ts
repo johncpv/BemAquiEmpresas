@@ -78,3 +78,36 @@ test.describe('Aprovar e gerar contrato (COM-04a)', () => {
     expect(box?.width).toBeGreaterThanOrEqual(399)
   })
 })
+
+test.describe('Parcelas e marcos do contrato (COM-04b)', () => {
+  test('mostra as parcelas, registra a fabricação e a parcela é liberada', async ({ page }) => {
+    let fabricated = false
+    const parcel = (open: boolean) => ({ id: 'r2', number: 'CR-2026-0002', status: open ? 'Open' : 'Planned', dueDate: open ? '2026-10-30' : null, amount: 40000, balance: 40000 })
+    const contractNow = () => ({
+      ...contract, receivables: 2,
+      milestones: [
+        { id: 'm1', sequence: 1, description: 'Sinal', percent: 30, amount: 30000, trigger: 'Event', triggerEvent: 'Signature', dueDate: null, daysAfterEvent: 0, hasReceivable: true, receivable: { id: 'r1', number: 'CR-2026-0001', status: 'Open', dueDate: '2026-10-20', amount: 30000, balance: 30000 } },
+        { id: 'm2', sequence: 2, description: 'Fabricação concluída', percent: 40, amount: 40000, trigger: 'Event', triggerEvent: 'FabricationDone', dueDate: null, daysAfterEvent: 10, hasReceivable: true, receivable: parcel(fabricated) },
+      ],
+    })
+    const projectNow = () => ({ ...project, status: fabricated ? 'Fabricated' : 'Planned', hasFabricationMilestone: true, contractStatus: 'Active', fabricatedOn: fabricated ? '2026-10-20' : null })
+    await mockApi(page, {
+      ...routes({}),
+      'GET /api/v1/contracts/k1': (r: Route) => json(r, contractNow()),
+      'GET /api/v1/projects/p1': (r: Route) => json(r, projectNow()),
+      'POST /api/v1/projects/p1/fabrication': (r: Route) => { fabricated = true; return json(r, projectNow()) },
+    })
+    await page.goto('/app/contratos/k1?aba=itens')
+    await expect(page.getByRole('link', { name: 'CR-2026-0002' })).toBeVisible()
+    await expect(page.getByRole('list', { name: 'Marcos do contrato' }).getByText('aguarda o marco', { exact: false })).toBeVisible()
+    await page.goto('/app/projetos/p1')
+    await page.getByRole('button', { name: 'Registrar fabricação concluída' }).click()
+    const dialog = page.getByRole('alertdialog')
+    await expect(dialog.getByText('Libera a parcela Fabricação concluída', { exact: false })).toBeVisible()
+    await dialog.getByRole('button', { name: 'Registrar fabricação concluída' }).click()
+    await expect(page.getByText('Fabricação registrada')).toBeVisible()
+    await expect(page.getByRole('img', { name: 'Etapa Fabricado, 3 de 6' })).toBeVisible()
+    await page.goto('/app/contratos/k1?aba=itens')
+    await expect(page.getByRole('list', { name: 'Marcos do contrato' }).getByText('vence 30/10/2026', { exact: false })).toBeVisible()
+  })
+})

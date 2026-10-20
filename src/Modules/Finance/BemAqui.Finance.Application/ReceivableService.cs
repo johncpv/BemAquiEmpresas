@@ -35,6 +35,8 @@ public sealed partial class ReceivableService(
     TimeProvider clock)
 {
     public const string NumberIndex = "ix_receivables_number";
+    public const string ContractMilestoneIndex = "ux_receivables_contract_milestone";
+    public const string TriggerEventIndex = "ux_project_trigger_events_project_event";
     public const string DocType = "CR";
     public const string NotificationType = "finance.receivable";
 
@@ -49,6 +51,11 @@ public sealed partial class ReceivableService(
         if (query.PartyId is { } party)
         {
             receivables = receivables.Where(r => r.PartyId == party);
+        }
+
+        if (query.ContractId is { } contract)
+        {
+            receivables = receivables.Where(r => r.ContractId == contract);
         }
 
         if (query.DueFrom is { } from)
@@ -132,7 +139,7 @@ public sealed partial class ReceivableService(
             r.Id, r.Number, r.PartyId, names.GetValueOrDefault(r.PartyId, string.Empty), r.Description, r.AccountId, accounts.GetValueOrDefault(r.AccountId, string.Empty),
             r.CostCenterId, r.ProjectId, r.Amount, r.PaidAmount, r.Balance, r.Interest, r.Fine, r.Discount, r.IssueDate, r.DueDate, r.Status,
             r.IsOverdue(today), r.IsDueToday(today), r.Origin, r.OriginId, r.OpeningReference, r.InstallmentGroupId, r.CancelReason, r.CancelledAt, r.Version,
-            r.ProjectId is { } project ? projectNumbers.GetValueOrDefault(project) : null)).ToList();
+            r.ProjectId is { } project ? projectNumbers.GetValueOrDefault(project) : null, r.TriggerEvent, r.ContractId)).ToList();
     }
 
     private async Task NotifyOwnersAsync(string title, Guid receivableId, CancellationToken ct)

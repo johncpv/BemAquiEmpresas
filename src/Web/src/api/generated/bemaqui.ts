@@ -70,6 +70,7 @@ import type {
   ConfirmTwoFactorRequest,
   ConfirmWithChallengeRequest,
   ContactInput,
+  ContractCancelInput,
   ContractDetail,
   ContractPage,
   ConversionDetail,
@@ -95,6 +96,7 @@ import type {
   EmployeePersonalInput,
   EmployeeSensitiveDetail,
   ExtendValidityInput,
+  FinanceDeadLetter,
   FinanceLimits,
   FinanceLimitsInput,
   FinanceProjectOption,
@@ -225,6 +227,7 @@ import type {
   PricingModeInput,
   ProjectBudgetLine,
   ProjectDetail,
+  ProjectEventInput,
   ProvisionAccepted,
   ProvisionTenantRequest,
   QuoteConditions,
@@ -15414,6 +15417,89 @@ export function useGetContract<TData = Awaited<ReturnType<typeof getContract>>, 
 
 
 
+export const getCancelContractUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/contracts/${id}/cancel`
+}
+
+export const cancelContract = async (id: string,
+    contractCancelInput: ContractCancelInput, options?: Parameters<typeof apiFetch>[1]): Promise<ContractDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ContractDetail>(getCancelContractUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(contractCancelInput)
+  }
+);}
+
+
+
+
+
+export const getCancelContractMutationKey = () => ['cancelContract'] as const;
+
+export const getCancelContractMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelContract>>, TError,CancelContractMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelContract>>, TError,CancelContractMutationVariables, TContext> => {
+
+const mutationKey = getCancelContractMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelContract>>, CancelContractMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  cancelContract(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelContractMutationResult = NonNullable<Awaited<ReturnType<typeof cancelContract>>>
+    export type CancelContractMutationBody = ContractCancelInput
+    export type CancelContractMutationError = unknown
+    export type CancelContractMutationVariables = {id: string;data: ContractCancelInput}
+
+    export const useCancelContract = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelContract>>, TError,CancelContractMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof cancelContract>>,
+        TError,
+        CancelContractMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCancelContractMutationOptions(options), queryClient);
+    }
+
 export const getGetProjectUrl = (id: string,) => {
 
 
@@ -15603,6 +15689,172 @@ export function useGetProjectBudget<TData = Awaited<ReturnType<typeof getProject
 
 
 
+
+export const getRegisterProjectFabricationUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/projects/${id}/fabrication`
+}
+
+export const registerProjectFabrication = async (id: string,
+    projectEventInput: ProjectEventInput, options?: Parameters<typeof apiFetch>[1]): Promise<ProjectDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ProjectDetail>(getRegisterProjectFabricationUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(projectEventInput)
+  }
+);}
+
+
+
+
+
+export const getRegisterProjectFabricationMutationKey = () => ['registerProjectFabrication'] as const;
+
+export const getRegisterProjectFabricationMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof registerProjectFabrication>>, TError,RegisterProjectFabricationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof registerProjectFabrication>>, TError,RegisterProjectFabricationMutationVariables, TContext> => {
+
+const mutationKey = getRegisterProjectFabricationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof registerProjectFabrication>>, RegisterProjectFabricationMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  registerProjectFabrication(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RegisterProjectFabricationMutationResult = NonNullable<Awaited<ReturnType<typeof registerProjectFabrication>>>
+    export type RegisterProjectFabricationMutationBody = ProjectEventInput
+    export type RegisterProjectFabricationMutationError = unknown
+    export type RegisterProjectFabricationMutationVariables = {id: string;data: ProjectEventInput}
+
+    export const useRegisterProjectFabrication = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof registerProjectFabrication>>, TError,RegisterProjectFabricationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof registerProjectFabrication>>,
+        TError,
+        RegisterProjectFabricationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRegisterProjectFabricationMutationOptions(options), queryClient);
+    }
+
+export const getRegisterProjectDeliveryUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/projects/${id}/delivery`
+}
+
+export const registerProjectDelivery = async (id: string,
+    projectEventInput: ProjectEventInput, options?: Parameters<typeof apiFetch>[1]): Promise<ProjectDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ProjectDetail>(getRegisterProjectDeliveryUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(projectEventInput)
+  }
+);}
+
+
+
+
+
+export const getRegisterProjectDeliveryMutationKey = () => ['registerProjectDelivery'] as const;
+
+export const getRegisterProjectDeliveryMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof registerProjectDelivery>>, TError,RegisterProjectDeliveryMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof registerProjectDelivery>>, TError,RegisterProjectDeliveryMutationVariables, TContext> => {
+
+const mutationKey = getRegisterProjectDeliveryMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof registerProjectDelivery>>, RegisterProjectDeliveryMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  registerProjectDelivery(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RegisterProjectDeliveryMutationResult = NonNullable<Awaited<ReturnType<typeof registerProjectDelivery>>>
+    export type RegisterProjectDeliveryMutationBody = ProjectEventInput
+    export type RegisterProjectDeliveryMutationError = unknown
+    export type RegisterProjectDeliveryMutationVariables = {id: string;data: ProjectEventInput}
+
+    export const useRegisterProjectDelivery = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof registerProjectDelivery>>, TError,RegisterProjectDeliveryMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof registerProjectDelivery>>,
+        TError,
+        RegisterProjectDeliveryMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRegisterProjectDeliveryMutationOptions(options), queryClient);
+    }
 
 export const getGetCommercialParametersUrl = () => {
 
@@ -25674,6 +25926,169 @@ export function useListFinanceProjects<TData = Awaited<ReturnType<typeof listFin
 
 
 
+
+export const getListFinanceDeadLettersUrl = () => {
+
+
+
+
+  return `/api/v1/finance/dead-letters`
+}
+
+export const listFinanceDeadLetters = async ( options?: Parameters<typeof apiFetch>[1]): Promise<FinanceDeadLetter[]> => {
+
+  return apiFetch<FinanceDeadLetter[]>(getListFinanceDeadLettersUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListFinanceDeadLettersQueryKey = () => {
+    return [
+    `/api/v1/finance/dead-letters`
+    ] as const;
+    }
+
+
+export const getListFinanceDeadLettersQueryOptions = <TData = Awaited<ReturnType<typeof listFinanceDeadLetters>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFinanceDeadLetters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListFinanceDeadLettersQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listFinanceDeadLetters>>> = ({ signal }) => listFinanceDeadLetters({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listFinanceDeadLetters>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListFinanceDeadLettersQueryResult = NonNullable<Awaited<ReturnType<typeof listFinanceDeadLetters>>>
+export type ListFinanceDeadLettersQueryError = unknown
+
+
+export function useListFinanceDeadLetters<TData = Awaited<ReturnType<typeof listFinanceDeadLetters>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFinanceDeadLetters>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listFinanceDeadLetters>>,
+          TError,
+          Awaited<ReturnType<typeof listFinanceDeadLetters>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListFinanceDeadLetters<TData = Awaited<ReturnType<typeof listFinanceDeadLetters>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFinanceDeadLetters>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listFinanceDeadLetters>>,
+          TError,
+          Awaited<ReturnType<typeof listFinanceDeadLetters>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListFinanceDeadLetters<TData = Awaited<ReturnType<typeof listFinanceDeadLetters>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFinanceDeadLetters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListFinanceDeadLetters<TData = Awaited<ReturnType<typeof listFinanceDeadLetters>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFinanceDeadLetters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListFinanceDeadLettersQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getReprocessFinanceDeadLetterUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/finance/dead-letters/${id}/reprocess`
+}
+
+export const reprocessFinanceDeadLetter = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getReprocessFinanceDeadLetterUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getReprocessFinanceDeadLetterMutationKey = () => ['reprocessFinanceDeadLetter'] as const;
+
+export const getReprocessFinanceDeadLetterMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reprocessFinanceDeadLetter>>, TError,ReprocessFinanceDeadLetterMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reprocessFinanceDeadLetter>>, TError,ReprocessFinanceDeadLetterMutationVariables, TContext> => {
+
+const mutationKey = getReprocessFinanceDeadLetterMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reprocessFinanceDeadLetter>>, ReprocessFinanceDeadLetterMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  reprocessFinanceDeadLetter(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReprocessFinanceDeadLetterMutationResult = NonNullable<Awaited<ReturnType<typeof reprocessFinanceDeadLetter>>>
+
+    export type ReprocessFinanceDeadLetterMutationError = unknown
+    export type ReprocessFinanceDeadLetterMutationVariables = {id: string}
+
+    export const useReprocessFinanceDeadLetter = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reprocessFinanceDeadLetter>>, TError,ReprocessFinanceDeadLetterMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reprocessFinanceDeadLetter>>,
+        TError,
+        ReprocessFinanceDeadLetterMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReprocessFinanceDeadLetterMutationOptions(options), queryClient);
+    }
 
 export const getListRecurringExpensesUrl = () => {
 

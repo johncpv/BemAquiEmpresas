@@ -5,7 +5,7 @@
 | ID | COM-04b |
 | Título | Finance cria os recebíveis dos marcos ao receber `ContractSigned` (data → `Open`, evento → `Planned`) e grava cada evento de gatilho num registro próprio, para liberar a parcela mesmo com os eventos fora de ordem; registro manual de "fabricação concluída" e de "entrega" (venda sem instalação); cancelamento do contrato com os recebíveis; conclusão do contrato e encerramento do projeto; reprocessamento de mensagem em dead-letter |
 | Tamanho | M (quebra da COM-04) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-COML-7 (parcelas de Contas a Receber) · R-PRJ-6 (marcos do projeto disparam liberação de parcelas) · R-FIN-3 (títulos gerados pelo contrato) · R-COM-2 (notificação ao financeiro) · R-PRP-5 · R-PRP-7 |
 | Dependências | COM-04a (contrato, marcos, eventos, `IProjects`, `IContracts`), FIN-01 (títulos a receber, origem `Contract`, `ReceivableSettled`), FND-09e (teste de posse de tabela, Contracts × Contracts, `dedup_key`) |
 | Bloqueia | COM-04c, COM-05 (aba Financeiro), COM-06 (liberação no aceite técnico), COM-07, FIN-06b, PRD-06 (`ProjectFabricated` automático) |
@@ -94,16 +94,16 @@ Decididos pelo PO em 20/10/2026 (seção 1.1, itens 20 e 25, e D14, D15):
 6. P-18 decidida (ADR 0021).
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers, cadeia ponta a ponta e eventos fora de ordem), arquitetura e E2E passando.
-- [ ] Migration criada (não destrutiva).
-- [ ] Permissões só do `ModuleCatalog`; consumidores registrados.
-- [ ] Telas com estados.
-- [ ] Ajuda atualizada; teste de cobertura passando.
-- [ ] Notificações acionáveis e confirmação com impacto.
-- [ ] Auditoria ligada nos três módulos.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` conferidos; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers, cadeia ponta a ponta e eventos fora de ordem), arquitetura e E2E passando.
+- [x] Migration criada (não destrutiva).
+- [x] Permissões só do `ModuleCatalog`; consumidores registrados.
+- [x] Telas com estados.
+- [x] Ajuda atualizada; teste de cobertura passando.
+- [x] Notificações acionáveis e confirmação com impacto.
+- [x] Auditoria ligada nos três módulos.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` conferidos; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
 - [ ] Consumidores no Finance (`ContractSignedConsumer`, `MilestoneReachedConsumer` com o registro de gatilhos, `ContractCancelledConsumer`) e no Commercial (`ReceivableSettledConsumer`, `ProjectDeliveredConsumer`).
@@ -142,3 +142,4 @@ Checklist do @po (Pax), 20/10/2026 (revalidação depois das decisões do PO e d
 | 19/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 20/10/2026 | 0.3 | Decisões do PO (D14, D15, seção 1.1) e correções da revisão pré-Fase 2 (§2.1-C1, A3, A4, M12, baixos); CAs renumerados | River (SM) |
 | 20/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 20/10/2026 | 1.0 | Implementada. Desvios: os eventos de Comercial e Financeiro não estavam registrados no processo (iriam para dead-letter); todos foram registrados no `HostEvents`, sem mensagem perdida em homologação; `project_trigger_events` guarda `contract_id` no lugar de `message_id` (a mensagem fica na origem da auditoria, que agora todo consumidor grava como "Evento … · mensagem …"); `receivables.contract_id` novo para ler as parcelas do contrato; `ContractMilestoneInfo` ganhou o percentual (descrição da parcela); com marco de fabricação no contrato, "Registrar entrega" exige a fabricação registrada (409); a checagem de OS de instalação aberta entra com o `IInstallationOrders` da COM-06; o aviso de dead-letter leva à lista A receber, que mostra os eventos com falha e "Reprocessar"; consumidores dentro do processo: `ContractSignedConsumer`, `MilestoneReachedConsumer`, `ContractCancelledConsumer` (Finance) e `ContractCompletionConsumer` (Commercial) | @dev |

@@ -28,6 +28,7 @@ public static class MessagingServiceCollectionExtensions
         services.TryAddSingleton<Observability.IAlertSink, Observability.LogOnlyAlertSink>();
         services.TryAddScoped<IEventPublisher, OutboxEventPublisher>();
         services.TryAddScoped<OutboxProcessor>();
+        services.TryAddScoped<DeadLetterRequeue>();
         if (runDispatcher)
         {
             services.AddHostedService<OutboxDispatcher>();

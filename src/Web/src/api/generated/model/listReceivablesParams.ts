@@ -11,6 +11,7 @@ situation?: string;
 partyId?: string;
 dueFrom?: string;
 dueTo?: string;
+contractId?: string;
 page?: number;
 pageSize?: number;
 sort?: string;

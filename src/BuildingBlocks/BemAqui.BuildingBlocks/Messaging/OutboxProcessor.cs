@@ -1,6 +1,7 @@
 using System.Text.Json;
 using BemAqui.BuildingBlocks.Observability;
 using BemAqui.BuildingBlocks.Persistence;
+using BemAqui.BuildingBlocks.Persistence.Auditing;
 using BemAqui.BuildingBlocks.Tenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -53,6 +54,7 @@ public sealed partial class OutboxProcessor(
                 message.DeadLetteredAt = clock.GetUtcNow();
                 LogDeadLettered(logger, message.Id, message.Type, tenant.Key, message.Attempts, error);
                 await alerts.RaiseAsync(new Alert(AlertKinds.OutboxDeadLetter, tenant.Key, "Evento " + message.Type + " foi para dead-letter", error), cancellationToken);
+                await ObserveDeadLetterAsync(tenant, message, cancellationToken);
             }
             else
             {
@@ -88,7 +90,7 @@ public sealed partial class OutboxProcessor(
         {
             try
             {
-                await RunHandlerAsync(tenant, message.Id, handler, integrationEvent, cancellationToken);
+                await RunHandlerAsync(tenant, message, handler, integrationEvent, cancellationToken);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
@@ -100,13 +102,47 @@ public sealed partial class OutboxProcessor(
         return errors.Count == 0 ? null : string.Join(" | ", errors);
     }
 
-    private async Task RunHandlerAsync(TenantInfo tenant, Guid messageId, RegisteredHandler handler, object integrationEvent, CancellationToken cancellationToken)
+    /// <summary>Avisa os módulos donos (COM-04b CA 5); a falha do aviso só vai para o log.</summary>
+    private async Task ObserveDeadLetterAsync(TenantInfo tenant, OutboxMessage message, CancellationToken cancellationToken)
     {
+        try
+        {
+            await using var scope = await scopes.CreateScopeAsync(tenant, cancellationToken);
+            var observers = scope.ServiceProvider.GetServices<IDeadLetterObserver>().ToList();
+            if (observers.Count == 0)
+            {
+                return;
+            }
+
+            var dead = new DeadLetteredMessage(message.Id, message.Type, message.Payload, message.Error ?? string.Empty);
+            foreach (var observer in observers)
+            {
+                await observer.OnDeadLetteredAsync(dead, cancellationToken);
+            }
+
+            await scope.ServiceProvider.GetRequiredService<BemAquiDbContext>().SaveChangesAsync(cancellationToken);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            LogHandlerFailed(logger, ex, nameof(IDeadLetterObserver), message.Id, tenant.Key);
+        }
+    }
+
+    private async Task RunHandlerAsync(TenantInfo tenant, OutboxMessage message, RegisteredHandler handler, object integrationEvent, CancellationToken cancellationToken)
+    {
+        var messageId = message.Id;
         using var tenantLog = Serilog.Context.LogContext.PushProperty("TenantId", tenant.Id);
         using var messageLog = Serilog.Context.LogContext.PushProperty("MessageId", messageId);
         using var handlerLog = Serilog.Context.LogContext.PushProperty("Handler", handler.Name);
         await using var scope = await scopes.CreateScopeAsync(tenant, cancellationToken);
         var handlerDb = scope.ServiceProvider.GetRequiredService<BemAquiDbContext>();
+
+        // Sem usuário: a auditoria do efeito leva o evento e a mensagem (COM-04b CA 19).
+        if (scope.ServiceProvider.GetService<AuditOrigin>() is { } origin)
+        {
+            origin.Label = "Evento " + message.Type[(message.Type.LastIndexOf('.') + 1)..] + " · mensagem " + messageId;
+        }
+
         await using var transaction = await handlerDb.Database.BeginTransactionAsync(cancellationToken);
 
         var alreadyDelivered = await handlerDb.InboxMessages.AnyAsync(i => i.MessageId == messageId && i.Handler == handler.Name, cancellationToken);

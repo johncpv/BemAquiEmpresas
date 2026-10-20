@@ -10,6 +10,8 @@ modulo: finance
 Ver o que os clientes devem à empresa, por vencimento, e abrir cada título para dar baixa quando o dinheiro entrar.
 
 ## Como usar
+- As parcelas dos contratos entram sozinhas, uma por marco. A parcela **Prevista** espera o marco acontecer ("Aguarda: fabricação concluída") para ganhar vencimento.
+- Se um evento do contrato falhar, aparece um aviso com **Reprocessar** para quem pode editar o financeiro.
 - Filtre pela situação (em aberto, vencidos, pagos, cancelados) e pelo período de vencimento.
 - O rodapé mostra quanto está em aberto e quanto está vencido no filtro inteiro, não só na página.
 - Clique no número para abrir o título.

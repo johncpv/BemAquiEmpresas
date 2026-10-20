@@ -1,4 +1,6 @@
 using BemAqui.BuildingBlocks.Authorization;
+using BemAqui.BuildingBlocks.Identity;
+using BemAqui.BuildingBlocks.Messaging;
 using BemAqui.BuildingBlocks.Paging;
 using BemAqui.Commercial.Domain;
 using BemAqui.Finance.Contracts;
@@ -9,7 +11,8 @@ using Microsoft.EntityFrameworkCore;
 namespace BemAqui.Commercial.Application;
 
 /// <summary>Contratos (COM-04a CA 12 e 16): só leitura; o contrato muda por aditivo (COM-07) e o cancelamento é da COM-04b.</summary>
-public sealed class ContractService(ICommercialDb db, IParties parties, IChartOfAccounts chart, IReceivables receivables, IPermissionChecker permissions)
+public sealed partial class ContractService(
+    ICommercialDb db, IParties parties, IChartOfAccounts chart, IReceivables receivables, IPermissionChecker permissions, IEventPublisher events, ICurrentUser currentUser, TimeProvider clock)
 {
     public const string AttachmentOwner = "Contract";
 
@@ -51,17 +54,23 @@ public sealed class ContractService(ICommercialDb db, IParties parties, IChartOf
         }
 
         var quote = await db.Quotes.IgnoreQueryFilters().AsNoTracking().Where(q => q.Id == contract.QuoteId).Select(q => new { q.Number, q.Revision }).FirstAsync(cancellationToken);
-        var project = await db.Projects.AsNoTracking().Where(p => p.ContractId == id).Select(p => new { p.Id, p.Number, p.Name }).FirstOrDefaultAsync(cancellationToken);
+        var project = await db.Projects.AsNoTracking().Where(p => p.ContractId == id).Select(p => new { p.Id, p.Number, p.Name, p.Status }).FirstOrDefaultAsync(cancellationToken);
         var milestones = await db.ContractMilestones.AsNoTracking().Where(m => m.ContractId == id).OrderBy(m => m.Sequence)
             .Select(m => new ContractMilestoneView(m.Id, m.Sequence, m.Description, m.Percent, m.Amount, m.Trigger, m.TriggerEvent, m.DueDate, m.DaysAfterEvent)).ToListAsync(cancellationToken);
         var party = await parties.FindAsync(contract.PartyId, cancellationToken);
         var account = await chart.FindAsync([contract.RevenueAccountId], cancellationToken) is [var found, ..] ? found : null;
         var withCost = await permissions.HasPermissionAsync("projects", "view_cost", cancellationToken);
+        var parcels = await receivables.ForContractAsync(id, cancellationToken);
+        var withFinance = await permissions.HasPermissionAsync("finance", "view", cancellationToken);
+        var byMilestone = parcels.GroupBy(p => p.MilestoneId).ToDictionary(g => g.Key, g => g.First());
+        var milestoneViews = milestones.Select(m => byMilestone.TryGetValue(m.Id, out var p)
+            ? m with { Receivable = withFinance ? new MilestoneReceivable(p.Id, p.Number, p.Status.ToString(), p.DueDate, p.Amount, p.Balance) : null, HasReceivable = true }
+            : m).ToList();
         return new ContractDetail(
             contract.Id, contract.Number, contract.Status, contract.PartyId, party is null ? string.Empty : party.TradeName ?? party.LegalName, party?.Document, contract.TotalValue,
             contract.SignedAt, contract.RevenueAccountId, account is null ? null : $"{account.Code} {account.Name}", contract.QuoteId, quote.Number, quote.Revision, project?.Id,
-            project?.Number, project?.Name, contract.CreatedAt, milestones, ContractSnapshots.Read(contract.Snapshot, withCost),
-            await receivables.CountByOriginAsync(DocumentOrigin.Contract, contract.Id, cancellationToken), contract.Version);
+            project?.Number, project?.Name, contract.CreatedAt, milestoneViews, ContractSnapshots.Read(contract.Snapshot, withCost),
+            parcels.Count, contract.Version, contract.CancelReason, contract.CancelledAt, contract.CompletedAt, project?.Status);
     }
 
     /// <summary>Contrato do orçamento aprovado, para o link do 409 "já foi aprovado" e do orçamento (CA 9).</summary>
