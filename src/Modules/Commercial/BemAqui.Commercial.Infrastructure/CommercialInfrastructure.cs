@@ -47,6 +47,11 @@ public static class CommercialInfrastructure
         services.AddAttachmentOwner(ContractService.AttachmentOwner, new AttachmentOwnerRules("projects", ["application/pdf"], 25 * 1024 * 1024,
             OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<ICommercialDb>().Contracts.AnyAsync(c => c.Id == id, ct),
             ReadAction: "view", WriteAction: "edit"));
+
+        // Documentos do projeto (COM-05 CA 11): tipos e tamanho da ADR 0019 §7.
+        services.AddAttachmentOwner(ProjectService.AttachmentOwner, new AttachmentOwnerRules("projects", ["application/pdf", "image/png", "image/jpeg"], 25 * 1024 * 1024,
+            OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<ICommercialDb>().Projects.AnyAsync(p => p.Id == id, ct),
+            ReadAction: "view", WriteAction: "edit"));
         return services;
     }
 }

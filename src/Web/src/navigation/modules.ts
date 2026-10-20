@@ -44,7 +44,7 @@ const SETUP = 'Configuração financeira'
 export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
   dashboard: { slug: 'painel', icon: LayoutDashboard },
   quotes: { slug: 'orcamentos', icon: FileText },
-  projects: { slug: 'contratos', aliases: ['projetos'], icon: FolderKanban },
+  projects: { slug: 'projetos', aliases: ['contratos'], icon: FolderKanban },
   parties: { slug: 'cadastros', icon: Contact, tabs: [{ slug: 'terceiros', label: 'Terceiros' }] },
   engineering: { slug: 'engenharia', icon: DraftingCompass },
   production: { slug: 'producao', icon: Factory, tabs: [{ slug: 'centros-de-trabalho', label: 'Centros de trabalho' }, { slug: 'calendario', label: 'Calendário' }] },

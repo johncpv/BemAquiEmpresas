@@ -36,6 +36,21 @@ internal static partial class CommercialEndpoints
             .RequirePermission("projects.approve").WithName("CancelContract").Produces<ContractDetail>();
 
         var projects = api.MapGroup("/projects").WithTags("Contratos e projetos").RequireModule("projects");
+        projects.MapGet(string.Empty, async (string? q, string? situation, Guid? partyId, Guid? managerId, int? page, int? pageSize, ProjectService service, CancellationToken ct) =>
+                Results.Ok(await service.ListAsync(q, situation, partyId, managerId, new PageRequest(page ?? 1, pageSize ?? PageRequest.DefaultPageSize).Normalize(), ct)))
+            .RequirePermission("projects.view").WithName("ListProjects").Produces<ProjectListPage>();
+        projects.MapGet("/margins", async (string ids, ProjectService service, CancellationToken ct) => (await service.MarginsAsync(ParseIds(ids), ct)).ToHttpResult())
+            .RequirePermission("projects.view_cost").WithName("ListProjectMargins").Produces<IReadOnlyList<ProjectMargin>>();
+        projects.MapGet("/received", async (string ids, ProjectService service, CancellationToken ct) => (await service.ReceivedAsync(ParseIds(ids), ct)).ToHttpResult())
+            .RequirePermission("projects.view").WithName("ListProjectReceived").Produces<IReadOnlyList<ProjectReceived>>();
+        projects.MapPut("/{id:guid}", async (Guid id, ProjectUpdateInput input, ProjectService service, CancellationToken ct) => (await service.UpdateAsync(id, input, ct)).ToHttpResult())
+            .RequirePermission("projects.edit").WithName("UpdateProject").Produces<ProjectDetail>();
+        projects.MapGet("/{id:guid}/financial", async (Guid id, ProjectService service, CancellationToken ct) => (await service.FinancialAsync(id, ct)).ToHttpResult())
+            .RequirePermission("projects.view").WithName("GetProjectFinancial").Produces<ProjectFinancial>();
+        projects.MapGet("/{id:guid}/costs", async (Guid id, ProjectService service, CancellationToken ct) => (await service.CostsAsync(id, ct)).ToHttpResult())
+            .RequirePermission("projects.view_cost").WithName("GetProjectCosts").Produces<ProjectCostView>();
+        projects.MapGet("/{id:guid}/timeline", async (Guid id, ProjectService service, CancellationToken ct) => (await service.TimelineAsync(id, ct)).ToHttpResult())
+            .RequirePermission("projects.view").WithName("GetProjectTimeline").Produces<IReadOnlyList<ProjectTimelineEntry>>();
         projects.MapGet("/{id:guid}", async (Guid id, ProjectService service, CancellationToken ct) => (await service.GetAsync(id, ct)).ToHttpResult())
             .RequirePermission("projects.view").WithName("GetProject").Produces<ProjectDetail>();
         projects.MapGet("/{id:guid}/budget", async (Guid id, ProjectService service, CancellationToken ct) => (await service.BudgetAsync(id, ct)).ToHttpResult())

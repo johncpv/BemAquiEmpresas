@@ -21,5 +21,5 @@ public sealed class ReceivablesContract(IFinanceDb db) : IReceivables
 
     private static IQueryable<ContractReceivable> Views(IQueryable<Receivable> receivables) =>
         receivables.AsNoTracking().OrderBy(r => r.DueDate == null).ThenBy(r => r.DueDate).ThenBy(r => r.Number)
-            .Select(r => new ContractReceivable(r.Id, r.Number, r.OriginId ?? Guid.Empty, r.Status, r.DueDate, r.Amount, r.Amount - r.PaidAmount, r.PaidAmount > 0));
+            .Select(r => new ContractReceivable(r.Id, r.Number, r.OriginId ?? Guid.Empty, r.Status, r.DueDate, r.Amount, r.Amount - r.PaidAmount, r.PaidAmount > 0, r.Description, r.CreatedAt));
 }

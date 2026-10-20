@@ -58,4 +58,10 @@ public interface IPayables
     Task<Result<PayableRef>> UpdatePlannedAsync(DocumentOrigin origin, Guid originId, decimal amount, DateOnly? dueDate, CancellationToken cancellationToken = default);
 
     Task<Result> CancelFromOriginAsync(DocumentOrigin origin, Guid originId, string reason, CancellationToken cancellationToken = default);
+
+    /// <summary>Títulos a pagar com o projeto (COM-05 CA 6, 8): base do realizado por natureza.</summary>
+    Task<IReadOnlyList<ProjectPayable>> ByProjectAsync(Guid projectId, CancellationToken cancellationToken = default);
 }
+
+/// <summary>Título a pagar do projeto (COM-05), sem dado de pagamento.</summary>
+public sealed record ProjectPayable(Guid Id, string Number, Guid PartyId, DocumentOrigin Origin, CostType? CostType, DateOnly? DueDate, decimal Amount, decimal Balance, PayableStatus Status, DateTimeOffset CreatedAt);

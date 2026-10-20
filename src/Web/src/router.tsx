@@ -44,6 +44,7 @@ import { QuotePage } from '@/pages/quotes/QuotePage'
 import { ContractPage } from '@/pages/contracts/ContractPage'
 import { ContractsPage } from '@/pages/contracts/ContractsPage'
 import { ProjectPage } from '@/pages/projects/ProjectPage'
+import { ProjectsPage } from '@/pages/projects/ProjectsPage'
 import { QuotesPage } from '@/pages/quotes/QuotesPage'
 import { NewPaymentOrderPage } from '@/pages/finance/payment-orders/NewPaymentOrderPage'
 import { PaymentOrderPage } from '@/pages/finance/payment-orders/PaymentOrderPage'
@@ -175,6 +176,7 @@ const quoteRoute = createRoute({ getParentRoute: () => appRoute, path: 'orcament
 // Contratos e projetos (COM-04a): o menu "Contratos e projetos" abre a lista de contratos até a COM-05.
 const contractsRoute = createRoute({ getParentRoute: () => appRoute, path: 'contratos', component: gated('projects', ContractsPage) })
 const contractRoute = createRoute({ getParentRoute: () => appRoute, path: 'contratos/$id', component: gated('projects', ContractPage) })
+const projectsRoute = createRoute({ getParentRoute: () => appRoute, path: 'projetos', component: gated('projects', ProjectsPage) })
 const projectRoute = createRoute({ getParentRoute: () => appRoute, path: 'projetos/$id', component: gated('projects', ProjectPage) })
 // Extrato da conta (FIN-04).
 const statementRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/contas/$id/extrato', component: gated('finance', StatementPage) })
@@ -234,7 +236,7 @@ export const routeTree = rootRoute.addChildren([
   appRoute.addChildren([appIndexRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute,
     aiSettingsRoute, importRunsRoute, importRunRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute,
     inventoryRootRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, productionRootRoute, workCentersRoute, calendarRoute,
-    financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, payablesRoute, newPayableRoute, payableRoute, recurringRoute, openingRoute, cashFlowRoute, agingRoute, paymentOrdersRoute, newPaymentOrderRoute, paymentOrderRoute, statementRoute, quotesRoute, quoteRoute, quoteCompareRoute, contractsRoute, contractRoute, projectRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
+    financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, payablesRoute, newPayableRoute, payableRoute, recurringRoute, openingRoute, cashFlowRoute, agingRoute, paymentOrdersRoute, newPaymentOrderRoute, paymentOrderRoute, statementRoute, quotesRoute, quoteRoute, quoteCompareRoute, contractsRoute, contractRoute, projectsRoute, projectRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
   platformLoginRoute,
   platformPasswordRoute,
   platformRoute.addChildren([platformIndexRoute, tenantsRoute, tenantRoute]),

@@ -5,7 +5,7 @@
 | ID | COM-05 |
 | Título | Lista de projetos e tela do projeto com abas: Resumo, Itens e OS, Financeiro (a receber e a pagar do projeto), Custos (orçado, realizado, projetado e desvio por natureza), Documentos, Linha do tempo e Histórico; edição de nome, responsável e endereço da obra; custo e margem só com `projects.view_cost` |
 | Tamanho | M |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-PRJ-1 (projeto com contrato, cliente, obra, data prometida, responsável) · R-PRJ-4 (visão 360: OS, recebíveis, custos lançados, documentos, linha do tempo) · R-PRJ-2 (itens) · R-PRJ-5 (parte: orçado por natureza e margem prevista; o realizado completo é a DSH-02) · R-COM-3 · R-PRP-2 · R-PRP-5 |
 | Dependências | COM-04a (projeto, itens, orçamento, `cost_type` no título a pagar, `IProjects`), COM-04b (`IReceivables`), FIN-02 (`IPayables.ByProjectAsync`), FND-09e |
 | Bloqueia | COM-06 (aba Itens e OS), COM-07 (ação Aditivo), DSH-02, PLN-02 |
@@ -92,16 +92,16 @@ Decididos pelo PO em 20/10/2026 (seção 1.1, itens 19 e 26, e D7):
 3. P-18 decidida (ADR 0021).
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
-- [ ] Sem migration nova (só leitura e o dono de anexo), salvo índice de apoio à lista.
-- [ ] Permissões só do `ModuleCatalog`; dono de anexo `Project` registrado.
-- [ ] Telas com estados por aba.
-- [ ] Ajuda da lista e de cada aba; teste de cobertura passando.
-- [ ] Alertas acionáveis aplicados.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` conferido; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
+- [x] Sem migration nova (só leitura e o dono de anexo), salvo índice de apoio à lista.
+- [x] Permissões só do `ModuleCatalog`; dono de anexo `Project` registrado.
+- [x] Telas com estados por aba.
+- [x] Ajuda da lista e de cada aba; teste de cobertura passando.
+- [x] Alertas acionáveis aplicados.
+- [x] Auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` conferido; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
 - [ ] Consultas da lista, do resumo, dos custos e da linha do tempo, com DTOs por permissão.
@@ -138,4 +138,5 @@ Checklist do @po (Pax), 20/10/2026 (revalidação depois das decisões do PO e d
 | 19/10/2026 | 0.1 | Story detalhada | River (SM) |
 | 19/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 20/10/2026 | 0.3 | Decisões do PO (D7, seção 1.1) e correções da revisão pré-Fase 2 (§2.1-M9, §2.3); CAs renumerados | River (SM) |
+| 20/10/2026 | 1.0 | Implementada. Desvios: margem e recebido da lista em rotas próprias (`/projects/margins` e `/projects/received`), como os custos da lista de orçamentos; o recebido é calculado por projeto da página; a aba Itens mostra "Ainda sem OS" até a COM-06; os PDFs do orçamento entram em Documentos quando a COM-03 for ao ar; a linha do tempo usa as datas gravadas (aprovação, assinatura, fabricação, entrega, cancelamento, conclusão, parcelas e títulos a pagar), sem a liberação de cada parcela; o menu "Contratos e projetos" volta a abrir `/app/projetos`, com "Ver contratos" no cabeçalho; `IPayables.ByProjectAsync` novo no `Finance.Contracts` | @dev |
 | 20/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |

@@ -13,6 +13,10 @@ public class CommercialRulesTests
     [InlineData(typeof(QuoteDetail))]
     [InlineData(typeof(QuoteItemView))]
     [InlineData(typeof(QuotePage))]
+    [InlineData(typeof(ProjectListRow))]
+    [InlineData(typeof(ProjectListPage))]
+    [InlineData(typeof(ProjectDetail))]
+    [InlineData(typeof(ProjectFinancial))]
     public void DTO_sem_custo_nao_tem_propriedade_de_custo(Type dto) =>
         dto.GetProperties().Select(p => p.Name).Where(n => CostWords.Any(w => n.Contains(w, StringComparison.Ordinal)))
             .Should().BeEmpty($"{dto.Name} é o DTO de quem não tem quotes.view_cost");
