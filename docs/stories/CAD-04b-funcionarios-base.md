@@ -5,7 +5,7 @@
 | ID | CAD-04b |
 | Título | Cadastro base do funcionário (identificação, documentos CTPS e título de eleitor, contrato, cargo, salário), linha do tempo de salário e cargo, desligamento, vínculo com o usuário e dados pessoais só com `hr.view_sensitive` por rota própria |
 | Tamanho | M (quebra da CAD-04b original pela decisão D6: dependentes, banco/Pix, adicionais, vale-transporte, afastamentos e documentos extras foram para a CAD-04c, na Fase 3) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-RH-1 (parte: dados pessoais, documentos, admissão, cargo, CBO, salário, jornada, sindicato) · R-RH-3 (histórico salarial e de cargo) · PRD §6 LGPD · R-SEC-5 · R-SEC-10 (`hr.view_sensitive`, ADR 0003) · R-PRP-1 |
 | Dependências | CAD-04a (cargos, jornadas, sindicatos, padrão `/sensitive` e `SensitiveRead`), CAD-01a (`BrazilianDocuments`), CAD-01b (`ICepLookup`), FND-09d; Fase 0 (FND-06c, FND-07, FND-09c, FND-14) |
 | Bloqueia | CAD-04c, PRD-03 (operador = funcionário), PRD-04, RH-01, RH-02, PAT-01 |
@@ -104,22 +104,22 @@ Como **RH**, quero **cadastrar cada funcionário com os dados de identificação
 - Nenhum ponto em aberto.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
-- [ ] Migrations criadas (`hr` e `identity.users.employee_id`, não destrutivas).
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Telas com estados de carregando, vazio, erro e "Dados protegidos".
-- [ ] Ajuda da lista, da criação e de cada aba; teste de cobertura passando.
-- [ ] Padrões comuns dos cadastros e próximos passos aplicados.
-- [ ] Auditoria ligada, com `[PersonalData]` e `SensitiveRead`.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` conferido; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
+- [x] Migrations criadas (`hr` e `identity.users.employee_id`, não destrutivas).
+- [x] Permissões só do `ModuleCatalog`.
+- [x] Telas com estados de carregando, vazio, erro e "Dados protegidos".
+- [x] Ajuda da lista, da criação e de cada aba; teste de cobertura passando.
+- [x] Padrões comuns dos cadastros e próximos passos aplicados.
+- [x] Auditoria ligada, com `[PersonalData]` e `SensitiveRead`.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` conferido; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] Entidades `Employee` e `EmployeeHistoryEntry` com as regras de linha do tempo, desligamento e exclusão.
-- [ ] DTOs de resumo e sensível; comandos separados com `UnmappedMemberHandling.Disallow`.
-- [ ] `IUserEmployeeLink` em `Identity.Contracts` (implementação no Identity) e `IEmployees` em `HR.Contracts`.
-- [ ] Endpoints `/api/v1/hr/employees` (+ `/{id}/sensitive`, dados pessoais, reajuste, troca de cargo, desligamento, vínculo, desvínculo, CEP); telas e ajuda.
+- [x] Entidades `Employee` e `EmployeeHistoryEntry` com as regras de linha do tempo, desligamento e exclusão.
+- [x] DTOs de resumo e sensível; comandos separados com `UnmappedMemberHandling.Disallow`.
+- [x] `IUserEmployeeLink` em `Identity.Contracts` (implementação no Identity) e `IEmployees` em `HR.Contracts`.
+- [x] Endpoints `/api/v1/hr/employees` (+ `/{id}/sensitive`, dados pessoais, reajuste, troca de cargo, desligamento, vínculo, desvínculo, CEP); telas e ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, cybersecurity (LGPD, corte de campos, leitura sensível, vínculo), @qa.
@@ -152,3 +152,4 @@ Checklist do @po (Pax), 18/10/2026.
 | 18/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 18/10/2026 | 0.3 | Decisão D6: escopo reduzido à base (dependentes, banco/Pix, adicionais, VT, afastamentos e documentos extras para a CAD-04c); D9, tabela 1.1, ADRs 0016 e 0018; ordem 13 do Marco C | River (SM) |
 | 18/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 19/10/2026 | 1.0 | Implementada. Desvios: validação responde 422 (convenção da API), não 400 (o corpo com membro desconhecido continua 400); o vínculo com o usuário fica auditado no Identity (`users.employee_id`), sem linha própria no HR; a exclusão ainda não confere apontamentos (eles nascem na PRD-03, que deve registrar o uso); o filtro por centro usa o centro padrão do cargo; o cargo ganhou a contagem de funcionários ativos e o atalho "Cadastrar funcionário neste cargo" (pendências da CAD-04a); o `ConfirmDialog` passou a aceitar campos e abertura controlada, para os diálogos de reajuste, troca de cargo, desligamento e vínculo | @dev |

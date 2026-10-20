@@ -16,6 +16,8 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
         b.ToTable("users", IdentitySchema.Name);
         b.Property(e => e.Name).HasMaxLength(200);
         b.Property(e => e.Email).HasMaxLength(320);
+        // Um funcionário por usuário e um usuário por funcionário (CAD-04b CA 19); sem FK para hr (outro módulo, ADR 0006).
+        b.HasIndex(e => e.EmployeeId).IsUnique().HasFilter("employee_id IS NOT NULL").HasDatabaseName("ix_users_employee_id");
         b.Property(e => e.NormalizedEmail).HasMaxLength(320);
         b.HasIndex(e => e.NormalizedEmail).IsUnique();
         b.Property(e => e.PasswordHash).HasMaxLength(512);

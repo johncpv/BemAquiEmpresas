@@ -41,6 +41,9 @@ public sealed class User : Entity, IAuditable
 
     public bool TotpEnabled { get; set; }
 
+    /// <summary>Funcionário ligado ao usuário (CAD-04b CA 19): só o id de <c>hr.employees</c>; no máximo um por usuário.</summary>
+    public Guid? EmployeeId { get; set; }
+
     /// <summary>Versão das permissões (ADR 0008): sobe quando grupos, vínculos ou situação mudam; entra na chave do cache.</summary>
     public int PermVersion { get; private set; }
 

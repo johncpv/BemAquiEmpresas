@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import { createPosition, updatePosition, useListPositionWorkCenters, useListSchedules } from '@/api/generated/bemaqui'
 import type { PositionDetail } from '@/api/generated/model'
@@ -18,7 +19,7 @@ type Draft = { name: string; cbo: string; centerId: string; scheduleId: string; 
 
 const toDraft = (p: PositionDetail | null): Draft => ({ name: p?.name ?? '', cbo: p?.cbo ?? '', centerId: p?.defaultWorkCenterId ?? '', scheduleId: p?.workScheduleId ?? '', monthlyHours: p ? String(p.monthlyHours) : null })
 
-/** Painel do cargo (CAD-04a CA 1 a 9): dados gerais, custo-hora (calculado ou ajustado) e a faixa salarial protegida. */
+/** Painel do cargo (CAD-04a CA 1 a 9): dados gerais, custo-hora (calculado ou ajustado), a faixa salarial protegida e o atalho para cadastrar funcionário (CAD-04b). */
 export function PositionPanel({ position, chargesPct, onClose, onSaved }: { position: PositionDetail | null; chargesPct: number; onClose: () => void; onSaved: () => void }) {
   const schedules = useListSchedules()
   const centers = useListPositionWorkCenters()
@@ -28,6 +29,7 @@ export function PositionPanel({ position, chargesPct, onClose, onSaved }: { posi
   const [error, setError] = useState<{ message: string; fields: Record<string, string[]> } | null>(null)
   const canWrite = useCan(position ? 'hr.edit' : 'hr.create')
   const canHistory = useCan('hr.view_sensitive')
+  const canHire = useCan('hr.create') && canHistory
   const dirty = JSON.stringify(draft) !== JSON.stringify(initial)
   const field = (name: string) => error?.fields[name]?.[0]
 
@@ -91,6 +93,12 @@ export function PositionPanel({ position, chargesPct, onClose, onSaved }: { posi
             <Field label="Horas mensais" error={field('monthlyHours')} dica={DICAS.horas}>{(p) => <DecimalInput {...p} scale={2} suffix="h" value={draft.monthlyHours} onChange={(monthlyHours) => setDraft({ ...draft, monthlyHours })} />}</Field>
           </div>
         </fieldset>
+        {current && canHire && current.isActive ? (
+          <p className="text-sm">
+            {current.activeEmployees === 1 ? '1 funcionário ativo neste cargo.' : `${current.activeEmployees} funcionários ativos neste cargo.`}{' '}
+            <Link to="/app/rh/funcionarios/novo" search={{ cargo: current.id } as never} className="font-semibold text-primary">Cadastrar funcionário neste cargo</Link>
+          </p>
+        ) : null}
         {current ? <PositionCost position={current} onSaved={keep} /> : null}
         <PositionSalary position={current} chargesPct={chargesPct} onSaved={keep} />
         {current && canHistory ? (

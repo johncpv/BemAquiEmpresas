@@ -279,10 +279,13 @@ public sealed partial class PositionService(
         var centers = centerIds.Count == 0 ? [] : (await workCenters.FindAsync(centerIds, ct)).ToDictionary(c => c.Id, c => c.Name);
         var scheduleIds = positions.Select(p => p.WorkScheduleId).OfType<Guid>().Distinct().ToList();
         var schedules = await db.WorkSchedules.IgnoreQueryFilters().AsNoTracking().Where(s => scheduleIds.Contains(s.Id)).ToDictionaryAsync(s => s.Id, s => s.Name, ct);
+        var ids = positions.Select(p => p.Id).ToList();
+        var counts = await db.Employees.AsNoTracking().Where(e => ids.Contains(e.PositionId) && e.Status == EmployeeStatus.Active)
+            .GroupBy(e => e.PositionId).Select(g => new { g.Key, Count = g.Count() }).ToDictionaryAsync(g => g.Key, g => g.Count, ct);
         return positions.Select(p => new PositionDetail(
             p.Id, p.Name, p.Cbo, p.DefaultWorkCenterId, p.DefaultWorkCenterId is { } c ? centers.GetValueOrDefault(c) : null,
             p.WorkScheduleId, p.WorkScheduleId is { } s ? schedules.GetValueOrDefault(s) : null,
-            p.MonthlyHours, p.HourlyCost, p.HourlyCostManual, p.IsActive, p.CreatedAt)).ToList();
+            p.MonthlyHours, p.HourlyCost, p.HourlyCostManual, p.IsActive, p.CreatedAt, counts.GetValueOrDefault(p.Id))).ToList();
     }
 
     private static Error NotFound() => Error.NotFound("position_not_found", "Cargo não encontrado.");

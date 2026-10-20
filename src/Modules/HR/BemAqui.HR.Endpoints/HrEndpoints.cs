@@ -24,6 +24,7 @@ internal static partial class HrEndpoints
         MapPositions(hr.MapGroup("/positions"));
         MapSchedules(hr.MapGroup("/schedules"));
         MapUnions(hr.MapGroup("/unions"));
+        MapEmployees(hr.MapGroup("/employees"));
         return api;
     }
 

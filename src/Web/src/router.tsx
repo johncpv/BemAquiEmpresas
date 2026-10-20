@@ -32,6 +32,9 @@ import { NewPaymentTermPage, PaymentTermPage } from '@/pages/finance/PaymentTerm
 import { PaymentTermsPage } from '@/pages/finance/PaymentTermsPage'
 import { ChartOfAccountsPage } from '@/pages/finance/ChartOfAccountsPage'
 import { CostCentersPage } from '@/pages/finance/CostCentersPage'
+import { EmployeePage } from '@/pages/hr/EmployeePage'
+import { EmployeesPage } from '@/pages/hr/EmployeesPage'
+import { NewEmployeePage } from '@/pages/hr/NewEmployeePage'
 import { PositionsPage } from '@/pages/hr/PositionsPage'
 import { SchedulesPage } from '@/pages/hr/SchedulesPage'
 import { UnionsPage } from '@/pages/hr/UnionsPage'
@@ -123,8 +126,11 @@ const financeRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'fi
 const bankAccountsRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/contas', component: gated('finance', BankAccountsPage), validateSearch: (s: Record<string, unknown>): { conta?: string } => ({ conta: text(s.conta) }) })
 const paymentTermsRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/condicoes-de-pagamento', component: gated('finance', PaymentTermsPage) })
 const newPaymentTermRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/condicoes-de-pagamento/nova', component: gated('finance', NewPaymentTermPage) })
-// RH (CAD-04a): cargos, jornadas e sindicatos.
-const hrRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh', beforeLoad: () => { throw redirect({ to: '/app/rh/cargos' }) } })
+// RH (CAD-04a e CAD-04b): funcionários, cargos, jornadas e sindicatos.
+const hrRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh', beforeLoad: () => { throw redirect({ to: '/app/rh/funcionarios' }) } })
+const employeesRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/funcionarios', component: gated('hr', EmployeesPage) })
+const newEmployeeRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/funcionarios/novo', component: gated('hr', NewEmployeePage) })
+const employeeRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/funcionarios/$id', component: gated('hr', EmployeePage) })
 const positionsRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/cargos', component: gated('hr', PositionsPage) })
 const schedulesRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/jornadas', component: gated('hr', SchedulesPage) })
 const unionsRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/sindicatos', component: gated('hr', UnionsPage) })
@@ -177,7 +183,7 @@ export const routeTree = rootRoute.addChildren([
   appRoute.addChildren([appIndexRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute,
     aiSettingsRoute, importRunsRoute, importRunRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute,
     inventoryRootRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, productionRootRoute, workCentersRoute, calendarRoute,
-    financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, hrRootRoute, positionsRoute, schedulesRoute, unionsRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
+    financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
   platformLoginRoute,
   platformPasswordRoute,
   platformRoute.addChildren([platformIndexRoute, tenantsRoute, tenantRoute]),

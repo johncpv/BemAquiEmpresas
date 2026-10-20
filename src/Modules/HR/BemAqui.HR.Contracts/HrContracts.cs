@@ -28,3 +28,19 @@ public interface IUnionUsageProvider
 {
     Task<bool> InUseAsync(Guid unionId, CancellationToken cancellationToken = default);
 }
+
+/// <summary>Funcionário para Production e Assets (CAD-04b CA 21): só o que não é sensível. O custo-hora vem de <see cref="IHourlyCost"/>, por cargo.</summary>
+public sealed record EmployeeSummary(Guid Id, string Name, string? Registration, Guid PositionId, string PositionName, Guid? WorkCenterId, bool IsActive);
+
+public interface IEmployees
+{
+    Task<IReadOnlyList<EmployeeSummary>> ActiveAsync(CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<EmployeeSummary>> FindAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default);
+}
+
+/// <summary>Desligamento registrado (CA 17), sem consumidor nesta fase.</summary>
+public sealed record EmployeeTerminated(Guid EmployeeId, DateOnly TerminationDate) : IIntegrationEvent;
+
+/// <summary>Salário mudou (CA 14), só o id e a vigência, sem valor; sem consumidor nesta fase.</summary>
+public sealed record EmployeeSalaryChanged(Guid EmployeeId, DateOnly EffectiveDate) : IIntegrationEvent;

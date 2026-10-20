@@ -42,6 +42,8 @@ public class PersonalDataTests
         ["JobPosition"] = ["Id", "Name", "Cbo", "DefaultWorkCenterId", "WorkScheduleId", "MonthlyHours", "HourlyCost", "HourlyCostManual", "IsActive", "CreatedAt", "IsDeleted", "DeletedAt"],
         ["WorkSchedule"] = ["Id", "Name", "Days", "WeeklyHours", "IsActive", "SeedKey", "CreatedAt", "IsDeleted", "DeletedAt"],
         ["LaborUnion"] = ["Id", "Name", "Document", "BaseMonth", "IsActive", "CreatedAt", "IsDeleted", "DeletedAt"],
+        ["Employee"] = ["Id", "Name", "Registration", "PositionId", "WorkScheduleId", "UnionId", "AdmissionDate", "TerminationDate", "Status", "CreatedAt", "IsDeleted", "DeletedAt"],
+        ["EmployeeHistoryEntry"] = ["Id", "EmployeeId", "Kind", "EffectiveDate", "Reason", "UserId", "CreatedAt"],
     };
 
     [Fact]
@@ -54,7 +56,7 @@ public class PersonalDataTests
 
         var application = Solution.Assemblies.Single(a => a.GetName().Name == "BemAqui.HR.Application");
         var sensitive = auditable.SelectMany(t => t.GetProperties().Where(p => p.GetCustomAttribute<PersonalDataAttribute>() is not null).Select(p => p.Name)).ToHashSet(StringComparer.Ordinal);
-        foreach (var dto in new[] { "PositionDetail", "PositionSummary" })
+        foreach (var dto in new[] { "PositionDetail", "PositionSummary", "EmployeeDetail" })
         {
             var type = application.GetTypes().Single(t => t.Name == dto);
             type.GetProperties().Select(p => p.Name).Should().NotIntersectWith(sensitive, dto + " é de lista ou resumo e não pode ter salário");

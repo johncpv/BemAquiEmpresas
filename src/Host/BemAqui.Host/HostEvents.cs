@@ -13,6 +13,8 @@ public static class HostEvents
         events.AddEmailEvents().AddEvent<UserActivated>()
             // CAD-06 → CAD-04a: o % de encargos recalcula o custo-hora dos cargos.
             .AddHandler<PayrollChargesChanged, BemAqui.HR.Application.PayrollChargesChangedHandler>()
-            .AddEvent<BemAqui.HR.Contracts.HourlyCostChanged>();
+            .AddEvent<BemAqui.HR.Contracts.HourlyCostChanged>()
+            .AddEvent<BemAqui.HR.Contracts.EmployeeTerminated>()
+            .AddEvent<BemAqui.HR.Contracts.EmployeeSalaryChanged>();
     }
 }
