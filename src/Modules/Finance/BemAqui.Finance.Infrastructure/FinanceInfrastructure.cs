@@ -46,6 +46,8 @@ public static class FinanceInfrastructure
         services.TryAddScoped<OpeningService>();
         // Fluxo de caixa base (FIN-05).
         services.TryAddScoped<CashFlowService>();
+        // Inadimplência e aviso dos vencidos (FIN-06a).
+        services.TryAddScoped<AgingService>();
         services.AddAuditableEntity<OpeningSetup>("finance");
         services.AddAuditableEntity<OpeningBatch>("finance");
         services.AddAuditableEntity<Payable>("finance");

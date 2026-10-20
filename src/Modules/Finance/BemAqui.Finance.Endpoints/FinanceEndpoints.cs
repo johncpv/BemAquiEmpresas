@@ -36,6 +36,8 @@ internal static partial class FinanceEndpoints
         MapRecurringExpenses(finance.MapGroup("/recurring-expenses"));
         MapOpening(finance.MapGroup("/opening"));
         MapCashFlow(finance.MapGroup("/cash-flow"));
+        finance.MapGet("/aging", async (string? sort, AgingService service, CancellationToken ct) => (await service.ReportAsync(sort, ct)).ToHttpResult())
+            .RequirePermission("finance.view").WithName("GetAging").Produces<AgingReport>();
         return api;
     }
 

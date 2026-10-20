@@ -33,6 +33,7 @@ import type {
   AddHolidaysResult,
   AddressData,
   AddressInput,
+  AgingReport,
   AiSettingsDto,
   AiSettingsRequest,
   AiTestResult,
@@ -81,6 +82,7 @@ import type {
   FinanceLimitsInput,
   FinanceSupplierOption,
   ForgotPasswordRequest,
+  GetAgingParams,
   GetAuditHistoryParams,
   GetCashFlowDayParams,
   GetCashFlowParams,
@@ -16252,6 +16254,108 @@ export function useListBanks<TData = Awaited<ReturnType<typeof listBanks>>, TErr
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getListBanksQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetAgingUrl = (params?: GetAgingParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/finance/aging?${stringifiedParams}` : `/api/v1/finance/aging`
+}
+
+export const getAging = async (params?: GetAgingParams, options?: Parameters<typeof apiFetch>[1]): Promise<AgingReport> => {
+
+  return apiFetch<AgingReport>(getGetAgingUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAgingQueryKey = (params?: GetAgingParams,) => {
+    return [
+    `/api/v1/finance/aging`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetAgingQueryOptions = <TData = Awaited<ReturnType<typeof getAging>>, TError = unknown>(params?: GetAgingParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAging>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAgingQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAging>>> = ({ signal }) => getAging(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAging>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAgingQueryResult = NonNullable<Awaited<ReturnType<typeof getAging>>>
+export type GetAgingQueryError = unknown
+
+
+export function useGetAging<TData = Awaited<ReturnType<typeof getAging>>, TError = unknown>(
+ params: undefined |  GetAgingParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAging>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAging>>,
+          TError,
+          Awaited<ReturnType<typeof getAging>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAging<TData = Awaited<ReturnType<typeof getAging>>, TError = unknown>(
+ params?: GetAgingParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAging>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAging>>,
+          TError,
+          Awaited<ReturnType<typeof getAging>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAging<TData = Awaited<ReturnType<typeof getAging>>, TError = unknown>(
+ params?: GetAgingParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAging>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetAging<TData = Awaited<ReturnType<typeof getAging>>, TError = unknown>(
+ params?: GetAgingParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAging>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetAgingQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

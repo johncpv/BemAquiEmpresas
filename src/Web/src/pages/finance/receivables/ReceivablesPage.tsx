@@ -14,6 +14,7 @@ import { FinanceTabs } from '../FinanceTabs'
 import { situation, SITUATION_OPTIONS, today } from './receivables'
 
 const PERIODS = [
+  { value: 'ontem', label: 'Venceram ontem' },
   { value: 'mes', label: 'Este mês' },
   { value: '30', label: 'Próximos 30 dias' },
   { value: 'proximo-mes', label: 'Próximo mês' },
@@ -24,6 +25,7 @@ function period(value: string | undefined): { dueFrom?: string; dueTo?: string }
   const now = today()
   const [y, m] = now.split('-').map(Number)
   const iso = (d: Date) => d.toISOString().slice(0, 10)
+  if (value === 'ontem') { const y1 = iso(new Date(Date.parse(now + 'T00:00:00Z') - 86_400_000)); return { dueFrom: y1, dueTo: y1 } }
   if (value === 'mes') return { dueFrom: iso(new Date(Date.UTC(y, m - 1, 1))), dueTo: iso(new Date(Date.UTC(y, m, 0))) }
   if (value === 'proximo-mes') return { dueFrom: iso(new Date(Date.UTC(y, m, 1))), dueTo: iso(new Date(Date.UTC(y, m + 1, 0))) }
   if (value === '30') return { dueFrom: now, dueTo: iso(new Date(Date.parse(now + 'T00:00:00Z') + 30 * 86_400_000)) }
@@ -33,8 +35,8 @@ function period(value: string | undefined): { dueFrom?: string; dueTo?: string }
 /** Financeiro → A receber (FIN-01): o que os clientes devem, por vencimento; "Vencido" calculado; totais do filtro no rodapé. */
 export function ReceivablesPage() {
   const [search] = useTableSearch()
-  const { situacao, vencimento } = useTableFilters(['situacao', 'vencimento'])
-  const query = useListReceivables({ q: search.q, situation: situacao || undefined, ...period(vencimento), page: search.page, pageSize: search.pageSize, sort: search.sort })
+  const { situacao, vencimento, cliente } = useTableFilters(['situacao', 'vencimento', 'cliente'])
+  const query = useListReceivables({ q: search.q, situation: situacao || undefined, partyId: cliente || undefined, ...period(vencimento), page: search.page, pageSize: search.pageSize, sort: search.sort })
   const table = { ...query, data: query.data?.page }
   const totals = query.data?.totals
 
@@ -62,6 +64,12 @@ export function ReceivablesPage() {
         </div>
       </PageHeading>
       <FinanceTabs />
+      {cliente ? (
+        <p role="note" className="mb-3 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+          Mostrando os títulos de um cliente, vindo da Inadimplência.
+          <Link to={'/app/financeiro/receber' as never} search={((prev: Record<string, unknown>) => ({ ...prev, cliente: undefined })) as never} className="font-semibold text-primary hover:underline">Ver todos os clientes</Link>
+        </p>
+      ) : null}
       <DataTable
         label="Títulos a receber"
         columns={columns}
