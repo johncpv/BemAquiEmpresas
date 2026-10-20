@@ -11,6 +11,19 @@ public sealed class PartiesContract(IPartiesDb db) : IParties
             .Select(p => new PartySummary(p.Id, p.Kind, p.LegalName, p.TradeName, p.Document, p.Roles.Select(r => r.Role).ToList(), p.IsActive, p.IsDeleted, p.DefaultPaymentTermId))
             .FirstOrDefaultAsync(cancellationToken);
 
+    public async Task<IReadOnlyList<PartySummary>> FindManyAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(ids);
+        if (ids.Count == 0)
+        {
+            return [];
+        }
+
+        return await db.Parties.IgnoreQueryFilters().AsNoTracking().Where(p => ids.Contains(p.Id))
+            .Select(p => new PartySummary(p.Id, p.Kind, p.LegalName, p.TradeName, p.Document, p.Roles.Select(r => r.Role).ToList(), p.IsActive, p.IsDeleted, p.DefaultPaymentTermId))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<PartySummary>> SearchAsync(string? term, PartyRoleKind? role, int limit = 20, CancellationToken cancellationToken = default)
     {
         var text = Domain.Party.Normalize(term);

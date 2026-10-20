@@ -62,16 +62,22 @@ import type {
   CostCenterSuggestion,
   CreatePartyRequest,
   CurrentSession,
+  CustomerOption,
   DisableTwoFactorRequest,
+  DiscountsAndCancellations,
   DocumentCheck,
+  DueDateInput,
   EmployeeCreateInput,
   EmployeeCreated,
   EmployeeDetail,
   EmployeeGeneralInput,
   EmployeePersonalInput,
   EmployeeSensitiveDetail,
+  FinanceLimits,
+  FinanceLimitsInput,
   ForgotPasswordRequest,
   GetAuditHistoryParams,
+  GetDiscountsAndCancellationsParams,
   GroupDetail,
   GroupSaved,
   GroupSummary,
@@ -94,6 +100,7 @@ import type {
   ListBankAccountsParams,
   ListCalendarExceptionsParams,
   ListEmployeesParams,
+  ListFinanceCustomersParams,
   ListImportPendingParams,
   ListImportRunsParams,
   ListItemsParams,
@@ -102,6 +109,7 @@ import type {
   ListPartiesParams,
   ListPaymentTermsParams,
   ListPositionsParams,
+  ListReceivablesParams,
   ListSupplierOptionsParams,
   ListTenantsParams,
   ListUnitsParams,
@@ -155,6 +163,13 @@ import type {
   PricingModeInput,
   ProvisionAccepted,
   ProvisionTenantRequest,
+  ReasonInput,
+  ReceivableDetail,
+  ReceivableInput,
+  ReceivableInstallmentsInput,
+  ReceivablePage,
+  ReceivableUpdateInput,
+  ReceivablesCreated,
   ResetPasswordRequest,
   SalaryChangeInput,
   SaveGroupRequest,
@@ -166,7 +181,10 @@ import type {
   SecuritySettingsDto,
   SetGroupMembersRequest,
   SetUserGroupsRequest,
+  SettlementInput,
+  SettlementView,
   Shift,
+  SplitPreviewInput,
   SplitPreviewRequest,
   SuggestAccountParams,
   SuggestCostCenterParams,
@@ -197,7 +215,8 @@ import type {
   WarrantyDefaultInput,
   WorkCenterChoice,
   WorkCenterDetail,
-  WorkCenterInput
+  WorkCenterInput,
+  WriteOffInput
 } from './model';
 
 import { apiFetch } from '../http';
@@ -18566,6 +18585,1425 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getReactivateCostCenterMutationOptions(options), queryClient);
     }
+
+export const getListReceivablesUrl = (params?: ListReceivablesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/finance/receivables?${stringifiedParams}` : `/api/v1/finance/receivables`
+}
+
+export const listReceivables = async (params?: ListReceivablesParams, options?: Parameters<typeof apiFetch>[1]): Promise<ReceivablePage> => {
+
+  return apiFetch<ReceivablePage>(getListReceivablesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListReceivablesQueryKey = (params?: ListReceivablesParams,) => {
+    return [
+    `/api/v1/finance/receivables`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListReceivablesQueryOptions = <TData = Awaited<ReturnType<typeof listReceivables>>, TError = unknown>(params?: ListReceivablesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listReceivables>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListReceivablesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listReceivables>>> = ({ signal }) => listReceivables(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listReceivables>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListReceivablesQueryResult = NonNullable<Awaited<ReturnType<typeof listReceivables>>>
+export type ListReceivablesQueryError = unknown
+
+
+export function useListReceivables<TData = Awaited<ReturnType<typeof listReceivables>>, TError = unknown>(
+ params: undefined |  ListReceivablesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listReceivables>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listReceivables>>,
+          TError,
+          Awaited<ReturnType<typeof listReceivables>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListReceivables<TData = Awaited<ReturnType<typeof listReceivables>>, TError = unknown>(
+ params?: ListReceivablesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listReceivables>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listReceivables>>,
+          TError,
+          Awaited<ReturnType<typeof listReceivables>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListReceivables<TData = Awaited<ReturnType<typeof listReceivables>>, TError = unknown>(
+ params?: ListReceivablesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listReceivables>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListReceivables<TData = Awaited<ReturnType<typeof listReceivables>>, TError = unknown>(
+ params?: ListReceivablesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listReceivables>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListReceivablesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateReceivableUrl = () => {
+
+
+
+
+  return `/api/v1/finance/receivables`
+}
+
+export const createReceivable = async (receivableInput: ReceivableInput, options?: Parameters<typeof apiFetch>[1]): Promise<ReceivablesCreated> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ReceivablesCreated>(getCreateReceivableUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(receivableInput)
+  }
+);}
+
+
+
+
+
+export const getCreateReceivableMutationKey = () => ['createReceivable'] as const;
+
+export const getCreateReceivableMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createReceivable>>, TError,CreateReceivableMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createReceivable>>, TError,CreateReceivableMutationVariables, TContext> => {
+
+const mutationKey = getCreateReceivableMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createReceivable>>, CreateReceivableMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createReceivable(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateReceivableMutationResult = NonNullable<Awaited<ReturnType<typeof createReceivable>>>
+    export type CreateReceivableMutationBody = ReceivableInput
+    export type CreateReceivableMutationError = unknown
+    export type CreateReceivableMutationVariables = {data: ReceivableInput}
+
+    export const useCreateReceivable = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createReceivable>>, TError,CreateReceivableMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createReceivable>>,
+        TError,
+        CreateReceivableMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateReceivableMutationOptions(options), queryClient);
+    }
+
+export const getGetDiscountsAndCancellationsUrl = (params?: GetDiscountsAndCancellationsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/finance/receivables/discounts-and-cancellations?${stringifiedParams}` : `/api/v1/finance/receivables/discounts-and-cancellations`
+}
+
+export const getDiscountsAndCancellations = async (params?: GetDiscountsAndCancellationsParams, options?: Parameters<typeof apiFetch>[1]): Promise<DiscountsAndCancellations> => {
+
+  return apiFetch<DiscountsAndCancellations>(getGetDiscountsAndCancellationsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDiscountsAndCancellationsQueryKey = (params?: GetDiscountsAndCancellationsParams,) => {
+    return [
+    `/api/v1/finance/receivables/discounts-and-cancellations`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetDiscountsAndCancellationsQueryOptions = <TData = Awaited<ReturnType<typeof getDiscountsAndCancellations>>, TError = unknown>(params?: GetDiscountsAndCancellationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDiscountsAndCancellations>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDiscountsAndCancellationsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDiscountsAndCancellations>>> = ({ signal }) => getDiscountsAndCancellations(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDiscountsAndCancellations>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetDiscountsAndCancellationsQueryResult = NonNullable<Awaited<ReturnType<typeof getDiscountsAndCancellations>>>
+export type GetDiscountsAndCancellationsQueryError = unknown
+
+
+export function useGetDiscountsAndCancellations<TData = Awaited<ReturnType<typeof getDiscountsAndCancellations>>, TError = unknown>(
+ params: undefined |  GetDiscountsAndCancellationsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDiscountsAndCancellations>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDiscountsAndCancellations>>,
+          TError,
+          Awaited<ReturnType<typeof getDiscountsAndCancellations>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDiscountsAndCancellations<TData = Awaited<ReturnType<typeof getDiscountsAndCancellations>>, TError = unknown>(
+ params?: GetDiscountsAndCancellationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDiscountsAndCancellations>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDiscountsAndCancellations>>,
+          TError,
+          Awaited<ReturnType<typeof getDiscountsAndCancellations>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDiscountsAndCancellations<TData = Awaited<ReturnType<typeof getDiscountsAndCancellations>>, TError = unknown>(
+ params?: GetDiscountsAndCancellationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDiscountsAndCancellations>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetDiscountsAndCancellations<TData = Awaited<ReturnType<typeof getDiscountsAndCancellations>>, TError = unknown>(
+ params?: GetDiscountsAndCancellationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDiscountsAndCancellations>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetDiscountsAndCancellationsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getPreviewReceivableSplitUrl = () => {
+
+
+
+
+  return `/api/v1/finance/receivables/split-preview`
+}
+
+export const previewReceivableSplit = async (splitPreviewInput: SplitPreviewInput, options?: Parameters<typeof apiFetch>[1]): Promise<InstallmentDue[]> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<InstallmentDue[]>(getPreviewReceivableSplitUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(splitPreviewInput)
+  }
+);}
+
+
+
+
+
+export const getPreviewReceivableSplitMutationKey = () => ['previewReceivableSplit'] as const;
+
+export const getPreviewReceivableSplitMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewReceivableSplit>>, TError,PreviewReceivableSplitMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof previewReceivableSplit>>, TError,PreviewReceivableSplitMutationVariables, TContext> => {
+
+const mutationKey = getPreviewReceivableSplitMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof previewReceivableSplit>>, PreviewReceivableSplitMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  previewReceivableSplit(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PreviewReceivableSplitMutationResult = NonNullable<Awaited<ReturnType<typeof previewReceivableSplit>>>
+    export type PreviewReceivableSplitMutationBody = SplitPreviewInput
+    export type PreviewReceivableSplitMutationError = unknown
+    export type PreviewReceivableSplitMutationVariables = {data: SplitPreviewInput}
+
+    export const usePreviewReceivableSplit = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewReceivableSplit>>, TError,PreviewReceivableSplitMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof previewReceivableSplit>>,
+        TError,
+        PreviewReceivableSplitMutationVariables,
+        TContext
+      > => {
+      return useMutation(getPreviewReceivableSplitMutationOptions(options), queryClient);
+    }
+
+export const getGetReceivableUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/finance/receivables/${id}`
+}
+
+export const getReceivable = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<ReceivableDetail> => {
+
+  return apiFetch<ReceivableDetail>(getGetReceivableUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetReceivableQueryKey = (id: string,) => {
+    return [
+    `/api/v1/finance/receivables/${id}`
+    ] as const;
+    }
+
+
+export const getGetReceivableQueryOptions = <TData = Awaited<ReturnType<typeof getReceivable>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReceivable>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetReceivableQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getReceivable>>> = ({ signal }) => getReceivable(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getReceivable>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetReceivableQueryResult = NonNullable<Awaited<ReturnType<typeof getReceivable>>>
+export type GetReceivableQueryError = unknown
+
+
+export function useGetReceivable<TData = Awaited<ReturnType<typeof getReceivable>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReceivable>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getReceivable>>,
+          TError,
+          Awaited<ReturnType<typeof getReceivable>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetReceivable<TData = Awaited<ReturnType<typeof getReceivable>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReceivable>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getReceivable>>,
+          TError,
+          Awaited<ReturnType<typeof getReceivable>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetReceivable<TData = Awaited<ReturnType<typeof getReceivable>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReceivable>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetReceivable<TData = Awaited<ReturnType<typeof getReceivable>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReceivable>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetReceivableQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateReceivableUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/finance/receivables/${id}`
+}
+
+export const updateReceivable = async (id: string,
+    receivableUpdateInput: ReceivableUpdateInput, options?: Parameters<typeof apiFetch>[1]): Promise<ReceivableDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ReceivableDetail>(getUpdateReceivableUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(receivableUpdateInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateReceivableMutationKey = () => ['updateReceivable'] as const;
+
+export const getUpdateReceivableMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateReceivable>>, TError,UpdateReceivableMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateReceivable>>, TError,UpdateReceivableMutationVariables, TContext> => {
+
+const mutationKey = getUpdateReceivableMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateReceivable>>, UpdateReceivableMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateReceivable(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateReceivableMutationResult = NonNullable<Awaited<ReturnType<typeof updateReceivable>>>
+    export type UpdateReceivableMutationBody = ReceivableUpdateInput
+    export type UpdateReceivableMutationError = unknown
+    export type UpdateReceivableMutationVariables = {id: string;data: ReceivableUpdateInput}
+
+    export const useUpdateReceivable = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateReceivable>>, TError,UpdateReceivableMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateReceivable>>,
+        TError,
+        UpdateReceivableMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateReceivableMutationOptions(options), queryClient);
+    }
+
+export const getListReceivableSettlementsUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/finance/receivables/${id}/settlements`
+}
+
+export const listReceivableSettlements = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<SettlementView[]> => {
+
+  return apiFetch<SettlementView[]>(getListReceivableSettlementsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListReceivableSettlementsQueryKey = (id: string,) => {
+    return [
+    `/api/v1/finance/receivables/${id}/settlements`
+    ] as const;
+    }
+
+
+export const getListReceivableSettlementsQueryOptions = <TData = Awaited<ReturnType<typeof listReceivableSettlements>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listReceivableSettlements>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListReceivableSettlementsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listReceivableSettlements>>> = ({ signal }) => listReceivableSettlements(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listReceivableSettlements>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListReceivableSettlementsQueryResult = NonNullable<Awaited<ReturnType<typeof listReceivableSettlements>>>
+export type ListReceivableSettlementsQueryError = unknown
+
+
+export function useListReceivableSettlements<TData = Awaited<ReturnType<typeof listReceivableSettlements>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listReceivableSettlements>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listReceivableSettlements>>,
+          TError,
+          Awaited<ReturnType<typeof listReceivableSettlements>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListReceivableSettlements<TData = Awaited<ReturnType<typeof listReceivableSettlements>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listReceivableSettlements>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listReceivableSettlements>>,
+          TError,
+          Awaited<ReturnType<typeof listReceivableSettlements>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListReceivableSettlements<TData = Awaited<ReturnType<typeof listReceivableSettlements>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listReceivableSettlements>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListReceivableSettlements<TData = Awaited<ReturnType<typeof listReceivableSettlements>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listReceivableSettlements>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListReceivableSettlementsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSettleReceivableUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/finance/receivables/${id}/settlements`
+}
+
+export const settleReceivable = async (id: string,
+    settlementInput: SettlementInput, options?: Parameters<typeof apiFetch>[1]): Promise<ReceivableDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ReceivableDetail>(getSettleReceivableUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(settlementInput)
+  }
+);}
+
+
+
+
+
+export const getSettleReceivableMutationKey = () => ['settleReceivable'] as const;
+
+export const getSettleReceivableMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof settleReceivable>>, TError,SettleReceivableMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof settleReceivable>>, TError,SettleReceivableMutationVariables, TContext> => {
+
+const mutationKey = getSettleReceivableMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof settleReceivable>>, SettleReceivableMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  settleReceivable(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SettleReceivableMutationResult = NonNullable<Awaited<ReturnType<typeof settleReceivable>>>
+    export type SettleReceivableMutationBody = SettlementInput
+    export type SettleReceivableMutationError = unknown
+    export type SettleReceivableMutationVariables = {id: string;data: SettlementInput}
+
+    export const useSettleReceivable = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof settleReceivable>>, TError,SettleReceivableMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof settleReceivable>>,
+        TError,
+        SettleReceivableMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSettleReceivableMutationOptions(options), queryClient);
+    }
+
+export const getCreateReceivableInstallmentsUrl = () => {
+
+
+
+
+  return `/api/v1/finance/receivables/installments`
+}
+
+export const createReceivableInstallments = async (receivableInstallmentsInput: ReceivableInstallmentsInput, options?: Parameters<typeof apiFetch>[1]): Promise<ReceivablesCreated> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ReceivablesCreated>(getCreateReceivableInstallmentsUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(receivableInstallmentsInput)
+  }
+);}
+
+
+
+
+
+export const getCreateReceivableInstallmentsMutationKey = () => ['createReceivableInstallments'] as const;
+
+export const getCreateReceivableInstallmentsMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createReceivableInstallments>>, TError,CreateReceivableInstallmentsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createReceivableInstallments>>, TError,CreateReceivableInstallmentsMutationVariables, TContext> => {
+
+const mutationKey = getCreateReceivableInstallmentsMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createReceivableInstallments>>, CreateReceivableInstallmentsMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createReceivableInstallments(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateReceivableInstallmentsMutationResult = NonNullable<Awaited<ReturnType<typeof createReceivableInstallments>>>
+    export type CreateReceivableInstallmentsMutationBody = ReceivableInstallmentsInput
+    export type CreateReceivableInstallmentsMutationError = unknown
+    export type CreateReceivableInstallmentsMutationVariables = {data: ReceivableInstallmentsInput}
+
+    export const useCreateReceivableInstallments = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createReceivableInstallments>>, TError,CreateReceivableInstallmentsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createReceivableInstallments>>,
+        TError,
+        CreateReceivableInstallmentsMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateReceivableInstallmentsMutationOptions(options), queryClient);
+    }
+
+export const getChangeReceivableDueDateUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/finance/receivables/${id}/due-date`
+}
+
+export const changeReceivableDueDate = async (id: string,
+    dueDateInput: DueDateInput, options?: Parameters<typeof apiFetch>[1]): Promise<ReceivableDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ReceivableDetail>(getChangeReceivableDueDateUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(dueDateInput)
+  }
+);}
+
+
+
+
+
+export const getChangeReceivableDueDateMutationKey = () => ['changeReceivableDueDate'] as const;
+
+export const getChangeReceivableDueDateMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changeReceivableDueDate>>, TError,ChangeReceivableDueDateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof changeReceivableDueDate>>, TError,ChangeReceivableDueDateMutationVariables, TContext> => {
+
+const mutationKey = getChangeReceivableDueDateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof changeReceivableDueDate>>, ChangeReceivableDueDateMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  changeReceivableDueDate(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ChangeReceivableDueDateMutationResult = NonNullable<Awaited<ReturnType<typeof changeReceivableDueDate>>>
+    export type ChangeReceivableDueDateMutationBody = DueDateInput
+    export type ChangeReceivableDueDateMutationError = unknown
+    export type ChangeReceivableDueDateMutationVariables = {id: string;data: DueDateInput}
+
+    export const useChangeReceivableDueDate = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changeReceivableDueDate>>, TError,ChangeReceivableDueDateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof changeReceivableDueDate>>,
+        TError,
+        ChangeReceivableDueDateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getChangeReceivableDueDateMutationOptions(options), queryClient);
+    }
+
+export const getWriteOffReceivableUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/finance/receivables/${id}/write-off`
+}
+
+export const writeOffReceivable = async (id: string,
+    writeOffInput: WriteOffInput, options?: Parameters<typeof apiFetch>[1]): Promise<ReceivableDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ReceivableDetail>(getWriteOffReceivableUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(writeOffInput)
+  }
+);}
+
+
+
+
+
+export const getWriteOffReceivableMutationKey = () => ['writeOffReceivable'] as const;
+
+export const getWriteOffReceivableMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof writeOffReceivable>>, TError,WriteOffReceivableMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof writeOffReceivable>>, TError,WriteOffReceivableMutationVariables, TContext> => {
+
+const mutationKey = getWriteOffReceivableMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof writeOffReceivable>>, WriteOffReceivableMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  writeOffReceivable(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type WriteOffReceivableMutationResult = NonNullable<Awaited<ReturnType<typeof writeOffReceivable>>>
+    export type WriteOffReceivableMutationBody = WriteOffInput
+    export type WriteOffReceivableMutationError = unknown
+    export type WriteOffReceivableMutationVariables = {id: string;data: WriteOffInput}
+
+    export const useWriteOffReceivable = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof writeOffReceivable>>, TError,WriteOffReceivableMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof writeOffReceivable>>,
+        TError,
+        WriteOffReceivableMutationVariables,
+        TContext
+      > => {
+      return useMutation(getWriteOffReceivableMutationOptions(options), queryClient);
+    }
+
+export const getReverseReceivableSettlementUrl = (id: string,
+    settlementId: string,) => {
+
+
+
+
+  return `/api/v1/finance/receivables/${id}/settlements/${settlementId}/reverse`
+}
+
+export const reverseReceivableSettlement = async (id: string,
+    settlementId: string,
+    reasonInput: ReasonInput, options?: Parameters<typeof apiFetch>[1]): Promise<ReceivableDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ReceivableDetail>(getReverseReceivableSettlementUrl(id,settlementId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(reasonInput)
+  }
+);}
+
+
+
+
+
+export const getReverseReceivableSettlementMutationKey = () => ['reverseReceivableSettlement'] as const;
+
+export const getReverseReceivableSettlementMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reverseReceivableSettlement>>, TError,ReverseReceivableSettlementMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reverseReceivableSettlement>>, TError,ReverseReceivableSettlementMutationVariables, TContext> => {
+
+const mutationKey = getReverseReceivableSettlementMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reverseReceivableSettlement>>, ReverseReceivableSettlementMutationVariables> = (props) => {
+          const {id,settlementId,data} = props ?? {};
+
+          return  reverseReceivableSettlement(id,settlementId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReverseReceivableSettlementMutationResult = NonNullable<Awaited<ReturnType<typeof reverseReceivableSettlement>>>
+    export type ReverseReceivableSettlementMutationBody = ReasonInput
+    export type ReverseReceivableSettlementMutationError = unknown
+    export type ReverseReceivableSettlementMutationVariables = {id: string;settlementId: string;data: ReasonInput}
+
+    export const useReverseReceivableSettlement = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reverseReceivableSettlement>>, TError,ReverseReceivableSettlementMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reverseReceivableSettlement>>,
+        TError,
+        ReverseReceivableSettlementMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReverseReceivableSettlementMutationOptions(options), queryClient);
+    }
+
+export const getCancelReceivableUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/finance/receivables/${id}/cancel`
+}
+
+export const cancelReceivable = async (id: string,
+    reasonInput: ReasonInput, options?: Parameters<typeof apiFetch>[1]): Promise<ReceivableDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ReceivableDetail>(getCancelReceivableUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(reasonInput)
+  }
+);}
+
+
+
+
+
+export const getCancelReceivableMutationKey = () => ['cancelReceivable'] as const;
+
+export const getCancelReceivableMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelReceivable>>, TError,CancelReceivableMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelReceivable>>, TError,CancelReceivableMutationVariables, TContext> => {
+
+const mutationKey = getCancelReceivableMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelReceivable>>, CancelReceivableMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  cancelReceivable(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelReceivableMutationResult = NonNullable<Awaited<ReturnType<typeof cancelReceivable>>>
+    export type CancelReceivableMutationBody = ReasonInput
+    export type CancelReceivableMutationError = unknown
+    export type CancelReceivableMutationVariables = {id: string;data: ReasonInput}
+
+    export const useCancelReceivable = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelReceivable>>, TError,CancelReceivableMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof cancelReceivable>>,
+        TError,
+        CancelReceivableMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCancelReceivableMutationOptions(options), queryClient);
+    }
+
+export const getGetFinanceLimitsUrl = () => {
+
+
+
+
+  return `/api/v1/finance/parameters`
+}
+
+export const getFinanceLimits = async ( options?: Parameters<typeof apiFetch>[1]): Promise<FinanceLimits> => {
+
+  return apiFetch<FinanceLimits>(getGetFinanceLimitsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetFinanceLimitsQueryKey = () => {
+    return [
+    `/api/v1/finance/parameters`
+    ] as const;
+    }
+
+
+export const getGetFinanceLimitsQueryOptions = <TData = Awaited<ReturnType<typeof getFinanceLimits>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFinanceLimits>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetFinanceLimitsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFinanceLimits>>> = ({ signal }) => getFinanceLimits({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFinanceLimits>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetFinanceLimitsQueryResult = NonNullable<Awaited<ReturnType<typeof getFinanceLimits>>>
+export type GetFinanceLimitsQueryError = unknown
+
+
+export function useGetFinanceLimits<TData = Awaited<ReturnType<typeof getFinanceLimits>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFinanceLimits>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getFinanceLimits>>,
+          TError,
+          Awaited<ReturnType<typeof getFinanceLimits>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetFinanceLimits<TData = Awaited<ReturnType<typeof getFinanceLimits>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFinanceLimits>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getFinanceLimits>>,
+          TError,
+          Awaited<ReturnType<typeof getFinanceLimits>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetFinanceLimits<TData = Awaited<ReturnType<typeof getFinanceLimits>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFinanceLimits>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetFinanceLimits<TData = Awaited<ReturnType<typeof getFinanceLimits>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFinanceLimits>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetFinanceLimitsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateFinanceLimitsUrl = () => {
+
+
+
+
+  return `/api/v1/finance/parameters`
+}
+
+export const updateFinanceLimits = async (financeLimitsInput: FinanceLimitsInput, options?: Parameters<typeof apiFetch>[1]): Promise<FinanceLimits> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<FinanceLimits>(getUpdateFinanceLimitsUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(financeLimitsInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateFinanceLimitsMutationKey = () => ['updateFinanceLimits'] as const;
+
+export const getUpdateFinanceLimitsMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateFinanceLimits>>, TError,UpdateFinanceLimitsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateFinanceLimits>>, TError,UpdateFinanceLimitsMutationVariables, TContext> => {
+
+const mutationKey = getUpdateFinanceLimitsMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateFinanceLimits>>, UpdateFinanceLimitsMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateFinanceLimits(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateFinanceLimitsMutationResult = NonNullable<Awaited<ReturnType<typeof updateFinanceLimits>>>
+    export type UpdateFinanceLimitsMutationBody = FinanceLimitsInput
+    export type UpdateFinanceLimitsMutationError = unknown
+    export type UpdateFinanceLimitsMutationVariables = {data: FinanceLimitsInput}
+
+    export const useUpdateFinanceLimits = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateFinanceLimits>>, TError,UpdateFinanceLimitsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateFinanceLimits>>,
+        TError,
+        UpdateFinanceLimitsMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateFinanceLimitsMutationOptions(options), queryClient);
+    }
+
+export const getListFinanceCustomersUrl = (params?: ListFinanceCustomersParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/finance/customers?${stringifiedParams}` : `/api/v1/finance/customers`
+}
+
+export const listFinanceCustomers = async (params?: ListFinanceCustomersParams, options?: Parameters<typeof apiFetch>[1]): Promise<CustomerOption[]> => {
+
+  return apiFetch<CustomerOption[]>(getListFinanceCustomersUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListFinanceCustomersQueryKey = (params?: ListFinanceCustomersParams,) => {
+    return [
+    `/api/v1/finance/customers`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListFinanceCustomersQueryOptions = <TData = Awaited<ReturnType<typeof listFinanceCustomers>>, TError = unknown>(params?: ListFinanceCustomersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFinanceCustomers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListFinanceCustomersQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listFinanceCustomers>>> = ({ signal }) => listFinanceCustomers(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listFinanceCustomers>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListFinanceCustomersQueryResult = NonNullable<Awaited<ReturnType<typeof listFinanceCustomers>>>
+export type ListFinanceCustomersQueryError = unknown
+
+
+export function useListFinanceCustomers<TData = Awaited<ReturnType<typeof listFinanceCustomers>>, TError = unknown>(
+ params: undefined |  ListFinanceCustomersParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFinanceCustomers>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listFinanceCustomers>>,
+          TError,
+          Awaited<ReturnType<typeof listFinanceCustomers>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListFinanceCustomers<TData = Awaited<ReturnType<typeof listFinanceCustomers>>, TError = unknown>(
+ params?: ListFinanceCustomersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFinanceCustomers>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listFinanceCustomers>>,
+          TError,
+          Awaited<ReturnType<typeof listFinanceCustomers>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListFinanceCustomers<TData = Awaited<ReturnType<typeof listFinanceCustomers>>, TError = unknown>(
+ params?: ListFinanceCustomersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFinanceCustomers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListFinanceCustomers<TData = Awaited<ReturnType<typeof listFinanceCustomers>>, TError = unknown>(
+ params?: ListFinanceCustomersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFinanceCustomers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListFinanceCustomersQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getListImportRunsUrl = (params?: ListImportRunsParams,) => {
   const normalizedParams = new URLSearchParams();

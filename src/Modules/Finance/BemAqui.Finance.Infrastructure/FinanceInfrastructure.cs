@@ -3,6 +3,7 @@ using BemAqui.BuildingBlocks.Tenancy;
 using BemAqui.Finance.Application;
 using BemAqui.Finance.Contracts;
 using BemAqui.Finance.Domain;
+using BemAqui.Parties.Contracts;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -26,6 +27,21 @@ public static class FinanceInfrastructure
         services.TryAddScoped<CostCenterService>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ITenantSeeder, ChartOfAccountsSeeder>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ITenantSeeder, CostCentersSeeder>());
+        // Contas a receber (FIN-01): títulos, baixas, transações, parâmetros e uso dos cadastros.
+        services.TryAddScoped<ReceivableService>();
+        services.TryAddScoped<ReceivableReports>();
+        services.TryAddScoped<FinanceParametersService>();
+        services.TryAddScoped<IFinanceParameters>(sp => sp.GetRequiredService<FinanceParametersService>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<ITenantSeeder, FinanceParametersSeeder>());
+        services.TryAddScoped<FinanceUsage>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IBankAccountUsageProvider, FinanceUsage>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IAccountUsageProvider, FinanceUsage>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<ICostCenterUsageProvider, FinanceUsage>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IPartyUsageProvider, FinanceUsage>());
+        services.AddAuditableEntity<Receivable>("finance");
+        services.AddAuditableEntity<ReceivableSettlement>("finance");
+        services.AddAuditableEntity<FinancialTransaction>("finance");
+        services.AddAuditableEntity<FinanceParameter>("settings");
         services.AddAuditableEntity<BankAccount>("finance");
         services.AddAuditableEntity<PaymentTerm>("finance");
         services.AddAuditableEntity<Account>("finance");

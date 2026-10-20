@@ -58,6 +58,8 @@ interface DataTableProps<T> {
   totals?: Record<string, ReactNode>
   /** Linha expansível por teclado (aria-expanded), com o conteúdo abaixo dela. */
   expandable?: { render: (row: T) => ReactNode; label: (row: T) => string }
+  /** Classe extra da linha (ex.: faixa lateral vermelha do vencido, padrão 6 da Fase 2). */
+  rowClassName?: (row: T) => string | undefined
 }
 
 export interface TableFilter {
@@ -74,7 +76,7 @@ const cellClass = (secondary?: boolean, numeric?: boolean) =>
  * Tabela padrão (FND-09c CA 4 a 7): paginação, ordenação e busca no servidor, refletidas na URL; estados de carregando,
  * vazio, vazio por filtro e erro; colunas secundárias somem a 400px.
  */
-export function DataTable<T>({ columns, query, empty, label, searchPlaceholder = 'Buscar', getRowId, filters = [], inactiveFilter, rowHref, searchable = true, selectable, totals, expandable }: DataTableProps<T>) {
+export function DataTable<T>({ columns, query, empty, label, searchPlaceholder = 'Buscar', getRowId, filters = [], inactiveFilter, rowHref, searchable = true, selectable, totals, expandable, rowClassName }: DataTableProps<T>) {
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set())
   const [search, setSearch] = useTableSearch()
   const navigate = useNavigate()
@@ -159,7 +161,7 @@ export function DataTable<T>({ columns, query, empty, label, searchPlaceholder =
           <tbody>
             {table.getRowModel().rows.map((row) => (
               <Fragment key={row.id}>
-              <tr className="border-b border-border last:border-0">
+              <tr className={cn('border-b border-border last:border-0', rowClassName?.(row.original))}>
                 {expandable ? (
                   <td className="px-2">
                     <button type="button" aria-expanded={expanded.has(row.id)} aria-controls={`${row.id}-detalhe`} aria-label={`Detalhes de ${expandable.label(row.original)}`} onClick={() => setExpanded((s) => { const n = new Set(s); if (n.has(row.id)) n.delete(row.id); else n.add(row.id); return n })} className="grid size-7 place-items-center rounded-sm">

@@ -182,7 +182,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-2--comercial-proj
 
 **Quebras e novas:** COM-01 → 01a/01b · COM-04 → 04a/04b/04c · FIN-03 → 03a/03b · FIN-06 → 06a/06b. **Novas:** FND-09e (Fase 0), FIN-00 (D2), COM-04c (D3). **Re-estimadas:** FIN-01 (M → G), COM-06 (M → G), FIN-04 (P → M, recebeu o lançamento sem OP).
 
-**FIN-01 [ ] Contas a receber (G)** — 2.1a, ordem 1 — re-estimada — [story](stories/FIN-01-contas-a-receber.md)
+**FIN-01 [x] Contas a receber (G)** — 2.1a, ordem 1 — re-estimada — [story](stories/FIN-01-contas-a-receber.md)
 - Requisitos: R-FIN-3, R-FIN-1, R-FIN-2, R-COM-4, R-COM-2, R-PRP-1, R-PRP-7, R-SEC-5.
 - CA: título manual e parcelado por `IPaymentTerms.SplitAsync`, com idempotência; baixa total ou parcial com juros, multa e desconto cria transação na conta, na mesma transação; "Quitar o saldo com desconto" sem transação; `paid_amount = Σ baixas` (teste de propriedade); "Vencido" calculado; limites de desconto, cancelamento e data retroativa (D8) e relatório de descontos e cancelamentos; vencimento da parcela do contrato editável com motivo (D14); título nunca apagado; baixa concorrente recusada com 409.
 

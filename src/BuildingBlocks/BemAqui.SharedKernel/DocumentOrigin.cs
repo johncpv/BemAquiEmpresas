@@ -1,0 +1,20 @@
+using System.Text.Json.Serialization;
+
+namespace BemAqui.SharedKernel;
+
+/// <summary>
+/// Origem de um título (ADR 0019 §14): vocabulário comum entre Finance e Commercial, no SharedKernel para nenhum Contracts
+/// referenciar outro.
+/// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter<DocumentOrigin>))]
+public enum DocumentOrigin
+{
+    /// <summary>Lançado à mão no Financeiro.</summary>
+    Manual,
+
+    /// <summary>Implantação financeira (FIN-00): em aberto na data de corte, fora do DRE por competência e da pontualidade.</summary>
+    Opening,
+
+    /// <summary>Parcela do contrato (COM-04b).</summary>
+    Contract,
+}
