@@ -14,7 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace BemAqui.Integration.Tests.Finance;
 
-/// <summary>FIN-05 CA 12: 50 mil títulos e 20 mil transações, fluxo de 90 dias em menos de 2 s (banco desta classe).</summary>
+/// <summary>FIN-05 CA 12 e FIN-06a CA 5: 50 mil títulos e 20 mil transações; fluxo de 90 dias em menos de 2 s e aging em menos de 1 s.</summary>
 public class CashFlowLoadTests(TenancyFixture tenancy) : IClassFixture<TenancyFixture>
 {
     private const string Host = "a.localhost";
@@ -69,5 +69,12 @@ public class CashFlowLoadTests(TenancyFixture tenancy) : IClassFixture<TenancyFi
         watch.Stop();
         response.StatusCode.Should().Be(HttpStatusCode.OK, await response.Content.ReadAsStringAsync());
         watch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(2));
+
+        // FIN-06a CA 5: o aging com a mesma carga em menos de 1 s.
+        watch.Restart();
+        var aging = await client.GetAsync("/api/v1/finance/aging");
+        watch.Stop();
+        aging.StatusCode.Should().Be(HttpStatusCode.OK, await aging.Content.ReadAsStringAsync());
+        watch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(1));
     }
 }

@@ -198,7 +198,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-2--comercial-proj
 - Requisitos: R-FIN-10, R-FIN-2, R-PRP-5, PRD §6 (Desempenho).
 - CA: valores conferem com a soma dos títulos, das recorrentes e das transações (dataset fixo); saldo atual pela consulta desta story; realizado até hoje e projetado depois; CP estimado do instalador como estimativa; diário, semanal e mensal batendo entre si; dia de menor saldo e alerta de caixa negativo acionável; menos de 2 s com 50 mil títulos.
 
-**FIN-06a [ ] Inadimplência por cliente e aviso diário (P)** — 2.1a, ordem 5 — quebra da FIN-06 — [story](stories/FIN-06a-aging-aviso-diario.md)
+**FIN-06a [x] Inadimplência por cliente e aviso diário (P)** — 2.1a, ordem 5 — quebra da FIN-06 — [story](stories/FIN-06a-aging-aviso-diario.md)
 - Requisitos: R-FIN-12 (parte), R-COM-2, R-PRP-5.
 - CA: vencidos por cliente nas faixas 0–30, 31–60, 61–90 e 90+ (dataset fixo, com títulos de implantação); aviso diário consolidado sem repetir (`dedup_key`), com teste de dois tenants.
 

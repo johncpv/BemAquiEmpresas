@@ -9,5 +9,8 @@ public interface IUserDirectory
     /// <summary>Usuários ativos membros do grupo Proprietário.</summary>
     Task<IReadOnlyList<Guid>> OwnerIdsAsync(CancellationToken cancellationToken = default);
 
+    /// <summary>Todos os usuários ativos do tenant (avisos de jobs, filtrados pela permissão efetiva de cada um).</summary>
+    Task<IReadOnlyList<Guid>> ActiveUserIdsAsync(CancellationToken cancellationToken = default);
+
     Task<string?> DisplayNameAsync(Guid userId, CancellationToken cancellationToken = default);
 }

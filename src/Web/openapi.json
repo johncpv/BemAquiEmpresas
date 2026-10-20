@@ -6018,6 +6018,35 @@
         }
       }
     },
+    "/api/v1/finance/aging": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetAging",
+        "parameters": [
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgingReport"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/bank-accounts": {
       "get": {
         "tags": [
@@ -8696,6 +8725,120 @@
           "Delivery",
           "Site"
         ]
+      },
+      "AgingBucket": {
+        "required": [
+          "label",
+          "fromDays",
+          "toDays",
+          "total",
+          "count"
+        ],
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "fromDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "toDays": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "AgingCustomer": {
+        "required": [
+          "partyId",
+          "partyName",
+          "buckets",
+          "total",
+          "maxDaysLate",
+          "count"
+        ],
+        "type": "object",
+        "properties": {
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "buckets": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxDaysLate": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "AgingReport": {
+        "required": [
+          "today",
+          "total",
+          "count",
+          "customers",
+          "buckets",
+          "rows"
+        ],
+        "type": "object",
+        "properties": {
+          "today": {
+            "type": "string",
+            "format": "date"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "customers": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "buckets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AgingBucket"
+            }
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AgingCustomer"
+            }
+          }
+        }
       },
       "AiProviderInfo": {
         "required": [

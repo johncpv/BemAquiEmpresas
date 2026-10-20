@@ -5,7 +5,7 @@
 | ID | FIN-06a |
 | Título | Títulos a receber vencidos por cliente, com aging (0–30, 31–60, 61–90, 90+), e aviso diário consolidado de título que venceu ontem |
 | Tamanho | P (quebra da FIN-06, revisão pré-Fase 2) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-FIN-12 (parte: vencidos por cliente, aging) · R-COM-2 (notificação de título vencido) · R-PRP-5 |
 | Dependências | FIN-01 (títulos e baixas), FIN-00 (títulos de implantação, para o dado real), FND-09e (`dedup_key`, `DataTable` com totais) |
 | Bloqueia | FIN-06b (visão por projeto e pontualidade), FIN-09 (régua), DSH-01 (card de inadimplência) |
@@ -61,19 +61,19 @@ Como **financeiro**, quero **ver quem está devendo e há quanto tempo, e ser av
 Decididos pelo PO em 20/10/2026 (seção 1.1, item 14): aviso diário consolidado para quem tem `finance.edit`. P-18 decidida (ADR 0021).
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers, dataset fixo) e E2E passando.
-- [ ] Sem migration.
-- [ ] Permissões só do `ModuleCatalog`; job registrado.
-- [ ] Tela com estados.
-- [ ] Ajuda escrita; teste de cobertura passando.
-- [ ] Alerta acionável aplicado.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] Story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers, dataset fixo) e E2E passando.
+- [x] Sem migration.
+- [x] Permissões só do `ModuleCatalog`; job registrado.
+- [x] Tela com estados.
+- [x] Ajuda escrita; teste de cobertura passando.
+- [x] Alerta acionável aplicado.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] Story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `AgingQuery` (Dapper) e `OverdueReceivablesNoticeJob`.
-- [ ] Endpoint `/api/v1/finance/aging`; tela e ajuda.
+- [x] `AgingQuery` (Dapper) e `OverdueReceivablesNoticeJob`.
+- [x] Endpoint `/api/v1/finance/aging`; tela e ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, @qa.
@@ -106,3 +106,4 @@ Checklist do @po (Pax), 20/10/2026.
 | 19/10/2026 | 0.2 | Validação do PO (checklist) e correções (como FIN-06) | Pax (PO) |
 | 20/10/2026 | 0.3 | Quebra da FIN-06 em 06a (esta) e 06b; ajustes da revisão pré-Fase 2 | River (SM) |
 | 20/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 20/10/2026 | 1.0 | Implementada. Desvios: consulta pelo EF (agregação no banco, parâmetros), sem Dapper, dentro do tempo do CA 5 (50 mil títulos em menos de 1 s no teste); destinatários do aviso pela permissão efetiva (`IUserDirectory.ActiveUserIdsAsync` + `IPermissionService`), que já respeita os módulos liberados; o link do aviso abre A receber em "Vencidos" e "Venceram ontem" (filtro novo); o clique no cliente abre A receber filtrada por `cliente` (filtro novo na URL, com "Ver todos os clientes"); a tela ainda não tem abas (a aba "Por projeto" entra na FIN-06b) | @dev |

@@ -14,6 +14,9 @@ internal sealed class UserDirectory(IIdentityDb db) : IUserDirectory
                where g.IsSystem && g.SeedKey == Group.OwnerSeedKey && u.Status == UserStatus.Active
                select u.Id).Distinct().ToListAsync(cancellationToken);
 
+    public async Task<IReadOnlyList<Guid>> ActiveUserIdsAsync(CancellationToken cancellationToken = default) =>
+        await db.Users.AsNoTracking().Where(u => u.Status == UserStatus.Active).Select(u => u.Id).ToListAsync(cancellationToken);
+
     public Task<string?> DisplayNameAsync(Guid userId, CancellationToken cancellationToken = default) =>
         db.Users.AsNoTracking().Where(u => u.Id == userId).Select(u => (string?)u.Name).FirstOrDefaultAsync(cancellationToken);
 }
