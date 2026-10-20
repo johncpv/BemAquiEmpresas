@@ -47,6 +47,14 @@ public static class HrInfrastructure
         services.TryAddScoped<ScheduleService>();
         services.TryAddScoped<UnionService>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ITenantSeeder, WorkScheduleSeeder>());
+        // Funcionários (CAD-04b).
+        services.TryAddScoped<EmployeeService>();
+        services.TryAddScoped<EmployeesContract>();
+        services.TryAddScoped<IEmployees>(sp => sp.GetRequiredService<EmployeesContract>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IPositionUsageProvider, EmployeesContract>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IUnionUsageProvider, EmployeesContract>());
+        services.AddAuditableEntity<Employee>("hr", PositionService.SensitiveAction);
+        services.AddAuditableEntity<EmployeeHistoryEntry>("hr", PositionService.SensitiveAction);
         services.AddAuditableEntity<JobPosition>("hr", PositionService.SensitiveAction);
         services.AddAuditableEntity<WorkSchedule>("hr", PositionService.SensitiveAction);
         services.AddAuditableEntity<LaborUnion>("hr", PositionService.SensitiveAction);

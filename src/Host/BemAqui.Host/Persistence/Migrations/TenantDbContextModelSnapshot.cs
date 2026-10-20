@@ -699,6 +699,227 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("payment_terms", "finance");
                 });
 
+            modelBuilder.Entity("BemAqui.HR.Domain.Employee", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateOnly>("AdmissionDate")
+                        .HasColumnType("date")
+                        .HasColumnName("admission_date");
+
+                    b.Property<decimal>("BaseSalary")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("base_salary");
+
+                    b.Property<DateOnly>("BirthDate")
+                        .HasColumnType("date")
+                        .HasColumnName("birth_date");
+
+                    b.Property<string>("City")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("city");
+
+                    b.Property<string>("Complement")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("complement");
+
+                    b.Property<string>("Cpf")
+                        .IsRequired()
+                        .HasMaxLength(11)
+                        .HasColumnType("character varying(11)")
+                        .HasColumnName("cpf");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CtpsNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("ctps_number");
+
+                    b.Property<string>("CtpsSeries")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("ctps_series");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<string>("District")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("district");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("email");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Number")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("number");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("phone");
+
+                    b.Property<string>("Pis")
+                        .HasMaxLength(11)
+                        .HasColumnType("character varying(11)")
+                        .HasColumnName("pis");
+
+                    b.Property<Guid>("PositionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("position_id");
+
+                    b.Property<string>("Registration")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("registration");
+
+                    b.Property<string>("Rg")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("rg");
+
+                    b.Property<string>("State")
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)")
+                        .HasColumnName("state");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<string>("Street")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("street");
+
+                    b.Property<DateOnly?>("TerminationDate")
+                        .HasColumnType("date")
+                        .HasColumnName("termination_date");
+
+                    b.Property<Guid?>("UnionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("union_id");
+
+                    b.Property<string>("VoterId")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("voter_id");
+
+                    b.Property<Guid?>("WorkScheduleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("work_schedule_id");
+
+                    b.Property<string>("ZipCode")
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)")
+                        .HasColumnName("zip_code");
+
+                    b.HasKey("Id")
+                        .HasName("pk_employees");
+
+                    b.HasIndex("Cpf")
+                        .IsUnique()
+                        .HasDatabaseName("ix_employees_cpf")
+                        .HasFilter("NOT is_deleted");
+
+                    b.HasIndex("PositionId")
+                        .HasDatabaseName("ix_employees_position_id");
+
+                    b.HasIndex("Registration")
+                        .IsUnique()
+                        .HasDatabaseName("ix_employees_registration")
+                        .HasFilter("NOT is_deleted AND registration IS NOT NULL");
+
+                    b.HasIndex("UnionId")
+                        .HasDatabaseName("ix_employees_union_id");
+
+                    b.HasIndex("WorkScheduleId")
+                        .HasDatabaseName("ix_employees_work_schedule_id");
+
+                    b.ToTable("employees", "hr");
+                });
+
+            modelBuilder.Entity("BemAqui.HR.Domain.EmployeeHistoryEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateOnly>("EffectiveDate")
+                        .HasColumnType("date")
+                        .HasColumnName("effective_date");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("employee_id");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("NewValue")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("new_value");
+
+                    b.Property<string>("OldValue")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("old_value");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("reason");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_employee_history");
+
+                    b.HasIndex("EmployeeId", "EffectiveDate")
+                        .HasDatabaseName("ix_employee_history_employee");
+
+                    b.ToTable("employee_history", "hr");
+                });
+
             modelBuilder.Entity("BemAqui.HR.Domain.JobPosition", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1566,6 +1787,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("character varying(320)")
                         .HasColumnName("email");
 
+                    b.Property<Guid?>("EmployeeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("employee_id");
+
                     b.Property<DateTimeOffset?>("LastLoginAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_login_at");
@@ -1622,6 +1847,11 @@ namespace BemAqui.Host.Persistence.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_users");
+
+                    b.HasIndex("EmployeeId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_users_employee_id")
+                        .HasFilter("employee_id IS NOT NULL");
 
                     b.HasIndex("NormalizedEmail")
                         .IsUnique()
@@ -2871,6 +3101,38 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasForeignKey("ParentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_cost_centers_cost_centers_parent_id");
+                });
+
+            modelBuilder.Entity("BemAqui.HR.Domain.Employee", b =>
+                {
+                    b.HasOne("BemAqui.HR.Domain.JobPosition", null)
+                        .WithMany()
+                        .HasForeignKey("PositionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_employees_job_positions_position_id");
+
+                    b.HasOne("BemAqui.HR.Domain.LaborUnion", null)
+                        .WithMany()
+                        .HasForeignKey("UnionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_employees_labor_unions_union_id");
+
+                    b.HasOne("BemAqui.HR.Domain.WorkSchedule", null)
+                        .WithMany()
+                        .HasForeignKey("WorkScheduleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_employees_work_schedules_work_schedule_id");
+                });
+
+            modelBuilder.Entity("BemAqui.HR.Domain.EmployeeHistoryEntry", b =>
+                {
+                    b.HasOne("BemAqui.HR.Domain.Employee", null)
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_employee_history_employees_employee_id");
                 });
 
             modelBuilder.Entity("BemAqui.HR.Domain.JobPosition", b =>

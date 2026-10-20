@@ -56,6 +56,7 @@ public static class IdentityInfrastructure
         services.TryAddScoped<BemAqui.BuildingBlocks.Tenancy.ITenantBranding>(sp => sp.GetRequiredService<CompanySettings>());
         services.TryAddScoped<TenantParametersService>();
         services.TryAddScoped<BemAqui.Identity.Contracts.ITenantParameters>(sp => sp.GetRequiredService<TenantParametersService>());
+        services.TryAddScoped<BemAqui.Identity.Contracts.IUserEmployeeLink, UserEmployeeLink>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Tenancy.ITenantSeeder, TenantParametersSeeder>());
         services.AddAuditableEntity<CompanyProfile>("settings");
         services.AddAuditableEntity<BemAqui.BuildingBlocks.Persistence.Numbering.NumberFormatOverride>("settings");

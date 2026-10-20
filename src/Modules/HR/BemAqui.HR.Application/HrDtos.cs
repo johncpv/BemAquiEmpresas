@@ -17,7 +17,7 @@ public sealed record PositionSalaryInput(decimal? SalaryMin, decimal? SalaryMax,
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record HourlyCostInput(decimal Value);
 
-/// <summary>Cargo para a lista e o detalhe: nunca traz a faixa nem o salário (CA 10); o custo-hora do cargo aparece com <c>hr.view</c>.</summary>
+/// <summary>Cargo para a lista e o detalhe: nunca traz a faixa nem o salário (CA 10); o custo-hora do cargo aparece com <c>hr.view</c>. <c>ActiveEmployees</c>: funcionários ativos no cargo (CAD-04b).</summary>
 public sealed record PositionDetail(
     Guid Id,
     string Name,
@@ -30,7 +30,8 @@ public sealed record PositionDetail(
     decimal HourlyCost,
     bool HourlyCostManual,
     bool IsActive,
-    DateTimeOffset CreatedAt);
+    DateTimeOffset CreatedAt,
+    int ActiveEmployees);
 
 /// <summary>Só pela rota <c>/sensitive</c>, com <c>hr.view_sensitive</c>, <c>no-store</c> e <c>SensitiveRead</c> (CA 10).</summary>
 public sealed record PositionSalaryDetail(Guid Id, decimal? SalaryMin, decimal? SalaryMax, decimal? ReferenceSalary);

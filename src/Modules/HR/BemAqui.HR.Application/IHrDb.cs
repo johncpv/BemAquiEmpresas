@@ -12,5 +12,9 @@ public interface IHrDb
 
     DbSet<LaborUnion> LaborUnions { get; }
 
+    DbSet<Employee> Employees { get; }
+
+    DbSet<EmployeeHistoryEntry> EmployeeHistory { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

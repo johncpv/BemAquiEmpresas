@@ -103,6 +103,10 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<LaborUnion> LaborUnions => Set<LaborUnion>();
 
+    public DbSet<Employee> Employees => Set<Employee>();
+
+    public DbSet<EmployeeHistoryEntry> EmployeeHistory => Set<EmployeeHistoryEntry>();
+
     public DbSet<ImportRun> ImportRuns => Set<ImportRun>();
 
     public DbSet<ImportItem> ImportItems => Set<ImportItem>();

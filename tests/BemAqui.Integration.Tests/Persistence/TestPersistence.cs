@@ -58,6 +58,14 @@ public sealed class AllowAllPermissionChecker : IPermissionChecker
     public ValueTask<bool> HasPermissionAsync(string module, string action, CancellationToken cancellationToken = default) => ValueTask.FromResult(true);
 }
 
+/// <summary>Ninguém é Proprietário: o histórico esconde as leituras sensíveis.</summary>
+public sealed class NoOwnerPermissionService : IPermissionService
+{
+    public Task<EffectivePermissions> GetAsync(Guid userId, CancellationToken cancellationToken = default) => Task.FromResult(EffectivePermissions.None);
+
+    public Task BumpAsync(IReadOnlyCollection<Guid> userIds, CancellationToken cancellationToken = default) => Task.CompletedTask;
+}
+
 public static class TestPersistence
 {
     public static async Task<ServiceProvider> CreateAsync(string connectionString, TimeProvider? clock = null, ICurrentUser? user = null, IPermissionChecker? permissions = null, Action<IServiceCollection>? configure = null)
@@ -71,6 +79,7 @@ public static class TestPersistence
             services.AddScoped(_ => permissions);
         }
 
+        services.AddScoped<IPermissionService, NoOwnerPermissionService>();
         services.AddBemAquiPersistenceCore();
         services.AddDbContext<SampleDbContext>((sp, o) => o.UseBemAquiDefaults(connectionString, sp));
         services.AddScoped<BemAquiDbContext>(sp => sp.GetRequiredService<SampleDbContext>());

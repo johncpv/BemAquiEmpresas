@@ -37,6 +37,7 @@ export function PositionsPage() {
         <span className="inline-flex items-center gap-1.5"><Money value={p.hourlyCost} />{p.hourlyCostManual ? <StatusChip tone="warn">Ajustado</StatusChip> : null}</span>
       ),
     },
+    { id: 'employees', header: 'Funcionários', meta: { numeric: true, secondary: true }, cell: ({ row: { original: p } }) => <span className="tabular-nums">{p.activeEmployees}</span> },
     { id: 'status', header: 'Situação', cell: ({ row: { original: p } }) => <StatusChip tone={p.isActive ? 'ok' : 'neutral'}>{p.isActive ? 'Ativo' : 'Inativo'}</StatusChip> },
   ]
 

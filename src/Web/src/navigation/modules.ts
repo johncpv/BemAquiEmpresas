@@ -46,7 +46,7 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
   assets: { slug: 'patrimonio', icon: Tag },
   finance: { slug: 'financeiro', icon: Wallet, tabs: [{ slug: 'contas', label: 'Contas e caixas' }, { slug: 'condicoes-de-pagamento', label: 'Condições de pagamento' }, { slug: 'plano-de-contas', label: 'Plano de contas' }, { slug: 'centros-de-custo', label: 'Centros de custo' }] },
   fiscal: { slug: 'fiscal', icon: Receipt },
-  hr: { slug: 'rh', icon: Users, tabs: [{ slug: 'cargos', label: 'Cargos' }, { slug: 'jornadas', label: 'Jornadas' }, { slug: 'sindicatos', label: 'Sindicatos' }] },
+  hr: { slug: 'rh', icon: Users, tabs: [{ slug: 'funcionarios', label: 'Funcionários' }, { slug: 'cargos', label: 'Cargos' }, { slug: 'jornadas', label: 'Jornadas' }, { slug: 'sindicatos', label: 'Sindicatos' }] },
   kiosk: { slug: 'painel-tv', icon: MonitorPlay },
   shopfloor: { slug: 'operador', icon: HardHat },
   identity: { slug: 'acessos', icon: ShieldCheck, tabs: [{ slug: 'usuarios', label: 'Usuários' }, { slug: 'grupos', label: 'Grupos' }] },

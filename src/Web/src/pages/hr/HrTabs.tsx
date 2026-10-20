@@ -1,12 +1,13 @@
 import { Link } from '@tanstack/react-router'
 
 const TABS = [
+  { to: '/app/rh/funcionarios', label: 'Funcionários' },
   { to: '/app/rh/cargos', label: 'Cargos' },
   { to: '/app/rh/jornadas', label: 'Jornadas' },
   { to: '/app/rh/sindicatos', label: 'Sindicatos' },
 ] as const
 
-/** Abas do RH (CAD-04a): cada aba é uma rota própria (FND-09b CA 8). Funcionários entram com a CAD-04b. */
+/** Abas do RH (CAD-04a): cada aba é uma rota própria (FND-09b CA 8). */
 export function HrTabs() {
   return (
     <nav aria-label="RH" className="mb-5 flex gap-1 overflow-x-auto border-b border-border">

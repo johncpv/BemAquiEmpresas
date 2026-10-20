@@ -23,4 +23,5 @@ export interface PositionDetail {
   hourlyCostManual: boolean;
   isActive: boolean;
   createdAt: string;
+  activeEmployees: number;
 }
