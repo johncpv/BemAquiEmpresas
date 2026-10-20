@@ -1,4 +1,6 @@
-import type { PayableDetail, PaymentDetailsInput, PaymentMethodKind } from '@/api/generated/model'
+import type { CostType, PayableDetail, PaymentDetailsInput, PaymentMethodKind } from '@/api/generated/model'
+import { listFinanceProjects } from '@/api/generated/bemaqui'
+import type { ComboOption } from '@/components/form/combobox'
 import { type Tone, toNumber } from '../receivables/receivables'
 
 /** Situação exibida (mapa de chips da Fase 2, FIN-02): "Vencido" e "Vence hoje" calculados no servidor. */
@@ -57,3 +59,16 @@ export function toDetails(m: MethodDraft): PaymentDetailsInput | null {
 export interface RetentionDraft { iss: string | null; inss: string | null; ir: string | null; pcc: string | null }
 
 export const retentionSum = (r: RetentionDraft) => toNumber(r.iss) + toNumber(r.inss) + toNumber(r.ir) + toNumber(r.pcc)
+
+const COST_BY_ACCOUNT: Record<string, CostType> = { '2.1': 'Material', '2.2': 'Labor', '2.3': 'Installation', '2.4': 'Freight', '2.5': 'Tax', '2.6': 'Other' }
+
+/** Natureza sugerida pela conta (COM-04a CA 18): 2.1 Materiais → Material … 2.6 Outros custos → Outros; a subconta segue a mãe. */
+export function suggestCostType(accountCode: string | undefined): CostType | null {
+  if (!accountCode) return null
+  const key = accountCode.split('.').slice(0, 2).join('.')
+  return COST_BY_ACCOUNT[key] ?? null
+}
+
+/** Projetos abertos para o campo "Projeto" dos títulos (COM-04a CA 18). */
+export const searchProjects = async (q: string): Promise<ComboOption[]> =>
+  (await listFinanceProjects({ q: q || undefined })).map((p) => ({ id: p.id, label: `${p.number} — ${p.name}` }))

@@ -8,7 +8,8 @@ import { DateInput, MoneyInput } from '@/components/form/inputs'
 import { UnsavedChangesGuard } from '@/components/form/UnsavedChangesGuard'
 import { notifySuccess } from '@/components/ui/messages'
 import { toNumber } from '../receivables/receivables'
-import type { RetentionDraft } from './payables'
+import { type RetentionDraft, suggestCostType } from './payables'
+import { type ProjectCost, ProjectCostFields } from './ProjectCostFields'
 import { RetentionFields } from './RetentionFields'
 
 const str = (n: number) => (n ? String(n) : null)
@@ -22,6 +23,7 @@ export function PayableDataForm({ payable, canEdit, onSaved }: { payable: Payabl
   const initial = {
     description: payable.description, accountId: payable.accountId, costCenterId: payable.costCenterId ?? '', amount: String(payable.amount) as string | null, dueDate: payable.dueDate ?? '',
     retentions: { iss: str(payable.retentionIss), inss: str(payable.retentionInss), ir: str(payable.retentionIr), pcc: str(payable.retentionPcc) } as RetentionDraft,
+    projectCost: { project: payable.projectId ? { id: payable.projectId, label: payable.projectNumber ?? 'Projeto' } : null, costType: payable.costType ?? '' } as ProjectCost,
   }
   const [draft, setDraft] = useState(initial)
   const [error, setError] = useState<{ message: string; fields: Record<string, string[]> } | null>(null)
@@ -35,6 +37,7 @@ export function PayableDataForm({ payable, canEdit, onSaved }: { payable: Payabl
       const saved = await updatePayable(payable.id, {
         description: draft.description.trim(), accountId: draft.accountId, costCenterId: draft.costCenterId || null, amount: toNumber(draft.amount), dueDate: draft.dueDate,
         retentionIss: toNumber(r.iss), retentionInss: toNumber(r.inss), retentionIr: toNumber(r.ir), retentionPcc: toNumber(r.pcc), version: payable.version,
+        projectId: draft.projectCost.project?.id ?? null, costType: draft.projectCost.project ? draft.projectCost.costType || null : null,
       })
       notifySuccess('Título a pagar salvo')
       onSaved(saved)
@@ -45,6 +48,7 @@ export function PayableDataForm({ payable, canEdit, onSaved }: { payable: Payabl
     }
   }
 
+  const suggested = suggestCostType((accounts.data ?? []).find((a) => a.id === draft.accountId)?.code)
   const options = (accounts.data ?? []).filter((a) => a.type !== 'Revenue' && a.acceptsEntries && (a.isActive || a.id === draft.accountId))
   return (
     <form noValidate onSubmit={(e) => { e.preventDefault(); void save() }} className="max-w-3xl space-y-4">
@@ -55,7 +59,7 @@ export function PayableDataForm({ payable, canEdit, onSaved }: { payable: Payabl
           <Field label="Descrição" required error={errors.description}>{(p) => <input {...p} value={draft.description} maxLength={200} onChange={(e) => set({ description: e.target.value })} className={inputClass} />}</Field>
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Conta" required error={errors.accountId}>
-              {(p) => <select {...p} value={draft.accountId} disabled={inOrder} onChange={(e) => set({ accountId: e.target.value })} className={inputClass}>{options.map((a) => <option key={a.id} value={a.id}>{a.code} {a.name}</option>)}</select>}
+              {(p) => <select {...p} value={draft.accountId} disabled={inOrder} onChange={(e) => { const code = (accounts.data ?? []).find((a) => a.id === e.target.value)?.code; set({ accountId: e.target.value, projectCost: draft.projectCost.project && !draft.projectCost.costType ? { ...draft.projectCost, costType: suggestCostType(code) ?? '' } : draft.projectCost }) }} className={inputClass}>{options.map((a) => <option key={a.id} value={a.id}>{a.code} {a.name}</option>)}</select>}
             </Field>
             <Field label="Centro de custo" error={errors.costCenterId}>
               {(p) => <select {...p} value={draft.costCenterId} disabled={inOrder} onChange={(e) => set({ costCenterId: e.target.value })} className={inputClass}><option value="">Sem centro de custo</option>{(centers.data ?? []).filter((c) => c.isActive || c.id === draft.costCenterId).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select>}
@@ -65,6 +69,9 @@ export function PayableDataForm({ payable, canEdit, onSaved }: { payable: Payabl
             </Field>
             <Field label="Vencimento" required error={errors.dueDate}>{(p) => <DateInput {...p} value={draft.dueDate} onChange={(dueDate) => set({ dueDate })} />}</Field>
           </div>
+        </FormSection>
+        <FormSection title="Projeto">
+          <ProjectCostFields value={draft.projectCost} onChange={(projectCost) => set({ projectCost })} suggested={suggested} errors={errors} />
         </FormSection>
         <FormSection title="Retenções">
           <RetentionFields value={draft.retentions} onChange={(retentions) => set({ retentions })} amount={toNumber(draft.amount)} errors={errors} disabled={inOrder} />

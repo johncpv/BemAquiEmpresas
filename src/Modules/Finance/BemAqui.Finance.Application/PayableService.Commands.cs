@@ -21,7 +21,7 @@ public sealed partial class PayableService
     {
         ArgumentNullException.ThrowIfNull(input);
         var retentions = new Retentions(input.RetentionIss, input.RetentionInss, input.RetentionIr, input.RetentionPcc);
-        if (await ValidateAsync(input.PartyId, input.Description, input.AccountId, input.CostCenterId, input.Amount, retentions, cancellationToken) is { } invalid)
+        if ((await ValidateAsync(input.PartyId, input.Description, input.AccountId, input.CostCenterId, input.Amount, retentions, cancellationToken) ?? await ProjectErrorAsync(input.ProjectId, input.CostType, cancellationToken)) is { } invalid)
         {
             return invalid;
         }
@@ -45,7 +45,7 @@ public sealed partial class PayableService
     {
         ArgumentNullException.ThrowIfNull(input);
         var retentions = new Retentions(input.RetentionIss, input.RetentionInss, input.RetentionIr, input.RetentionPcc);
-        if (await ValidateAsync(input.PartyId, input.Description, input.AccountId, input.CostCenterId, input.Amount, retentions, cancellationToken) is { } invalid)
+        if ((await ValidateAsync(input.PartyId, input.Description, input.AccountId, input.CostCenterId, input.Amount, retentions, cancellationToken) ?? await ProjectErrorAsync(input.ProjectId, input.CostType, cancellationToken)) is { } invalid)
         {
             return invalid;
         }
@@ -70,7 +70,7 @@ public sealed partial class PayableService
         var description = input.Description.Trim();
         var none = new Retentions(0, 0, 0, 0);
         var parcels = split.Select(p => (split.Count == 1 ? description : $"{description} ({p.Number}/{split.Count})", p.Amount, p.DueDate, p.Number == 1 ? retentions : none)).ToList();
-        var common = new PayableInput(input.PartyId, description, input.AccountId, input.CostCenterId, input.Amount, input.IssueDate, input.BaseDate, 0, 0, 0, 0, null);
+        var common = new PayableInput(input.PartyId, description, input.AccountId, input.CostCenterId, input.Amount, input.IssueDate, input.BaseDate, 0, 0, 0, 0, null, input.ProjectId, input.CostType);
         return await SaveNewAsync(parcels, common, details, split.Count > 1 ? Guid.CreateVersion7() : null, cancellationToken);
     }
 
@@ -107,7 +107,8 @@ public sealed partial class PayableService
             return OriginProtected(payable);
         }
 
-        if (await ValidateAsync(payable.PartyId, input.Description, input.AccountId, input.CostCenterId, input.Amount, retentions, cancellationToken) is { } invalid)
+        if ((await ValidateAsync(payable.PartyId, input.Description, input.AccountId, input.CostCenterId, input.Amount, retentions, cancellationToken)
+            ?? (input.ProjectId == payable.ProjectId && input.CostType == payable.CostType ? null : await ProjectErrorAsync(input.ProjectId, input.CostType, cancellationToken))) is { } invalid)
         {
             return invalid;
         }
@@ -121,6 +122,8 @@ public sealed partial class PayableService
         payable.Description = input.Description.Trim();
         payable.AccountId = input.AccountId;
         payable.CostCenterId = input.CostCenterId;
+        payable.ProjectId = input.ProjectId;
+        payable.CostType = input.ProjectId is null ? null : input.CostType;
         payable.Amount = input.Amount;
         (payable.RetentionIss, payable.RetentionInss, payable.RetentionIr, payable.RetentionPcc) = (retentions.Iss, retentions.Inss, retentions.Ir, retentions.Pcc);
         payable.DueDate = input.DueDate;
@@ -235,6 +238,7 @@ public sealed partial class PayableService
             var payable = new Payable
             {
                 Number = await numbers.NextAsync(DocType, ct), PartyId = common.PartyId, Description = description, AccountId = common.AccountId, CostCenterId = common.CostCenterId,
+                ProjectId = common.ProjectId, CostType = common.ProjectId is null ? null : common.CostType,
                 Amount = amount, RetentionIss = retentions.Iss, RetentionInss = retentions.Inss, RetentionIr = retentions.Ir, RetentionPcc = retentions.Pcc,
                 IssueDate = common.IssueDate, DueDate = dueDate, Status = PayableStatus.Open, Origin = DocumentOrigin.Manual, InstallmentGroupId = groupId,
                 PaymentMethod = details?.Kind, PaymentDetails = details is null ? null : PaymentDetails.Serialize(details), PaymentMethodChangedAt = details is null ? null : clock.GetUtcNow(),
@@ -248,6 +252,22 @@ public sealed partial class PayableService
         await transaction.CommitAsync(ct);
         var view = await ViewAsync(created[0], ct);
         return new PayablesCreated(await DetailsAsync(created, ct), view?.HolderWarning, view?.BoletoWarning);
+    }
+
+    /// <summary>Projeto e natureza (COM-04a CA 18): o projeto vem do <c>IProjects</c>; com projeto, a natureza é obrigatória.</summary>
+    private async Task<Error?> ProjectErrorAsync(Guid? projectId, CostType? costType, CancellationToken ct)
+    {
+        if (projectId is not { } id)
+        {
+            return null;
+        }
+
+        if (await projects.FindAsync(id, ct) is not { } project || project.Status is "Closed" or "Cancelled")
+        {
+            return ReceivableService.Invalid("projectId", "Escolha um projeto aberto da lista.");
+        }
+
+        return costType is null ? ReceivableService.Invalid("costType", "Informe a natureza do custo do projeto.") : null;
     }
 
     private (PaymentDetailsInput? Value, Error? Error) DetailsOf(PaymentDetailsInput? input) => input is null ? (null, null) : PaymentDetails.Validate(input, Today);

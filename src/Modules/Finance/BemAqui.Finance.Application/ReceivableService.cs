@@ -31,6 +31,7 @@ public sealed partial class ReceivableService(
     ICurrentUser currentUser,
     IEventPublisher events,
     IEnumerable<IContracts> contracts,
+    IProjects projects,
     TimeProvider clock)
 {
     public const string NumberIndex = "ix_receivables_number";
@@ -125,10 +126,13 @@ public sealed partial class ReceivableService(
         var names = (await parties.FindManyAsync(partyIds, ct)).ToDictionary(p => p.Id, p => p.TradeName ?? p.LegalName);
         var accountIds = receivables.Select(r => r.AccountId).Distinct().ToList();
         var accounts = (await chart.FindAsync(accountIds, ct)).ToDictionary(a => a.Id, a => a.Code + " " + a.Name);
+        var projectIds = receivables.Where(r => r.ProjectId is not null).Select(r => r.ProjectId!.Value).Distinct().ToList();
+        var projectNumbers = (await projects.FindManyAsync(projectIds, ct)).ToDictionary(p => p.Id, p => p.Number);
         return receivables.Select(r => new ReceivableDetail(
             r.Id, r.Number, r.PartyId, names.GetValueOrDefault(r.PartyId, string.Empty), r.Description, r.AccountId, accounts.GetValueOrDefault(r.AccountId, string.Empty),
             r.CostCenterId, r.ProjectId, r.Amount, r.PaidAmount, r.Balance, r.Interest, r.Fine, r.Discount, r.IssueDate, r.DueDate, r.Status,
-            r.IsOverdue(today), r.IsDueToday(today), r.Origin, r.OriginId, r.OpeningReference, r.InstallmentGroupId, r.CancelReason, r.CancelledAt, r.Version)).ToList();
+            r.IsOverdue(today), r.IsDueToday(today), r.Origin, r.OriginId, r.OpeningReference, r.InstallmentGroupId, r.CancelReason, r.CancelledAt, r.Version,
+            r.ProjectId is { } project ? projectNumbers.GetValueOrDefault(project) : null)).ToList();
     }
 
     private async Task NotifyOwnersAsync(string title, Guid receivableId, CancellationToken ct)

@@ -23,6 +23,9 @@ public sealed class Payable : Entity, IAuditable, IConcurrencyVersioned
 
     public Guid? ProjectId { get; set; }
 
+    /// <summary>Natureza do custo do projeto (COM-04a CA 18): obrigatória com projeto; base do orçado × realizado (COM-05).</summary>
+    public CostType? CostType { get; set; }
+
     public decimal Amount { get; set; }
 
     public decimal RetentionIss { get; set; }

@@ -47,3 +47,9 @@ public interface IFinanceParameters
 {
     Task<FinanceLimits> LimitsAsync(CancellationToken cancellationToken = default);
 }
+
+/// <summary>Títulos a receber vistos por quem os gerou (COM-04a CA 11: "Gerando parcelas…" até eles existirem; COM-04b).</summary>
+public interface IReceivables
+{
+    Task<int> CountByOriginAsync(DocumentOrigin origin, Guid originId, CancellationToken cancellationToken = default);
+}

@@ -108,7 +108,7 @@ public sealed class AuditSaveChangesInterceptor(ICurrentUser currentUser, TimePr
 
             var member = property.Metadata.PropertyInfo;
             var name = JsonNamingPolicy.CamelCase.ConvertName(property.Metadata.Name);
-            changes[name] = member?.GetCustomAttribute<ProtectedSecretAttribute>() is not null
+            changes[name] = member?.GetCustomAttribute<ProtectedSecretAttribute>() is not null || member?.GetCustomAttribute<AuditOnCreateOnlyAttribute>() is not null
                 ? new() { ["changed"] = true }
                 : member?.GetCustomAttribute<PersonalDataAttribute>() is not null
                     ? new() { ["old"] = Mask(action == AuditActions.Created ? null : property.OriginalValue), ["new"] = Mask(property.CurrentValue) }

@@ -281,8 +281,10 @@ public sealed partial class ReceivableService
             return Invalid("costCenterId", "Escolha um centro de custo ativo.");
         }
 
-        // O projeto entra com a aprovação do orçamento (COM-04a); antes disso o campo nem aparece.
-        return projectId is null ? null : Invalid("projectId", "Os projetos entram com a aprovação do orçamento.");
+        // Projeto do IProjects (COM-04a CA 18): só os abertos.
+        return projectId is { } id && (await projects.FindAsync(id, ct) is not { } project || project.Status is "Closed" or "Cancelled")
+            ? Invalid("projectId", "Escolha um projeto aberto da lista.")
+            : null;
     }
 
     private static Error ContractProtected(Receivable receivable) =>

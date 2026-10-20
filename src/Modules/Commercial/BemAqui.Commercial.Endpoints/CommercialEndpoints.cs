@@ -33,6 +33,8 @@ internal static partial class CommercialEndpoints
         MapItems(quotes);
         MapConditions(quotes);
         MapRevisions(quotes);
+        MapApproval(quotes);
+        MapContracts(api);
         MapLookups(quotes.MapGroup("/lookups"));
         var commercial = api.MapGroup("/commercial").WithTags("Orçamentos");
         commercial.MapGet("/parameters", async (CommercialParametersService service, CancellationToken ct) => Results.Ok(await service.GetAsync(ct)))

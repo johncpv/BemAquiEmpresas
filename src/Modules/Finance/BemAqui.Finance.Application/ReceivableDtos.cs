@@ -65,7 +65,8 @@ public sealed record ReceivableDetail(
     Guid? InstallmentGroupId,
     string? CancelReason,
     DateTimeOffset? CancelledAt,
-    uint Version);
+    uint Version,
+    string? ProjectNumber = null);
 
 /// <summary>Totais do filtro inteiro (rodapé da lista).</summary>
 public sealed record ReceivableTotals(decimal Open, decimal Overdue);

@@ -4,6 +4,7 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { CostType } from './costType';
 import type { DocumentOrigin } from './documentOrigin';
 import type { PayableStatus } from './payableStatus';
 import type { PaymentMethodKind } from './paymentMethodKind';
@@ -50,4 +51,9 @@ export interface PayableDetail {
   /** @nullable */
   cancelledAt: string | null;
   version: number;
+  /** @nullable */
+  projectId?: string | null;
+  /** @nullable */
+  projectNumber?: string | null;
+  costType?: null | CostType;
 }

@@ -22,6 +22,11 @@ public sealed partial class QuoteService
             return NotCurrent();
         }
 
+        if (quote.Status == QuoteStatus.Approved)
+        {
+            return Approved();
+        }
+
         if (quote.Status != QuoteStatus.Sent)
         {
             return Error.Conflict("quote_not_sent", quote.Status == QuoteStatus.Rejected ? "Orçamento perdido não é alterado." : "Só o orçamento enviado registra perda.");

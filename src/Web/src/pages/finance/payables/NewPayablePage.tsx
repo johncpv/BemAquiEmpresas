@@ -16,7 +16,8 @@ import { ErrorState, Skeleton } from '@/components/ui/states'
 import { formatDate } from '@/lib/format'
 import { PageHeading } from '@/shell/PageHeading'
 import { today, toNumber } from '../receivables/receivables'
-import { emptyMethod, type MethodDraft, PAYABLE_DICAS, toDetails, type RetentionDraft } from './payables'
+import { emptyMethod, type MethodDraft, PAYABLE_DICAS, suggestCostType, toDetails, type RetentionDraft } from './payables'
+import { type ProjectCost, ProjectCostFields } from './ProjectCostFields'
 import { PaymentMethodFields } from './PaymentMethodFields'
 import { RetentionFields } from './RetentionFields'
 
@@ -57,6 +58,7 @@ interface Draft {
   baseDate: string
   retentions: RetentionDraft
   method: MethodDraft
+  projectCost: ProjectCost
 }
 
 function PayableForm({ accounts, centers, terms }: { accounts: Option[]; centers: Option[]; terms: Option[] }) {
@@ -66,7 +68,7 @@ function PayableForm({ accounts, centers, terms }: { accounts: Option[]; centers
   const prefill = useSearch({ strict: false }) as { descricao?: string; valor?: string; vencimento?: string }
   const [initial] = useState<Draft>(() => ({
     supplier: null, description: prefill.descricao ?? '', accountId: '', costCenterId: '', amount: prefill.valor ?? null, issueDate: today(), dueDate: prefill.vencimento ?? '', mode: 'single', termId: '', baseDate: today(),
-    retentions: { iss: null, inss: null, ir: null, pcc: null }, method: emptyMethod(),
+    retentions: { iss: null, inss: null, ir: null, pcc: null }, method: emptyMethod(), projectCost: { project: null, costType: '' },
   }))
   const [draft, setDraft] = useState(initial)
   const [submitted, setSubmitted] = useState(false)
@@ -88,6 +90,7 @@ function PayableForm({ accounts, centers, terms }: { accounts: Option[]; centers
   if (!(amount > 0)) local.amount = 'Informe um valor maior que zero.'
   if (!split && !draft.dueDate) local.dueDate = 'Informe o vencimento.'
   if (split && !draft.termId) local.paymentTermId = 'Escolha a condição de pagamento.'
+  if (draft.projectCost.project && !draft.projectCost.costType) local.costType = 'Informe a natureza do custo do projeto.'
   const errors: Partial<Record<string, string>> = { ...(submitted ? local : {}), ...Object.fromEntries(Object.entries(server?.fields ?? {}).map(([k, v]) => [k, v[0]])) }
 
   const save = async () => {
@@ -97,6 +100,7 @@ function PayableForm({ accounts, centers, terms }: { accounts: Option[]; centers
     const common = {
       partyId: draft.supplier.id, description: draft.description.trim(), accountId: draft.accountId, costCenterId: draft.costCenterId || null, amount, issueDate: draft.issueDate,
       retentionIss: toNumber(r.iss), retentionInss: toNumber(r.inss), retentionIr: toNumber(r.ir), retentionPcc: toNumber(r.pcc), paymentDetails: toDetails(draft.method),
+      projectId: draft.projectCost.project?.id ?? null, costType: draft.projectCost.project ? draft.projectCost.costType || null : null,
     }
     try {
       const saved = split
@@ -111,6 +115,10 @@ function PayableForm({ accounts, centers, terms }: { accounts: Option[]; centers
       return false
     }
   }
+
+  const codeOf = (id: string) => accounts.find((a) => a.id === id)?.label.split(' ')[0]
+  const suggested = suggestCostType(codeOf(draft.accountId))
+  const chooseAccount = (accountId: string) => set({ accountId, projectCost: draft.projectCost.project && !draft.projectCost.costType ? { ...draft.projectCost, costType: suggestCostType(codeOf(accountId)) ?? '' } : draft.projectCost })
 
   const chooseSupplier = (option: ComboOption | null) => {
     const supplier = option as Supplier | null
@@ -132,12 +140,15 @@ function PayableForm({ accounts, centers, terms }: { accounts: Option[]; centers
           <Field label="Descrição" required error={errors.description}>{(p) => <input {...p} value={draft.description} maxLength={200} onChange={(e) => set({ description: e.target.value })} className={inputClass} />}</Field>
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Conta" required error={errors.accountId} hint="Despesa, investimento ou financiamento.">
-              {(p) => <select {...p} value={draft.accountId} onChange={(e) => set({ accountId: e.target.value })} className={inputClass}><option value="">Escolha</option>{accounts.map((a) => <option key={a.id} value={a.id}>{a.label}</option>)}</select>}
+              {(p) => <select {...p} value={draft.accountId} onChange={(e) => chooseAccount(e.target.value)} className={inputClass}><option value="">Escolha</option>{accounts.map((a) => <option key={a.id} value={a.id}>{a.label}</option>)}</select>}
             </Field>
             <Field label="Centro de custo" error={errors.costCenterId}>
               {(p) => <select {...p} value={draft.costCenterId} onChange={(e) => set({ costCenterId: e.target.value })} className={inputClass}><option value="">Sem centro de custo</option>{centers.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}</select>}
             </Field>
           </div>
+        </FormSection>
+        <FormSection title="Projeto">
+          <ProjectCostFields value={draft.projectCost} onChange={(projectCost) => set({ projectCost })} suggested={suggested} errors={errors} />
         </FormSection>
         <FormSection title="Valor e vencimento">
           <div className="grid gap-3 sm:grid-cols-2">

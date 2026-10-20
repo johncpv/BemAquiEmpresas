@@ -10,6 +10,7 @@ modulo: finance
 Lançar o que um cliente vai pagar: um título só, ou várias parcelas pela condição de pagamento.
 
 ## Como usar
+- O campo **Projeto** é opcional: liga o recebimento a um projeto aberto.
 - Escolha o **cliente**. Só aparecem terceiros ativos com o papel Cliente.
 - Informe a descrição, a **conta de receita** (vem "Venda de equipamentos") e, se quiser, o centro de custo.
 - Informe o valor e a emissão (vem hoje).

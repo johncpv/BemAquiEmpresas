@@ -5181,6 +5181,140 @@
         }
       }
     },
+    "/api/v1/quotes/{id}/approval": {
+      "get": {
+        "tags": [
+          "Or\u00E7amentos"
+        ],
+        "operationId": "GetQuoteApproval",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApprovalPreview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/quotes/{id}/approval/costs": {
+      "get": {
+        "tags": [
+          "Or\u00E7amentos"
+        ],
+        "operationId": "GetQuoteApprovalCosts",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApprovalCostView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/quotes/{id}/approve": {
+      "post": {
+        "tags": [
+          "Or\u00E7amentos"
+        ],
+        "operationId": "ApproveQuote",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApprovalResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/quotes/{id}/contract": {
+      "get": {
+        "tags": [
+          "Or\u00E7amentos"
+        ],
+        "operationId": "GetQuoteContract",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteContractRef"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/quotes/lookups/customers": {
       "get": {
         "tags": [
@@ -5383,6 +5517,154 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/LaborWorkCenterOption"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contracts": {
+      "get": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "ListContracts",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "situation",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractPage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contracts/{id}": {
+      "get": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "GetContract",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{id}": {
+      "get": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "GetProject",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{id}/budget": {
+      "get": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "GetProjectBudget",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProjectBudgetLine"
                   }
                 }
               }
@@ -9442,6 +9724,38 @@
         }
       }
     },
+    "/api/v1/finance/projects": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ListFinanceProjects",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FinanceProjectOption"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/recurring-expenses": {
       "get": {
         "tags": [
@@ -10886,6 +11200,220 @@
           }
         }
       },
+      "ApprovalAccount": {
+        "required": [
+          "id",
+          "label"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "label": {
+            "type": "string"
+          }
+        }
+      },
+      "ApprovalAlert": {
+        "required": [
+          "sequence",
+          "description",
+          "belowCost",
+          "priceOverridden"
+        ],
+        "type": "object",
+        "properties": {
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": {
+            "type": "string"
+          },
+          "belowCost": {
+            "type": "boolean"
+          },
+          "priceOverridden": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ApprovalCostView": {
+        "required": [
+          "marginPct",
+          "alerts"
+        ],
+        "type": "object",
+        "properties": {
+          "marginPct": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "alerts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApprovalAlert"
+            }
+          }
+        }
+      },
+      "ApprovalMilestone": {
+        "required": [
+          "description",
+          "percent",
+          "amount",
+          "when"
+        ],
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "percent": {
+            "type": "number",
+            "format": "double"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "when": {
+            "type": "string"
+          }
+        }
+      },
+      "ApprovalPrecondition": {
+        "required": [
+          "ok",
+          "text",
+          "fixTab"
+        ],
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "text": {
+            "type": "string"
+          },
+          "fixTab": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ApprovalPreview": {
+        "required": [
+          "preconditions",
+          "totalValue",
+          "items",
+          "deliveryDays",
+          "milestones",
+          "revenueAccounts",
+          "suggestedRevenueAccountId",
+          "projectName"
+        ],
+        "type": "object",
+        "properties": {
+          "preconditions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApprovalPrecondition"
+            }
+          },
+          "totalValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "deliveryDays": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "milestones": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApprovalMilestone"
+            }
+          },
+          "revenueAccounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApprovalAccount"
+            }
+          },
+          "suggestedRevenueAccountId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "projectName": {
+            "type": "string"
+          }
+        }
+      },
+      "ApprovalResult": {
+        "required": [
+          "contractId",
+          "contractNumber",
+          "projectId",
+          "projectNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "contractId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contractNumber": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": "string"
+          }
+        }
+      },
+      "ApproveInput": {
+        "required": [
+          "signedAt",
+          "revenueAccountId",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "signedAt": {
+            "type": "string",
+            "format": "date"
+          },
+          "revenueAccountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
       "AskHelpRequest": {
         "required": [
           "question",
@@ -10939,6 +11467,12 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "uploadedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -12310,6 +12844,356 @@
           }
         }
       },
+      "ContractDetail": {
+        "required": [
+          "id",
+          "number",
+          "status",
+          "partyId",
+          "partyName",
+          "partyDocument",
+          "totalValue",
+          "signedAt",
+          "revenueAccountId",
+          "revenueAccount",
+          "quoteId",
+          "quoteNumber",
+          "quoteRevision",
+          "projectId",
+          "projectNumber",
+          "projectName",
+          "createdAt",
+          "milestones",
+          "snapshot",
+          "receivables",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ContractStatus"
+          },
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "partyDocument": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "totalValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "signedAt": {
+            "type": "string",
+            "format": "date"
+          },
+          "revenueAccountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revenueAccount": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "quoteId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "quoteNumber": {
+            "type": "string"
+          },
+          "quoteRevision": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "projectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "projectName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "milestones": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContractMilestoneView"
+            }
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/ContractSnapshot"
+          },
+          "receivables": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "ContractMilestoneView": {
+        "required": [
+          "id",
+          "sequence",
+          "description",
+          "percent",
+          "amount",
+          "trigger",
+          "triggerEvent",
+          "dueDate",
+          "daysAfterEvent"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": {
+            "type": "string"
+          },
+          "percent": {
+            "type": "number",
+            "format": "double"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "trigger": {
+            "$ref": "#/components/schemas/MilestoneTrigger"
+          },
+          "triggerEvent": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TriggerEvent"
+              }
+            ]
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "daysAfterEvent": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "ContractPage": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContractSummary"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ContractSnapshot": {
+        "required": [
+          "schema",
+          "quoteNumber",
+          "quoteRevision",
+          "party",
+          "deliveryDays",
+          "notes",
+          "pricingMode",
+          "items",
+          "milestones",
+          "totalPrice",
+          "totalCost",
+          "marginPct"
+        ],
+        "type": "object",
+        "properties": {
+          "schema": {
+            "type": "string"
+          },
+          "quoteNumber": {
+            "type": "string"
+          },
+          "quoteRevision": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "party": {
+            "$ref": "#/components/schemas/SnapshotParty"
+          },
+          "deliveryDays": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pricingMode": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SnapshotItem"
+            }
+          },
+          "milestones": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SnapshotMilestone"
+            }
+          },
+          "totalPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalCost": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "marginPct": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "ContractStatus": {
+        "enum": [
+          "Active",
+          "Completed",
+          "Cancelled"
+        ]
+      },
+      "ContractSummary": {
+        "required": [
+          "id",
+          "number",
+          "partyId",
+          "partyName",
+          "totalValue",
+          "signedAt",
+          "status",
+          "projectId",
+          "projectNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "totalValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "signedAt": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ContractStatus"
+          },
+          "projectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "ConversionDetail": {
         "required": [
           "id",
@@ -13558,6 +14442,26 @@
           }
         },
         "additionalProperties": false
+      },
+      "FinanceProjectOption": {
+        "required": [
+          "id",
+          "number",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
       },
       "FinanceSupplierOption": {
         "required": [
@@ -16474,6 +17378,29 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          },
+          "projectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "costType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CostType"
+              }
+            ]
           }
         }
       },
@@ -16547,6 +17474,23 @@
               },
               {
                 "$ref": "#/components/schemas/PaymentDetailsInput"
+              }
+            ]
+          },
+          "projectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "costType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CostType"
               }
             ]
           }
@@ -16628,6 +17572,23 @@
               },
               {
                 "$ref": "#/components/schemas/PaymentDetailsInput"
+              }
+            ]
+          },
+          "projectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "costType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CostType"
               }
             ]
           }
@@ -16761,6 +17722,23 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          },
+          "projectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "costType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CostType"
+              }
+            ]
           }
         },
         "additionalProperties": false
@@ -17858,6 +18836,185 @@
           }
         }
       },
+      "ProjectBudgetLine": {
+        "required": [
+          "costType",
+          "budgetedAmount"
+        ],
+        "type": "object",
+        "properties": {
+          "costType": {
+            "$ref": "#/components/schemas/CostType"
+          },
+          "budgetedAmount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "ProjectDetail": {
+        "required": [
+          "id",
+          "number",
+          "name",
+          "status",
+          "partyId",
+          "partyName",
+          "contractId",
+          "contractNumber",
+          "siteAddressId",
+          "siteAddress",
+          "promisedDate",
+          "forecastDate",
+          "priority",
+          "managerUserId",
+          "managerName",
+          "createdAt",
+          "items",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProjectStatus"
+          },
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "contractId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contractNumber": {
+            "type": "string"
+          },
+          "siteAddressId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "siteAddress": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "promisedDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "forecastDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "priority": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "managerUserId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "managerName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectItemView"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "ProjectItemView": {
+        "required": [
+          "id",
+          "sequence",
+          "description",
+          "quantity",
+          "itemId",
+          "quoteItemId"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "itemId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "quoteItemId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "ProjectStatus": {
+        "enum": [
+          "Planned",
+          "InProgress",
+          "Fabricated",
+          "Installing",
+          "Delivered",
+          "Closed",
+          "Cancelled"
+        ]
+      },
       "ProvisionAccepted": {
         "required": [
           "key"
@@ -18011,6 +19168,21 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          }
+        }
+      },
+      "QuoteContractRef": {
+        "required": [
+          "contractId"
+        ],
+        "type": "object",
+        "properties": {
+          "contractId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         }
       },
@@ -19050,7 +20222,8 @@
           "Sent",
           "Rejected",
           "Expired",
-          "Superseded"
+          "Superseded",
+          "Approved"
         ]
       },
       "QuoteSummary": {
@@ -19322,6 +20495,12 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          },
+          "projectNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -20129,6 +21308,177 @@
             "type": "string"
           },
           "end": {
+            "type": "string"
+          }
+        }
+      },
+      "SnapshotCost": {
+        "required": [
+          "costType",
+          "description",
+          "itemId",
+          "quantity",
+          "unitCost",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "costType": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "itemId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitCost": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "SnapshotItem": {
+        "required": [
+          "sequence",
+          "kind",
+          "itemId",
+          "description",
+          "quantity",
+          "unitPrice",
+          "total",
+          "unitCost",
+          "costs"
+        ],
+        "type": "object",
+        "properties": {
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "itemId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "description": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitCost": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "costs": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/SnapshotCost"
+            }
+          }
+        }
+      },
+      "SnapshotMilestone": {
+        "required": [
+          "sequence",
+          "description",
+          "percent",
+          "amount",
+          "trigger",
+          "triggerEvent",
+          "dueDate",
+          "daysAfterEvent"
+        ],
+        "type": "object",
+        "properties": {
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": {
+            "type": "string"
+          },
+          "percent": {
+            "type": "number",
+            "format": "double"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "trigger": {
+            "type": "string"
+          },
+          "triggerEvent": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "daysAfterEvent": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "SnapshotParty": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
             "type": "string"
           }
         }
@@ -21318,6 +22668,9 @@
     },
     {
       "name": "Or\u00E7amentos"
+    },
+    {
+      "name": "Contratos e projetos"
     },
     {
       "name": "Produ\u00E7\u00E3o"

@@ -4,6 +4,7 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { CostType } from './costType';
 import type { PaymentDetailsInput } from './paymentDetailsInput';
 
 export interface PayableInstallmentsInput {
@@ -21,4 +22,7 @@ export interface PayableInstallmentsInput {
   retentionIr: number;
   retentionPcc: number;
   paymentDetails: null | PaymentDetailsInput;
+  /** @nullable */
+  projectId?: string | null;
+  costType?: null | CostType;
 }

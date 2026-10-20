@@ -45,6 +45,7 @@ public sealed class PayablesContract(IFinanceDb db, IChartOfAccounts chart, INum
         var payable = new Payable
         {
             Number = await numbers.NextAsync(PayableService.DocType, cancellationToken), PartyId = partyId, Description = description.Trim(), AccountId = account.Id, ProjectId = projectId,
+            CostType = projectId is null ? null : origin == DocumentOrigin.Installer ? CostType.Installation : CostType.Other,
             Amount = amount, IssueDate = BemAqui.BuildingBlocks.Time.BusinessTime.Today(clock), DueDate = dueDate, IsEstimate = planned && estimatedDueDate,
             Status = planned ? PayableStatus.Planned : PayableStatus.Open, Origin = origin, OriginId = originId, CreatedAt = clock.GetUtcNow(), CreatedBy = currentUser.UserId,
         };

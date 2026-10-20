@@ -505,12 +505,315 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("parameters", "commercial");
                 });
 
+            modelBuilder.Entity("BemAqui.Commercial.Domain.Contract", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("number");
+
+                    b.Property<Guid>("PartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("party_id");
+
+                    b.Property<Guid>("QuoteId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("quote_id");
+
+                    b.Property<Guid>("RevenueAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("revenue_account_id");
+
+                    b.Property<DateOnly>("SignedAt")
+                        .HasColumnType("date")
+                        .HasColumnName("signed_at");
+
+                    b.Property<string>("Snapshot")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("snapshot");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)")
+                        .HasColumnName("status");
+
+                    b.Property<decimal>("TotalValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("total_value");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_contracts");
+
+                    b.HasIndex("Number")
+                        .IsUnique()
+                        .HasDatabaseName("ix_contracts_number");
+
+                    b.HasIndex("PartyId")
+                        .HasDatabaseName("ix_contracts_party_id");
+
+                    b.HasIndex("QuoteId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_contracts_quote_id");
+
+                    b.ToTable("contracts", "commercial");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.ContractMilestone", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<Guid>("ContractId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_id");
+
+                    b.Property<int?>("DaysAfterEvent")
+                        .HasColumnType("integer")
+                        .HasColumnName("days_after_event");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("description");
+
+                    b.Property<DateOnly?>("DueDate")
+                        .HasColumnType("date")
+                        .HasColumnName("due_date");
+
+                    b.Property<decimal>("Percent")
+                        .HasPrecision(7, 4)
+                        .HasColumnType("numeric(7,4)")
+                        .HasColumnName("percent");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.Property<string>("Trigger")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("trigger");
+
+                    b.Property<string>("TriggerEvent")
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)")
+                        .HasColumnName("trigger_event");
+
+                    b.HasKey("Id")
+                        .HasName("pk_contract_milestones");
+
+                    b.HasIndex("ContractId")
+                        .HasDatabaseName("ix_contract_milestones_contract_id");
+
+                    b.ToTable("contract_milestones", "commercial");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.Project", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ContractId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateOnly?>("ForecastDate")
+                        .HasColumnType("date")
+                        .HasColumnName("forecast_date");
+
+                    b.Property<Guid?>("ManagerUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("manager_user_id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("number");
+
+                    b.Property<Guid>("PartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("party_id");
+
+                    b.Property<int?>("Priority")
+                        .HasColumnType("integer")
+                        .HasColumnName("priority");
+
+                    b.Property<DateOnly?>("PromisedDate")
+                        .HasColumnType("date")
+                        .HasColumnName("promised_date");
+
+                    b.Property<Guid?>("SiteAddressId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("site_address_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)")
+                        .HasColumnName("status");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_projects");
+
+                    b.HasIndex("ContractId")
+                        .HasDatabaseName("ix_projects_contract_id");
+
+                    b.HasIndex("Number")
+                        .IsUnique()
+                        .HasDatabaseName("ix_projects_number");
+
+                    b.HasIndex("PartyId")
+                        .HasDatabaseName("ix_projects_party_id");
+
+                    b.ToTable("projects", "commercial");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.ProjectBudget", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("BudgetedAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("budgeted_amount");
+
+                    b.Property<string>("CostType")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("cost_type");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_project_budget");
+
+                    b.HasIndex("ProjectId", "CostType")
+                        .IsUnique()
+                        .HasDatabaseName("ix_project_budget_project_id_cost_type");
+
+                    b.ToTable("project_budget", "commercial");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.ProjectItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("description");
+
+                    b.Property<Guid?>("ItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_id");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("quantity");
+
+                    b.Property<Guid>("QuoteItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("quote_item_id");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.HasKey("Id")
+                        .HasName("pk_project_items");
+
+                    b.HasIndex("ItemId")
+                        .HasDatabaseName("ix_project_items_item_id");
+
+                    b.HasIndex("ProjectId")
+                        .HasDatabaseName("ix_project_items_project_id");
+
+                    b.HasIndex("QuoteItemId")
+                        .HasDatabaseName("ix_project_items_quote_item_id");
+
+                    b.ToTable("project_items", "commercial");
+                });
+
             modelBuilder.Entity("BemAqui.Commercial.Domain.Quote", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("ApprovedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("approved_at");
+
+                    b.Property<Guid?>("ApprovedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("approved_by");
 
                     b.Property<Guid?>("ContactId")
                         .HasColumnType("uuid")
@@ -1457,6 +1760,11 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("cost_center_id");
 
+                    b.Property<string>("CostType")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("cost_type");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -1582,6 +1890,9 @@ namespace BemAqui.Host.Persistence.Migrations
 
                     b.HasIndex("PartyId")
                         .HasDatabaseName("ix_payables_party_id");
+
+                    b.HasIndex("ProjectId")
+                        .HasDatabaseName("ix_payables_project_id");
 
                     b.HasIndex("Origin", "OriginId")
                         .IsUnique()
@@ -4655,6 +4966,63 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDatabaseName("ix_work_centers_calendar_id");
 
                     b.ToTable("work_centers", "production");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.Contract", b =>
+                {
+                    b.HasOne("BemAqui.Commercial.Domain.Quote", null)
+                        .WithMany()
+                        .HasForeignKey("QuoteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_contracts_quotes_quote_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.ContractMilestone", b =>
+                {
+                    b.HasOne("BemAqui.Commercial.Domain.Contract", null)
+                        .WithMany()
+                        .HasForeignKey("ContractId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_contract_milestones_contracts_contract_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.Project", b =>
+                {
+                    b.HasOne("BemAqui.Commercial.Domain.Contract", null)
+                        .WithMany()
+                        .HasForeignKey("ContractId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_projects_contracts_contract_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.ProjectBudget", b =>
+                {
+                    b.HasOne("BemAqui.Commercial.Domain.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_project_budget_projects_project_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.ProjectItem", b =>
+                {
+                    b.HasOne("BemAqui.Commercial.Domain.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_project_items_projects_project_id");
+
+                    b.HasOne("BemAqui.Commercial.Domain.QuoteItem", null)
+                        .WithMany()
+                        .HasForeignKey("QuoteItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_project_items_quote_items_quote_item_id");
                 });
 
             modelBuilder.Entity("BemAqui.Commercial.Domain.QuoteItem", b =>

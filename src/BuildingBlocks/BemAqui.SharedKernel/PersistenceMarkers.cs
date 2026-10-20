@@ -21,3 +21,7 @@ public sealed class PersonalDataAttribute : Attribute;
 /// <summary>Coluna com segredo cifrado (FND-11): a auditoria registra só que mudou, nunca o valor.</summary>
 [AttributeUsage(AttributeTargets.Property)]
 public sealed class ProtectedSecretAttribute : Attribute;
+
+/// <summary>Coluna grande gravada uma vez (ex.: snapshot do contrato, COM-04a CA 13): a auditoria registra só que mudou, sem o conteúdo.</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class AuditOnCreateOnlyAttribute : Attribute;

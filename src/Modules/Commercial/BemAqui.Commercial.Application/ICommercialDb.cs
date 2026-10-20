@@ -18,6 +18,16 @@ public interface ICommercialDb
 
     DbSet<CommercialParameter> CommercialParameters { get; }
 
+    DbSet<Contract> Contracts { get; }
+
+    DbSet<ContractMilestone> ContractMilestones { get; }
+
+    DbSet<Project> Projects { get; }
+
+    DbSet<ProjectItem> ProjectItems { get; }
+
+    DbSet<ProjectBudget> ProjectBudgets { get; }
+
     DatabaseFacade Database { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);

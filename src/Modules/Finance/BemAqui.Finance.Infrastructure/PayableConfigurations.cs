@@ -19,6 +19,8 @@ internal sealed class PayableConfiguration : IEntityTypeConfiguration<Payable>
 
         b.Property(e => e.Status).HasConversion<string>().HasMaxLength(20);
         b.Property(e => e.Origin).HasConversion<string>().HasMaxLength(16);
+        b.Property(e => e.CostType).HasConversion<string>().HasMaxLength(16);
+        b.HasIndex(e => e.ProjectId);
         b.Property(e => e.PaymentMethod).HasConversion<string>().HasMaxLength(10);
         b.Property(e => e.PaymentDetails).HasColumnType("jsonb");
         b.Property(e => e.CancelReason).HasMaxLength(200);

@@ -5,7 +5,7 @@
 | ID | COM-04a |
 | Título | "Aprovar e gerar contrato" num único comando: orçamento `Approved`, contrato `Active` com data de assinatura editável, snapshot e marcos, projeto `Planned` com itens e orçamento por natureza, conta de receita das parcelas escolhida e validada, eventos `QuoteApproved` e `ContractSigned` no outbox; anexo opcional do contrato assinado; tela do contrato; projeto e natureza do custo no título a pagar |
 | Tamanho | G (quebra da COM-04: os recebíveis, a liberação por marco e o cancelamento do contrato foram para a COM-04b; o contrato de implantação foi para a COM-04c) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-COML-7 (aprovação interna gera contrato com cópia congelada + projeto + parcelas) · R-PRJ-1 (projeto vinculado a contrato e cliente, obra, data prometida, responsável) · R-PRJ-2 (itens do projeto) · R-FIN-1 (projeto no lançamento) · R-COM-3 (anexo do contrato) · R-COM-4 (CTR, PRJ) · R-PRP-2 · R-PRP-3 · R-PRP-7 · R-SEC-5 |
 | Dependências | COM-02 (só a revisão mais recente), COM-01b (marcos 100%), COM-01a (`quotes.view_cost`, `projects.view_cost`, `CostType`); FIN-02 (títulos a pagar, para o campo de projeto); CAD-01a (`IParties`); FND-09e; Fase 0 (FND-07 outbox e anexos, FND-06c 2FA no login) |
 | Bloqueia | COM-04b, COM-04c, COM-05, COM-06, COM-07, PRD-01 (OS de fabricação a partir do item do projeto) |
@@ -104,16 +104,16 @@ Decididos pelo PO em 20/10/2026 (seção 1.1, itens 24 a 26, e D3, D7):
 7. P-18 decidida (ADR 0021).
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
-- [ ] Migration criada (não destrutiva), inclusive `payables.cost_type`.
-- [ ] Permissões só do `ModuleCatalog`; dono de anexo `Contract` registrado com `OwnerExists`.
-- [ ] Telas com estados.
-- [ ] Ajuda do contrato, da lista de contratos, do projeto e do título a pagar; teste de cobertura passando.
-- [ ] Próximo passo "Ver projeto criado" e confirmação com resumo aplicados.
-- [ ] Auditoria ligada (sem dado pessoal no snapshot).
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
+- [x] Migration criada (não destrutiva), inclusive `payables.cost_type`.
+- [x] Permissões só do `ModuleCatalog`; dono de anexo `Contract` registrado com `OwnerExists`.
+- [x] Telas com estados.
+- [x] Ajuda do contrato, da lista de contratos, do projeto e do título a pagar; teste de cobertura passando.
+- [x] Próximo passo "Ver projeto criado" e confirmação com resumo aplicados.
+- [x] Auditoria ligada (sem dado pessoal no snapshot).
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
 - [ ] `ApproveQuoteHandler` (comando único) e as entidades `Contract`, `ContractMilestone`, `Project`, `ProjectItem`, `ProjectBudgetLine`.
@@ -153,3 +153,4 @@ Checklist do @po (Pax), 20/10/2026 (revalidação depois das decisões do PO e d
 | 19/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 20/10/2026 | 0.3 | Decisões do PO (D3, D7, seção 1.1) e correções da revisão pré-Fase 2 (§2.1-A4, M5, M9, baixos, §2.3); contrato de implantação para a COM-04c; CAs renumerados | River (SM) |
 | 20/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 20/10/2026 | 1.0 | Implementada. Desvios: a aprovação grava primeiro a transição do orçamento (`xmin`) e depois contrato, projeto e eventos na mesma transação, com o índice único em `contracts.quote_id` como segunda barreira; a parte do custo do item sem composição vai para "Outros" no orçado; o estado "Gerando parcelas…" lê `IReceivables.CountByOriginAsync(Contract, contractId)` (contrato novo no `Finance.Contracts`) e, até a COM-04b consumir o `ContractSigned`, o contrato mostra o aviso de demora; o módulo `projects` abre `/app/contratos` no menu (slug `contratos`, com `projetos` como alias) até a lista de projetos da COM-05; a lista de anexos ganhou o nome de quem anexou (`uploadedByName`); o seletor de projetos do título fica em `/finance/projects` (`finance.view`), sem exigir `projects.view`; título gerado por outra origem com projeto recebe a natureza Instalação (instalador) ou Outros; `IContracts.FindAsync` substitui o `StatusAsync` citado no CA 21; aba Orçado no projeto com `projects.view_cost` | @dev |

@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BemAqui.BuildingBlocks.Attachments;
 
-public sealed record AttachmentDto(Guid Id, string FileName, string ContentType, long Size, ScanStatus ScanStatus, DateTimeOffset CreatedAt);
+public sealed record AttachmentDto(Guid Id, string FileName, string ContentType, long Size, ScanStatus ScanStatus, DateTimeOffset CreatedAt, string? UploadedByName = null);
 
 public sealed record AttachmentContent(Stream Content, string ContentType, string FileName);
 
@@ -169,7 +169,16 @@ public sealed class AttachmentService(
             .Where(a => a.OwnerType == ownerType && a.OwnerId == ownerId && a.ScanStatus != ScanStatus.Infected)
             .OrderByDescending(a => a.CreatedAt)
             .ToListAsync(cancellationToken);
-        return items.Select(ToDto).ToList();
+
+        // Quem anexou (COM-04a CA 15): nome do diretório de usuários, quando houver.
+        var directory = services.GetService(typeof(IUserDirectory)) as IUserDirectory;
+        var names = new Dictionary<Guid, string?>();
+        foreach (var userId in items.Where(a => a.UploadedBy is not null).Select(a => a.UploadedBy!.Value).Distinct())
+        {
+            names[userId] = directory is null ? null : await directory.DisplayNameAsync(userId, cancellationToken);
+        }
+
+        return items.Select(a => ToDto(a) with { UploadedByName = a.UploadedBy is { } by ? names.GetValueOrDefault(by) : null }).ToList();
     }
 
     private async Task<Error?> CheckRulesAsync(AttachmentOwnerRules rules, Guid ownerId, AllowedFileType type, MemoryStream buffer, CancellationToken ct)

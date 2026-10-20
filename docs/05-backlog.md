@@ -226,7 +226,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-2--comercial-proj
 - Requisitos: R-COML-5, R-COM-1, R-COM-3, R-PRP-2, R-SEC-5.
 - CA: PDF pelo `IPdfRenderer` (QuestPDF, Archivo embutida, teste na imagem Alpine; ADR 0022) e sem custo nem margem (teste de extração de texto); PDF anexado como arquivo do sistema e ao log de e-mail; envio pela fila com anexo lido por id depois do `Clean`, cópia, Reply-To e limite diário; mensagem do usuário nunca vira template.
 
-**COM-04a [ ] Aprovação → contrato + projeto (G)** — 2.3, ordem 12 — quebra da COM-04 — [story](stories/COM-04a-aprovacao-contrato-projeto.md)
+**COM-04a [x] Aprovação → contrato + projeto (G)** — 2.3, ordem 12 — quebra da COM-04 — [story](stories/COM-04a-aprovacao-contrato-projeto.md)
 - Requisitos: R-COML-7, R-PRJ-1, R-PRJ-2, R-FIN-1, R-COM-3, R-COM-4, R-PRP-2, R-PRP-3, R-PRP-7, R-SEC-5.
 - CA: aprovar gera, numa transação, contrato `Active` com data de assinatura editável (D3), snapshot sem dado pessoal, marcos, projeto com itens e orçamento do projeto por natureza, com `QuoteApproved` e `ContractSigned` (com a conta de receita validada) no outbox; aprovação dupla gera um contrato só; projeto e natureza do custo no título a pagar; próximo passo "Ver projeto criado".
 

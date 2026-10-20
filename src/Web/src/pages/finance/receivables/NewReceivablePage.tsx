@@ -15,6 +15,7 @@ import { Money } from '@/components/ui/money'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { formatDate } from '@/lib/format'
 import { PageHeading } from '@/shell/PageHeading'
+import { type ProjectCost, ProjectCostFields } from '../payables/ProjectCostFields'
 import { today } from './receivables'
 
 type Customer = ComboOption & { termId: string | null }
@@ -33,6 +34,7 @@ interface Draft {
   mode: 'single' | 'split'
   termId: string
   baseDate: string
+  projectCost: ProjectCost
 }
 
 /** Novo título a receber (FIN-01 CA 1 a 5): página em seções; parcelar pela condição do cliente, com a prévia do servidor. */
@@ -63,7 +65,7 @@ function ReceivableForm({ accounts, centers, terms }: FormProps) {
   const idempotency = useIdempotencyKey()
   const [initial] = useState<Draft>(() => ({
     customer: null, description: '', accountId: accounts.find((a) => a.code === '1.1')?.id ?? accounts[0]?.id ?? '', costCenterId: '', amount: null,
-    issueDate: today(), dueDate: '', mode: 'single', termId: '', baseDate: today(),
+    issueDate: today(), dueDate: '', mode: 'single', termId: '', baseDate: today(), projectCost: { project: null, costType: '' },
   }))
   const [draft, setDraft] = useState(initial)
   const [submitted, setSubmitted] = useState(false)
@@ -90,7 +92,7 @@ function ReceivableForm({ accounts, centers, terms }: FormProps) {
   const save = async () => {
     setSubmitted(true)
     if (Object.keys(local).length || !draft.customer) return false
-    const common = { partyId: draft.customer.id, description: draft.description.trim(), accountId: draft.accountId, costCenterId: draft.costCenterId || null, projectId: null, amount, issueDate: draft.issueDate }
+    const common = { partyId: draft.customer.id, description: draft.description.trim(), accountId: draft.accountId, costCenterId: draft.costCenterId || null, projectId: draft.projectCost.project?.id ?? null, amount, issueDate: draft.issueDate }
     try {
       const saved = split
         ? await createReceivableInstallments({ ...common, paymentTermId: draft.termId, baseDate: draft.baseDate }, idempotency.options)
@@ -143,6 +145,7 @@ function ReceivableForm({ accounts, centers, terms }: FormProps) {
               )}
             </Field>
           </div>
+          <ProjectCostFields value={draft.projectCost} onChange={(projectCost) => set({ projectCost })} withCostType={false} errors={errors} />
         </FormSection>
         <FormSection title="Valor e vencimento">
           <div className="grid gap-3 sm:grid-cols-2">

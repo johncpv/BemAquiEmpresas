@@ -7,6 +7,7 @@ export const QUOTE_STATUS: Record<string, { label: string; tone: Tone }> = {
   Rejected: { label: 'Perdido', tone: 'neutral' },
   Expired: { label: 'Expirado', tone: 'crit' },
   Superseded: { label: 'Substituído', tone: 'neutral' },
+  Approved: { label: 'Aprovado', tone: 'ok' },
 }
 
 export const ITEM_KINDS = [

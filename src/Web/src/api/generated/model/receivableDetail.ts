@@ -43,4 +43,6 @@ export interface ReceivableDetail {
   /** @nullable */
   cancelledAt: string | null;
   version: number;
+  /** @nullable */
+  projectNumber?: string | null;
 }

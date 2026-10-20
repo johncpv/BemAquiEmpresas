@@ -9,19 +9,19 @@ namespace BemAqui.Finance.Application;
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record PayableInput(
     Guid PartyId, string Description, Guid AccountId, Guid? CostCenterId, decimal Amount, DateOnly IssueDate, DateOnly DueDate,
-    decimal RetentionIss, decimal RetentionInss, decimal RetentionIr, decimal RetentionPcc, PaymentDetailsInput? PaymentDetails);
+    decimal RetentionIss, decimal RetentionInss, decimal RetentionIr, decimal RetentionPcc, PaymentDetailsInput? PaymentDetails, Guid? ProjectId = null, CostType? CostType = null);
 
 /// <summary>Parcelas pela condição (CA 3): as retenções ficam na primeira parcela.</summary>
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record PayableInstallmentsInput(
     Guid PartyId, string Description, Guid AccountId, Guid? CostCenterId, decimal Amount, DateOnly IssueDate, Guid PaymentTermId, DateOnly BaseDate,
-    decimal RetentionIss, decimal RetentionInss, decimal RetentionIr, decimal RetentionPcc, PaymentDetailsInput? PaymentDetails);
+    decimal RetentionIss, decimal RetentionInss, decimal RetentionIr, decimal RetentionPcc, PaymentDetailsInput? PaymentDetails, Guid? ProjectId = null, CostType? CostType = null);
 
 /// <summary>Dados editáveis (CA 11 e 13): em OP, só descrição e vencimento.</summary>
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record PayableUpdateInput(
     string Description, Guid AccountId, Guid? CostCenterId, decimal Amount, DateOnly DueDate,
-    decimal RetentionIss, decimal RetentionInss, decimal RetentionIr, decimal RetentionPcc, uint Version);
+    decimal RetentionIss, decimal RetentionInss, decimal RetentionIr, decimal RetentionPcc, uint Version, Guid? ProjectId = null, CostType? CostType = null);
 
 /// <summary>Forma de pagamento nova (CA 6 e 7); null tira a forma.</summary>
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
@@ -62,7 +62,12 @@ public sealed record PayableDetail(
     DateTimeOffset? PaymentMethodChangedAt,
     string? CancelReason,
     DateTimeOffset? CancelledAt,
-    uint Version);
+    uint Version,
+    Guid? ProjectId = null,
+    string? ProjectNumber = null,
+    CostType? CostType = null);
+
+public sealed record FinanceProjectOption(Guid Id, string Number, string Name);
 
 public sealed record PayableTotals(decimal Open, decimal Overdue);
 

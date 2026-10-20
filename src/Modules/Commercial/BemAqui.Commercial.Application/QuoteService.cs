@@ -37,6 +37,7 @@ public sealed partial class QuoteService(
             "enviado" => quotes.Where(x => x.Status == QuoteStatus.Sent),
             "perdido" => quotes.Where(x => x.Status == QuoteStatus.Rejected),
             "expirado" => quotes.Where(x => x.Status == QuoteStatus.Expired),
+            "aprovado" => quotes.Where(x => x.Status == QuoteStatus.Approved),
             _ => quotes,
         };
         if (!string.IsNullOrWhiteSpace(q))
@@ -102,6 +103,11 @@ public sealed partial class QuoteService(
             return NotCurrent();
         }
 
+        if (quote.Status == QuoteStatus.Approved)
+        {
+            return Approved();
+        }
+
         if (quote.Status == QuoteStatus.Rejected)
         {
             return Error.Conflict("quote_lost", "Orçamento perdido não é alterado.");
@@ -127,6 +133,9 @@ public sealed partial class QuoteService(
     private ValueTask<bool> CanViewCostAsync(CancellationToken ct) => permissions.HasPermissionAsync("quotes", "view_cost", ct);
 
     private static T? First<T>(IReadOnlyList<T> list) where T : class => list.Count > 0 ? list[0] : null;
+
+    /// <summary>Orçamento aprovado é imutável (COM-04a CA 14): o contrato muda só por aditivo (COM-07).</summary>
+    internal static Error Approved() => Error.Conflict("quote_approved", "Orçamento aprovado não é alterado. Ajustes no contrato são feitos por aditivo.");
 
     internal static Error NotFound() => Error.NotFound("quote_not_found", "Orçamento não encontrado.");
 

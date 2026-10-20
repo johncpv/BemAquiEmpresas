@@ -27,6 +27,11 @@ public sealed partial class QuoteService
             return NotCurrent();
         }
 
+        if (previous.Status == QuoteStatus.Approved)
+        {
+            return Approved();
+        }
+
         if (previous.Status is not (QuoteStatus.Sent or QuoteStatus.Expired))
         {
             return Error.Conflict("quote_not_revisable", previous.Status == QuoteStatus.Draft
@@ -90,6 +95,11 @@ public sealed partial class QuoteService
         if (!quote.IsCurrent)
         {
             return NotCurrent();
+        }
+
+        if (quote.Status == QuoteStatus.Approved)
+        {
+            return Approved();
         }
 
         if (quote.Status == QuoteStatus.Expired)

@@ -10,6 +10,7 @@ modulo: finance
 Ver e corrigir os dados de um título a receber e registrar o que o cliente pagou.
 
 ## Como usar
+- O campo **Projeto** é opcional: liga o recebimento a um projeto aberto.
 - **Dar baixa**: informe a conta, a data, o principal recebido e, se houver, juros, multa e desconto. O diálogo mostra o saldo antes e depois e quanto entra na conta.
 - **Quitar o saldo com desconto**: zera um saldo que o cliente não vai pagar, sem movimentar a conta.
 - **Alterar vencimento**: muda a data de um título em aberto, com o motivo. O Proprietário é avisado.

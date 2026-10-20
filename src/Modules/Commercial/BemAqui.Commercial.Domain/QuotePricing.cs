@@ -34,6 +34,24 @@ public static class QuotePricing
     /// <summary>Margem equivalente a um markup (rótulo "Markup 40,00% · Margem 28,57%").</summary>
     public static decimal MarginFromMarkup(decimal markup) => markup <= -100 ? 0 : Pct(markup / (100 + markup) * 100);
 
+    /// <summary>
+    /// Arredonda partes para 2 casas pelo maior resto (ADR 0019 §9): a soma fecha com <paramref name="total"/> (ex.: orçado por natureza
+    /// do projeto = custo total do orçamento, COM-04a CA 8).
+    /// </summary>
+    public static IReadOnlyList<decimal> LargestRemainder(decimal total, IReadOnlyList<decimal> raw)
+    {
+        ArgumentNullException.ThrowIfNull(raw);
+        var floors = raw.Select(r => Math.Floor(r * 100) / 100).ToList();
+        var cents = (int)Math.Round((total - floors.Sum()) * 100);
+        var order = raw.Select((r, i) => (Remainder: r * 100 - Math.Floor(r * 100), i)).OrderByDescending(x => x.Remainder).ThenBy(x => x.i).Select(x => x.i).ToList();
+        for (var k = 0; k < cents && order.Count > 0; k++)
+        {
+            floors[order[k % order.Count]] += 0.01m;
+        }
+
+        return floors;
+    }
+
     /// <summary>Totais do orçamento (CA 15): Σ por item com cada produto arredondado; margem nula com preço zero.</summary>
     public static (decimal Cost, decimal Price, decimal? Margin) Totals(IEnumerable<(decimal Quantity, decimal UnitCost, decimal UnitPrice)> items)
     {
