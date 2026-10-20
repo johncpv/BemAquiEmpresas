@@ -16,6 +16,6 @@ Guardar o cabeçalho do orçamento: contato, endereço da obra, prazo de entrega
 - Quando o orçamento estiver pronto, clique em **Marcar como enviado**.
 
 ## Perguntas frequentes
-**Posso mudar um orçamento enviado?** Não. Enviado, ele fica só para consulta. Para mudar, crie uma nova revisão.
+**Posso mudar um orçamento enviado?** Não. Enviado, ele fica só para consulta. Para mudar, crie uma **Nova revisão**. Para mudar só a data, use **Prorrogar validade**.
 
 **Posso excluir?** Só o rascunho que nunca teve revisão. O número não volta para a sequência.

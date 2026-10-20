@@ -12,4 +12,6 @@ export const QuoteStatus = {
   Draft: 'Draft',
   Sent: 'Sent',
   Rejected: 'Rejected',
+  Expired: 'Expired',
+  Superseded: 'Superseded',
 } as const;

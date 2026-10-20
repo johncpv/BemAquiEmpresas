@@ -14,7 +14,7 @@ import { QUOTE_STATUS, validityLabel } from './quotes'
 import { formatDate } from '@/lib/format'
 import { today } from '../finance/receivables/receivables'
 
-const SITUATIONS = [{ value: 'rascunho', label: 'Rascunhos' }, { value: 'enviado', label: 'Enviados' }, { value: 'perdido', label: 'Perdidos' }]
+const SITUATIONS = [{ value: 'rascunho', label: 'Rascunhos' }, { value: 'enviado', label: 'Enviados' }, { value: 'perdido', label: 'Perdidos' }, { value: 'expirado', label: 'Expirados' }]
 const pct = (v: number | null | undefined) => (v === null || v === undefined ? '—' : `${v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`)
 
 /** Comercial → Orçamentos (COM-01a): custo e margem só para quem tem quotes.view_cost (D7). */
@@ -28,14 +28,14 @@ export function QuotesPage() {
   const costs = useListQuoteCosts({ ids }, { query: { enabled: canCost && ids.length > 0 } })
   const costOf = (id: string) => costs.data?.find((c) => c.id === id)
   const columns: ColumnDef<QuoteSummary>[] = [
-    { id: 'number', header: 'Orçamento', cell: ({ row: { original: q } }) => <Link to={'/app/orcamentos/$id' as never} params={{ id: q.id } as never} className="font-semibold text-primary hover:underline">{q.number}{q.revision > 0 ? ` rev. ${q.revision}` : ''}</Link> },
+    { id: 'number', header: 'Orçamento', cell: ({ row: { original: q } }) => <span><Link to={'/app/orcamentos/$id' as never} params={{ id: q.id } as never} className="font-semibold text-primary hover:underline">{q.number}{q.revision > 0 ? ` rev. ${q.revision}` : ''}</Link>{(q.revisions ?? 1) > 1 ? <span className="block text-xs text-muted-foreground">{q.revisions} revisões</span> : null}</span> },
     { id: 'party', header: 'Cliente e equipamento', cell: ({ row: { original: q } }) => <span>{q.partyName}{q.mainItem ? <span className="block text-xs text-muted-foreground">{q.mainItem}</span> : null}</span> },
     { id: 'status', header: 'Situação', cell: ({ row: { original: q } }) => <StatusChip tone={QUOTE_STATUS[q.status]?.tone ?? 'neutral'}>{QUOTE_STATUS[q.status]?.label ?? q.status}</StatusChip> },
     ...(canCost ? [
       { id: 'cost', header: 'Custo', meta: { numeric: true, secondary: true }, cell: ({ row: { original: q } }: { row: { original: QuoteSummary } }) => (costOf(q.id) ? <Money value={costOf(q.id)!.totalCost} /> : '—') },
       { id: 'margin', header: 'Margem', meta: { numeric: true, secondary: true }, cell: ({ row: { original: q } }: { row: { original: QuoteSummary } }) => <span className={(costOf(q.id)?.marginPct ?? 0) < 0 ? 'text-crit-ink tabular-nums' : 'tabular-nums'}>{pct(costOf(q.id)?.marginPct)}</span> },
     ] as ColumnDef<QuoteSummary>[] : []),
-    { id: 'valid', header: 'Validade', meta: { secondary: true }, cell: ({ row: { original: q } }) => (q.validUntil ? <span className="tabular-nums">{formatDate(q.validUntil)}{q.status === 'Draft' ? <span className="block text-xs text-muted-foreground">{validityLabel(q.validUntil, today())}</span> : null}</span> : '—') },
+    { id: 'valid', header: 'Validade', meta: { secondary: true }, cell: ({ row: { original: q } }) => (q.validUntil ? <span className="tabular-nums">{formatDate(q.validUntil)}{q.status === 'Draft' || q.status === 'Sent' ? <span className="block text-xs text-muted-foreground">{validityLabel(q.validUntil, today())}</span> : null}</span> : '—') },
     { id: 'price', header: 'Preço', meta: { numeric: true }, cell: ({ row: { original: q } }) => <Money value={q.totalPrice} /> },
   ]
   const canCreate = useCan('quotes.create')

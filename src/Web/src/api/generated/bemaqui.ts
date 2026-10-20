@@ -88,6 +88,7 @@ import type {
   EmployeeGeneralInput,
   EmployeePersonalInput,
   EmployeeSensitiveDetail,
+  ExtendValidityInput,
   FinanceLimits,
   FinanceLimitsInput,
   FinanceSupplierOption,
@@ -232,6 +233,7 @@ import type {
   QuoteMilestoneInput,
   QuotePage,
   QuotePartyOption,
+  QuoteRevisionSummary,
   QuoteTermOption,
   ReasonInput,
   ReceivableDetail,
@@ -13784,6 +13786,370 @@ export function useListQuotePaymentTerms<TData = Awaited<ReturnType<typeof listQ
 
 
 
+
+export const getNewQuoteRevisionUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/quotes/${id}/revisions`
+}
+
+export const newQuoteRevision = async (id: string,
+    versionInput: VersionInput, options?: Parameters<typeof apiFetch>[1]): Promise<QuoteDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<QuoteDetail>(getNewQuoteRevisionUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(versionInput)
+  }
+);}
+
+
+
+
+
+export const getNewQuoteRevisionMutationKey = () => ['newQuoteRevision'] as const;
+
+export const getNewQuoteRevisionMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof newQuoteRevision>>, TError,NewQuoteRevisionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof newQuoteRevision>>, TError,NewQuoteRevisionMutationVariables, TContext> => {
+
+const mutationKey = getNewQuoteRevisionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof newQuoteRevision>>, NewQuoteRevisionMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  newQuoteRevision(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type NewQuoteRevisionMutationResult = NonNullable<Awaited<ReturnType<typeof newQuoteRevision>>>
+    export type NewQuoteRevisionMutationBody = VersionInput
+    export type NewQuoteRevisionMutationError = unknown
+    export type NewQuoteRevisionMutationVariables = {id: string;data: VersionInput}
+
+    export const useNewQuoteRevision = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof newQuoteRevision>>, TError,NewQuoteRevisionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof newQuoteRevision>>,
+        TError,
+        NewQuoteRevisionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getNewQuoteRevisionMutationOptions(options), queryClient);
+    }
+
+export const getListQuoteRevisionsUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/quotes/${id}/revisions`
+}
+
+export const listQuoteRevisions = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<QuoteRevisionSummary[]> => {
+
+  return apiFetch<QuoteRevisionSummary[]>(getListQuoteRevisionsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListQuoteRevisionsQueryKey = (id: string,) => {
+    return [
+    `/api/v1/quotes/${id}/revisions`
+    ] as const;
+    }
+
+
+export const getListQuoteRevisionsQueryOptions = <TData = Awaited<ReturnType<typeof listQuoteRevisions>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteRevisions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListQuoteRevisionsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listQuoteRevisions>>> = ({ signal }) => listQuoteRevisions(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listQuoteRevisions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListQuoteRevisionsQueryResult = NonNullable<Awaited<ReturnType<typeof listQuoteRevisions>>>
+export type ListQuoteRevisionsQueryError = unknown
+
+
+export function useListQuoteRevisions<TData = Awaited<ReturnType<typeof listQuoteRevisions>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteRevisions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listQuoteRevisions>>,
+          TError,
+          Awaited<ReturnType<typeof listQuoteRevisions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListQuoteRevisions<TData = Awaited<ReturnType<typeof listQuoteRevisions>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteRevisions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listQuoteRevisions>>,
+          TError,
+          Awaited<ReturnType<typeof listQuoteRevisions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListQuoteRevisions<TData = Awaited<ReturnType<typeof listQuoteRevisions>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteRevisions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListQuoteRevisions<TData = Awaited<ReturnType<typeof listQuoteRevisions>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteRevisions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListQuoteRevisionsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetQuoteRevisionUrl = (id: string,
+    revisionId: string,) => {
+
+
+
+
+  return `/api/v1/quotes/${id}/revisions/${revisionId}`
+}
+
+export const getQuoteRevision = async (id: string,
+    revisionId: string, options?: Parameters<typeof apiFetch>[1]): Promise<QuoteDetail> => {
+
+  return apiFetch<QuoteDetail>(getGetQuoteRevisionUrl(id,revisionId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetQuoteRevisionQueryKey = (id: string,
+    revisionId: string,) => {
+    return [
+    `/api/v1/quotes/${id}/revisions/${revisionId}`
+    ] as const;
+    }
+
+
+export const getGetQuoteRevisionQueryOptions = <TData = Awaited<ReturnType<typeof getQuoteRevision>>, TError = unknown>(id: string,
+    revisionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuoteRevision>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetQuoteRevisionQueryKey(id,revisionId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getQuoteRevision>>> = ({ signal }) => getQuoteRevision(id,revisionId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && revisionId !== null && revisionId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getQuoteRevision>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetQuoteRevisionQueryResult = NonNullable<Awaited<ReturnType<typeof getQuoteRevision>>>
+export type GetQuoteRevisionQueryError = unknown
+
+
+export function useGetQuoteRevision<TData = Awaited<ReturnType<typeof getQuoteRevision>>, TError = unknown>(
+ id: string,
+    revisionId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuoteRevision>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getQuoteRevision>>,
+          TError,
+          Awaited<ReturnType<typeof getQuoteRevision>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetQuoteRevision<TData = Awaited<ReturnType<typeof getQuoteRevision>>, TError = unknown>(
+ id: string,
+    revisionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuoteRevision>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getQuoteRevision>>,
+          TError,
+          Awaited<ReturnType<typeof getQuoteRevision>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetQuoteRevision<TData = Awaited<ReturnType<typeof getQuoteRevision>>, TError = unknown>(
+ id: string,
+    revisionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuoteRevision>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetQuoteRevision<TData = Awaited<ReturnType<typeof getQuoteRevision>>, TError = unknown>(
+ id: string,
+    revisionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuoteRevision>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetQuoteRevisionQueryOptions(id,revisionId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getExtendQuoteValidityUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/quotes/${id}/extend-validity`
+}
+
+export const extendQuoteValidity = async (id: string,
+    extendValidityInput: ExtendValidityInput, options?: Parameters<typeof apiFetch>[1]): Promise<QuoteDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<QuoteDetail>(getExtendQuoteValidityUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(extendValidityInput)
+  }
+);}
+
+
+
+
+
+export const getExtendQuoteValidityMutationKey = () => ['extendQuoteValidity'] as const;
+
+export const getExtendQuoteValidityMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof extendQuoteValidity>>, TError,ExtendQuoteValidityMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof extendQuoteValidity>>, TError,ExtendQuoteValidityMutationVariables, TContext> => {
+
+const mutationKey = getExtendQuoteValidityMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof extendQuoteValidity>>, ExtendQuoteValidityMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  extendQuoteValidity(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ExtendQuoteValidityMutationResult = NonNullable<Awaited<ReturnType<typeof extendQuoteValidity>>>
+    export type ExtendQuoteValidityMutationBody = ExtendValidityInput
+    export type ExtendQuoteValidityMutationError = unknown
+    export type ExtendQuoteValidityMutationVariables = {id: string;data: ExtendValidityInput}
+
+    export const useExtendQuoteValidity = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof extendQuoteValidity>>, TError,ExtendQuoteValidityMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof extendQuoteValidity>>,
+        TError,
+        ExtendQuoteValidityMutationVariables,
+        TContext
+      > => {
+      return useMutation(getExtendQuoteValidityMutationOptions(options), queryClient);
+    }
 
 export const getListQuoteCustomersUrl = (params?: ListQuoteCustomersParams,) => {
   const normalizedParams = new URLSearchParams();

@@ -218,7 +218,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-2--comercial-proj
 - Requisitos: R-COML-6, R-COML-4, R-COML-2, R-COML-9, R-PRP-1, R-PRP-3.
 - CA: marcos por data ou evento com prazo após o evento, valores pelo `PaymentTermSplitter` e "Faltam X%"; soma = 100% exigida para aprovar; % revalidado no servidor; "Preencher pela condição de pagamento"; validade padrão; perda com motivo da lista; copiar orçamento, itens ou projeto anterior.
 
-**COM-02 [ ] Revisões, validade e prorrogação (M)** — 2.2, ordem 10 — [story](stories/COM-02-revisoes-validade.md)
+**COM-02 [x] Revisões, validade e prorrogação (M)** — 2.2, ordem 10 — [story](stories/COM-02-revisoes-validade.md)
 - Requisitos: R-COML-3, R-COML-4, R-COM-2, R-PRP-5.
 - CA: nova revisão congela a anterior (`Superseded`) com o mesmo número; só a revisão mais recente é editável/aprovável; "Prorrogar validade" sem nova revisão (D16); histórico comparável lado a lado; job diário expira e avisa antes, sem repetir.
 

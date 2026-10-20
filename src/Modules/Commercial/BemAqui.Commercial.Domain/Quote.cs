@@ -12,6 +12,12 @@ public enum QuoteStatus
 
     /// <summary>Perdido (COM-01b CA 11), com motivo.</summary>
     Rejected,
+
+    /// <summary>Vencido sem resposta (COM-02 CA 10).</summary>
+    Expired,
+
+    /// <summary>Trocado por uma revisão mais recente (COM-02 CA 1).</summary>
+    Superseded,
 }
 
 /// <summary>Modo de preço gravado no orçamento (P-14): o que valia quando ele nasceu.</summary>
@@ -83,6 +89,11 @@ public sealed class Quote : Entity, IAuditable, IConcurrencyVersioned, ISoftDele
 
     /// <summary>Copiado de outro orçamento (CA 13); não é revisão.</summary>
     public Guid? CopiedFromQuoteId { get; set; }
+
+    /// <summary>Revisão anterior (COM-02).</summary>
+    public Guid? ParentQuoteId { get; set; }
+
+    public DateTimeOffset? ExpiredAt { get; set; }
 
     public DateTimeOffset CreatedAt { get; init; }
 
