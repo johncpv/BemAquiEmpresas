@@ -53,6 +53,11 @@ public static class FinanceInfrastructure
         services.TryAddScoped<AgingService>();
         // Ordens de pagamento (FIN-03a): comprovante só em OP paga, lido com finance.view e gravado com finance.pay.
         services.TryAddScoped<PaymentOrderService>();
+        // Extrato, transferências e lançamentos sem OP (FIN-04).
+        services.TryAddScoped<BankStatementService>();
+        services.TryAddScoped<BankMovementService>();
+        services.AddAuditableEntity<BankTransfer>("finance");
+        services.AddAuditableEntity<BankEntry>("finance");
         services.AddAuditableEntity<PaymentOrder>("finance");
         services.AddAuditableEntity<PaymentOrderItem>("finance");
         services.AddAuditableEntity<PaymentOrderApproval>("finance");

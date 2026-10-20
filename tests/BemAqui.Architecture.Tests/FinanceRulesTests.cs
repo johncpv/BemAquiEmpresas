@@ -34,6 +34,11 @@ public class FinanceRulesTests
     }
 
     [Fact]
+    public void So_o_extrato_cria_transferencia_e_lancamento_sem_OP() =>
+        FilesContaining("Type = TransactionType.BankEntry", "Type = TransactionType.Transfer").Should().BeSubsetOf(
+            ["Finance/BemAqui.Finance.Application/BankMovementService.Transfers.cs", "Finance/BemAqui.Finance.Application/BankMovementService.Entries.cs"], "FIN-04 CA 15");
+
+    [Fact]
     public void So_o_pagamento_da_OP_cria_transacao_Payment() =>
         FilesContaining("Type = TransactionType.Payment").Should().BeSubsetOf(PaymentWriters, "pagamento só pela ordem de pagamento aprovada (R-FIN-6)");
 

@@ -21,6 +21,7 @@ public sealed class FinanceParametersService(IFinanceDb db, IPermissionChecker p
     public const string BackdateDays = "finance.backdate_days";
     public const string OwnerCanApproveOwn = "finance.owner_can_approve_own";
     public const string PaymentTolerance = "finance.payment_tolerance";
+    public const string TransferNotifyAmount = "finance.transfer_notify_amount";
 
     /// <summary>Padrões aprovados pelo PO (D8): 5,00%, R$ 500,00, R$ 1.000,00 e 7 dias.</summary>
     public static readonly IReadOnlyDictionary<string, decimal> Defaults = new Dictionary<string, decimal>(StringComparer.Ordinal)
@@ -31,13 +32,14 @@ public sealed class FinanceParametersService(IFinanceDb db, IPermissionChecker p
         [BackdateDays] = 7m,
         [OwnerCanApproveOwn] = 0m,
         [PaymentTolerance] = 0m,
+        [TransferNotifyAmount] = 10_000m,
     };
 
     public async Task<FinanceLimits> LimitsAsync(CancellationToken cancellationToken = default)
     {
         var values = await db.FinanceParameters.AsNoTracking().ToDictionaryAsync(p => p.Key, p => p.Value, cancellationToken);
         decimal Get(string key) => values.TryGetValue(key, out var v) ? v : Defaults[key];
-        return new FinanceLimits(Get(DiscountPct), Get(DiscountAmount), Get(CancelAmount), (int)Get(BackdateDays), Get(OwnerCanApproveOwn) != 0, Get(PaymentTolerance));
+        return new FinanceLimits(Get(DiscountPct), Get(DiscountAmount), Get(CancelAmount), (int)Get(BackdateDays), Get(OwnerCanApproveOwn) != 0, Get(PaymentTolerance), Get(TransferNotifyAmount));
     }
 
     public async Task<Result<FinanceLimits>> UpdateAsync(FinanceLimitsInput input, CancellationToken cancellationToken = default)
@@ -63,6 +65,11 @@ public sealed class FinanceParametersService(IFinanceDb db, IPermissionChecker p
             return ReceivableService.Invalid("paymentTolerance", "Informe uma tolerância de R$ 0,00 a R$ 1.000,00.");
         }
 
+        if (input.TransferNotifyAmount < 0)
+        {
+            return ReceivableService.Invalid("transferNotifyAmount", "Informe um valor maior ou igual a zero.");
+        }
+
         if (input.BackdateDays is < 0 or > 365)
         {
             return ReceivableService.Invalid("backdateDays", "Informe de 0 a 365 dias.");
@@ -76,6 +83,7 @@ public sealed class FinanceParametersService(IFinanceDb db, IPermissionChecker p
             [BackdateDays] = input.BackdateDays,
             [OwnerCanApproveOwn] = input.OwnerCanApproveOwn ? 1m : 0m,
             [PaymentTolerance] = Math.Round(input.PaymentTolerance, 2),
+            [TransferNotifyAmount] = Math.Round(input.TransferNotifyAmount, 2),
         };
         var before = await LimitsAsync(cancellationToken);
         var existing = await db.FinanceParameters.Where(p => values.Keys.Contains(p.Key)).ToDictionaryAsync(p => p.Key, cancellationToken);

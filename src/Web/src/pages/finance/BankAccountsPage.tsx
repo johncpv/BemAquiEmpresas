@@ -2,7 +2,8 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
 import { useState } from 'react'
-import { getListBankAccountsQueryKey, useListBankAccounts } from '@/api/generated/bemaqui'
+import { Link } from '@tanstack/react-router'
+import { getListBankAccountsQueryKey, useGetBankBalances, useListBankAccounts } from '@/api/generated/bemaqui'
 import type { BankAccountDetail } from '@/api/generated/model'
 import { DataTable } from '@/components/data-table/DataTable'
 import { useTableFilters, useTableSearch } from '@/components/data-table/table-search'
@@ -27,6 +28,8 @@ export function BankAccountsPage() {
   const navigate = useNavigate()
   const { conta } = useSearch({ strict: false }) as { conta?: string }
   const query = useListBankAccounts({ q: search.q, includeInactive: inativos === 'true', page: search.page, pageSize: search.pageSize })
+  const balances = useGetBankBalances()
+  const balanceOf = (id: string) => balances.data?.accounts?.find((b) => b.id === id)?.currentBalance
   const [editing, setEditing] = useState<{ account: BankAccountDetail | null; focusBalance?: boolean } | null>(null)
   const [steps, setSteps] = useState(false)
   const [balanceHint, setBalanceHint] = useState(true)
@@ -47,6 +50,11 @@ export function BankAccountsPage() {
       id: 'opening', header: 'Saldo inicial', meta: { numeric: true }, cell: ({ row: { original: a } }) => (a.openingBalance === null
         ? <Tag>Saldo inicial não informado</Tag>
         : <Money value={a.openingBalance} highlightNegative />),
+    },
+    {
+      id: 'current', header: 'Saldo atual', meta: { numeric: true }, cell: ({ row: { original: a } }) => (a.isActive && balanceOf(a.id) !== undefined
+        ? <Link to={'/app/financeiro/contas/$id/extrato' as never} params={{ id: a.id } as never} aria-label={`Extrato de ${a.name}`} className="hover:underline"><Money value={balanceOf(a.id) ?? 0} highlightNegative /></Link>
+        : '—'),
     },
     {
       id: 'status', header: 'Situação', cell: ({ row: { original: a } }) => (
@@ -78,7 +86,7 @@ export function BankAccountsPage() {
           </Can>
         ) : null}
       </div>
-      <DataTable label="Contas e caixas" columns={columns} query={query} getRowId={(a) => a.id} inactiveFilter searchPlaceholder="Buscar pelo nome"
+      <DataTable totals={typeof balances.data?.consolidated === 'number' ? { current: <span>Consolidado <Money value={balances.data.consolidated} highlightNegative /></span> } : undefined} label="Contas e caixas" columns={columns} query={query} getRowId={(a) => a.id} inactiveFilter searchPlaceholder="Buscar pelo nome"
         empty={{
           title: 'Cadastre a primeira conta bancária ou o caixa da empresa.',
           description: 'O saldo inicial é opcional: dá para informar depois.',

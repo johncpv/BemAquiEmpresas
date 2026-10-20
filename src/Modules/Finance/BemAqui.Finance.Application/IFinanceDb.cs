@@ -40,6 +40,10 @@ public interface IFinanceDb
 
     DbSet<PayableSettlement> PayableSettlements { get; }
 
+    DbSet<BankTransfer> BankTransfers { get; }
+
+    DbSet<BankEntry> BankEntries { get; }
+
     /// <summary>Para trocar a conta padrão em dois passos numa transação (o índice único parcial é checado a cada comando).</summary>
     DatabaseFacade Database { get; }
 

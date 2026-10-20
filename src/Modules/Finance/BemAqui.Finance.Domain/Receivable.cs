@@ -169,6 +169,12 @@ public sealed class FinancialTransaction : Entity, IAuditable
     /// <summary>Título a pagar do pagamento da OP (FIN-03a).</summary>
     public Guid? PayableId { get; init; }
 
+    /// <summary>Transferência entre contas (FIN-04): as duas pontas levam o mesmo id.</summary>
+    public Guid? TransferId { get; init; }
+
+    /// <summary>Lançamento sem OP (FIN-04).</summary>
+    public Guid? BankEntryId { get; init; }
+
     public Guid? ReversesTransactionId { get; init; }
 
     public DateTimeOffset CreatedAt { get; init; }

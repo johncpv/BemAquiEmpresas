@@ -6035,6 +6035,238 @@
         }
       }
     },
+    "/api/v1/finance/bank-accounts/balances": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetBankBalances",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountBalances"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bank-accounts/{id}/statement": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetBankStatement",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "withoutOrder",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatementResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/transfers": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "CreateTransfer",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransferInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankTransferDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/transfers/{id}/reverse": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ReverseTransfer",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankTransferDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bank-entries": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "CreateBankEntry",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BankEntryInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankEntryDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bank-entries/{id}/reverse": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ReverseBankEntry",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankEntryDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/aging": {
       "get": {
         "tags": [
@@ -8850,6 +9082,50 @@
           }
         }
       },
+      "AccountBalance": {
+        "required": [
+          "id",
+          "name",
+          "currentBalance",
+          "openingMissing"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "currentBalance": {
+            "type": "number",
+            "format": "double"
+          },
+          "openingMissing": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AccountBalances": {
+        "required": [
+          "accounts",
+          "consolidated"
+        ],
+        "type": "object",
+        "properties": {
+          "accounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AccountBalance"
+            }
+          },
+          "consolidated": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "AccountDetail": {
         "required": [
           "id",
@@ -9578,6 +9854,129 @@
           "Cash"
         ]
       },
+      "BankEntryDetail": {
+        "required": [
+          "id",
+          "bankAccountId",
+          "kind",
+          "date",
+          "amount",
+          "accountId",
+          "reason",
+          "reversed",
+          "reversalReason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "bankAccountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/BankEntryKind"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "reversed": {
+            "type": "boolean"
+          },
+          "reversalReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "BankEntryInput": {
+        "required": [
+          "bankAccountId",
+          "kind",
+          "date",
+          "amount",
+          "accountId",
+          "costCenterId",
+          "reason",
+          "backdateReason"
+        ],
+        "type": "object",
+        "properties": {
+          "bankAccountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/BankEntryKind"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "accountId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "costCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "backdateReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "BankEntryKind": {
+        "enum": [
+          "BankFee",
+          "Iof",
+          "InterestPaid",
+          "InterestReceived",
+          "Yield",
+          "OtherOut",
+          "OtherIn"
+        ]
+      },
       "BankInfo": {
         "required": [
           "code",
@@ -9590,6 +9989,58 @@
           },
           "name": {
             "type": "string"
+          }
+        }
+      },
+      "BankTransferDetail": {
+        "required": [
+          "id",
+          "fromAccountId",
+          "toAccountId",
+          "amount",
+          "date",
+          "description",
+          "reversed",
+          "reversalReason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fromAccountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "toAccountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "description": {
+            "type": "string"
+          },
+          "reversed": {
+            "type": "boolean"
+          },
+          "reversalReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
           }
         }
       },
@@ -11632,6 +12083,11 @@
             "type": "number",
             "format": "double",
             "default": 0
+          },
+          "transferNotifyAmount": {
+            "type": "number",
+            "format": "double",
+            "default": 10000
           }
         }
       },
@@ -11668,6 +12124,11 @@
             "type": "number",
             "format": "double",
             "default": 0
+          },
+          "transferNotifyAmount": {
+            "type": "number",
+            "format": "double",
+            "default": 10000
           }
         },
         "additionalProperties": false
@@ -16920,6 +17381,172 @@
           }
         }
       },
+      "StatementLine": {
+        "required": [
+          "transactionId",
+          "date",
+          "description",
+          "type",
+          "origin",
+          "link",
+          "amount",
+          "balance",
+          "withoutOrder",
+          "transferId",
+          "bankEntryId",
+          "isReversal",
+          "reversed",
+          "movementVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "transactionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "origin": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "link": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "balance": {
+            "type": "number",
+            "format": "double"
+          },
+          "withoutOrder": {
+            "type": "boolean"
+          },
+          "transferId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "bankEntryId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "isReversal": {
+            "type": "boolean"
+          },
+          "reversed": {
+            "type": "boolean"
+          },
+          "movementVersion": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "uint32"
+          }
+        }
+      },
+      "StatementPage": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StatementLine"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "StatementResult": {
+        "required": [
+          "accountId",
+          "accountName",
+          "from",
+          "to",
+          "openingMissing",
+          "hasMovement",
+          "startLabel",
+          "startBalance",
+          "endBalance",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "accountName": {
+            "type": "string"
+          },
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "openingMissing": {
+            "type": "boolean"
+          },
+          "hasMovement": {
+            "type": "boolean"
+          },
+          "startLabel": {
+            "type": "string"
+          },
+          "startBalance": {
+            "type": "number",
+            "format": "double"
+          },
+          "endBalance": {
+            "type": "number",
+            "format": "double"
+          },
+          "lines": {
+            "$ref": "#/components/schemas/StatementPage"
+          }
+        }
+      },
       "SupplierCodeDetail": {
         "required": [
           "id",
@@ -17269,6 +17896,47 @@
           },
           "otpAuthUri": {
             "type": "string"
+          }
+        }
+      },
+      "TransferInput": {
+        "required": [
+          "fromAccountId",
+          "toAccountId",
+          "amount",
+          "date",
+          "description",
+          "backdateReason"
+        ],
+        "type": "object",
+        "properties": {
+          "fromAccountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "toAccountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "backdateReason": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

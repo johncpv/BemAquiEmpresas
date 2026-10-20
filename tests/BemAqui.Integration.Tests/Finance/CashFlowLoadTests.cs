@@ -24,6 +24,7 @@ public class CashFlowLoadTests(TenancyFixture tenancy) : IClassFixture<TenancyFi
     {
         var info = (await tenancy.Factory.Services.GetRequiredService<ITenantDirectory>().FindAsync(tenancy.TenantA.Id))!;
         Guid userId;
+        Guid bankId;
         string stamp;
         await using (var scope = await tenancy.Factory.Services.GetRequiredService<ITenantScopeFactory>().CreateScopeAsync(info))
         {
@@ -31,6 +32,7 @@ public class CashFlowLoadTests(TenancyFixture tenancy) : IClassFixture<TenancyFi
             var bank = new BankAccount { Name = "Carga", Kind = BankAccountKind.Bank, OpeningBalance = 0m, IsActive = true };
             db.BankAccounts.Add(bank);
             await db.SaveChangesAsync();
+            bankId = bank.Id;
             var revenue = await db.Accounts.Where(a => a.Code == "1.1").Select(a => a.Id).SingleAsync();
             var expense = await db.Accounts.Where(a => a.Code == "3.3").Select(a => a.Id).SingleAsync();
             var party = Guid.CreateVersion7();
@@ -75,6 +77,13 @@ public class CashFlowLoadTests(TenancyFixture tenancy) : IClassFixture<TenancyFi
         var aging = await client.GetAsync("/api/v1/finance/aging");
         watch.Stop();
         aging.StatusCode.Should().Be(HttpStatusCode.OK, await aging.Content.ReadAsStringAsync());
+        watch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(1));
+
+        // FIN-04 CA 17: primeira página do extrato de um ano (20 mil transações) em menos de 1 s.
+        watch.Restart();
+        var statement = await client.GetAsync($"/api/v1/finance/bank-accounts/{bankId}/statement?from={DateTime.UtcNow.AddDays(-370):yyyy-MM-dd}&to={DateTime.UtcNow:yyyy-MM-dd}");
+        watch.Stop();
+        statement.StatusCode.Should().Be(HttpStatusCode.OK, await statement.Content.ReadAsStringAsync());
         watch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(1));
     }
 }
