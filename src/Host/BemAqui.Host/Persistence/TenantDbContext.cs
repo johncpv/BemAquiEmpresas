@@ -101,6 +101,10 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<PayableSettlement> PayableSettlements => Set<PayableSettlement>();
 
+    public DbSet<BankTransfer> BankTransfers => Set<BankTransfer>();
+
+    public DbSet<BankEntry> BankEntries => Set<BankEntry>();
+
     public DbSet<Location> Locations => Set<Location>();
 
     public DbSet<MeasureUnit> Units => Set<MeasureUnit>();

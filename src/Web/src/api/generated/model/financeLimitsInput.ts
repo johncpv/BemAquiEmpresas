@@ -12,4 +12,5 @@ export interface FinanceLimitsInput {
   backdateDays: number;
   ownerCanApproveOwn?: boolean;
   paymentTolerance?: number;
+  transferNotifyAmount?: number;
 }

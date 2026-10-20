@@ -66,6 +66,16 @@ public sealed partial class BankAccountService(
         // A primeira conta ativa já nasce padrão (CA 6).
         var makeDefault = active && (input.IsDefault || !await db.BankAccounts.AnyAsync(a => a.IsActive && a.IsDefault, cancellationToken));
         db.BankAccounts.Add(account);
+        if (currentUser.UserId is { } me)
+        {
+            // FIN-04 CA 9: toda conta nova avisa o Proprietário (a importação, sem usuário, não avisa).
+            var who = await users.DisplayNameAsync(me, cancellationToken) ?? "um usuário";
+            foreach (var owner in await users.OwnerIdsAsync(cancellationToken))
+            {
+                notifications.Notify(owner, "finance.bank_account_created", $"Conta {account.Name} criada por {who}.", "/app/financeiro/contas?conta=" + account.Id);
+            }
+        }
+
         return await SaveAsync(account, makeDefault, cancellationToken);
     }
 

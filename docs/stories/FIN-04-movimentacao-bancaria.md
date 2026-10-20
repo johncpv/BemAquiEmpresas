@@ -5,7 +5,7 @@
 | ID | FIN-04 |
 | Título | Extrato interno por conta (saldo inicial + transações, saldo acumulado), saldo atual por conta e consolidado, transferência entre contas da empresa e estorno, e lançamento bancário sem OP (tarifa, IOF, juros e rendimento) com conta do plano, motivo e aviso ao Proprietário |
 | Tamanho | M (re-estimada de P: recebeu o lançamento bancário sem OP, D4, e os controles de transferência da revisão pré-Fase 2) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-FIN-2 (contas bancárias e caixas, saldo inicial, transferências) · R-FIN-1 (conta do plano em todo lançamento) · R-FIN-10 (base do realizado) · R-COM-2 · R-PRP-7 · R-SEC-5 |
 | Dependências | FIN-01 (`financial_transactions`, parâmetros do Finance), FIN-03a (pagamentos no extrato), FIN-05 (consulta de saldo atual), CAD-05b (contas, saldo inicial), FND-09e |
 | Bloqueia | DSH-01 (saldo atual), BNK-03 (conciliação compara com este extrato) |
@@ -86,22 +86,22 @@ Decididos pelo PO em 20/10/2026 (seção 1.1, itens 10 e 11, e D4, D8):
 3. P-18 decidida (ADR 0021).
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
-- [ ] Migration criada (não destrutiva); parâmetro com seed idempotente.
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Telas com estados de carregando, vazio e erro.
-- [ ] Ajuda do extrato, da lista e dos parâmetros; teste de cobertura passando.
-- [ ] Confirmação de efeito financeiro e próximos passos aplicados.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` (exceção "sem OP") atualizados; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
+- [x] Migration criada (não destrutiva); parâmetro com seed idempotente.
+- [x] Permissões só do `ModuleCatalog`.
+- [x] Telas com estados de carregando, vazio e erro.
+- [x] Ajuda do extrato, da lista e dos parâmetros; teste de cobertura passando.
+- [x] Confirmação de efeito financeiro e próximos passos aplicados.
+- [x] Auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` (exceção "sem OP") atualizados; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] Consulta de extrato com saldo por janela (`SUM() OVER`), paginada.
-- [ ] Entidades `BankTransfer` e `BankEntry` e os casos de uso de transferir, lançar e estornar.
-- [ ] Notificação de conta nova no caso de uso da CAD-05b.
-- [ ] Endpoints `/api/v1/finance/bank-accounts/{id}/statement`, `/api/v1/finance/transfers`, `/api/v1/finance/bank-entries`; telas e ajuda.
+- [x] Consulta de extrato com saldo por janela (`SUM() OVER`), paginada.
+- [x] Entidades `BankTransfer` e `BankEntry` e os casos de uso de transferir, lançar e estornar.
+- [x] Notificação de conta nova no caso de uso da CAD-05b.
+- [x] Endpoints `/api/v1/finance/bank-accounts/{id}/statement`, `/api/v1/finance/transfers`, `/api/v1/finance/bank-entries`; telas e ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, @qa, cybersecurity (lançamento sem OP e transferência).
@@ -135,3 +135,4 @@ Checklist do @po (Pax), 20/10/2026 (revalidação depois das decisões do PO e d
 | 19/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 20/10/2026 | 0.3 | Decisões do PO (D4, D8, seção 1.1) e correções da revisão pré-Fase 2 (§2.1-A2, §2.2-M4, §2.3); re-estimada de P para M; CAs renumerados | River (SM) |
 | 20/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 20/10/2026 | 1.0 | Implementada. Desvios: o tipo "Outro" do lançamento virou `OtherOut` ("Outra saída") e `OtherIn` ("Outra entrada"), para o sinal sair do tipo; idempotência pelo `Idempotency-Key`, sem `client_request_id`; a linha do extrato traz a versão do movimento para o estorno conferir a concorrência; o filtro "Só movimentos sem OP" fica no próprio extrato (sem lista separada); o aviso de conta nova usa o tipo de notificação `finance.bank_account_created` e não dispara na importação (sem usuário); o desempenho do CA 17 foi medido com 20 mil transações num ano | @dev |

@@ -14,6 +14,9 @@ Cadastrar as contas bancárias e os caixas da empresa, com o saldo de partida. O
 - O **saldo inicial** é opcional. Quando você digita o saldo, a data vem com hoje; ajuste para o dia do saldo. Saldo e data só valem juntos.
 - A primeira conta já nasce **padrão**: ela vem escolhida nos lançamentos novos. Para trocar, marque **Conta padrão** em outra conta.
 - Conta sem saldo mostra **Saldo inicial não informado** e o atalho **Informar saldo inicial**.
+- A coluna **Saldo atual** mostra o saldo até hoje, e o rodapé, o consolidado. Clique no saldo para abrir o **extrato** da conta.
+- No extrato, **Transferir** move dinheiro entre contas e **Lançar tarifa ou rendimento** registra tarifas, IOF, juros e rendimentos **sem OP**. O Proprietário é avisado.
+- Toda conta nova avisa o Proprietário.
 
 ## Perguntas frequentes
 **Posso cadastrar saldo negativo?** Pode. O sistema só avisa, para você conferir se a conta começa no cheque especial.

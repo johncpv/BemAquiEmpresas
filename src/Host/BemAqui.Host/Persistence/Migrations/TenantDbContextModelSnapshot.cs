@@ -631,6 +631,165 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("bank_accounts", "finance");
                 });
 
+            modelBuilder.Entity("BemAqui.Finance.Domain.BankEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("account_id");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<string>("BackdateReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("backdate_reason");
+
+                    b.Property<Guid>("BankAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("bank_account_id");
+
+                    b.Property<Guid?>("CostCenterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cost_center_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date")
+                        .HasColumnName("date");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("reason");
+
+                    b.Property<string>("ReversalReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("reversal_reason");
+
+                    b.Property<DateTimeOffset?>("ReversedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reversed_at");
+
+                    b.Property<Guid?>("ReversedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reversed_by");
+
+                    b.Property<Guid?>("TransactionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("transaction_id");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_bank_entries");
+
+                    b.HasIndex("BankAccountId")
+                        .HasDatabaseName("ix_bank_entries_bank_account_id");
+
+                    b.ToTable("bank_entries", "finance");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.BankTransfer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<string>("BackdateReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("backdate_reason");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date")
+                        .HasColumnName("date");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("description");
+
+                    b.Property<Guid>("FromAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("from_account_id");
+
+                    b.Property<string>("ReversalReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("reversal_reason");
+
+                    b.Property<DateTimeOffset?>("ReversedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reversed_at");
+
+                    b.Property<Guid?>("ReversedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reversed_by");
+
+                    b.Property<Guid>("ToAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("to_account_id");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_bank_transfers");
+
+                    b.HasIndex("FromAccountId")
+                        .HasDatabaseName("ix_bank_transfers_from_account_id");
+
+                    b.HasIndex("ToAccountId")
+                        .HasDatabaseName("ix_bank_transfers_to_account_id");
+
+                    b.ToTable("bank_transfers", "finance");
+                });
+
             modelBuilder.Entity("BemAqui.Finance.Domain.CostCenter", b =>
                 {
                     b.Property<Guid>("Id")
@@ -742,6 +901,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("bank_account_id");
 
+                    b.Property<Guid?>("BankEntryId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("bank_entry_id");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -776,6 +939,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("settlement_id");
 
+                    b.Property<Guid?>("TransferId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("transfer_id");
+
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasMaxLength(16)
@@ -785,11 +952,17 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_financial_transactions");
 
+                    b.HasIndex("BankEntryId")
+                        .HasDatabaseName("ix_financial_transactions_bank_entry_id");
+
                     b.HasIndex("PayableId")
                         .HasDatabaseName("ix_financial_transactions_payable_id");
 
                     b.HasIndex("ReceivableId")
                         .HasDatabaseName("ix_financial_transactions_receivable_id");
+
+                    b.HasIndex("TransferId")
+                        .HasDatabaseName("ix_financial_transactions_transfer_id");
 
                     b.HasIndex("BankAccountId", "Date")
                         .HasDatabaseName("ix_financial_transactions_bank_account_id_date");

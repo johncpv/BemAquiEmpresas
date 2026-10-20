@@ -206,7 +206,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-2--comercial-proj
 - Requisitos: R-FIN-5, R-COM-2, R-COM-3, R-COM-4, R-PRP-2, R-PRP-5, R-PRP-7, R-SEC-2, R-SEC-5.
 - CA: `finance.pay` para o Financeiro por seed patch (D5); OP com 1+ títulos e retrato do envio (fornecedor, líquido, forma de pagamento); pagamento limitado ao aprovado + tolerância (409 `exceeds_approved`); avisos de titular, fornecedor novo e dados alterados; regra do solicitante pela D6; pagamento sem OP aprovada bloqueado em todos os caminhos; aprovação e pagamento concorrentes gravam uma vez; 2FA no login de quem aprova ou paga; estorno com `finance.pay` (estado `Reversed`); comprovante só em OP paga; auditoria completa.
 
-**FIN-04 [ ] Movimentação bancária, transferências e lançamento sem OP (M)** — 2.1b, ordem 7 — re-estimada — [story](stories/FIN-04-movimentacao-bancaria.md)
+**FIN-04 [x] Movimentação bancária, transferências e lançamento sem OP (M)** — 2.1b, ordem 7 — re-estimada — [story](stories/FIN-04-movimentacao-bancaria.md)
 - Requisitos: R-FIN-2, R-FIN-1, R-FIN-10, R-COM-2, R-PRP-7, R-SEC-5.
 - CA: extrato com saldo inicial, saldo anterior e saldo acumulado conferidos com dataset fixo; transferência com as duas pernas na mesma transação, idempotente, aviso acima do limite e aprovação para conta nova; lançamento bancário sem OP (tarifa, IOF, juros, rendimento) com conta do plano, motivo, aviso ao Proprietário e a lista "Movimentos sem OP" (D4); sem edição de transação de título; 5 mil transações em menos de 1 s.
 
