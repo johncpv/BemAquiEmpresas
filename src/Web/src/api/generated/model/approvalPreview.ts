@@ -6,6 +6,7 @@
  */
 import type { ApprovalAccount } from './approvalAccount';
 import type { ApprovalMilestone } from './approvalMilestone';
+import type { ApprovalOnboarding } from './approvalOnboarding';
 import type { ApprovalPrecondition } from './approvalPrecondition';
 
 export interface ApprovalPreview {
@@ -19,4 +20,5 @@ export interface ApprovalPreview {
   /** @nullable */
   suggestedRevenueAccountId: string | null;
   projectName: string;
+  onboarding?: null | ApprovalOnboarding;
 }

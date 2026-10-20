@@ -11445,7 +11445,12 @@
           "description",
           "percent",
           "amount",
-          "when"
+          "when",
+          "id",
+          "trigger",
+          "triggerEvent",
+          "dueDate",
+          "daysAfterEvent"
         ],
         "type": "object",
         "properties": {
@@ -11462,6 +11467,60 @@
           },
           "when": {
             "type": "string"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "trigger": {
+            "$ref": "#/components/schemas/MilestoneTrigger"
+          },
+          "triggerEvent": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TriggerEvent"
+              }
+            ]
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "daysAfterEvent": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "ApprovalOnboarding": {
+        "required": [
+          "cutoverDate",
+          "completedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "cutoverDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "completedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           }
         }
       },
@@ -11542,6 +11601,16 @@
           },
           "projectName": {
             "type": "string"
+          },
+          "onboarding": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ApprovalOnboarding"
+              }
+            ]
           }
         }
       },
@@ -11589,6 +11658,19 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          },
+          "isOnboarding": {
+            "type": "boolean",
+            "default": false
+          },
+          "milestones": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/OnboardingMilestoneInput"
+            }
           }
         }
       },
@@ -13188,6 +13270,10 @@
                 "$ref": "#/components/schemas/ProjectStatus"
               }
             ]
+          },
+          "isOnboarding": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -13264,6 +13350,10 @@
                 "$ref": "#/components/schemas/MilestoneReceivable"
               }
             ]
+          },
+          "receivedBeforeOnboarding": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -13371,6 +13461,10 @@
               "number"
             ],
             "format": "double"
+          },
+          "isOnboarding": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -16330,6 +16424,30 @@
             "type": "string"
           },
           "customized": {
+            "type": "boolean"
+          }
+        }
+      },
+      "OnboardingMilestoneInput": {
+        "required": [
+          "milestoneId",
+          "dueDate",
+          "receivedBefore"
+        ],
+        "type": "object",
+        "properties": {
+          "milestoneId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "receivedBefore": {
             "type": "boolean"
           }
         }
@@ -19317,6 +19435,10 @@
               "null",
               "string"
             ]
+          },
+          "isOnboarding": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -21854,6 +21976,10 @@
               "integer"
             ],
             "format": "int32"
+          },
+          "receivedBeforeOnboarding": {
+            "type": "boolean",
+            "default": false
           }
         }
       },

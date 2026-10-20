@@ -25,4 +25,5 @@ export interface ContractSnapshot {
   totalCost: number | null;
   /** @nullable */
   marginPct: number | null;
+  isOnboarding?: boolean;
 }

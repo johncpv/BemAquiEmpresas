@@ -41,4 +41,5 @@ export interface ProjectDetail {
   hasFabricationMilestone?: boolean;
   /** @nullable */
   contractStatus?: string | null;
+  isOnboarding?: boolean;
 }

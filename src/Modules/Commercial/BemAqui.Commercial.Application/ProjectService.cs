@@ -23,7 +23,7 @@ public sealed partial class ProjectService(ICommercialDb db, IParties parties, I
             return NotFound();
         }
 
-        var contract = await db.Contracts.AsNoTracking().Where(c => c.Id == project.ContractId).Select(c => new { c.Number, c.Status }).FirstAsync(cancellationToken);
+        var contract = await db.Contracts.AsNoTracking().Where(c => c.Id == project.ContractId).Select(c => new { c.Number, c.Status, c.IsOnboarding }).FirstAsync(cancellationToken);
         var contractNumber = contract.Number;
         var hasFabrication = await db.ContractMilestones.AnyAsync(m => m.ContractId == project.ContractId && m.TriggerEvent == TriggerEvent.FabricationDone, cancellationToken);
         var items = await db.ProjectItems.AsNoTracking().Where(i => i.ProjectId == id).OrderBy(i => i.Sequence)
@@ -35,7 +35,7 @@ public sealed partial class ProjectService(ICommercialDb db, IParties parties, I
             project.Id, project.Number, project.Name, project.Status, project.PartyId, party is null ? string.Empty : party.TradeName ?? party.LegalName, project.ContractId, contractNumber,
             project.SiteAddressId, site is null ? null : $"{site.Street}, {site.Number} — {site.City}/{site.State}", project.PromisedDate, project.ForecastDate, project.Priority,
             project.ManagerUserId, manager, project.CreatedAt, items, project.Version, project.FabricatedOn, project.DeliveredOn, project.DeliveredManually, hasFabrication,
-            contract.Status.ToString());
+            contract.Status.ToString(), contract.IsOnboarding);
     }
 
     public async Task<Result<IReadOnlyList<ProjectBudgetLine>>> BudgetAsync(Guid id, CancellationToken cancellationToken = default)

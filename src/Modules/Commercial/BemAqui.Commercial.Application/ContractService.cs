@@ -56,7 +56,7 @@ public sealed partial class ContractService(
         var quote = await db.Quotes.IgnoreQueryFilters().AsNoTracking().Where(q => q.Id == contract.QuoteId).Select(q => new { q.Number, q.Revision }).FirstAsync(cancellationToken);
         var project = await db.Projects.AsNoTracking().Where(p => p.ContractId == id).Select(p => new { p.Id, p.Number, p.Name, p.Status }).FirstOrDefaultAsync(cancellationToken);
         var milestones = await db.ContractMilestones.AsNoTracking().Where(m => m.ContractId == id).OrderBy(m => m.Sequence)
-            .Select(m => new ContractMilestoneView(m.Id, m.Sequence, m.Description, m.Percent, m.Amount, m.Trigger, m.TriggerEvent, m.DueDate, m.DaysAfterEvent)).ToListAsync(cancellationToken);
+            .Select(m => new ContractMilestoneView(m.Id, m.Sequence, m.Description, m.Percent, m.Amount, m.Trigger, m.TriggerEvent, m.DueDate, m.DaysAfterEvent, false, null, m.ReceivedBeforeOnboarding)).ToListAsync(cancellationToken);
         var party = await parties.FindAsync(contract.PartyId, cancellationToken);
         var account = await chart.FindAsync([contract.RevenueAccountId], cancellationToken) is [var found, ..] ? found : null;
         var withCost = await permissions.HasPermissionAsync("projects", "view_cost", cancellationToken);
@@ -70,7 +70,7 @@ public sealed partial class ContractService(
             contract.Id, contract.Number, contract.Status, contract.PartyId, party is null ? string.Empty : party.TradeName ?? party.LegalName, party?.Document, contract.TotalValue,
             contract.SignedAt, contract.RevenueAccountId, account is null ? null : $"{account.Code} {account.Name}", contract.QuoteId, quote.Number, quote.Revision, project?.Id,
             project?.Number, project?.Name, contract.CreatedAt, milestoneViews, ContractSnapshots.Read(contract.Snapshot, withCost),
-            parcels.Count, contract.Version, contract.CancelReason, contract.CancelledAt, contract.CompletedAt, project?.Status);
+            parcels.Count, contract.Version, contract.CancelReason, contract.CancelledAt, contract.CompletedAt, project?.Status, contract.IsOnboarding);
     }
 
     /// <summary>Contrato do orçamento aprovado, para o link do 409 "já foi aprovado" e do orçamento (CA 9).</summary>

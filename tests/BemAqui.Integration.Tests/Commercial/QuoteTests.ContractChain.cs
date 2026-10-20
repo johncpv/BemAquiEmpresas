@@ -29,7 +29,8 @@ public partial class QuoteTests
         entrega.DueDate.Should().BeNull();
         entrega.TriggerEvent.Should().Be(BemAqui.SharedKernel.TriggerEvent.Delivered);
         entrega.DaysAfterEvent.Should().Be(10);
-        (await WithDbAsync(db => db.Notifications.CountAsync(n => n.UserId == ownerId && n.Title.Contains("gerou 2 parcelas")))).Should().Be(1);
+        var number = (await JsonAsync(await owner.GetAsync($"/api/v1/contracts/{contractId}"))).GetProperty("number").GetString();
+        (await WithDbAsync(db => db.Notifications.CountAsync(n => n.UserId == ownerId && n.Title.StartsWith($"Contrato {number} gerou 2 parcelas")))).Should().Be(1);
         (await JsonAsync(await owner.GetAsync($"/api/v1/finance/receivables?contractId={contractId}"))).GetProperty("page").GetProperty("items").GetArrayLength().Should().Be(2);
 
         // CA 3: a mesma mensagem de novo não duplica.

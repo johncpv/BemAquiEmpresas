@@ -36,7 +36,8 @@ public sealed class ContractSignedConsumer(
             .ToDictionaryAsync(t => t.Event, t => t.OccurredOn, cancellationToken);
         var number = contract?.Number ?? "Contrato";
         var created = new List<Receivable>();
-        foreach (var m in integrationEvent.Milestones.OrderBy(m => m.Sequence).Where(m => !existing.Contains(m.MilestoneId)))
+        // Recebido antes da implantação (COM-04c CA 2): o dinheiro já está no saldo de corte, sem título.
+        foreach (var m in integrationEvent.Milestones.OrderBy(m => m.Sequence).Where(m => !m.ReceivedBeforeOnboarding && !existing.Contains(m.MilestoneId)))
         {
             var due = m.Trigger == MilestoneTrigger.Date
                 ? m.DueDate

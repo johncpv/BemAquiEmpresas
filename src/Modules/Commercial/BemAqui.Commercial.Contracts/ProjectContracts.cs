@@ -17,14 +17,16 @@ public interface IProjects
 }
 
 /// <summary>Marco do contrato no evento (sem dado pessoal).</summary>
-public sealed record ContractMilestoneInfo(Guid MilestoneId, int Sequence, string Description, decimal Amount, MilestoneTrigger Trigger, TriggerEvent? TriggerEvent, DateOnly? DueDate, int? DaysAfterEvent, decimal Percent = 0);
+public sealed record ContractMilestoneInfo(Guid MilestoneId, int Sequence, string Description, decimal Amount, MilestoneTrigger Trigger, TriggerEvent? TriggerEvent, DateOnly? DueDate, int? DaysAfterEvent, decimal Percent = 0,
+    bool ReceivedBeforeOnboarding = false);
 
 /// <summary>Orçamento aprovado (COM-04a CA 5).</summary>
 public sealed record QuoteApproved(Guid QuoteId, Guid ContractId) : IIntegrationEvent;
 
 /// <summary>Contrato assinado (COM-04a CA 5): o Finance gera as parcelas a receber (COM-04b) com a conta de receita.</summary>
 public sealed record ContractSigned(
-    Guid ContractId, Guid ProjectId, Guid PartyId, DateOnly SignedAt, decimal TotalValue, Guid RevenueAccountId, IReadOnlyList<ContractMilestoneInfo> Milestones) : IIntegrationEvent;
+    Guid ContractId, Guid ProjectId, Guid PartyId, DateOnly SignedAt, decimal TotalValue, Guid RevenueAccountId, IReadOnlyList<ContractMilestoneInfo> Milestones,
+    bool IsOnboarding = false) : IIntegrationEvent;
 
 /// <summary>Item do projeto criado (COM-04a CA 7), sem consumidor até a PRD-01.</summary>
 public sealed record ProjectItemCreated(Guid ProjectId, Guid ProjectItemId, Guid QuoteItemId, Guid? ItemId, decimal Quantity) : IIntegrationEvent;

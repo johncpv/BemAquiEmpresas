@@ -52,6 +52,12 @@ public sealed partial class QuoteApprovalService
             return QuoteService.Invalid("revenueAccountId", "Escolha uma conta de receita analítica e ativa.");
         }
 
+        var onboarding = await OnboardingAsync(input, conditions, cancellationToken);
+        if (onboarding.IsFailure)
+        {
+            return onboarding.Error!;
+        }
+
         var detail = (await quotes.GetAsync(id, cancellationToken)).Value;
         var projectName = await ProjectNameAsync(quote, detail, cancellationToken);
         db.Entry(quote).Property(x => x.Version).OriginalValue = input.Version;
@@ -70,7 +76,8 @@ public sealed partial class QuoteApprovalService
             return AlreadyApproved();
         }
 
-        var (contract, project) = await CreateAsync(quote, input, projectName, now, cancellationToken);
+        var (contract, project) = await CreateAsync(quote, input, onboarding.Value, projectName, now, cancellationToken);
+        await NotifyOnboardingAsync(contract, cancellationToken);
         try
         {
             await db.SaveChangesAsync(cancellationToken);

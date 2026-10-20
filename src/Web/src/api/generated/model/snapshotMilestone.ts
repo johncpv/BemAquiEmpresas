@@ -17,4 +17,5 @@ export interface SnapshotMilestone {
   dueDate: string | null;
   /** @nullable */
   daysAfterEvent: number | null;
+  receivedBeforeOnboarding?: boolean;
 }

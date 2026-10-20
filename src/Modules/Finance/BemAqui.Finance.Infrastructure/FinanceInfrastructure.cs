@@ -45,6 +45,7 @@ public static class FinanceInfrastructure
         services.TryAddScoped<PayableService>();
         services.TryAddScoped<IPayables, PayablesContract>();
         services.TryAddScoped<IReceivables, ReceivablesContract>();
+        services.TryAddScoped<IFinancialOpening, FinancialOpeningContract>();
         services.TryAddScoped<FinanceDeadLetters>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Messaging.IDeadLetterObserver, FinanceDeadLetters>());
         services.TryAddScoped<RecurringExpenseService>();

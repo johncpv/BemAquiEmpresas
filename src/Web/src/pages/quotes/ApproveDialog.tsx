@@ -12,6 +12,8 @@ import { Tag } from '@/components/ui/tag'
 import { Dica } from '@/help/Dica'
 import { useCan } from '@/pages/use-can'
 import { CONTRACT_DICAS } from '../contracts/contracts'
+import { type OnboardingDraft, onboardingBody } from './onboarding'
+import { OnboardingFields } from './OnboardingFields'
 import { formatDate } from '@/lib/format'
 import { today } from '../finance/receivables/receivables'
 
@@ -30,6 +32,7 @@ export function ApproveDialog({ quote, open, onOpenChange, onApproved }: { quote
   const costs = useGetQuoteApprovalCosts(quote.id, { query: { enabled: isOpen && canCost } })
   const [signedAt, setSignedAt] = useState(today())
   const [account, setAccount] = useState('')
+  const [onboarding, setOnboarding] = useState<OnboardingDraft>({ enabled: false, milestones: {} })
   const idempotency = useIdempotencyKey()
   const p = preview.data
   const revenueAccountId = account || p?.suggestedRevenueAccountId || ''
@@ -49,7 +52,7 @@ export function ApproveDialog({ quote, open, onOpenChange, onApproved }: { quote
       title={`Aprovar ${quote.number}${quote.revision > 0 ? ` rev. ${quote.revision}` : ''} e gerar o contrato?`}
       description="O orçamento vira contrato congelado e nasce o projeto com os itens e o orçado por natureza. O financeiro gera as parcelas a receber pelos marcos."
       preconditions={preconditions}
-      onOpen={() => { setSignedAt(today()); setAccount('') }}
+      onOpen={() => { setSignedAt(today()); setAccount(''); setOnboarding({ enabled: false, milestones: {} }) }}
       impact={p ? (
         <div aria-live="polite" className="space-y-1 text-sm">
           <p>Contrato de <Money value={p.totalValue} className="font-semibold" /> · projeto "{p.projectName}" com {p.items} {p.items === 1 ? 'item' : 'itens'}</p>
@@ -60,7 +63,7 @@ export function ApproveDialog({ quote, open, onOpenChange, onApproved }: { quote
         </div>
       ) : null}
       onConfirm={async () => {
-        const result = await approveQuote(quote.id, { signedAt, revenueAccountId, version: quote.version }, idempotency.options)
+        const result = await approveQuote(quote.id, { signedAt, revenueAccountId, version: quote.version, ...onboardingBody(onboarding) }, idempotency.options)
         idempotency.renew()
         onApproved(result)
       }}
@@ -75,6 +78,7 @@ export function ApproveDialog({ quote, open, onOpenChange, onApproved }: { quote
           </select>
         </label>
       </div>
+      {p ? <OnboardingFields preview={p} signedAt={signedAt} value={onboarding} onChange={setOnboarding} /> : null}
       {canCost && costs.data ? (
         <div className="mt-3 space-y-1 text-sm" aria-label="Atenção ao preço">
           <p>Margem do orçamento: <b className={(costs.data.marginPct ?? 0) < 0 ? 'text-crit-ink tabular-nums' : 'tabular-nums'}>{costs.data.marginPct === null || costs.data.marginPct === undefined ? '—' : `${pct(costs.data.marginPct)}%`}</b></p>
