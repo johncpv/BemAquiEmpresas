@@ -190,7 +190,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-2--comercial-proj
 - Requisitos: R-FIN-4, R-FIN-6, R-FIN-5, R-FIN-1, R-COM-4, R-PRP-1, R-SEC-5.
 - CA: título manual e parcelado com retenções digitadas (P-15); forma de pagamento (Pix, boleto, TED) com aviso de titular diferente (D9); título travado enquanto está em OP; sem baixa fora da OP (teste de arquitetura); `IPayables` idempotente por origem, com data estimada; recorrente gera título com antecedência, sem duplicar, inclusive em paralelo e com dois tenants.
 
-**FIN-00 [ ] Implantação financeira (M)** — 2.1a, ordem 3 — nova (D2) — [story](stories/FIN-00-implantacao-financeira.md)
+**FIN-00 [x] Implantação financeira (M)** — 2.1a, ordem 3 — nova (D2) — [story](stories/FIN-00-implantacao-financeira.md)
 - Requisitos: R-FIN-2, R-FIN-3, R-FIN-4, R-FIN-1, R-PRP-1, R-PRP-3, R-SEC-5.
 - CA: data de corte única; saldo das contas no fim do dia de corte; títulos a receber e a pagar em aberto lançados pelo saldo com origem `Opening` (fora do DRE por competência e da pontualidade); relatório de conferência "saldo do sistema = saldo do banco"; pré-condição da primeira carga real: backup verificado e teste de restauração (ADR 0020); testes nunca no tenant `konebras`.
 

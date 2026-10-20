@@ -25,6 +25,7 @@ interface ComboboxProps {
   createLabel?: string
   disabled?: boolean
   id?: string
+  'aria-label'?: string
   'aria-invalid'?: boolean
   'aria-describedby'?: string
   'aria-required'?: boolean

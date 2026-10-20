@@ -55,6 +55,7 @@ public sealed record PayableDetail(
     bool IsDueToday,
     DocumentOrigin Origin,
     Guid? OriginId,
+    string? OpeningReference,
     Guid? InstallmentGroupId,
     DateOnly? Competence,
     PaymentMethodKind? PaymentMethod,

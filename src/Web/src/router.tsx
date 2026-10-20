@@ -35,6 +35,7 @@ import { NewPayablePage } from '@/pages/finance/payables/NewPayablePage'
 import { PayablePage } from '@/pages/finance/payables/PayablePage'
 import { PayablesPage } from '@/pages/finance/payables/PayablesPage'
 import { RecurringExpensesPage } from '@/pages/finance/payables/RecurringExpensesPage'
+import { OpeningPage } from '@/pages/finance/opening/OpeningPage'
 import { DiscountsReportPage } from '@/pages/finance/receivables/DiscountsReportPage'
 import { NewReceivablePage } from '@/pages/finance/receivables/NewReceivablePage'
 import { ReceivablePage } from '@/pages/finance/receivables/ReceivablePage'
@@ -155,6 +156,8 @@ const payablesRoute = createRoute({ getParentRoute: () => appRoute, path: 'finan
 const newPayableRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/pagar/novo', component: gated('finance', NewPayablePage) })
 const payableRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/pagar/$id', component: gated('finance', PayablePage) })
 const recurringRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/recorrentes', component: gated('finance', RecurringExpensesPage) })
+// Implantação financeira (FIN-00).
+const openingRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/implantacao', component: gated('finance', OpeningPage) })
 const paymentTermRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/condicoes-de-pagamento/$id', component: gated('finance', PaymentTermPage) })
 // Moldes de tela da FND-09d, dentro do shell, para o PO aprovar no contexto real.
 const moldsRoute = createRoute({ getParentRoute: () => appRoute, path: 'dev/moldes', beforeLoad: () => { throw redirect({ to: '/app/dev/moldes/cadastro' }) } })
@@ -201,7 +204,7 @@ export const routeTree = rootRoute.addChildren([
   appRoute.addChildren([appIndexRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute,
     aiSettingsRoute, importRunsRoute, importRunRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute,
     inventoryRootRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, productionRootRoute, workCentersRoute, calendarRoute,
-    financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, payablesRoute, newPayableRoute, payableRoute, recurringRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
+    financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, payablesRoute, newPayableRoute, payableRoute, recurringRoute, openingRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
   platformLoginRoute,
   platformPasswordRoute,
   platformRoute.addChildren([platformIndexRoute, tenantsRoute, tenantRoute]),

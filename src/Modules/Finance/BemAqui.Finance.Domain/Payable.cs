@@ -49,6 +49,9 @@ public sealed class Payable : Entity, IAuditable, IConcurrencyVersioned
 
     public DocumentOrigin Origin { get; set; } = DocumentOrigin.Manual;
 
+    /// <summary>Documento de origem do título de implantação (FIN-00), ex.: a fatura no Dolibarr.</summary>
+    public string? OpeningReference { get; set; }
+
     public Guid? OriginId { get; set; }
 
     public Guid? RecurringExpenseId { get; set; }

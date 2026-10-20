@@ -22,6 +22,7 @@ internal sealed class PayableConfiguration : IEntityTypeConfiguration<Payable>
         b.Property(e => e.PaymentMethod).HasConversion<string>().HasMaxLength(10);
         b.Property(e => e.PaymentDetails).HasColumnType("jsonb");
         b.Property(e => e.CancelReason).HasMaxLength(200);
+        b.Property(e => e.OpeningReference).HasMaxLength(40);
         b.Ignore(e => e.Retentions);
         b.Ignore(e => e.NetAmount);
         b.Ignore(e => e.Balance);

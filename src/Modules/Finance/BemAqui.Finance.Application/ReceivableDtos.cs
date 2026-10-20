@@ -61,6 +61,7 @@ public sealed record ReceivableDetail(
     bool IsDueToday,
     DocumentOrigin Origin,
     Guid? OriginId,
+    string? OpeningReference,
     Guid? InstallmentGroupId,
     string? CancelReason,
     DateTimeOffset? CancelledAt,

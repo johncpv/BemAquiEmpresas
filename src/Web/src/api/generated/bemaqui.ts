@@ -52,6 +52,7 @@ import type {
   CompanyLogo,
   CompanyProfileDto,
   CompanyProfileInput,
+  CompleteOpeningInput,
   ConfirmTwoFactorRequest,
   ConfirmWithChallengeRequest,
   ContactInput,
@@ -63,6 +64,7 @@ import type {
   CreatePartyRequest,
   CurrentSession,
   CustomerOption,
+  CutoverInput,
   DisableTwoFactorRequest,
   DiscountsAndCancellations,
   DocumentCheck,
@@ -129,6 +131,11 @@ import type {
   NotificationPage,
   NumberFormatInput,
   NumberFormatRow,
+  OpeningBalancesInput,
+  OpeningBatchResult,
+  OpeningPayablesInput,
+  OpeningReceivablesInput,
+  OpeningStatus,
   PagedListOfAuditEntryDto,
   PagedListOfBankAccountDetail,
   PagedListOfEmployeeDetail,
@@ -21151,6 +21158,511 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getDeleteRecurringExpenseMutationOptions(options), queryClient);
+    }
+
+export const getGetOpeningUrl = () => {
+
+
+
+
+  return `/api/v1/finance/opening`
+}
+
+export const getOpening = async ( options?: Parameters<typeof apiFetch>[1]): Promise<OpeningStatus> => {
+
+  return apiFetch<OpeningStatus>(getGetOpeningUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOpeningQueryKey = () => {
+    return [
+    `/api/v1/finance/opening`
+    ] as const;
+    }
+
+
+export const getGetOpeningQueryOptions = <TData = Awaited<ReturnType<typeof getOpening>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOpening>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOpeningQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOpening>>> = ({ signal }) => getOpening({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOpening>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetOpeningQueryResult = NonNullable<Awaited<ReturnType<typeof getOpening>>>
+export type GetOpeningQueryError = unknown
+
+
+export function useGetOpening<TData = Awaited<ReturnType<typeof getOpening>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOpening>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOpening>>,
+          TError,
+          Awaited<ReturnType<typeof getOpening>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOpening<TData = Awaited<ReturnType<typeof getOpening>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOpening>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOpening>>,
+          TError,
+          Awaited<ReturnType<typeof getOpening>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOpening<TData = Awaited<ReturnType<typeof getOpening>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOpening>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetOpening<TData = Awaited<ReturnType<typeof getOpening>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOpening>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetOpeningQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSetOpeningCutoverUrl = () => {
+
+
+
+
+  return `/api/v1/finance/opening/cutover`
+}
+
+export const setOpeningCutover = async (cutoverInput: CutoverInput, options?: Parameters<typeof apiFetch>[1]): Promise<OpeningStatus> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<OpeningStatus>(getSetOpeningCutoverUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(cutoverInput)
+  }
+);}
+
+
+
+
+
+export const getSetOpeningCutoverMutationKey = () => ['setOpeningCutover'] as const;
+
+export const getSetOpeningCutoverMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setOpeningCutover>>, TError,SetOpeningCutoverMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof setOpeningCutover>>, TError,SetOpeningCutoverMutationVariables, TContext> => {
+
+const mutationKey = getSetOpeningCutoverMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setOpeningCutover>>, SetOpeningCutoverMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  setOpeningCutover(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetOpeningCutoverMutationResult = NonNullable<Awaited<ReturnType<typeof setOpeningCutover>>>
+    export type SetOpeningCutoverMutationBody = CutoverInput
+    export type SetOpeningCutoverMutationError = unknown
+    export type SetOpeningCutoverMutationVariables = {data: CutoverInput}
+
+    export const useSetOpeningCutover = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setOpeningCutover>>, TError,SetOpeningCutoverMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof setOpeningCutover>>,
+        TError,
+        SetOpeningCutoverMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSetOpeningCutoverMutationOptions(options), queryClient);
+    }
+
+export const getSaveOpeningBalancesUrl = () => {
+
+
+
+
+  return `/api/v1/finance/opening/balances`
+}
+
+export const saveOpeningBalances = async (openingBalancesInput: OpeningBalancesInput, options?: Parameters<typeof apiFetch>[1]): Promise<OpeningStatus> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<OpeningStatus>(getSaveOpeningBalancesUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(openingBalancesInput)
+  }
+);}
+
+
+
+
+
+export const getSaveOpeningBalancesMutationKey = () => ['saveOpeningBalances'] as const;
+
+export const getSaveOpeningBalancesMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveOpeningBalances>>, TError,SaveOpeningBalancesMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveOpeningBalances>>, TError,SaveOpeningBalancesMutationVariables, TContext> => {
+
+const mutationKey = getSaveOpeningBalancesMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveOpeningBalances>>, SaveOpeningBalancesMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  saveOpeningBalances(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveOpeningBalancesMutationResult = NonNullable<Awaited<ReturnType<typeof saveOpeningBalances>>>
+    export type SaveOpeningBalancesMutationBody = OpeningBalancesInput
+    export type SaveOpeningBalancesMutationError = unknown
+    export type SaveOpeningBalancesMutationVariables = {data: OpeningBalancesInput}
+
+    export const useSaveOpeningBalances = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveOpeningBalances>>, TError,SaveOpeningBalancesMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof saveOpeningBalances>>,
+        TError,
+        SaveOpeningBalancesMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSaveOpeningBalancesMutationOptions(options), queryClient);
+    }
+
+export const getCreateOpeningReceivablesUrl = () => {
+
+
+
+
+  return `/api/v1/finance/opening/receivables`
+}
+
+export const createOpeningReceivables = async (openingReceivablesInput: OpeningReceivablesInput, options?: Parameters<typeof apiFetch>[1]): Promise<OpeningBatchResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<OpeningBatchResult>(getCreateOpeningReceivablesUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(openingReceivablesInput)
+  }
+);}
+
+
+
+
+
+export const getCreateOpeningReceivablesMutationKey = () => ['createOpeningReceivables'] as const;
+
+export const getCreateOpeningReceivablesMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createOpeningReceivables>>, TError,CreateOpeningReceivablesMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createOpeningReceivables>>, TError,CreateOpeningReceivablesMutationVariables, TContext> => {
+
+const mutationKey = getCreateOpeningReceivablesMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createOpeningReceivables>>, CreateOpeningReceivablesMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createOpeningReceivables(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateOpeningReceivablesMutationResult = NonNullable<Awaited<ReturnType<typeof createOpeningReceivables>>>
+    export type CreateOpeningReceivablesMutationBody = OpeningReceivablesInput
+    export type CreateOpeningReceivablesMutationError = unknown
+    export type CreateOpeningReceivablesMutationVariables = {data: OpeningReceivablesInput}
+
+    export const useCreateOpeningReceivables = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createOpeningReceivables>>, TError,CreateOpeningReceivablesMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createOpeningReceivables>>,
+        TError,
+        CreateOpeningReceivablesMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateOpeningReceivablesMutationOptions(options), queryClient);
+    }
+
+export const getCreateOpeningPayablesUrl = () => {
+
+
+
+
+  return `/api/v1/finance/opening/payables`
+}
+
+export const createOpeningPayables = async (openingPayablesInput: OpeningPayablesInput, options?: Parameters<typeof apiFetch>[1]): Promise<OpeningBatchResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<OpeningBatchResult>(getCreateOpeningPayablesUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(openingPayablesInput)
+  }
+);}
+
+
+
+
+
+export const getCreateOpeningPayablesMutationKey = () => ['createOpeningPayables'] as const;
+
+export const getCreateOpeningPayablesMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createOpeningPayables>>, TError,CreateOpeningPayablesMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createOpeningPayables>>, TError,CreateOpeningPayablesMutationVariables, TContext> => {
+
+const mutationKey = getCreateOpeningPayablesMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createOpeningPayables>>, CreateOpeningPayablesMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createOpeningPayables(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateOpeningPayablesMutationResult = NonNullable<Awaited<ReturnType<typeof createOpeningPayables>>>
+    export type CreateOpeningPayablesMutationBody = OpeningPayablesInput
+    export type CreateOpeningPayablesMutationError = unknown
+    export type CreateOpeningPayablesMutationVariables = {data: OpeningPayablesInput}
+
+    export const useCreateOpeningPayables = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createOpeningPayables>>, TError,CreateOpeningPayablesMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createOpeningPayables>>,
+        TError,
+        CreateOpeningPayablesMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateOpeningPayablesMutationOptions(options), queryClient);
+    }
+
+export const getCompleteOpeningUrl = () => {
+
+
+
+
+  return `/api/v1/finance/opening/complete`
+}
+
+export const completeOpening = async (completeOpeningInput: CompleteOpeningInput, options?: Parameters<typeof apiFetch>[1]): Promise<OpeningStatus> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<OpeningStatus>(getCompleteOpeningUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(completeOpeningInput)
+  }
+);}
+
+
+
+
+
+export const getCompleteOpeningMutationKey = () => ['completeOpening'] as const;
+
+export const getCompleteOpeningMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeOpening>>, TError,CompleteOpeningMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof completeOpening>>, TError,CompleteOpeningMutationVariables, TContext> => {
+
+const mutationKey = getCompleteOpeningMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof completeOpening>>, CompleteOpeningMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  completeOpening(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CompleteOpeningMutationResult = NonNullable<Awaited<ReturnType<typeof completeOpening>>>
+    export type CompleteOpeningMutationBody = CompleteOpeningInput
+    export type CompleteOpeningMutationError = unknown
+    export type CompleteOpeningMutationVariables = {data: CompleteOpeningInput}
+
+    export const useCompleteOpening = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeOpening>>, TError,CompleteOpeningMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof completeOpening>>,
+        TError,
+        CompleteOpeningMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCompleteOpeningMutationOptions(options), queryClient);
     }
 
 export const getListImportRunsUrl = (params?: ListImportRunsParams,) => {

@@ -34,6 +34,7 @@ internal static partial class FinanceEndpoints
         MapPayables(finance.MapGroup("/payables"));
         MapSuppliers(finance.MapGroup("/suppliers"));
         MapRecurringExpenses(finance.MapGroup("/recurring-expenses"));
+        MapOpening(finance.MapGroup("/opening"));
         return api;
     }
 

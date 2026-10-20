@@ -20,6 +20,7 @@ internal sealed class ReceivableConfiguration : IEntityTypeConfiguration<Receiva
         b.Property(e => e.Status).HasConversion<string>().HasMaxLength(16);
         b.Property(e => e.Origin).HasConversion<string>().HasMaxLength(16);
         b.Property(e => e.CancelReason).HasMaxLength(200);
+        b.Property(e => e.OpeningReference).HasMaxLength(40);
         b.Ignore(e => e.Balance);
         b.Ignore(e => e.IsOpen);
         b.HasIndex(e => e.Number).IsUnique().HasDatabaseName(ReceivableService.NumberIndex);

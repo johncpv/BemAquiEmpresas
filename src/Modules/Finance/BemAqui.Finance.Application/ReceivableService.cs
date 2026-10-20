@@ -128,7 +128,7 @@ public sealed partial class ReceivableService(
         return receivables.Select(r => new ReceivableDetail(
             r.Id, r.Number, r.PartyId, names.GetValueOrDefault(r.PartyId, string.Empty), r.Description, r.AccountId, accounts.GetValueOrDefault(r.AccountId, string.Empty),
             r.CostCenterId, r.ProjectId, r.Amount, r.PaidAmount, r.Balance, r.Interest, r.Fine, r.Discount, r.IssueDate, r.DueDate, r.Status,
-            r.IsOverdue(today), r.IsDueToday(today), r.Origin, r.OriginId, r.InstallmentGroupId, r.CancelReason, r.CancelledAt, r.Version)).ToList();
+            r.IsOverdue(today), r.IsDueToday(today), r.Origin, r.OriginId, r.OpeningReference, r.InstallmentGroupId, r.CancelReason, r.CancelledAt, r.Version)).ToList();
     }
 
     private async Task NotifyOwnersAsync(string title, Guid receivableId, CancellationToken ct)

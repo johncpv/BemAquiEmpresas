@@ -37,6 +37,8 @@ export interface PayableDetail {
   /** @nullable */
   originId: string | null;
   /** @nullable */
+  openingReference: string | null;
+  /** @nullable */
   installmentGroupId: string | null;
   /** @nullable */
   competence: string | null;
