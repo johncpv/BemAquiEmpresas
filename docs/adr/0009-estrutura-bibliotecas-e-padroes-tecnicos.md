@@ -66,3 +66,5 @@
 - **Bibliotecas do front:** TanStack Query 5, TanStack Table 8 (a 9 tem outra API), React Hook Form, Zod 4 (mensagens em `pt`), sonner (toasts), Radix (Dialog, Popover, DropdownMenu, ToggleGroup) e cmdk.
 
 - Ver ADR 0016 (rota anônima `GET /api/v1/public/tenant-logo`, dados sensíveis por rota e auditoria sem dado pessoal), ADR 0017 (importação do Dolibarr) e ADR 0018 (LGPD).
+
+- Ver ADR 0021 (mensagens no topo do conteúdo, no lugar do toast) e ADR 0022 (geração de PDF com QuestPDF atrás do `IPdfRenderer`).

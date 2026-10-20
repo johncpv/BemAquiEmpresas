@@ -34,3 +34,13 @@
 - A FND-04 implementa as claims e o security stamp.
 
 - Ver ADR 0016 (seed patch: concessões acrescentadas pelo sistema aos grupos do seed, fora da delegação).
+
+## Adendo (20/10/2026, decisão D5 do PO na revisão pré-Fase 2): quem paga e quem aprova
+- **`finance.pay` para o Financeiro por seed patch.** O patch `finance-pay-financeiro` (ADR 0016) acrescenta `finance.pay` ao grupo Financeiro do seed (`seed_key = finance`), em todo tenant novo e nos existentes no próximo deploy. Entra com a FIN-03a, a primeira story que registra pagamento.
+  - O patch é aplicado pelo sistema, fora da regra de delegação, e não muda a regra: fora do seed, só um membro do Proprietário concede `finance.pay`.
+- **`finance.approve` continua só no Proprietário na Fase 2.** Quem aprova a ordem não é quem registra o pagamento.
+  - A FIN-03b (alçadas) vai para o fim da fase. A delegação da aprovação a outro grupo fica para quando a empresa tiver mais de um aprovador; até lá, a regra padrão "Proprietário aprova tudo" vale.
+  - O texto do protótipo "até R$ 5.000 o financeiro aprova" é só ilustrativo.
+- **2FA:** continua exigido no login de quem tem `*.approve` ou `*.pay` (FND-06c CA 12). A exigência de 2FA a cada ação (aprovar, pagar, estornar, transferir) foi adiada pelo PO (P-19 em `06-pendencias-riscos.md`).
+
+- Ver ADR 0019 (custo e margem com `quotes.view_cost` e `projects.view_cost`, que não são ações reservadas).

@@ -15,3 +15,5 @@
 | D8 | Navegação: o dock mostra as **7 áreas**. Cada área abre um menu (popover no desktop, sheet no celular) com os módulos. Sub-telas ficam em abas na topbar. Ctrl K abre a paleta de comandos. A identidade visual do protótipo é mantida. |
 | D9 | Requisitos do PRD passam a ter o prefixo `R-` (ex.: R-FIN-11). Cada story do backlog lista os requisitos que atende numa linha `Requisitos:`. |
 | D10 | Pendências registradas com prazo em `06-pendencias-riscos.md`. |
+
+- Ver ADR 0020 (D1 mantida: a troca de host acontece na GOL-01, agora como promoção do banco da homologação).

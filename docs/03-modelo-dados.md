@@ -2,6 +2,8 @@
 
 Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated_*`), `is_deleted` em cadastros. `→` indica FK. Nomes em inglês (código); descrição em português.
 
+Fase 2 (decisões do PO de 20/10/2026, revisão pré-Fase 2 e ADR 0019): cada tabela ou campo novo traz entre parênteses a story que o cria.
+
 ## catalog (banco de plataforma)
 - **tenants** (FND-02a): key (identificador curto, único), legal_name, trade_name, document, status (Provisioning/Active/Suspended), plan_id, db_name, connection_secret (cifrado, FND-11), created_at — auditado em `audit.audit_log` do catálogo
 - **tenant_domains** (FND-02a, ADR 0004): tenant_id, host (normalizado, **único**), is_primary, verified_at — o tenant é resolvido pelo host completo; o host da plataforma nunca entra aqui
@@ -21,7 +23,7 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 ## identity
 - **users** (FND-04a, ADR 0011): name, email, normalized_email (único), password_hash (PBKDF2 do Identity), security_stamp, status (Invited/Active/Inactive), access_failed_count, lockout_end, last_login_at, totp_enabled, totp_secret_cipher (cifrado, FND-05), totp_last_step (anti-replay); employee_id (CAD-04b: opcional, único, gravado só por `IUserEmployeeLink`)
 - **modules** (FND-06, seed do `ModuleCatalog`, igual em todos os tenants): code (`finance`, único), name, area (uma das 7 do dock), phase, order, description, approve_meaning
-- **module_actions** (FND-06, ADR 0003): module_code, action (único por módulo), label, description, is_standard. Ações padrão e específicas (snake_case) aplicáveis ao módulo
+- **module_actions** (FND-06, ADR 0003): module_code, action (único por módulo), label, description, is_standard. Ações padrão e específicas (snake_case) aplicáveis ao módulo. Específicas da Fase 2: `quotes.view_cost` e `projects.view_cost` (COM-01a, ADR 0019 §20), no seed do Comercial e do Financeiro por seed patch
 - **groups** (FND-06b): name (único entre ativos), description, is_system (Proprietário), is_active, requires_2fa, seed_key (grupos do seed: o seed não recria), created_at; auditada
 - **group_modules**: group_id, module_code, enabled
 - **group_permissions**: group_id, module_code, action (padrão ou específica do `ModuleCatalog`; único por grupo e módulo). Só vale se o módulo estiver habilitado no grupo; o Proprietário não grava linhas
@@ -33,7 +35,7 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 - **kiosk_tokens**: name, token_hash, scope (painel + filtros JSON), last_seen_at, revoked_at
 - **user_preferences** (FND-09a, ADR 0009): user_id, key (único por usuário: `theme`; `help:<chave>` para ajuda já vista, FND-14/ADR 0013), value, updated_at
 - **tenant_settings** (FND-05): key (única), value, updated_at, updated_by; auditada. Chaves: `security.require_2fa`; `payroll.charges_pct` (numeric(5,2), seed 80,00) e `pricing.mode` (`markup` | `margin`, seed `markup`) (CAD-06). A garantia padrão fica no Inventory (ADR 0016)
-- **seed_patches** (CAD-01a, ADR 0016): key (única), applied_at. Patches versionados que só acrescentam concessões aos grupos com `seed_key` e incrementam o `perm_version`
+- **seed_patches** (CAD-01a, ADR 0016): key (única), applied_at. Patches versionados que só acrescentam concessões aos grupos com `seed_key` e incrementam o `perm_version`. Fase 2: `finance-pay-financeiro` (FIN-03a, ADR 0008 adendo D5), `view-cost-default-permissions` (COM-01a), `installation-orders-permissions` (COM-06)
 - **ai_settings** (FND-15, ADR 0014): provider (`anthropic` | `gemini` | `openai`), model, api_key_cipher (cifrada com `SecretKind.AiApiKey`, nunca volta pela API), key_set_at, updated_at, updated_by; uma linha por tenant; auditada sem a chave
 - **ai_usage_logs** (FND-15): at, user_id, provider, model, input_tokens, output_tokens, duration_ms, outcome (`answered` | `no_citation` | `failed` | `test_ok` | `test_failed`)
 - **recovery_codes** (FND-05): user_id, code_hash (SHA-256), created_at, used_at. 10 por usuário, de uso único
@@ -45,13 +47,13 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 ## shared
 - **number_sequences** (schema `shared`, FND-07a): doc_type, year (0 = sem ano), last_value; único por (doc_type, year). Prefixo e dígitos vêm de `NumberFormats` (padrão de `04-fluxos` §4) mais as exceções de `number_formats`. "Próximo número" por `INSERT … ON CONFLICT DO UPDATE SET last_value = GREATEST(…)` (ADR 0016). Toda tabela de documento numerado tem índice único em `number`
 - **number_formats** (schema `shared`, CAD-06): doc_type (único), prefix (1–6, A–Z/0–9, único entre os tipos), yearly (bloqueado depois do primeiro número), digits (3–8), updated_at; auditada (quem mudou fica no `audit_log`); só as exceções ao padrão, gravadas pelo `INumberFormatAdmin`
-- **attachments** (schema `shared`, FND-07c): owner_type, owner_id, file_name (só exibição), content_type (detectado), size, sha256, storage_path (aleatório), scan_status (Pending/Clean/Infected/Failed), scanned_at, created_at, uploaded_by
+- **attachments** (schema `shared`, FND-07c): owner_type, owner_id, file_name (só exibição), content_type (detectado), size, sha256, storage_path (aleatório), scan_status (Pending/Clean/Infected/Failed), scanned_at, created_at, uploaded_by; origin (User/System, COM-03: arquivo gerado pelo sistema por `StoreGeneratedAsync`). Regras por dono (ação de leitura e de escrita, `OwnerExists`, tipos e tamanho) na ADR 0019 §7 (FIN-03a)
 - **audit_log** (schema `audit`, FND-07a): entity, entity_id, action (Created/Updated/Deleted e eventos de autenticação, até 64 caracteres), user_id, at, changes (jsonb, só campos alterados; `[PersonalData]` mascarado, `[ProtectedSecret]` só `changed`), ip, origin (MIG-01a: quem gravou sem usuário logado, ex.: "Importação Dolibarr · operador · execução"; também no catálogo). **Imutável**: trigger recusa UPDATE/DELETE/TRUNCATE. `action = "SensitiveRead"` registra leitura de dado sensível (CAD-04a, ADR 0016), visível só ao Proprietário
 - **purge_log** (schema `audit`, ADR 0016): at, migration, rows, reason — registro do expurgo controlado de dado pessoal que tenha chegado à auditoria (nasce com o primeiro expurgo)
 - **outbox_messages** (schema `shared`, FND-07b): id (v7), type, payload (jsonb), occurred_at, attempts, next_attempt_at, processed_at, dead_lettered_at, error, correlation_id
 - **inbox_messages** (schema `shared`, FND-07b): message_id, handler (PK composta), processed_at — entrega idempotente por handler
-- **notifications** (schema `shared`, FND-07c): user_id, type, title, link (obrigatório, rota relativa do app), created_at, read_at
-- **email_logs** (schema `shared`, FND-08): to (`[PersonalData]`), template, subject, model (jsonb), status (Queued/Sent/Failed/Skipped), attempts, error, related_type, related_id, created_at, sent_at
+- **notifications** (schema `shared`, FND-07c): user_id, type, title, link (obrigatório, rota relativa do app), created_at, read_at; dedup_key (FND-09e: texto anulável, único parcial em `(user_id, dedup_key)`, ADR 0019 §12)
+- **email_logs** (schema `shared`, FND-08): to (`[PersonalData]`), template, subject, model (jsonb), status (Queued/Sent/Failed/Skipped), attempts, error, related_type, related_id, created_at, sent_at; attachment_ids (uuid[]) e cc (até 3, `[PersonalData]`) (COM-03, ADR 0019 §7)
 
 ## parties
 - **parties** (CAD-01a): kind (PF/PJ), document (opcional; único parcial `WHERE NOT is_deleted AND document IS NOT NULL`; `[PersonalData]`), legal_name, trade_name, state_registration, municipal_registration, tax_regime, email, phone, notes, is_active (CAD-01a); default_payment_term_id (CAD-05b, só o id de `finance.payment_terms`); import_source (MIG-01b, ex.: `dolibarr:llx_societe:42`, gravado só pelo `IPartyImport`)
@@ -77,15 +79,20 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 - **payroll_tax_tables** (fase 7): type (INSS/IRRF/SalarioFamilia), valid_from, brackets (JSON)
 
 ## commercial
-- **quotes**: number, revision, party_id, contact_id, site_address_id, status (Draft/Sent/Approved/Rejected/Expired/Superseded), valid_until, delivery_days_promised, payment_term (JSON por marco), notes, total_cost, total_price, margin_pct, lost_reason, parent_quote_id (revisão anterior)
-- **quote_items**: quote_id, item_kind (Equipment/Product/Service), product_id (opcional), description, quantity, unit_cost, unit_price, routing_template_id
-- **quote_item_costs**: quote_item_id, cost_type (Material/Labor/Installation/Freight/Tax/Other), work_center_id, item_id, quantity, unit_cost, total
-- **contracts**: number, quote_id, party_id, signed_at, total_value, status (Active/Completed/Cancelled), snapshot (jsonb do orçamento aprovado), file (attachment)
-- **contract_milestones**: contract_id, sequence, description, percent, amount, trigger (Date/Event), trigger_event (Signature/FabricationDone/Delivered/TechnicalAcceptance), due_date, receivable_id
-- **contract_amendments**: contract_id, number, description, value_delta, days_delta, approved_at
-- **projects**: number, contract_id, party_id, name, site_address_id, promised_date, forecast_date, status (Planned/InProgress/Fabricated/Installing/Delivered/Closed/Cancelled), priority (int para fila), manager_user_id, warranty_until
+- **quotes** (COM-01a): number, revision, is_current, party_id, contact_id, site_address_id, status (Draft/Sent/Approved/Rejected/Expired/Superseded), valid_until (COM-01b), delivery_days_promised, notes, total_cost, total_price, margin_pct (numeric(9,4), nulo com preço 0), pricing_mode, sent_at, client_request_id; lost_reason, lost_detail, lost_at, lost_by, copied_from_quote_id (COM-01b); parent_quote_id (revisão anterior), expired_at (COM-02); approved_at, approved_by (COM-04a). Índices: único `(number, revision)` e único parcial `(number) WHERE is_current` (ADR 0016 adendo M7). O JSON `payment_term` foi substituído por `quote_milestones` (COM-01b)
+- **quote_items** (COM-01a): quote_id, sequence, item_kind (Equipment/Product/Service), product_id (opcional), description, quantity, unit_cost (numeric(18,6)), unit_price, markup_pct ou margin_pct, price_overridden, routing_template_id
+- **quote_item_costs** (COM-01a): quote_item_id, cost_type (`CostType` no SharedKernel: Material/Labor/Installation/Freight/Tax/Other), work_center_id, position_id (custo-hora do cargo), item_id, party_id (instalador, opcional), description, quantity, unit_cost (numeric(18,6)), total (arredondado na linha). Custo, composição e margem só saem com `quotes.view_cost`
+- **quote_milestones** (COM-01b): quote_id, sequence, description, percent (numeric(7,4), > 0 e ≤ 100), amount (pelo `PaymentTermSplitter`), trigger (`MilestoneTrigger`: Date/Event), trigger_event (`TriggerEvent`), due_date, days_after_event
+- **quote_dispatches** (COM-03): quote_id, email_log_id, attachment_id, to e cc (`[PersonalData]`), sent_by, client_request_id, created_at — limite de 50 envios por dia por tenant
+- **parameters** (schema `commercial`, COM-01a, ADR 0016 adendo M6): key (única), value, updated_at, updated_by; auditada. Chaves: `pricing.default_pct` (seed vazio), `quotes.validity_days` (seed 15, COM-01b)
+- **contracts** (COM-04a): number, quote_id (único), party_id, signed_at (date, editável na aprovação, ≤ hoje), total_value, revenue_account_id (conta de receita das parcelas, validada na aprovação), status (Active/Completed/Cancelled), snapshot (jsonb do orçamento aprovado, sem dado pessoal, `[AuditOnCreateOnly]`); o arquivo do contrato assinado é anexo `Contract` em `shared.attachments`; cancel_reason, cancelled_at, cancelled_by, completed_at (COM-04b); is_onboarding (COM-04c)
+- **contract_milestones** (COM-04a): contract_id, sequence, description, percent, amount, trigger (Date/Event), trigger_event (Signature/FabricationDone/Delivered/TechnicalAcceptance), due_date, days_after_event; received_before_onboarding (COM-04c). Sem `receivable_id`: o recebível aponta para o marco (`receivables.origin_id`) e o Commercial lê por `IReceivables` (COM-04b)
+- **contract_amendments** (COM-07): contract_id, number (único em `(contract_id, number)`), description, value_delta, days_delta, status (Draft/PendingApproval/Approved/Rejected), budget_deltas (jsonb por natureza), approved_at, approved_by, self_approved, rejection_comment, client_request_id
+- **contract_amendment_milestones** (COM-07): amendment_id e o mesmo formato de `contract_milestones`
+- **contract_amendment_reductions** (COM-07): amendment_id, receivable_id, new_amount (revalidado no servidor e no consumidor)
+- **projects** (COM-04a): number, contract_id, party_id, name, site_address_id, promised_date, forecast_date, status (Planned/InProgress/Fabricated/Installing/Delivered/Closed/Cancelled), priority (int para fila), manager_user_id, warranty_until; fabricated_on, delivered_on, delivered_manually, closed_at (COM-04b)
 - **project_items**: project_id, quote_item_id, description, quantity, product_id, routing_template_id
-- **project_budget**: project_id, cost_type, budgeted_amount (do contrato) — base do orçado × realizado
+- **project_budget** (COM-04a): project_id, cost_type, budgeted_amount (do contrato, distribuído pelo maior resto; ajustado por aditivo, COM-07) — base do orçado × realizado; só sai com `projects.view_cost`
 - **project_costs** (view/tabela materializada): project_id, cost_type, source (StockIssue/Labor/Purchase/Payable/Payroll), source_id, amount, date
 
 ## engineering
@@ -98,8 +105,9 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 - **work_centers** (CAD-03): name, line, hours_per_day (numeric(5,2), derivado dos turnos), shifts (jsonb `[{start,end}]` em "HH:mm", sem turno que vira o dia nem sobreposição), calendar_id, is_active, created_at (antes dela a capacidade é 0); soft delete; nome único sem diferenciar maiúsculas
 - **calendars** (CAD-03): name, is_default (um padrão por tenant no MVP), working_days (jsonb com os nomes dos dias, ex.: `["Monday", …]`, enum `Weekday`)
 - **calendar_exceptions** (CAD-03): calendar_id, date (único por calendário), type (Holiday/Stoppage), hours_available (numeric(5,2), 0 a 24), description; entidade `CalendarExceptionDay` (o analisador proíbe tipo terminado em Exception); excluída de verdade, com auditoria
-- **production_orders**: number, type (Fabrication/Installation/Maintenance), project_id, project_item_id, product_id, quantity, status (Open/InProgress/Paused/Quality/Completed/Cancelled), priority, planned_start, planned_end, actual_start, actual_end, executor_party_id (instalação terceirizada), serial_numbers
-- **production_order_steps**: order_id, sequence, name, work_center_id, standard_hours, status (Waiting/Ready/InProgress/Paused/Done/Rejected), planned_start, planned_end, actual_start, actual_end, checklist_result (JSON)
+- **production_orders**: number, type (Fabrication/Installation/Maintenance), project_id, project_item_id, product_id, quantity, status (Open/InProgress/Paused/Quality/Completed/Cancelled), priority, planned_start, planned_end, actual_start, actual_end, executor_party_id (instalação terceirizada), serial_numbers. Criada na COM-06 para o tipo Installation, com contract_value, accepted_on, accepted_by_name (`[PersonalData]`), cancel_reason
+- **production_order_project_items** (COM-06): production_order_id, project_item_id (um item em no máximo uma OS de instalação não cancelada)
+- **production_order_steps** (COM-06): order_id, sequence, name, work_center_id (nulo na instalação), standard_hours, status (Waiting/Ready/InProgress/Paused/Done/Rejected), planned_start, planned_end, actual_start, actual_end, checklist_result (JSON com usuário e data por item)
 - **labor_entries**: order_step_id, employee_id, started_at, ended_at, paused_minutes, hourly_cost_snapshot, cost, notes
 - **step_pauses**: labor_entry_id, reason (Material/Machine/Break/Other), started_at, ended_at
 - **non_conformities**: number, order_id, order_step_id, description, cause, action, responsible_user_id, return_to_step_id, status (Open/InAction/Closed), cost
@@ -135,16 +143,25 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 - **cost_centers** (CAD-05a): code, name, parent_id, is_active, seed_key
 - **bank_accounts** (CAD-05b): name, type (Bank/Cash), bank_code, agency, account, opening_balance (numeric(18,2), anulável), opening_date (date, anulável, junto com o saldo), is_active, is_default (único entre as ativas); import_source (MIG-01b, entra sem saldo); provider (Inter/OFX/None) e credentials_secret entram na BNK-01
 - **payment_terms** (CAD-05b, dono Finance, ADR 0016): name, installments (jsonb: dias e percentual numeric(7,4), soma 100), is_active, seed_key (seed À vista, 30, 30/60 e 30/60/90 dias); import_source (MIG-01b). Exposta por `IPaymentTerms` em `Finance.Contracts`
-- **receivables**: number, party_id, project_id, contract_milestone_id, account_id, cost_center_id, description, issue_date, due_date, amount, interest, fine, discount, paid_amount, status (Planned/Open/PartiallyPaid/Paid/Overdue/Cancelled), billing_slip_id
-- **payables**: number, party_id, project_id, account_id, cost_center_id, origin (Purchase/Payroll/Installer/Recurring/Manual), origin_id, description, due_date, amount, paid_amount, status (Planned/Open/AwaitingApproval/Approved/Paid/Cancelled)
-- **payment_orders**: number, payable_ids, total, requested_by, status (Pending/Approved/Rejected/Paid/Cancelled), approval_rule_id, scheduled_date
-- **payment_order_approvals**: payment_order_id, approver_user_id, level, decision, comment, at
-- **approval_rules**: document_type (PaymentOrder/PurchaseOrder), min_amount, max_amount, account_id (opcional), approver_role_id/user_id, level
-- **recurring_expenses**: description, party_id, account_id, cost_center_id, amount, day_of_month, start, end, last_generated
-- **financial_transactions**: bank_account_id, date, amount (com sinal), type (Receipt/Payment/Transfer/Fee/Interest), receivable_id, payable_id, payment_order_id, reconciled, statement_line_id
+- **receivables** (FIN-01): number, party_id, project_id (campo visível a partir da COM-04a), account_id (plano de contas), cost_center_id, description, issue_date, due_date (anulável em `Planned`), amount, interest, fine, discount, paid_amount (= Σ principal das baixas não estornadas), status (Planned/Open/PartiallyPaid/Paid/Cancelled; "Vencido" calculado, nunca gravado), origin (`DocumentOrigin`: Manual/Opening/Contract), origin_id (o marco do contrato, no lugar de `contract_milestone_id`), installment_group_id, cancel_reason, cancelled_at, cancelled_by, client_request_id; trigger_event, days_after_event (COM-04b); opening_reference (FIN-00); billing_slip_id (BNK-01). Índice parcial `(status, due_date)`; `(origin, origin_id)` único
+- **receivable_settlements** (FIN-01): receivable_id, bank_account_id (nulo na quitação com desconto), date, principal, interest, fine, discount, total, kind (Settlement/DiscountWriteOff), backdate_reason, transaction_id, reversed_at, reversed_by, reversal_reason, reversal_transaction_id — imutável, exceto o estorno
+- **payables** (FIN-02): number, party_id, account_id, cost_center_id, origin (`DocumentOrigin`: Manual/Opening/Recurring/Installer/Purchase/Payroll/Maintenance), origin_id, description, issue_date, due_date (anulável em `Planned`), is_estimate (data estimada, COM-06), amount, retention_iss, retention_inss, retention_ir, retention_pcc (≥ 0), paid_amount (contra o líquido), status (Planned/Open/AwaitingApproval/Approved/PartiallyPaid/Paid/Cancelled), payment_method (Pix/Boleto/Ted/Other), payment_details (jsonb, `[PersonalData]`), payment_method_changed_at, recurring_expense_id, competence, installment_group_id, cancel_reason, cancelled_at, cancelled_by, client_request_id; project_id e cost_type (`CostType`, obrigatório com projeto) na COM-04a; opening_reference (FIN-00). Travado em OP não finalizada (409 `payable_in_payment_order`)
+- **payable_settlements** (FIN-03a): payable_id, payment_order_id, bank_account_id, date, principal, interest, fine, discount, total, backdate_reason, transaction_id, colunas de estorno
+- **payment_orders** (FIN-03a): number, total (= Σ approved_total dos itens), requested_by, status (Pending/Approved/Rejected/Paid/Cancelled/Reversed), approval_rule_id (nulo na regra padrão), scheduled_date, submitted_at, self_approved, cancel_reason, reversed_at, reversal_reason, client_request_id. Sem `payable_ids`: junção em `payment_order_items`
+- **payment_order_items** (FIN-03a): payment_order_id, payable_id, amount (principal a pagar), expected_charges, approved_total, payee_snapshot (jsonb do envio: fornecedor, líquido, forma de pagamento; `[PersonalData]`)
+- **payment_order_levels** (FIN-03b): payment_order_id, level, approval_rule_id, reference_amount, split_warning, status
+- **payment_order_approvals** (FIN-03a): payment_order_id, approver_user_id, level, decision, kind (Decision/Resubmission), comment, at
+- **approval_rules** (FIN-03b): document_type (PaymentOrder/PurchaseOrder), min_amount, max_amount (obrigatório quando há conta), account_id (opcional), approver_group_id ou approver_user_id (exatamente um), level (1–3), is_active, seed_key; `EXCLUDE USING gist` contra faixas sobrepostas no mesmo nível e conta
+- **recurring_expenses** (FIN-02): description, party_id, account_id, cost_center_id, amount, day_of_month, start, end (anulável), lead_days (padrão 10), is_active, payment_method, payment_details, last_generated; título único por `(recurring_expense_id, competence)`
+- **financial_transactions** (FIN-01): bank_account_id, date, amount (com sinal), type (Receipt/Payment/Transfer/BankEntry; Fee e Interest viram o `kind` de `bank_entries`), receivable_id, payable_id, payment_order_id, settlement_id, reverses_transaction_id, created_at, created_by; transfer_id e bank_entry_id (FIN-04); reconciled e statement_line_id (BNK-03) — imutável; índice `(bank_account_id, date)`
+- **bank_transfers** (FIN-04): from_account_id, to_account_id, amount, date, description, backdate_reason, reversed_at, reversal_reason, client_request_id
+- **bank_entries** (FIN-04, lançamento sem OP): bank_account_id, kind (BankFee/Iof/InterestPaid/InterestReceived/Yield/Other), date, amount (com sinal), account_id (plano, obrigatório), cost_center_id, reason (obrigatório), backdate_reason, transaction_id, reversed_at, reversal_reason, client_request_id
+- **opening_batches** (FIN-00): kind (Receivables/Payables), count, total, created_by, client_request_id
+- **project_trigger_events** (COM-04b, ADR 0019 §1): project_id, event, occurred_on, message_id, received_at; único em `(project_id, event)`
+- **parameters** (schema `finance`, FIN-01, ADR 0016 adendo M6): key (única), value, updated_at, updated_by; auditada. Chaves: `finance.discount_approval_pct` (5,00), `finance.discount_approval_amount` (500,00), `finance.cancel_approval_amount` (1.000,00), `finance.backdate_days` (7), `finance.late_fine_pct` e `finance.late_interest_month_pct` (sem seed) (FIN-01); `finance.cutover_date`, `finance.cutover_completed_at` (FIN-00); `finance.owner_can_approve_own` (false), `finance.payment_tolerance` (0,00) (FIN-03a); `finance.transfer_notify_amount` (10.000,00) (FIN-04)
 - **billing_slips** (boletos): receivable_id, provider, our_number, barcode, digitable_line, pix_copy_paste, qr_code, pdf_path, status (Issued/Paid/Cancelled/Expired), paid_at, paid_amount, provider_payload
 - **bank_statement_lines**: bank_account_id, date, amount, description, external_id, source (API/OFX), matched_transaction_id
-- **customer_payment_stats** (view): party_id, avg_delay_days, pct_overdue, last_12m_invoiced
+- **customer_payment_stats** (view, FIN-06b): party_id, avg_delay_days, pct_overdue, pct_paid_late, last_12m_invoiced — sem os títulos de origem `Opening`. Os títulos `Opening` também ficam fora do DRE por competência (FIN-08)
 
 ## fiscal
 - **fiscal_settings**: regime, ie, cnae, certificate_secret, certificate_expiry, environment, nfe_series, next_number
@@ -168,9 +185,9 @@ Campos-base omitidos em todas as tabelas: `id`, auditoria (`created_*`, `updated
 
 ## Relacionamentos-chave
 - quote 1—N quote_items 1—N quote_item_costs · quote 1—0..1 contract (a revisão aprovada)
-- contract 1—N contract_milestones 1—1 receivable · contract 1—1 project
+- contract 1—N contract_milestones 1—0..1 receivable (por `receivables.origin_id`; o marco "recebido antes da implantação" não tem título) · contract 1—1 project · contract 1—N contract_amendments
 - project 1—N project_items 1—N production_orders (Fabrication) · project 1—N production_orders (Installation)
 - production_order 1—N production_order_steps 1—N labor_entries · production_order 1—N boms (revisões) 1—N bom_lines 1—1 reservation
 - stock_movements referenciam a origem (source_type/source_id) e o projeto → base do custo realizado
 - purchase_order → goods_receipt → stock_movements (Receipt) + payable
-- payables N—1 payment_order (uma OP pode agrupar vários títulos) → financial_transactions
+- payables N—N payment_orders por `payment_order_items` (um título em no máximo uma OP não finalizada) → payable_settlements → financial_transactions
