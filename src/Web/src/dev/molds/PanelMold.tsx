@@ -8,7 +8,7 @@ import { inputClass } from '@/components/form/form-utils'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { SidePanel } from '@/components/ui/side-panel'
 import { StatusChip } from '@/components/ui/status-chip'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { PageHeading } from '@/shell/PageHeading'
 import { MoldNav } from './MoldNav'
 import { type Unit, UNITS } from './sample'
@@ -38,7 +38,7 @@ export default function PanelMold() {
     if (invalid.code || invalid.name) return false
     setUnits((list) => (draft.id ? list.map((u) => (u.id === draft.id ? draft : u)) : [...list, { ...draft, id: draft.code.toLowerCase() }]))
     setEditing(null)
-    toastDone('Unidade salva')
+    notifySuccess('Unidade salva')
     return true
   }
 

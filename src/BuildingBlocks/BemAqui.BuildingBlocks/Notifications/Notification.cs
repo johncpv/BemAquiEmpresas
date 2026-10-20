@@ -17,4 +17,7 @@ public sealed class Notification
     public DateTimeOffset CreatedAt { get; init; }
 
     public DateTimeOffset? ReadAt { get; set; }
+
+    /// <summary>Chave de deduplicação (FND-09e CA 16): a mesma chave para o mesmo usuário grava uma vez só.</summary>
+    public string? DedupKey { get; init; }
 }

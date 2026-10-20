@@ -3,6 +3,8 @@ import { ChipGroup, ToggleGroup } from '@/components/form/choice'
 import { Field } from '@/components/form/form'
 import { CboInput, CepInput, DateInput, DocumentInput, MoneyInput, NcmInput, PercentInput, PhoneInput, QuantityInput, TimeInput } from '@/components/form/inputs'
 import { RowsEditor } from '@/components/form/rows-editor'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { DialogMessage } from '@/components/ui/dialog-message'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Tag } from '@/components/ui/tag'
 import { TreeTable } from '@/components/ui/tree-table'
@@ -28,6 +30,7 @@ export default function ComponentsMold() {
   const [time, setTime] = useState('08:00')
   const [mode, setMode] = useState<'markup' | 'margem'>('markup')
   const [roles, setRoles] = useState<string[]>([])
+  const [paid, setPaid] = useState('')
   const [rows, setRows] = useState<Installment[]>([{ days: '30', percent: '33.3333' }, { days: '60', percent: '33.3333' }, { days: '90', percent: '33.3334' }])
   const total = sumDecimal(rows.map((r) => r.percent), 4)
   const exact = compareDecimal(total, '100') === 0
@@ -76,6 +79,16 @@ export default function ComponentsMold() {
               <input key="d" aria-label={`Dias da parcela ${i + 1}`} inputMode="numeric" value={row.days} onChange={(e) => update({ days: e.target.value.replace(/\D/g, '') })} className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm tabular-nums" />,
               <PercentInput key="p" aria-label={`Percentual da parcela ${i + 1}`} scale={4} value={row.percent} onChange={(v) => update({ percent: v })} />,
             ]} />
+        </section>
+
+        <section aria-labelledby="c-baixa" className="space-y-3 rounded-md border border-border bg-card p-4">
+          <h2 id="c-baixa" className="font-semibold">Ação com efeito financeiro (FND-09e): diálogo grande</h2>
+          <ConfirmDialog size="lg" verb="Dar baixa" done="Baixa registrada" title="Dar baixa no título REC-2026-0001" description="Recebimento de Kappa Ltda." onOpen={() => setPaid('')}
+            impact={<dl className="grid grid-cols-2 gap-1"><dt>Saldo do título</dt><dd className="text-right">R$ 1.500,00</dd><dt>Conta</dt><dd className="text-right">Inter PJ</dd><dt>Saldo da conta depois</dt><dd className="text-right">R$ 11.500,00</dd></dl>}
+            onConfirm={async () => { if (!paid) throw new DialogMessage('Informe o valor recebido.') }}
+            trigger={<button type="button" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Dar baixa</button>}>
+            <Field label="Valor recebido" required>{(p) => <MoneyInput {...p} value={paid || null} onChange={(v) => setPaid(v ?? '')} />}</Field>
+          </ConfirmDialog>
         </section>
 
         <section aria-labelledby="c-arvore" className="space-y-3">

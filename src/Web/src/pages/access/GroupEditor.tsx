@@ -8,7 +8,7 @@ import { inputClass } from '@/components/form/form-utils'
 import { UnsavedChangesGuard } from '@/components/form/UnsavedChangesGuard'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { StatusChip } from '@/components/ui/status-chip'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { Can } from '@/pages/ModuleGate'
 import type { MatrixRow } from './group-matrix'
 import { GroupMatrixTable } from './GroupMatrixTable'
@@ -17,7 +17,7 @@ import { GroupMembersDialog } from './GroupMembersDialog'
 const initialMatrix = (detail: GroupDetail) =>
   Object.fromEntries(detail.modules.map((m) => [m.code, { enabled: m.enabled, actions: [...m.actions] }])) as Record<string, MatrixRow>
 
-/** Detalhe do grupo (FND-06b): nome, 2FA, membros e matriz; "Salvar grupo" com o toast de quantos usuários recebem. */
+/** Detalhe do grupo (FND-06b): nome, 2FA, membros e matriz; "Salvar grupo" com a mensagem de quantos usuários recebem. */
 export function GroupEditor({ detail, onSelect }: { detail: GroupDetail; onSelect: (id: string) => void }) {
   const client = useQueryClient()
   const g = detail.group
@@ -40,7 +40,7 @@ export function GroupEditor({ detail, onSelect }: { detail: GroupDetail; onSelec
       const modules = Object.entries(matrix).filter(([, r]) => r.enabled).map(([moduleCode, r]) => ({ moduleCode, enabled: true, actions: r.actions }))
       const saved = await updateGroup(g.id, { name, description, requiresTwoFactor: requires2fa, modules })
       await refresh()
-      toastDone(`Grupo ${name} salvo. ${saved.affectedUsers} ${saved.affectedUsers === 1 ? 'usuário recebe' : 'usuários recebem'} as novas permissões no próximo acesso.`)
+      notifySuccess(`Grupo ${name} salvo. ${saved.affectedUsers} ${saved.affectedUsers === 1 ? 'usuário recebe' : 'usuários recebem'} as novas permissões no próximo acesso.`)
       return true
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Não foi possível salvar o grupo.')
@@ -76,7 +76,7 @@ export function GroupEditor({ detail, onSelect }: { detail: GroupDetail; onSelec
         <div className="flex flex-wrap gap-2">
           <Can perm="identity.edit"><GroupMembersDialog groupId={g.id} groupName={g.name} current={detail.members.map((m) => m.userId)} onSaved={refresh} /></Can>
           <Can perm="identity.create">
-            {!g.isSystem ? <button type="button" onClick={async () => { const copy = await duplicateGroup(g.id); await refresh(); onSelect(copy.id); toastDone('Grupo duplicado') }} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Duplicar</button> : null}
+            {!g.isSystem ? <button type="button" onClick={async () => { const copy = await duplicateGroup(g.id); await refresh(); onSelect(copy.id); notifySuccess('Grupo duplicado') }} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Duplicar</button> : null}
           </Can>
           <Can perm="identity.edit">
             {!readOnly ? (

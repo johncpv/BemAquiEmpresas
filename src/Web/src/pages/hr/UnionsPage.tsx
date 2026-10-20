@@ -9,7 +9,7 @@ import { CnpjInput } from '@/components/form/inputs'
 import { SidePanel } from '@/components/ui/side-panel'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { cnpjMask } from '@/lib/masks'
 import { Can } from '@/pages/ModuleGate'
 import { useCan } from '@/pages/use-can'
@@ -60,7 +60,7 @@ function UnionPanel({ union, onClose, onSaved }: { union: UnionDetail | null; on
       const input = { ...draft, document: draft.document || null }
       if (union) await updateUnion(union.id, input)
       else await createUnion(input)
-      toastDone('Sindicato salvo')
+      notifySuccess('Sindicato salvo')
       onSaved()
       return true
     } catch (e) {
@@ -74,7 +74,7 @@ function UnionPanel({ union, onClose, onSaved }: { union: UnionDetail | null; on
         <>
           {union ? (
             <Can perm="hr.edit">
-              <button type="button" onClick={async () => { if (union.isActive) await inactivateUnion(union.id); else await reactivateUnion(union.id); toastDone(union.isActive ? 'Inativado' : 'Reativado'); onSaved() }} className="mr-auto rounded-md border border-border px-3 py-2 text-sm font-semibold">{union.isActive ? 'Inativar' : 'Reativar'}</button>
+              <button type="button" onClick={async () => { if (union.isActive) await inactivateUnion(union.id); else await reactivateUnion(union.id); notifySuccess(union.isActive ? 'Inativado' : 'Reativado'); onSaved() }} className="mr-auto rounded-md border border-border px-3 py-2 text-sm font-semibold">{union.isActive ? 'Inativar' : 'Reativar'}</button>
             </Can>
           ) : null}
           <button type="button" onClick={onClose} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Voltar</button>

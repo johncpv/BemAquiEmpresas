@@ -1,5 +1,6 @@
 import { Link, Outlet, useNavigate } from '@tanstack/react-router'
 import { platformLogout } from '@/api/generated/bemaqui'
+import { MessageRegion } from '@/components/ui/message-region'
 import { ThemeToggle } from '@/theme/ThemeToggle'
 
 /** Superfície Plataforma (FND-13/03b): layout próprio, sem o dock do tenant. */
@@ -24,6 +25,7 @@ export function PlatformLayout() {
         </div>
       </header>
       <main id="conteudo" className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+        <MessageRegion />
         <Outlet />
       </main>
     </div>

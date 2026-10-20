@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { useGetTenantPublicContext } from '@/api/generated/bemaqui'
 import { TenantMark } from '@/shell/TenantMark'
 import { ThemeToggle } from '@/theme/ThemeToggle'
+import { MessageRegion } from '@/components/ui/message-region'
 
 /** Telas sem dock (FND-04): marca do tenant (rota pública de contexto, ADR 0009) e o conteúdo num cartão. */
 export function AuthLayout({ title, children }: { title: string; children: ReactNode }) {
@@ -13,6 +14,7 @@ export function AuthLayout({ title, children }: { title: string; children: React
         <TenantMark name={name} logoUrl={tenant.data?.logoUrl} />
         <b className="font-display text-[15px] font-bold font-wider">{name}</b>
       </div>
+      <div className="w-full max-w-sm"><MessageRegion /></div>
       <main id="conteudo" className="w-full max-w-sm rounded-md border border-border bg-card p-6 shadow-sm">
         <h1 className="mb-4 text-[22px] font-bold">{title}</h1>
         {children}

@@ -6,7 +6,7 @@ import { ApiError } from '@/api/http'
 import { FormError } from '@/components/form/form'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 
 /** Aba "Módulos" do tenant (FND-06 CA 5 a 8): liberar ou bloquear sem deploy; o que difere do plano vira exceção. */
 export function TenantModulesTab({ tenantId }: { tenantId: string }) {
@@ -24,7 +24,7 @@ export function TenantModulesTab({ tenantId }: { tenantId: string }) {
       await saveTenantModules(tenantId, { modules: Object.entries(changes).map(([code, released]) => ({ code, released })) })
       setChanges({})
       await client.invalidateQueries({ queryKey: getGetTenantModulesQueryKey(tenantId) })
-      toastDone('Liberação salva. Vale no próximo acesso dos usuários.')
+      notifySuccess('Liberação salva. Vale no próximo acesso dos usuários.')
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Não foi possível salvar a liberação.')
     }

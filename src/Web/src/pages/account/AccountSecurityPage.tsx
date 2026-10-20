@@ -6,7 +6,7 @@ import { Field, FormError } from '@/components/form/form'
 import { applyServerErrors, inputClass, useZodForm } from '@/components/form/form-utils'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { z } from '@/lib/zod'
 import { PageHeading } from '@/shell/PageHeading'
 
@@ -23,7 +23,7 @@ export function AccountSecurityPage() {
     try {
       setAccessToken((await disableTwoFactor(values)).accessToken)
       form.reset()
-      toastDone('Verificação desativada')
+      notifySuccess('Verificação desativada')
       await status.refetch()
     } catch (e) {
       applyServerErrors(form, e)
@@ -59,7 +59,7 @@ export function AccountSecurityPage() {
         </section>
       ) : activating ? (
         <section className="max-w-md rounded-md border border-border bg-card p-5">
-          <TwoFactorSetup api={profileApi} onActivated={(token) => setAccessToken(token)} onDone={() => { setActivating(false); toastDone('Verificação ativada'); void status.refetch() }} />
+          <TwoFactorSetup api={profileApi} onActivated={(token) => setAccessToken(token)} onDone={() => { setActivating(false); notifySuccess('Verificação ativada'); void status.refetch() }} />
         </section>
       ) : (
         <section className="max-w-md space-y-3 rounded-md border border-border bg-card p-5">

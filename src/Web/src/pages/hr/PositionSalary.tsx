@@ -5,7 +5,7 @@ import { ApiError } from '@/api/http'
 import { Field, FormError, FormSection } from '@/components/form/form'
 import { MoneyInput } from '@/components/form/inputs'
 import { Skeleton } from '@/components/ui/states'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { Dica } from '@/help/Dica'
 import { formatMoney } from '@/lib/format'
 import { useCan } from '@/pages/use-can'
@@ -47,7 +47,7 @@ function SalaryForm({ position, current, chargesPct, onSaved }: { position: Posi
   const save = async () => {
     try {
       const saved = await updatePositionSalary(position.id, { salaryMin: num(min), salaryMax: num(max), referenceSalary: touched ? num(reference) : null })
-      toastDone('Faixa salarial salva')
+      notifySuccess('Faixa salarial salva')
       onSaved(saved)
     } catch (e) {
       setError(e instanceof ApiError ? { message: e.message, fields: e.fields } : { message: 'Não foi possível salvar a faixa salarial.', fields: {} })

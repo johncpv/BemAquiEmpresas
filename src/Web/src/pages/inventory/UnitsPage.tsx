@@ -9,7 +9,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { SidePanel } from '@/components/ui/side-panel'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { Can } from '@/pages/ModuleGate'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
@@ -65,7 +65,7 @@ function UnitPanel({ unit, onClose, onSaved }: { unit: UnitDetail | null; onClos
     try {
       if (unit) await updateUnit(unit.id, draft)
       else await createUnit(draft)
-      toastDone('Unidade salva')
+      notifySuccess('Unidade salva')
       onSaved()
       return true
     } catch (e) {
@@ -83,7 +83,7 @@ function UnitPanel({ unit, onClose, onSaved }: { unit: UnitDetail | null; onClos
                 {unit.isActive ? (
                   <ConfirmDialog verb="Inativar" done="Unidade inativada" title={`Inativar a unidade ${unit.code}?`} description="Ela some dos seletores. Unidade em uso por item não pode ser inativada."
                     onConfirm={async () => { await inactivateUnit(unit.id); onSaved() }} trigger={<button type="button" className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Inativar unidade</button>} />
-                ) : <button type="button" onClick={async () => { await reactivateUnit(unit.id); toastDone('Unidade reativada'); onSaved() }} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Reativar</button>}
+                ) : <button type="button" onClick={async () => { await reactivateUnit(unit.id); notifySuccess('Unidade reativada'); onSaved() }} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Reativar</button>}
               </Can>
               <Can perm="inventory.delete">
                 <ConfirmDialog verb="Excluir" done="Unidade excluída" destructive title={`Excluir a unidade ${unit.code}?`} description="Só dá para excluir unidade que nenhum item usa."

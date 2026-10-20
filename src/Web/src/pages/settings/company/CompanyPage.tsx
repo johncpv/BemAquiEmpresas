@@ -7,7 +7,7 @@ import { applyServerErrors, inputClass, useZodForm } from '@/components/form/for
 import { CepInput, PhoneInput } from '@/components/form/inputs'
 import { UnsavedChangesGuard } from '@/components/form/UnsavedChangesGuard'
 import { ErrorState, Skeleton } from '@/components/ui/states'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { cnpjMask } from '@/lib/masks'
 import { STATES } from '@/pages/parties/labels'
 import { emptyOnly, useCepLookup } from '@/pages/parties/lookups'
@@ -51,7 +51,7 @@ function CompanyForm({ profile, canEdit }: { profile: CompanyProfileDto; canEdit
       form.reset(toValues(saved))
       client.setQueryData(getGetCompanyProfileQueryKey(), saved)
       await client.invalidateQueries({ queryKey: getGetTenantPublicContextQueryKey() })
-      toastDone('Dados da empresa salvos')
+      notifySuccess('Dados da empresa salvos')
     } catch (e) {
       applyServerErrors(form, e)
     }

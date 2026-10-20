@@ -1,6 +1,5 @@
 import { QueryClientProvider, useQueryClient } from '@tanstack/react-query'
 import { type ReactNode, useEffect, useMemo, useSyncExternalStore } from 'react'
-import { Toaster } from 'sonner'
 import { getGetMyPermissionsQueryKey, refreshSession, saveMyPreferences, useGetMyPreferences } from '@/api/generated/bemaqui'
 import { apiNotificationsSource } from '@/api/notifications-source'
 import { queryClient } from '@/api/query-client'
@@ -40,7 +39,6 @@ export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <SessionBridge>{children}</SessionBridge>
-      <Toaster position="bottom-center" offset={96} richColors={false} toastOptions={{ className: 'bg-popover text-popover-foreground border border-border' }} />
     </QueryClientProvider>
   )
 }

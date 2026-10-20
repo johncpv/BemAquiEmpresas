@@ -6,7 +6,7 @@ import { ApiError } from '@/api/http'
 import { FormError } from '@/components/form/form'
 import { UnsavedChangesGuard } from '@/components/form/UnsavedChangesGuard'
 import { ErrorState, Skeleton } from '@/components/ui/states'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { PageHeading } from '@/shell/PageHeading'
 import { draftErrors, emptyDraft, fromItem, type ItemDraft, toInput } from './item-draft'
 import { ItemFields } from './ItemFields'
@@ -38,7 +38,7 @@ function NewItemForm({ source }: { source?: ItemDetail }) {
     if (Object.keys(local).length) return false
     try {
       const saved = await createItem(toInput(draft))
-      toastDone('Item salvo')
+      notifySuccess('Item salvo')
       await navigate({ to: '/app/estoque/itens/$id', params: { id: saved.id }, search: { novo: '1' }, ignoreBlocker: true } as never)
       return true
     } catch (e) {

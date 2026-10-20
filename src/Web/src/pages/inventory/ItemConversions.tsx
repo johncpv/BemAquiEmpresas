@@ -10,7 +10,7 @@ import { RecordHistory } from '@/components/history/RecordHistory'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { SidePanel } from '@/components/ui/side-panel'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 
 const qty = (n: number) => new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 6 }).format(n)
 const round4 = (n: number) => new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(Math.round(n * 10000) / 10000)
@@ -83,7 +83,7 @@ function ConversionPanel({ item, conversion, canEdit, onClose, onSaved }: { item
     try {
       if (conversion) await updateItemConversion(item.id, conversion.id, input)
       else await createItemConversion(item.id, input)
-      toastDone('Conversão salva')
+      notifySuccess('Conversão salva')
       onSaved()
       return true
     } catch (e) {

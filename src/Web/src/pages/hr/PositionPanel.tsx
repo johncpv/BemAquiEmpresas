@@ -8,7 +8,7 @@ import { inputClass } from '@/components/form/form-utils'
 import { CboInput, DecimalInput } from '@/components/form/inputs'
 import { RecordHistory } from '@/components/history/RecordHistory'
 import { SidePanel } from '@/components/ui/side-panel'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { useCan } from '@/pages/use-can'
 import { DICAS } from './hr'
 import { PositionActions } from './PositionActions'
@@ -44,7 +44,7 @@ export function PositionPanel({ position, chargesPct, onClose, onSaved }: { posi
     const input = { name: draft.name.trim(), cbo: draft.cbo || null, defaultWorkCenterId: draft.centerId || null, workScheduleId: draft.scheduleId || null, monthlyHours: draft.monthlyHours ? Number(draft.monthlyHours) : null }
     try {
       const saved = current ? await updatePosition(current.id, input) : await createPosition(input)
-      toastDone('Cargo salvo')
+      notifySuccess('Cargo salvo')
       keep(saved)
       return true
     } catch (e) {

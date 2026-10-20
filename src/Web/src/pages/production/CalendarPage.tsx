@@ -5,7 +5,7 @@ import { getGetDefaultCalendarQueryKey, getListCalendarExceptionsQueryKey, updat
 import type { CalendarDetail, CalendarExceptionDetail, Weekday } from '@/api/generated/model'
 import { ChipGroup } from '@/components/form/choice'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { WEEKDAYS } from './calendar'
@@ -44,7 +44,7 @@ function CalendarBody({ calendar }: { calendar: CalendarDetail }) {
   const saveDays = async () => {
     const saved = await updateCalendar(calendar.id, { workingDays: days })
     client.setQueryData(getGetDefaultCalendarQueryKey(), saved)
-    toastDone('Dias úteis salvos')
+    notifySuccess('Dias úteis salvos')
   }
 
   return (

@@ -8,7 +8,7 @@ import { inputClass } from '@/components/form/form-utils'
 import { CpfInput, DateInput, MoneyInput } from '@/components/form/inputs'
 import { UnsavedChangesGuard } from '@/components/form/UnsavedChangesGuard'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { type EmployeeDraft, employeeDraftErrors, emptyEmployeeDraft, outsideRange, todayIso, withPosition } from './employee'
@@ -71,7 +71,7 @@ function NewEmployeeForm({ initialPositionId, positions, schedules }: FormProps)
         name: draft.name.trim(), cpf: draft.cpf, birthDate: draft.birthDate, admissionDate: draft.admissionDate, positionId: draft.positionId,
         workScheduleId: draft.workScheduleId || null, baseSalary: Number(draft.baseSalary), registration: null,
       })
-      toastDone('Funcionário salvo')
+      notifySuccess('Funcionário salvo')
       await navigate({ to: '/app/rh/funcionarios/$id', params: { id: saved.employee.id }, search: { novo: '1' }, ignoreBlocker: true } as never)
       return true
     } catch (e) {

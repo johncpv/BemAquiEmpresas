@@ -64,6 +64,7 @@ export const PAIRS = [
   ['rail-dim', 'rail', 4.5, 'rótulo secundário do dock'],
   ['signal', 'rail', 3, 'letra da etapa e item ativo'],
   ['signal-foreground', 'signal', 4.5, 'marca'],
+  ...[1, 2, 3, 4, 5, 6].map((n) => [`chart-${n}`, 'card', 3, `série ${n} do gráfico (FND-09e CA 11)`]),
 ]
 
 export function check(css) {

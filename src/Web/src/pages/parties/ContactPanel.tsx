@@ -5,7 +5,7 @@ import { Field, FormError } from '@/components/form/form'
 import { applyServerErrors, inputClass, useZodForm } from '@/components/form/form-utils'
 import { PhoneInput } from '@/components/form/inputs'
 import { SidePanel } from '@/components/ui/side-panel'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { Dica } from '@/help/Dica'
 import { z } from '@/lib/zod'
 
@@ -29,7 +29,7 @@ export function ContactPanel({ party, contact, onClose, onSaved }: { party: Part
       const body = { name: v.name.trim(), role: v.role.trim() || null, email: v.email || null, phone: v.phone || null, receivesBilling: v.receivesBilling }
       try {
         onSaved(contact ? await updatePartyContact(party.id, contact.id, body) : await addPartyContact(party.id, body))
-        toastDone('Contato salvo')
+        notifySuccess('Contato salvo')
         ok = true
         onClose()
       } catch (e) {

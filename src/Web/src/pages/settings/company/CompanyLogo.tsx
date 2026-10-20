@@ -5,7 +5,7 @@ import type { CompanyProfileDto } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { FormError } from '@/components/form/form'
 import { StatusChip } from '@/components/ui/status-chip'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 
 /**
  * Logo da empresa (CAD-06 CA 5 e 6): PNG, JPG ou WebP de até 1 MB e 1024 px. O novo fica "Aguardando verificação" até o
@@ -23,7 +23,7 @@ export function CompanyLogo({ profile, canEdit }: { profile: CompanyProfileDto; 
     setError(null)
     try {
       const result = await uploadCompanyLogo({ file })
-      toastDone(result.pendingNew ? 'Logo enviado. Aguardando verificação' : 'Logo trocado')
+      notifySuccess(result.pendingNew ? 'Logo enviado. Aguardando verificação' : 'Logo trocado')
       await client.invalidateQueries({ queryKey: getGetCompanyProfileQueryKey() })
       await client.invalidateQueries({ queryKey: getGetTenantPublicContextQueryKey() })
     } catch (e) {

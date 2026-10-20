@@ -90,7 +90,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md), com critérios de ac
 - Requisitos: PRD §6 (Usabilidade), R-PRP-1, R-PRP-2, R-PRP-3, R-AJD-4.
 - CA: pré-requisito "PO valida FND-09a/09b e aprova os moldes"; três moldes (cadastro em seções, detalhe com abas na URL, painel lateral); máscaras (CNPJ/CPF inclusive alfanumérico, CEP, telefone, NCM, CBO), números no padrão brasileiro, Combobox com criação rápida, chips acessíveis, ToggleGroup, Sheet, TreeTable `treegrid`, editor de linhas, data/hora, aviso `warning`, "obrigatório" com `aria-required`, faixa "Próximos passos", `ConfirmDialog` com `recovery`, `Tag` e tom neutro, filtros na URL, `Dica` de 24 px; CAs de teclado e 400 px.
 
-**FND-09e [ ] Componentes e convenções compartilhados da Fase 2 (M)** — nova (revisão pré-Fase 2 §3), antes da FIN-01 — [story](stories/FND-09e-componentes-convencoes-fase2.md)
+**FND-09e [x] Componentes e convenções compartilhados da Fase 2 (M)** — nova (revisão pré-Fase 2 §3), antes da FIN-01 — [story](stories/FND-09e-componentes-convencoes-fase2.md)
 - Requisitos: PRD §6 (Usabilidade, Acessibilidade), R-PRP-2, R-PRP-7, R-COM-2, R-SEC-5.
 - CA: mensagens numa região `role="status"` no topo do conteúdo, erro dentro do diálogo e próximo passo só no `NextSteps` (ADR 0021, resolve a P-18); `ConfirmDialog` grande com formulário, pré-condições e erro por campo; `applyServerErrors` com caminhos aninhados; `RowsEditor` com modelo de colunas; `DataTable` com seleção, totais e linha expansível; tokens de gráfico e `Chart`; menu do Financeiro em dois grupos (D12); `xmin` com 409, `Idempotency-Key`, `dedup_key` nas notificações, regra Contracts × Contracts e teste de posse de tabela (ADR 0019). Sem o filtro de 2FA por ação (P-19).
 

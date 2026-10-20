@@ -4,7 +4,7 @@ import { setGroupMembers, useListUsers } from '@/api/generated/bemaqui'
 import { ApiError } from '@/api/http'
 import { FormError } from '@/components/form/form'
 import { Skeleton } from '@/components/ui/states'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 
 /** "Gerenciar membros": quem entra passa pela delegação no servidor; o Proprietário nunca fica sem membro. */
 export function GroupMembersDialog({ groupId, groupName, current, onSaved }: { groupId: string; groupName: string; current: string[]; onSaved: () => Promise<void> }) {
@@ -19,7 +19,7 @@ export function GroupMembersDialog({ groupId, groupName, current, onSaved }: { g
       await setGroupMembers(groupId, { userIds: [...selected] })
       await onSaved()
       setOpen(false)
-      toastDone('Membros salvos')
+      notifySuccess('Membros salvos')
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Não foi possível salvar os membros.')
     }

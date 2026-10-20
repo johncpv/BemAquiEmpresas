@@ -5,7 +5,7 @@ import type { GroupSummary } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { FormError } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 
 /** "Novo grupo" (propositivo, FND-06b): oferece começar de um grupo existente em vez da matriz vazia. */
 export function NewGroupDialog({ groups, onCreated }: { groups: readonly GroupSummary[]; onCreated: (id: string) => Promise<void> }) {
@@ -31,7 +31,7 @@ export function NewGroupDialog({ groups, onCreated }: { groups: readonly GroupSu
       setName('')
       setFrom('')
       await onCreated(id)
-      toastDone('Grupo criado')
+      notifySuccess('Grupo criado')
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Não foi possível criar o grupo.')
     }

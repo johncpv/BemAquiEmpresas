@@ -3,11 +3,11 @@ import { describe, expect, it, vi } from 'vitest'
 import { ApiError } from '@/api/http'
 import { describeChanges } from '@/components/history/describe-changes'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { z } from '@/lib/zod'
 import { applyServerErrors, useZodForm } from './form-utils'
 
-vi.mock('@/components/ui/toast', () => ({ toastDone: vi.fn() }))
+vi.mock('@/components/ui/messages', () => ({ notifySuccess: vi.fn() }))
 
 describe('formulário (FND-09c CA 8 e 9)', () => {
   it('mensagens do Zod em português', () => {
@@ -36,7 +36,7 @@ describe('ConfirmDialog (CA 11)', () => {
       fireEvent.click(confirm)
     })
     expect(onConfirm).toHaveBeenCalled()
-    expect(toastDone).toHaveBeenCalledWith('Desativado', undefined)
+    expect(notifySuccess).toHaveBeenCalledWith('Desativado')
   })
 })
 

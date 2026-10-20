@@ -9,7 +9,7 @@ export interface Step {
 
 /**
  * Próximos passos depois de criar (FND-09d CA 16, R-PRP-2): faixa fixa no detalhe, com até 3 ações, até o usuário
- * fechar. O toast só confirma o verbo; o próximo passo não some sozinho (WCAG 2.2.1).
+ * fechar. A mensagem de sucesso só confirma o verbo; o próximo passo não some sozinho (WCAG 2.2.1).
  */
 export function NextSteps({ title = 'Próximos passos', steps, onDismiss }: { title?: string; steps: Step[]; onDismiss: () => void }) {
   if (steps.length === 0) return null

@@ -7,7 +7,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { ImportedTag } from '@/components/ui/imported-tag'
 import { StatusChip } from '@/components/ui/status-chip'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
 import { PaymentTermForm } from './PaymentTermForm'
@@ -21,7 +21,7 @@ export function NewPaymentTermPage() {
   const client = useQueryClient()
   const submit = async (input: PaymentTermInput) => {
     const saved = await createPaymentTerm(input)
-    toastDone('Condição de pagamento salva')
+    notifySuccess('Condição de pagamento salva')
     void client.invalidateQueries({ queryKey: getListPaymentTermsQueryKey() })
     void navigate({ to: `${LIST}/${saved.id}`, ignoreBlocker: true } as never)
   }
@@ -52,7 +52,7 @@ export function PaymentTermPage() {
 
   const term = query.data
   const refresh = (t: PaymentTermDetail) => { client.setQueryData(getGetPaymentTermQueryKey(id), t); void client.invalidateQueries({ queryKey: getListPaymentTermsQueryKey() }) }
-  const submit = async (input: PaymentTermInput) => { refresh(await updatePaymentTerm(id, input)); toastDone('Condição de pagamento salva') }
+  const submit = async (input: PaymentTermInput) => { refresh(await updatePaymentTerm(id, input)); notifySuccess('Condição de pagamento salva') }
   return (
     <>
       <PageHeading title={term.name}>
@@ -70,7 +70,7 @@ export function PaymentTermPage() {
             <ConfirmDialog verb="Inativar" done="Inativada" title={`Inativar a condição ${term.name}?`} description="Ela some dos seletores e continua nos terceiros e documentos que já a usam."
               onConfirm={async () => refresh(await inactivatePaymentTerm(id))} trigger={<button type="button" className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Inativar</button>} />
           ) : (
-            <button type="button" onClick={async () => { refresh(await reactivatePaymentTerm(id)); toastDone('Reativada') }} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Reativar</button>
+            <button type="button" onClick={async () => { refresh(await reactivatePaymentTerm(id)); notifySuccess('Reativada') }} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Reativar</button>
           )}
         </Can>
         <Can perm="finance.delete">

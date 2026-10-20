@@ -9,7 +9,7 @@ import { RowsEditor } from '@/components/form/rows-editor'
 import { RecordHistory } from '@/components/history/RecordHistory'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { SidePanel } from '@/components/ui/side-panel'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { Can } from '@/pages/ModuleGate'
 import { useCan } from '@/pages/use-can'
 import { formatHours, hoursPerDay, shiftsError } from './shifts'
@@ -40,7 +40,7 @@ export function WorkCenterPanel({ center, suggested, onClose, onSaved }: { cente
     try {
       if (center) await updateWorkCenter(center.id, input)
       else await createWorkCenter(input)
-      toastDone('Centro de trabalho salvo')
+      notifySuccess('Centro de trabalho salvo')
       onSaved(!center)
       return true
     } catch (e) {
@@ -99,7 +99,7 @@ function WorkCenterActions({ center, onDone }: { center: WorkCenterDetail; onDon
             onConfirm={async () => { await inactivateWorkCenter(center.id); onDone() }}
             trigger={<button type="button" className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Inativar centro</button>} />
         ) : (
-          <button type="button" onClick={async () => { await reactivateWorkCenter(center.id); toastDone('Reativado'); onDone() }} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Reativar</button>
+          <button type="button" onClick={async () => { await reactivateWorkCenter(center.id); notifySuccess('Reativado'); onDone() }} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Reativar</button>
         )}
       </Can>
       <Can perm="production.delete">

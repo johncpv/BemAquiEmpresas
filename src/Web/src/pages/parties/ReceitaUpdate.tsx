@@ -4,7 +4,7 @@ import type { PartyDetail } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { FormError } from '@/components/form/form'
 import { SidePanel } from '@/components/ui/side-panel'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { useCnpjLookup } from './lookups'
 import { updateFrom } from './party-actions'
 import { completeAddress, differences, type ReceitaRow } from './receita-diff'
@@ -43,7 +43,7 @@ export function ReceitaUpdate({ party, onClose, onSaved }: { party: PartyDetail;
       }
 
       onSaved(saved)
-      toastDone('Dados atualizados')
+      notifySuccess('Dados atualizados')
       onClose()
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Não foi possível aplicar os dados.')

@@ -8,7 +8,7 @@ import { TimeInput } from '@/components/form/inputs'
 import { RowsEditor } from '@/components/form/rows-editor'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { SidePanel } from '@/components/ui/side-panel'
-import { toastDone } from '@/components/ui/toast'
+import { notifySuccess } from '@/components/ui/messages'
 import { Can } from '@/pages/ModuleGate'
 import { useCan } from '@/pages/use-can'
 import { dayMinutes, formatHours, WEEKDAY_LABELS } from './hr'
@@ -32,7 +32,7 @@ export function SchedulePanel({ schedule, onClose, onSaved }: { schedule: Schedu
     try {
       if (schedule) await updateSchedule(schedule.id, draft)
       else await createSchedule(draft)
-      toastDone('Jornada salva')
+      notifySuccess('Jornada salva')
       onSaved()
       return true
     } catch (e) {
@@ -47,7 +47,7 @@ export function SchedulePanel({ schedule, onClose, onSaved }: { schedule: Schedu
         {schedule.isActive ? (
           <ConfirmDialog verb="Inativar" done="Inativada" title={`Inativar a jornada ${schedule.name}?`} description="Ela some dos seletores e continua nos cargos que já a usam."
             onConfirm={async () => { await inactivateSchedule(schedule.id); onSaved() }} trigger={<button type="button" className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Inativar</button>} />
-        ) : <button type="button" onClick={async () => { await reactivateSchedule(schedule.id); toastDone('Reativada'); onSaved() }} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Reativar</button>}
+        ) : <button type="button" onClick={async () => { await reactivateSchedule(schedule.id); notifySuccess('Reativada'); onSaved() }} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Reativar</button>}
       </Can>
       <Can perm="hr.delete">
         <ConfirmDialog verb="Excluir" done="Excluída" destructive title={`Excluir a jornada ${schedule.name}?`} description="Só dá para excluir jornada que nenhum cargo usa."

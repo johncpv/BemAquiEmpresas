@@ -4,8 +4,7 @@ import type { AiSettingsDto, AiSettingsRequest, AiTestResult } from '@/api/gener
 import { Field, FormError } from '@/components/form/form'
 import { applyServerErrors, inputClass, useZodForm } from '@/components/form/form-utils'
 import { StatusChip } from '@/components/ui/status-chip'
-import { toastDone } from '@/components/ui/toast'
-import { useHelp } from '@/help/help-context'
+import { notifySuccess } from '@/components/ui/messages'
 import { Dica } from '@/help/Dica'
 import { formatDateTime } from '@/lib/format'
 import { cn } from '@/lib/utils'
@@ -22,7 +21,6 @@ const secondary = 'rounded-md border border-border px-3 py-2 text-sm font-semibo
 
 /** Formulário do provedor de IA: "Testar conexão" não salva; depois de "Conexão OK", "Salvar configuração" ganha destaque. */
 export function AiSettingsForm({ settings, onDone, onCancel }: { settings: AiSettingsDto; onDone: () => Promise<void>; onCancel: () => void }) {
-  const help = useHelp()
   const initialProvider = settings.provider ?? settings.providers[0]?.code ?? ''
   const suggestions = (code: string) => settings.providers.find((p) => p.code === code)?.models ?? []
   const savedModel = settings.model ?? ''
@@ -75,7 +73,7 @@ export function AiSettingsForm({ settings, onDone, onCancel }: { settings: AiSet
     try {
       await saveAiSettings(body)
       await onDone()
-      toastDone('Configuração salva', { label: 'Perguntar ao BemAqui', onSelect: () => help.setOpen(true) })
+      notifySuccess('Configuração salva')
     } catch (e) {
       applyServerErrors(form, e)
     }

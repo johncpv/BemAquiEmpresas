@@ -4,6 +4,7 @@ import { DEFAULT_STAGES } from '@/lib/stages'
 import { StatusChip } from '@/components/ui/status-chip'
 import { ThemeToggle } from '@/theme/ThemeToggle'
 import { GalleryForm, GalleryStates, GalleryTable } from './GalleryData'
+import { MessageRegion } from '@/components/ui/message-region'
 
 const SWATCHES = ['background', 'card', 'muted', 'border', 'input', 'primary', 'primary-soft', 'rail', 'signal', 'ok', 'warn', 'crit', 'info'] as const
 
@@ -11,6 +12,7 @@ const SWATCHES = ['background', 'card', 'muted', 'border', 'input', 'primary', '
 export default function Gallery() {
   return (
     <main className="mx-auto max-w-5xl space-y-8 px-4 py-6">
+      <MessageRegion />
       <header className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-[28px] font-bold">Galeria de componentes</h1>
         <ThemeToggle />
