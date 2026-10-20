@@ -84,7 +84,7 @@ Decididos pelo PO em 20/10/2026 (seção 1.1, item 23, e D17):
 4. P-18 decidida (ADR 0021).
 
 **Pré-condições externas** (não são decisão de story; bloqueiam o deploy em homologação, não o desenvolvimento):
-- **P-21:** o PO confirma a elegibilidade da licença Community do QuestPDF ou adquire a licença (ADR 0022).
+- **P-21:** decidida em 20/10/2026: licença Community (adendo da ADR 0022).
 - SPF, DKIM e DMARC conferidos no domínio de envio da plataforma (§2.2-M2), pelo PO na configuração do SMTP (FND-08).
 
 ## Definition of Done
@@ -136,3 +136,4 @@ Checklist do @po (Pax), 20/10/2026 (revalidação depois das decisões do PO e d
 | 19/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 20/10/2026 | 0.3 | Decisão D17 (ADR 0022), ADR 0019 §7 e correções da revisão pré-Fase 2 (§2.2-M2, baixos, §2.1-A2, §2.3); pré-condições externas; CAs renumerados | River (SM) |
 | 20/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` com pré-condições externas | Pax (PO) |
+| 20/10/2026 | 0.5 | P-21 decidida pelo PO: licença Community do QuestPDF (adendo da ADR 0022); resta só SPF/DKIM/DMARC antes do deploy | River (SM) |
