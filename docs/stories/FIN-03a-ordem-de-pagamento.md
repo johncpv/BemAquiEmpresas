@@ -5,7 +5,7 @@
 | ID | FIN-03a |
 | Título | Ordem de pagamento com um ou mais títulos a pagar e o retrato de para onde vai o dinheiro, aprovação pela alçada padrão (quem tem `finance.approve`, na Fase 2 só o Proprietário), reprovação com comentário, regra do solicitante, pagamento com `finance.pay` limitado ao valor aprovado, estorno, comprovante e notificações |
 | Tamanho | G (quebra da FIN-03: a alçada configurável, o multinível e o link no e-mail foram para a FIN-03b) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-FIN-5 (todo pagamento exige OP aprovada; padrão: proprietário aprova tudo; aprovação/reprovação com comentário) · R-COM-2 (notificação "OP aguardando aprovação") · R-COM-3 (comprovante) · R-COM-4 (numeração OP) · R-PRP-2 · R-PRP-5 · R-PRP-7 · R-SEC-2 (2FA no login de quem aprova ou paga) · R-SEC-5 |
 | Dependências | FIN-02 (títulos a pagar, forma de pagamento, trava em OP), FIN-01 (`financial_transactions`, parâmetros do Finance), FIN-05 (saldo atual da conta), FIN-00 (títulos de implantação), CAD-05b (contas), FND-06c (2FA obrigatório no login para quem aprova ou paga), FND-07 (notificações, outbox, anexos), FND-09e; Fase 0 (FND-09c, FND-09d, FND-14) |
 | Bloqueia | FIN-04 (pagamentos no extrato), FIN-03b, DSH-01 ("Pendências do dono"), DSH-04 |
@@ -112,23 +112,23 @@ Decididos pelo PO em 20/10/2026 (seção 1.1 e D5, D6, D9):
 Adiados (P-19, P-20): 2FA a cada ação; estorno de pagamento com `finance.approve`.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
-- [ ] Migration criada (não destrutiva); parâmetros e seed patch idempotentes.
-- [ ] Permissões só do `ModuleCatalog`; dono de anexo `PaymentOrder` registrado com as regras novas.
-- [ ] Telas com estados de carregando, vazio e erro; modo leitura.
-- [ ] Ajuda da lista, de cada aba e dos parâmetros; teste de cobertura passando.
-- [ ] Padrões comuns da Fase 2, próximos passos e confirmação de efeito financeiro aplicados.
-- [ ] Auditoria completa ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` (estados `PartiallyPaid` e `Reversed`) atualizados; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
+- [x] Migration criada (não destrutiva); parâmetros e seed patch idempotentes.
+- [x] Permissões só do `ModuleCatalog`; dono de anexo `PaymentOrder` registrado com as regras novas.
+- [x] Telas com estados de carregando, vazio e erro; modo leitura.
+- [x] Ajuda da lista, de cada aba e dos parâmetros; teste de cobertura passando.
+- [x] Padrões comuns da Fase 2, próximos passos e confirmação de efeito financeiro aplicados.
+- [x] Auditoria completa ligada.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` (estados `PartiallyPaid` e `Reversed`) atualizados; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] Entidades `PaymentOrder`, `PaymentOrderItem`, `PaymentOrderApproval`, `PayableSettlement`; máquina de estados com `Reversed`.
-- [ ] `IApprovalPolicy` com a implementação padrão (substituída na FIN-03b) e a regra do solicitante (D6).
-- [ ] `IUserDirectory.UsersWithPermissionAsync` e `GroupMemberCountAsync` (Identity); seed patch `finance-pay-financeiro`.
-- [ ] `AttachmentOwnerRules` com `ReadAction`, `WriteAction`, `OwnerExists` obrigatório e `CanAttach` (BuildingBlocks).
-- [ ] Endpoints `/api/v1/finance/payment-orders` (+ `/submit`, `/approve`, `/reject`, `/pay`, `/resubmit`, `/cancel`, `/reverse`, `/attachments`); telas e ajuda.
+- [x] Entidades `PaymentOrder`, `PaymentOrderItem`, `PaymentOrderApproval`, `PayableSettlement`; máquina de estados com `Reversed`.
+- [x] `IApprovalPolicy` com a implementação padrão (substituída na FIN-03b) e a regra do solicitante (D6).
+- [x] `IUserDirectory.UsersWithPermissionAsync` e `GroupMemberCountAsync` (Identity); seed patch `finance-pay-financeiro`.
+- [x] `AttachmentOwnerRules` com `ReadAction`, `WriteAction`, `OwnerExists` obrigatório e `CanAttach` (BuildingBlocks).
+- [x] Endpoints `/api/v1/finance/payment-orders` (+ `/submit`, `/approve`, `/reject`, `/pay`, `/resubmit`, `/cancel`, `/reverse`, `/attachments`); telas e ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, cybersecurity (segregação, retrato, limite do aprovado, concorrência, caminho único de pagamento), @qa.
@@ -162,3 +162,4 @@ Checklist do @po (Pax), 20/10/2026 (revalidação depois das decisões do PO e d
 | 19/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 20/10/2026 | 0.3 | Decisões do PO (D5, D6, D8, D9, seção 1.1) e correções da revisão pré-Fase 2 (§2.1, §2.2-C1, A4, §2.3); adiamentos P-19 e P-20; CAs renumerados | River (SM) |
 | 20/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 20/10/2026 | 1.0 | Implementada. Desvios: idempotência pelo filtro comum (`Idempotency-Key`), sem `client_request_id`; o seed patch `finance-pay-financeiro` fica registrado em `seed_patches` e incrementa a versão de permissão dos membros, como os patches anteriores (sem linha de auditoria própria do usuário de sistema); `IUserDirectory` ganhou `UsersWithPermissionAsync` e `ActiveUserIdsAsync` (a contagem do Proprietário sai de `OwnerIdsAsync`, sem `GroupMemberCountAsync`); a regra do solicitante vale para aprovar e para reprovar (quem pediu cancela a própria OP); as notificações saem no próprio caso de uso, junto com os eventos de outbox; o estorno cria transações `Payment` com valor positivo ligadas à original (`reverses_transaction_id`); a data sugerida do título de recolhimento é o dia 20 do mês seguinte; o aviso do sino abre a OP já com o diálogo "Aprovar" (`?acao=aprovar`); "Ver extrato da conta" entra no próximo passo com a FIN-04; o diálogo não repete o aviso do 2FA, porque a regra do login (FND-06c CA 12) já exige o 2FA antes de qualquer tela; `AttachmentOwnerRules` ganhou `ReadAction`, `WriteAction` e `CanAttach`, e o teste que exige `OwnerExists` roda sobre os donos inscritos no DI | @dev |

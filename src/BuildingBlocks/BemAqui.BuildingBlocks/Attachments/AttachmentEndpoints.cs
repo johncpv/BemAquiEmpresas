@@ -20,11 +20,11 @@ public static class AttachmentEndpoints
                     .ToHttpResult(dto => Results.Created($"/api/v1/attachments/{dto.Id}", dto));
             })
             .DisableAntiforgery() // a proteção CSRF da API é por Origin + header (FND-04), não por token de formulário
-            .WithName("UploadAttachment");
+            .WithName("UploadAttachment").Produces<AttachmentDto>(StatusCodes.Status201Created);
 
         group.MapGet("/{ownerType}/{ownerId:guid}", async (string ownerType, Guid ownerId, AttachmentService service, CancellationToken ct) =>
                 (await service.ListAsync(ownerType, ownerId, ct)).ToHttpResult())
-            .WithName("ListAttachments");
+            .WithName("ListAttachments").Produces<IReadOnlyList<AttachmentDto>>();
 
         group.MapGet("/{id:guid}/content", async (Guid id, AttachmentService service, HttpContext http, CancellationToken ct) =>
             {

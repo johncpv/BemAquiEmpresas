@@ -41,7 +41,7 @@ public enum TaxRegime
 
 /// <summary>Resumo para outros módulos (CAD-01a CA 21). <c>Document</c> é o normalizado, para o documento fiscal.</summary>
 /// <param name="DefaultPaymentTermId">Condição de pagamento padrão (CAD-05b CA 16), para o documento vir preenchido (R-PRP-1).</param>
-public sealed record PartySummary(Guid Id, PartyKind Kind, string LegalName, string? TradeName, string? Document, IReadOnlyList<PartyRoleKind> Roles, bool IsActive, bool IsDeleted, Guid? DefaultPaymentTermId = null);
+public sealed record PartySummary(Guid Id, PartyKind Kind, string LegalName, string? TradeName, string? Document, IReadOnlyList<PartyRoleKind> Roles, bool IsActive, bool IsDeleted, Guid? DefaultPaymentTermId = null, DateTimeOffset? CreatedAt = null);
 
 public sealed record PartyAddressInfo(Guid Id, AddressKind Kind, string ZipCode, string Street, string Number, string? Complement, string District, string City, string? IbgeCode, string State);
 

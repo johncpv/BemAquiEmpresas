@@ -1,4 +1,6 @@
 using BemAqui.BuildingBlocks.Authorization;
+using BemAqui.BuildingBlocks.Identity;
+using BemAqui.BuildingBlocks.Notifications;
 using BemAqui.Finance.Contracts;
 using BemAqui.Finance.Domain;
 using BemAqui.SharedKernel;
@@ -10,12 +12,15 @@ namespace BemAqui.Finance.Application;
 /// Parâmetros do Finance (ADR 0016 adendo M6, FIN-01): limites de desconto, cancelamento e data retroativa. O seed grava os
 /// padrões sem sobrescrever; Configurações → Parâmetros edita com <c>settings.edit</c>, com auditoria.
 /// </summary>
-public sealed class FinanceParametersService(IFinanceDb db, IPermissionChecker permissions, TimeProvider clock) : IFinanceParameters
+public sealed class FinanceParametersService(IFinanceDb db, IPermissionChecker permissions, IUserDirectory users, ICurrentUser currentUser, INotificationService notifications, TimeProvider clock)
+    : IFinanceParameters
 {
     public const string DiscountPct = "finance.discount_approval_pct";
     public const string DiscountAmount = "finance.discount_approval_amount";
     public const string CancelAmount = "finance.cancel_approval_amount";
     public const string BackdateDays = "finance.backdate_days";
+    public const string OwnerCanApproveOwn = "finance.owner_can_approve_own";
+    public const string PaymentTolerance = "finance.payment_tolerance";
 
     /// <summary>Padrões aprovados pelo PO (D8): 5,00%, R$ 500,00, R$ 1.000,00 e 7 dias.</summary>
     public static readonly IReadOnlyDictionary<string, decimal> Defaults = new Dictionary<string, decimal>(StringComparer.Ordinal)
@@ -24,13 +29,15 @@ public sealed class FinanceParametersService(IFinanceDb db, IPermissionChecker p
         [DiscountAmount] = 500m,
         [CancelAmount] = 1000m,
         [BackdateDays] = 7m,
+        [OwnerCanApproveOwn] = 0m,
+        [PaymentTolerance] = 0m,
     };
 
     public async Task<FinanceLimits> LimitsAsync(CancellationToken cancellationToken = default)
     {
         var values = await db.FinanceParameters.AsNoTracking().ToDictionaryAsync(p => p.Key, p => p.Value, cancellationToken);
         decimal Get(string key) => values.TryGetValue(key, out var v) ? v : Defaults[key];
-        return new FinanceLimits(Get(DiscountPct), Get(DiscountAmount), Get(CancelAmount), (int)Get(BackdateDays));
+        return new FinanceLimits(Get(DiscountPct), Get(DiscountAmount), Get(CancelAmount), (int)Get(BackdateDays), Get(OwnerCanApproveOwn) != 0, Get(PaymentTolerance));
     }
 
     public async Task<Result<FinanceLimits>> UpdateAsync(FinanceLimitsInput input, CancellationToken cancellationToken = default)
@@ -51,6 +58,11 @@ public sealed class FinanceParametersService(IFinanceDb db, IPermissionChecker p
             return ReceivableService.Invalid(input.DiscountApprovalAmount < 0 ? "discountApprovalAmount" : "cancelApprovalAmount", "Informe um valor maior ou igual a zero.");
         }
 
+        if (input.PaymentTolerance is < 0 or > 1000)
+        {
+            return ReceivableService.Invalid("paymentTolerance", "Informe uma tolerância de R$ 0,00 a R$ 1.000,00.");
+        }
+
         if (input.BackdateDays is < 0 or > 365)
         {
             return ReceivableService.Invalid("backdateDays", "Informe de 0 a 365 dias.");
@@ -62,7 +74,10 @@ public sealed class FinanceParametersService(IFinanceDb db, IPermissionChecker p
             [DiscountAmount] = Math.Round(input.DiscountApprovalAmount, 2),
             [CancelAmount] = Math.Round(input.CancelApprovalAmount, 2),
             [BackdateDays] = input.BackdateDays,
+            [OwnerCanApproveOwn] = input.OwnerCanApproveOwn ? 1m : 0m,
+            [PaymentTolerance] = Math.Round(input.PaymentTolerance, 2),
         };
+        var before = await LimitsAsync(cancellationToken);
         var existing = await db.FinanceParameters.Where(p => values.Keys.Contains(p.Key)).ToDictionaryAsync(p => p.Key, cancellationToken);
         foreach (var (key, value) in values)
         {
@@ -77,6 +92,17 @@ public sealed class FinanceParametersService(IFinanceDb db, IPermissionChecker p
             else
             {
                 db.FinanceParameters.Add(new FinanceParameter { Key = key, Value = value, UpdatedAt = clock.GetUtcNow() });
+            }
+        }
+
+        if (before.OwnerCanApproveOwn != input.OwnerCanApproveOwn)
+        {
+            // FIN-03a CA 10: a troca avisa todos os membros do Proprietário.
+            var who = currentUser.UserId is { } me ? await users.DisplayNameAsync(me, cancellationToken) ?? "Um usuário" : "O sistema";
+            var title = $"{who} {(input.OwnerCanApproveOwn ? "ligou" : "desligou")} a aprovação da própria ordem pelo Proprietário.";
+            foreach (var owner in await users.OwnerIdsAsync(cancellationToken))
+            {
+                notifications.Notify(owner, "finance.parameters", title, "/app/configuracoes/parametros");
             }
         }
 

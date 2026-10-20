@@ -12,7 +12,7 @@ Guardar os números que o sistema usa para calcular custo e preço: o percentual
 ## Como usar
 - **% de encargos estimados:** o sistema começa com 80,00%, um valor sugerido. Confirme com a contadora, ajuste e clique em **Salvar % de encargos**. Os cargos com custo-hora calculado são recalculados.
 - **Modo de precificação:** escolha **Markup sobre o custo** (o preço é o custo mais um percentual) ou **Margem sobre o preço** (o percentual é a parte do preço que sobra) e clique em **Salvar modo de precificação**.
-- **Limites do financeiro** (aparece para quem vê o Financeiro): desconto acima de um % do saldo ou de um valor, e cancelamento de título com saldo acima de um valor, só são confirmados por quem aprova em Caixa e pagamentos. Baixa com data mais antiga que os dias informados pede motivo e avisa o Proprietário. Clique em **Salvar limites**.
+- **Limites do financeiro** (aparece para quem vê o Financeiro): desconto acima de um % do saldo ou de um valor, e cancelamento de título com saldo acima de um valor, só são confirmados por quem aprova em Caixa e pagamentos. Baixa com data mais antiga que os dias informados pede motivo e avisa o Proprietário. **Tolerância no pagamento** é quanto o pagamento da ordem pode passar do aprovado sem nova aprovação (padrão R$ 0,00). **Proprietário aprova a própria ordem**, quando há mais de um Proprietário, deixa quem pediu a ordem aprová-la; a troca avisa todos os Proprietários. Clique em **Salvar limites**.
 - Abra **Histórico de alterações** para ver o valor anterior, o novo, quem mudou e quando.
 
 ## Perguntas frequentes

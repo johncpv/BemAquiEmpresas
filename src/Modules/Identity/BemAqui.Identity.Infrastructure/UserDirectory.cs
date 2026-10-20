@@ -5,8 +5,22 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BemAqui.Identity.Infrastructure;
 
-internal sealed class UserDirectory(IIdentityDb db) : IUserDirectory
+internal sealed class UserDirectory(IIdentityDb db, IPermissionService permissions) : IUserDirectory
 {
+    public async Task<IReadOnlyList<Guid>> UsersWithPermissionAsync(string permission, CancellationToken cancellationToken = default)
+    {
+        var result = new List<Guid>();
+        foreach (var user in await ActiveUserIdsAsync(cancellationToken))
+        {
+            if ((await permissions.GetAsync(user, cancellationToken)).Has(permission))
+            {
+                result.Add(user);
+            }
+        }
+
+        return result;
+    }
+
     public async Task<IReadOnlyList<Guid>> OwnerIdsAsync(CancellationToken cancellationToken = default) =>
         await (from ug in db.UserGroups
                join g in db.Groups on ug.GroupId equals g.Id

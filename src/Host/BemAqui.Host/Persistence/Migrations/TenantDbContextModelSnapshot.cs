@@ -760,6 +760,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("description");
 
+                    b.Property<Guid?>("PayableId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("payable_id");
+
                     b.Property<Guid?>("ReceivableId")
                         .HasColumnType("uuid")
                         .HasColumnName("receivable_id");
@@ -780,6 +784,9 @@ namespace BemAqui.Host.Persistence.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_financial_transactions");
+
+                    b.HasIndex("PayableId")
+                        .HasDatabaseName("ix_financial_transactions_payable_id");
 
                     b.HasIndex("ReceivableId")
                         .HasDatabaseName("ix_financial_transactions_receivable_id");
@@ -1042,6 +1049,301 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasFilter("status NOT IN ('Paid','Cancelled')");
 
                     b.ToTable("payables", "finance");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.PayableSettlement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("BackdateReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("backdate_reason");
+
+                    b.Property<Guid>("BankAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("bank_account_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date")
+                        .HasColumnName("date");
+
+                    b.Property<decimal>("Discount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("discount");
+
+                    b.Property<decimal>("Fine")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("fine");
+
+                    b.Property<decimal>("Interest")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("interest");
+
+                    b.Property<Guid>("PayableId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("payable_id");
+
+                    b.Property<Guid>("PaymentOrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("payment_order_id");
+
+                    b.Property<decimal>("Principal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("principal");
+
+                    b.Property<string>("ReversalReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("reversal_reason");
+
+                    b.Property<Guid?>("ReversalTransactionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reversal_transaction_id");
+
+                    b.Property<DateTimeOffset?>("ReversedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reversed_at");
+
+                    b.Property<Guid?>("ReversedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reversed_by");
+
+                    b.Property<decimal>("Total")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("total");
+
+                    b.Property<Guid?>("TransactionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("transaction_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_payable_settlements");
+
+                    b.HasIndex("PayableId")
+                        .HasDatabaseName("ix_payable_settlements_payable_id");
+
+                    b.HasIndex("PaymentOrderId")
+                        .HasDatabaseName("ix_payable_settlements_payment_order_id");
+
+                    b.ToTable("payable_settlements", "finance");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.PaymentOrder", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("BankAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("bank_account_id");
+
+                    b.Property<string>("CancelReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("cancel_reason");
+
+                    b.Property<DateTimeOffset?>("CancelledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("cancelled_at");
+
+                    b.Property<Guid?>("CancelledBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cancelled_by");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateOnly>("ExpectedDate")
+                        .HasColumnType("date")
+                        .HasColumnName("expected_date");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("number");
+
+                    b.Property<Guid?>("PaidBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("paid_by");
+
+                    b.Property<DateOnly?>("PaidOn")
+                        .HasColumnType("date")
+                        .HasColumnName("paid_on");
+
+                    b.Property<Guid?>("RequestedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("requested_by");
+
+                    b.Property<string>("ReversalReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("reversal_reason");
+
+                    b.Property<DateTimeOffset?>("ReversedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reversed_at");
+
+                    b.Property<Guid?>("ReversedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reversed_by");
+
+                    b.Property<bool>("SelfApproved")
+                        .HasColumnType("boolean")
+                        .HasColumnName("self_approved");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset>("SubmittedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("submitted_at");
+
+                    b.Property<decimal>("Total")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("total");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_payment_orders");
+
+                    b.HasIndex("Number")
+                        .IsUnique()
+                        .HasDatabaseName("ix_payment_orders_number");
+
+                    b.HasIndex("Status", "SubmittedAt")
+                        .HasDatabaseName("ix_payment_orders_status_submitted_at");
+
+                    b.ToTable("payment_orders", "finance");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.PaymentOrderApproval", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Comment")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("comment");
+
+                    b.Property<DateTimeOffset>("DecidedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("decided_at");
+
+                    b.Property<Guid?>("DecidedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("decided_by");
+
+                    b.Property<string>("Decision")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("decision");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("kind");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("integer")
+                        .HasColumnName("level");
+
+                    b.Property<Guid>("PaymentOrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("payment_order_id");
+
+                    b.Property<bool>("SelfApproved")
+                        .HasColumnType("boolean")
+                        .HasColumnName("self_approved");
+
+                    b.HasKey("Id")
+                        .HasName("pk_payment_order_approvals");
+
+                    b.HasIndex("PaymentOrderId")
+                        .HasDatabaseName("ix_payment_order_approvals_payment_order_id");
+
+                    b.ToTable("payment_order_approvals", "finance");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.PaymentOrderItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<decimal>("ApprovedTotal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("approved_total");
+
+                    b.Property<decimal>("ExpectedCharges")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("expected_charges");
+
+                    b.Property<Guid>("PayableId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("payable_id");
+
+                    b.Property<string>("PayeeSnapshot")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("payee_snapshot");
+
+                    b.Property<Guid>("PaymentOrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("payment_order_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_payment_order_items");
+
+                    b.HasIndex("PayableId")
+                        .HasDatabaseName("ix_payment_order_items_payable_id");
+
+                    b.HasIndex("PaymentOrderId")
+                        .HasDatabaseName("ix_payment_order_items_payment_order_id");
+
+                    b.ToTable("payment_order_items", "finance");
                 });
 
             modelBuilder.Entity("BemAqui.Finance.Domain.PaymentTerm", b =>

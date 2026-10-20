@@ -12,5 +12,8 @@ public interface IUserDirectory
     /// <summary>Todos os usuários ativos do tenant (avisos de jobs, filtrados pela permissão efetiva de cada um).</summary>
     Task<IReadOnlyList<Guid>> ActiveUserIdsAsync(CancellationToken cancellationToken = default);
 
+    /// <summary>Usuários ativos com a permissão efetiva (ex.: "finance.approve"), já limitada pelos módulos liberados.</summary>
+    Task<IReadOnlyList<Guid>> UsersWithPermissionAsync(string permission, CancellationToken cancellationToken = default);
+
     Task<string?> DisplayNameAsync(Guid userId, CancellationToken cancellationToken = default);
 }

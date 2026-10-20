@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
 import { createPayable, createPayableInstallments, listFinanceSuppliers, previewReceivableSplit, useListAccounts, useListCostCenters, useListPaymentTerms } from '@/api/generated/bemaqui'
 import { ApiError } from '@/api/http'
@@ -62,8 +62,10 @@ interface Draft {
 function PayableForm({ accounts, centers, terms }: { accounts: Option[]; centers: Option[]; terms: Option[] }) {
   const navigate = useNavigate()
   const idempotency = useIdempotencyKey()
+  // Pré-preenchido pelo próximo passo do pagamento (recolhimento de retenções, FIN-03a CA 19).
+  const prefill = useSearch({ strict: false }) as { descricao?: string; valor?: string; vencimento?: string }
   const [initial] = useState<Draft>(() => ({
-    supplier: null, description: '', accountId: '', costCenterId: '', amount: null, issueDate: today(), dueDate: '', mode: 'single', termId: '', baseDate: today(),
+    supplier: null, description: prefill.descricao ?? '', accountId: '', costCenterId: '', amount: prefill.valor ?? null, issueDate: today(), dueDate: prefill.vencimento ?? '', mode: 'single', termId: '', baseDate: today(),
     retentions: { iss: null, inss: null, ir: null, pcc: null }, method: emptyMethod(),
   }))
   const [draft, setDraft] = useState(initial)

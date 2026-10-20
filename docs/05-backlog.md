@@ -202,7 +202,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-2--comercial-proj
 - Requisitos: R-FIN-12 (parte), R-COM-2, R-PRP-5.
 - CA: vencidos por cliente nas faixas 0–30, 31–60, 61–90 e 90+ (dataset fixo, com títulos de implantação); aviso diário consolidado sem repetir (`dedup_key`), com teste de dois tenants.
 
-**FIN-03a [ ] Ordem de pagamento: criar, aprovar e pagar (G)** — 2.1b, ordem 6 — quebra da FIN-03 — [story](stories/FIN-03a-ordem-de-pagamento.md)
+**FIN-03a [x] Ordem de pagamento: criar, aprovar e pagar (G)** — 2.1b, ordem 6 — quebra da FIN-03 — [story](stories/FIN-03a-ordem-de-pagamento.md)
 - Requisitos: R-FIN-5, R-COM-2, R-COM-3, R-COM-4, R-PRP-2, R-PRP-5, R-PRP-7, R-SEC-2, R-SEC-5.
 - CA: `finance.pay` para o Financeiro por seed patch (D5); OP com 1+ títulos e retrato do envio (fornecedor, líquido, forma de pagamento); pagamento limitado ao aprovado + tolerância (409 `exceeds_approved`); avisos de titular, fornecedor novo e dados alterados; regra do solicitante pela D6; pagamento sem OP aprovada bloqueado em todos os caminhos; aprovação e pagamento concorrentes gravam uma vez; 2FA no login de quem aprova ou paga; estorno com `finance.pay` (estado `Reversed`); comprovante só em OP paga; auditoria completa.
 

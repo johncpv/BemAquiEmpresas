@@ -12,7 +12,7 @@ namespace BemAqui.Finance.Application;
 /// Inadimplência (FIN-06a): aging dos títulos a receber vencidos por cliente, pelo saldo em aberto (implantação entra
 /// como os demais), e o aviso diário consolidado do que venceu ontem para quem edita o Financeiro.
 /// </summary>
-public sealed partial class AgingService(IFinanceDb db, IParties parties, IUserDirectory users, IPermissionService permissions, INotificationService notifications, TimeProvider clock)
+public sealed partial class AgingService(IFinanceDb db, IParties parties, IUserDirectory users, INotificationService notifications, TimeProvider clock)
 {
     /// <summary>Ordenações aceitas (CA 6): fora delas, 422.</summary>
     public static readonly IReadOnlyList<string> Sorts = ["-total", "total", "-maxDaysLate", "maxDaysLate", "name", "-name"];

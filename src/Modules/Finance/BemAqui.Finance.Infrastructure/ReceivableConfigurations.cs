@@ -60,6 +60,7 @@ internal sealed class FinancialTransactionConfiguration : IEntityTypeConfigurati
         b.Property(e => e.Description).HasMaxLength(200);
         b.HasOne<BankAccount>().WithMany().HasForeignKey(e => e.BankAccountId).OnDelete(DeleteBehavior.Restrict);
         b.HasIndex(e => new { e.BankAccountId, e.Date }).IncludeProperties(e => e.Amount);
+        b.HasIndex(e => e.PayableId);
         b.HasIndex(e => e.ReceivableId);
     }
 }

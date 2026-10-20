@@ -83,3 +83,20 @@ export async function apiFetch<T>(url: string, options: RequestInit = {}): Promi
 }
 
 export default apiFetch
+
+/** Baixa um arquivo autenticado (ex.: comprovante da OP) e oferece para salvar com o nome dado. */
+export async function apiDownload(url: string, fileName: string): Promise<void> {
+  let response = await send(url, {})
+  if (response.status === 401 && (await refreshSession())) response = await send(url, {})
+  if (!response.ok) {
+    const text = await response.text()
+    throw new ApiError(response.status, (text ? JSON.parse(text) : {}) as ConstructorParameters<typeof ApiError>[1])
+  }
+
+  const href = URL.createObjectURL(await response.blob())
+  const link = document.createElement('a')
+  link.href = href
+  link.download = fileName
+  link.click()
+  URL.revokeObjectURL(href)
+}

@@ -234,8 +234,15 @@
           "required": true
         },
         "responses": {
-          "200": {
-            "description": "OK"
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttachmentDto"
+                }
+              }
+            }
           }
         }
       },
@@ -265,7 +272,17 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AttachmentDto"
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -8298,6 +8315,370 @@
         }
       }
     },
+    "/api/v1/finance/payment-orders": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ListPaymentOrders",
+        "parameters": [
+          {
+            "name": "situation",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "awaitingMe",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "selfApproved",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentOrderPage"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "SubmitPaymentOrder",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentOrderInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/payment-orders/{id}": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetPaymentOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/payment-orders/{id}/approve": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ApprovePaymentOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/payment-orders/{id}/reject": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "RejectPaymentOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/payment-orders/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "CancelPaymentOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/payment-orders/{id}/resubmit": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ResubmitPaymentOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResubmitInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/payment-orders/{id}/pay": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "PayPaymentOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/payment-orders/{id}/reverse": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ReversePaymentOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/settings/import-runs": {
       "get": {
         "tags": [
@@ -8970,6 +9351,40 @@
           "confirmed": {
             "type": "boolean",
             "default": false
+          }
+        }
+      },
+      "AttachmentDto": {
+        "required": [
+          "id",
+          "fileName",
+          "contentType",
+          "size",
+          "scanStatus",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "scanStatus": {
+            "$ref": "#/components/schemas/ScanStatus"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -10436,6 +10851,25 @@
         },
         "additionalProperties": false
       },
+      "DecisionInput": {
+        "required": [
+          "comment",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "comment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
       "DisableTwoFactorRequest": {
         "required": [
           "password",
@@ -11189,6 +11623,15 @@
           "backdateDays": {
             "type": "integer",
             "format": "int32"
+          },
+          "ownerCanApproveOwn": {
+            "type": "boolean",
+            "default": false
+          },
+          "paymentTolerance": {
+            "type": "number",
+            "format": "double",
+            "default": 0
           }
         }
       },
@@ -11216,6 +11659,15 @@
           "backdateDays": {
             "type": "integer",
             "format": "int32"
+          },
+          "ownerCanApproveOwn": {
+            "type": "boolean",
+            "default": false
+          },
+          "paymentTolerance": {
+            "type": "number",
+            "format": "double",
+            "default": 0
           }
         },
         "additionalProperties": false
@@ -14265,6 +14717,69 @@
         },
         "additionalProperties": false
       },
+      "PayInput": {
+        "required": [
+          "bankAccountId",
+          "date",
+          "items",
+          "backdateReason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "bankAccountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayItemInput"
+            }
+          },
+          "backdateReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "PayItemInput": {
+        "required": [
+          "itemId",
+          "interest",
+          "fine",
+          "discount"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "interest": {
+            "type": "number",
+            "format": "double"
+          },
+          "fine": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "PaymentDetailsInput": {
         "required": [
           "kind"
@@ -14398,6 +14913,361 @@
           "Other",
           null
         ]
+      },
+      "PaymentOrderDecision": {
+        "type": "integer"
+      },
+      "PaymentOrderDecisionKind": {
+        "type": "integer"
+      },
+      "PaymentOrderDecisionView": {
+        "required": [
+          "kind",
+          "decision",
+          "comment",
+          "decidedByName",
+          "decidedAt",
+          "selfApproved"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/PaymentOrderDecisionKind"
+          },
+          "decision": {
+            "$ref": "#/components/schemas/PaymentOrderDecision"
+          },
+          "comment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "decidedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "decidedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "selfApproved": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PaymentOrderDetail": {
+        "required": [
+          "summary",
+          "items",
+          "decisions",
+          "isRequester",
+          "canDecide",
+          "cancelReason",
+          "reversalReason",
+          "paidOn",
+          "bankAccountId",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "summary": {
+            "$ref": "#/components/schemas/PaymentOrderSummary"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PaymentOrderItemView"
+            }
+          },
+          "decisions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PaymentOrderDecisionView"
+            }
+          },
+          "isRequester": {
+            "type": "boolean"
+          },
+          "canDecide": {
+            "type": "boolean"
+          },
+          "cancelReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reversalReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "paidOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "bankAccountId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "PaymentOrderInput": {
+        "required": [
+          "items",
+          "expectedDate"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PaymentOrderItemInput"
+            }
+          },
+          "expectedDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          }
+        }
+      },
+      "PaymentOrderItemInput": {
+        "required": [
+          "payableId",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "payableId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "expectedCharges": {
+            "type": "number",
+            "format": "double",
+            "default": 0
+          }
+        }
+      },
+      "PaymentOrderItemView": {
+        "required": [
+          "id",
+          "payableId",
+          "payableNumber",
+          "description",
+          "partyName",
+          "netAmount",
+          "retentions",
+          "amount",
+          "expectedCharges",
+          "approvedTotal",
+          "dueDate",
+          "payment",
+          "warnings",
+          "paidTotal"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "payableId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "payableNumber": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "netAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "retentions": {
+            "type": "number",
+            "format": "double"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "expectedCharges": {
+            "type": "number",
+            "format": "double"
+          },
+          "approvedTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "payment": {
+            "$ref": "#/components/schemas/PaymentDetailsInput"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "paidTotal": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "PaymentOrderPage": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PaymentOrderSummary"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PaymentOrderStatus": {
+        "enum": [
+          "Pending",
+          "Approved",
+          "Rejected",
+          "Paid",
+          "Cancelled",
+          "Reversed"
+        ]
+      },
+      "PaymentOrderSummary": {
+        "required": [
+          "id",
+          "number",
+          "status",
+          "total",
+          "expectedDate",
+          "requestedBy",
+          "requesterName",
+          "items",
+          "selfApproved",
+          "submittedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PaymentOrderStatus"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "expectedDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "requestedBy": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "requesterName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "selfApproved": {
+            "type": "boolean"
+          },
+          "submittedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PaymentResult": {
+        "required": [
+          "order",
+          "total",
+          "retentions"
+        ],
+        "type": "object",
+        "properties": {
+          "order": {
+            "$ref": "#/components/schemas/PaymentOrderDetail"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "retentions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RetentionSuggestion"
+            }
+          }
+        }
       },
       "PaymentTermDetail": {
         "required": [
@@ -15584,6 +16454,51 @@
           }
         }
       },
+      "ResubmitInput": {
+        "required": [
+          "items",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayItemInput"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "RetentionSuggestion": {
+        "required": [
+          "payableId",
+          "payableNumber",
+          "amount",
+          "suggestedDueDate"
+        ],
+        "type": "object",
+        "properties": {
+          "payableId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "payableNumber": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "suggestedDueDate": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
       "SalaryChangeInput": {
         "required": [
           "newSalary",
@@ -15654,6 +16569,9 @@
             }
           }
         }
+      },
+      "ScanStatus": {
+        "type": "integer"
       },
       "ScheduleDay": {
         "required": [

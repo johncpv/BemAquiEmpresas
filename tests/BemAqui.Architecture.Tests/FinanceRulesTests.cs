@@ -2,21 +2,43 @@ using FluentAssertions;
 
 namespace BemAqui.Architecture.Tests;
 
-/// <summary>FIN-02 CA 10: título a pagar não tem baixa; só o caso de uso de pagamento da OP (FIN-03a) cria transação Payment.</summary>
+/// <summary>
+/// FIN-02 CA 10 e FIN-03a: só o pagamento da OP (e o estorno dele) cria transação Payment, e só os casos de uso da OP mudam
+/// o título a pagar para AwaitingApproval, Approved ou Paid.
+/// </summary>
 public class FinanceRulesTests
 {
-    /// <summary>Arquivos que podem criar transação de pagamento: o pagamento da OP entra aqui na FIN-03a.</summary>
-    private static readonly string[] PaymentWriters = [];
+    private static readonly string[] PaymentWriters =
+    [
+        "Finance/BemAqui.Finance.Application/PaymentOrderService.Pay.cs",
+        "Finance/BemAqui.Finance.Application/PaymentOrderService.Reverse.cs",
+    ];
 
-    [Fact]
-    public void So_o_pagamento_da_OP_cria_transacao_Payment()
+    private static readonly string[] PayableStatusWriters =
+    [
+        "Finance/BemAqui.Finance.Application/PaymentOrderService.Submit.cs",
+        "Finance/BemAqui.Finance.Application/PaymentOrderService.Decide.cs",
+        "Finance/BemAqui.Finance.Application/PaymentOrderService.Pay.cs",
+        "Finance/BemAqui.Finance.Application/PaymentOrderService.Reverse.cs",
+    ];
+
+    private static List<string> FilesContaining(params string[] texts)
     {
         var modules = Path.Combine(Solution.RootDirectory, "src", "Modules");
-        var writers = Directory.GetFiles(modules, "*.cs", SearchOption.AllDirectories)
-            .Where(f => !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal) && !f.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
-            .Where(f => File.ReadAllText(f).Contains("Type = TransactionType.Payment", StringComparison.Ordinal))
-            .Select(f => Path.GetRelativePath(modules, f).Replace(Path.DirectorySeparatorChar, '/'))
+        var sep = Path.DirectorySeparatorChar;
+        return Directory.GetFiles(modules, "*.cs", SearchOption.AllDirectories)
+            .Where(f => !f.Contains($"{sep}obj{sep}", StringComparison.Ordinal) && !f.Contains($"{sep}bin{sep}", StringComparison.Ordinal))
+            .Where(f => { var text = File.ReadAllText(f); return texts.Any(t => text.Contains(t, StringComparison.Ordinal)); })
+            .Select(f => Path.GetRelativePath(modules, f).Replace(sep, '/'))
             .ToList();
-        writers.Should().BeSubsetOf(PaymentWriters, "pagamento só pela ordem de pagamento aprovada (R-FIN-6)");
     }
+
+    [Fact]
+    public void So_o_pagamento_da_OP_cria_transacao_Payment() =>
+        FilesContaining("Type = TransactionType.Payment").Should().BeSubsetOf(PaymentWriters, "pagamento só pela ordem de pagamento aprovada (R-FIN-6)");
+
+    [Fact]
+    public void So_a_OP_muda_o_titulo_para_aguardando_aprovado_ou_pago() =>
+        FilesContaining("Status = PayableStatus.AwaitingApproval", "Status = PayableStatus.Approved", "? PayableStatus.Paid", "Status = PayableStatus.Paid")
+            .Should().BeSubsetOf(PayableStatusWriters, "a situação do título é derivada da OP (ADR 0019 §2)");
 }

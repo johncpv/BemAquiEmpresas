@@ -12,15 +12,19 @@ public sealed record AttachmentDto(Guid Id, string FileName, string ContentType,
 public sealed record AttachmentContent(Stream Content, string ContentType, string FileName);
 
 /// <summary>
-/// Regras de um dono de anexos: o módulo (ler = <c>view</c>, gravar = <c>edit</c>), e opcionalmente os tipos aceitos, o
-/// tamanho máximo, o maior lado da imagem e a conferência de que o documento dono existe (CAD-06 CA 8).
+/// Regras de um dono de anexos: o módulo e as ações de ler e gravar (padrão <c>view</c> e <c>edit</c>), os tipos aceitos, o
+/// tamanho máximo, o maior lado da imagem, a conferência de que o documento dono existe (CAD-06 CA 8, obrigatória nos donos
+/// inscritos, teste de arquitetura) e se o dono aceita anexo no estado atual (<c>CanAttach</c>, ADR 0019 §7).
 /// </summary>
 public sealed record AttachmentOwnerRules(
     string Module,
     IReadOnlyCollection<string>? ContentTypes = null,
     long? MaxSize = null,
     int? MaxImageSide = null,
-    Func<IServiceProvider, Guid, CancellationToken, Task<bool>>? OwnerExists = null);
+    Func<IServiceProvider, Guid, CancellationToken, Task<bool>>? OwnerExists = null,
+    string ReadAction = StandardActions.View,
+    string WriteAction = StandardActions.Edit,
+    Func<IServiceProvider, Guid, CancellationToken, Task<Error?>>? CanAttach = null);
 
 /// <summary>Inscrição de um dono de anexo por um módulo, no <c>AddServices</c>.</summary>
 public sealed record AttachmentOwnerRegistration(string OwnerType, AttachmentOwnerRules Rules);
@@ -69,13 +73,13 @@ public sealed class AttachmentService(
     public async Task<Result<AttachmentDto>> UploadAsync(string ownerType, Guid ownerId, string fileName, Stream content, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(content);
-        var module = owners.ModuleOf(ownerType);
-        if (module is null)
+        var rules = owners.RulesOf(ownerType);
+        if (rules is null)
         {
             return Error.NotFound(Error.Codes.NotFound, "Este tipo de documento não aceita anexos.");
         }
 
-        if (!await permissions.HasPermissionAsync(module, StandardActions.Edit, cancellationToken))
+        if (!await permissions.HasPermissionAsync(rules.Module, rules.WriteAction, cancellationToken))
         {
             return Forbidden();
         }
@@ -94,7 +98,7 @@ public sealed class AttachmentService(
             return Error.Validation("attachment.type_not_allowed", "Tipo de arquivo não permitido. Envie PDF, imagem (PNG, JPG, WEBP), XML, planilha, documento, CSV, desenho (DWG, DXF) ou ZIP.");
         }
 
-        if (await CheckRulesAsync(owners.RulesOf(ownerType)!, ownerId, type, buffer, cancellationToken) is { } refused)
+        if (await CheckRulesAsync(rules, ownerId, type, buffer, cancellationToken) is { } refused)
         {
             return refused;
         }
@@ -139,8 +143,8 @@ public sealed class AttachmentService(
             return Error.NotFound(Error.Codes.NotFound, "Anexo não encontrado.");
         }
 
-        var module = owners.ModuleOf(attachment.OwnerType);
-        if (module is null || !await permissions.HasPermissionAsync(module, StandardActions.View, cancellationToken))
+        var rules = owners.RulesOf(attachment.OwnerType);
+        if (rules is null || !await permissions.HasPermissionAsync(rules.Module, rules.ReadAction, cancellationToken))
         {
             return Forbidden();
         }
@@ -155,8 +159,8 @@ public sealed class AttachmentService(
 
     public async Task<Result<IReadOnlyList<AttachmentDto>>> ListAsync(string ownerType, Guid ownerId, CancellationToken cancellationToken = default)
     {
-        var module = owners.ModuleOf(ownerType);
-        if (module is null || !await permissions.HasPermissionAsync(module, StandardActions.View, cancellationToken))
+        var rules = owners.RulesOf(ownerType);
+        if (rules is null || !await permissions.HasPermissionAsync(rules.Module, rules.ReadAction, cancellationToken))
         {
             return Forbidden();
         }
@@ -186,7 +190,12 @@ public sealed class AttachmentService(
             return Error.Validation("attachment.image_too_large", $"A imagem precisa ter até {side} px no maior lado.");
         }
 
-        return rules.OwnerExists is { } exists && !await exists(services, ownerId, ct) ? Error.NotFound(Error.Codes.NotFound, "O documento deste anexo não existe.") : null;
+        if (rules.OwnerExists is { } exists && !await exists(services, ownerId, ct))
+        {
+            return Error.NotFound(Error.Codes.NotFound, "O documento deste anexo não existe.");
+        }
+
+        return rules.CanAttach is { } can ? await can(services, ownerId, ct) : null;
     }
 
     private static Error Forbidden() => Error.Forbidden(Error.Codes.Forbidden, "Você não tem acesso a esta funcionalidade. Fale com o administrador.");
