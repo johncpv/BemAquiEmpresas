@@ -5,7 +5,7 @@
 | ID | FIN-01 |
 | Título | Títulos a receber manuais e parcelados pela condição de pagamento, baixa total ou parcial com juros, multa e desconto, transação na conta bancária, "Quitar o saldo com desconto", estorno de baixa, cancelamento com motivo, limites de desconto, cancelamento e data retroativa, relatório de descontos e cancelamentos e situação "Vencido" calculada |
 | Tamanho | G (re-estimada de M: esta story cria também `financial_transactions` e as baixas, base da FIN-03a, FIN-04 e FIN-05) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-FIN-3 (CR: manual, parcelas, juros/multa, descontos, baixa parcial) · R-FIN-1 (plano de contas, centro de custo e projeto em todo lançamento) · R-FIN-2 (movimento na conta) · R-COM-4 (numeração CR) · R-COM-2 (notificações) · R-PRP-1 · R-PRP-7 · R-SEC-5 |
 | Dependências | FND-09e (mensagens, diálogo grande, concorrência, idempotência), CAD-05a (`IChartOfAccounts`, centros de custo), CAD-05b (contas bancárias, `IPaymentTerms.SplitAsync`, `IBankAccountUsageProvider`), CAD-01a (`IParties`), CAD-06 (numeração, Configurações → Parâmetros), FND-09d; Fase 0 (FND-07, FND-09c, FND-14) |
 | Bloqueia | FIN-02 (mesmo molde de título), FIN-00 (implantação), FIN-05, FIN-06a, FIN-03a (transação de pagamento), FIN-04, COM-04b (recebíveis do contrato), BNK-01, BNK-02 |
@@ -119,23 +119,23 @@ Decididos pelo PO em 20/10/2026 (revisão pré-Fase 2, seção 1.1 e D8, D14):
 5. P-18 decidida (ADR 0021): mensagens no topo do conteúdo.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
-- [ ] Migration criada (não destrutiva) com `receivables`, `receivable_settlements`, `financial_transactions` e `parameters`; seed dos parâmetros idempotente.
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Telas com estados de carregando, vazio, vazio filtrado e erro; modo leitura.
-- [ ] Ajuda da lista, da criação, de cada aba, do relatório e dos parâmetros; teste de cobertura passando.
-- [ ] Padrões comuns da Fase 2, padrões preenchidos e próximos passos aplicados; efeito financeiro com confirmação.
-- [ ] Auditoria ligada (título, baixa, quitação, estorno, cancelamento, parâmetros).
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
+- [x] Migration criada (não destrutiva) com `receivables`, `receivable_settlements`, `financial_transactions` e `parameters`; seed dos parâmetros idempotente.
+- [x] Permissões só do `ModuleCatalog`.
+- [x] Telas com estados de carregando, vazio, vazio filtrado e erro; modo leitura.
+- [x] Ajuda da lista, da criação, de cada aba, do relatório e dos parâmetros; teste de cobertura passando.
+- [x] Padrões comuns da Fase 2, padrões preenchidos e próximos passos aplicados; efeito financeiro com confirmação.
+- [x] Auditoria ligada (título, baixa, quitação, estorno, cancelamento, parâmetros).
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] Entidades `Receivable`, `ReceivableSettlement` e `FinancialTransaction` (Domain) com as regras de saldo, situação, baixa, quitação, estorno e cancelamento; `DocumentOrigin` no SharedKernel.
-- [ ] `FinanceParameters` (`finance.parameters`), `IFinanceParameters` e a seção Financeiro em Configurações → Parâmetros.
-- [ ] Provedores `IBankAccountUsageProvider`, `IAccountUsageProvider`, `ICostCenterUsageProvider` e `IPartyUsageProvider`; `IParties.FindManyAsync`.
-- [ ] Endpoints `/api/v1/finance/receivables` (+ `/split-preview`, `/{id}/settlements`, `/{id}/write-off`, `/{id}/settlements/{sid}/reverse`, `/{id}/cancel`, `/{id}/due-date`, `/discounts-and-cancellations`).
-- [ ] Telas, diálogos e ajuda.
+- [x] Entidades `Receivable`, `ReceivableSettlement` e `FinancialTransaction` (Domain) com as regras de saldo, situação, baixa, quitação, estorno e cancelamento; `DocumentOrigin` no SharedKernel.
+- [x] `FinanceParameters` (`finance.parameters`), `IFinanceParameters` e a seção Financeiro em Configurações → Parâmetros.
+- [x] Provedores `IBankAccountUsageProvider`, `IAccountUsageProvider`, `ICostCenterUsageProvider` e `IPartyUsageProvider`; `IParties.FindManyAsync`.
+- [x] Endpoints `/api/v1/finance/receivables` (+ `/split-preview`, `/{id}/settlements`, `/{id}/write-off`, `/{id}/settlements/{sid}/reverse`, `/{id}/cancel`, `/{id}/due-date`, `/discounts-and-cancellations`).
+- [x] Telas, diálogos e ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, @qa, cybersecurity (concorrência, estorno, limites).
@@ -169,3 +169,4 @@ Checklist do @po (Pax), 20/10/2026 (revalidação depois das decisões do PO e d
 | 19/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 20/10/2026 | 0.3 | Decisões do PO (D8, D14, seção 1.1) e correções da revisão pré-Fase 2 (§2.1, §2.2, §2.3); CAs renumerados | River (SM) |
 | 20/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 20/10/2026 | 1.0 | Implementada. Desvios: idempotência pelo filtro comum (`shared.idempotency_records`, adendo da ADR 0019 §3), sem `client_request_id` em `receivables`; o seletor de cliente usa a rota nova `GET /finance/customers` (com `finance.view`, documento só de PJ); `IContracts` nasce em `Commercial.Contracts` com `IsCancelledAsync` (o Finance trata "sem implementação" como não cancelado até a COM-04a); o vencimento só muda em título `Open` sem baixa parcial; a baixa guarda `balance_before`, base do % de desconto no limite e no relatório; o campo de projeto é recusado (422) até a COM-04a; filtros da lista por situação e período de vencimento (o filtro por cliente existe na API); o próximo passo depois da baixa total é "Ver os títulos em aberto"; os parâmetros do Finance ficam no histórico do módulo `settings`; a lista a 400 px esconde descrição e valor original (colunas secundárias) em vez da linha expansível | @dev |

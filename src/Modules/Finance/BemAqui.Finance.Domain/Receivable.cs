@@ -1,0 +1,181 @@
+using System.Text.Json.Serialization;
+using BemAqui.Finance.Contracts;
+using BemAqui.SharedKernel;
+
+namespace BemAqui.Finance.Domain;
+
+/// <summary>
+/// Título a receber (<c>finance.receivables</c>, FIN-01, R-FIN-3). Nunca é apagado, só cancelado. O invariante
+/// <c>PaidAmount = Σ principal das baixas não estornadas</c> é mantido por <see cref="Recalculate"/>; "Vencido" é calculado
+/// (<see cref="IsOverdue"/>), nunca gravado.
+/// </summary>
+[DocumentName("O título")]
+public sealed class Receivable : Entity, IAuditable, IConcurrencyVersioned
+{
+    public string Number { get; set; } = string.Empty;
+
+    public Guid PartyId { get; set; }
+
+    public string Description { get; set; } = string.Empty;
+
+    /// <summary>Conta do plano de contas (Receita, analítica).</summary>
+    public Guid AccountId { get; set; }
+
+    public Guid? CostCenterId { get; set; }
+
+    public Guid? ProjectId { get; set; }
+
+    public decimal Amount { get; set; }
+
+    public decimal PaidAmount { get; private set; }
+
+    public decimal Interest { get; private set; }
+
+    public decimal Fine { get; private set; }
+
+    public decimal Discount { get; private set; }
+
+    public DateOnly IssueDate { get; set; }
+
+    /// <summary>Nulo só em <see cref="ReceivableStatus.Planned"/> (marco por evento, COM-04b).</summary>
+    public DateOnly? DueDate { get; set; }
+
+    public ReceivableStatus Status { get; set; } = ReceivableStatus.Open;
+
+    public DocumentOrigin Origin { get; set; } = DocumentOrigin.Manual;
+
+    public Guid? OriginId { get; set; }
+
+    /// <summary>Parcelas lançadas juntas pela condição de pagamento.</summary>
+    public Guid? InstallmentGroupId { get; set; }
+
+    public string? CancelReason { get; set; }
+
+    public DateTimeOffset? CancelledAt { get; set; }
+
+    public Guid? CancelledBy { get; set; }
+
+    public DateTimeOffset CreatedAt { get; init; }
+
+    public Guid? CreatedBy { get; init; }
+
+    public uint Version { get; set; }
+
+    public decimal Balance => Amount - PaidAmount;
+
+    public bool IsOpen => Status is ReceivableStatus.Open or ReceivableStatus.PartiallyPaid;
+
+    public bool IsOverdue(DateOnly today) => IsOpen && DueDate < today;
+
+    public bool IsDueToday(DateOnly today) => IsOpen && DueDate == today;
+
+    /// <summary>Refaz saldo, juros, multa, desconto e situação a partir das baixas ativas (invariante da FIN-01 CA 12).</summary>
+    public void Recalculate(IEnumerable<ReceivableSettlement> settlements)
+    {
+        ArgumentNullException.ThrowIfNull(settlements);
+        var active = settlements.Where(s => s.ReceivableId == Id && s.ReversedAt is null).ToList();
+        PaidAmount = active.Sum(s => s.Principal);
+        Interest = active.Sum(s => s.Interest);
+        Fine = active.Sum(s => s.Fine);
+        Discount = active.Sum(s => s.Discount);
+        if (Status is ReceivableStatus.Cancelled or ReceivableStatus.Planned)
+        {
+            return;
+        }
+
+        Status = PaidAmount <= 0 ? ReceivableStatus.Open : PaidAmount >= Amount ? ReceivableStatus.Paid : ReceivableStatus.PartiallyPaid;
+    }
+}
+
+/// <summary>Tipo de baixa: recebimento comum ou quitação do saldo com desconto, sem transação (ADR 0019 §8).</summary>
+[JsonConverter(typeof(JsonStringEnumConverter<SettlementKind>))]
+public enum SettlementKind
+{
+    Settlement,
+    DiscountWriteOff,
+}
+
+/// <summary>
+/// Baixa de um título a receber (<c>finance.receivable_settlements</c>): imutável, exceto as colunas do estorno. O total que
+/// entra na conta é principal + juros + multa − desconto.
+/// </summary>
+public sealed class ReceivableSettlement : Entity, IAuditable
+{
+    public Guid ReceivableId { get; init; }
+
+    /// <summary>Nulo na quitação com desconto.</summary>
+    public Guid? BankAccountId { get; init; }
+
+    public DateOnly Date { get; init; }
+
+    public decimal Principal { get; init; }
+
+    public decimal Interest { get; init; }
+
+    public decimal Fine { get; init; }
+
+    public decimal Discount { get; init; }
+
+    public decimal Total { get; init; }
+
+    /// <summary>Saldo do título antes desta baixa: base do % de desconto (relatório e limite, CA 13 e 22).</summary>
+    public decimal BalanceBefore { get; init; }
+
+    public SettlementKind Kind { get; init; }
+
+    public string? BackdateReason { get; init; }
+
+    public Guid? TransactionId { get; set; }
+
+    public DateTimeOffset CreatedAt { get; init; }
+
+    public Guid? CreatedBy { get; init; }
+
+    public DateTimeOffset? ReversedAt { get; set; }
+
+    public Guid? ReversedBy { get; set; }
+
+    public string? ReversalReason { get; set; }
+
+    public Guid? ReversalTransactionId { get; set; }
+
+    public static decimal TotalOf(decimal principal, decimal interest, decimal fine, decimal discount) =>
+        Math.Round(principal + interest + fine - discount, 2, MidpointRounding.AwayFromZero);
+}
+
+/// <summary>
+/// Movimento numa conta bancária (<c>finance.financial_transactions</c>): valor com sinal (+ entrada), imutável; o estorno é
+/// outra transação, ligada à original. Saldo da conta = saldo inicial + Σ valores.
+/// </summary>
+public sealed class FinancialTransaction : Entity, IAuditable
+{
+    public Guid BankAccountId { get; init; }
+
+    public DateOnly Date { get; init; }
+
+    public decimal Amount { get; init; }
+
+    public TransactionType Type { get; init; }
+
+    public string Description { get; init; } = string.Empty;
+
+    public Guid? ReceivableId { get; init; }
+
+    public Guid? SettlementId { get; init; }
+
+    public Guid? ReversesTransactionId { get; init; }
+
+    public DateTimeOffset CreatedAt { get; init; }
+
+    public Guid? CreatedBy { get; init; }
+}
+
+/// <summary>Parâmetro do Finance (<c>finance.parameters</c>, ADR 0016 adendo M6): chave e valor numérico, com auditoria.</summary>
+public sealed class FinanceParameter : Entity, IAuditable
+{
+    public string Key { get; init; } = string.Empty;
+
+    public decimal Value { get; set; }
+
+    public DateTimeOffset UpdatedAt { get; set; }
+}

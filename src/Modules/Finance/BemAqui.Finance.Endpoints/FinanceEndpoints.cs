@@ -28,6 +28,9 @@ internal static partial class FinanceEndpoints
         MapPaymentTerms(finance.MapGroup("/payment-terms"));
         MapChartOfAccounts(finance.MapGroup("/chart-of-accounts"));
         MapCostCenters(finance.MapGroup("/cost-centers"));
+        MapReceivables(finance.MapGroup("/receivables"));
+        MapFinanceParameters(finance.MapGroup("/parameters"));
+        MapCustomers(finance.MapGroup("/customers"));
         return api;
     }
 

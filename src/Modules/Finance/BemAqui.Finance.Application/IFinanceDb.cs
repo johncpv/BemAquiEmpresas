@@ -1,5 +1,6 @@
 using BemAqui.Finance.Domain;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace BemAqui.Finance.Application;
@@ -15,10 +16,22 @@ public interface IFinanceDb
 
     DbSet<CostCenter> CostCenters { get; }
 
+    DbSet<Receivable> Receivables { get; }
+
+    DbSet<ReceivableSettlement> ReceivableSettlements { get; }
+
+    DbSet<FinancialTransaction> FinancialTransactions { get; }
+
+    DbSet<FinanceParameter> FinanceParameters { get; }
+
     /// <summary>Para trocar a conta padrão em dois passos numa transação (o índice único parcial é checado a cada comando).</summary>
     DatabaseFacade Database { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Para conferir a versão (xmin) que o cliente abriu (ADR 0019 §2).</summary>
+    EntityEntry<TEntity> Entry<TEntity>(TEntity entity)
+        where TEntity : class;
 }
 
 /// <summary>

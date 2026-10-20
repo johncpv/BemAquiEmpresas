@@ -77,6 +77,14 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<CostCenter> CostCenters => Set<CostCenter>();
 
+    public DbSet<Receivable> Receivables => Set<Receivable>();
+
+    public DbSet<ReceivableSettlement> ReceivableSettlements => Set<ReceivableSettlement>();
+
+    public DbSet<FinancialTransaction> FinancialTransactions => Set<FinancialTransaction>();
+
+    public DbSet<FinanceParameter> FinanceParameters => Set<FinanceParameter>();
+
     public DbSet<Location> Locations => Set<Location>();
 
     public DbSet<MeasureUnit> Units => Set<MeasureUnit>();

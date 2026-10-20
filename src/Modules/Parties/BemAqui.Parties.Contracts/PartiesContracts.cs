@@ -55,6 +55,9 @@ public interface IParties
 {
     Task<PartySummary?> FindAsync(Guid id, CancellationToken cancellationToken = default);
 
+    /// <summary>Vários por id numa consulta só, inclusive excluídos (nomes nas listas por página, ADR 0019 §13).</summary>
+    Task<IReadOnlyList<PartySummary>> FindManyAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<PartySummary>> SearchAsync(string? term, PartyRoleKind? role, int limit = 20, CancellationToken cancellationToken = default);
 
     Task<bool> HasRoleAsync(Guid id, PartyRoleKind role, CancellationToken cancellationToken = default);

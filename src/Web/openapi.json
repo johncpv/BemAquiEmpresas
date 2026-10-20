@@ -6924,6 +6924,614 @@
         }
       }
     },
+    "/api/v1/finance/receivables": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ListReceivables",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "situation",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "partyId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "dueFrom",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "dueTo",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivablePage"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "CreateReceivable",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReceivableInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivablesCreated"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/receivables/discounts-and-cancellations": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetDiscountsAndCancellations",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiscountsAndCancellations"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/receivables/split-preview": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "PreviewReceivableSplit",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SplitPreviewInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InstallmentDue"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/receivables/{id}": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetReceivable",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivableDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "UpdateReceivable",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReceivableUpdateInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivableDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/receivables/{id}/settlements": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ListReceivableSettlements",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SettlementView"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "SettleReceivable",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SettlementInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivableDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/receivables/installments": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "CreateReceivableInstallments",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReceivableInstallmentsInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivablesCreated"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/receivables/{id}/due-date": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ChangeReceivableDueDate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DueDateInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivableDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/receivables/{id}/write-off": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "WriteOffReceivable",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WriteOffInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivableDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/receivables/{id}/settlements/{settlementId}/reverse": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ReverseReceivableSettlement",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "settlementId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivableDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/receivables/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "CancelReceivable",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivableDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/parameters": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetFinanceLimits",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinanceLimits"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "UpdateFinanceLimits",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FinanceLimitsInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinanceLimits"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/customers": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ListFinanceCustomers",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CustomerOption"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/settings/import-runs": {
       "get": {
         "tags": [
@@ -7797,6 +8405,48 @@
           }
         }
       },
+      "CancellationLine": {
+        "required": [
+          "receivableId",
+          "number",
+          "partyName",
+          "balance",
+          "reason",
+          "userId",
+          "at"
+        ],
+        "type": "object",
+        "properties": {
+          "receivableId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "balance": {
+            "type": "number",
+            "format": "double"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "userId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "CategoryDetail": {
         "required": [
           "id",
@@ -8593,6 +9243,37 @@
           }
         }
       },
+      "CustomerOption": {
+        "required": [
+          "id",
+          "name",
+          "document",
+          "defaultPaymentTermId"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "document": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "defaultPaymentTermId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
       "DisableTwoFactorRequest": {
         "required": [
           "password",
@@ -8605,6 +9286,104 @@
           },
           "code": {
             "type": "string"
+          }
+        }
+      },
+      "DiscountLine": {
+        "required": [
+          "receivableId",
+          "number",
+          "partyName",
+          "date",
+          "discount",
+          "balanceBefore",
+          "pct",
+          "userId",
+          "at",
+          "aboveLimit"
+        ],
+        "type": "object",
+        "properties": {
+          "receivableId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double"
+          },
+          "balanceBefore": {
+            "type": "number",
+            "format": "double"
+          },
+          "pct": {
+            "type": "number",
+            "format": "double"
+          },
+          "userId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "aboveLimit": {
+            "type": "boolean"
+          }
+        }
+      },
+      "DiscountsAndCancellations": {
+        "required": [
+          "from",
+          "to",
+          "discounts",
+          "cancellations",
+          "totalDiscount",
+          "totalCancelled"
+        ],
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "discounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DiscountLine"
+            }
+          },
+          "cancellations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CancellationLine"
+            }
+          },
+          "totalDiscount": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalCancelled": {
+            "type": "number",
+            "format": "double"
           }
         }
       },
@@ -8649,6 +9428,13 @@
           }
         }
       },
+      "DocumentOrigin": {
+        "enum": [
+          "Manual",
+          "Opening",
+          "Contract"
+        ]
+      },
       "DreGroup": {
         "enum": [
           "GrossRevenue",
@@ -8659,6 +9445,28 @@
           "OtherResults",
           "OutsideDre"
         ]
+      },
+      "DueDateInput": {
+        "required": [
+          "dueDate",
+          "reason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "dueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
       },
       "EmployeeCreated": {
         "required": [
@@ -9189,6 +9997,61 @@
             ]
           }
         }
+      },
+      "FinanceLimits": {
+        "required": [
+          "discountApprovalPct",
+          "discountApprovalAmount",
+          "cancelApprovalAmount",
+          "backdateDays"
+        ],
+        "type": "object",
+        "properties": {
+          "discountApprovalPct": {
+            "type": "number",
+            "format": "double"
+          },
+          "discountApprovalAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "cancelApprovalAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "backdateDays": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "FinanceLimitsInput": {
+        "required": [
+          "discountApprovalPct",
+          "discountApprovalAmount",
+          "cancelApprovalAmount",
+          "backdateDays"
+        ],
+        "type": "object",
+        "properties": {
+          "discountApprovalPct": {
+            "type": "number",
+            "format": "double"
+          },
+          "discountApprovalAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "cancelApprovalAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "backdateDays": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
       },
       "ForgotPasswordRequest": {
         "required": [
@@ -10956,6 +11819,35 @@
           }
         }
       },
+      "PagedListOfReceivableDetail": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReceivableDetail"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "PagedListOfTenantRow": {
         "required": [
           "items",
@@ -11948,6 +12840,381 @@
           }
         }
       },
+      "ReasonInput": {
+        "required": [
+          "reason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ReceivableDetail": {
+        "required": [
+          "id",
+          "number",
+          "partyId",
+          "partyName",
+          "description",
+          "accountId",
+          "accountName",
+          "costCenterId",
+          "projectId",
+          "amount",
+          "paidAmount",
+          "balance",
+          "interest",
+          "fine",
+          "discount",
+          "issueDate",
+          "dueDate",
+          "status",
+          "isOverdue",
+          "isDueToday",
+          "origin",
+          "originId",
+          "installmentGroupId",
+          "cancelReason",
+          "cancelledAt",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "accountName": {
+            "type": "string"
+          },
+          "costCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "projectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "paidAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "balance": {
+            "type": "number",
+            "format": "double"
+          },
+          "interest": {
+            "type": "number",
+            "format": "double"
+          },
+          "fine": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double"
+          },
+          "issueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ReceivableStatus"
+          },
+          "isOverdue": {
+            "type": "boolean"
+          },
+          "isDueToday": {
+            "type": "boolean"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/DocumentOrigin"
+          },
+          "originId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "installmentGroupId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "cancelReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cancelledAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "ReceivableInput": {
+        "required": [
+          "partyId",
+          "description",
+          "accountId",
+          "costCenterId",
+          "projectId",
+          "amount",
+          "issueDate",
+          "dueDate"
+        ],
+        "type": "object",
+        "properties": {
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": {
+            "type": "string"
+          },
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "costCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "projectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "issueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ReceivableInstallmentsInput": {
+        "required": [
+          "partyId",
+          "description",
+          "accountId",
+          "costCenterId",
+          "projectId",
+          "amount",
+          "issueDate",
+          "paymentTermId",
+          "baseDate"
+        ],
+        "type": "object",
+        "properties": {
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": {
+            "type": "string"
+          },
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "costCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "projectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "issueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "paymentTermId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "baseDate": {
+            "type": "string",
+            "format": "date"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ReceivablePage": {
+        "required": [
+          "page",
+          "totals"
+        ],
+        "type": "object",
+        "properties": {
+          "page": {
+            "$ref": "#/components/schemas/PagedListOfReceivableDetail"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/ReceivableTotals"
+          }
+        }
+      },
+      "ReceivablesCreated": {
+        "required": [
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReceivableDetail"
+            }
+          }
+        }
+      },
+      "ReceivableStatus": {
+        "enum": [
+          "Planned",
+          "Open",
+          "PartiallyPaid",
+          "Paid",
+          "Cancelled"
+        ]
+      },
+      "ReceivableTotals": {
+        "required": [
+          "open",
+          "overdue"
+        ],
+        "type": "object",
+        "properties": {
+          "open": {
+            "type": "number",
+            "format": "double"
+          },
+          "overdue": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "ReceivableUpdateInput": {
+        "required": [
+          "description",
+          "accountId",
+          "costCenterId",
+          "projectId",
+          "amount",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "costCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "projectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
       "ResetPasswordRequest": {
         "required": [
           "token",
@@ -12152,6 +13419,158 @@
           }
         }
       },
+      "SettlementInput": {
+        "required": [
+          "bankAccountId",
+          "date",
+          "principal",
+          "interest",
+          "fine",
+          "discount",
+          "backdateReason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "bankAccountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "principal": {
+            "type": "number",
+            "format": "double"
+          },
+          "interest": {
+            "type": "number",
+            "format": "double"
+          },
+          "fine": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double"
+          },
+          "backdateReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SettlementKind": {
+        "enum": [
+          "Settlement",
+          "DiscountWriteOff"
+        ]
+      },
+      "SettlementView": {
+        "required": [
+          "id",
+          "kind",
+          "bankAccountId",
+          "bankAccountName",
+          "date",
+          "principal",
+          "interest",
+          "fine",
+          "discount",
+          "total",
+          "backdateReason",
+          "createdBy",
+          "createdAt",
+          "reversedAt",
+          "reversalReason"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/SettlementKind"
+          },
+          "bankAccountId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "bankAccountName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "principal": {
+            "type": "number",
+            "format": "double"
+          },
+          "interest": {
+            "type": "number",
+            "format": "double"
+          },
+          "fine": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "backdateReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdBy": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reversedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "reversalReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "SetUserGroupsRequest": {
         "required": [
           "groupIds"
@@ -12181,6 +13600,29 @@
             "type": "string"
           }
         }
+      },
+      "SplitPreviewInput": {
+        "required": [
+          "paymentTermId",
+          "amount",
+          "baseDate"
+        ],
+        "type": "object",
+        "properties": {
+          "paymentTermId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "baseDate": {
+            "type": "string",
+            "format": "date"
+          }
+        },
+        "additionalProperties": false
       },
       "SplitPreviewRequest": {
         "required": [
@@ -13049,6 +14491,31 @@
             }
           }
         }
+      },
+      "WriteOffInput": {
+        "required": [
+          "date",
+          "backdateReason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "backdateReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
       }
     }
   },

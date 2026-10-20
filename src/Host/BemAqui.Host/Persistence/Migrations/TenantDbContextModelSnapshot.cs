@@ -694,6 +694,104 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("cost_centers", "finance");
                 });
 
+            modelBuilder.Entity("BemAqui.Finance.Domain.FinanceParameter", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("key");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<decimal>("Value")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("value");
+
+                    b.HasKey("Id")
+                        .HasName("pk_parameters");
+
+                    b.HasIndex("Key")
+                        .IsUnique()
+                        .HasDatabaseName("ix_parameters_key");
+
+                    b.ToTable("parameters", "finance");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.FinancialTransaction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<Guid>("BankAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("bank_account_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date")
+                        .HasColumnName("date");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("description");
+
+                    b.Property<Guid?>("ReceivableId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("receivable_id");
+
+                    b.Property<Guid?>("ReversesTransactionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reverses_transaction_id");
+
+                    b.Property<Guid?>("SettlementId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("settlement_id");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("type");
+
+                    b.HasKey("Id")
+                        .HasName("pk_financial_transactions");
+
+                    b.HasIndex("ReceivableId")
+                        .HasDatabaseName("ix_financial_transactions_receivable_id");
+
+                    b.HasIndex("BankAccountId", "Date")
+                        .HasDatabaseName("ix_financial_transactions_bank_account_id_date");
+
+                    NpgsqlIndexBuilderExtensions.IncludeProperties(b.HasIndex("BankAccountId", "Date"), new[] { "Amount" });
+
+                    b.ToTable("financial_transactions", "finance");
+                });
+
             modelBuilder.Entity("BemAqui.Finance.Domain.PaymentTerm", b =>
                 {
                     b.Property<Guid>("Id")
@@ -747,6 +845,245 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasFilter("seed_key IS NOT NULL");
 
                     b.ToTable("payment_terms", "finance");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.Receivable", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("account_id");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<string>("CancelReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("cancel_reason");
+
+                    b.Property<DateTimeOffset?>("CancelledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("cancelled_at");
+
+                    b.Property<Guid?>("CancelledBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cancelled_by");
+
+                    b.Property<Guid?>("CostCenterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cost_center_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("description");
+
+                    b.Property<decimal>("Discount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("discount");
+
+                    b.Property<DateOnly?>("DueDate")
+                        .HasColumnType("date")
+                        .HasColumnName("due_date");
+
+                    b.Property<decimal>("Fine")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("fine");
+
+                    b.Property<Guid?>("InstallmentGroupId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("installment_group_id");
+
+                    b.Property<decimal>("Interest")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("interest");
+
+                    b.Property<DateOnly>("IssueDate")
+                        .HasColumnType("date")
+                        .HasColumnName("issue_date");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("number");
+
+                    b.Property<string>("Origin")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("origin");
+
+                    b.Property<Guid?>("OriginId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("origin_id");
+
+                    b.Property<decimal>("PaidAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("paid_amount");
+
+                    b.Property<Guid>("PartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("party_id");
+
+                    b.Property<Guid?>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_receivables");
+
+                    b.HasIndex("InstallmentGroupId")
+                        .HasDatabaseName("ix_receivables_installment_group_id");
+
+                    b.HasIndex("Number")
+                        .IsUnique()
+                        .HasDatabaseName("ix_receivables_number");
+
+                    b.HasIndex("PartyId")
+                        .HasDatabaseName("ix_receivables_party_id");
+
+                    b.HasIndex("Origin", "OriginId")
+                        .HasDatabaseName("ix_receivables_origin_origin_id");
+
+                    b.HasIndex("Status", "DueDate")
+                        .HasDatabaseName("ix_receivables_open_due")
+                        .HasFilter("status NOT IN ('Paid','Cancelled')");
+
+                    b.ToTable("receivables", "finance");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.ReceivableSettlement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("BackdateReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("backdate_reason");
+
+                    b.Property<decimal>("BalanceBefore")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("balance_before");
+
+                    b.Property<Guid?>("BankAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("bank_account_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date")
+                        .HasColumnName("date");
+
+                    b.Property<decimal>("Discount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("discount");
+
+                    b.Property<decimal>("Fine")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("fine");
+
+                    b.Property<decimal>("Interest")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("interest");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("kind");
+
+                    b.Property<decimal>("Principal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("principal");
+
+                    b.Property<Guid>("ReceivableId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("receivable_id");
+
+                    b.Property<string>("ReversalReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("reversal_reason");
+
+                    b.Property<Guid?>("ReversalTransactionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reversal_transaction_id");
+
+                    b.Property<DateTimeOffset?>("ReversedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reversed_at");
+
+                    b.Property<Guid?>("ReversedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reversed_by");
+
+                    b.Property<decimal>("Total")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("total");
+
+                    b.Property<Guid?>("TransactionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("transaction_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_receivable_settlements");
+
+                    b.HasIndex("Date")
+                        .HasDatabaseName("ix_receivable_settlements_date");
+
+                    b.HasIndex("ReceivableId")
+                        .HasDatabaseName("ix_receivable_settlements_receivable_id");
+
+                    b.ToTable("receivable_settlements", "finance");
                 });
 
             modelBuilder.Entity("BemAqui.HR.Domain.Employee", b =>
@@ -3151,6 +3488,26 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasForeignKey("ParentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_cost_centers_cost_centers_parent_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.FinancialTransaction", b =>
+                {
+                    b.HasOne("BemAqui.Finance.Domain.BankAccount", null)
+                        .WithMany()
+                        .HasForeignKey("BankAccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_financial_transactions_bank_accounts_bank_account_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.ReceivableSettlement", b =>
+                {
+                    b.HasOne("BemAqui.Finance.Domain.Receivable", null)
+                        .WithMany()
+                        .HasForeignKey("ReceivableId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_receivable_settlements_receivables_receivable_id");
                 });
 
             modelBuilder.Entity("BemAqui.HR.Domain.Employee", b =>

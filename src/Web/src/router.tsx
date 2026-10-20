@@ -31,6 +31,10 @@ import { BankAccountsPage } from '@/pages/finance/BankAccountsPage'
 import { NewPaymentTermPage, PaymentTermPage } from '@/pages/finance/PaymentTermPage'
 import { PaymentTermsPage } from '@/pages/finance/PaymentTermsPage'
 import { ChartOfAccountsPage } from '@/pages/finance/ChartOfAccountsPage'
+import { DiscountsReportPage } from '@/pages/finance/receivables/DiscountsReportPage'
+import { NewReceivablePage } from '@/pages/finance/receivables/NewReceivablePage'
+import { ReceivablePage } from '@/pages/finance/receivables/ReceivablePage'
+import { ReceivablesPage } from '@/pages/finance/receivables/ReceivablesPage'
 import { CostCentersPage } from '@/pages/finance/CostCentersPage'
 import { EmployeePage } from '@/pages/hr/EmployeePage'
 import { EmployeesPage } from '@/pages/hr/EmployeesPage'
@@ -137,6 +141,11 @@ const unionsRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/sind
 // Plano de contas e centros de custo (CAD-05a).
 const chartRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/plano-de-contas', component: gated('finance', ChartOfAccountsPage) })
 const costCentersRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/centros-de-custo', component: gated('finance', CostCentersPage) })
+// Contas a receber (FIN-01).
+const receivablesRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/receber', component: gated('finance', ReceivablesPage) })
+const newReceivableRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/receber/novo', component: gated('finance', NewReceivablePage) })
+const discountsReportRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/receber/descontos-e-cancelamentos', component: gated('finance', DiscountsReportPage) })
+const receivableRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/receber/$id', component: gated('finance', ReceivablePage) })
 const paymentTermRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/condicoes-de-pagamento/$id', component: gated('finance', PaymentTermPage) })
 // Moldes de tela da FND-09d, dentro do shell, para o PO aprovar no contexto real.
 const moldsRoute = createRoute({ getParentRoute: () => appRoute, path: 'dev/moldes', beforeLoad: () => { throw redirect({ to: '/app/dev/moldes/cadastro' }) } })
@@ -183,7 +192,7 @@ export const routeTree = rootRoute.addChildren([
   appRoute.addChildren([appIndexRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute,
     aiSettingsRoute, importRunsRoute, importRunRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute,
     inventoryRootRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, productionRootRoute, workCentersRoute, calendarRoute,
-    financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
+    financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
   platformLoginRoute,
   platformPasswordRoute,
   platformRoute.addChildren([platformIndexRoute, tenantsRoute, tenantRoute]),
