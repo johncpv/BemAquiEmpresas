@@ -5,7 +5,7 @@
 | ID | FIN-05 |
 | Título | Fluxo de caixa diário, semanal e mensal, consolidado ou por conta: realizado pelas transações e projetado pelos títulos em aberto, previstos e estimados e pelas recorrentes futuras, com o dia de menor saldo; consulta de saldo atual por conta |
 | Tamanho | M |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-FIN-10 (realizado + projetado, diário/semanal/mensal; base = títulos em aberto + recorrentes + pedidos de compra + folha prevista) · R-FIN-2 (saldo por conta) · R-PRP-5 · PRD §6 (Desempenho) |
 | Dependências | FIN-01 (transações, recebíveis), FIN-02 (títulos a pagar, recorrentes), FIN-00 (saldos e títulos de implantação, para o dado real), FND-09e (`Chart`, tokens de gráfico) |
 | Bloqueia | FIN-04 (reaproveita a consulta de saldo), FIN-07 (cenário ajustado), DSH-01 (card de caixa), FIN-08 |
@@ -68,19 +68,19 @@ Como **proprietário**, quero **ver quanto entra, quanto sai e qual será o sald
 Decididos pelo PO em 20/10/2026 (seção 1.1, item 12): vencidos em aberto no dia de hoje; recebível de marco sem data fora da série; projeção só consolidada (conta prevista no título fica para a BNK-01). P-18 decidida (ADR 0021).
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers, dataset fixo) e E2E passando.
-- [ ] Migration só com os índices parciais, se a FIN-01 e a FIN-02 não os criaram.
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Tela com estados de carregando, vazio e erro.
-- [ ] Ajuda escrita; teste de cobertura passando.
-- [ ] Alerta acionável e detalhe do dia aplicados.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] Story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers, dataset fixo) e E2E passando.
+- [x] Migration só com os índices parciais, se a FIN-01 e a FIN-02 não os criaram.
+- [x] Permissões só do `ModuleCatalog`.
+- [x] Tela com estados de carregando, vazio e erro.
+- [x] Ajuda escrita; teste de cobertura passando.
+- [x] Alerta acionável e detalhe do dia aplicados.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] Story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `CashFlowQuery` e `BankBalanceQuery` (Dapper) e `CashFlowCalculator` (Domain, puro, testável).
-- [ ] Endpoint `/api/v1/finance/cash-flow` e `/api/v1/finance/bank-accounts/balances`; tela com `Chart` e tabela; ajuda.
+- [x] `CashFlowQuery` e `BankBalanceQuery` (Dapper) e `CashFlowCalculator` (Domain, puro, testável).
+- [x] Endpoint `/api/v1/finance/cash-flow` e `/api/v1/finance/bank-accounts/balances`; tela com `Chart` e tabela; ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, @qa, design (gráfico e acessibilidade).
@@ -114,3 +114,4 @@ Checklist do @po (Pax), 20/10/2026 (revalidação depois das decisões do PO e d
 | 19/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 20/10/2026 | 0.3 | Nova ordem da fase (antes da FIN-03a e da FIN-04), consulta de saldo, CP estimado, ajustes da revisão pré-Fase 2; CAs renumerados | River (SM) |
 | 20/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 20/10/2026 | 1.0 | Implementada. Desvios: consultas pelo EF (LINQ com agregação no banco e parâmetros), sem Dapper, porque o EF atendeu o CA 12 (50 mil títulos e 20 mil transações em menos de 2 s no teste); a `BankBalanceQuery` é o `CashFlowService.BankBalanceAsync`; o período começa no 1º dia do mês corrente (`from`, até um ano antes); a allowlist de ordenação vale no detalhe do dia (`kind`, `amount`, `-amount`, `description`); o alerta de caixa negativo abre o dia em que o saldo fica negativo ("Ver o que vence nesse dia"), porque a lista de títulos não filtra por semana; o h1 segue o padrão das telas do Financeiro ("Financeiro: Fluxo de caixa") com a frase da story logo abaixo; o `Chart` ganhou marcas verticais ("Hoje" e "Menor saldo") | @dev |

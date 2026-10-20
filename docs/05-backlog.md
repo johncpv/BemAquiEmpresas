@@ -194,7 +194,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-2--comercial-proj
 - Requisitos: R-FIN-2, R-FIN-3, R-FIN-4, R-FIN-1, R-PRP-1, R-PRP-3, R-SEC-5.
 - CA: data de corte única; saldo das contas no fim do dia de corte; títulos a receber e a pagar em aberto lançados pelo saldo com origem `Opening` (fora do DRE por competência e da pontualidade); relatório de conferência "saldo do sistema = saldo do banco"; pré-condição da primeira carga real: backup verificado e teste de restauração (ADR 0020); testes nunca no tenant `konebras`.
 
-**FIN-05 [ ] Fluxo de caixa base (M)** — 2.1a, ordem 4 — [story](stories/FIN-05-fluxo-de-caixa-base.md)
+**FIN-05 [x] Fluxo de caixa base (M)** — 2.1a, ordem 4 — [story](stories/FIN-05-fluxo-de-caixa-base.md)
 - Requisitos: R-FIN-10, R-FIN-2, R-PRP-5, PRD §6 (Desempenho).
 - CA: valores conferem com a soma dos títulos, das recorrentes e das transações (dataset fixo); saldo atual pela consulta desta story; realizado até hoje e projetado depois; CP estimado do instalador como estimativa; diário, semanal e mensal batendo entre si; dia de menor saldo e alerta de caixa negativo acionável; menos de 2 s com 50 mil títulos.
 

@@ -44,6 +44,8 @@ import type {
   CalendarExceptionDetail,
   CalendarExceptionInput,
   CalendarInput,
+  CashFlowDay,
+  CashFlowResult,
   CategoryDetail,
   CategoryInput,
   ChallengeRequest,
@@ -80,6 +82,8 @@ import type {
   FinanceSupplierOption,
   ForgotPasswordRequest,
   GetAuditHistoryParams,
+  GetCashFlowDayParams,
+  GetCashFlowParams,
   GetDiscountsAndCancellationsParams,
   GroupDetail,
   GroupSaved,
@@ -21664,6 +21668,210 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getCompleteOpeningMutationOptions(options), queryClient);
     }
+
+export const getGetCashFlowUrl = (params?: GetCashFlowParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/finance/cash-flow?${stringifiedParams}` : `/api/v1/finance/cash-flow`
+}
+
+export const getCashFlow = async (params?: GetCashFlowParams, options?: Parameters<typeof apiFetch>[1]): Promise<CashFlowResult> => {
+
+  return apiFetch<CashFlowResult>(getGetCashFlowUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCashFlowQueryKey = (params?: GetCashFlowParams,) => {
+    return [
+    `/api/v1/finance/cash-flow`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetCashFlowQueryOptions = <TData = Awaited<ReturnType<typeof getCashFlow>>, TError = unknown>(params?: GetCashFlowParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashFlow>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCashFlowQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCashFlow>>> = ({ signal }) => getCashFlow(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCashFlow>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetCashFlowQueryResult = NonNullable<Awaited<ReturnType<typeof getCashFlow>>>
+export type GetCashFlowQueryError = unknown
+
+
+export function useGetCashFlow<TData = Awaited<ReturnType<typeof getCashFlow>>, TError = unknown>(
+ params: undefined |  GetCashFlowParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashFlow>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCashFlow>>,
+          TError,
+          Awaited<ReturnType<typeof getCashFlow>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetCashFlow<TData = Awaited<ReturnType<typeof getCashFlow>>, TError = unknown>(
+ params?: GetCashFlowParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashFlow>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCashFlow>>,
+          TError,
+          Awaited<ReturnType<typeof getCashFlow>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetCashFlow<TData = Awaited<ReturnType<typeof getCashFlow>>, TError = unknown>(
+ params?: GetCashFlowParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashFlow>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetCashFlow<TData = Awaited<ReturnType<typeof getCashFlow>>, TError = unknown>(
+ params?: GetCashFlowParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashFlow>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetCashFlowQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetCashFlowDayUrl = (params: GetCashFlowDayParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/finance/cash-flow/day?${stringifiedParams}` : `/api/v1/finance/cash-flow/day`
+}
+
+export const getCashFlowDay = async (params: GetCashFlowDayParams, options?: Parameters<typeof apiFetch>[1]): Promise<CashFlowDay> => {
+
+  return apiFetch<CashFlowDay>(getGetCashFlowDayUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCashFlowDayQueryKey = (params?: GetCashFlowDayParams,) => {
+    return [
+    `/api/v1/finance/cash-flow/day`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetCashFlowDayQueryOptions = <TData = Awaited<ReturnType<typeof getCashFlowDay>>, TError = unknown>(params: GetCashFlowDayParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashFlowDay>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCashFlowDayQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCashFlowDay>>> = ({ signal }) => getCashFlowDay(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCashFlowDay>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetCashFlowDayQueryResult = NonNullable<Awaited<ReturnType<typeof getCashFlowDay>>>
+export type GetCashFlowDayQueryError = unknown
+
+
+export function useGetCashFlowDay<TData = Awaited<ReturnType<typeof getCashFlowDay>>, TError = unknown>(
+ params: GetCashFlowDayParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashFlowDay>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCashFlowDay>>,
+          TError,
+          Awaited<ReturnType<typeof getCashFlowDay>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetCashFlowDay<TData = Awaited<ReturnType<typeof getCashFlowDay>>, TError = unknown>(
+ params: GetCashFlowDayParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashFlowDay>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCashFlowDay>>,
+          TError,
+          Awaited<ReturnType<typeof getCashFlowDay>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetCashFlowDay<TData = Awaited<ReturnType<typeof getCashFlowDay>>, TError = unknown>(
+ params: GetCashFlowDayParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashFlowDay>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetCashFlowDay<TData = Awaited<ReturnType<typeof getCashFlowDay>>, TError = unknown>(
+ params: GetCashFlowDayParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashFlowDay>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetCashFlowDayQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getListImportRunsUrl = (params?: ListImportRunsParams,) => {
   const normalizedParams = new URLSearchParams();

@@ -8170,6 +8170,105 @@
         }
       }
     },
+    "/api/v1/finance/cash-flow": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetCashFlow",
+        "parameters": [
+          {
+            "name": "view",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "bankAccountId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CashFlowResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/cash-flow/day": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetCashFlowDay",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "bankAccountId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CashFlowDay"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/settings/import-runs": {
       "get": {
         "tags": [
@@ -9086,6 +9185,251 @@
           "isPayable": {
             "type": "boolean",
             "default": false
+          }
+        }
+      },
+      "CashFlowDay": {
+        "required": [
+          "date",
+          "projected",
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "projected": {
+            "type": "boolean"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CashFlowItem"
+            }
+          }
+        }
+      },
+      "CashFlowItem": {
+        "required": [
+          "kind",
+          "id",
+          "number",
+          "description",
+          "partyName",
+          "amount",
+          "dueDate",
+          "overdue",
+          "estimate",
+          "link"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "partyName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "overdue": {
+            "type": "boolean"
+          },
+          "estimate": {
+            "type": "boolean"
+          },
+          "link": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "CashFlowPeriod": {
+        "required": [
+          "start",
+          "end",
+          "inflow",
+          "outflow",
+          "balance",
+          "projected",
+          "containsToday",
+          "overdueInflow",
+          "overdueOutflow"
+        ],
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "string",
+            "format": "date"
+          },
+          "end": {
+            "type": "string",
+            "format": "date"
+          },
+          "inflow": {
+            "type": "number",
+            "format": "double"
+          },
+          "outflow": {
+            "type": "number",
+            "format": "double"
+          },
+          "balance": {
+            "type": "number",
+            "format": "double"
+          },
+          "projected": {
+            "type": "boolean"
+          },
+          "containsToday": {
+            "type": "boolean"
+          },
+          "overdueInflow": {
+            "type": "number",
+            "format": "double"
+          },
+          "overdueOutflow": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "CashFlowPoint": {
+        "required": [
+          "date",
+          "balance"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "balance": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "CashFlowResult": {
+        "required": [
+          "today",
+          "from",
+          "to",
+          "view",
+          "bankAccountId",
+          "currentBalance",
+          "consolidated",
+          "periods",
+          "lowest",
+          "firstNegative",
+          "undatedReceivables"
+        ],
+        "type": "object",
+        "properties": {
+          "today": {
+            "type": "string",
+            "format": "date"
+          },
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "view": {
+            "type": "string"
+          },
+          "bankAccountId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "currentBalance": {
+            "type": "number",
+            "format": "double"
+          },
+          "consolidated": {
+            "type": "boolean"
+          },
+          "periods": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CashFlowPeriod"
+            }
+          },
+          "lowest": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CashFlowPoint"
+              }
+            ]
+          },
+          "firstNegative": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CashFlowPoint"
+              }
+            ]
+          },
+          "undatedReceivables": {
+            "$ref": "#/components/schemas/CashFlowUndated"
+          }
+        }
+      },
+      "CashFlowUndated": {
+        "required": [
+          "count",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
           }
         }
       },
