@@ -9,6 +9,9 @@ public enum QuoteStatus
 {
     Draft,
     Sent,
+
+    /// <summary>Perdido (COM-01b CA 11), com motivo.</summary>
+    Rejected,
 }
 
 /// <summary>Modo de preço gravado no orçamento (P-14): o que valia quando ele nasceu.</summary>
@@ -66,6 +69,20 @@ public sealed class Quote : Entity, IAuditable, IConcurrencyVersioned, ISoftDele
     public decimal? MarginPct { get; set; }
 
     public DateTimeOffset? SentAt { get; set; }
+
+    /// <summary>Validade (COM-01b CA 8): hoje + <c>quotes.validity_days</c> ao nascer.</summary>
+    public DateOnly? ValidUntil { get; set; }
+
+    public QuoteLostReason? LostReason { get; set; }
+
+    public string? LostDetail { get; set; }
+
+    public DateTimeOffset? LostAt { get; set; }
+
+    public Guid? LostBy { get; set; }
+
+    /// <summary>Copiado de outro orçamento (CA 13); não é revisão.</summary>
+    public Guid? CopiedFromQuoteId { get; set; }
 
     public DateTimeOffset CreatedAt { get; init; }
 

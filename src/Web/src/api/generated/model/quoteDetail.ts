@@ -5,6 +5,7 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { QuoteItemView } from './quoteItemView';
+import type { QuoteLostReason } from './quoteLostReason';
 import type { QuotePricingMode } from './quotePricingMode';
 import type { QuoteStatus } from './quoteStatus';
 
@@ -29,5 +30,12 @@ export interface QuoteDetail {
   /** @nullable */
   sentAt: string | null;
   createdAt: string;
+  /** @nullable */
+  validUntil: string | null;
+  lostReason: null | QuoteLostReason;
+  /** @nullable */
+  lostDetail: string | null;
+  /** @nullable */
+  copiedFromNumber: string | null;
   version: number;
 }

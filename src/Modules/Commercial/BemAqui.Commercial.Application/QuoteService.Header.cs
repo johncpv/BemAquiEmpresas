@@ -1,3 +1,4 @@
+using BemAqui.BuildingBlocks.Time;
 using BemAqui.Commercial.Domain;
 using BemAqui.Identity.Contracts;
 using BemAqui.Parties.Contracts;
@@ -28,6 +29,7 @@ public sealed partial class QuoteService
         var quote = new Quote
         {
             PartyId = input.PartyId, ContactId = contact, SiteAddressId = site, PricingMode = mode, CreatedAt = clock.GetUtcNow(), CreatedBy = currentUser.UserId,
+            ValidUntil = BusinessTime.Today(clock).AddDays(await commercialParameters.ValidityDaysAsync(cancellationToken)),
         };
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
         quote.Number = await numbers.NextAsync(DocType, cancellationToken);
@@ -85,6 +87,11 @@ public sealed partial class QuoteService
         if (!await db.QuoteItems.AnyAsync(i => i.QuoteId == quote.Id && i.UnitPrice > 0 && i.Quantity > 0, cancellationToken))
         {
             return Invalid("items", "Inclua ao menos um item com preço.");
+        }
+
+        if (quote.ValidUntil is { } valid && valid < BusinessTime.Today(clock))
+        {
+            return Invalid("validUntil", "A validade venceu. Ajuste a data antes de enviar.");
         }
 
         quote.Status = QuoteStatus.Sent;

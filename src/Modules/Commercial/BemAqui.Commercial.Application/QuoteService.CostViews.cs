@@ -38,6 +38,8 @@ public sealed partial class QuoteService
         var stock = (await items.FindAsync(lines.Where(l => l.ItemId != null).Select(l => l.ItemId!.Value).Distinct().ToList(), ct)).ToDictionary(i => i.Id);
         var roles = (await positions.FindAsync(lines.Where(l => l.PositionId != null).Select(l => l.PositionId!.Value).Distinct().ToList(), ct)).ToDictionary(p => p.Id, p => p.Name);
         var defaultPct = await commercialParameters.DefaultPricingPctAsync(ct);
+        // CA 16 da COM-01b: cópia com custo-hora antigo pede "Atualizar custos".
+        var stale = quote.CopiedFromQuoteId is not null && quote.Status == QuoteStatus.Draft && (await RefreshChangesAsync(quote, ct)).Changes.Count > 0;
         return new QuoteCostDetail(quote.Id, quote.PricingMode, defaultPct, quote.TotalCost, quote.TotalPrice, quote.MarginPct, quoteItems.Select(i =>
         {
             var effective = i.Pct ?? defaultPct;
@@ -46,7 +48,7 @@ public sealed partial class QuoteService
                 lines.Where(l => l.QuoteItemId == i.Id).Select(l => new QuoteCostLineView(
                     l.Id, l.CostType, l.Description, l.ItemId, l.ItemId is { } s && stock.TryGetValue(s, out var si) ? si.Name : null, l.ItemId is { } u && stock.TryGetValue(u, out var ui) ? ui.UnitCode : null,
                     l.WorkCenterId, l.PositionId, l.PositionId is { } r ? roles.GetValueOrDefault(r) : null, l.PartyId, l.Quantity, l.UnitCost, l.Total)).ToList());
-        }).ToList());
+        }).ToList(), stale);
     }
 
     /// <summary>Linhas de mão de obra com custo-hora diferente do atual do cargo (CA 13), sem gravar.</summary>

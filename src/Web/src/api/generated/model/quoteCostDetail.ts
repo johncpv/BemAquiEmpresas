@@ -17,4 +17,5 @@ export interface QuoteCostDetail {
   /** @nullable */
   marginPct: number | null;
   items: QuoteItemCostView[];
+  staleLaborCosts?: boolean;
 }

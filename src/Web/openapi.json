@@ -4736,6 +4736,297 @@
         }
       }
     },
+    "/api/v1/quotes/{id}/conditions": {
+      "get": {
+        "tags": [
+          "Or\u00E7amentos"
+        ],
+        "operationId": "GetQuoteConditions",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteConditions"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Or\u00E7amentos"
+        ],
+        "operationId": "SaveQuoteConditions",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuoteConditionsInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteConditions"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/quotes/{id}/conditions/from-term/{termId}": {
+      "get": {
+        "tags": [
+          "Or\u00E7amentos"
+        ],
+        "operationId": "QuoteMilestonesFromTerm",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "termId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/QuoteMilestoneInput"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/quotes/{id}/lose": {
+      "post": {
+        "tags": [
+          "Or\u00E7amentos"
+        ],
+        "operationId": "LoseQuote",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuoteLoseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/quotes/copy-options": {
+      "get": {
+        "tags": [
+          "Or\u00E7amentos"
+        ],
+        "operationId": "ListQuoteCopyOptions",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/QuoteCopyOption"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/quotes/{id}/copy": {
+      "post": {
+        "tags": [
+          "Or\u00E7amentos"
+        ],
+        "operationId": "CopyQuote",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuoteCopyInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/quotes/{id}/copy-items": {
+      "post": {
+        "tags": [
+          "Or\u00E7amentos"
+        ],
+        "operationId": "CopyQuoteItems",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuoteCopyItemsInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/quotes/payment-terms": {
+      "get": {
+        "tags": [
+          "Or\u00E7amentos"
+        ],
+        "operationId": "ListQuotePaymentTerms",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/QuoteTermOption"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/quotes/lookups/customers": {
       "get": {
         "tags": [
@@ -11501,6 +11792,11 @@
               "number"
             ],
             "format": "double"
+          },
+          "validityDays": {
+            "type": "integer",
+            "format": "int32",
+            "default": 15
           }
         }
       },
@@ -11520,6 +11816,11 @@
           },
           "pricingMode": {
             "type": "string"
+          },
+          "validityDays": {
+            "type": "integer",
+            "format": "int32",
+            "default": 15
           }
         }
       },
@@ -14345,6 +14646,12 @@
             "type": "string"
           }
         }
+      },
+      "MilestoneTrigger": {
+        "enum": [
+          "Date",
+          "Event"
+        ]
       },
       "ModuleRelease": {
         "required": [
@@ -17462,6 +17769,198 @@
           }
         }
       },
+      "QuoteConditions": {
+        "required": [
+          "milestones",
+          "percentSum",
+          "warning",
+          "validUntil",
+          "defaultPaymentTermId",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "milestones": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuoteMilestoneView"
+            }
+          },
+          "percentSum": {
+            "type": "number",
+            "format": "double"
+          },
+          "warning": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "validUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "defaultPaymentTermId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "QuoteConditionsInput": {
+        "required": [
+          "milestones",
+          "validUntil",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "milestones": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuoteMilestoneInput"
+            }
+          },
+          "validUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "QuoteCopyInput": {
+        "required": [
+          "partyId",
+          "contactId",
+          "siteAddressId"
+        ],
+        "type": "object",
+        "properties": {
+          "partyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "contactId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "siteAddressId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "QuoteCopyItemOption": {
+        "required": [
+          "id",
+          "description",
+          "quantity"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "QuoteCopyItemsInput": {
+        "required": [
+          "sourceQuoteId",
+          "itemIds",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "sourceQuoteId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "QuoteCopyOption": {
+        "required": [
+          "id",
+          "number",
+          "revision",
+          "partyName",
+          "status",
+          "totalPrice",
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/QuoteStatus"
+          },
+          "totalPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuoteCopyItemOption"
+            }
+          }
+        }
+      },
       "QuoteCostDetail": {
         "required": [
           "quoteId",
@@ -17508,6 +18007,10 @@
             "items": {
               "$ref": "#/components/schemas/QuoteItemCostView"
             }
+          },
+          "staleLaborCosts": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -17762,6 +18265,10 @@
           "totalPrice",
           "sentAt",
           "createdAt",
+          "validUntil",
+          "lostReason",
+          "lostDetail",
+          "copiedFromNumber",
           "version"
         ],
         "type": "object",
@@ -17837,6 +18344,35 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "validUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "lostReason": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/QuoteLostReason"
+              }
+            ]
+          },
+          "lostDetail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "copiedFromNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "version": {
             "type": "integer",
@@ -18067,6 +18603,156 @@
           }
         }
       },
+      "QuoteLoseInput": {
+        "required": [
+          "reason",
+          "detail",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/QuoteLostReason"
+              }
+            ]
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "QuoteLostReason": {
+        "enum": [
+          "Price",
+          "Deadline",
+          "Competitor",
+          "CustomerGaveUp",
+          "NoAnswer",
+          "Other",
+          null
+        ]
+      },
+      "QuoteMilestoneInput": {
+        "required": [
+          "description",
+          "percent",
+          "trigger",
+          "triggerEvent",
+          "dueDate",
+          "daysAfterEvent"
+        ],
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "percent": {
+            "type": "number",
+            "format": "double"
+          },
+          "trigger": {
+            "$ref": "#/components/schemas/MilestoneTrigger"
+          },
+          "triggerEvent": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TriggerEvent"
+              }
+            ]
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "daysAfterEvent": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "QuoteMilestoneView": {
+        "required": [
+          "id",
+          "sequence",
+          "description",
+          "percent",
+          "amount",
+          "trigger",
+          "triggerEvent",
+          "dueDate",
+          "daysAfterEvent"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": {
+            "type": "string"
+          },
+          "percent": {
+            "type": "number",
+            "format": "double"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "trigger": {
+            "$ref": "#/components/schemas/MilestoneTrigger"
+          },
+          "triggerEvent": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TriggerEvent"
+              }
+            ]
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "daysAfterEvent": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
       "QuotePage": {
         "required": [
           "items",
@@ -18128,7 +18814,8 @@
       "QuoteStatus": {
         "enum": [
           "Draft",
-          "Sent"
+          "Sent",
+          "Rejected"
         ]
       },
       "QuoteSummary": {
@@ -18142,7 +18829,9 @@
           "mainItem",
           "totalPrice",
           "sentAt",
-          "createdAt"
+          "createdAt",
+          "validUntil",
+          "lostReason"
         ],
         "type": "object",
         "properties": {
@@ -18187,6 +18876,39 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "validUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "lostReason": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/QuoteLostReason"
+              }
+            ]
+          }
+        }
+      },
+      "QuoteTermOption": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
           }
         }
       },
@@ -19776,6 +20498,15 @@
             ]
           }
         }
+      },
+      "TriggerEvent": {
+        "enum": [
+          "Signature",
+          "FabricationDone",
+          "Delivered",
+          "TechnicalAcceptance",
+          null
+        ]
       },
       "TwoFactorActivatedResponse": {
         "required": [

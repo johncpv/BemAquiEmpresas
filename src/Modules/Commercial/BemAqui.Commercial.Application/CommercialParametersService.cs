@@ -11,12 +11,16 @@ namespace BemAqui.Commercial.Application;
 public sealed class CommercialParametersService(ICommercialDb db, ITenantParameters tenantParameters, IPermissionChecker permissions, TimeProvider clock) : ICommercialParameters
 {
     public const string DefaultPct = "pricing.default_pct";
+    public const string ValidityDays = "quotes.validity_days";
+
+    public async Task<int> ValidityDaysAsync(CancellationToken cancellationToken = default) =>
+        (int)(await db.CommercialParameters.AsNoTracking().Where(p => p.Key == ValidityDays).Select(p => p.Value).FirstOrDefaultAsync(cancellationToken) ?? 15m);
 
     public async Task<decimal?> DefaultPricingPctAsync(CancellationToken cancellationToken = default) =>
         await db.CommercialParameters.AsNoTracking().Where(p => p.Key == DefaultPct).Select(p => p.Value).FirstOrDefaultAsync(cancellationToken);
 
     public async Task<CommercialParametersView> GetAsync(CancellationToken cancellationToken = default) =>
-        new(await DefaultPricingPctAsync(cancellationToken), (await tenantParameters.PricingModeAsync(cancellationToken)).ToString());
+        new(await DefaultPricingPctAsync(cancellationToken), (await tenantParameters.PricingModeAsync(cancellationToken)).ToString(), await ValidityDaysAsync(cancellationToken));
 
     public async Task<Result<CommercialParametersView>> UpdateAsync(CommercialParametersInput input, CancellationToken cancellationToken = default)
     {
@@ -36,6 +40,12 @@ public sealed class CommercialParametersService(ICommercialDb db, ITenantParamet
             return QuoteService.Invalid("defaultPct", "A margem precisa ser menor que 100%.");
         }
 
+        if (input.ValidityDays is < 1 or > 365)
+        {
+            return QuoteService.Invalid("validityDays", "Informe de 1 a 365 dias.");
+        }
+
+        await SetAsync(ValidityDays, input.ValidityDays, cancellationToken);
         var parameter = await db.CommercialParameters.FirstOrDefaultAsync(p => p.Key == DefaultPct, cancellationToken);
         if (parameter is null)
         {
@@ -49,5 +59,19 @@ public sealed class CommercialParametersService(ICommercialDb db, ITenantParamet
 
         await db.SaveChangesAsync(cancellationToken);
         return await GetAsync(cancellationToken);
+    }
+
+    private async Task SetAsync(string key, decimal? value, CancellationToken ct)
+    {
+        var parameter = await db.CommercialParameters.FirstOrDefaultAsync(p => p.Key == key, ct);
+        if (parameter is null)
+        {
+            db.CommercialParameters.Add(new CommercialParameter { Key = key, Value = value, UpdatedAt = clock.GetUtcNow() });
+        }
+        else if (parameter.Value != value)
+        {
+            parameter.Value = value;
+            parameter.UpdatedAt = clock.GetUtcNow();
+        }
     }
 }

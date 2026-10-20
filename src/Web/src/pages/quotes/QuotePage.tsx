@@ -10,7 +10,10 @@ import { StatusChip } from '@/components/ui/status-chip'
 import { UrlTabs } from '@/components/ui/url-tabs'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
+import { ConditionsTab } from './ConditionsTab'
+import { CopyQuoteDialog } from './CopyQuoteDialog'
 import { ItemsTab } from './ItemsTab'
+import { LoseDialog } from './LoseDialog'
 import { QuoteHeaderTab } from './QuoteHeaderTab'
 import { QUOTE_STATUS } from './quotes'
 import { QuoteTotals } from './QuoteTotals'
@@ -44,6 +47,8 @@ export function QuotePage() {
         <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
           <StatusChip tone={QUOTE_STATUS[quote.status]?.tone ?? 'neutral'}>{QUOTE_STATUS[quote.status]?.label ?? quote.status}</StatusChip>
           <span className="flex flex-wrap gap-2">
+            {quote.status === 'Sent' && canEdit ? <LoseDialog quoteId={id} version={quote.version} onDone={refresh} /> : null}
+            {editable ? <CopyQuoteDialog mode="items" quoteId={id} version={quote.version} onDone={refresh} /> : null}
             {editable && canCost ? <RefreshCostsDialog quoteId={id} version={quote.version} onDone={refresh} /> : null}
             {editable ? (
               <ConfirmDialog verb="Marcar como enviado" done="Marcado como enviado" title="Marcar o orçamento como enviado?" description="Depois de enviado, itens, custos e preços ficam só para consulta."
@@ -60,10 +65,13 @@ export function QuotePage() {
         </div>
       </PageHeading>
       {steps ? <div className="mb-4"><NextSteps onDismiss={() => setSteps(false)} steps={[{ label: 'Adicionar item', onSelect: () => { setSteps(false); document.querySelector<HTMLInputElement>('input[placeholder^="Ex.: Elevador"]')?.focus() } }]} /></div> : null}
+      {costs.data?.staleLaborCosts && quote.copiedFromNumber ? <p role="note" className="mb-4 rounded-md border border-warn-soft bg-warn-soft px-3 py-2 text-sm text-warn-ink">Custos copiados de {quote.copiedFromNumber}. Confira com 'Atualizar custos'.</p> : null}
+      {quote.status === 'Rejected' ? <p role="note" className="mb-4 rounded-md border border-border bg-muted px-3 py-2 text-sm">Orçamento perdido{quote.lostDetail ? `: ${quote.lostDetail}` : ''}. Só para consulta; dá para copiar para um novo.</p> : null}
       {quote.status === 'Sent' ? <p role="note" className="mb-4 rounded-md border border-border bg-muted px-3 py-2 text-sm">Orçamento enviado: só para consulta. Para mudar, crie uma nova revisão.</p> : null}
       <UrlTabs label="Seções do orçamento" fallback="dados" tabs={[
         { id: 'dados', label: 'Dados', content: <QuoteHeaderTab key={quote.version} quote={quote} editable={editable} refresh={refresh} /> },
         { id: 'itens', label: 'Itens', content: <ItemsTab quote={quote} costs={costs.data} editable={editable} refresh={refresh} /> },
+        { id: 'condicoes', label: 'Condições', content: <ConditionsTab quote={quote} editable={editable} refresh={refresh} /> },
         { id: 'historico', label: 'Histórico de alterações', content: <RecordHistory entity="Quote" id={id} /> },
       ]} />
       <QuoteTotals quote={quote} costs={canCost ? costs.data : undefined} />

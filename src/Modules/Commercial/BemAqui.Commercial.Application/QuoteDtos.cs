@@ -5,7 +5,7 @@ namespace BemAqui.Commercial.Application;
 
 // DTOs sem custo (COM-01a CA 2, D7): nenhuma propriedade de custo, margem ou markup; o teste de arquitetura confere.
 
-public sealed record QuoteSummary(Guid Id, string Number, int Revision, QuoteStatus Status, Guid PartyId, string PartyName, string? MainItem, decimal TotalPrice, DateTimeOffset? SentAt, DateTimeOffset CreatedAt);
+public sealed record QuoteSummary(Guid Id, string Number, int Revision, QuoteStatus Status, Guid PartyId, string PartyName, string? MainItem, decimal TotalPrice, DateTimeOffset? SentAt, DateTimeOffset CreatedAt, DateOnly? ValidUntil, QuoteLostReason? LostReason);
 
 public sealed record QuotePage(IReadOnlyList<QuoteSummary> Items, int Page, int PageSize, int Total);
 
@@ -13,7 +13,8 @@ public sealed record QuoteItemView(Guid Id, int Sequence, QuoteItemKind Kind, Gu
 
 public sealed record QuoteDetail(
     Guid Id, string Number, int Revision, QuoteStatus Status, Guid PartyId, string PartyName, Guid? ContactId, Guid? SiteAddressId, int? DeliveryDays, string? Notes,
-    QuotePricingMode PricingMode, IReadOnlyList<QuoteItemView> Items, decimal TotalPrice, DateTimeOffset? SentAt, DateTimeOffset CreatedAt, uint Version);
+    QuotePricingMode PricingMode, IReadOnlyList<QuoteItemView> Items, decimal TotalPrice, DateTimeOffset? SentAt, DateTimeOffset CreatedAt, DateOnly? ValidUntil, QuoteLostReason? LostReason, string? LostDetail,
+    string? CopiedFromNumber, uint Version);
 
 // DTOs com custo: só com quotes.view_cost, em rotas próprias.
 
@@ -25,7 +26,7 @@ public sealed record QuoteCostLineView(
 
 public sealed record QuoteItemCostView(Guid ItemId, decimal UnitCost, decimal? Pct, decimal EffectivePct, decimal? SuggestedPrice, IReadOnlyList<QuoteCostLineView> Lines);
 
-public sealed record QuoteCostDetail(Guid QuoteId, QuotePricingMode PricingMode, decimal? DefaultPct, decimal TotalCost, decimal TotalPrice, decimal? MarginPct, IReadOnlyList<QuoteItemCostView> Items);
+public sealed record QuoteCostDetail(Guid QuoteId, QuotePricingMode PricingMode, decimal? DefaultPct, decimal TotalCost, decimal TotalPrice, decimal? MarginPct, IReadOnlyList<QuoteItemCostView> Items, bool StaleLaborCosts = false);
 
 // Entradas.
 
@@ -56,8 +57,10 @@ public sealed record LaborPositionOption(Guid Id, string Name, Guid? DefaultWork
 
 public sealed record LaborWorkCenterOption(Guid Id, string Name);
 
-public sealed record CommercialParametersView(decimal? DefaultPct, string PricingMode);
+public sealed record CommercialParametersView(decimal? DefaultPct, string PricingMode, int ValidityDays = 15);
 
-public sealed record CommercialParametersInput(decimal? DefaultPct);
+public sealed record CommercialParametersInput(decimal? DefaultPct, int ValidityDays = 15);
+
+public sealed record QuoteTermOption(Guid Id, string Name);
 
 public sealed record MaterialCost(decimal? UnitCost);

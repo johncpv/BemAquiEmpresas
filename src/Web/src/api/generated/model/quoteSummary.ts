@@ -4,6 +4,7 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { QuoteLostReason } from './quoteLostReason';
 import type { QuoteStatus } from './quoteStatus';
 
 export interface QuoteSummary {
@@ -19,4 +20,7 @@ export interface QuoteSummary {
   /** @nullable */
   sentAt: string | null;
   createdAt: string;
+  /** @nullable */
+  validUntil: string | null;
+  lostReason: null | QuoteLostReason;
 }

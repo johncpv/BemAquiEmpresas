@@ -4,6 +4,7 @@ import type { Tone } from '../finance/receivables/receivables'
 export const QUOTE_STATUS: Record<string, { label: string; tone: Tone }> = {
   Draft: { label: 'Rascunho', tone: 'neutral' },
   Sent: { label: 'Enviado', tone: 'info' },
+  Rejected: { label: 'Perdido', tone: 'neutral' },
 }
 
 export const ITEM_KINDS = [
@@ -29,6 +30,13 @@ export const QUOTE_DICAS = {
   digitado: 'Você digitou o preço. Ele não muda quando o custo muda, até voltar ao sugerido.',
   impostos: 'Valor estimado digitado, enquanto o regime tributário não está configurado.',
   padrao: 'Defina o % que a empresa costuma aplicar em Configurações → Parâmetros.',
+}
+
+/** "vence em 5 dias", "vence hoje" ou "venceu" (CA 10). */
+export function validityLabel(validUntil: string | null | undefined, today: string) {
+  if (!validUntil) return ''
+  const days = Math.round((Date.parse(validUntil + 'T00:00:00Z') - Date.parse(today + 'T00:00:00Z')) / 86_400_000)
+  return days < 0 ? 'venceu' : days === 0 ? 'vence hoje' : days === 1 ? 'vence amanhã' : `vence em ${days} dias`
 }
 
 const fmt = (v: number) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
