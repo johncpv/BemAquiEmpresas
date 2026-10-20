@@ -473,6 +473,289 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("number_sequences", "shared");
                 });
 
+            modelBuilder.Entity("BemAqui.Commercial.Domain.CommercialParameter", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("key");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<decimal?>("Value")
+                        .HasPrecision(7, 4)
+                        .HasColumnType("numeric(7,4)")
+                        .HasColumnName("value");
+
+                    b.HasKey("Id")
+                        .HasName("pk_commercial_parameters");
+
+                    b.HasIndex("Key")
+                        .IsUnique()
+                        .HasDatabaseName("ix_commercial_parameters_key");
+
+                    b.ToTable("parameters", "commercial");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.Quote", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("ContactId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contact_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<int?>("DeliveryDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("delivery_days");
+
+                    b.Property<bool>("IsCurrent")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_current");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<decimal?>("MarginPct")
+                        .HasPrecision(9, 4)
+                        .HasColumnType("numeric(9,4)")
+                        .HasColumnName("margin_pct");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("notes");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("number");
+
+                    b.Property<Guid>("PartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("party_id");
+
+                    b.Property<string>("PricingMode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("pricing_mode");
+
+                    b.Property<int>("Revision")
+                        .HasColumnType("integer")
+                        .HasColumnName("revision");
+
+                    b.Property<DateTimeOffset?>("SentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("sent_at");
+
+                    b.Property<Guid?>("SiteAddressId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("site_address_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.Property<decimal>("TotalCost")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("total_cost");
+
+                    b.Property<decimal>("TotalPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("total_price");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_quotes");
+
+                    b.HasIndex("Number")
+                        .IsUnique()
+                        .HasDatabaseName("ux_quotes_number_current")
+                        .HasFilter("is_current");
+
+                    b.HasIndex("PartyId")
+                        .HasDatabaseName("ix_quotes_party_id");
+
+                    b.HasIndex("Number", "Revision")
+                        .IsUnique()
+                        .HasDatabaseName("ix_quotes_number_revision");
+
+                    b.ToTable("quotes", "commercial");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.QuoteItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("description");
+
+                    b.Property<Guid?>("ItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_id");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)")
+                        .HasColumnName("kind");
+
+                    b.Property<decimal?>("Pct")
+                        .HasPrecision(7, 4)
+                        .HasColumnType("numeric(7,4)")
+                        .HasColumnName("pct");
+
+                    b.Property<bool>("PriceOverridden")
+                        .HasColumnType("boolean")
+                        .HasColumnName("price_overridden");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("quantity");
+
+                    b.Property<Guid>("QuoteId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("quote_id");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.Property<decimal>("UnitCost")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)")
+                        .HasColumnName("unit_cost");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("unit_price");
+
+                    b.HasKey("Id")
+                        .HasName("pk_quote_items");
+
+                    b.HasIndex("ItemId")
+                        .HasDatabaseName("ix_quote_items_item_id");
+
+                    b.HasIndex("QuoteId")
+                        .HasDatabaseName("ix_quote_items_quote_id");
+
+                    b.ToTable("quote_items", "commercial");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.QuoteItemCost", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("CostType")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("cost_type");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("description");
+
+                    b.Property<Guid?>("ItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_id");
+
+                    b.Property<Guid?>("PartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("party_id");
+
+                    b.Property<Guid?>("PositionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("position_id");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("quantity");
+
+                    b.Property<Guid>("QuoteItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("quote_item_id");
+
+                    b.Property<decimal>("Total")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("total");
+
+                    b.Property<decimal>("UnitCost")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)")
+                        .HasColumnName("unit_cost");
+
+                    b.Property<Guid?>("WorkCenterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("work_center_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_quote_item_costs");
+
+                    b.HasIndex("ItemId")
+                        .HasDatabaseName("ix_quote_item_costs_item_id");
+
+                    b.HasIndex("PartyId")
+                        .HasDatabaseName("ix_quote_item_costs_party_id");
+
+                    b.HasIndex("QuoteItemId")
+                        .HasDatabaseName("ix_quote_item_costs_quote_item_id");
+
+                    b.HasIndex("WorkCenterId")
+                        .HasDatabaseName("ix_quote_item_costs_work_center_id");
+
+                    b.ToTable("quote_item_costs", "commercial");
+                });
+
             modelBuilder.Entity("BemAqui.Finance.Domain.Account", b =>
                 {
                     b.Property<Guid>("Id")
@@ -4279,6 +4562,26 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDatabaseName("ix_work_centers_calendar_id");
 
                     b.ToTable("work_centers", "production");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.QuoteItem", b =>
+                {
+                    b.HasOne("BemAqui.Commercial.Domain.Quote", null)
+                        .WithMany()
+                        .HasForeignKey("QuoteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_quote_items_quotes_quote_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.QuoteItemCost", b =>
+                {
+                    b.HasOne("BemAqui.Commercial.Domain.QuoteItem", null)
+                        .WithMany()
+                        .HasForeignKey("QuoteItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_quote_item_costs_quote_items_quote_item_id");
                 });
 
             modelBuilder.Entity("BemAqui.Finance.Domain.Account", b =>

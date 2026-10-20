@@ -5,7 +5,7 @@
 | ID | COM-01a |
 | Título | Orçamento em rascunho com cliente, contato e endereço da obra; itens (equipamento, produto, serviço) com composição de custo estimada por natureza; preço pelo modo do tenant (markup ou margem); totais e margem ao vivo; custo e margem só para quem tem `quotes.view_cost`; marcar como enviado |
 | Tamanho | G (quebra da COM-01: condições por marco, validade e cópia foram para a COM-01b) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-COML-1 (itens, composição de custo estimada, margem/markup → preço) · R-COM-4 (numeração ORC) · R-PRP-1 · R-PRP-3 · R-SEC-5 · R-SEC-10 (permissão por ação) |
 | Dependências | FND-09e (diálogo grande, `RowsEditor` com modelo de colunas, concorrência), CAD-01a (`IParties`), CAD-02a (`IItems`), CAD-03 (`IWorkCenters`), CAD-04a (`IHourlyCost`, cargos), CAD-06 (`ITenantParameters.PricingModeAsync`, numeração), FND-09d (moldes, `MoneyInput`, `PercentInput`, `QuantityInput`); Fase 0 |
 | Bloqueia | COM-01b, COM-02, COM-03, COM-04a, COM-08, PLN-05 |
@@ -122,22 +122,22 @@ Decididos pelo PO em 20/10/2026 (seção 1.1, itens 15 a 19, e D7):
 6. P-18 decidida (ADR 0021).
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
-- [ ] Migration criada (schema `commercial`, não destrutiva, com os índices de número com revisão); parâmetro e seed patch idempotentes.
-- [ ] Permissões só do `ModuleCatalog` (ações novas registradas no catálogo).
-- [ ] Telas com estados de carregando, vazio, erro e modo leitura.
-- [ ] Ajuda da lista, de cada aba, dos parâmetros e da permissão nova; teste de cobertura passando.
-- [ ] Padrões preenchidos e próximos passos aplicados.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
+- [x] Migration criada (schema `commercial`, não destrutiva, com os índices de número com revisão); parâmetro e seed patch idempotentes.
+- [x] Permissões só do `ModuleCatalog` (ações novas registradas no catálogo).
+- [x] Telas com estados de carregando, vazio, erro e modo leitura.
+- [x] Ajuda da lista, de cada aba, dos parâmetros e da permissão nova; teste de cobertura passando.
+- [x] Padrões preenchidos e próximos passos aplicados.
+- [x] Auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] Entidades `Quote`, `QuoteItem`, `QuoteItemCost` e `PriceCalculator` (Domain, puro); `CostType` no SharedKernel.
-- [ ] Ações `quotes.view_cost` e `projects.view_cost` no `ModuleCatalog`; seed patch `view-cost-default-permissions`.
-- [ ] `ICommercialDb`, `commercial.parameters` e `ICommercialParameters`; provedores de uso para Parties, Inventory e Production.
-- [ ] Endpoints `/api/v1/quotes` (+ itens, custos, `/send-mark`, `/refresh-costs`); DTOs por permissão; telas e ajuda.
+- [x] Entidades `Quote`, `QuoteItem`, `QuoteItemCost` e `PriceCalculator` (Domain, puro); `CostType` no SharedKernel.
+- [x] Ações `quotes.view_cost` e `projects.view_cost` no `ModuleCatalog`; seed patch `view-cost-default-permissions`.
+- [x] `ICommercialDb`, `commercial.parameters` e `ICommercialParameters`; provedores de uso para Parties, Inventory e Production.
+- [x] Endpoints `/api/v1/quotes` (+ itens, custos, `/send-mark`, `/refresh-costs`); DTOs por permissão; telas e ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, @qa, design (editor de composição por natureza), cybersecurity (DTO sem custo).
@@ -171,3 +171,4 @@ Checklist do @po (Pax), 20/10/2026 (revalidação depois das decisões do PO e d
 | 19/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 20/10/2026 | 0.3 | Decisões do PO (D7, seção 1.1) e correções da revisão pré-Fase 2 (§2.1-M5, M6, M7, M10, §2.3); CAs renumerados | River (SM) |
 | 20/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 20/10/2026 | 1.0 | Implementada. Desvios: custo e margem saem por rotas próprias (`/quotes/costs`, `/quotes/{id}/costs`, composição), com `quotes.view_cost`, e as rotas comuns devolvem só os DTOs sem custo; a composição do item é gravada inteira (`PUT /quotes/{id}/items/{itemId}/costs`), sem rota por linha; `*.view_cost` entrou nas ações que só o Proprietário concede (ADR 0008), por ser sigilo comercial; no histórico, custo e margem do orçamento e do item aparecem como "alterado" para todos, e o histórico da composição pede `quotes.view_cost`; o editor de item na tela ainda não busca item do estoque (a API aceita `itemId`), e o material da composição já busca; `IParties` ganhou `ContactsAsync` e `AddressesAsync`, e o HR ganhou `IPositions` (cargo com o centro padrão e o custo-hora pela rota de custo); idempotência pelo `Idempotency-Key` | @dev |

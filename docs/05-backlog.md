@@ -210,7 +210,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-2--comercial-proj
 - Requisitos: R-FIN-2, R-FIN-1, R-FIN-10, R-COM-2, R-PRP-7, R-SEC-5.
 - CA: extrato com saldo inicial, saldo anterior e saldo acumulado conferidos com dataset fixo; transferência com as duas pernas na mesma transação, idempotente, aviso acima do limite e aprovação para conta nova; lançamento bancário sem OP (tarifa, IOF, juros, rendimento) com conta do plano, motivo, aviso ao Proprietário e a lista "Movimentos sem OP" (D4); sem edição de transação de título; 5 mil transações em menos de 1 s.
 
-**COM-01a [ ] Orçamento: itens, composição de custo, preço e margem (G)** — 2.2, ordem 8 — quebra da COM-01 — [story](stories/COM-01a-orcamento-itens-custo-preco.md)
+**COM-01a [x] Orçamento: itens, composição de custo, preço e margem (G)** — 2.2, ordem 8 — quebra da COM-01 — [story](stories/COM-01a-orcamento-itens-custo-preco.md)
 - Requisitos: R-COML-1, R-COM-4, R-PRP-1, R-PRP-3, R-SEC-5, R-SEC-10.
 - CA: `quotes.view_cost` e `projects.view_cost` com seed patch para Comercial e Financeiro e DTO sem custo para os demais (D7); preço = custo × (1 + markup) ou custo ÷ (1 − margem) conforme o modo do tenant, com % padrão; editor de custo por natureza; totais e margem ao vivo e gravados com as mesmas fórmulas, arredondando só na linha; mão de obra pelo custo-hora do cargo; imposto digitado enquanto a P-01 está aberta; índices de número com revisão na primeira migration; orçamento enviado não é alterado.
 

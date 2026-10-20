@@ -11,6 +11,7 @@ import { ErrorState, Skeleton } from '@/components/ui/states'
 import { PageHeading } from '@/shell/PageHeading'
 import { useCan } from '@/pages/use-can'
 import { SettingsTabs } from '../SettingsTabs'
+import { CommercialPricingSection } from './CommercialPricingSection'
 import { FinanceLimitsSection } from './FinanceLimitsSection'
 import { useCanSettings } from '../use-can-settings'
 
@@ -32,6 +33,7 @@ export function ParametersPage() {
         <div className="max-w-3xl space-y-6">
           <ChargesSection key={`c${query.data.payrollChargesPct}`} params={query.data} canEdit={canEdit} />
           <PricingSection key={`p${query.data.pricingMode}`} params={query.data} canEdit={canEdit} />
+          <CommercialPricingSection canEdit={canEdit} />
           <FinanceLimitsSection canEdit={canEdit} />
         </div>
       )}

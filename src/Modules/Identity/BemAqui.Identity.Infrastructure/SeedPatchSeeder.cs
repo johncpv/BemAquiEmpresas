@@ -33,6 +33,14 @@ public sealed class SeedPatchSeeder : ITenantSeeder
         [
             ("finance", "finance", ["pay"]),
         ]),
+        // D7: custo e margem são sigilo comercial; Comercial e Financeiro veem (o Proprietário tem tudo). COM-01a CA 1.
+        new("view-cost-default-permissions",
+        [
+            ("commercial", "quotes", ["view_cost"]),
+            ("finance", "quotes", ["view_cost"]),
+            ("commercial", "projects", ["view_cost"]),
+            ("finance", "projects", ["view_cost"]),
+        ]),
     ];
 
     public int Order => 25;

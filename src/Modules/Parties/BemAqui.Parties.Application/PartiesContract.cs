@@ -55,4 +55,12 @@ public sealed class PartiesContract(IPartiesDb db) : IParties
         await db.PartyContacts.AsNoTracking().Where(c => c.PartyId == id).OrderByDescending(c => c.ReceivesBilling).ThenBy(c => c.Name)
             .Select(c => new PartyContactInfo(c.Id, c.Name, c.Role, c.Email, c.Phone, c.ReceivesBilling))
             .FirstOrDefaultAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<PartyContactInfo>> ContactsAsync(Guid id, CancellationToken cancellationToken = default) =>
+        await db.PartyContacts.AsNoTracking().Where(c => c.PartyId == id).OrderByDescending(c => c.ReceivesBilling).ThenBy(c => c.Name)
+            .Select(c => new PartyContactInfo(c.Id, c.Name, c.Role, c.Email, c.Phone, c.ReceivesBilling)).ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<PartyAddressInfo>> AddressesAsync(Guid id, CancellationToken cancellationToken = default) =>
+        await db.PartyAddresses.AsNoTracking().Where(a => a.PartyId == id).OrderBy(a => a.Kind).ThenByDescending(a => a.IsDefault)
+            .Select(a => new PartyAddressInfo(a.Id, a.Kind, a.ZipCode, a.Street, a.Number, a.Complement, a.District, a.City, a.IbgeCode, a.State)).ToListAsync(cancellationToken);
 }

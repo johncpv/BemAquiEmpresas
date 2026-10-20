@@ -1,4 +1,6 @@
+using System.Reflection;
 using BemAqui.BuildingBlocks.Modules;
+using BemAqui.Commercial.Infrastructure;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,11 +11,9 @@ public sealed class CommercialModule : IModule
 {
     public string Code => "commercial";
 
-    public void AddServices(IServiceCollection services, IConfiguration configuration)
-    {
-    }
+    public Assembly? PersistenceAssembly => typeof(CommercialInfrastructure).Assembly;
 
-    public void MapEndpoints(IEndpointRouteBuilder endpoints)
-    {
-    }
+    public void AddServices(IServiceCollection services, IConfiguration configuration) => services.AddCommercialInfrastructure();
+
+    public void MapEndpoints(IEndpointRouteBuilder endpoints) => endpoints.MapCommercialEndpoints();
 }

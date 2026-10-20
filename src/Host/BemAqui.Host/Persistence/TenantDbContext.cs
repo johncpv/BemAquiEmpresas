@@ -21,7 +21,7 @@ namespace BemAqui.Host.Persistence;
 /// DbContext único do banco de tenant (ADR 0006): tabelas compartilhadas da base e, conforme as stories
 /// avançam, as configurações de cada módulo. A conexão por tenant chega na FND-02.
 /// </summary>
-public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) : BemAquiDbContext(options), IIdentityDb, IPartiesDb, IMigrationDb, IFinanceDb, IInventoryDb, IProductionDb, IHrDb
+public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) : BemAquiDbContext(options), IIdentityDb, IPartiesDb, IMigrationDb, IFinanceDb, IInventoryDb, IProductionDb, IHrDb, BemAqui.Commercial.Application.ICommercialDb
 {
     public DbSet<User> Users => Set<User>();
 
@@ -104,6 +104,14 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
     public DbSet<BankTransfer> BankTransfers => Set<BankTransfer>();
 
     public DbSet<BankEntry> BankEntries => Set<BankEntry>();
+
+    public DbSet<BemAqui.Commercial.Domain.Quote> Quotes => Set<BemAqui.Commercial.Domain.Quote>();
+
+    public DbSet<BemAqui.Commercial.Domain.QuoteItem> QuoteItems => Set<BemAqui.Commercial.Domain.QuoteItem>();
+
+    public DbSet<BemAqui.Commercial.Domain.QuoteItemCost> QuoteItemCosts => Set<BemAqui.Commercial.Domain.QuoteItemCost>();
+
+    public DbSet<BemAqui.Commercial.Domain.CommercialParameter> CommercialParameters => Set<BemAqui.Commercial.Domain.CommercialParameter>();
 
     public DbSet<Location> Locations => Set<Location>();
 

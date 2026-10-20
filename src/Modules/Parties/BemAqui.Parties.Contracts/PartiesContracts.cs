@@ -65,6 +65,12 @@ public interface IParties
     Task<PartyAddressInfo?> DefaultAddressAsync(Guid id, AddressKind kind, CancellationToken cancellationToken = default);
 
     Task<PartyContactInfo?> BillingContactAsync(Guid id, CancellationToken cancellationToken = default);
+
+    /// <summary>Contatos do terceiro (seletor do orçamento, COM-01a CA 4 e 5).</summary>
+    Task<IReadOnlyList<PartyContactInfo>> ContactsAsync(Guid id, CancellationToken cancellationToken = default);
+
+    /// <summary>Endereços do terceiro (endereço da obra do orçamento).</summary>
+    Task<IReadOnlyList<PartyAddressInfo>> AddressesAsync(Guid id, CancellationToken cancellationToken = default);
 }
 
 /// <summary>

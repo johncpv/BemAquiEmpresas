@@ -57,6 +57,8 @@ import type {
   ChallengeRequest,
   CheckPartyDocumentParams,
   CnpjLookupResult,
+  CommercialParametersInput,
+  CommercialParametersView,
   CompanyLogo,
   CompanyProfileDto,
   CompanyProfileInput,
@@ -69,11 +71,13 @@ import type {
   CostCenterDetail,
   CostCenterInput,
   CostCenterSuggestion,
+  CostRefreshPreview,
   CreatePartyRequest,
   CurrentSession,
   CustomerOption,
   CutoverInput,
   DecisionInput,
+  DeleteQuoteParams,
   DisableTwoFactorRequest,
   DiscountsAndCancellations,
   DocumentCheck,
@@ -111,6 +115,8 @@ import type {
   ItemInput,
   ItemSearchHit,
   ItemType,
+  LaborPositionOption,
+  LaborWorkCenterOption,
   LinkableUser,
   LinkedUserView,
   ListBankAccountsParams,
@@ -128,6 +134,11 @@ import type {
   ListPaymentOrdersParams,
   ListPaymentTermsParams,
   ListPositionsParams,
+  ListQuoteCostsParams,
+  ListQuoteCustomersParams,
+  ListQuoteInstallersParams,
+  ListQuoteItemsParams,
+  ListQuotesParams,
   ListReceivablesParams,
   ListSupplierOptionsParams,
   ListTenantsParams,
@@ -138,6 +149,7 @@ import type {
   LoginRequest,
   LoginResponse,
   LookupCnpjParams,
+  MaterialCost,
   MessageResponse,
   ModuleRelease,
   ModuleSummary,
@@ -162,6 +174,8 @@ import type {
   PagedListOfPositionDetail,
   PagedListOfTenantRow,
   PagedListOfWorkCenterDetail,
+  PartyAddressInfo,
+  PartyContactInfo,
   PartyDetail,
   PartySearchHit,
   PayInput,
@@ -200,6 +214,16 @@ import type {
   PricingModeInput,
   ProvisionAccepted,
   ProvisionTenantRequest,
+  QuoteCostDetail,
+  QuoteCostSummary,
+  QuoteCostsInput,
+  QuoteCreateInput,
+  QuoteDetail,
+  QuoteHeaderInput,
+  QuoteItemInput,
+  QuoteItemOption,
+  QuotePage,
+  QuotePartyOption,
   ReasonInput,
   ReceivableDetail,
   ReceivableInput,
@@ -209,6 +233,7 @@ import type {
   ReceivablesCreated,
   RecurringExpenseDetail,
   RecurringExpenseInput,
+  RemoveQuoteItemParams,
   ResetPasswordRequest,
   ResubmitInput,
   SalaryChangeInput,
@@ -253,6 +278,7 @@ import type {
   UserLinkInput,
   UserRow,
   VerifyTwoFactorRequest,
+  VersionInput,
   WarrantyDefaultDetail,
   WarrantyDefaultInput,
   WorkCenterChoice,
@@ -11697,6 +11723,2193 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getUnlinkEmployeeUserMutationOptions(options), queryClient);
+    }
+
+export const getListQuotesUrl = (params?: ListQuotesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/quotes?${stringifiedParams}` : `/api/v1/quotes`
+}
+
+export const listQuotes = async (params?: ListQuotesParams, options?: Parameters<typeof apiFetch>[1]): Promise<QuotePage> => {
+
+  return apiFetch<QuotePage>(getListQuotesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListQuotesQueryKey = (params?: ListQuotesParams,) => {
+    return [
+    `/api/v1/quotes`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListQuotesQueryOptions = <TData = Awaited<ReturnType<typeof listQuotes>>, TError = unknown>(params?: ListQuotesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuotes>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListQuotesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listQuotes>>> = ({ signal }) => listQuotes(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listQuotes>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListQuotesQueryResult = NonNullable<Awaited<ReturnType<typeof listQuotes>>>
+export type ListQuotesQueryError = unknown
+
+
+export function useListQuotes<TData = Awaited<ReturnType<typeof listQuotes>>, TError = unknown>(
+ params: undefined |  ListQuotesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuotes>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listQuotes>>,
+          TError,
+          Awaited<ReturnType<typeof listQuotes>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListQuotes<TData = Awaited<ReturnType<typeof listQuotes>>, TError = unknown>(
+ params?: ListQuotesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuotes>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listQuotes>>,
+          TError,
+          Awaited<ReturnType<typeof listQuotes>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListQuotes<TData = Awaited<ReturnType<typeof listQuotes>>, TError = unknown>(
+ params?: ListQuotesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuotes>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListQuotes<TData = Awaited<ReturnType<typeof listQuotes>>, TError = unknown>(
+ params?: ListQuotesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuotes>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListQuotesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateQuoteUrl = () => {
+
+
+
+
+  return `/api/v1/quotes`
+}
+
+export const createQuote = async (quoteCreateInput: QuoteCreateInput, options?: Parameters<typeof apiFetch>[1]): Promise<QuoteDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<QuoteDetail>(getCreateQuoteUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(quoteCreateInput)
+  }
+);}
+
+
+
+
+
+export const getCreateQuoteMutationKey = () => ['createQuote'] as const;
+
+export const getCreateQuoteMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createQuote>>, TError,CreateQuoteMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createQuote>>, TError,CreateQuoteMutationVariables, TContext> => {
+
+const mutationKey = getCreateQuoteMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createQuote>>, CreateQuoteMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createQuote(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateQuoteMutationResult = NonNullable<Awaited<ReturnType<typeof createQuote>>>
+    export type CreateQuoteMutationBody = QuoteCreateInput
+    export type CreateQuoteMutationError = unknown
+    export type CreateQuoteMutationVariables = {data: QuoteCreateInput}
+
+    export const useCreateQuote = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createQuote>>, TError,CreateQuoteMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createQuote>>,
+        TError,
+        CreateQuoteMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateQuoteMutationOptions(options), queryClient);
+    }
+
+export const getListQuoteCostsUrl = (params: ListQuoteCostsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/quotes/costs?${stringifiedParams}` : `/api/v1/quotes/costs`
+}
+
+export const listQuoteCosts = async (params: ListQuoteCostsParams, options?: Parameters<typeof apiFetch>[1]): Promise<QuoteCostSummary[]> => {
+
+  return apiFetch<QuoteCostSummary[]>(getListQuoteCostsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListQuoteCostsQueryKey = (params?: ListQuoteCostsParams,) => {
+    return [
+    `/api/v1/quotes/costs`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListQuoteCostsQueryOptions = <TData = Awaited<ReturnType<typeof listQuoteCosts>>, TError = unknown>(params: ListQuoteCostsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteCosts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListQuoteCostsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listQuoteCosts>>> = ({ signal }) => listQuoteCosts(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listQuoteCosts>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListQuoteCostsQueryResult = NonNullable<Awaited<ReturnType<typeof listQuoteCosts>>>
+export type ListQuoteCostsQueryError = unknown
+
+
+export function useListQuoteCosts<TData = Awaited<ReturnType<typeof listQuoteCosts>>, TError = unknown>(
+ params: ListQuoteCostsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteCosts>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listQuoteCosts>>,
+          TError,
+          Awaited<ReturnType<typeof listQuoteCosts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListQuoteCosts<TData = Awaited<ReturnType<typeof listQuoteCosts>>, TError = unknown>(
+ params: ListQuoteCostsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteCosts>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listQuoteCosts>>,
+          TError,
+          Awaited<ReturnType<typeof listQuoteCosts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListQuoteCosts<TData = Awaited<ReturnType<typeof listQuoteCosts>>, TError = unknown>(
+ params: ListQuoteCostsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteCosts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListQuoteCosts<TData = Awaited<ReturnType<typeof listQuoteCosts>>, TError = unknown>(
+ params: ListQuoteCostsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteCosts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListQuoteCostsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetQuoteUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/quotes/${id}`
+}
+
+export const getQuote = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<QuoteDetail> => {
+
+  return apiFetch<QuoteDetail>(getGetQuoteUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetQuoteQueryKey = (id: string,) => {
+    return [
+    `/api/v1/quotes/${id}`
+    ] as const;
+    }
+
+
+export const getGetQuoteQueryOptions = <TData = Awaited<ReturnType<typeof getQuote>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuote>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetQuoteQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getQuote>>> = ({ signal }) => getQuote(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getQuote>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetQuoteQueryResult = NonNullable<Awaited<ReturnType<typeof getQuote>>>
+export type GetQuoteQueryError = unknown
+
+
+export function useGetQuote<TData = Awaited<ReturnType<typeof getQuote>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuote>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getQuote>>,
+          TError,
+          Awaited<ReturnType<typeof getQuote>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetQuote<TData = Awaited<ReturnType<typeof getQuote>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuote>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getQuote>>,
+          TError,
+          Awaited<ReturnType<typeof getQuote>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetQuote<TData = Awaited<ReturnType<typeof getQuote>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuote>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetQuote<TData = Awaited<ReturnType<typeof getQuote>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuote>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetQuoteQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateQuoteUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/quotes/${id}`
+}
+
+export const updateQuote = async (id: string,
+    quoteHeaderInput: QuoteHeaderInput, options?: Parameters<typeof apiFetch>[1]): Promise<QuoteDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<QuoteDetail>(getUpdateQuoteUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(quoteHeaderInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateQuoteMutationKey = () => ['updateQuote'] as const;
+
+export const getUpdateQuoteMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateQuote>>, TError,UpdateQuoteMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateQuote>>, TError,UpdateQuoteMutationVariables, TContext> => {
+
+const mutationKey = getUpdateQuoteMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateQuote>>, UpdateQuoteMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateQuote(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateQuoteMutationResult = NonNullable<Awaited<ReturnType<typeof updateQuote>>>
+    export type UpdateQuoteMutationBody = QuoteHeaderInput
+    export type UpdateQuoteMutationError = unknown
+    export type UpdateQuoteMutationVariables = {id: string;data: QuoteHeaderInput}
+
+    export const useUpdateQuote = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateQuote>>, TError,UpdateQuoteMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateQuote>>,
+        TError,
+        UpdateQuoteMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateQuoteMutationOptions(options), queryClient);
+    }
+
+export const getDeleteQuoteUrl = (id: string,
+    params: DeleteQuoteParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/quotes/${id}?${stringifiedParams}` : `/api/v1/quotes/${id}`
+}
+
+export const deleteQuote = async (id: string,
+    params: DeleteQuoteParams, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDeleteQuoteUrl(id,params),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteQuoteMutationKey = () => ['deleteQuote'] as const;
+
+export const getDeleteQuoteMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteQuote>>, TError,DeleteQuoteMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteQuote>>, TError,DeleteQuoteMutationVariables, TContext> => {
+
+const mutationKey = getDeleteQuoteMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteQuote>>, DeleteQuoteMutationVariables> = (props) => {
+          const {id,params} = props ?? {};
+
+          return  deleteQuote(id,params,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteQuoteMutationResult = NonNullable<Awaited<ReturnType<typeof deleteQuote>>>
+
+    export type DeleteQuoteMutationError = unknown
+    export type DeleteQuoteMutationVariables = {id: string;params: DeleteQuoteParams}
+
+    export const useDeleteQuote = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteQuote>>, TError,DeleteQuoteMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteQuote>>,
+        TError,
+        DeleteQuoteMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeleteQuoteMutationOptions(options), queryClient);
+    }
+
+export const getMarkQuoteSentUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/quotes/${id}/send`
+}
+
+export const markQuoteSent = async (id: string,
+    versionInput: VersionInput, options?: Parameters<typeof apiFetch>[1]): Promise<QuoteDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<QuoteDetail>(getMarkQuoteSentUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(versionInput)
+  }
+);}
+
+
+
+
+
+export const getMarkQuoteSentMutationKey = () => ['markQuoteSent'] as const;
+
+export const getMarkQuoteSentMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markQuoteSent>>, TError,MarkQuoteSentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof markQuoteSent>>, TError,MarkQuoteSentMutationVariables, TContext> => {
+
+const mutationKey = getMarkQuoteSentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof markQuoteSent>>, MarkQuoteSentMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  markQuoteSent(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MarkQuoteSentMutationResult = NonNullable<Awaited<ReturnType<typeof markQuoteSent>>>
+    export type MarkQuoteSentMutationBody = VersionInput
+    export type MarkQuoteSentMutationError = unknown
+    export type MarkQuoteSentMutationVariables = {id: string;data: VersionInput}
+
+    export const useMarkQuoteSent = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markQuoteSent>>, TError,MarkQuoteSentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof markQuoteSent>>,
+        TError,
+        MarkQuoteSentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getMarkQuoteSentMutationOptions(options), queryClient);
+    }
+
+export const getAddQuoteItemUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/quotes/${id}/items`
+}
+
+export const addQuoteItem = async (id: string,
+    quoteItemInput: QuoteItemInput, options?: Parameters<typeof apiFetch>[1]): Promise<QuoteDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<QuoteDetail>(getAddQuoteItemUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(quoteItemInput)
+  }
+);}
+
+
+
+
+
+export const getAddQuoteItemMutationKey = () => ['addQuoteItem'] as const;
+
+export const getAddQuoteItemMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addQuoteItem>>, TError,AddQuoteItemMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addQuoteItem>>, TError,AddQuoteItemMutationVariables, TContext> => {
+
+const mutationKey = getAddQuoteItemMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addQuoteItem>>, AddQuoteItemMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  addQuoteItem(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddQuoteItemMutationResult = NonNullable<Awaited<ReturnType<typeof addQuoteItem>>>
+    export type AddQuoteItemMutationBody = QuoteItemInput
+    export type AddQuoteItemMutationError = unknown
+    export type AddQuoteItemMutationVariables = {id: string;data: QuoteItemInput}
+
+    export const useAddQuoteItem = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addQuoteItem>>, TError,AddQuoteItemMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof addQuoteItem>>,
+        TError,
+        AddQuoteItemMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAddQuoteItemMutationOptions(options), queryClient);
+    }
+
+export const getUpdateQuoteItemUrl = (id: string,
+    itemId: string,) => {
+
+
+
+
+  return `/api/v1/quotes/${id}/items/${itemId}`
+}
+
+export const updateQuoteItem = async (id: string,
+    itemId: string,
+    quoteItemInput: QuoteItemInput, options?: Parameters<typeof apiFetch>[1]): Promise<QuoteDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<QuoteDetail>(getUpdateQuoteItemUrl(id,itemId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(quoteItemInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateQuoteItemMutationKey = () => ['updateQuoteItem'] as const;
+
+export const getUpdateQuoteItemMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateQuoteItem>>, TError,UpdateQuoteItemMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateQuoteItem>>, TError,UpdateQuoteItemMutationVariables, TContext> => {
+
+const mutationKey = getUpdateQuoteItemMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateQuoteItem>>, UpdateQuoteItemMutationVariables> = (props) => {
+          const {id,itemId,data} = props ?? {};
+
+          return  updateQuoteItem(id,itemId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateQuoteItemMutationResult = NonNullable<Awaited<ReturnType<typeof updateQuoteItem>>>
+    export type UpdateQuoteItemMutationBody = QuoteItemInput
+    export type UpdateQuoteItemMutationError = unknown
+    export type UpdateQuoteItemMutationVariables = {id: string;itemId: string;data: QuoteItemInput}
+
+    export const useUpdateQuoteItem = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateQuoteItem>>, TError,UpdateQuoteItemMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateQuoteItem>>,
+        TError,
+        UpdateQuoteItemMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateQuoteItemMutationOptions(options), queryClient);
+    }
+
+export const getRemoveQuoteItemUrl = (id: string,
+    itemId: string,
+    params: RemoveQuoteItemParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/quotes/${id}/items/${itemId}?${stringifiedParams}` : `/api/v1/quotes/${id}/items/${itemId}`
+}
+
+export const removeQuoteItem = async (id: string,
+    itemId: string,
+    params: RemoveQuoteItemParams, options?: Parameters<typeof apiFetch>[1]): Promise<QuoteDetail> => {
+
+  return apiFetch<QuoteDetail>(getRemoveQuoteItemUrl(id,itemId,params),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getRemoveQuoteItemMutationKey = () => ['removeQuoteItem'] as const;
+
+export const getRemoveQuoteItemMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeQuoteItem>>, TError,RemoveQuoteItemMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof removeQuoteItem>>, TError,RemoveQuoteItemMutationVariables, TContext> => {
+
+const mutationKey = getRemoveQuoteItemMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof removeQuoteItem>>, RemoveQuoteItemMutationVariables> = (props) => {
+          const {id,itemId,params} = props ?? {};
+
+          return  removeQuoteItem(id,itemId,params,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RemoveQuoteItemMutationResult = NonNullable<Awaited<ReturnType<typeof removeQuoteItem>>>
+
+    export type RemoveQuoteItemMutationError = unknown
+    export type RemoveQuoteItemMutationVariables = {id: string;itemId: string;params: RemoveQuoteItemParams}
+
+    export const useRemoveQuoteItem = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeQuoteItem>>, TError,RemoveQuoteItemMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof removeQuoteItem>>,
+        TError,
+        RemoveQuoteItemMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRemoveQuoteItemMutationOptions(options), queryClient);
+    }
+
+export const getGetQuoteCostsUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/quotes/${id}/costs`
+}
+
+export const getQuoteCosts = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<QuoteCostDetail> => {
+
+  return apiFetch<QuoteCostDetail>(getGetQuoteCostsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetQuoteCostsQueryKey = (id: string,) => {
+    return [
+    `/api/v1/quotes/${id}/costs`
+    ] as const;
+    }
+
+
+export const getGetQuoteCostsQueryOptions = <TData = Awaited<ReturnType<typeof getQuoteCosts>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuoteCosts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetQuoteCostsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getQuoteCosts>>> = ({ signal }) => getQuoteCosts(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getQuoteCosts>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetQuoteCostsQueryResult = NonNullable<Awaited<ReturnType<typeof getQuoteCosts>>>
+export type GetQuoteCostsQueryError = unknown
+
+
+export function useGetQuoteCosts<TData = Awaited<ReturnType<typeof getQuoteCosts>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuoteCosts>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getQuoteCosts>>,
+          TError,
+          Awaited<ReturnType<typeof getQuoteCosts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetQuoteCosts<TData = Awaited<ReturnType<typeof getQuoteCosts>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuoteCosts>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getQuoteCosts>>,
+          TError,
+          Awaited<ReturnType<typeof getQuoteCosts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetQuoteCosts<TData = Awaited<ReturnType<typeof getQuoteCosts>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuoteCosts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetQuoteCosts<TData = Awaited<ReturnType<typeof getQuoteCosts>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuoteCosts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetQuoteCostsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSetQuoteItemCostsUrl = (id: string,
+    itemId: string,) => {
+
+
+
+
+  return `/api/v1/quotes/${id}/items/${itemId}/costs`
+}
+
+export const setQuoteItemCosts = async (id: string,
+    itemId: string,
+    quoteCostsInput: QuoteCostsInput, options?: Parameters<typeof apiFetch>[1]): Promise<QuoteCostDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<QuoteCostDetail>(getSetQuoteItemCostsUrl(id,itemId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(quoteCostsInput)
+  }
+);}
+
+
+
+
+
+export const getSetQuoteItemCostsMutationKey = () => ['setQuoteItemCosts'] as const;
+
+export const getSetQuoteItemCostsMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setQuoteItemCosts>>, TError,SetQuoteItemCostsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof setQuoteItemCosts>>, TError,SetQuoteItemCostsMutationVariables, TContext> => {
+
+const mutationKey = getSetQuoteItemCostsMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setQuoteItemCosts>>, SetQuoteItemCostsMutationVariables> = (props) => {
+          const {id,itemId,data} = props ?? {};
+
+          return  setQuoteItemCosts(id,itemId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetQuoteItemCostsMutationResult = NonNullable<Awaited<ReturnType<typeof setQuoteItemCosts>>>
+    export type SetQuoteItemCostsMutationBody = QuoteCostsInput
+    export type SetQuoteItemCostsMutationError = unknown
+    export type SetQuoteItemCostsMutationVariables = {id: string;itemId: string;data: QuoteCostsInput}
+
+    export const useSetQuoteItemCosts = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setQuoteItemCosts>>, TError,SetQuoteItemCostsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof setQuoteItemCosts>>,
+        TError,
+        SetQuoteItemCostsMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSetQuoteItemCostsMutationOptions(options), queryClient);
+    }
+
+export const getPreviewQuoteCostRefreshUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/quotes/${id}/refresh-costs`
+}
+
+export const previewQuoteCostRefresh = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<CostRefreshPreview> => {
+
+  return apiFetch<CostRefreshPreview>(getPreviewQuoteCostRefreshUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getPreviewQuoteCostRefreshQueryKey = (id: string,) => {
+    return [
+    `/api/v1/quotes/${id}/refresh-costs`
+    ] as const;
+    }
+
+
+export const getPreviewQuoteCostRefreshQueryOptions = <TData = Awaited<ReturnType<typeof previewQuoteCostRefresh>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof previewQuoteCostRefresh>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPreviewQuoteCostRefreshQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof previewQuoteCostRefresh>>> = ({ signal }) => previewQuoteCostRefresh(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof previewQuoteCostRefresh>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PreviewQuoteCostRefreshQueryResult = NonNullable<Awaited<ReturnType<typeof previewQuoteCostRefresh>>>
+export type PreviewQuoteCostRefreshQueryError = unknown
+
+
+export function usePreviewQuoteCostRefresh<TData = Awaited<ReturnType<typeof previewQuoteCostRefresh>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof previewQuoteCostRefresh>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof previewQuoteCostRefresh>>,
+          TError,
+          Awaited<ReturnType<typeof previewQuoteCostRefresh>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePreviewQuoteCostRefresh<TData = Awaited<ReturnType<typeof previewQuoteCostRefresh>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof previewQuoteCostRefresh>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof previewQuoteCostRefresh>>,
+          TError,
+          Awaited<ReturnType<typeof previewQuoteCostRefresh>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePreviewQuoteCostRefresh<TData = Awaited<ReturnType<typeof previewQuoteCostRefresh>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof previewQuoteCostRefresh>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function usePreviewQuoteCostRefresh<TData = Awaited<ReturnType<typeof previewQuoteCostRefresh>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof previewQuoteCostRefresh>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPreviewQuoteCostRefreshQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getRefreshQuoteCostsUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/quotes/${id}/refresh-costs`
+}
+
+export const refreshQuoteCosts = async (id: string,
+    versionInput: VersionInput, options?: Parameters<typeof apiFetch>[1]): Promise<QuoteCostDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<QuoteCostDetail>(getRefreshQuoteCostsUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(versionInput)
+  }
+);}
+
+
+
+
+
+export const getRefreshQuoteCostsMutationKey = () => ['refreshQuoteCosts'] as const;
+
+export const getRefreshQuoteCostsMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof refreshQuoteCosts>>, TError,RefreshQuoteCostsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof refreshQuoteCosts>>, TError,RefreshQuoteCostsMutationVariables, TContext> => {
+
+const mutationKey = getRefreshQuoteCostsMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof refreshQuoteCosts>>, RefreshQuoteCostsMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  refreshQuoteCosts(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RefreshQuoteCostsMutationResult = NonNullable<Awaited<ReturnType<typeof refreshQuoteCosts>>>
+    export type RefreshQuoteCostsMutationBody = VersionInput
+    export type RefreshQuoteCostsMutationError = unknown
+    export type RefreshQuoteCostsMutationVariables = {id: string;data: VersionInput}
+
+    export const useRefreshQuoteCosts = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof refreshQuoteCosts>>, TError,RefreshQuoteCostsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof refreshQuoteCosts>>,
+        TError,
+        RefreshQuoteCostsMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRefreshQuoteCostsMutationOptions(options), queryClient);
+    }
+
+export const getGetLastMaterialCostUrl = (itemId: string,) => {
+
+
+
+
+  return `/api/v1/quotes/material-cost/${itemId}`
+}
+
+export const getLastMaterialCost = async (itemId: string, options?: Parameters<typeof apiFetch>[1]): Promise<MaterialCost> => {
+
+  return apiFetch<MaterialCost>(getGetLastMaterialCostUrl(itemId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLastMaterialCostQueryKey = (itemId: string,) => {
+    return [
+    `/api/v1/quotes/material-cost/${itemId}`
+    ] as const;
+    }
+
+
+export const getGetLastMaterialCostQueryOptions = <TData = Awaited<ReturnType<typeof getLastMaterialCost>>, TError = unknown>(itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLastMaterialCost>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLastMaterialCostQueryKey(itemId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLastMaterialCost>>> = ({ signal }) => getLastMaterialCost(itemId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: itemId !== null && itemId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLastMaterialCost>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetLastMaterialCostQueryResult = NonNullable<Awaited<ReturnType<typeof getLastMaterialCost>>>
+export type GetLastMaterialCostQueryError = unknown
+
+
+export function useGetLastMaterialCost<TData = Awaited<ReturnType<typeof getLastMaterialCost>>, TError = unknown>(
+ itemId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLastMaterialCost>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLastMaterialCost>>,
+          TError,
+          Awaited<ReturnType<typeof getLastMaterialCost>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLastMaterialCost<TData = Awaited<ReturnType<typeof getLastMaterialCost>>, TError = unknown>(
+ itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLastMaterialCost>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLastMaterialCost>>,
+          TError,
+          Awaited<ReturnType<typeof getLastMaterialCost>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLastMaterialCost<TData = Awaited<ReturnType<typeof getLastMaterialCost>>, TError = unknown>(
+ itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLastMaterialCost>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetLastMaterialCost<TData = Awaited<ReturnType<typeof getLastMaterialCost>>, TError = unknown>(
+ itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLastMaterialCost>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetLastMaterialCostQueryOptions(itemId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListQuoteCustomersUrl = (params?: ListQuoteCustomersParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/quotes/lookups/customers?${stringifiedParams}` : `/api/v1/quotes/lookups/customers`
+}
+
+export const listQuoteCustomers = async (params?: ListQuoteCustomersParams, options?: Parameters<typeof apiFetch>[1]): Promise<QuotePartyOption[]> => {
+
+  return apiFetch<QuotePartyOption[]>(getListQuoteCustomersUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListQuoteCustomersQueryKey = (params?: ListQuoteCustomersParams,) => {
+    return [
+    `/api/v1/quotes/lookups/customers`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListQuoteCustomersQueryOptions = <TData = Awaited<ReturnType<typeof listQuoteCustomers>>, TError = unknown>(params?: ListQuoteCustomersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteCustomers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListQuoteCustomersQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listQuoteCustomers>>> = ({ signal }) => listQuoteCustomers(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listQuoteCustomers>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListQuoteCustomersQueryResult = NonNullable<Awaited<ReturnType<typeof listQuoteCustomers>>>
+export type ListQuoteCustomersQueryError = unknown
+
+
+export function useListQuoteCustomers<TData = Awaited<ReturnType<typeof listQuoteCustomers>>, TError = unknown>(
+ params: undefined |  ListQuoteCustomersParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteCustomers>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listQuoteCustomers>>,
+          TError,
+          Awaited<ReturnType<typeof listQuoteCustomers>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListQuoteCustomers<TData = Awaited<ReturnType<typeof listQuoteCustomers>>, TError = unknown>(
+ params?: ListQuoteCustomersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteCustomers>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listQuoteCustomers>>,
+          TError,
+          Awaited<ReturnType<typeof listQuoteCustomers>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListQuoteCustomers<TData = Awaited<ReturnType<typeof listQuoteCustomers>>, TError = unknown>(
+ params?: ListQuoteCustomersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteCustomers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListQuoteCustomers<TData = Awaited<ReturnType<typeof listQuoteCustomers>>, TError = unknown>(
+ params?: ListQuoteCustomersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteCustomers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListQuoteCustomersQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListQuoteInstallersUrl = (params?: ListQuoteInstallersParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/quotes/lookups/installers?${stringifiedParams}` : `/api/v1/quotes/lookups/installers`
+}
+
+export const listQuoteInstallers = async (params?: ListQuoteInstallersParams, options?: Parameters<typeof apiFetch>[1]): Promise<QuotePartyOption[]> => {
+
+  return apiFetch<QuotePartyOption[]>(getListQuoteInstallersUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListQuoteInstallersQueryKey = (params?: ListQuoteInstallersParams,) => {
+    return [
+    `/api/v1/quotes/lookups/installers`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListQuoteInstallersQueryOptions = <TData = Awaited<ReturnType<typeof listQuoteInstallers>>, TError = unknown>(params?: ListQuoteInstallersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteInstallers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListQuoteInstallersQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listQuoteInstallers>>> = ({ signal }) => listQuoteInstallers(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listQuoteInstallers>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListQuoteInstallersQueryResult = NonNullable<Awaited<ReturnType<typeof listQuoteInstallers>>>
+export type ListQuoteInstallersQueryError = unknown
+
+
+export function useListQuoteInstallers<TData = Awaited<ReturnType<typeof listQuoteInstallers>>, TError = unknown>(
+ params: undefined |  ListQuoteInstallersParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteInstallers>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listQuoteInstallers>>,
+          TError,
+          Awaited<ReturnType<typeof listQuoteInstallers>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListQuoteInstallers<TData = Awaited<ReturnType<typeof listQuoteInstallers>>, TError = unknown>(
+ params?: ListQuoteInstallersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteInstallers>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listQuoteInstallers>>,
+          TError,
+          Awaited<ReturnType<typeof listQuoteInstallers>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListQuoteInstallers<TData = Awaited<ReturnType<typeof listQuoteInstallers>>, TError = unknown>(
+ params?: ListQuoteInstallersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteInstallers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListQuoteInstallers<TData = Awaited<ReturnType<typeof listQuoteInstallers>>, TError = unknown>(
+ params?: ListQuoteInstallersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteInstallers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListQuoteInstallersQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListQuoteCustomerContactsUrl = (partyId: string,) => {
+
+
+
+
+  return `/api/v1/quotes/lookups/customers/${partyId}/contacts`
+}
+
+export const listQuoteCustomerContacts = async (partyId: string, options?: Parameters<typeof apiFetch>[1]): Promise<PartyContactInfo[]> => {
+
+  return apiFetch<PartyContactInfo[]>(getListQuoteCustomerContactsUrl(partyId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListQuoteCustomerContactsQueryKey = (partyId: string,) => {
+    return [
+    `/api/v1/quotes/lookups/customers/${partyId}/contacts`
+    ] as const;
+    }
+
+
+export const getListQuoteCustomerContactsQueryOptions = <TData = Awaited<ReturnType<typeof listQuoteCustomerContacts>>, TError = unknown>(partyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteCustomerContacts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListQuoteCustomerContactsQueryKey(partyId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listQuoteCustomerContacts>>> = ({ signal }) => listQuoteCustomerContacts(partyId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: partyId !== null && partyId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listQuoteCustomerContacts>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListQuoteCustomerContactsQueryResult = NonNullable<Awaited<ReturnType<typeof listQuoteCustomerContacts>>>
+export type ListQuoteCustomerContactsQueryError = unknown
+
+
+export function useListQuoteCustomerContacts<TData = Awaited<ReturnType<typeof listQuoteCustomerContacts>>, TError = unknown>(
+ partyId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteCustomerContacts>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listQuoteCustomerContacts>>,
+          TError,
+          Awaited<ReturnType<typeof listQuoteCustomerContacts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListQuoteCustomerContacts<TData = Awaited<ReturnType<typeof listQuoteCustomerContacts>>, TError = unknown>(
+ partyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteCustomerContacts>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listQuoteCustomerContacts>>,
+          TError,
+          Awaited<ReturnType<typeof listQuoteCustomerContacts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListQuoteCustomerContacts<TData = Awaited<ReturnType<typeof listQuoteCustomerContacts>>, TError = unknown>(
+ partyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteCustomerContacts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListQuoteCustomerContacts<TData = Awaited<ReturnType<typeof listQuoteCustomerContacts>>, TError = unknown>(
+ partyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteCustomerContacts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListQuoteCustomerContactsQueryOptions(partyId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListQuoteCustomerAddressesUrl = (partyId: string,) => {
+
+
+
+
+  return `/api/v1/quotes/lookups/customers/${partyId}/addresses`
+}
+
+export const listQuoteCustomerAddresses = async (partyId: string, options?: Parameters<typeof apiFetch>[1]): Promise<PartyAddressInfo[]> => {
+
+  return apiFetch<PartyAddressInfo[]>(getListQuoteCustomerAddressesUrl(partyId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListQuoteCustomerAddressesQueryKey = (partyId: string,) => {
+    return [
+    `/api/v1/quotes/lookups/customers/${partyId}/addresses`
+    ] as const;
+    }
+
+
+export const getListQuoteCustomerAddressesQueryOptions = <TData = Awaited<ReturnType<typeof listQuoteCustomerAddresses>>, TError = unknown>(partyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteCustomerAddresses>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListQuoteCustomerAddressesQueryKey(partyId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listQuoteCustomerAddresses>>> = ({ signal }) => listQuoteCustomerAddresses(partyId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: partyId !== null && partyId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listQuoteCustomerAddresses>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListQuoteCustomerAddressesQueryResult = NonNullable<Awaited<ReturnType<typeof listQuoteCustomerAddresses>>>
+export type ListQuoteCustomerAddressesQueryError = unknown
+
+
+export function useListQuoteCustomerAddresses<TData = Awaited<ReturnType<typeof listQuoteCustomerAddresses>>, TError = unknown>(
+ partyId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteCustomerAddresses>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listQuoteCustomerAddresses>>,
+          TError,
+          Awaited<ReturnType<typeof listQuoteCustomerAddresses>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListQuoteCustomerAddresses<TData = Awaited<ReturnType<typeof listQuoteCustomerAddresses>>, TError = unknown>(
+ partyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteCustomerAddresses>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listQuoteCustomerAddresses>>,
+          TError,
+          Awaited<ReturnType<typeof listQuoteCustomerAddresses>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListQuoteCustomerAddresses<TData = Awaited<ReturnType<typeof listQuoteCustomerAddresses>>, TError = unknown>(
+ partyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteCustomerAddresses>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListQuoteCustomerAddresses<TData = Awaited<ReturnType<typeof listQuoteCustomerAddresses>>, TError = unknown>(
+ partyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteCustomerAddresses>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListQuoteCustomerAddressesQueryOptions(partyId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListQuoteItemsUrl = (params?: ListQuoteItemsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/quotes/lookups/items?${stringifiedParams}` : `/api/v1/quotes/lookups/items`
+}
+
+export const listQuoteItems = async (params?: ListQuoteItemsParams, options?: Parameters<typeof apiFetch>[1]): Promise<QuoteItemOption[]> => {
+
+  return apiFetch<QuoteItemOption[]>(getListQuoteItemsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListQuoteItemsQueryKey = (params?: ListQuoteItemsParams,) => {
+    return [
+    `/api/v1/quotes/lookups/items`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListQuoteItemsQueryOptions = <TData = Awaited<ReturnType<typeof listQuoteItems>>, TError = unknown>(params?: ListQuoteItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteItems>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListQuoteItemsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listQuoteItems>>> = ({ signal }) => listQuoteItems(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listQuoteItems>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListQuoteItemsQueryResult = NonNullable<Awaited<ReturnType<typeof listQuoteItems>>>
+export type ListQuoteItemsQueryError = unknown
+
+
+export function useListQuoteItems<TData = Awaited<ReturnType<typeof listQuoteItems>>, TError = unknown>(
+ params: undefined |  ListQuoteItemsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteItems>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listQuoteItems>>,
+          TError,
+          Awaited<ReturnType<typeof listQuoteItems>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListQuoteItems<TData = Awaited<ReturnType<typeof listQuoteItems>>, TError = unknown>(
+ params?: ListQuoteItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteItems>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listQuoteItems>>,
+          TError,
+          Awaited<ReturnType<typeof listQuoteItems>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListQuoteItems<TData = Awaited<ReturnType<typeof listQuoteItems>>, TError = unknown>(
+ params?: ListQuoteItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteItems>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListQuoteItems<TData = Awaited<ReturnType<typeof listQuoteItems>>, TError = unknown>(
+ params?: ListQuoteItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteItems>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListQuoteItemsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListQuotePositionsUrl = () => {
+
+
+
+
+  return `/api/v1/quotes/lookups/positions`
+}
+
+export const listQuotePositions = async ( options?: Parameters<typeof apiFetch>[1]): Promise<LaborPositionOption[]> => {
+
+  return apiFetch<LaborPositionOption[]>(getListQuotePositionsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListQuotePositionsQueryKey = () => {
+    return [
+    `/api/v1/quotes/lookups/positions`
+    ] as const;
+    }
+
+
+export const getListQuotePositionsQueryOptions = <TData = Awaited<ReturnType<typeof listQuotePositions>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuotePositions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListQuotePositionsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listQuotePositions>>> = ({ signal }) => listQuotePositions({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listQuotePositions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListQuotePositionsQueryResult = NonNullable<Awaited<ReturnType<typeof listQuotePositions>>>
+export type ListQuotePositionsQueryError = unknown
+
+
+export function useListQuotePositions<TData = Awaited<ReturnType<typeof listQuotePositions>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuotePositions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listQuotePositions>>,
+          TError,
+          Awaited<ReturnType<typeof listQuotePositions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListQuotePositions<TData = Awaited<ReturnType<typeof listQuotePositions>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuotePositions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listQuotePositions>>,
+          TError,
+          Awaited<ReturnType<typeof listQuotePositions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListQuotePositions<TData = Awaited<ReturnType<typeof listQuotePositions>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuotePositions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListQuotePositions<TData = Awaited<ReturnType<typeof listQuotePositions>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuotePositions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListQuotePositionsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListQuoteWorkCentersUrl = () => {
+
+
+
+
+  return `/api/v1/quotes/lookups/work-centers`
+}
+
+export const listQuoteWorkCenters = async ( options?: Parameters<typeof apiFetch>[1]): Promise<LaborWorkCenterOption[]> => {
+
+  return apiFetch<LaborWorkCenterOption[]>(getListQuoteWorkCentersUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListQuoteWorkCentersQueryKey = () => {
+    return [
+    `/api/v1/quotes/lookups/work-centers`
+    ] as const;
+    }
+
+
+export const getListQuoteWorkCentersQueryOptions = <TData = Awaited<ReturnType<typeof listQuoteWorkCenters>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteWorkCenters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListQuoteWorkCentersQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listQuoteWorkCenters>>> = ({ signal }) => listQuoteWorkCenters({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listQuoteWorkCenters>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListQuoteWorkCentersQueryResult = NonNullable<Awaited<ReturnType<typeof listQuoteWorkCenters>>>
+export type ListQuoteWorkCentersQueryError = unknown
+
+
+export function useListQuoteWorkCenters<TData = Awaited<ReturnType<typeof listQuoteWorkCenters>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteWorkCenters>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listQuoteWorkCenters>>,
+          TError,
+          Awaited<ReturnType<typeof listQuoteWorkCenters>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListQuoteWorkCenters<TData = Awaited<ReturnType<typeof listQuoteWorkCenters>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteWorkCenters>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listQuoteWorkCenters>>,
+          TError,
+          Awaited<ReturnType<typeof listQuoteWorkCenters>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListQuoteWorkCenters<TData = Awaited<ReturnType<typeof listQuoteWorkCenters>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteWorkCenters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListQuoteWorkCenters<TData = Awaited<ReturnType<typeof listQuoteWorkCenters>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuoteWorkCenters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListQuoteWorkCentersQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetCommercialParametersUrl = () => {
+
+
+
+
+  return `/api/v1/commercial/parameters`
+}
+
+export const getCommercialParameters = async ( options?: Parameters<typeof apiFetch>[1]): Promise<CommercialParametersView> => {
+
+  return apiFetch<CommercialParametersView>(getGetCommercialParametersUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCommercialParametersQueryKey = () => {
+    return [
+    `/api/v1/commercial/parameters`
+    ] as const;
+    }
+
+
+export const getGetCommercialParametersQueryOptions = <TData = Awaited<ReturnType<typeof getCommercialParameters>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCommercialParameters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCommercialParametersQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCommercialParameters>>> = ({ signal }) => getCommercialParameters({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCommercialParameters>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetCommercialParametersQueryResult = NonNullable<Awaited<ReturnType<typeof getCommercialParameters>>>
+export type GetCommercialParametersQueryError = unknown
+
+
+export function useGetCommercialParameters<TData = Awaited<ReturnType<typeof getCommercialParameters>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCommercialParameters>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCommercialParameters>>,
+          TError,
+          Awaited<ReturnType<typeof getCommercialParameters>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetCommercialParameters<TData = Awaited<ReturnType<typeof getCommercialParameters>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCommercialParameters>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCommercialParameters>>,
+          TError,
+          Awaited<ReturnType<typeof getCommercialParameters>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetCommercialParameters<TData = Awaited<ReturnType<typeof getCommercialParameters>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCommercialParameters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetCommercialParameters<TData = Awaited<ReturnType<typeof getCommercialParameters>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCommercialParameters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetCommercialParametersQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateCommercialParametersUrl = () => {
+
+
+
+
+  return `/api/v1/commercial/parameters`
+}
+
+export const updateCommercialParameters = async (commercialParametersInput: CommercialParametersInput, options?: Parameters<typeof apiFetch>[1]): Promise<CommercialParametersView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<CommercialParametersView>(getUpdateCommercialParametersUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(commercialParametersInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateCommercialParametersMutationKey = () => ['updateCommercialParameters'] as const;
+
+export const getUpdateCommercialParametersMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCommercialParameters>>, TError,UpdateCommercialParametersMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateCommercialParameters>>, TError,UpdateCommercialParametersMutationVariables, TContext> => {
+
+const mutationKey = getUpdateCommercialParametersMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCommercialParameters>>, UpdateCommercialParametersMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateCommercialParameters(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateCommercialParametersMutationResult = NonNullable<Awaited<ReturnType<typeof updateCommercialParameters>>>
+    export type UpdateCommercialParametersMutationBody = CommercialParametersInput
+    export type UpdateCommercialParametersMutationError = unknown
+    export type UpdateCommercialParametersMutationVariables = {data: CommercialParametersInput}
+
+    export const useUpdateCommercialParameters = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCommercialParameters>>, TError,UpdateCommercialParametersMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateCommercialParameters>>,
+        TError,
+        UpdateCommercialParametersMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateCommercialParametersMutationOptions(options), queryClient);
     }
 
 export const getListWorkCentersUrl = (params?: ListWorkCentersParams,) => {

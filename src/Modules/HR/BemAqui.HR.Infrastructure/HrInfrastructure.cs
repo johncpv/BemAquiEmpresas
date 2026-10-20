@@ -44,6 +44,7 @@ public static class HrInfrastructure
         services.TryAddSingleton(TimeProvider.System);
         services.TryAddScoped<PositionService>();
         services.TryAddScoped<IHourlyCost>(sp => sp.GetRequiredService<PositionService>());
+        services.TryAddScoped<IPositions, PositionsContract>();
         services.TryAddScoped<ScheduleService>();
         services.TryAddScoped<UnionService>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ITenantSeeder, WorkScheduleSeeder>());
