@@ -42,6 +42,15 @@ internal static partial class FinanceEndpoints
         MapBanking(finance);
         finance.MapGet("/aging", async (string? sort, AgingService service, CancellationToken ct) => (await service.ReportAsync(sort, ct)).ToHttpResult())
             .RequirePermission("finance.view").WithName("GetAging").Produces<AgingReport>();
+        finance.MapGet("/aging/projects", async (AgingService service, CancellationToken ct) => Results.Ok(await service.ProjectsAsync(ct)))
+            .RequirePermission("finance.view").WithName("GetAgingByProject").Produces<AgingProjectReport>();
+        // Por terceiro (FIN-06b CA 5 a 7): pontualidade é dado sensível do cliente, sem cache.
+        finance.MapGet("/parties/{id:guid}/summary", async (Guid id, AgingService service, HttpContext http, CancellationToken ct) =>
+            {
+                http.Response.Headers.CacheControl = "no-store";
+                return Results.Ok(await service.PartySummaryAsync(id, ct));
+            })
+            .RequirePermission("finance.view").WithName("GetPartyFinanceSummary").Produces<PartyFinanceSummary>();
         return api;
     }
 

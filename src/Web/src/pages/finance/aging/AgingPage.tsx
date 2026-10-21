@@ -6,12 +6,16 @@ import { DataTable } from '@/components/data-table/DataTable'
 import { Money } from '@/components/ui/money'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { Dica } from '@/help/Dica'
+import { UrlTabs } from '@/components/ui/url-tabs'
 import { PageHeading } from '@/shell/PageHeading'
+import { AgingProjectsTab } from './AgingProjectsTab'
 import { FinanceTabs } from '../FinanceTabs'
 
 const DICAS = {
   aging: 'Os títulos vencidos separados pelo tempo de atraso. Quanto mais à direita, mais difícil de receber.',
   atraso: 'Quantos dias se passaram desde o vencimento do título mais antigo do cliente.',
+  atrasoMedio: 'Média de dias entre o vencimento e a baixa que quitou, ponderada pelo valor, nos últimos 12 meses. Pagar antes conta como zero.',
+  pagoComAtraso: 'Parte do valor quitado nos últimos 12 meses que foi paga depois do vencimento.',
 }
 const TONES = ['border-warn-soft bg-warn-soft text-warn-ink', 'border-warn-soft bg-warn-soft text-warn-ink', 'border-crit-soft bg-crit-soft text-crit-ink', 'border-crit-soft bg-crit-soft text-crit-ink']
 const LABELS = ['0–30 dias', '31–60 dias', '61–90 dias', 'Mais de 90 dias']
@@ -27,6 +31,8 @@ export function AgingPage() {
     ...LABELS.map((label, i): ColumnDef<AgingCustomer> => ({ id: `b${i}`, header: label, meta: { numeric: true, secondary: true }, cell: ({ row: { original: r } }) => <Money value={r.buckets[i]} /> })),
     { id: 'total', header: 'Total vencido', meta: { numeric: true, sortField: 'total' }, cell: ({ row: { original: r } }) => <Money value={r.total} className="font-semibold" /> },
     { id: 'maxDaysLate', header: 'Maior atraso', meta: { numeric: true, sortField: 'maxDaysLate' }, cell: ({ row: { original: r } }) => <span className="tabular-nums">{r.maxDaysLate} {r.maxDaysLate === 1 ? 'dia' : 'dias'}</span> },
+    { id: 'avg', header: 'Atraso médio', meta: { numeric: true, secondary: true }, cell: ({ row: { original: r } }) => <span className="tabular-nums">{typeof r.avgDelayDays === 'number' ? `${r.avgDelayDays.toLocaleString('pt-BR')} dias` : 'Sem histórico'}</span> },
+    { id: 'late', header: '% pago com atraso', meta: { numeric: true, secondary: true }, cell: ({ row: { original: r } }) => <span className="tabular-nums">{typeof r.pctPaidLate === 'number' ? `${r.pctPaidLate.toLocaleString('pt-BR')}%` : '—'}</span> },
   ]
 
   let summary = null
@@ -61,8 +67,9 @@ export function AgingPage() {
       <FinanceTabs />
       <div className="space-y-4">
         {summary}
+        <UrlTabs label="Visões da inadimplência" fallback="clientes" tabs={[{ id: 'clientes', label: 'Por cliente', content: (
         <div>
-          <p className="mb-2 flex items-center text-xs text-muted-foreground">Por cliente, do maior saldo vencido para o menor. Dias de atraso<Dica nome="Dias de atraso" texto={DICAS.atraso} /></p>
+          <p className="mb-2 flex flex-wrap items-center text-xs text-muted-foreground">Por cliente, do maior saldo vencido para o menor. Dias de atraso<Dica nome="Dias de atraso" texto={DICAS.atraso} /> · Atraso médio<Dica nome="Atraso médio" texto={DICAS.atrasoMedio} /> · % pago com atraso<Dica nome="% pago com atraso" texto={DICAS.pagoComAtraso} /></p>
           <DataTable
             label="Inadimplência por cliente"
             columns={columns}
@@ -76,6 +83,7 @@ export function AgingPage() {
             ) }}
           />
         </div>
+        ) }, { id: 'projetos', label: 'Por projeto', content: <AgingProjectsTab /> }]} />
       </div>
     </>
   )

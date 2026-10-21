@@ -166,7 +166,7 @@ Fase 2 (decisões do PO de 20/10/2026, revisão pré-Fase 2 e ADR 0019): cada ta
 - **parameters** (schema `finance`, FIN-01, ADR 0016 adendo M6): key (única), value, updated_at, updated_by; auditada. Chaves: `finance.discount_approval_pct` (5,00), `finance.discount_approval_amount` (500,00), `finance.cancel_approval_amount` (1.000,00), `finance.backdate_days` (7), `finance.late_fine_pct` e `finance.late_interest_month_pct` (sem seed) (FIN-01); `finance.cutover_date`, `finance.cutover_completed_at` (FIN-00); `finance.owner_can_approve_own` (false), `finance.payment_tolerance` (0,00) (FIN-03a); `finance.transfer_notify_amount` (10.000,00) (FIN-04)
 - **billing_slips** (boletos): receivable_id, provider, our_number, barcode, digitable_line, pix_copy_paste, qr_code, pdf_path, status (Issued/Paid/Cancelled/Expired), paid_at, paid_amount, provider_payload
 - **bank_statement_lines**: bank_account_id, date, amount, description, external_id, source (API/OFX), matched_transaction_id
-- **customer_payment_stats** (view, FIN-06b): party_id, avg_delay_days, pct_overdue, pct_paid_late, last_12m_invoiced — sem os títulos de origem `Opening`. Os títulos `Opening` também ficam fora do DRE por competência (FIN-08)
+- **customer_payment_stats** (view, FIN-06b): party_id, avg_delay_days, pct_overdue, pct_paid_late, last_12m_invoiced — sem os títulos de origem `Opening`. Os títulos `Opening` também ficam fora do DRE por competência (FIN-08) — no MVP calculada na consulta (FIN-06b), sem view no banco
 
 ## fiscal
 - **fiscal_settings**: regime, ie, cnae, certificate_secret, certificate_expiry, environment, nfe_series, next_number

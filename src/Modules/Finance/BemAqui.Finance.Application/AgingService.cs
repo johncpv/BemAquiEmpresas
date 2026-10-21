@@ -12,7 +12,8 @@ namespace BemAqui.Finance.Application;
 /// Inadimplência (FIN-06a): aging dos títulos a receber vencidos por cliente, pelo saldo em aberto (implantação entra
 /// como os demais), e o aviso diário consolidado do que venceu ontem para quem edita o Financeiro.
 /// </summary>
-public sealed partial class AgingService(IFinanceDb db, IParties parties, IUserDirectory users, INotificationService notifications, TimeProvider clock)
+public sealed partial class AgingService(
+    IFinanceDb db, IParties parties, IUserDirectory users, INotificationService notifications, PaymentStatsService stats, BemAqui.Commercial.Contracts.IProjects projects, TimeProvider clock)
 {
     /// <summary>Ordenações aceitas (CA 6): fora delas, 422.</summary>
     public static readonly IReadOnlyList<string> Sorts = ["-total", "total", "-maxDaysLate", "maxDaysLate", "name", "-name"];
@@ -64,6 +65,8 @@ public sealed partial class AgingService(IFinanceDb db, IParties parties, IUserD
             _ => rows.OrderByDescending(r => r.Total),
         };
         var list = sorted.ThenBy(r => r.PartyName, StringComparer.CurrentCulture).ToList();
+        var punctuality = await stats.ForPartiesAsync(list.Select(r => r.PartyId).ToList(), cancellationToken);
+        list = list.Select(r => punctuality.TryGetValue(r.PartyId, out var p) ? r with { AvgDelayDays = p.AvgDelay, PctPaidLate = p.PctLate } : r).ToList();
         var buckets = Labels.Select((label, i) =>
         {
             var inBucket = groups.Where(g => BucketOf(today.DayNumber - g.Due.DayNumber) == i).ToList();

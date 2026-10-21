@@ -8,6 +8,7 @@
 export type ListQuotesParams = {
 q?: string;
 situation?: string;
+partyId?: string;
 page?: number;
 pageSize?: number;
 };

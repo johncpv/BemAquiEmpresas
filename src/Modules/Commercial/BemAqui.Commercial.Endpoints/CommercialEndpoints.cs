@@ -13,8 +13,8 @@ internal static partial class CommercialEndpoints
     public static IEndpointRouteBuilder MapCommercialEndpoints(this IEndpointRouteBuilder api)
     {
         var quotes = api.MapGroup("/quotes").WithTags("Orçamentos").RequireModule("quotes");
-        quotes.MapGet(string.Empty, async (string? q, string? situation, int? page, int? pageSize, QuoteService service, CancellationToken ct) =>
-                Results.Ok(await service.ListAsync(q, situation, new PageRequest(page ?? 1, pageSize ?? PageRequest.DefaultPageSize).Normalize(), ct)))
+        quotes.MapGet(string.Empty, async (string? q, string? situation, Guid? partyId, int? page, int? pageSize, QuoteService service, CancellationToken ct) =>
+                Results.Ok(await service.ListAsync(q, situation, new PageRequest(page ?? 1, pageSize ?? PageRequest.DefaultPageSize).Normalize(), partyId, ct)))
             .RequirePermission("quotes.view").WithName("ListQuotes").Produces<QuotePage>();
         quotes.MapGet("/costs", async (string ids, QuoteService service, CancellationToken ct) =>
                 (await service.CostSummariesAsync(ParseIds(ids), ct)).ToHttpResult())

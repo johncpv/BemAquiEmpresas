@@ -5,7 +5,7 @@
 | ID | FIN-06b |
 | Título | Aging por projeto, indicador de pontualidade do cliente (atraso médio e % pago com atraso) exposto por contrato para a FIN-07, e aba "Comercial e financeiro" no terceiro |
 | Tamanho | M (quebra da FIN-06, que tinha sido re-estimada de P para M ao receber R-TER-3 e R-TER-4) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-FIN-12 (parte: vencidos por projeto) · R-TER-4 (pontualidade: média de dias de atraso) · R-TER-3 (histórico do terceiro: orçamentos, contratos, títulos, pontualidade) · R-PRP-5 |
 | Dependências | FIN-06a (aging e tela), FIN-01 (baixas), COM-04b (títulos de projeto), COM-01a e COM-04a (blocos de orçamentos e contratos no terceiro), FIN-02 |
 | Bloqueia | FIN-07 (cenário ajustado usa a pontualidade), DSH-01 |
@@ -68,15 +68,15 @@ Como **financeiro**, quero **ver a inadimplência por projeto e saber se cada cl
 Decididos pelo PO em 20/10/2026 (seção 1.1, item 14): atraso médio ponderado pelo valor, antecipação = 0, últimos 12 meses, sem os títulos `Opening`. P-18 decidida (ADR 0021).
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers, dataset fixo) e E2E passando.
-- [ ] View criada por migration (não destrutiva).
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Telas com estados.
-- [ ] Ajuda escrita (inclusive a nova aba do terceiro); teste de cobertura passando.
-- [ ] Próximos passos e links acionáveis aplicados.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers, dataset fixo) e E2E passando.
+- [x] View criada por migration (não destrutiva).
+- [x] Permissões só do `ModuleCatalog`.
+- [x] Telas com estados.
+- [x] Ajuda escrita (inclusive a nova aba do terceiro); teste de cobertura passando.
+- [x] Próximos passos e links acionáveis aplicados.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
 - [ ] `PaymentStatsQuery` (Dapper) e `ICustomerPaymentStats`; aging por projeto.
@@ -113,3 +113,4 @@ Checklist do @po (Pax), 20/10/2026.
 | 19/10/2026 | 0.2 | Validação do PO (checklist) e correções (como FIN-06) | Pax (PO) |
 | 20/10/2026 | 0.3 | Quebra da FIN-06 em 06a e 06b (esta); ajustes da revisão pré-Fase 2 | River (SM) |
 | 20/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 20/10/2026 | 1.0 | Implementada. Desvios: a pontualidade é calculada na consulta pelo EF (sem view no banco), pelo `PaymentStatsService`, que também implementa o `ICustomerPaymentStats`; o resumo do terceiro sai num endpoint só do Finance (`/finance/parties/{id}/summary`: a receber, a pagar e pontualidade, com `Cache-Control: no-store`), e as listas de títulos usam os filtros por cliente que já existiam; a lista de orçamentos ganhou o filtro `partyId`; a média do tenant vem junto na pontualidade (`tenantAvgDelayDays`) | @dev |

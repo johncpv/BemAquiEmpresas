@@ -27,10 +27,15 @@ public sealed partial class QuoteService(
 {
     public const string DocType = "ORC";
 
-    public async Task<QuotePage> ListAsync(string? q, string? situation, PageRequest page, CancellationToken cancellationToken = default)
+    public async Task<QuotePage> ListAsync(string? q, string? situation, PageRequest page, Guid? partyId = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(page);
         var quotes = db.Quotes.AsNoTracking().Where(x => x.IsCurrent);
+        if (partyId is { } party)
+        {
+            quotes = quotes.Where(x => x.PartyId == party);
+        }
+
         quotes = situation switch
         {
             "rascunho" => quotes.Where(x => x.Status == QuoteStatus.Draft),

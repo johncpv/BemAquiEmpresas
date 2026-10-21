@@ -71,3 +71,15 @@ public interface IFinancialOpening
 {
     Task<FinancialOpeningInfo> StatusAsync(CancellationToken cancellationToken = default);
 }
+
+/// <summary>
+/// Pontualidade do cliente (FIN-06b CA 2, 3; R-TER-4): atraso médio ponderado pelo valor e % pago com atraso nos últimos 12
+/// meses; sem histórico, a média do tenant serve de referência (FIN-07, Fase 4).
+/// </summary>
+public sealed record CustomerPaymentStats(
+    decimal AvgDelayDays, decimal PctPaidLate, decimal PctOverdueNow, decimal Last12mInvoiced, bool HasHistory, decimal TenantAvgDelayDays);
+
+public interface ICustomerPaymentStats
+{
+    Task<CustomerPaymentStats> ForPartyAsync(Guid partyId, CancellationToken cancellationToken = default);
+}

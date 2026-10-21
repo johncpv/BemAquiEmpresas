@@ -87,7 +87,7 @@ public sealed partial class QuoteService
     /// <summary>Orçamentos para "Copiar de…": os mais recentes, com os itens, de qualquer cliente e situação.</summary>
     public async Task<IReadOnlyList<QuoteCopyOption>> CopyOptionsAsync(string? q, CancellationToken cancellationToken = default)
     {
-        var page = await ListAsync(q, null, new PageRequest(1, 20), cancellationToken);
+        var page = await ListAsync(q, null, new PageRequest(1, 20), cancellationToken: cancellationToken);
         var ids = page.Items.Select(i => i.Id).ToList();
         var lines = await db.QuoteItems.AsNoTracking().Where(i => ids.Contains(i.QuoteId)).OrderBy(i => i.Sequence)
             .Select(i => new { i.QuoteId, i.Id, i.Description, i.Quantity }).ToListAsync(cancellationToken);

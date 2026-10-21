@@ -12,4 +12,8 @@ export interface AgingCustomer {
   total: number;
   maxDaysLate: number;
   count: number;
+  /** @nullable */
+  avgDelayDays?: number | null;
+  /** @nullable */
+  pctPaidLate?: number | null;
 }

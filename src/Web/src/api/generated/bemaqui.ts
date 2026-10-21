@@ -34,6 +34,7 @@ import type {
   AddHolidaysResult,
   AddressData,
   AddressInput,
+  AgingProjectReport,
   AgingReport,
   AiSettingsDto,
   AiSettingsRequest,
@@ -210,6 +211,7 @@ import type {
   PartyAddressInfo,
   PartyContactInfo,
   PartyDetail,
+  PartyFinanceSummary,
   PartySearchHit,
   PayInput,
   PayableDetail,
@@ -23104,6 +23106,196 @@ export function useGetAging<TData = Awaited<ReturnType<typeof getAging>>, TError
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetAgingQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetAgingByProjectUrl = () => {
+
+
+
+
+  return `/api/v1/finance/aging/projects`
+}
+
+export const getAgingByProject = async ( options?: Parameters<typeof apiFetch>[1]): Promise<AgingProjectReport> => {
+
+  return apiFetch<AgingProjectReport>(getGetAgingByProjectUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAgingByProjectQueryKey = () => {
+    return [
+    `/api/v1/finance/aging/projects`
+    ] as const;
+    }
+
+
+export const getGetAgingByProjectQueryOptions = <TData = Awaited<ReturnType<typeof getAgingByProject>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAgingByProject>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAgingByProjectQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAgingByProject>>> = ({ signal }) => getAgingByProject({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAgingByProject>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAgingByProjectQueryResult = NonNullable<Awaited<ReturnType<typeof getAgingByProject>>>
+export type GetAgingByProjectQueryError = unknown
+
+
+export function useGetAgingByProject<TData = Awaited<ReturnType<typeof getAgingByProject>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAgingByProject>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAgingByProject>>,
+          TError,
+          Awaited<ReturnType<typeof getAgingByProject>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAgingByProject<TData = Awaited<ReturnType<typeof getAgingByProject>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAgingByProject>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAgingByProject>>,
+          TError,
+          Awaited<ReturnType<typeof getAgingByProject>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAgingByProject<TData = Awaited<ReturnType<typeof getAgingByProject>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAgingByProject>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetAgingByProject<TData = Awaited<ReturnType<typeof getAgingByProject>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAgingByProject>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetAgingByProjectQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetPartyFinanceSummaryUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/finance/parties/${id}/summary`
+}
+
+export const getPartyFinanceSummary = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<PartyFinanceSummary> => {
+
+  return apiFetch<PartyFinanceSummary>(getGetPartyFinanceSummaryUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPartyFinanceSummaryQueryKey = (id: string,) => {
+    return [
+    `/api/v1/finance/parties/${id}/summary`
+    ] as const;
+    }
+
+
+export const getGetPartyFinanceSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getPartyFinanceSummary>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPartyFinanceSummary>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPartyFinanceSummaryQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPartyFinanceSummary>>> = ({ signal }) => getPartyFinanceSummary(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPartyFinanceSummary>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetPartyFinanceSummaryQueryResult = NonNullable<Awaited<ReturnType<typeof getPartyFinanceSummary>>>
+export type GetPartyFinanceSummaryQueryError = unknown
+
+
+export function useGetPartyFinanceSummary<TData = Awaited<ReturnType<typeof getPartyFinanceSummary>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPartyFinanceSummary>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPartyFinanceSummary>>,
+          TError,
+          Awaited<ReturnType<typeof getPartyFinanceSummary>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPartyFinanceSummary<TData = Awaited<ReturnType<typeof getPartyFinanceSummary>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPartyFinanceSummary>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPartyFinanceSummary>>,
+          TError,
+          Awaited<ReturnType<typeof getPartyFinanceSummary>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPartyFinanceSummary<TData = Awaited<ReturnType<typeof getPartyFinanceSummary>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPartyFinanceSummary>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetPartyFinanceSummary<TData = Awaited<ReturnType<typeof getPartyFinanceSummary>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPartyFinanceSummary>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetPartyFinanceSummaryQueryOptions(id,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
