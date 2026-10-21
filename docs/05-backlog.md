@@ -378,33 +378,71 @@ _CAD-04c2 (dependentes, banco/Pix, adicionais, vale-transporte e documentos, M, 
 
 ## Fase 4 — Planejamento, painéis e visão do dono
 
-**PLN-01 [ ] Motor de agendamento (G)** — Algoritmo da seção 3.4 de 04-fluxos, recálculo por evento e por hora.
-- CA: testes com cenários fixos (2 centros, 3 projetos, feriado) batendo datas esperadas; recálculo de 50 OS < 2 s.
+Stories detalhadas em [`docs/stories/`](stories/README.md#fase-4--planejamento-painéis-e-visão-do-dono), com critérios de aceite completos, ordem de execução, padrões comuns, validação do PO, as dependências da Fase 3 ainda em aberto e os 56 pontos em aberto consolidados. Escritas pelo @sm e validadas pelo @po em 21/10/2026: **todas `Draft`** (2 com GO e 13 com GO condicional, à espera das decisões do PO marcadas como pré-condição). A fase só começa com a Fase 3 concluída. Aqui fica o resumo de cada uma.
 
-**PLN-02 [ ] Fila de prioridade (M)** — Arrastar projetos para reordenar; mostra impacto nas datas.
+**Ordem de execução:** **4.1 "O dinheiro do jeito que ele vai acontecer":** FIN-07 → DSH-02 → FIN-08 → **4.2 "O painel do dono, parte do dinheiro":** DSH-04 → DSH-01a → **4.3 "Datas que a fábrica cumpre":** PLN-01a → PLN-01b → PLN-02 → PLN-04 → PLN-03 → **4.4 "A fábrica na parede":** PNL-01a → PNL-01b → DSH-03 → **4.5 "A visão completa do dono":** DSH-01b → PLN-05 (D).
 
-**PLN-03 [ ] Gantt (G)** — Por projeto e por centro de trabalho; prevista × prometida.
+**Quebras:** PLN-01 → 01a/01b · PNL-01 → 01a/01b · DSH-01 → 01a/01b. **Re-estimada:** FIN-08 (M → G). **ADRs sugeridas:** consultas do painel no Host × módulo `Reporting` (antes do 4.2); dono da fila de prioridade e datas previstas fora da auditoria (antes do 4.3); caminho `/tv#token` com cookie de sessão (antes do 4.4).
 
-**PLN-04 [ ] Ocupação da fábrica (M)** — Horas comprometidas / capacidade por semana e centro.
+**FIN-07 [ ] Projeção de caixa ajustada pelo histórico do cliente (M)** — 4.1, ordem 1 — [story](stories/FIN-07-projecao-ajustada.md)
+- Requisitos: R-FIN-11, R-FIN-10, R-TER-4, R-PRP-5, PRD §5.14 (Caixa), PRD §6 (Desempenho).
+- CA: recebível deslocado pelo atraso médio do cliente (sem histórico, a média do tenant) e ponderado pela inadimplência acima do limite configurável; base × ajustado lado a lado com o menor saldo de cada um e a diferença causada pelos atrasos (dataset fixo nos dois cenários); detalhe do dia com o motivo de cada deslocamento; `ICashForecast` igual à tela para o painel; 50 mil títulos e 2 mil clientes em menos de 2 s, pontualidade em lote.
 
-**PLN-05 [ ] Simulação de prazo do orçamento (M)** — D.
+**DSH-02 [ ] Orçado × realizado e margem, por projeto e consolidado (M)** — 4.1, ordem 2 — [story](stories/DSH-02-orcado-realizado-margem.md)
+- Requisitos: R-PRJ-5, PRD §5.14 (Margem), PRD §1.1 e §1.2, R-PRP-5, PRD §6.
+- CA: um cálculo só (`IProjectMargins`) para o Projeto 360, o relatório e o painel; realizado por natureza pelas fontes do `04-fluxos` §3.3 (baixa para a OS, horas apontadas, títulos com projeto); coluna Comprometido; margens orçada, realizada e projetada; ranking dos piores; drill-down até o documento de origem com o total igual à célula; tudo só com `projects.view_cost`; 5 mil projetos e 200 mil custos em menos de 1 s.
 
-**PNL-01 [ ] Painel TV (G)** — Tokens de quiosque, configuração (linha/visões/rotação), SignalR, layout grande e escuro.
-- CA: token revogado derruba a tela em < 1 min; atualização < 2 s após apontamento.
+**FIN-08 [ ] DRE gerencial mensal e por projeto (G)** — 4.1, ordem 3 — re-estimada de M — [story](stories/FIN-08-dre-gerencial.md)
+- Requisitos: R-FIN-13, R-FIN-1, R-PRP-5, PRD §5.14 (Faturamento), PRD §6.
+- CA: DRE pelos grupos do plano de contas, por competência (P-17): receita pela emissão do título, despesa pela competência ou pelo documento, lançamentos bancários pela data, juros e descontos das baixas em contas parametrizadas; `Opening`, `Planned` e transferências fora; dataset fixo; drill-down por célula; aba por projeto com `projects.view_cost`; `IRevenueSummary` para o painel; 24 meses em menos de 2 s.
 
-**DSH-01 [ ] Dashboard do proprietário (G)** — Todos os cards da seção 5.14 do PRD com drill-down.
-- CA: carrega < 2 s; números conferem com relatórios de origem (teste com dataset fixo).
+**DSH-04 [ ] Minha pauta (M)** — 4.2, ordem 4 — [story](stories/DSH-04-minha-pauta.md)
+- Requisitos: R-PRP-4, R-PRP-5, R-COM-2, PRD §5.14 (Pendências do dono), PRD §6.
+- CA: detectores por módulo (`IAgendaSource`) para aprovações, pagamentos, vencimentos, atrasos, validades, qualidade, NC, faltas e ajustes, cada um com a sua permissão; ordem pelo que mais destrava; cada linha com o porquê e o link para a ação; item some quando resolvido (calculado na leitura); só itens de módulos liberados e habilitados; resposta parcial se uma fonte falhar; menos de 1 s.
 
-**DSH-02 [ ] Orçado × realizado e margem (M)** — Por projeto e consolidado, por tipo de custo.
+**DSH-01a [ ] Painel do proprietário: estrutura, caixa, faturamento, inadimplência, comercial e pendências (G)** — 4.2, ordem 5 — quebra da DSH-01 — [story](stories/DSH-01a-painel-dono-financeiro-comercial.md)
+- Requisitos: PRD §5.14, R-FIN-10, R-FIN-11, R-FIN-12, R-FIN-13, R-COML-9, R-PRP-4, R-PRP-5, PRD §6.
+- CA: cards de saldo, caixa 30/60/90 base × ajustado, faturamento × meta, vencido com aging, comercial e pendências, cada um pela permissão do dono e com regra e drill-down; números iguais aos relatórios de origem (teste com dataset fixo); faixa "Atenção" acionável; metas de faturamento; cache por tenant de 60 s com invalidação por evento; painel em menos de 2 s.
 
-**FIN-07 [ ] Projeção ajustada por histórico (M)** — Seção 3.5; base × ajustado; menor saldo.
+**PLN-01a [ ] Motor de agendamento finito (G)** — 4.3, ordem 6 — quebra da PLN-01 — [story](stories/PLN-01a-motor-agendamento.md)
+- Requisitos: R-PLN-3, R-PLN-1, R-SEC-5, PRD §6 (Desempenho).
+- CA: algoritmo do `04-fluxos` §3.4 (fila, horas restantes com mínimo de 10%, alocação dia a dia na capacidade e no calendário, etapas sequenciais na OS); cenário fixo com 2 centros, 3 projetos e feriado batendo as datas esperadas; gravação atômica das datas e das alocações; uma execução por vez por tenant; recálculo manual e de hora em hora (`TenantJob`, dois tenants); `IProductionSchedule` com simulação sem gravar; 50 OS em menos de 2 s.
 
-**FIN-08 [ ] DRE gerencial (M)** — Mensal e por projeto.
+**PLN-01b [ ] Recálculo por evento, data prevista do projeto e risco (M)** — 4.3, ordem 7 — quebra da PLN-01 — [story](stories/PLN-01b-recalculo-previsao-risco.md)
+- Requisitos: R-PLN-3, R-PLN-4, R-COM-2, R-PRP-5, PRD §1.2, PRD §6.
+- CA: o plano se refaz a cada apontamento, etapa, OS, roteiro, qualidade, calendário, centro e aditivo, com pedidos agrupados; data prevista do projeto = fim da fabricação + prazo de instalação; `ProjectForecastChanged` com `computedAt` (fora de ordem não sobrescreve); entrega prevista no Projeto 360; prevista > prometida vira risco no Kanban, nas listas e numa notificação sem repetição.
 
-**DSH-04 [ ] Minha pauta (M)** — Requisitos: PRP-4, PRP-5. Lista por usuário do que precisa dele hoje, montada pelos detectores dos módulos (OP para aprovar, títulos vencendo, OS atrasadas, orçamentos expirando, faltas), ordenada pelo que mais destrava, cada linha com o porquê e o link para resolver.
-- CA: cada item some quando resolvido; o usuário só vê itens de módulos a que tem acesso; a pauta abre em menos de 1 s.
+**PLN-02 [ ] Fila de prioridade dos projetos (M)** — 4.3, ordem 8 — [story](stories/PLN-02-fila-prioridade.md)
+- Requisitos: R-PLN-2, R-PLN-3, R-PLN-4, R-PRP-2, R-SEC-5.
+- CA: arrastar (ou teclado) para reordenar; prévia "antes → depois" das datas e da folga pela simulação, sem gravar; aviso de quem passa a atrasar; salvar com versão (409), histórico e recálculo; permutação validada no servidor; prévia em menos de 2 s.
 
-**DSH-03 [ ] Painel do supervisor (M)** — Kanban + capacidade + NC + faltas.
+**PLN-04 [ ] Ocupação da fábrica por semana e centro (M)** — 4.3, ordem 9 — [story](stories/PLN-04-ocupacao-fabrica.md)
+- Requisitos: R-PLN-6, R-PLN-1, PRD §5.14 (Produção), PRD §6.
+- CA: horas comprometidas ÷ capacidade por semana e centro e na fábrica (números conferidos com o cenário da PLN-01a); carga além do horizonte; drill-down até as etapas; faixas de folga e lotado; gráfico de barras com tabela equivalente; `IFactoryLoad` para os painéis; menos de 1 s.
+
+**PLN-03 [ ] Cronograma (Gantt) por projeto e por centro de trabalho (G)** — 4.3, ordem 10 — [story](stories/PLN-03-gantt.md)
+- Requisitos: R-PLN-4, R-PLN-3, R-PRP-5, PRD §5.14 (Entregas), PRD §6.
+- CA: visão por projeto (projeto → OS → etapa, prevista × prometida, real × previsto, "Define a entrega") e por centro (carga diária, feriados e paradas); escala dia/semana/mês; detalhe e abertura da OS pelo teclado; tabela equivalente; aba no Projeto 360; 300 OS utilizáveis em menos de 1,5 s; 400 px sem rolagem horizontal da página.
+
+**PNL-01a [ ] Tokens de tela, sessão de quiosque e tempo real da TV (G)** — 4.4, ordem 11 — quebra da PNL-01 — [story](stories/PNL-01a-tokens-tela-sessao-quiosque.md)
+- Requisitos: R-SEC-6, PRD §2, PRD §5.14 (Painel de produção), PRD §6 (Segurança), R-SEC-5.
+- CA: token de 256 bits guardado como hash e mostrado uma vez; link `/tv#token` trocado por cookie de sessão (o token nunca chega ao log); principal de quiosque só em GET do painel; hub com grupos das claims; **token revogado derruba a tela em menos de 1 min**; rede permitida opcional; tenant suspenso e módulo não liberado desligam a TV; isolamento entre tenants.
+
+**PNL-01b [ ] Visões do painel da TV (M)** — 4.4, ordem 12 — quebra da PNL-01 — [story](stories/PNL-01b-visoes-painel-tv.md)
+- Requisitos: PRD §5.14 (Painel de produção), R-PRD-2, R-PLN-4, PRD §6.
+- CA: quadro por etapa (OS, operador, tempo na etapa, real × padrão, previsto, atrasada e em risco), fila com previsão × prometido e atrasos, pela linha do token; rotação configurável; **atualização em menos de 2 s após o apontamento**; legível a 1080p e 768p, sempre escura; DTO sem valores nem dado pessoal além do primeiro nome do operador.
+
+**DSH-03 [ ] Painel do supervisor (M)** — 4.4, ordem 13 — [story](stories/DSH-03-painel-supervisor.md)
+- Requisitos: PRD §5.14 (Painel do supervisor), R-PRD-2, R-PRD-6, R-PLN-6, R-EST-4, R-CMP-1, R-PRP-4, R-PRP-5, PRD §6.
+- CA: blocos Quadro (atrasadas e em risco, tempo real), Capacidade (semana atual e 4 seguintes), Qualidade (aprovar e NC abertas), Faltas de material (com a situação da compra e "Gerar solicitação") e Indicadores (horas paradas e taxa de NC por etapa); cada bloco pela permissão do dono; menos de 1,5 s.
+
+**DSH-01b [ ] Painel do proprietário: margem, carteira, produção e entregas (M)** — 4.5, ordem 14 — quebra da DSH-01 — [story](stories/DSH-01b-painel-dono-margem-producao.md)
+- Requisitos: PRD §5.14, R-PRJ-5, R-PLN-4, R-PLN-6, R-PRP-5, PRD §6.
+- CA: margem orçada × projetada e piores projetos (só com `projects.view_cost`), projetos em andamento, carteira a produzir e a faturar, produção (OS atrasadas e ocupação) e entregas (previstas no mês e em risco), iguais às origens; projeto em risco na faixa "Atenção"; **painel completo em menos de 2 s; números conferem com os relatórios de origem (dataset fixo)**.
+
+**PLN-05 [ ] Simulação de prazo do orçamento (M)** — D — 4.5, ordem 15 — [story](stories/PLN-05-simulacao-prazo-orcamento.md)
+- Requisitos: R-PLN-5, R-COML-1, R-PRP-1, R-PRP-2.
+- CA: projeto virtual montado das horas por centro do orçamento, simulado no fim ou numa posição da fila, sem gravar; fim da fabricação, entrega prevista e comparação com o prazo do orçamento; projetos que passariam a atrasar; "Usar este prazo" só preenche o formulário; resposta só com datas (sem custo); menos de 2 s.
 
 ---
 
