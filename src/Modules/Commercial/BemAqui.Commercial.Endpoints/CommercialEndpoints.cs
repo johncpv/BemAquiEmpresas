@@ -37,6 +37,7 @@ internal static partial class CommercialEndpoints
         MapConditions(quotes);
         MapRevisions(quotes);
         MapApproval(quotes);
+        MapDocuments(quotes);
         MapContracts(api);
         MapLookups(quotes.MapGroup("/lookups"));
         var commercial = api.MapGroup("/commercial").WithTags("Orçamentos");

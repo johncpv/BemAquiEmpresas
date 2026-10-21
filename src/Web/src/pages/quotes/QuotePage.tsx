@@ -13,6 +13,7 @@ import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { ApproveDialog } from './ApproveDialog'
 import { ConditionsTab } from './ConditionsTab'
+import { DocumentsTab } from './DocumentsTab'
 import { CopyQuoteDialog } from './CopyQuoteDialog'
 import { ItemsTab } from './ItemsTab'
 import { LoseDialog } from './LoseDialog'
@@ -97,6 +98,7 @@ export function QuotePage() {
         { id: 'dados', label: 'Dados', content: <QuoteHeaderTab key={quote.version} quote={quote} editable={editable} refresh={refresh} /> },
         { id: 'itens', label: 'Itens', content: <ItemsTab quote={quote} costs={costs.data} editable={editable} refresh={refresh} /> },
         { id: 'condicoes', label: 'Condições', content: <ConditionsTab quote={quote} editable={editable} refresh={refresh} /> },
+        { id: 'documentos', label: 'Documentos', content: <DocumentsTab quote={quote} refresh={refresh} /> },
         { id: 'revisoes', label: 'Revisões', content: <RevisionsTab quoteId={id} /> },
         { id: 'historico', label: 'Histórico de alterações', content: <RecordHistory entity="Quote" id={id} /> },
       ]} />

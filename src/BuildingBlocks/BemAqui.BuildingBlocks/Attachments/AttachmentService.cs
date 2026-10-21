@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BemAqui.BuildingBlocks.Attachments;
 
-public sealed record AttachmentDto(Guid Id, string FileName, string ContentType, long Size, ScanStatus ScanStatus, DateTimeOffset CreatedAt, string? UploadedByName = null);
+public sealed record AttachmentDto(Guid Id, string FileName, string ContentType, long Size, ScanStatus ScanStatus, DateTimeOffset CreatedAt, string? UploadedByName = null, AttachmentOrigin Origin = AttachmentOrigin.User);
 
 public sealed record AttachmentContent(Stream Content, string ContentType, string FileName);
 
@@ -58,7 +58,7 @@ public sealed class AttachmentOwnerRegistry
 }
 
 /// <summary>Upload e download de anexos com allowlist, magic bytes, ClamAV e permissão do documento dono (FND-07 CA 18 a 21).</summary>
-public sealed class AttachmentService(
+public sealed partial class AttachmentService(
     BemAquiDbContext db,
     IFileStorage storage,
     IVirusScanner scanner,
@@ -209,7 +209,7 @@ public sealed class AttachmentService(
 
     private static Error Forbidden() => Error.Forbidden(Error.Codes.Forbidden, "Você não tem acesso a esta funcionalidade. Fale com o administrador.");
 
-    private static AttachmentDto ToDto(Attachment a) => new(a.Id, a.FileName, a.ContentType, a.Size, a.ScanStatus, a.CreatedAt);
+    private static AttachmentDto ToDto(Attachment a) => new(a.Id, a.FileName, a.ContentType, a.Size, a.ScanStatus, a.CreatedAt, Origin: a.Origin);
 
     // Nome só para exibição: sem diretórios nem caracteres de controle, até 200 caracteres.
     private static string SafeDisplayName(string fileName)

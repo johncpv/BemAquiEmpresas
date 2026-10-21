@@ -16,6 +16,8 @@ public interface ICommercialDb
 
     DbSet<QuoteMilestone> QuoteMilestones { get; }
 
+    DbSet<QuoteDispatch> QuoteDispatches { get; }
+
     DbSet<CommercialParameter> CommercialParameters { get; }
 
     DbSet<Contract> Contracts { get; }

@@ -8,6 +8,9 @@ public enum ErrorType
     Conflict,
     Forbidden,
     Unavailable,
+
+    /// <summary>Limite de uso atingido (429), ex.: envios de orçamento por dia (COM-03 CA 11).</summary>
+    TooManyRequests,
     Unexpected,
 }
 
@@ -44,4 +47,6 @@ public sealed record Error(string Code, string Message, ErrorType Type)
     public static Error Forbidden(string code, string message) => new(code, message, ErrorType.Forbidden);
 
     public static Error Unavailable(string code, string message) => new(code, message, ErrorType.Unavailable);
+
+    public static Error TooManyRequests(string code, string message) => new(code, message, ErrorType.TooManyRequests);
 }
