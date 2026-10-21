@@ -46,6 +46,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("file_name");
 
+                    b.Property<int>("Origin")
+                        .HasColumnType("integer")
+                        .HasColumnName("origin");
+
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uuid")
                         .HasColumnName("owner_id");
@@ -105,9 +109,18 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.PrimitiveCollection<Guid[]>("AttachmentIds")
+                        .IsRequired()
+                        .HasColumnType("uuid[]")
+                        .HasColumnName("attachment_ids");
+
                     b.Property<int>("Attempts")
                         .HasColumnType("integer")
                         .HasColumnName("attempts");
+
+                    b.Property<string>("Cc")
+                        .HasColumnType("text")
+                        .HasColumnName("cc");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -117,6 +130,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)")
                         .HasColumnName("error");
+
+                    b.Property<string>("FromName")
+                        .HasColumnType("text")
+                        .HasColumnName("from_name");
 
                     b.Property<string>("Model")
                         .IsRequired()
@@ -131,6 +148,14 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)")
                         .HasColumnName("related_type");
+
+                    b.Property<string>("ReplyTo")
+                        .HasColumnType("text")
+                        .HasColumnName("reply_to");
+
+                    b.Property<int>("ScanWaits")
+                        .HasColumnType("integer")
+                        .HasColumnName("scan_waits");
 
                     b.Property<DateTimeOffset?>("SentAt")
                         .HasColumnType("timestamp with time zone")
@@ -1169,6 +1194,56 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDatabaseName("ix_quotes_number_revision");
 
                     b.ToTable("quotes", "commercial");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.QuoteDispatch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AttachmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("attachment_id");
+
+                    b.Property<string>("Cc")
+                        .HasMaxLength(800)
+                        .HasColumnType("character varying(800)")
+                        .HasColumnName("cc");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("EmailLogId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("email_log_id");
+
+                    b.Property<Guid>("QuoteId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("quote_id");
+
+                    b.Property<Guid?>("SentBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sent_by");
+
+                    b.Property<string>("To")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)")
+                        .HasColumnName("to");
+
+                    b.HasKey("Id")
+                        .HasName("pk_quote_dispatches");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_quote_dispatches_created_at");
+
+                    b.HasIndex("QuoteId")
+                        .HasDatabaseName("ix_quote_dispatches_quote_id");
+
+                    b.ToTable("quote_dispatches", "commercial");
                 });
 
             modelBuilder.Entity("BemAqui.Commercial.Domain.QuoteItem", b =>
@@ -5699,6 +5774,16 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_project_items_quote_items_quote_item_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.QuoteDispatch", b =>
+                {
+                    b.HasOne("BemAqui.Commercial.Domain.Quote", null)
+                        .WithMany()
+                        .HasForeignKey("QuoteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_quote_dispatches_quotes_quote_id");
                 });
 
             modelBuilder.Entity("BemAqui.Commercial.Domain.QuoteItem", b =>

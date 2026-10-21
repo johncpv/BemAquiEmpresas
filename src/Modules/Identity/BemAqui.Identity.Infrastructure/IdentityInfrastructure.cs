@@ -54,6 +54,7 @@ public static class IdentityInfrastructure
         // Configurações da empresa (CAD-06): perfil, logo, numeração e parâmetros.
         services.TryAddScoped<CompanySettings>();
         services.TryAddScoped<BemAqui.BuildingBlocks.Tenancy.ITenantBranding>(sp => sp.GetRequiredService<CompanySettings>());
+        services.TryAddScoped<BemAqui.Identity.Contracts.ICompanyIdentity>(sp => sp.GetRequiredService<CompanySettings>());
         services.TryAddScoped<TenantParametersService>();
         services.TryAddScoped<BemAqui.Identity.Contracts.ITenantParameters>(sp => sp.GetRequiredService<TenantParametersService>());
         services.TryAddScoped<BemAqui.Identity.Contracts.IUserEmployeeLink, UserEmployeeLink>();

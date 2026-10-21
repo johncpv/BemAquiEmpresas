@@ -46,6 +46,23 @@ public sealed partial class SendEmailJob(ITenantDirectory directory, ITenantScop
             return; // já resolvido: reentrega do Hangfire não envia de novo
         }
 
+        var (files, wait, refused) = await AttachmentsAsync(services, db, log, cancellationToken);
+        if (wait)
+        {
+            log.ScanWaits++;
+            await db.SaveChangesAsync(cancellationToken);
+            ScheduleScanWait(services, tenant, args);
+            return;
+        }
+
+        if (refused is not null)
+        {
+            log.Status = EmailStatus.Failed;
+            log.Error = refused;
+            await db.SaveChangesAsync(cancellationToken);
+            return;
+        }
+
         log.Attempts++;
         try
         {
@@ -53,7 +70,11 @@ public sealed partial class SendEmailJob(ITenantDirectory directory, ITenantScop
             model["tenant_name"] ??= services.GetRequiredService<TenantContextHolder>().Resolved?.TradeName ?? services.GetRequiredService<TenantContextHolder>().Resolved?.LegalName;
             var content = services.GetRequiredService<EmailTemplateRenderer>().Render(log.Template, model);
             log.Subject = content.Subject;
-            await services.GetRequiredService<IEmailTransport>().SendAsync(new OutgoingEmail(log.To, content), cancellationToken);
+            var outgoing = new OutgoingEmail(log.To, content)
+            {
+                Cc = log.Cc?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? [], ReplyTo = log.ReplyTo, FromName = log.FromName, Attachments = files,
+            };
+            await services.GetRequiredService<IEmailTransport>().SendAsync(outgoing, cancellationToken);
             log.Status = EmailStatus.Sent;
             log.SentAt = clock.GetUtcNow();
             log.Error = null;

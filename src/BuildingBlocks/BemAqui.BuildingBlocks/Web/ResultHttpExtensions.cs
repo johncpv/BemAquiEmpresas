@@ -46,6 +46,7 @@ public static class ResultHttpExtensions
         ErrorType.Conflict => StatusCodes.Status409Conflict,
         ErrorType.Forbidden => StatusCodes.Status403Forbidden,
         ErrorType.Unavailable => StatusCodes.Status503ServiceUnavailable,
+        ErrorType.TooManyRequests => StatusCodes.Status429TooManyRequests,
         _ => StatusCodes.Status500InternalServerError,
     };
 
@@ -56,6 +57,7 @@ public static class ResultHttpExtensions
         ErrorType.Conflict => "Conflito",
         ErrorType.Forbidden => "Acesso negado",
         ErrorType.Unavailable => "Indisponível no momento",
+        ErrorType.TooManyRequests => "Limite atingido",
         _ => "Erro inesperado",
     };
 }

@@ -21,6 +21,13 @@ public static class CommercialInfrastructure
         services.TryAddScoped<QuoteService>();
         services.TryAddScoped<QuoteLookups>();
         services.TryAddScoped<QuoteExpiry>();
+        // PDF e envio (COM-03): anexos do orçamento por revisão; o PDF gerado sai como anexo do sistema.
+        services.TryAddSingleton<BemAqui.BuildingBlocks.Pdf.IPdfRenderer, BemAqui.BuildingBlocks.Pdf.QuestPdfRenderer>();
+        services.TryAddScoped<BemAqui.Commercial.Application.Documents.QuoteDocumentService>();
+        services.AddAuditableEntity<QuoteDispatch>("quotes");
+        services.AddAttachmentOwner(BemAqui.Commercial.Application.Documents.QuoteDocumentService.OwnerType, new AttachmentOwnerRules("quotes",
+            ["application/pdf", "image/png", "image/jpeg", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/acad", "application/dxf"],
+            25 * 1024 * 1024, OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<ICommercialDb>().Quotes.AnyAsync(q => q.Id == id, ct)));
         services.TryAddScoped<CommercialParametersService>();
         services.TryAddScoped<ICommercialParameters>(sp => sp.GetRequiredService<CommercialParametersService>());
         services.TryAddScoped<QuoteApprovalService>();

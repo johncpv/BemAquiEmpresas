@@ -12,4 +12,11 @@ public static class BusinessTime
         ArgumentNullException.ThrowIfNull(clock);
         return DateOnly.FromDateTime(ToBusiness(clock.GetUtcNow()).DateTime);
     }
+
+    /// <summary>Início do dia de negócio <paramref name="day"/> em UTC (ex.: contar os envios de hoje em São Paulo).</summary>
+    public static DateTimeOffset StartOfDayUtc(DateOnly day)
+    {
+        var local = day.ToDateTime(TimeOnly.MinValue, DateTimeKind.Unspecified);
+        return new DateTimeOffset(local, Zone.GetUtcOffset(local)).ToUniversalTime();
+    }
 }

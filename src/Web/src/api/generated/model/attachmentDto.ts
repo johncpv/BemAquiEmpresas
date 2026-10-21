@@ -4,6 +4,7 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { AttachmentOrigin } from './attachmentOrigin';
 import type { ScanStatus } from './scanStatus';
 
 export interface AttachmentDto {
@@ -15,4 +16,5 @@ export interface AttachmentDto {
   createdAt: string;
   /** @nullable */
   uploadedByName?: string | null;
+  origin?: AttachmentOrigin;
 }

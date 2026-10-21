@@ -29,7 +29,18 @@ public sealed class EmailOptions
     public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(30);
 }
 
-public sealed record OutgoingEmail(string To, RenderedEmail Content, string? LogoContentId = null, byte[]? Logo = null, string? LogoContentType = null);
+public sealed record OutgoingEmail(string To, RenderedEmail Content, string? LogoContentId = null, byte[]? Logo = null, string? LogoContentType = null)
+{
+    public IReadOnlyList<string> Cc { get; init; } = [];
+
+    public string? ReplyTo { get; init; }
+
+    public string? FromName { get; init; }
+
+    public IReadOnlyList<EmailAttachment> Attachments { get; init; } = [];
+}
+
+public sealed record EmailAttachment(string FileName, string ContentType, byte[] Content);
 
 public interface IEmailTransport
 {
@@ -44,8 +55,17 @@ public sealed class SmtpEmailTransport(IOptions<EmailOptions> options) : IEmailT
         ArgumentNullException.ThrowIfNull(email);
         var settings = options.Value;
         var message = new MimeMessage();
-        message.From.Add(new MailboxAddress(settings.FromName, settings.FromAddress));
+        message.From.Add(new MailboxAddress(email.FromName ?? settings.FromName, settings.FromAddress));
         message.To.Add(MailboxAddress.Parse(email.To));
+        foreach (var cc in email.Cc)
+        {
+            message.Cc.Add(MailboxAddress.Parse(cc));
+        }
+
+        if (email.ReplyTo is { } replyTo)
+        {
+            message.ReplyTo.Add(MailboxAddress.Parse(replyTo));
+        }
         message.Subject = email.Content.Subject;
 
         var body = new BodyBuilder { HtmlBody = email.Content.Html, TextBody = email.Content.Text };
@@ -53,6 +73,11 @@ public sealed class SmtpEmailTransport(IOptions<EmailOptions> options) : IEmailT
         {
             var logo = body.LinkedResources.Add("logo", email.Logo, ContentType.Parse(email.LogoContentType ?? "image/png"));
             logo.ContentId = email.LogoContentId;
+        }
+
+        foreach (var file in email.Attachments)
+        {
+            body.Attachments.Add(file.FileName, file.Content, ContentType.Parse(file.ContentType));
         }
 
         message.Body = body.ToMessageBody();

@@ -33,6 +33,22 @@ public sealed class EmailLog : Entity
 
     public Guid? RelatedId { get; init; }
 
+    /// <summary>Anexos do e-mail (COM-03): lidos pelo storage pelo id, só se forem do mesmo documento e estiverem limpos.</summary>
+    public Guid[] AttachmentIds { get; init; } = [];
+
+    /// <summary>Cópias, separadas por vírgula (até 3).</summary>
+    [PersonalData]
+    public string? Cc { get; init; }
+
+    [PersonalData]
+    public string? ReplyTo { get; init; }
+
+    /// <summary>Nome de exibição do remetente ("{empresa} via BemAqui"); o endereço é sempre o da plataforma.</summary>
+    public string? FromName { get; init; }
+
+    /// <summary>Vezes que o envio esperou a varredura do anexo (até 10, a cada 1 min), sem gastar tentativa.</summary>
+    public int ScanWaits { get; set; }
+
     public DateTimeOffset CreatedAt { get; init; }
 
     public DateTimeOffset? SentAt { get; set; }

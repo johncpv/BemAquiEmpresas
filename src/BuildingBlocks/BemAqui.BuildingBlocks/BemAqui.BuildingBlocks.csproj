@@ -21,6 +21,11 @@
     </PackageReference>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="Serilog" />
+    <PackageReference Include="QuestPDF" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- ADR 0022: a fonte Archivo (OFL) vai embutida; o PDF nunca usa fonte do sistema. -->
+    <EmbeddedResource Include="Pdf/Fonts/*.ttf" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\BemAqui.SharedKernel\BemAqui.SharedKernel.csproj" />

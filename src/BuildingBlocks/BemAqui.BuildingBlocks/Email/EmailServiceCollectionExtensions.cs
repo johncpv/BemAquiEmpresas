@@ -16,6 +16,7 @@ public static class EmailServiceCollectionExtensions
         services.TryAddSingleton<IEmailTransport, SmtpEmailTransport>();
         services.TryAddScoped<TenantLinks>();
         services.TryAddScoped<IEmailSender, OutboxEmailSender>();
+        services.TryAddScoped<EmailLogReader>();
         services.TryAddTransient<SendEmailJob>();
         return services;
     }

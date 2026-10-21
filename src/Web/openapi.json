@@ -5400,6 +5400,140 @@
         }
       }
     },
+    "/api/v1/quotes/{id}/documents": {
+      "get": {
+        "tags": [
+          "Or\u00E7amentos"
+        ],
+        "operationId": "GetQuoteDocuments",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteDocuments"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/quotes/{id}/pdf": {
+      "post": {
+        "tags": [
+          "Or\u00E7amentos"
+        ],
+        "operationId": "GenerateQuotePdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttachmentDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/quotes/{id}/send-draft": {
+      "get": {
+        "tags": [
+          "Or\u00E7amentos"
+        ],
+        "operationId": "GetQuoteSendDraft",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteSendDraft"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/quotes/{id}/email": {
+      "post": {
+        "tags": [
+          "Or\u00E7amentos"
+        ],
+        "operationId": "EmailQuote",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuoteSendInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteDocuments"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/quotes/lookups/customers": {
       "get": {
         "tags": [
@@ -13945,8 +14079,18 @@
               "null",
               "string"
             ]
+          },
+          "origin": {
+            "$ref": "#/components/schemas/AttachmentOrigin"
           }
         }
+      },
+      "AttachmentOrigin": {
+        "enum": [
+          "User",
+          "System"
+        ],
+        "default": "User"
       },
       "AuditEntryDto": {
         "required": [
@@ -23815,6 +23959,89 @@
           }
         }
       },
+      "QuoteDispatchView": {
+        "required": [
+          "id",
+          "to",
+          "cc",
+          "sentByName",
+          "createdAt",
+          "attachmentId",
+          "status",
+          "error"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "to": {
+            "type": "string"
+          },
+          "cc": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "sentByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "attachmentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string"
+          },
+          "error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "QuoteDocuments": {
+        "required": [
+          "generated",
+          "uploaded",
+          "dispatches",
+          "companyComplete"
+        ],
+        "type": "object",
+        "properties": {
+          "generated": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttachmentDto"
+            }
+          },
+          "uploaded": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttachmentDto"
+            }
+          },
+          "dispatches": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuoteDispatchView"
+            }
+          },
+          "companyComplete": {
+            "type": "boolean"
+          }
+        }
+      },
       "QuoteFunnel": {
         "required": [
           "from",
@@ -24357,6 +24584,72 @@
               "string"
             ],
             "format": "date"
+          }
+        }
+      },
+      "QuoteSendDraft": {
+        "required": [
+          "to",
+          "subject",
+          "message",
+          "customerEmails"
+        ],
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "subject": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "customerEmails": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "QuoteSendInput": {
+        "required": [
+          "to",
+          "cc",
+          "message",
+          "confirmRecipient",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": "string"
+          },
+          "cc": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "message": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "confirmRecipient": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
           }
         }
       },
