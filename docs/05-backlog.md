@@ -258,7 +258,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-2--comercial-proj
 - Requisitos: R-FIN-5, R-COM-1, R-COM-2, R-PRP-5, R-SEC-5.
 - CA: regras por faixa de valor e por conta (com teto), com aprovador por grupo ou usuário; a mais específica vence; valor de referência contra fracionamento; alçada viável; todas as aprovações do nível N antes do N+1; fora da alçada recusa mesmo com `finance.approve`; e-mail só com número, total e link, que exige login e não aprova sozinho.
 
-**COM-08 [ ] Funil comercial (P)** — D — 2.4, ordem 20 — [story](stories/COM-08-funil-comercial.md)
+**COM-08 [x] Funil comercial (P)** — D — 2.4, ordem 20 — [story](stories/COM-08-funil-comercial.md)
 - Requisitos: R-COML-9, PRD §5.14 (Comercial).
 - CA: orçamentos por situação no período (só a revisão corrente), conversão = aprovados ÷ decididos, motivos de perda, filtro por autor, drill-down e "Vencendo" com "Prorrogar validade".
 

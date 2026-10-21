@@ -27,7 +27,7 @@ import { RevisionsTab } from './RevisionsTab'
 
 export function QuotePage() {
   const { id } = useParams({ strict: false }) as { id: string }
-  const { novo, aprovar } = useSearch({ strict: false }) as { novo?: string; aprovar?: string | number }
+  const { novo, aprovar, acao } = useSearch({ strict: false }) as { novo?: string; aprovar?: string | number; acao?: string }
   const navigate = useNavigate()
   const client = useQueryClient()
   const canCost = useCan('quotes.view_cost')
@@ -54,7 +54,7 @@ export function QuotePage() {
         <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
           <StatusChip tone={QUOTE_STATUS[quote.status]?.tone ?? 'neutral'}>{QUOTE_STATUS[quote.status]?.label ?? quote.status}</StatusChip>
           <span className="flex flex-wrap gap-2">
-            {canEdit && quote.isCurrent && (quote.status === 'Sent' || quote.status === 'Expired') ? <RevisionActions quote={quote} refresh={refresh} /> : null}
+            {canEdit && quote.isCurrent && (quote.status === 'Sent' || quote.status === 'Expired') ? <RevisionActions quote={quote} refresh={refresh} action={acao === 'prorrogar' || acao === 'revisar' ? acao : undefined} /> : null}
             {quote.status === 'Sent' && canApprove && quote.isCurrent
               ? <ApproveDialog quote={quote} {...(String(aprovar) === '1' ? { open: true, onOpenChange: (v: boolean) => { if (!v) void navigate({ to: '/app/orcamentos/$id', params: { id }, search: {} } as never) } } : {})} onApproved={async (r) => { setApproved(r); await navigate({ to: '/app/orcamentos/$id', params: { id }, search: {} } as never); await refresh() }} />
               : null}

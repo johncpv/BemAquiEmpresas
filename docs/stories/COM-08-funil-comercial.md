@@ -5,7 +5,7 @@
 | ID | COM-08 |
 | Título | Funil de orçamentos por situação no período, com quantidade e valor, taxa de conversão, motivos de perda e filtro por autor |
 | Tamanho | P |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-COML-9 (funil: orçamentos por status, taxa de conversão, motivo de perda, **D**) · PRD §5.14 (Comercial: orçamentos em aberto, taxa de conversão, orçamentos vencendo) |
 | Dependências | COM-01b (motivos de perda), COM-02 (revisão corrente, expirado, prorrogação), COM-04a (aprovado), FND-09e (`Chart`, tokens de gráfico) |
 | Bloqueia | DSH-01 (card Comercial) |
@@ -57,17 +57,17 @@ Decididos pelo PO em 20/10/2026 (seção 1.1, item 29):
 3. P-18 decidida (ADR 0021).
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers) e E2E passando.
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Tela com estados e gráfico acessível.
-- [ ] Ajuda escrita; teste de cobertura passando.
-- [ ] Drill-down e "Vencendo" acionáveis.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] Story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers) e E2E passando.
+- [x] Permissões só do `ModuleCatalog`.
+- [x] Tela com estados e gráfico acessível.
+- [x] Ajuda escrita; teste de cobertura passando.
+- [x] Drill-down e "Vencendo" acionáveis.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] Story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `QuoteFunnelQuery`; endpoint `/api/v1/quotes/funnel`; tela e ajuda.
+- [x] `QuoteFunnelQuery`; endpoint `/api/v1/quotes/funnel`; tela e ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, @qa.
@@ -101,3 +101,4 @@ Checklist do @po (Pax), 20/10/2026 (revalidação depois das decisões do PO e d
 | 19/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 20/10/2026 | 0.3 | Decisões do PO (D16, seção 1.1) e ajustes da revisão pré-Fase 2 (§2.2 baixos, §2.3) | River (SM) |
 | 20/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 21/10/2026 | 1.0 | Implementada. Desvios: as barras do funil são barras horizontais próprias (cores `--chart-*`, rótulo de texto e tabela equivalente), porque o `Chart` da FND-09e só desenha linhas; a allowlist de ordenação vale para o quadro "Vencendo" (validade, preço, número), o único com ordenação; "Vencendo" e os detalhes de "Outro" mostram até 50 linhas; o filtro de autor lista quem já criou orçamento (revisão 0); "Prorrogar validade" e "Nova revisão" abrem o diálogo direto no orçamento (`?acao=`); a lista de orçamentos ganhou `from`, `to` e `authorId` para o drill-down; período máximo de 3 anos | @dev |

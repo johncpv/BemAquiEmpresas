@@ -1,4 +1,4 @@
-import { Link, useNavigate } from '@tanstack/react-router'
+import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
 import { useListQuoteCosts, useListQuotes } from '@/api/generated/bemaqui'
 import type { QuoteSummary } from '@/api/generated/model'
@@ -24,7 +24,10 @@ export function QuotesPage() {
   const navigate = useNavigate()
   const canCost = useCan('quotes.view_cost')
   const canApprove = useCan('quotes.approve')
-  const query = useListQuotes({ q: search.q, situation: situacao || undefined, page: search.page, pageSize: search.pageSize })
+  // Drill-down do funil (COM-08 CA 5): período da revisão 0 e autor vêm na URL.
+  const { de, ate, autor } = useSearch({ strict: false }) as { de?: string; ate?: string; autor?: string }
+  const fromFunnel = !!(de || ate || autor)
+  const query = useListQuotes({ q: search.q, situation: situacao || undefined, from: de || undefined, to: ate || undefined, authorId: autor || undefined, page: search.page, pageSize: search.pageSize })
   const ids = (query.data?.items ?? []).map((q) => q.id).join(',')
   const costs = useListQuoteCosts({ ids }, { query: { enabled: canCost && ids.length > 0 } })
   const costOf = (id: string) => costs.data?.find((c) => c.id === id)
@@ -55,6 +58,13 @@ export function QuotesPage() {
           {create}
         </div>
       </PageHeading>
+      {fromFunnel ? (
+        <p role="status" className="mb-3 flex flex-wrap items-center gap-2 rounded-md border border-border bg-card px-3 py-2 text-sm">
+          <span>Filtrado pelo funil{de && ate ? `: criados de ${formatDate(de)} a ${formatDate(ate)}` : ''}{autor ? ', de um autor' : ''}.</span>
+          <Link to={'/app/orcamentos/funil' as never} search={{ de, ate, autor } as never} className="font-semibold text-primary hover:underline">Voltar ao funil</Link>
+          <button type="button" onClick={() => void navigate({ to: '.', search: (prev: Record<string, unknown>) => ({ ...prev, de: undefined, ate: undefined, autor: undefined }) } as never)} className="font-semibold text-primary hover:underline">Limpar</button>
+        </p>
+      ) : null}
       <DataTable label="Orçamentos" columns={columns} query={query} getRowId={(q) => q.id} searchPlaceholder="Buscar pelo número ou cliente"
         filters={[{ key: 'situacao', label: 'Situação', options: SITUATIONS }]}
         empty={{ title: 'Crie o primeiro orçamento para um cliente.', action: create }} />
