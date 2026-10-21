@@ -250,7 +250,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-2--comercial-proj
 - Requisitos: R-FIN-12 (parte), R-TER-4, R-TER-3, R-PRP-5.
 - CA: vencidos por projeto; atraso médio do cliente (sem títulos de implantação) para a FIN-07; aba "Comercial e financeiro" no terceiro, com cada bloco pela permissão do módulo dono.
 
-**COM-07 [ ] Aditivo de contrato (M)** — D — 2.4, ordem 18 — [story](stories/COM-07-aditivo-contrato.md)
+**COM-07 [x] Aditivo de contrato (M)** — D — 2.4, ordem 18 — [story](stories/COM-07-aditivo-contrato.md)
 - Requisitos: R-COML-8, R-PRJ-5, R-PRP-7, R-SEC-5.
 - CA: aditivo em página própria com prévia "antes → depois", aprovado com `projects.approve`, ajusta o orçado por natureza, a data prometida e os recebíveis futuros (cria os do acréscimo, reduz os sem baixa), com revalidação no servidor e sem mudar o contrato original; autor não aprova o próprio aditivo (D6).
 

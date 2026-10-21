@@ -28,6 +28,12 @@ public interface ICommercialDb
 
     DbSet<ProjectBudget> ProjectBudgets { get; }
 
+    DbSet<ContractAmendment> ContractAmendments { get; }
+
+    DbSet<ContractAmendmentMilestone> ContractAmendmentMilestones { get; }
+
+    DbSet<ContractAmendmentReduction> ContractAmendmentReductions { get; }
+
     DatabaseFacade Database { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);

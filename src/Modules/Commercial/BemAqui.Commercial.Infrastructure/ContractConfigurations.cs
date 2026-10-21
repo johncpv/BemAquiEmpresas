@@ -79,3 +79,44 @@ internal sealed class ProjectBudgetConfiguration : IEntityTypeConfiguration<Proj
         b.HasIndex(e => new { e.ProjectId, e.CostType }).IsUnique();
     }
 }
+
+internal sealed class ContractAmendmentConfiguration : IEntityTypeConfiguration<ContractAmendment>
+{
+    public void Configure(EntityTypeBuilder<ContractAmendment> b)
+    {
+        b.ToTable("contract_amendments", CommercialSchema.Name);
+        b.Property(e => e.Description).HasMaxLength(500);
+        b.Property(e => e.ValueDelta).HasPrecision(18, 2);
+        b.Property(e => e.Status).HasConversion<string>().HasMaxLength(16);
+        b.Property(e => e.BudgetDeltas).HasColumnType("jsonb");
+        b.Property(e => e.RejectionComment).HasMaxLength(500);
+        b.HasOne<Contract>().WithMany().HasForeignKey(e => e.ContractId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => new { e.ContractId, e.Number }).IsUnique();
+    }
+}
+
+internal sealed class ContractAmendmentMilestoneConfiguration : IEntityTypeConfiguration<ContractAmendmentMilestone>
+{
+    public void Configure(EntityTypeBuilder<ContractAmendmentMilestone> b)
+    {
+        b.ToTable("contract_amendment_milestones", CommercialSchema.Name);
+        b.Property(e => e.Description).HasMaxLength(120);
+        b.Property(e => e.Percent).HasPrecision(7, 4);
+        b.Property(e => e.Amount).HasPrecision(18, 2);
+        b.Property(e => e.Trigger).HasConversion<string>().HasMaxLength(10);
+        b.Property(e => e.TriggerEvent).HasConversion<string>().HasMaxLength(24);
+        b.HasOne<ContractAmendment>().WithMany().HasForeignKey(e => e.AmendmentId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => e.AmendmentId);
+    }
+}
+
+internal sealed class ContractAmendmentReductionConfiguration : IEntityTypeConfiguration<ContractAmendmentReduction>
+{
+    public void Configure(EntityTypeBuilder<ContractAmendmentReduction> b)
+    {
+        b.ToTable("contract_amendment_reductions", CommercialSchema.Name);
+        b.Property(e => e.NewAmount).HasPrecision(18, 2);
+        b.HasOne<ContractAmendment>().WithMany().HasForeignKey(e => e.AmendmentId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => new { e.AmendmentId, e.ReceivableId }).IsUnique();
+    }
+}

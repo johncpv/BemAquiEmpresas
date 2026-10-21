@@ -70,7 +70,8 @@ public sealed partial class ContractService(
             contract.Id, contract.Number, contract.Status, contract.PartyId, party is null ? string.Empty : party.TradeName ?? party.LegalName, party?.Document, contract.TotalValue,
             contract.SignedAt, contract.RevenueAccountId, account is null ? null : $"{account.Code} {account.Name}", contract.QuoteId, quote.Number, quote.Revision, project?.Id,
             project?.Number, project?.Name, contract.CreatedAt, milestoneViews, ContractSnapshots.Read(contract.Snapshot, withCost),
-            parcels.Count, contract.Version, contract.CancelReason, contract.CancelledAt, contract.CompletedAt, project?.Status, contract.IsOnboarding);
+            parcels.Count, contract.Version, contract.CancelReason, contract.CancelledAt, contract.CompletedAt, project?.Status, contract.IsOnboarding,
+            contract.TotalValue + await db.ContractAmendments.Where(a => a.ContractId == id && a.Status == AmendmentStatus.Approved).SumAsync(a => a.ValueDelta, cancellationToken));
     }
 
     /// <summary>Contrato do orçamento aprovado, para o link do 409 "já foi aprovado" e do orçamento (CA 9).</summary>

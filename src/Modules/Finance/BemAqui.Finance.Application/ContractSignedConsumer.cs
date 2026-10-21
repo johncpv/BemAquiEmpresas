@@ -20,36 +20,42 @@ public sealed class ContractSignedConsumer(
 {
     public const string NotificationType = "finance.contract_receivables";
 
-    public async Task HandleAsync(ContractSigned integrationEvent, CancellationToken cancellationToken)
+    public Task HandleAsync(ContractSigned integrationEvent, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(integrationEvent);
-        var contract = await ContractEvents.FindAsync(contracts, integrationEvent.ContractId, cancellationToken);
+        return CreateParcelsAsync(integrationEvent.ContractId, integrationEvent.ProjectId, integrationEvent.PartyId, integrationEvent.RevenueAccountId, integrationEvent.SignedAt, integrationEvent.Milestones, cancellationToken);
+    }
+
+    /// <summary>Uma parcela por marco ainda sem título (contrato e aditivo, COM-07 CA 7); idempotente pelo marco.</summary>
+    public async Task<int> CreateParcelsAsync(Guid contractId, Guid projectId, Guid partyId, Guid revenueAccountId, DateOnly issueDate, IReadOnlyList<ContractMilestoneInfo> milestones, CancellationToken cancellationToken)
+    {
+        var contract = await ContractEvents.FindAsync(contracts, contractId, cancellationToken);
         if (contract?.Status == ContractState.Cancelled)
         {
-            return;
+            return 0;
         }
 
-        var milestoneIds = integrationEvent.Milestones.Select(m => m.MilestoneId).ToList();
+        var milestoneIds = milestones.Select(m => m.MilestoneId).ToList();
         var existing = await db.Receivables.Where(r => r.Origin == DocumentOrigin.Contract && r.OriginId != null && milestoneIds.Contains(r.OriginId.Value))
             .Select(r => r.OriginId!.Value).ToListAsync(cancellationToken);
-        var triggers = await db.ProjectTriggerEvents.AsNoTracking().Where(t => t.ProjectId == integrationEvent.ProjectId && t.ContractId == integrationEvent.ContractId)
+        var triggers = await db.ProjectTriggerEvents.AsNoTracking().Where(t => t.ProjectId == projectId && t.ContractId == contractId)
             .ToDictionaryAsync(t => t.Event, t => t.OccurredOn, cancellationToken);
         var number = contract?.Number ?? "Contrato";
         var created = new List<Receivable>();
         // Recebido antes da implantação (COM-04c CA 2): o dinheiro já está no saldo de corte, sem título.
-        foreach (var m in integrationEvent.Milestones.OrderBy(m => m.Sequence).Where(m => !m.ReceivedBeforeOnboarding && !existing.Contains(m.MilestoneId)))
+        foreach (var m in milestones.OrderBy(m => m.Sequence).Where(m => !m.ReceivedBeforeOnboarding && !existing.Contains(m.MilestoneId)))
         {
             var due = m.Trigger == MilestoneTrigger.Date
                 ? m.DueDate
                 : m.TriggerEvent == TriggerEvent.Signature
-                    ? ProjectTriggerEvent.DueDate(integrationEvent.SignedAt, m.DaysAfterEvent)
+                    ? ProjectTriggerEvent.DueDate(issueDate, m.DaysAfterEvent)
                     : m.TriggerEvent is { } trigger && triggers.TryGetValue(trigger, out var on) ? ProjectTriggerEvent.DueDate(on, m.DaysAfterEvent) : null;
             var description = $"{number} — {m.Description} ({m.Percent.ToString("0.####", ContractEvents.PtBr)}%)";
             var receivable = new Receivable
             {
-                Number = await numbers.NextAsync(ReceivableService.DocType, cancellationToken), PartyId = integrationEvent.PartyId, Description = description.Length <= 200 ? description : description[..200],
-                AccountId = integrationEvent.RevenueAccountId, ProjectId = integrationEvent.ProjectId, ContractId = integrationEvent.ContractId, Amount = m.Amount,
-                IssueDate = integrationEvent.SignedAt, DueDate = due, Status = due is null ? ReceivableStatus.Planned : ReceivableStatus.Open, Origin = DocumentOrigin.Contract,
+                Number = await numbers.NextAsync(ReceivableService.DocType, cancellationToken), PartyId = partyId, Description = description.Length <= 200 ? description : description[..200],
+                AccountId = revenueAccountId, ProjectId = projectId, ContractId = contractId, Amount = m.Amount,
+                IssueDate = issueDate, DueDate = due, Status = due is null ? ReceivableStatus.Planned : ReceivableStatus.Open, Origin = DocumentOrigin.Contract,
                 OriginId = m.MilestoneId, TriggerEvent = m.Trigger == MilestoneTrigger.Event ? m.TriggerEvent : null, DaysAfterEvent = m.DaysAfterEvent, CreatedAt = clock.GetUtcNow(),
             };
             db.Receivables.Add(receivable);
@@ -58,17 +64,18 @@ public sealed class ContractSignedConsumer(
 
         if (created.Count == 0)
         {
-            return;
+            return 0;
         }
 
         await db.SaveChangesAsync(cancellationToken);
         var title = $"Contrato {number} gerou {created.Count} {(created.Count == 1 ? "parcela" : "parcelas")} a receber ({ReceivableService.Money(created.Sum(r => r.Amount))}).";
         foreach (var user in await users.UsersWithPermissionAsync("finance.edit", cancellationToken))
         {
-            notifications.Notify(user, NotificationType, title, "/app/financeiro/receber?contrato=" + integrationEvent.ContractId);
+            notifications.Notify(user, NotificationType, title, "/app/financeiro/receber?contrato=" + contractId);
         }
 
         await db.SaveChangesAsync(cancellationToken);
+        return created.Count;
     }
 }
 

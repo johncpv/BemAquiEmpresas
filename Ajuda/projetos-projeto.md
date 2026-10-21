@@ -21,6 +21,8 @@ Acompanhar o que a fábrica vai entregar do contrato. O projeto nasce na aprova�
 ## Perguntas frequentes
 **Quando usar "Registrar entrega"?** Quando não há instalação. Com OS de instalação, a entrega vem do aceite técnico.
 
+**Como mudo valor ou prazo do projeto?** Pelo botão **Aditivo**, que leva ao contrato. A data prometida e o valor mudam com o aditivo aprovado.
+
 **Posso mudar o nome, o responsável ou a data?** Numa próxima versão, na tela completa do projeto.
 
 **De onde vem o orçado?** Da composição de custo dos itens do orçamento aprovado. A soma das naturezas fecha no custo total do orçamento.

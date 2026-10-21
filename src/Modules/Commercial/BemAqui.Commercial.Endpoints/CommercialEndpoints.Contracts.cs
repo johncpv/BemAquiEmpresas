@@ -32,6 +32,7 @@ internal static partial class CommercialEndpoints
             .RequirePermission("projects.view").WithName("ListContracts").Produces<ContractPage>();
         contracts.MapGet("/{id:guid}", async (Guid id, ContractService service, CancellationToken ct) => (await service.GetAsync(id, ct)).ToHttpResult())
             .RequirePermission("projects.view").WithName("GetContract").Produces<ContractDetail>();
+        MapAmendments(contracts);
         contracts.MapPost("/{id:guid}/cancel", async (Guid id, ContractCancelInput input, ContractService service, CancellationToken ct) => (await service.CancelAsync(id, input, ct)).ToHttpResult())
             .RequirePermission("projects.approve").WithName("CancelContract").Produces<ContractDetail>();
 

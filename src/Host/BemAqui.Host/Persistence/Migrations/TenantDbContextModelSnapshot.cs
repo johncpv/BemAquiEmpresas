@@ -602,6 +602,181 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("contracts", "commercial");
                 });
 
+            modelBuilder.Entity("BemAqui.Commercial.Domain.ContractAmendment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("ApprovedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("approved_at");
+
+                    b.Property<Guid?>("ApprovedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("approved_by");
+
+                    b.Property<string>("BudgetDeltas")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("budget_deltas");
+
+                    b.Property<Guid>("ContractId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<int>("DaysDelta")
+                        .HasColumnType("integer")
+                        .HasColumnName("days_delta");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("description");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("integer")
+                        .HasColumnName("number");
+
+                    b.Property<string>("RejectionComment")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("rejection_comment");
+
+                    b.Property<bool>("SelfApproved")
+                        .HasColumnType("boolean")
+                        .HasColumnName("self_approved");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset?>("SubmittedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("submitted_at");
+
+                    b.Property<decimal>("ValueDelta")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("value_delta");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_contract_amendments");
+
+                    b.HasIndex("ContractId", "Number")
+                        .IsUnique()
+                        .HasDatabaseName("ix_contract_amendments_contract_id_number");
+
+                    b.ToTable("contract_amendments", "commercial");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.ContractAmendmentMilestone", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AmendmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("amendment_id");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<int?>("DaysAfterEvent")
+                        .HasColumnType("integer")
+                        .HasColumnName("days_after_event");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("description");
+
+                    b.Property<DateOnly?>("DueDate")
+                        .HasColumnType("date")
+                        .HasColumnName("due_date");
+
+                    b.Property<decimal>("Percent")
+                        .HasPrecision(7, 4)
+                        .HasColumnType("numeric(7,4)")
+                        .HasColumnName("percent");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.Property<string>("Trigger")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("trigger");
+
+                    b.Property<string>("TriggerEvent")
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)")
+                        .HasColumnName("trigger_event");
+
+                    b.HasKey("Id")
+                        .HasName("pk_contract_amendment_milestones");
+
+                    b.HasIndex("AmendmentId")
+                        .HasDatabaseName("ix_contract_amendment_milestones_amendment_id");
+
+                    b.ToTable("contract_amendment_milestones", "commercial");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.ContractAmendmentReduction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AmendmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("amendment_id");
+
+                    b.Property<decimal>("NewAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("new_amount");
+
+                    b.Property<Guid>("ReceivableId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("receivable_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_contract_amendment_reductions");
+
+                    b.HasIndex("AmendmentId", "ReceivableId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_contract_amendment_reductions_amendment_id_receivable_id");
+
+                    b.ToTable("contract_amendment_reductions", "commercial");
+                });
+
             modelBuilder.Entity("BemAqui.Commercial.Domain.ContractMilestone", b =>
                 {
                     b.Property<Guid>("Id")
@@ -5328,6 +5503,36 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_contracts_quotes_quote_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.ContractAmendment", b =>
+                {
+                    b.HasOne("BemAqui.Commercial.Domain.Contract", null)
+                        .WithMany()
+                        .HasForeignKey("ContractId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_contract_amendments_contracts_contract_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.ContractAmendmentMilestone", b =>
+                {
+                    b.HasOne("BemAqui.Commercial.Domain.ContractAmendment", null)
+                        .WithMany()
+                        .HasForeignKey("AmendmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_contract_amendment_milestones_contract_amendments_amendment");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.ContractAmendmentReduction", b =>
+                {
+                    b.HasOne("BemAqui.Commercial.Domain.ContractAmendment", null)
+                        .WithMany()
+                        .HasForeignKey("AmendmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_contract_amendment_reductions_contract_amendments_amendment");
                 });
 
             modelBuilder.Entity("BemAqui.Commercial.Domain.ContractMilestone", b =>

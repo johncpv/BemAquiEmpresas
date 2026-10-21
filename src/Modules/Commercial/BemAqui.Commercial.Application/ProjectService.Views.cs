@@ -85,7 +85,8 @@ public sealed partial class ProjectService
             return NotFound();
         }
 
-        var revenue = await db.Contracts.Where(c => c.Id == project.ContractId).Select(c => c.TotalValue).FirstAsync(cancellationToken);
+        var revenue = await db.Contracts.Where(c => c.Id == project.ContractId).Select(c => c.TotalValue).FirstAsync(cancellationToken)
+            + await db.ContractAmendments.Where(a => a.ContractId == project.ContractId && a.Status == AmendmentStatus.Approved).SumAsync(a => a.ValueDelta, cancellationToken);
         var budget = await db.ProjectBudgets.AsNoTracking().Where(b => b.ProjectId == id).ToDictionaryAsync(b => b.CostType, b => b.BudgetedAmount, cancellationToken);
         var toPay = await payables.ByProjectAsync(id, cancellationToken);
         return ProjectCosts.Compute(revenue, budget, toPay.Select(p => (p.CostType, p.Amount, p.Status == PayableStatus.Cancelled)));

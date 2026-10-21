@@ -50,6 +50,7 @@ export function ProjectPage() {
           {stage < 0 ? <StatusChip tone="neutral">Cancelado</StatusChip> : <StageIndicator stages={PROJECT_STAGES} letters={PROJECT_LETTERS} current={stage} showLabel />}
           <span className="text-sm text-muted-foreground">{p.partyName}</span>
           <Link to={'/app/contratos/$id' as never} params={{ id: p.contractId } as never} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Ver contrato {p.contractNumber}</Link>
+          {canEdit && active ? <Link to={'/app/contratos/$id/aditivos/$aditivoId' as never} params={{ id: p.contractId, aditivoId: 'novo' } as never} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Aditivo</Link> : null}
           {canFabricate ? <ProjectEventDialog project={p} kind="fabrication" onDone={refresh} /> : null}
           {canDeliver ? <ProjectEventDialog project={p} kind="delivery" onDone={refresh} /> : null}
         </div>

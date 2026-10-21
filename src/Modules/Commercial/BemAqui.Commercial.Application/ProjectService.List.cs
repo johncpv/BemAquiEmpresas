@@ -39,7 +39,11 @@ public sealed partial class ProjectService
 
         var total = await projects.CountAsync(cancellationToken);
         var rows = await projects.OrderByDescending(p => p.CreatedAt).Skip(page.Skip).Take(page.PageSize)
-            .Join(db.Contracts, p => p.ContractId, c => c.Id, (p, c) => new { Project = p, c.TotalValue })
+            .Join(db.Contracts, p => p.ContractId, c => c.Id, (p, c) => new
+            {
+                Project = p,
+                TotalValue = c.TotalValue + db.ContractAmendments.Where(a => a.ContractId == c.Id && a.Status == AmendmentStatus.Approved).Sum(a => a.ValueDelta),
+            })
             .ToListAsync(cancellationToken);
         var names = (await parties.FindManyAsync(rows.Select(r => r.Project.PartyId).Distinct().ToList(), cancellationToken)).ToDictionary(p => p.Id, p => p.TradeName ?? p.LegalName);
         var managers = new Dictionary<Guid, string?>();

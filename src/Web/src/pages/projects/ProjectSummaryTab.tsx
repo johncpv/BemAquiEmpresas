@@ -26,7 +26,7 @@ export function ProjectSummaryTab({ project, onSaved, onCosts }: { project: Proj
       {gap > 0 ? <p role="note" className="rounded-md border border-warn-soft bg-warn-soft px-3 py-2 text-sm text-warn-ink">Margem projetada {pct(gap)} abaixo da orçada. <button type="button" onClick={onCosts} className="font-semibold underline">Ver custos</button></p> : null}
       {late ? <p role="note" className="rounded-md border border-crit-soft bg-crit-soft px-3 py-2 text-sm text-crit-ink">Entrega prometida passou há {late} dias.</p> : null}
       <dl className="grid grid-cols-2 gap-3 rounded-md border border-border bg-card p-4 text-sm sm:grid-cols-4">
-        <div><dt className="text-xs text-muted-foreground">Contratado</dt><dd>{c ? <Money value={c.totalValue} className="font-semibold" /> : '—'}</dd></div>
+        <div><dt className="text-xs text-muted-foreground">Contratado</dt><dd>{c ? <Money value={c.currentValue ?? c.totalValue} className="font-semibold" /> : '—'}</dd></div>
         <div><dt className="text-xs text-muted-foreground">Entrega prometida</dt><dd className="tabular-nums">{project.promisedDate ? formatDate(project.promisedDate) : '—'}</dd></div>
         <div><dt className="text-xs text-muted-foreground">Entrega prevista</dt><dd className="text-muted-foreground">Calculada a partir da Fase 4</dd></div>
         <div><dt className="text-xs text-muted-foreground">Origem</dt><dd>{c ? <><Link to={'/app/contratos/$id' as never} params={{ id: c.id } as never} className="font-semibold text-primary hover:underline">{c.number}</Link> · <Link to={'/app/orcamentos/$id' as never} params={{ id: c.quoteId } as never} className="text-primary hover:underline">{c.quoteNumber}</Link></> : '—'}</dd></div>
