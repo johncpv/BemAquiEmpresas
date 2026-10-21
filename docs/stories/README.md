@@ -1,6 +1,6 @@
 # Stories — Fase 0 (Fundação), Fase 1 (Cadastros e migração) e Fase 2 (Comercial, Projetos e Financeiro núcleo)
 
-A Fase 1 está na [segunda parte deste arquivo](#fase-1--cadastros-e-migração) e a Fase 2 na [terceira](#fase-2--comercial-projetos-e-financeiro-núcleo).
+A Fase 1 está na [segunda parte deste arquivo](#fase-1--cadastros-e-migração), a Fase 2 na [terceira](#fase-2--comercial-projetos-e-financeiro-núcleo) e a Fase 5 na [última](#fase-5--integrações-fiscais-e-bancárias-go-live) (as stories da Fase 3 estão em revisão na branch `docs/fase3-stories`).
 
 Stories detalhadas da Fase 0 do BemAqui Empresas, uma por arquivo. Fonte: `docs/01` a `06`, ADRs 0001–0005 e a revisão `docs/revisoes/2026-10-16-revisao-pre-fase0.md` (correções, ADRs técnicas propostas 0006–0008 e CAs de segurança da §2.3).
 
@@ -421,3 +421,176 @@ Nenhum ponto bloqueante nas stories. Os 29 pontos do README anterior foram decid
 2. SPF, DKIM e DMARC antes do deploy da COM-03 (P-21 e P-22 decididas em 20/10/2026).
 3. Backup diário do tenant `konebras` no ar antes da primeira carga real da FIN-00; teste de restauração recomendado, sem bloquear.
 4. **P-01** (regime tributário) continua aberta, sem bloquear a fase.
+
+---
+
+
+# Fase 5 — Integrações fiscais e bancárias (go-live)
+
+Stories detalhadas da Fase 5, uma por arquivo, escritas pelo @sm (River) e validadas pelo @po (Pax) em 21/10/2026. Fonte: `docs/01` a `06`, ADRs 0001–0022, o código das Fases 0 a 2 (`SecretKind`/`ISecretProtector`, `TenantJob`, `RecurringJobsRegistrar`, `IEmailSender` com anexo, `IPdfRenderer`, `ReceivableService`, `IReceivables`, `IPayables`, `BankAccount`, `ModuleCatalog`, `GroupSeeder`, `SeedPatchSeeder`), as stories da Fase 3 em revisão (branch `docs/fase3-stories`: CMP-04, CMP-03a, PRD-06a/06b, EST-01a) e a **análise do projeto `D:\GIT\EmissorFiscal`** (somente leitura, commit `e294444`), registrada na [FIS-01](FIS-01-emissorfiscal-adr-adaptador.md). A Definition of Ready, a legenda e a escala de tamanho são as mesmas das fases anteriores. **Todas as stories estão `Draft`** (GO condicional): dependem de decisões do PO e da contadora, do certificado A1, da conta do Inter com API e das stories da Fase 3.
+
+## Resumo da análise do EmissorFiscal
+- **O que é:** serviço HTTP .NET 10 independente (Postgres próprio com RLS, outbox, cofre AES-GCM), sobre a Unimake.DFe; o BemAqui entra como mais um sistema cliente, por `X-Api-Key` com escopos. Não calcula imposto (o BemAqui calcula, FIS-02b). Sem porta pública (rede `stack_stack`, HTTP).
+- **Cobre:** NF-e 55 (saída e entrada, devolução, notas referenciadas), prévia sem consumir número, idempotência obrigatória, numeração transacional, retorno 201/202/422 com contingência SVC automática, webhook HMAC (`nfe.autorizada/rejeitada/cancelada/denegada`), cancelamento (24 h), carta de correção (até 20), inutilização, XML autorizado guardado, DANFE em HTML, status da SEFAZ, alertas do A1, rate limit; contrato de NFS-e com o padrão Nacional e a decisão CONAM/e-Transparência para Caçapava.
+- **Falta:** nenhuma nota autorizada de verdade (sem A1; F7 não começou; não implantado); IBS/CBS (NF-e e NFS-e); DANFE em PDF; transportadora, volumes, duplicatas e DIFAL no payload; Distribuição DF-e, manifestação e consulta de NF-e de terceiros; NFS-e de Caçapava configurada, cancelamento, PDF e webhook de NFS-e; status do certificado sem escopo `admin`; TLS ou rede dedicada; `tipoOperacao` inconsistente entre o guia e o modelo.
+
+## Índice
+| Ordem | ID | Título | Tam. | Status | Requisitos | Depende de | Arquivo |
+|---|---|---|---|---|---|---|---|
+| 1 (5.1) | FND-16 | Recepção de webhooks: rota, validação, idempotência e fila (nova) | M | Draft | R-FIN-7, R-FIS-3, PRD §6 Segurança | FND-02, FND-07, FND-11, FND-12 | [FND-16](FND-16-webhooks-de-entrada.md) |
+| 2 (5.1) | FIS-01 | Análise do EmissorFiscal, ADR 0023 e adaptador `IFiscalEmitter` | G | Draft | R-FIS-1, R-FIS-8, R-FIS-6, R-FIS-7 | FND-16, FND-11 | [FIS-01](FIS-01-emissorfiscal-adr-adaptador.md) |
+| 3 (5.2) | BNK-01a | Inter: credenciais, mTLS cifrado, token e rotação | M | Draft | R-FIN-7, R-FIN-8, R-FIN-2 | CAD-05b, FND-11; P-08 | [BNK-01a](BNK-01a-inter-configuracao-mtls.md) |
+| 4 (5.2) | BNK-01b | Bolepix a partir do título: emissão, PDF, e-mail, cancelamento | G | Draft | R-FIN-7, R-FIN-3, R-COM-1 | BNK-01a, FIN-01, COM-03 | [BNK-01b](BNK-01b-bolepix-emissao-cancelamento.md) |
+| 5 (5.2) | BNK-02 | Webhook de pagamento: reconsulta, baixa e conferência diária | G | Draft | R-FIN-7, R-FIN-3, R-TER-4 | FND-16, BNK-01b, FIN-01 | [BNK-02](BNK-02-webhook-pagamento-baixa.md) |
+| 6 (5.3) | BNK-03a | Extrato pela API do Inter e por OFX | M | Draft | R-FIN-8, R-FIN-2 | BNK-01a, FIN-04 | [BNK-03a](BNK-03a-extrato-api-ofx.md) |
+| 7 (5.3) | BNK-03b | Conciliação bancária | G | Draft | R-FIN-8, R-FIN-5, R-FIN-3 | BNK-03a, FIN-04, BNK-02 | [BNK-03b](BNK-03b-conciliacao-bancaria.md) |
+| 8 (5.4) | FIS-02a | Configuração fiscal do tenant e certificado A1 | M | Draft | R-FIS-2 | FIS-01, CAD-06 | [FIS-02a](FIS-02a-configuracao-fiscal-tenant.md) |
+| 9 (5.4) | FIS-02b | Regras fiscais e cálculo dos tributos | G | Draft | R-FIS-4, R-FIS-3, R-FIS-8, R-PRJ-5 | FIS-02a; P-01, P-02, P-03 | [FIS-02b](FIS-02b-regras-fiscais-calculo.md) |
+| 10 (5.4) | FIS-03a | NF-e de saída: emissão, autorização, DANFE/XML, impostos no projeto | G | Draft | R-FIS-3, R-PRD-8, R-PRJ-5 | FIS-01, FIS-02a, FIS-02b, PRD-06b | [FIS-03a](FIS-03a-nfe-saida-emissao.md) |
+| 11 (5.4) | FIS-03b | Cancelamento, carta de correção e inutilização | M | Draft | R-FIS-3, R-SEC-10 | FIS-03a | [FIS-03b](FIS-03b-nfe-cancelamento-cce-inutilizacao.md) |
+| 12 (5.5) | FIS-04a | NF-e de entrada por XML: importação, de-para, conferência | M | Draft | R-FIS-5, R-CMP-5 | CAD-02b, CMP-03a | [FIS-04a](FIS-04a-nfe-entrada-xml-importacao.md) |
+| 13 (5.5) | FIS-04b | Recebimento pela nota | M | Draft | R-CMP-5, R-EST-7, R-FIN-4 | FIS-04a, CMP-04 | [FIS-04b](FIS-04b-recebimento-pela-nota.md) |
+| 14 (5.5) | FIS-05 | NF-e de entrada por PDF (leitura assistida) | M | Draft | R-FIS-6 | FIS-04a | [FIS-05](FIS-05-nfe-entrada-pdf.md) |
+| 15 (5.6) | FIN-09 | Régua de cobrança (D) | M | Draft | R-FIN-9 | BNK-01b, BNK-02 | [FIN-09](FIN-09-regua-de-cobranca.md) |
+| 16 (5.6) | FIS-06 | NFS-e da instalação (D, P-02) | M | Draft | R-FIS-7, R-FIS-8 | FIS-01, FIS-02b, COM-06 | [FIS-06](FIS-06-nfse-instalacao.md) |
+| 17 (5.7) | GOL-01a | Go-live: preparação, runbook e ensaio da virada | M | Draft | PRD §7, §1.2, §6 | as stories acima, exceto as D (ponto 74) | [GOL-01a](GOL-01a-preparacao-ensaio-virada.md) |
+| 18 (5.7) | GOL-01b | Go-live: virada, corte do Dolibarr e primeira semana | M | Draft | PRD §7, §1.2 | GOL-01a | [GOL-01b](GOL-01b-virada-primeira-semana.md) |
+
+Total da Fase 5: 18 stories (M: 11 · G: 7), todas `Draft`.
+
+## Ordem de execução
+```
+5.1 Base das integrações:  FND-16 → FIS-01 (a ADR 0023 pode correr em paralelo ao 5.2)
+5.2 Cobrança pelo Inter:   BNK-01a → BNK-01b → BNK-02
+5.3 Conciliação:           BNK-03a → BNK-03b
+5.4 Nota de saída:         FIS-02a → FIS-02b → FIS-03a → FIS-03b
+5.5 Nota de entrada:       FIS-04a → FIS-04b → FIS-05
+5.6 Desejáveis (D):        FIN-09 → FIS-06
+5.7 Go-live:               GOL-01a → GOL-01b (última)
+```
+
+Por que esta ordem:
+- **FND-16 primeiro:** o EmissorFiscal e o Inter avisam por webhook; a rota única, a validação e a deduplicação vêm antes dos dois consumidores.
+- **Banco antes do fiscal:** o Inter não depende da P-01/P-02/P-03 nem do A1 e entrega cedo a visibilidade financeira (boleto do título, baixa automática, conciliação). O fiscal depende da ADR 0023, da contadora e do certificado.
+- **FIS-02a/02b antes da FIS-03a:** o EmissorFiscal não calcula imposto; regra e cálculo são do BemAqui.
+- **Entrada depois da saída:** depende da CMP-03a e da CMP-04 (Fase 3) e não bloqueia o faturamento.
+- **GOL-01a/01b por último:** ensaio completo e rollback testado antes do dia da virada.
+
+## Quebras, stories novas e re-estimativas
+- **FIS-02** → 02a (configuração, M) e 02b (regras e cálculo, G); **FIS-03** → 03a (emissão, G) e 03b (eventos, M); **FIS-04** → 04a (importação, M) e 04b (recebimento, M); **BNK-01** → 01a (configuração, M) e 01b (emissão, G); **BNK-03** → 03a (extrato, M) e 03b (conciliação, G); **GOL-01** → 01a (preparação e ensaio, M) e 01b (virada e primeira semana, M).
+- **Nova:** FND-16 (recepção de webhooks, M), pedida pela revisão pré-Fase 0 (`webhook_events`).
+- **Re-estimadas:** FIS-01 (M → G: análise + ADR + adaptador + webhook + contrato) e BNK-02 (M → G: primeiro consumidor de webhook com efeito financeiro, cadastro do webhook e conferência diária).
+
+## Padrões comuns da Fase 5
+Valem além dos padrões das fases anteriores.
+1. **Integração atrás de contrato:** o Fiscal só conhece `IFiscalEmitter`; o Finance só conhece `IBankBillingProvider`/`IBankStatementProvider`; nenhum código do EmissorFiscal ou de banco é copiado.
+2. **Segredos por tenant, write-only:** `inter-credentials`, `inter-certificate`, `fiscal-certificate` (ADR 0007) e os propostos `fiscal-api-key` e `webhook-secret` (adendo à ADR 0007 e ao teste golden); decifrados só no uso; nunca em log, auditoria, resposta ou `IFileStorage`; teste de canário em cada story; rotação testa o novo antes de trocar.
+3. **Webhook nunca é verdade:** a rota valida a origem, grava o evento uma vez e responde rápido; o efeito vem da **reconsulta** à fonte (EmissorFiscal, ou o Inter por mTLS); job de conferência como reserva.
+4. **Efeito fiscal e financeiro com confirmação:** diálogo grande com o impacto; automático só o que o banco ou a SEFAZ confirmaram; divergência vai para conferência humana (R-PRP-7).
+5. **Segregação:** configurar integrações com `settings.edit` (Proprietário); cancelar e inutilizar nota com `fiscal.approve` (proposta); regra fiscal ativada por outra pessoa; lançamento sem OP a partir do extrato com `finance.pay`; nenhuma saída de caixa sem OP aprovada, inclusive na conciliação.
+6. **Documento fiscal nunca é apagado:** nota com número só é cancelada ou inutilizada; XML e eventos guardados 5 anos nos dois lados; sem rota DELETE (teste de arquitetura).
+7. **Visibilidade financeira:** boleto a partir do título; baixa automática alimenta caixa, aging, pontualidade e conclusão do contrato; impostos da nota autorizada entram como `CostType.Tax` no realizado do projeto; entrada pela nota leva o custo real ao custo médio e as duplicatas ao título a pagar.
+8. **Homologação com dado real (ADR 0020):** SEFAZ e Inter em produção só depois da GOL-01 no tenant `konebras` (proposta); sandbox e homologação SEFAZ no tenant `demo`.
+
+## Validação do PO (21/10/2026)
+O @po (Pax) validou as 18 stories com a checklist de 10 itens das fases anteriores. **Todas tiveram 10/10, veredito GO condicional, status `Draft`.**
+- **Correções da validação cruzada:** a FND-16 abre o corpo dos eventos do Fiscal só para o Proprietário até a FIS-02a criar `fiscal.approve`; o número da NF-e passou a ser do EmissorFiscal (o `next_number` do 03 sai na FIS-01); a FIS-03a testa os dois caminhos da baixa do estoque até a decisão da PRD-06b; a FIS-04b usa o recebimento da CMP-04, sem caminho paralelo; a GOL-01 foi quebrada para o ensaio e o rollback virem antes da virada.
+- **ADR antes do Marco 5.4:** ADR 0023 (integração com o EmissorFiscal), aprovada pelo PO, gate da FIS-01 e da FIS-02a; adendo à ADR 0007 (novos `SecretKind`).
+
+## Checklist de go-live (resumo; detalhe na GOL-01a e na GOL-01b)
+Critérios de entrada com evidência e "Go" do PO → ensaio completo e rollback numa cópia restaurada → D−1 backups extras → congelamento do Dolibarr (só leitura) e Konebras UI fora → carga final só dos cadastros alterados (dry-run, aceite, real) → `DROP USER`, secrets da migração e staging apagados → promoção do banco do tenant `konebras` com segredos novos (o key ring acompanha) → `app.konebras.com.br` no BemAqui, Dolibarr em `adm.konebras.com.br`, `tenant_domains` atualizado → EmissorFiscal e Inter em produção, webhook no host novo, `deploy-prod.yml` ligado → smoke, primeira nota e primeiro boleto reais com o PO (ponto sem retorno) → rollback possível até o fim do primeiro dia útil → primeira semana acompanhada → fechamento do go-live com a linha de base das métricas.
+
+## Dependências da Fase 3 ainda abertas
+- **PRD-06b ponto 1:** quem baixa o estoque, romaneio ou NF-e autorizada (FIS-03a CA 11, FIS-03b CA 4).
+- **PRD-06b:** `IShipments`/`ShipmentDispatched`, CA 6 ("Emitir NF-e" na Fase 5) e CA 8 (estorno exige cancelar a nota).
+- **CMP-04 pontos 1 a 6:** IPI recuperável, tolerância, preço diferente, confirmação do CP no parcial, quem estorna, quem registra (FIS-04b).
+- **CMP-03a pontos 39 a 41:** conta e natureza do título do pedido, um título por parcela, compra para o projeto contada duas vezes (FIS-04b).
+- **EST-01a ponto 2 / P-01:** crédito de imposto no custo médio (FIS-04b CA 2).
+- **Fase 4 (ainda sem stories detalhadas):** DSH-02 e FIN-08 usam os impostos da nota e a data de emissão (P-17).
+
+## Pontos em aberto da Fase 5
+Pendências do `06` que afetam a fase: **P-01** (regime e crédito de impostos; o EmissorFiscal registra "Lucro Presumido desde 01/01/2026", sem decisão no `06`), **P-02** (CNAE e NFS-e), **P-03** (IBS/CBS), **P-08** (conta Inter com API), **P-17** (DRE pela data da emissão), **P-20** (estorno com `finance.approve`). Pontos por story (a proposta está em cada arquivo; nenhum foi decidido):
+
+| # | Story | Ponto |
+|---|---|---|
+| 1 | FND-16 | mTLS do webhook do Inter no `stack-nginx` |
+| 2 | FND-16 | Host do webhook e exceção à allowlist da plataforma |
+| 3 | FND-16 | Janela de sobreposição na rotação do segredo (24 h) |
+| 4 | FND-16 | Retenção do corpo do webhook (90 dias, LGPD) |
+| 5 | FND-16 | `SecretKind.WebhookSecret` (adendo à ADR 0007) |
+| 6 | FIS-01 | Quem implanta o EmissorFiscal, quando e em que ambientes |
+| 7 | FIS-01 | Onde fica o certificado A1 (só no EmissorFiscal × carregado no BemAqui) |
+| 8 | FIS-01 | Homologação SEFAZ sem escrever no tenant `konebras` |
+| 9 | FIS-01 | IBS/CBS exigidos pela NT vigente (P-03) e prazo no EmissorFiscal |
+| 10 | FIS-01 | DANFE em PDF (EmissorFiscal, `IPdfRenderer` ou HTML) |
+| 11 | FIS-01 | Transportadora, volumes e duplicatas na NF-e |
+| 12 | FIS-01 | Formato do `Idempotency-Key` da emissão |
+| 13 | BNK-01a | Formato do certificado do Inter (.crt/.key ou .pfx) |
+| 14 | BNK-01a | Integração por conta ou por tenant |
+| 15 | BNK-01a | Inter em produção antes da GOL-01 |
+| 16 | BNK-01a | Quem recebe o alerta de vencimento do certificado |
+| 17 | BNK-01b | Multa e juros padrão (sem decidir valores) |
+| 18 | BNK-01b | Formato do "seu número" |
+| 19 | BNK-01b | Título vencido e vencimento em dia não útil (FIN-01 ponto 3) |
+| 20 | BNK-01b | Envio automático do boleto na emissão |
+| 21 | BNK-01b | Limite diário de e-mails |
+| 22 | BNK-01b | Desconto do boleto × limite de desconto da D8 |
+| 23 | BNK-02 | URL do webhook com query string no Inter |
+| 24 | BNK-02 | Pagamento com diferença (conferência × baixa automática) |
+| 25 | BNK-02 | Estorno de baixa confirmada pelo banco com `finance.approve` (P-20) |
+| 26 | BNK-02 | Id de entrega do aviso do Inter |
+| 27 | BNK-02 | Resumo das notificações de recebimento |
+| 28 | BNK-03a | Horário e frequência da importação do extrato |
+| 29 | BNK-03a | `ofx` na allowlist de anexos |
+| 30 | BNK-03a | OFX numa conta Inter |
+| 31 | BNK-03a | Contraparte mascarada para `finance.view` |
+| 32 | BNK-03b | Janela de datas da sugestão (3 dias) |
+| 33 | BNK-03b | Fechamento da conciliação por período |
+| 34 | BNK-03b | Regras de tipo padrão do extrato |
+| 35 | FIS-02a | `fiscal.approve` × ação específica `fiscal.cancel` |
+| 36 | FIS-02a | Fiscal no seed (Financeiro, Almoxarifado) |
+| 37 | FIS-02a | Série exclusiva da NF-e (contadora) |
+| 38 | FIS-02a | Produção fiscal antes da GOL-01 |
+| 39 | FIS-02a | Regime tributário (P-01) |
+| 40 | FIS-02b | Conteúdo das regras e casos de referência (contadora) |
+| 41 | FIS-02b | Quais tributos entram no custo do projeto (P-01) |
+| 42 | FIS-02b | IBS/CBS já obrigatórios (P-03) |
+| 43 | FIS-02b | DIFAL: bloquear ou estender o EmissorFiscal |
+| 44 | FIS-02b | Segregação na ativação da regra |
+| 45 | FIS-03a | Quem baixa o estoque (herdado da PRD-06b) |
+| 46 | FIS-03a | Remessa para obra e venda |
+| 47 | FIS-03a | Imposto digitado à mão |
+| 48 | FIS-03a | Nota × parcelas do contrato e data da receita (P-17) |
+| 49 | FIS-03a | DANFE em PDF (herdado da FIS-01) |
+| 50 | FIS-03a | Os 3 cenários da contadora |
+| 51 | FIS-03a | Certificado A1 (lacuna L1 do EmissorFiscal) |
+| 52 | FIS-03b | Prazo de cancelamento aplicável |
+| 53 | FIS-03b | Cancelamento em uma ou duas etapas |
+| 54 | FIS-03b | Nota de devolução fora do prazo |
+| 55 | FIS-03b | Carta de correção com `edit` ou `approve` |
+| 56 | FIS-04a | Permissão para importar NF de entrada (`fiscal.import_incoming`?) |
+| 57 | FIS-04a | XML sem protocolo de autorização |
+| 58 | FIS-04a | Consulta da chave na SEFAZ (lacuna L-f) |
+| 59 | FIS-04a | Item sem estoque na nota |
+| 60 | FIS-04a | Nota sem pedido |
+| 61 | FIS-04b | Nota sem duplicatas |
+| 62 | FIS-04b | Crédito de impostos na entrada (P-01) |
+| 63 | FIS-04b | Dependências da CMP-04 e da CMP-03a (Fase 3) |
+| 64 | FIS-05 | Distribuição DF-e antes do go-live |
+| 65 | FIS-05 | OCR na imagem da API |
+| 66 | FIS-05 | Digitar a nota sem PDF legível |
+| 67 | FIN-09 | Passos padrão da régua |
+| 68 | FIN-09 | Títulos de implantação na régua |
+| 69 | FIN-09 | Conferência do título no envio do e-mail |
+| 70 | FIS-06 | NFS-e no go-live (instalação é o CNAE principal) |
+| 71 | FIS-06 | P-02 e a venda mista |
+| 72 | FIS-06 | PDF, cancelamento, webhook e IBS/CBS da NFS-e no EmissorFiscal |
+| 73 | FIS-06 | Códigos do serviço (contadora) |
+| 74 | GOL-01a | Stories obrigatórias para o go-live |
+| 75 | GOL-01a | Teste de restauração obrigatório antes da virada |
+| 76 | GOL-01a | Forma da promoção (ambiente novo × homologação vira produção) |
+| 77 | GOL-01a | Data e janela da virada |
+| 78 | GOL-01a | Itens da Fase 4 depois do go-live |
+| 79 | GOL-01b | Desligamento definitivo do Dolibarr e backup final |
+| 80 | GOL-01b | Modo só leitura do Dolibarr |
+| 81 | GOL-01b | Comunicação ao cliente final |

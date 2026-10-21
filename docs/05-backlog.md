@@ -350,33 +350,83 @@ _MIG-01d (saldos iniciais de estoque) não entra aqui: cancelada pelo PO em 18/1
 
 ## Fase 5 — Integrações fiscais e bancárias (go-live)
 
-**FIS-01 [ ] Análise do EmissorFiscal (M)** — Ler `D:\GIT\EmissorFiscal`, documentar capacidades e forma de integração em ADR, listar lacunas (Reforma Tributária, NFS-e, DF-e).
-- CA: ADR aprovado pelo PO antes de FIS-02.
+Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-fiscais-e-bancárias-go-live), com critérios de aceite completos, ordem por marcos, padrões comuns, checklist de go-live, dependências da Fase 3 e os 81 pontos em aberto numerados. Escritas e validadas em 21/10/2026 (checklist do @po, 10/10); **todas `Draft` (GO condicional)**: dependem da ADR 0023 (integração com o EmissorFiscal), da contadora (P-01, P-02, P-03), do certificado A1, da conta do Inter com API (P-08) e das stories da Fase 3 (PRD-06b, CMP-03a, CMP-04).
 
-**FIS-02 [ ] Configuração fiscal e regras (M)** — Certificado A1, série, ambiente, regras por operação (conteúdo da contadora).
-- CA: alerta 30 dias antes do vencimento do certificado.
+**Ordem de execução:** **5.1 Base:** FND-16 → FIS-01 → **5.2 Cobrança pelo Inter:** BNK-01a → BNK-01b → BNK-02 → **5.3 Conciliação:** BNK-03a → BNK-03b → **5.4 Nota de saída:** FIS-02a → FIS-02b → FIS-03a → FIS-03b → **5.5 Nota de entrada:** FIS-04a → FIS-04b → FIS-05 → **5.6 Desejáveis:** FIN-09 (D) → FIS-06 (D) → **5.7 Go-live:** GOL-01a → GOL-01b.
 
-**FIS-03 [ ] NF-e de saída (G)** — Da expedição/venda; autorização, rejeição tratada, cancelamento, CC-e, DANFE/XML por e-mail; baixa do produto acabado.
-- CA: emitida e autorizada em homologação SEFAZ com 3 cenários definidos pela contadora.
+**Quebras e novas:** FIS-02 → 02a/02b · FIS-03 → 03a/03b · FIS-04 → 04a/04b · BNK-01 → 01a/01b · BNK-03 → 03a/03b · GOL-01 → 01a/01b. **Nova:** FND-16 (recepção de webhooks). **Re-estimadas:** FIS-01 (M → G), BNK-02 (M → G).
 
-**FIS-04 [ ] NF-e de entrada por XML (M)** — Upload, validação, de-para de itens do fornecedor (lembrado para a próxima vez), vínculo ao pedido, recebimento.
-- CA: XML duplicado (mesma chave) é recusado; divergência de quantidade/preço com pedido é destacada.
+**FND-16 [ ] Recepção de webhooks (M)** — 5.1, ordem 1 — nova — [story](stories/FND-16-webhooks-de-entrada.md)
+- Requisitos: R-FIN-7, R-FIS-3, PRD §6 Segurança e Observabilidade, R-SEC-5.
+- CA: rota `POST /webhooks/{provider}/{tenantKey}` única anônima nova; HMAC sobre o corpo cru ou token na query (nunca no caminho logado), comparação em tempo constante; resposta igual para tenant inexistente e assinatura errada; `webhook_events` com deduplicação; 200 em até 2 s e processamento por `TenantJob`; dead-letter com "Reprocessar"; nada de corpo ou segredo em log.
 
-**FIS-05 [ ] NF-e de entrada por PDF (M)** — Extração da chave e dados; busca do XML pela chave se suportado; senão leitura assistida com conferência obrigatória.
+**FIS-01 [ ] Análise do EmissorFiscal, ADR 0023 e adaptador `IFiscalEmitter` (G)** — 5.1, ordem 2 — re-estimada — [story](stories/FIS-01-emissorfiscal-adr-adaptador.md)
+- Requisitos: R-FIS-1, R-FIS-8, R-FIS-6, R-FIS-7, PRD §6 Segurança, R-SEC-5.
+- CA: ADR 0023 aprovada pelo PO antes do código e da FIS-02a (análise com o que o EmissorFiscal cobre e as lacunas L-a a L-k); `IFiscalEmitter` sem DTO do EmissorFiscal; reenvio com o mesmo `Idempotency-Key`, nunca reemissão em contingência; chave por tenant cifrada, sem escopo `admin`; webhook HMAC que só dispara reconsulta; XML guardado 5 anos; job de pendentes; testes de contrato com fake e com a homologação do EmissorFiscal; rede Docker dedicada.
 
-**FIS-06 [ ] NFS-e (M)** — D, condicionado à pendência P-02.
+**BNK-01a [ ] Inter: configuração, mTLS e rotação (M)** — 5.2, ordem 3 — quebra da BNK-01 — [story](stories/BNK-01a-inter-configuracao-mtls.md)
+- Requisitos: R-FIN-7, R-FIN-8, R-FIN-2, PRD §6 Segurança, R-SEC-5.
+- CA: credenciais e certificado por conta com `settings.edit`, validados e cifrados (`inter-credentials`, `inter-certificate`), nunca devolvidos; teste de conexão e escopos; token em cache; produção com confirmação; rotação testando o novo; alerta 30/15/7/1 dias.
 
-**BNK-01 [ ] Banco Inter: emissão de bolepix (G)** — Configuração por tenant (certificado + credenciais), emissão a partir do recebível, PDF/linha digitável/Pix copia-e-cola, envio por e-mail, cancelamento.
-- CA: fluxo completo em sandbox; falha de emissão não perde o recebível.
+**BNK-01b [ ] Bolepix a partir do título (G)** — 5.2, ordem 4 — quebra da BNK-01 — [story](stories/BNK-01b-bolepix-emissao-cancelamento.md)
+- Requisitos: R-FIN-7, R-FIN-3, R-COM-1, R-COM-3, R-PRP-7.
+- CA: boleto pelo saldo do título, assíncrono (`Requested → Issued`), PDF, linha digitável e Pix guardados; falha não muda o título e o reenvio consulta antes de criar; um boleto ativo por título; e-mail com o PDF; cancelamento manual e automático quando o título muda; fluxo completo no sandbox.
 
-**BNK-02 [ ] Webhook de pagamento (M)** — Recebe, valida, baixa título, cria transação, idempotente.
-- CA: webhook repetido não baixa duas vezes; job de conferência diária consulta boletos em aberto (caso o webhook falhe).
+**BNK-02 [ ] Webhook de pagamento e conferência diária (G)** — 5.2, ordem 5 — re-estimada — [story](stories/BNK-02-webhook-pagamento-baixa.md)
+- Requisitos: R-FIN-7, R-FIN-3, R-FIN-2, R-TER-4.
+- CA: webhook com token na URL que só dispara reconsulta por mTLS; baixa pelo serviço da FIN-01 com transação, uma vez só (10 execuções paralelas); pagamento com diferença vai para conferência; conferência diária com execução dupla e dois tenants; efeitos no caixa, aging, pontualidade e contrato.
 
-**BNK-03 [ ] Conciliação (G)** — Extrato pela API Inter + importação OFX; sugestão de match por valor/data/documento; conciliação manual.
+**BNK-03a [ ] Extrato pela API do Inter e por OFX (M)** — 5.3, ordem 6 — quebra da BNK-03 — [story](stories/BNK-03a-extrato-api-ofx.md)
+- Requisitos: R-FIN-8, R-FIN-2, R-FIN-10.
+- CA: importação diária e "Buscar agora" sem duplicar; OFX com parser seguro e conta conferida; saldo do banco × sistema com aviso; linhas imutáveis, com "Ignorar" e "Desfazer importação".
 
-**FIN-09 [ ] Régua de cobrança (M)** — D.
+**BNK-03b [ ] Conciliação bancária (G)** — 5.3, ordem 7 — quebra da BNK-03 — [story](stories/BNK-03b-conciliacao-bancaria.md)
+- Requisitos: R-FIN-8, R-FIN-5, R-FIN-3, R-PRP-6, R-PRP-7.
+- CA: sugestão por valor, data e documento com motivo e confiança; 1×N; lançamento sem OP a partir da linha com `finance.pay`; baixa de recebimento; saída sem OP nunca vira pagamento; desfazer sem estornar; fechamento por período (proposta).
 
-**GOL-01 [ ] Go-live Konebras (M)** — **Promoção da homologação a produção** (ADR 0020): o banco do tenant `konebras` da homologação, que já tem os dados reais desde a FIN-00, passa a ser o de produção, com a troca de DNS e domínio (`app.konebras.com.br` para o BemAqui e o Dolibarr para `adm.konebras.com.br`), dos segredos de produção e das chaves de Data Protection; carga final do Dolibarr só com os cadastros alterados depois da última carga (MIG-01b e MIG-01c com a infraestrutura da MIG-01a; ADR 0017), `DROP USER` do usuário somente leitura e remoção do segredo, treinamento, checklist de virada, acompanhamento da primeira semana.
+**FIS-02a [ ] Configuração fiscal do tenant (M)** — 5.4, ordem 8 — quebra da FIS-02 — [story](stories/FIS-02a-configuracao-fiscal-tenant.md)
+- Requisitos: R-FIS-2, R-COM-2, R-SEC-10.
+- CA: `fiscal.approve` no catálogo e seed patch `fiscal-permissions` (propostas); regime, CNAE, série e ambiente com `settings.edit`; produção só depois da GOL-01 (proposta); certificado conforme a ADR 0023, nunca em log; **alerta 30 dias antes do vencimento do certificado** (e 15, 7, 1).
+
+**FIS-02b [ ] Regras fiscais e cálculo dos tributos (G)** — 5.4, ordem 9 — quebra da FIS-02 — [story](stories/FIS-02b-regras-fiscais-calculo.md)
+- Requisitos: R-FIS-4, R-FIS-3, R-FIS-8, R-PRJ-5.
+- CA: regras por operação com versão e ativação por outra pessoa; seed sem nenhuma regra (conteúdo da contadora); motor puro de ICMS, ST, IPI, PIS, COFINS e IBS/CBS batendo com os casos da contadora; sem regra, sem nota; DIFAL bloqueado enquanto o EmissorFiscal não suportar; marca dos tributos que entram no custo do projeto.
+
+**FIS-03a [ ] NF-e de saída: emissão e autorização (G)** — 5.4, ordem 10 — quebra da FIS-03 — [story](stories/FIS-03a-nfe-saida-emissao.md)
+- Requisitos: R-FIS-3, R-PRD-8, R-PRJ-5, R-FIS-4, R-COM-1, R-COM-3.
+- CA: rascunho a partir do romaneio com tributos pela regra; prévia sem número; emissão idempotente com retorno assíncrono (autorizada, rejeitada com correção, denegada, contingência); XML e DANFE guardados e enviados; `InvoiceAuthorized` lança o imposto como custo do projeto; Inventory pela decisão da PRD-06b; nunca apagar; **emitida e autorizada em homologação SEFAZ com 3 cenários definidos pela contadora**.
+
+**FIS-03b [ ] Cancelamento, CC-e e inutilização (M)** — 5.4, ordem 11 — quebra da FIS-03 — [story](stories/FIS-03b-nfe-cancelamento-cce-inutilizacao.md)
+- Requisitos: R-FIS-3, R-SEC-10, R-PRJ-5.
+- CA: cancelamento no prazo só com `fiscal.approve` (quem emite não cancela), reversos no custo e no estoque, aviso aos Proprietários; carta de correção até 20; inutilização de faixa com recusa local; documento nunca apagado.
+
+**FIS-04a [ ] NF-e de entrada por XML (M)** — 5.5, ordem 12 — quebra da FIS-04 — [story](stories/FIS-04a-nfe-entrada-xml-importacao.md)
+- Requisitos: R-FIS-5, R-CMP-5, R-PRP-3, R-EST-3.
+- CA: XML sem DTD e entidade externa, XSD, assinatura, protocolo e destinatário conferidos; **chave duplicada recusada**; fornecedor pelo CNPJ; de-para lembrado; vínculo ao pedido e **divergência de quantidade e preço destacada**.
+
+**FIS-04b [ ] Recebimento pela nota (M)** — 5.5, ordem 13 — quebra da FIS-04 — [story](stories/FIS-04b-recebimento-pela-nota.md)
+- Requisitos: R-CMP-5, R-EST-7, R-FIN-4, R-FIN-10.
+- CA: recebimento da CMP-04 preenchido pela nota (rateio de frete e IPI, P-16); crédito de impostos atrás de parâmetro até a P-01; título a pagar pelas duplicatas; uma vez só.
+
+**FIS-05 [ ] NF-e de entrada por PDF (M)** — 5.5, ordem 14 — [story](stories/FIS-05-nfe-entrada-pdf.md)
+- Requisitos: R-FIS-6, R-PRP-3.
+- CA: extração isolada com tempo limite; chave com DV; sem DF-e no EmissorFiscal, pedido do XML ao fornecedor e leitura assistida com conferência de todo campo; nota marcada "Lida do PDF" e substituível pelo XML.
+
+**FIN-09 [ ] Régua de cobrança (M)** — D — 5.6, ordem 15 — [story](stories/FIN-09-regua-de-cobranca.md)
+- Requisitos: R-FIN-9, R-COM-1, R-FIN-12.
+- CA: passos antes e depois do vencimento com o boleto; uma vez por passo; nunca para título pago (conferido no envio); pausa por cliente e título.
+
+**FIS-06 [ ] NFS-e da instalação (M)** — D, condicionado à P-02 — 5.6, ordem 16 — [story](stories/FIS-06-nfse-instalacao.md)
+- Requisitos: R-FIS-7, R-FIS-8, R-PRJ-3, R-PRJ-5.
+- CA: NFS-e a partir do aceite técnico, com ISS pela regra e vínculo à NF-e do equipamento; ISS no custo do projeto; cancelamento registrado manualmente enquanto o EmissorFiscal não cancela NFS-e.
+
+**GOL-01a [ ] Go-live: preparação e ensaio da virada (M)** — 5.7, ordem 17 — quebra da GOL-01 — [story](stories/GOL-01a-preparacao-ensaio-virada.md)
+- Requisitos: PRD §7, §1.2, §6.
+- CA: critérios de entrada com evidência e "Go" do PO; runbook de virada e de rollback; compose e vhost de produção; segredos de produção novos (o key ring acompanha o banco, ADR 0020); ensaio completo da **promoção da homologação a produção** numa cópia restaurada, com conferência dos dados; rollback ensaiado; treinamento por grupo.
+
+**GOL-01b [ ] Go-live: virada e primeira semana (M)** — 5.7, ordem 18 — quebra da GOL-01 — [story](stories/GOL-01b-virada-primeira-semana.md)
+- Requisitos: PRD §7, §1.2, R-PLT-2, R-TER-5.
+- CA: Dolibarr congelado e carga final só dos cadastros alterados (MIG-01b e MIG-01c; ADR 0017); `DROP USER` do somente leitura e remoção dos segredos da migração; banco do tenant `konebras` promovido; `app.konebras.com.br` para o BemAqui e o Dolibarr em `adm.konebras.com.br` só leitura; fiscal e Inter em produção; primeira nota e primeiro boleto reais com o PO; acompanhamento diário da primeira semana; fechamento do go-live com a linha de base das métricas.
 
 ---
 
