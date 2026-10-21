@@ -5,7 +5,7 @@
 | ID | COM-03 |
 | Título | PDF do orçamento com o layout do tenant (`IPdfRenderer`, QuestPDF, fonte Archivo embutida, logo, dados da empresa, itens, condições, validade e prazo, sem custo nem margem), anexado à revisão como arquivo gerado pelo sistema, e envio por e-mail ao contato pela fila, com o PDF anexo, cópia, Reply-To do usuário e limite diário |
 | Tamanho | M |
-| Status | Ready (com pré-condições externas: licença do QuestPDF confirmada pelo PO e SPF, DKIM e DMARC no domínio de envio) |
+| Status | Done |
 | Requisitos | R-COML-5 (PDF com layout do tenant e envio por e-mail) · R-COM-1 (e-mail por fila, templates, histórico) · R-COM-3 (anexos) · R-PRP-2 · R-SEC-5 |
 | Dependências | COM-02 (PDF por revisão), COM-01b (condições), CAD-06 (perfil da empresa e logo `TenantLogo`), FND-08 (e-mail), FND-07 (anexos), FIN-03a (regras de anexo por dono), FND-09e; **ADR 0022**; **pré-condição:** P-21 (licença do QuestPDF) |
 | Bloqueia | — (COM-04a não depende: "Marcar como enviado" já existe na COM-01a) |
@@ -88,21 +88,21 @@ Decididos pelo PO em 20/10/2026 (seção 1.1, item 23, e D17):
 - SPF, DKIM e DMARC conferidos no domínio de envio da plataforma (§2.2-M2), pelo PO na configuração do SMTP (FND-08).
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers, inclusive na imagem Alpine) e E2E passando.
-- [ ] Migration criada (não destrutiva); template `quote_sent` registrado.
-- [ ] Permissões só do `ModuleCatalog`; dono de anexo `Quote` registrado com `OwnerExists`.
-- [ ] Aba com estados.
-- [ ] Ajuda da aba; teste de cobertura passando.
-- [ ] Próximos passos aplicados.
-- [ ] Auditoria ligada (envio).
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado; story marcada no backlog; licença do QuestPDF configurada conforme a P-21.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers, inclusive na imagem Alpine) e E2E passando.
+- [x] Migration criada (não destrutiva); template `quote_sent` registrado.
+- [x] Permissões só do `ModuleCatalog`; dono de anexo `Quote` registrado com `OwnerExists`.
+- [x] Aba com estados.
+- [x] Ajuda da aba; teste de cobertura passando.
+- [x] Próximos passos aplicados.
+- [x] Auditoria ligada (envio).
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` atualizado; story marcada no backlog; licença do QuestPDF configurada conforme a P-21.
 
 ## Tarefas técnicas sugeridas
-- [ ] `IPdfRenderer` (BuildingBlocks), registro da fonte Archivo e `QuotePdfDocument` (Commercial).
-- [ ] `StoreGeneratedAsync`; anexos e cópia no `IEmailSender` e no `SendEmailJob`, com a espera do `Clean`.
-- [ ] Endpoints `/api/v1/quotes/{id}/pdf`, `/send-email`, `/attachments`; aba Documentos; ajuda.
+- [x] `IPdfRenderer` (BuildingBlocks), registro da fonte Archivo e `QuotePdfDocument` (Commercial).
+- [x] `StoreGeneratedAsync`; anexos e cópia no `IEmailSender` e no `SendEmailJob`, com a espera do `Clean`.
+- [x] Endpoints `/api/v1/quotes/{id}/pdf`, `/send-email`, `/attachments`; aba Documentos; ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, @architect (PDF na imagem Alpine), cybersecurity (anexo por id, destinatário, cabeçalhos e template), @qa.
@@ -138,3 +138,4 @@ Checklist do @po (Pax), 20/10/2026 (revalidação depois das decisões do PO e d
 | 20/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` com pré-condições externas | Pax (PO) |
 | 20/10/2026 | 0.5 | P-21 decidida pelo PO: licença Community do QuestPDF (adendo da ADR 0022); resta só SPF/DKIM/DMARC antes do deploy | River (SM) |
 | 20/10/2026 | 1.0 | Implementada, PR aberto; merge e deploy aguardam o DMARC do bemaquiapp.com.br (o registro _dmarc tem uma chave DKIM no lugar da política; DKIM do MailerSend ok). Desvios: o teste do PDF roda também na imagem sdk:10.0-alpine (`BQ_TEST_IMAGE`), além da imagem do CI; o template é `quote-sent` (padrão de nome dos templates); a situação do envio vai como texto no DTO; o PDF atual da revisão é o anexo do sistema mais recente; fonte Archivo estática (Regular, SemiBold, Bold, OFL) embutida | @dev |
+| 21/10/2026 | 1.0 | Implementada e reaplicada sobre a main depois da COM-08: migration gerada de novo (só criação), "Responder para" pelo `IUserDirectory.EmailOfAsync` (FIN-03b), SPF, DKIM e DMARC conferidos no domínio de envio | @dev |
