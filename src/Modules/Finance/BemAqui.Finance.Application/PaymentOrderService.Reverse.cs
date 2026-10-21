@@ -110,7 +110,12 @@ public sealed partial class PaymentOrderService
             DecidedBy = currentUser.UserId, DecidedAt = clock.GetUtcNow(),
         });
         events.Publish(new PaymentOrderSubmitted(order.Id, order.Total, currentUser.UserId));
-        await NotifyApproversAsync(order, cancellationToken);
+        var levels = await ResolveLevelsAsync(order, payables, cancellationToken);
+        if (levels.IsFailure)
+        {
+            return levels.Error!;
+        }
+
         return await SaveDecisionAsync(order, cancellationToken);
     }
 }

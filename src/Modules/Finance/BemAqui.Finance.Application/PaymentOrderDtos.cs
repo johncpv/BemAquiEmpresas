@@ -29,7 +29,7 @@ public sealed record PaymentOrderDecisionView(PaymentOrderDecisionKind Kind, Pay
 
 public sealed record PaymentOrderDetail(
     PaymentOrderSummary Summary, IReadOnlyList<PaymentOrderItemView> Items, IReadOnlyList<PaymentOrderDecisionView> Decisions, bool IsRequester, bool CanDecide,
-    string? CancelReason, string? ReversalReason, DateOnly? PaidOn, Guid? BankAccountId, uint Version);
+    string? CancelReason, string? ReversalReason, DateOnly? PaidOn, Guid? BankAccountId, uint Version, IReadOnlyList<ApprovalLevelView>? Levels = null);
 
 public sealed record DecisionInput(string? Comment, uint Version);
 

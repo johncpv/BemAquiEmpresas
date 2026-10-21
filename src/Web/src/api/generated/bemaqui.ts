@@ -48,7 +48,11 @@ import type {
   ApprovalCostView,
   ApprovalPreview,
   ApprovalResult,
+  ApprovalRuleInput,
+  ApprovalRuleView,
+  ApprovalSimulation,
   ApproveInput,
+  ApproverOption,
   AskHelpRequest,
   AttachmentDto,
   BankAccountDetail,
@@ -310,6 +314,7 @@ import type {
   SettlementInput,
   SettlementView,
   Shift,
+  SimulateApprovalParams,
   SplitPreviewInput,
   SplitPreviewRequest,
   StatementResult,
@@ -28865,6 +28870,531 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getReprocessFinanceDeadLetterMutationOptions(options), queryClient);
+    }
+
+export const getListApprovalRulesUrl = () => {
+
+
+
+
+  return `/api/v1/finance/approval-rules`
+}
+
+export const listApprovalRules = async ( options?: Parameters<typeof apiFetch>[1]): Promise<ApprovalRuleView[]> => {
+
+  return apiFetch<ApprovalRuleView[]>(getListApprovalRulesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListApprovalRulesQueryKey = () => {
+    return [
+    `/api/v1/finance/approval-rules`
+    ] as const;
+    }
+
+
+export const getListApprovalRulesQueryOptions = <TData = Awaited<ReturnType<typeof listApprovalRules>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApprovalRules>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListApprovalRulesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listApprovalRules>>> = ({ signal }) => listApprovalRules({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listApprovalRules>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListApprovalRulesQueryResult = NonNullable<Awaited<ReturnType<typeof listApprovalRules>>>
+export type ListApprovalRulesQueryError = unknown
+
+
+export function useListApprovalRules<TData = Awaited<ReturnType<typeof listApprovalRules>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApprovalRules>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listApprovalRules>>,
+          TError,
+          Awaited<ReturnType<typeof listApprovalRules>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListApprovalRules<TData = Awaited<ReturnType<typeof listApprovalRules>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApprovalRules>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listApprovalRules>>,
+          TError,
+          Awaited<ReturnType<typeof listApprovalRules>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListApprovalRules<TData = Awaited<ReturnType<typeof listApprovalRules>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApprovalRules>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListApprovalRules<TData = Awaited<ReturnType<typeof listApprovalRules>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApprovalRules>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListApprovalRulesQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateApprovalRuleUrl = () => {
+
+
+
+
+  return `/api/v1/finance/approval-rules`
+}
+
+export const createApprovalRule = async (approvalRuleInput: ApprovalRuleInput, options?: Parameters<typeof apiFetch>[1]): Promise<ApprovalRuleView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ApprovalRuleView>(getCreateApprovalRuleUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(approvalRuleInput)
+  }
+);}
+
+
+
+
+
+export const getCreateApprovalRuleMutationKey = () => ['createApprovalRule'] as const;
+
+export const getCreateApprovalRuleMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createApprovalRule>>, TError,CreateApprovalRuleMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createApprovalRule>>, TError,CreateApprovalRuleMutationVariables, TContext> => {
+
+const mutationKey = getCreateApprovalRuleMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createApprovalRule>>, CreateApprovalRuleMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createApprovalRule(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateApprovalRuleMutationResult = NonNullable<Awaited<ReturnType<typeof createApprovalRule>>>
+    export type CreateApprovalRuleMutationBody = ApprovalRuleInput
+    export type CreateApprovalRuleMutationError = unknown
+    export type CreateApprovalRuleMutationVariables = {data: ApprovalRuleInput}
+
+    export const useCreateApprovalRule = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createApprovalRule>>, TError,CreateApprovalRuleMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createApprovalRule>>,
+        TError,
+        CreateApprovalRuleMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateApprovalRuleMutationOptions(options), queryClient);
+    }
+
+export const getListApprovalApproversUrl = () => {
+
+
+
+
+  return `/api/v1/finance/approval-rules/approvers`
+}
+
+export const listApprovalApprovers = async ( options?: Parameters<typeof apiFetch>[1]): Promise<ApproverOption[]> => {
+
+  return apiFetch<ApproverOption[]>(getListApprovalApproversUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListApprovalApproversQueryKey = () => {
+    return [
+    `/api/v1/finance/approval-rules/approvers`
+    ] as const;
+    }
+
+
+export const getListApprovalApproversQueryOptions = <TData = Awaited<ReturnType<typeof listApprovalApprovers>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApprovalApprovers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListApprovalApproversQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listApprovalApprovers>>> = ({ signal }) => listApprovalApprovers({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listApprovalApprovers>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListApprovalApproversQueryResult = NonNullable<Awaited<ReturnType<typeof listApprovalApprovers>>>
+export type ListApprovalApproversQueryError = unknown
+
+
+export function useListApprovalApprovers<TData = Awaited<ReturnType<typeof listApprovalApprovers>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApprovalApprovers>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listApprovalApprovers>>,
+          TError,
+          Awaited<ReturnType<typeof listApprovalApprovers>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListApprovalApprovers<TData = Awaited<ReturnType<typeof listApprovalApprovers>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApprovalApprovers>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listApprovalApprovers>>,
+          TError,
+          Awaited<ReturnType<typeof listApprovalApprovers>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListApprovalApprovers<TData = Awaited<ReturnType<typeof listApprovalApprovers>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApprovalApprovers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListApprovalApprovers<TData = Awaited<ReturnType<typeof listApprovalApprovers>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApprovalApprovers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListApprovalApproversQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSimulateApprovalUrl = (params: SimulateApprovalParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/finance/approval-rules/simulate?${stringifiedParams}` : `/api/v1/finance/approval-rules/simulate`
+}
+
+export const simulateApproval = async (params: SimulateApprovalParams, options?: Parameters<typeof apiFetch>[1]): Promise<ApprovalSimulation> => {
+
+  return apiFetch<ApprovalSimulation>(getSimulateApprovalUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getSimulateApprovalQueryKey = (params?: SimulateApprovalParams,) => {
+    return [
+    `/api/v1/finance/approval-rules/simulate`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getSimulateApprovalQueryOptions = <TData = Awaited<ReturnType<typeof simulateApproval>>, TError = unknown>(params: SimulateApprovalParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof simulateApproval>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSimulateApprovalQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof simulateApproval>>> = ({ signal }) => simulateApproval(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof simulateApproval>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type SimulateApprovalQueryResult = NonNullable<Awaited<ReturnType<typeof simulateApproval>>>
+export type SimulateApprovalQueryError = unknown
+
+
+export function useSimulateApproval<TData = Awaited<ReturnType<typeof simulateApproval>>, TError = unknown>(
+ params: SimulateApprovalParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof simulateApproval>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof simulateApproval>>,
+          TError,
+          Awaited<ReturnType<typeof simulateApproval>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSimulateApproval<TData = Awaited<ReturnType<typeof simulateApproval>>, TError = unknown>(
+ params: SimulateApprovalParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof simulateApproval>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof simulateApproval>>,
+          TError,
+          Awaited<ReturnType<typeof simulateApproval>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSimulateApproval<TData = Awaited<ReturnType<typeof simulateApproval>>, TError = unknown>(
+ params: SimulateApprovalParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof simulateApproval>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useSimulateApproval<TData = Awaited<ReturnType<typeof simulateApproval>>, TError = unknown>(
+ params: SimulateApprovalParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof simulateApproval>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getSimulateApprovalQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateApprovalRuleUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/finance/approval-rules/${id}`
+}
+
+export const updateApprovalRule = async (id: string,
+    approvalRuleInput: ApprovalRuleInput, options?: Parameters<typeof apiFetch>[1]): Promise<ApprovalRuleView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ApprovalRuleView>(getUpdateApprovalRuleUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(approvalRuleInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateApprovalRuleMutationKey = () => ['updateApprovalRule'] as const;
+
+export const getUpdateApprovalRuleMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateApprovalRule>>, TError,UpdateApprovalRuleMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateApprovalRule>>, TError,UpdateApprovalRuleMutationVariables, TContext> => {
+
+const mutationKey = getUpdateApprovalRuleMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateApprovalRule>>, UpdateApprovalRuleMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateApprovalRule(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateApprovalRuleMutationResult = NonNullable<Awaited<ReturnType<typeof updateApprovalRule>>>
+    export type UpdateApprovalRuleMutationBody = ApprovalRuleInput
+    export type UpdateApprovalRuleMutationError = unknown
+    export type UpdateApprovalRuleMutationVariables = {id: string;data: ApprovalRuleInput}
+
+    export const useUpdateApprovalRule = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateApprovalRule>>, TError,UpdateApprovalRuleMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateApprovalRule>>,
+        TError,
+        UpdateApprovalRuleMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateApprovalRuleMutationOptions(options), queryClient);
+    }
+
+export const getDeleteApprovalRuleUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/finance/approval-rules/${id}`
+}
+
+export const deleteApprovalRule = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDeleteApprovalRuleUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteApprovalRuleMutationKey = () => ['deleteApprovalRule'] as const;
+
+export const getDeleteApprovalRuleMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApprovalRule>>, TError,DeleteApprovalRuleMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteApprovalRule>>, TError,DeleteApprovalRuleMutationVariables, TContext> => {
+
+const mutationKey = getDeleteApprovalRuleMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteApprovalRule>>, DeleteApprovalRuleMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteApprovalRule(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteApprovalRuleMutationResult = NonNullable<Awaited<ReturnType<typeof deleteApprovalRule>>>
+
+    export type DeleteApprovalRuleMutationError = unknown
+    export type DeleteApprovalRuleMutationVariables = {id: string}
+
+    export const useDeleteApprovalRule = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApprovalRule>>, TError,DeleteApprovalRuleMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteApprovalRule>>,
+        TError,
+        DeleteApprovalRuleMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeleteApprovalRuleMutationOptions(options), queryClient);
     }
 
 export const getListRecurringExpensesUrl = () => {

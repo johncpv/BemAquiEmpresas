@@ -254,7 +254,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-2--comercial-proj
 - Requisitos: R-COML-8, R-PRJ-5, R-PRP-7, R-SEC-5.
 - CA: aditivo em página própria com prévia "antes → depois", aprovado com `projects.approve`, ajusta o orçado por natureza, a data prometida e os recebíveis futuros (cria os do acréscimo, reduz os sem baixa), com revalidação no servidor e sem mudar o contrato original; autor não aprova o próprio aditivo (D6).
 
-**FIN-03b [ ] Alçadas multinível e aprovação pelo e-mail (M)** — 2.4, ordem 19 — quebra da FIN-03 — [story](stories/FIN-03b-alcadas-multinivel.md)
+**FIN-03b [x] Alçadas multinível e aprovação pelo e-mail (M)** — 2.4, ordem 19 — quebra da FIN-03 — [story](stories/FIN-03b-alcadas-multinivel.md)
 - Requisitos: R-FIN-5, R-COM-1, R-COM-2, R-PRP-5, R-SEC-5.
 - CA: regras por faixa de valor e por conta (com teto), com aprovador por grupo ou usuário; a mais específica vence; valor de referência contra fracionamento; alçada viável; todas as aprovações do nível N antes do N+1; fora da alçada recusa mesmo com `finance.approve`; e-mail só com número, total e link, que exige login e não aprova sozinho.
 

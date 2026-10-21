@@ -16,4 +16,15 @@ public interface IUserDirectory
     Task<IReadOnlyList<Guid>> UsersWithPermissionAsync(string permission, CancellationToken cancellationToken = default);
 
     Task<string?> DisplayNameAsync(Guid userId, CancellationToken cancellationToken = default);
+
+    /// <summary>Membros ativos de um grupo (alçadas da FIN-03b).</summary>
+    Task<IReadOnlyList<Guid>> GroupMembersAsync(Guid groupId, CancellationToken cancellationToken = default);
+
+    /// <summary>Id do grupo Proprietário (regra padrão de alçada).</summary>
+    Task<Guid?> OwnerGroupIdAsync(CancellationToken cancellationToken = default);
+
+    Task<string?> GroupNameAsync(Guid groupId, CancellationToken cancellationToken = default);
+
+    /// <summary>E-mail do usuário ativo, para avisos por e-mail (FIN-03b CA 16).</summary>
+    Task<string?> EmailOfAsync(Guid userId, CancellationToken cancellationToken = default);
 }

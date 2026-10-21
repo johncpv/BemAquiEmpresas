@@ -119,6 +119,11 @@ public sealed partial class PayableService
         }
 
         Expect(payable, input.Version);
+        if (input.AccountId != payable.AccountId)
+        {
+            await NotifyAccountChangeAsync(payable, input.AccountId, cancellationToken);
+        }
+
         payable.Description = input.Description.Trim();
         payable.AccountId = input.AccountId;
         payable.CostCenterId = input.CostCenterId;
@@ -320,6 +325,26 @@ public sealed partial class PayableService
         return costCenterId is { } center && !await db.CostCenters.AnyAsync(c => c.Id == center && c.IsActive, ct)
             ? ReceivableService.Invalid("costCenterId", "Escolha um centro de custo ativo.")
             : null;
+    }
+
+    /// <summary>
+    /// Troca de conta de título com saldo acima do teto da regra por conta (FIN-03b CA 11): o Proprietário é avisado, porque
+    /// a troca pode tirar o título da alçada mais restrita.
+    /// </summary>
+    private async Task NotifyAccountChangeAsync(Payable payable, Guid newAccount, CancellationToken ct)
+    {
+        var capped = await db.ApprovalRules.AsNoTracking().AnyAsync(r => r.IsActive && r.AccountId != null && (r.AccountId == payable.AccountId || r.AccountId == newAccount) && r.MaxAmount < payable.Balance, ct);
+        if (!capped)
+        {
+            return;
+        }
+
+        var names = (await chart.FindAsync([payable.AccountId, newAccount], ct)).ToDictionary(a => a.Id, a => $"{a.Code} {a.Name}");
+        var who = currentUser.UserId is { } me ? await users.DisplayNameAsync(me, ct) ?? "um usuário" : "o sistema";
+        foreach (var owner in await users.OwnerIdsAsync(ct))
+        {
+            notifications.Notify(owner, NotificationType, $"Conta do título {payable.Number} trocada de {names.GetValueOrDefault(payable.AccountId, "—")} para {names.GetValueOrDefault(newAccount, "—")} por {who}.", "/app/financeiro/pagar/" + payable.Id);
+        }
     }
 
     private async Task<bool> InstallationCancelledAsync(Guid orderId, CancellationToken ct)

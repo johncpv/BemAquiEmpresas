@@ -42,6 +42,10 @@ public interface IFinanceDb
 
     DbSet<PayableSettlement> PayableSettlements { get; }
 
+    DbSet<ApprovalRule> ApprovalRules { get; }
+
+    DbSet<PaymentOrderLevel> PaymentOrderLevels { get; }
+
     DbSet<BankTransfer> BankTransfers { get; }
 
     DbSet<BankEntry> BankEntries { get; }

@@ -20,7 +20,8 @@ namespace BemAqui.Finance.Application;
 /// </summary>
 public sealed partial class PaymentOrderService(
     IFinanceDb db, IParties parties, IUserDirectory users, IPermissionChecker permissions, ICurrentUser currentUser, INumberSequence numbers,
-    INotificationService notifications, IEventPublisher events, IFinanceParameters parameters, BemAqui.Commercial.Contracts.IProjects projects, TimeProvider clock)
+    INotificationService notifications, IEventPublisher events, IFinanceParameters parameters, BemAqui.Commercial.Contracts.IProjects projects, ApprovalResolver resolver,
+    ApprovalRuleService ruleNames, BemAqui.BuildingBlocks.Email.IEmailSender email, BemAqui.BuildingBlocks.Email.TenantLinks links, TimeProvider clock)
 {
     public const string DocType = "OP";
     public const string NotificationType = "finance.payment_order";
@@ -56,8 +57,9 @@ public sealed partial class PaymentOrderService(
         if (query.AwaitingMe)
         {
             var me = currentUser.UserId;
-            orders = await permissions.HasPermissionAsync("finance", "approve", cancellationToken)
-                ? orders.Where(o => o.Status == PaymentOrderStatus.Pending && o.RequestedBy != me)
+            var mine = me is { } user && await permissions.HasPermissionAsync("finance", "approve", cancellationToken) ? await AwaitingMeAsync(user, cancellationToken) : [];
+            orders = mine.Count > 0
+                ? orders.Where(o => mine.Contains(o.Id))
                 : orders.Where(_ => false);
         }
 
@@ -82,13 +84,14 @@ public sealed partial class PaymentOrderService(
         var decisions = await db.PaymentOrderApprovals.AsNoTracking().Where(a => a.PaymentOrderId == order.Id).OrderBy(a => a.DecidedAt).ToListAsync(ct);
         var names = await NamesAsync(decisions.Select(d => d.DecidedBy).Append(order.RequestedBy), ct);
         var isRequester = order.RequestedBy is { } r && r == currentUser.UserId;
-        var canDecide = order.Status == PaymentOrderStatus.Pending && await permissions.HasPermissionAsync("finance", "approve", ct) && (await DecisionRuleAsync(order, ct)).Allowed;
+        var canDecide = order.Status == PaymentOrderStatus.Pending && await permissions.HasPermissionAsync("finance", "approve", ct) && (await DecisionRuleAsync(order, ct)).Allowed
+            && (await CurrentLevelAsync(order.Id, ct) is not { } level || (currentUser.UserId is { } me && (await resolver.EligibleAsync(level, order.RequestedBy, ct)).Contains(me)));
         var views = items.Select(i => ItemView(i, paid.GetValueOrDefault(i.PayableId))).ToList();
         views = await WithInstallationBudgetAsync(views, ct);
         return new PaymentOrderDetail(
             Summary(order, items.Count, names), views,
             decisions.Select(d => new PaymentOrderDecisionView(d.Kind, d.Decision, d.Comment, d.DecidedBy is { } u ? names.GetValueOrDefault(u) : null, d.DecidedAt, d.SelfApproved)).ToList(),
-            isRequester, canDecide, order.CancelReason, order.ReversalReason, order.PaidOn, order.BankAccountId, order.Version);
+            isRequester, canDecide, order.CancelReason, order.ReversalReason, order.PaidOn, order.BankAccountId, order.Version, await LevelViewsAsync(order.Id, ct));
     }
 
     /// <summary>

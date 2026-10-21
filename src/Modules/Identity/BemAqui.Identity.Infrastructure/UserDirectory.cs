@@ -33,4 +33,19 @@ internal sealed class UserDirectory(IIdentityDb db, IPermissionService permissio
 
     public Task<string?> DisplayNameAsync(Guid userId, CancellationToken cancellationToken = default) =>
         db.Users.AsNoTracking().Where(u => u.Id == userId).Select(u => (string?)u.Name).FirstOrDefaultAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<Guid>> GroupMembersAsync(Guid groupId, CancellationToken cancellationToken = default) =>
+        await (from ug in db.UserGroups
+               join u in db.Users on ug.UserId equals u.Id
+               where ug.GroupId == groupId && u.Status == UserStatus.Active
+               select u.Id).Distinct().ToListAsync(cancellationToken);
+
+    public Task<Guid?> OwnerGroupIdAsync(CancellationToken cancellationToken = default) =>
+        db.Groups.AsNoTracking().Where(g => g.IsSystem && g.SeedKey == Group.OwnerSeedKey).Select(g => (Guid?)g.Id).FirstOrDefaultAsync(cancellationToken);
+
+    public Task<string?> GroupNameAsync(Guid groupId, CancellationToken cancellationToken = default) =>
+        db.Groups.AsNoTracking().Where(g => g.Id == groupId).Select(g => (string?)g.Name).FirstOrDefaultAsync(cancellationToken);
+
+    public Task<string?> EmailOfAsync(Guid userId, CancellationToken cancellationToken = default) =>
+        db.Users.AsNoTracking().Where(u => u.Id == userId && u.Status == UserStatus.Active).Select(u => (string?)u.Email).FirstOrDefaultAsync(cancellationToken);
 }

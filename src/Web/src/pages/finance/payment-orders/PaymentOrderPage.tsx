@@ -16,6 +16,7 @@ import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { DecisionActions } from './DecisionActions'
 import { OrderItemsList } from './OrderItemsList'
+import { OrderLevels } from './OrderLevels'
 import { OrderReceipts } from './OrderReceipts'
 import { PayDialog } from './PayDialog'
 import { ORDER_DICAS, ORDER_STATUS } from './payment-orders'
@@ -71,7 +72,7 @@ export function PaymentOrderPage() {
       </dl>
       <UrlTabs label="Seções da ordem" fallback="titulos" tabs={[
         { id: 'titulos', label: 'Títulos', content: <OrderItemsList items={order.items} /> },
-        { id: 'decisoes', label: 'Decisões', content: order.decisions.length === 0 ? <p className="text-sm text-muted-foreground">Aguardando a primeira decisão.</p> : (
+        { id: 'decisoes', label: 'Decisões', content: <><OrderLevels levels={order.levels ?? []} />{order.decisions.length === 0 ? <p className="text-sm text-muted-foreground">Aguardando a primeira decisão.</p> : (
           <ol className="space-y-2 text-sm">
             {order.decisions.map((d) => (
               <li key={d.decidedAt} className="rounded-md border border-border bg-card p-3">
@@ -80,7 +81,7 @@ export function PaymentOrderPage() {
               </li>
             ))}
           </ol>
-        ) },
+        )}</> },
         { id: 'comprovantes', label: 'Comprovantes', content: <OrderReceipts orderId={s.id} paid={s.status === 'Paid'} /> },
         { id: 'historico', label: 'Histórico de alterações', content: <RecordHistory entity="PaymentOrder" id={s.id} /> },
       ]} />

@@ -11089,6 +11089,190 @@
         }
       }
     },
+    "/api/v1/finance/approval-rules": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ListApprovalRules",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApprovalRuleView"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "CreateApprovalRule",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApprovalRuleInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApprovalRuleView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/approval-rules/approvers": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ListApprovalApprovers",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApproverOption"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/approval-rules/simulate": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "SimulateApproval",
+        "parameters": [
+          {
+            "name": "amount",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "accountId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "partyId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApprovalSimulation"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/approval-rules/{id}": {
+      "put": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "UpdateApprovalRule",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApprovalRuleInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApprovalRuleView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "DeleteApprovalRule",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/finance/recurring-expenses": {
       "get": {
         "tags": [
@@ -13190,6 +13374,43 @@
           }
         }
       },
+      "ApprovalLevelView": {
+        "required": [
+          "level",
+          "ruleId",
+          "approverName",
+          "referenceAmount",
+          "splitWarning",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ruleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "approverName": {
+            "type": "string"
+          },
+          "referenceAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "splitWarning": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
       "ApprovalMilestone": {
         "required": [
           "description",
@@ -13389,6 +13610,150 @@
           }
         }
       },
+      "ApprovalRuleInput": {
+        "required": [
+          "minAmount",
+          "maxAmount",
+          "accountId",
+          "approverGroupId",
+          "approverUserId",
+          "level"
+        ],
+        "type": "object",
+        "properties": {
+          "minAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxAmount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "accountId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "approverGroupId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "approverUserId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ApprovalRuleView": {
+        "required": [
+          "id",
+          "level",
+          "minAmount",
+          "maxAmount",
+          "accountId",
+          "accountLabel",
+          "approverGroupId",
+          "approverUserId",
+          "approverName",
+          "isDefault"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "minAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxAmount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "accountId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "accountLabel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "approverGroupId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "approverUserId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "approverName": {
+            "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ApprovalSimulation": {
+        "required": [
+          "referenceAmount",
+          "splitWarning",
+          "levels"
+        ],
+        "type": "object",
+        "properties": {
+          "referenceAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "splitWarning": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "levels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApprovalLevelView"
+            }
+          }
+        }
+      },
       "ApproveInput": {
         "required": [
           "signedAt",
@@ -13421,6 +13786,26 @@
             "items": {
               "$ref": "#/components/schemas/OnboardingMilestoneInput"
             }
+          }
+        }
+      },
+      "ApproverOption": {
+        "required": [
+          "id",
+          "name",
+          "isGroup"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isGroup": {
+            "type": "boolean"
           }
         }
       },
@@ -20991,6 +21376,15 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          },
+          "levels": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ApprovalLevelView"
+            }
           }
         }
       },

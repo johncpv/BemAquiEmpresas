@@ -62,6 +62,7 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
     { slug: 'centros-de-custo', label: 'Centros de custo', group: SETUP },
     { slug: 'condicoes-de-pagamento', label: 'Condições de pagamento', group: SETUP },
     { slug: 'recorrentes', label: 'Recorrentes', group: SETUP },
+    { slug: 'alcadas', label: 'Alçadas', group: SETUP },
     { slug: 'implantacao', label: 'Implantação financeira', group: SETUP },
   ] },
   fiscal: { slug: 'fiscal', icon: Receipt },
