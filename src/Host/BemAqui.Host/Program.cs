@@ -16,7 +16,6 @@ using BemAqui.Host.Persistence;
 using BemAqui.Host.Security;
 using BemAqui.Host.Tenancy;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.AspNetCore.HttpOverrides;
 using Serilog;
 
 // Modo CLI da imagem: migrate (antes da subida) e tenant provision (ADR 0006, FND-03a).
@@ -97,9 +96,9 @@ try
     builder.Services.AddBemAquiMessaging(builder.Configuration, HostEvents.Register);
 
     // Endurecimento HTTP (FND-02b): proxy confiável, JWT preso ao tenant e ao host, SignalR. Sem CORS (mesma origem).
-    var proxy = builder.Configuration.GetSection(ReverseProxyOptions.Section).Get<ReverseProxyOptions>() ?? new ReverseProxyOptions();
     builder.Services.Configure<ReverseProxyOptions>(builder.Configuration.GetSection(ReverseProxyOptions.Section));
-    builder.Services.Configure<ForwardedHeadersOptions>(o => ReverseProxySetup.Configure(o, proxy));
+    builder.Services.AddSingleton(sp => new TrustedProxies(
+        sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<ReverseProxyOptions>>().Value, sp.GetRequiredService<ILogger<TrustedProxies>>()));
     builder.Services.AddTenantJwtAuthentication(builder.Configuration, builder.Environment);
     builder.Services.AddSignalR();
     builder.Services.AddAuthRateLimiting(builder.Configuration);
@@ -116,7 +115,7 @@ try
     var app = builder.Build();
 
     app.UseMiddleware<TrustedProxyMiddleware>();
-    app.UseForwardedHeaders();
+    app.UseTrustedForwardedHeaders();
     app.UseMiddleware<SecurityHeadersMiddleware>();
     app.UseExceptionHandler();
     app.UseStatusCodePages();

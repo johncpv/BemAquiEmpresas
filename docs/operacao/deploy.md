@@ -28,9 +28,10 @@ D=/opt/projetos/bemaqui-empresas-homolog
 install -d -m 0755 $D $D/postgres && install -d -m 0700 $D/secrets
 cp deploy/homolog/docker-compose.yml deploy/homolog/deploy.sh deploy/homolog/backup-cron.sh $D/
 cp deploy/postgres/init-roles.sh $D/postgres/ && chmod 0755 $D/*.sh $D/postgres/init-roles.sh
-cp deploy/homolog/.env.example $D/.env && chmod 0600 $D/.env   # ajuste hosts, STACK_SUBNET, alertas e SMTP
-docker network inspect stack_stack --format '{{(index .IPAM.Config 0).Subnet}}'   # valor de STACK_SUBNET
+cp deploy/homolog/.env.example $D/.env && chmod 0600 $D/.env   # ajuste hosts, alertas e SMTP
 ```
+
+**Proxy confiável (D19):** a API só aceita `X-Forwarded-For`/`X-Forwarded-Proto` do container `stack-nginx` (`ReverseProxy__KnownProxyHosts__0` no compose). O nome é resolvido na subida e o log mostra o IP (`Proxy confiável stack-nginx resolvido para …`). Se o `stack-nginx` for recriado com outro IP, a API resolve de novo sozinha. Não use a sub-rede da `stack_stack`: outros projetos nessa rede poderiam forjar o IP do cliente. A variável `STACK_SUBNET` do `.env` não é mais usada.
 
 ### Secrets (`$D/secrets`, chmod 0400)
 O dono de cada arquivo precisa ser o uid do container que o lê: api e migrator são `1654`, o postgres (alpine) é `70` e o backup é `10001`.

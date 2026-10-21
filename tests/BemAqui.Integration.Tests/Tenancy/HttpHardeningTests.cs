@@ -7,7 +7,11 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace BemAqui.Integration.Tests.Tenancy;
 
@@ -130,16 +134,90 @@ public class HttpHardeningTests(TenancyFixture tenancy) : IClassFixture<TenancyF
     [Fact]
     public void Cabecalho_encaminhado_so_vale_da_rede_do_proxy()
     {
-        var proxy = new ReverseProxyOptions { KnownNetworks = ["172.18.0.0/16"] };
+        var trusted = new TrustedProxies(new ReverseProxyOptions { KnownNetworks = ["172.18.0.0/16"] }, NullLogger<TrustedProxies>.Instance);
         var options = new ForwardedHeadersOptions();
 
-        ReverseProxySetup.Configure(options, proxy);
+        ReverseProxySetup.Configure(options);
 
-        options.KnownIPNetworks.Should().ContainSingle();
-        options.KnownProxies.Should().BeEmpty();
         options.ForwardedHeaders.Should().NotHaveFlag(ForwardedHeaders.XForwardedHost, "o Host nunca vem de cabeçalho");
-        ReverseProxySetup.IsTrusted(IPAddress.Parse("172.18.0.5"), proxy).Should().BeTrue();
-        ReverseProxySetup.IsTrusted(IPAddress.Parse("10.0.0.9"), proxy).Should().BeFalse();
-        ReverseProxySetup.IsTrusted(null, proxy).Should().BeFalse();
+        options.ForwardLimit.Should().Be(1);
+        trusted.IsTrusted(IPAddress.Parse("172.18.0.5")).Should().BeTrue();
+        trusted.IsTrusted(IPAddress.Parse("10.0.0.9")).Should().BeFalse();
+        trusted.IsTrusted(null).Should().BeFalse();
+    }
+
+    [Fact]
+    public void Nome_do_proxy_resolve_na_subida_e_de_novo_quando_o_IP_muda()
+    {
+        var clock = new ManualClock();
+        var ip = IPAddress.Parse("172.18.0.7");
+        var calls = 0;
+        var trusted = new TrustedProxies(
+            new ReverseProxyOptions { KnownProxyHosts = ["stack-nginx"] }, NullLogger<TrustedProxies>.Instance, clock,
+            host => { calls++; host.Should().Be("stack-nginx"); return [ip]; });
+
+        calls.Should().Be(1, "resolve na subida");
+        trusted.ResolvedAddresses.Should().BeEquivalentTo([IPAddress.Parse("172.18.0.7")]);
+        trusted.IsTrusted(IPAddress.Parse("172.18.0.7")).Should().BeTrue();
+        trusted.IsTrusted(IPAddress.Parse("172.18.0.9")).Should().BeFalse("outro container da stack_stack não é o proxy");
+        calls.Should().Be(1, "não resolve de novo antes do intervalo");
+
+        ip = IPAddress.Parse("172.18.0.9"); // stack-nginx recriado
+        clock.Advance(TrustedProxies.RefreshInterval);
+        trusted.IsTrusted(IPAddress.Parse("172.18.0.9")).Should().BeTrue();
+        trusted.IsTrusted(IPAddress.Parse("172.18.0.7")).Should().BeFalse("o IP antigo deixa de valer");
+        calls.Should().Be(2);
+    }
+
+    [Fact]
+    public void Nome_que_nao_resolve_nao_derruba_a_subida()
+    {
+        var trusted = new TrustedProxies(
+            new ReverseProxyOptions { KnownProxyHosts = ["stack-nginx"], KnownProxies = ["10.1.1.1"] }, NullLogger<TrustedProxies>.Instance, null,
+            _ => throw new System.Net.Sockets.SocketException(11001));
+
+        trusted.ResolvedAddresses.Should().BeEmpty();
+        trusted.IsTrusted(IPAddress.Parse("10.1.1.1")).Should().BeTrue("IP fixo continua valendo");
+        trusted.IsTrusted(IPAddress.Parse("172.18.0.7")).Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData("172.18.0.7", "203.0.113.50", "https")]
+    [InlineData("172.18.0.9", "172.18.0.9", "http")]
+    public async Task X_Forwarded_For_so_e_aplicado_quando_vem_do_proxy(string socketIp, string expectedIp, string expectedScheme)
+    {
+        var trusted = new TrustedProxies(
+            new ReverseProxyOptions { KnownProxyHosts = ["stack-nginx"] }, NullLogger<TrustedProxies>.Instance, null, _ => [IPAddress.Parse("172.18.0.7")]);
+        using var host = await new HostBuilder()
+            .ConfigureWebHost(web => web
+                .UseTestServer()
+                .ConfigureServices(s => s.AddSingleton(trusted))
+                .Configure(app =>
+                {
+                    app.Use((context, next) =>
+                    {
+                        context.Connection.RemoteIpAddress = IPAddress.Parse(socketIp);
+                        return next(context);
+                    });
+                    app.UseTrustedForwardedHeaders();
+                    app.Run(context => context.Response.WriteAsync($"{context.Connection.RemoteIpAddress}|{context.Request.Scheme}"));
+                }))
+            .StartAsync();
+        var client = host.GetTestClient();
+        client.DefaultRequestHeaders.Add("X-Forwarded-For", "203.0.113.50");
+        client.DefaultRequestHeaders.Add("X-Forwarded-Proto", "https");
+
+        var body = await client.GetStringAsync(new Uri("/", UriKind.Relative));
+
+        body.Should().Be($"{expectedIp}|{expectedScheme}");
+    }
+
+    private sealed class ManualClock : TimeProvider
+    {
+        private DateTimeOffset now = new(2026, 10, 21, 12, 0, 0, TimeSpan.Zero);
+
+        public override DateTimeOffset GetUtcNow() => now;
+
+        public void Advance(TimeSpan by) => now += by;
     }
 }
