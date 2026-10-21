@@ -21,7 +21,7 @@ namespace BemAqui.Host.Persistence;
 /// DbContext único do banco de tenant (ADR 0006): tabelas compartilhadas da base e, conforme as stories
 /// avançam, as configurações de cada módulo. A conexão por tenant chega na FND-02.
 /// </summary>
-public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) : BemAquiDbContext(options), IIdentityDb, IPartiesDb, IMigrationDb, IFinanceDb, IInventoryDb, IProductionDb, IHrDb, BemAqui.Commercial.Application.ICommercialDb
+public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) : BemAquiDbContext(options), IIdentityDb, IPartiesDb, IMigrationDb, IFinanceDb, IInventoryDb, IProductionDb, IHrDb, BemAqui.Commercial.Application.ICommercialDb, BemAqui.Engineering.Application.IEngineeringDb
 {
     public DbSet<User> Users => Set<User>();
 
@@ -168,6 +168,12 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
     public DbSet<BemAqui.Production.Domain.ProductionOrderProjectItem> ProductionOrderProjectItems => Set<BemAqui.Production.Domain.ProductionOrderProjectItem>();
 
     public DbSet<BemAqui.Production.Domain.InstallationTemplateLine> InstallationTemplate => Set<BemAqui.Production.Domain.InstallationTemplateLine>();
+
+    public DbSet<BemAqui.Engineering.Domain.RoutingTemplate> RoutingTemplates => Set<BemAqui.Engineering.Domain.RoutingTemplate>();
+
+    public DbSet<BemAqui.Engineering.Domain.RoutingTemplateStep> RoutingTemplateSteps => Set<BemAqui.Engineering.Domain.RoutingTemplateStep>();
+
+    public DbSet<BemAqui.Engineering.Domain.RoutingTemplateItem> RoutingTemplateItems => Set<BemAqui.Engineering.Domain.RoutingTemplateItem>();
 
     public DbSet<JobPosition> JobPositions => Set<JobPosition>();
 
