@@ -421,3 +421,291 @@ Nenhum ponto bloqueante nas stories. Os 29 pontos do README anterior foram decid
 2. SPF, DKIM e DMARC antes do deploy da COM-03 (P-21 e P-22 decididas em 20/10/2026).
 3. Backup diário do tenant `konebras` no ar antes da primeira carga real da FIN-00; teste de restauração recomendado, sem bloquear.
 4. **P-01** (regime tributário) continua aberta, sem bloquear a fase.
+
+---
+
+
+# Fase 6 — RH e Patrimônio (fim do MVP)
+
+Stories detalhadas da Fase 6, uma por arquivo, escritas pelo @sm (River) e validadas pelo @po (Pax) em 21/10/2026. Fonte: `docs/01` a `06`, ADRs 0001–0022 (atenção à 0003, `hr.view_sensitive`; à 0016, dado sensível por rota; e à 0018, LGPD), o código das Fases 0 a 2 (`HR` com funcionários, cargos, jornadas, sindicatos e custo-hora; `IEmployees`, `IHourlyCost`, `IUserEmployeeLink`; auditoria com `[PersonalData]`/`[ProtectedSecret]` e `SensitiveRead`; anexos com ClamAV e regras por dono; `ModuleCatalog` e `GroupSeeder`; `IPdfRenderer`; e-mail por fila; `IPayables` com `DocumentOrigin.Payroll` e `Maintenance`) e as stories em rascunho da Fase 3 (CAD-04c, PRD-03a/03b, PRD-04). A Definition of Ready, a legenda e a escala de tamanho são as mesmas das fases anteriores. **Todas as stories estão `Draft`**: as que têm pontos em aberto marcados como pré-condição só passam a `Ready` depois da decisão do PO.
+
+## Índice
+| Ordem | ID | Título | Tam. | Status | Requisitos | Depende de | Arquivo |
+|---|---|---|---|---|---|---|---|
+| 1 (6.1) | RH-01a | Ponto: marcação pelo app, geolocalização opcional e consulta | M | Draft | R-RH-4, PRD §6 LGPD | CAD-04b, CAD-04c, PRD-03a (PRD-03b opcional) | [RH-01a](RH-01a-marcacao-ponto.md) |
+| 2 (6.1) | RH-01b | Ponto: lançamento manual, pedido de ajuste, abono e aprovação | M | Draft | R-RH-4, R-COM-2, R-COM-3 | RH-01a | [RH-01b](RH-01b-ajustes-ponto-aprovacao.md) |
+| 3 (6.1) | RH-01c | Ponto: espelho mensal, banco de horas e fechamento | G | Draft | R-RH-4, R-RH-5 | RH-01b, CAD-03, COM-03 | [RH-01c](RH-01c-espelho-banco-horas-fechamento.md) |
+| 4 (6.2) | RH-02a | Folha lançada: competência, rubricas, lançamento e importação | G | Draft | R-RH-5, R-RH-1 | CAD-04c, RH-01c | [RH-02a](RH-02a-folha-lancada-rubricas.md) |
+| 5 (6.2) | RH-02c | Folha lançada: fechamento, CP de salários e encargos, folha prevista | M | Draft | R-RH-5, R-FIN-4, R-FIN-10 | RH-02a, FIN-02, FIN-03a, FIN-05 | [RH-02c](RH-02c-fechamento-folha-cp-caixa.md) |
+| 6 (6.2) | RH-02b | Folha lançada: holerite em PDF e envio | M | Draft | R-RH-5, R-COM-1 | RH-02a, RH-02c, COM-03 | [RH-02b](RH-02b-holerite-pdf-envio.md) |
+| 7 (6.2) | RH-03 | Exportação do RH para a contadora (D) | M | Draft | R-RH-8, P-06 | RH-01c, RH-02c | [RH-03](RH-03-exportacao-contadora.md) |
+| 8 (6.3) | LGPD-01a | Direitos do titular: pedido e exportação (JSON e PDF) | M | Draft | PRD §6 LGPD, ADR 0018 | RH-02c, CAD-01a, CAD-04c | [LGPD-01a](LGPD-01a-pedido-titular-exportacao.md) |
+| 9 (6.3) | LGPD-01b | Direitos do titular: anonimização | M | Draft | PRD §6 LGPD, ADR 0018 | LGPD-01a | [LGPD-01b](LGPD-01b-anonimizacao.md) |
+| 10 (6.4) | PAT-01a | Patrimônio: cadastro de bens | M | Draft | R-PAT-1, R-COM-4 | CAD-04b, CAD-03 | [PAT-01a](PAT-01a-cadastro-bens.md) |
+| 11 (6.4) | PAT-01b | Patrimônio: etiquetas QR em lote e leitura pelo app | M | Draft | R-PAT-2 | PAT-01a, COM-03, PRD-03a | [PAT-01b](PAT-01b-etiqueta-qr-leitura.md) |
+| 12 (6.4) | PAT-02 | Patrimônio: movimentação e baixa | P | Draft | R-PAT-3 | PAT-01a | [PAT-02](PAT-02-movimentacao-bens.md) |
+| 13 (6.4) | PAT-03a | Patrimônio: planos preventivos e OS de manutenção | M | Draft | R-PAT-4 | PAT-01a | [PAT-03a](PAT-03a-planos-os-manutencao.md) |
+| 14 (6.4) | PAT-03b | Patrimônio: custo, CP do prestador e capacidade | M | Draft | R-PAT-4, R-PAT-5 (D), R-PRD-9 (D) | PAT-03a, FIN-02, FIN-03a; PLN-01 (Fase 4) | [PAT-03b](PAT-03b-custo-cp-capacidade.md) |
+
+Total da Fase 6: 14 stories (P: 1 · M: 11 · G: 2), todas `Draft`.
+
+## Ordem de execução
+```
+6.1 Ponto:            RH-01a → RH-01b → RH-01c
+6.2 Folha lançada:    RH-02a → RH-02c → RH-02b → RH-03 (D)
+6.3 LGPD:             LGPD-01a → LGPD-01b
+6.4 Patrimônio:       PAT-01a → PAT-01b → PAT-02 → PAT-03a → PAT-03b   (em paralelo aos marcos 6.1 a 6.3)
+```
+
+Por que esta ordem:
+- **6.1 primeiro:** o ponto fechado é a base de horas da folha lançada (referência) e da calculada (Fase 7); marcação, ajuste e espelho dependem um do outro em sequência.
+- **6.2 com a RH-02c antes da RH-02b:** o holerite só é enviado com a folha fechada, e o fechamento é o que leva a folha ao caixa (o objetivo do produto); a exportação para a contadora (D) fecha o marco.
+- **6.3 depois do RH:** a exportação e a anonimização do titular precisam conhecer todo dado pessoal que o RH passou a guardar (ponto, geolocalização, folha, atestados), como pede a ADR 0018 ("junto com o RH-01/RH-02").
+- **6.4 em paralelo:** o patrimônio só depende de cadastros já prontos (funcionários, centros, terceiros); a PAT-03b só mostra efeito na capacidade depois da PLN-01 (Fase 4).
+
+## Quebras e re-estimativas
+- **RH-01 (G)** → **01a** (marcação, M), **01b** (ajustes e aprovação, M) e **01c** (espelho, banco de horas e fechamento, G).
+- **RH-02 (G)** → **02a** (lançamento e importação, G), **02b** (holerite e envio, M) e **02c** (fechamento, CP e previsão de caixa, M).
+- **LGPD-01 (M)** → **01a** (pedido e exportação, M) e **01b** (anonimização, M): juntas passavam de G.
+- **PAT-01 (M)** → **01a** (cadastro, M) e **01b** (etiqueta QR e leitura, M).
+- **PAT-03 (M)** → **03a** (planos e OS, M) e **03b** (custo, CP do prestador e capacidade, M).
+- **Depreciação** (R-PAT-6) não entrou: é P e Fase 9 no PRD; antecipá-la é ponto em aberto (PAT-01a).
+
+## Padrões comuns da Fase 6
+Valem além dos padrões das fases anteriores. Cada story só repete o que é específico dela.
+1. **Dado do RH é sensível por padrão:** salário, valores de folha, localização do ponto, dados bancários, dependentes e atestados só por rota `/sensitive` ou comando próprio com `hr.view_sensitive`, com `SensitiveRead`, `no-store`, `[PersonalData]`, allowlist e canário (ADR 0016); DTOs de lista e resumo sem esses campos (teste de arquitetura).
+2. **Nada é apagado:** marcação de ponto é desconsiderada por ajuste aprovado; folha e período fechados só reabrem com motivo; movimento de bem é imutável; o bem é baixado, não excluído.
+3. **Autoatendimento do funcionário** ("Meu ponto", "Meu espelho"): o funcionário vem sempre da sessão (`users.employee_id`), nunca do corpo; a regra de permissão é a pré-condição da RH-01a.
+4. **Segregação de função:** quem pede ajuste não aprova; quem cadastra tabela não confere (Fase 7); exceção só do Proprietário único, como a D6 do Financeiro, sempre como ponto em aberto.
+5. **Folha no caixa:** o HR publica `PayrollClosed` sem valor; o Finance lê pelo contrato do HR e cria os títulos com origem `Payroll`; a previsão dos próximos meses entra como título `Planned` estimado e é substituída pela folha real; pagamento só por OP aprovada.
+6. **Regra legal é parâmetro:** tolerâncias, banco de horas, rubricas, encargos e layouts vêm de parâmetro do módulo dono (`hr.parameters`, ADR 0016 M6) confirmado pela contadora; nenhum número legal fixo no código.
+7. **PDF pelo `IPdfRenderer`** (espelho, holerite, etiqueta, exportação do titular), sem CPF completo, salário ou dado que o documento não precisa, conferido por extração de texto.
+8. **Patrimônio:** primeiras permissões do módulo `assets` por seed patch (proposta); QR com só a URL da etiqueta e leitura com login; custo e CP do prestador pelo padrão da COM-06; capacidade pelo evento `MaintenanceScheduled` consumido pelo Production.
+9. **Navegação:** área Pessoas (RH: Funcionários, Ponto, Folha, Rubricas, Tabelas da folha, Exportar para a contadora; "Meu ponto" para todos os ligados a funcionário); área Fábrica (Patrimônio: Bens, Manutenção, Custo, Locais); Configurações → Privacidade (só Proprietário). Cada story declara a entrada no `modules.ts` e a ajuda de cada rota e aba.
+
+## Validação do PO (21/10/2026)
+O @po (Pax) validou as 14 stories com a checklist de 10 itens das fases anteriores. **Todas tiveram 10/10.** Vereditos:
+- **GO** (sem pré-condição de decisão): PAT-02.
+- **GO condicional:** RH-01a, RH-01b, RH-01c, RH-02a, RH-02b, RH-02c, RH-03, LGPD-01a, LGPD-01b, PAT-01a, PAT-01b, PAT-03a, PAT-03b.
+- **Correções da validação cruzada:** a RH-02b passou para depois da RH-02c (envio só com a folha fechada); a LGPD-01a passou a depender da RH-02c (a exportação cobre ponto e folha); o CA 6 da LGPD-01a deixou de ter uma pergunta no texto (virou o ponto em aberto 33); a PAT-03b ficou com a PLN-01 (Fase 4) como dependência do efeito na capacidade.
+- **ADRs sugeridas antes dos Marcos 6.1 e 6.2:** autoatendimento do funcionário (ponto 1) e favorecido do título de salário (ponto 23).
+
+## Dependências de outras fases ainda abertas
+- **Fase 3 (rascunho em revisão):** CAD-04c `Draft` (vale-transporte e tipos de afastamento: alimentam RH-01b, RH-02a e a Fase 7); PRD-03a/03b `Draft` (superfície `/fab`, aparelho registrado e PIN, operador sem e-mail, funcionário do usuário por `Identity.Contracts`); PRD-04 (custo de mão de obra pelo apontamento, que a folha não substitui).
+- **Fase 4 (ainda só no backlog):** PLN-01 (consome a redução de capacidade da PAT-03b e as férias da FLH-03); DSH-04 Minha pauta (detectores de ajuste de ponto, preventiva vencida, férias a vencer).
+- **Fase 5 (ainda só no backlog):** FIS-04 (vínculo do bem com a NF de entrada, PAT-01a).
+- **Pendência P-01** (regime tributário, aberta): encargos da empresa (RH-02a/02c e Fase 7).
+
+## Pontos em aberto da Fase 6
+Pendências do `06` aplicadas: P-05 (% de encargos, só para o custo-hora, já decidido), P-06 (layout padrão, RH-03), P-13 (impressora de etiquetas, pré-condição externa da PAT-01b), P-21 (QuestPDF Community). Pontos por story (a proposta está em cada arquivo; nenhum foi decidido; **(pré)** = pré-condição para `Ready`):
+
+| # | Story | Ponto |
+|---|---|---|
+| 1 | RH-01a | Permissão do autoatendimento "Meu ponto" (pré, ADR) |
+| 2 | RH-01a | Geolocalização: padrão, precisão, ciência e retenção |
+| 3 | RH-01a | Ponto sem rede (fila offline ou recusa) |
+| 4 | RH-01a | Intervalo mínimo entre marcações e retenção de "Minhas marcações" |
+| 5 | RH-01a | Uso legal do ponto básico como registro oficial (contadora/jurídico) |
+| 6 | RH-01b | Lançamento manual do RH também exige aprovação (pré) |
+| 7 | RH-01b | Tipos de abono, alinhados aos afastamentos da CAD-04c (pré) |
+| 8 | RH-01b | Proprietário único aprova ajuste das próprias marcações |
+| 9 | RH-01b | Retenção do documento do abono (atestado) |
+| 10 | RH-01c | Tolerância de marcação (pré, contadora) |
+| 11 | RH-01c | Regras do banco de horas (pré, PO + contadora) |
+| 12 | RH-01c | Período de apuração (pré, contadora) |
+| 13 | RH-01c | Quem fecha o período de ponto |
+| 14 | RH-01c | Assinatura do espelho |
+| 15 | RH-02a | Lista padrão de rubricas (pré, contadora) |
+| 16 | RH-02a | Tipos de folha lançada no MVP |
+| 17 | RH-02a | Encargos da empresa: guias e vencimentos (pré, contadora) |
+| 18 | RH-02a | Layout de importação dos valores da contadora (pré) |
+| 19 | RH-02a | Limite do alerta de variação do líquido |
+| 20 | RH-02b | Proteção do holerite no e-mail (pré, PO + jurídico) |
+| 21 | RH-02b | Holerite no "Meu ponto" (autoatendimento) |
+| 22 | RH-02b | Máscara do CPF no holerite |
+| 23 | RH-02c | Favorecido do título de salário: o `IPayables` exige terceiro (pré, ADR) |
+| 24 | RH-02c | Conta e centro de custo da folha (pré, contadora) |
+| 25 | RH-02c | Quem fecha a folha (`hr.approve` muda o significado de "aprovar" no RH) (pré) |
+| 26 | RH-02c | Vencimento dos salários e encargos |
+| 27 | RH-02c | Meses da folha prevista; inclui 13º e férias |
+| 28 | RH-03 | Colunas do layout padrão para a contadora (pré) |
+| 29 | RH-03 | Guardar ou não o arquivo exportado |
+| 30 | RH-03 | Biblioteca de XLSX |
+| 31 | LGPD-01a | Tela em Configurações → Privacidade, só Proprietário |
+| 32 | LGPD-01a | Prazo de resposta ao titular (pré, jurídico) |
+| 33 | LGPD-01a | Dado de terceiros (dependentes) na exportação (pré, jurídico) |
+| 34 | LGPD-01a | Usuários do Identity como titulares na tela |
+| 35 | LGPD-01a | Prazo de guarda do arquivo exportado |
+| 36 | LGPD-01b | Tabela de retenção por campo (pré, contadora + jurídico) |
+| 37 | LGPD-01b | Eliminação atendida por anonimização |
+| 38 | LGPD-01b | Anonimização automática no fim da retenção |
+| 39 | LGPD-01b | Transação única ou por módulo |
+| 40 | PAT-01a | Permissões padrão do `assets` (pré) |
+| 41 | PAT-01a | Local do bem: cadastro próprio ou locais de estoque (pré) |
+| 42 | PAT-01a | Quem vê o valor de aquisição |
+| 43 | PAT-01a | Depreciação gerencial: Fase 9 no PRD, antecipar? (ADR) |
+| 44 | PAT-01a | Inventário físico do patrimônio |
+| 45 | PAT-01b | Modelo da impressora e tamanho da etiqueta (pré externa, P-13) |
+| 46 | PAT-01b | Formato da URL curta e registro da leitura |
+| 47 | PAT-01b | Bibliotecas de QR (pré, arquiteto) |
+| 48 | PAT-02 | Venda do bem gera título a receber? |
+| 49 | PAT-02 | Termo de responsabilidade |
+| 50 | PAT-03a | Dono da OS de manutenção: Assets × `production_orders` tipo Maintenance (pré) |
+| 51 | PAT-03a | Plano por horas: horímetro digitado ou uso do centro (pré) |
+| 52 | PAT-03a | Base do próximo vencimento |
+| 53 | PAT-03a | Baixa de peças do estoque |
+| 54 | PAT-03a | Quem abre OS de manutenção (inclui operador) |
+| 55 | PAT-03b | Conta e centro de custo da manutenção (pré, contadora) |
+| 56 | PAT-03b | Quem vê o custo de manutenção (pré) |
+| 57 | PAT-03b | Quanto a máquina parada reduz da capacidade (pré) |
+| 58 | PAT-03b | Paradas que não são manutenção |
+
+---
+
+
+# Fase 7 — Folha calculada
+
+Stories detalhadas da Fase 7, escritas pelo @sm (River) e validadas pelo @po (Pax) em 21/10/2026, com as mesmas fontes da Fase 6. **Regra da fase:** as regras legais brasileiras mudam todo ano; tabelas de INSS, IRRF, salário-família, salário mínimo, FGTS e encargos ficam **por vigência no banco**, conferidas pela contadora, nunca no código; o que é decisão de negócio ou jurídica está nos pontos em aberto, sem decidir. A folha calculada só substitui a lançada depois de 3 competências seguidas aceitas na conferência paralela (`06` Riscos). eSocial, DCTFWeb e FGTS Digital ficam fora do produto (PRD §3.3). Todas as stories estão `Draft`.
+
+## Índice
+| Ordem | ID | Título | Tam. | Status | Requisitos | Depende de | Arquivo |
+|---|---|---|---|---|---|---|---|
+| 1 (7.1) | FLH-01 | Tabelas legais por vigência | M | Draft | R-RH-6 | Fase 6 | [FLH-01](FLH-01-tabelas-legais-vigencia.md) |
+| 2 (7.1) | FLH-02a | Cálculo mensal (salário, adicionais, faltas, INSS, IRRF, FGTS, salário-família, VT) | G | Draft | R-RH-6, R-RH-5 | FLH-01, RH-02a/02b/02c, RH-01c, CAD-04c | [FLH-02a](FLH-02a-calculo-mensal.md) |
+| 3 (7.1) | FLH-02b | Horas extras, adicional noturno e DSR do ponto | M | Draft | R-RH-6, R-RH-4 | FLH-02a, RH-01c | [FLH-02b](FLH-02b-horas-extras-dsr.md) |
+| 4 (7.2) | FLH-03 | Férias | G | Draft | R-RH-6 | FLH-02b | [FLH-03](FLH-03-ferias.md) |
+| 5 (7.2) | FLH-04 | 13º salário | M | Draft | R-RH-6, R-FIN-10 | FLH-03 | [FLH-04](FLH-04-decimo-terceiro.md) |
+| 6 (7.2) | FLH-05 | Rescisão | G | Draft | R-RH-6, R-RH-3 | FLH-03, FLH-04 | [FLH-05](FLH-05-rescisao.md) |
+| 7 (7.3) | FLH-06 | Conferência paralela e virada | M | Draft | R-RH-6, `06` Riscos | FLH-02b | [FLH-06](FLH-06-conferencia-paralela.md) |
+
+Total da Fase 7: 7 stories (M: 4 · G: 3), todas `Draft`.
+
+## Ordem de execução
+```
+7.1 Tabelas e cálculo mensal:  FLH-01 → FLH-02a → FLH-02b
+7.2 Férias, 13º e rescisão:    FLH-03 → FLH-04 → FLH-05
+7.3 Virada:                    FLH-06 (começa depois da FLH-02b e corre em paralelo ao 7.2; a virada exige 3 competências seguidas aceitas)
+```
+
+Por que esta ordem: as tabelas vêm antes de qualquer cálculo; o mensal com as horas do ponto é o que a conferência paralela compara todo mês; férias alimentam o 13º (adiantamento) e a rescisão usa os dois.
+
+## Quebras
+- **FLH-02 (maior que G)** → **02a** (cálculo mensal, G) e **02b** (horas extras e DSR do ponto, M). As demais seguem o backlog (FLH-01, 03, 04, 05, 06).
+- **Holerite e fechamento** não ganharam story própria: a folha calculada reaproveita a RH-02b e a RH-02c.
+
+## Padrões comuns da Fase 7
+1. **Motor puro** (`PayrollCalculator`, Domain, sem banco nem log de valores), cada regra legal uma função testada por **tabela de casos fornecida pela contadora**; os datasets de referência são pré-condição de `Ready` e rodam no CI, centavo a centavo.
+2. **Memória de cálculo** em toda linha (tabela, vigência e entradas usadas).
+3. **Simulação até a virada:** a calculada não fecha como oficial antes da FLH-06.
+4. **Valores só com `hr.view_sensitive`**, canário em log e em argumentos de job, como na Fase 6.
+
+## Validação do PO (21/10/2026)
+As 7 stories tiveram 10/10 na checklist de 10 itens. Veredito: **GO condicional** para todas (todas dependem de regras e datasets da contadora). Correção da validação cruzada: a FLH-04 passou a depender da FLH-03 (adiantamento do 13º nas férias) e a FLH-05 das duas.
+
+## Dependências de outras fases ainda abertas
+- **Fase 6** inteira (esta fase reaproveita rubricas, folha, holerite, fechamento e ponto).
+- **CAD-04c** (Fase 3, `Draft`): dependentes de IR e salário-família, adicionais, vale-transporte e afastamentos.
+- **P-01** (regime tributário, aberta): encargos patronais.
+- **PLN-01** (Fase 4): férias programadas fora da capacidade (FLH-03 CA 4).
+
+## Pontos em aberto da Fase 7
+| # | Story | Ponto |
+|---|---|---|
+| 1 | FLH-01 | Valores iniciais das tabelas conferidos e casos de teste da contadora (pré) |
+| 2 | FLH-01 | Formato da redução adicional do IRRF vigente (pré) |
+| 3 | FLH-01 | Encargos da empresa pelo regime (P-01) |
+| 4 | FLH-01 | Segregação na conferência da tabela e exceção do Proprietário único |
+| 5 | FLH-01 | Tabela sugerida pela plataforma × cadastro por tenant |
+| 6 | FLH-01 | Regras de arredondamento de cada imposto |
+| 7 | FLH-02a | Folha oficial durante a conferência: calculada só simulação (pré) |
+| 8 | FLH-02a | Regras parametrizadas: proporcionalidade, base da insalubridade, acúmulo, valor da hora (pré) |
+| 9 | FLH-02a | Afastamento por doença e acidente: quem paga cada período |
+| 10 | FLH-02a | Elegibilidade do salário-família |
+| 11 | FLH-02a | Pensão alimentícia e consignado |
+| 12 | FLH-02a | Encargos patronais pelo regime (P-01) |
+| 13 | FLH-02b | Percentuais de horas extras e adicional noturno (pré, contadora + convenção) |
+| 14 | FLH-02b | Fórmula do DSR e perda do DSR por falta (pré) |
+| 15 | FLH-02b | Pagamento do banco de horas vencido |
+| 16 | FLH-03 | Regras de férias: faltas, afastamentos, fracionamento, abono, prazos (pré) |
+| 17 | FLH-03 | INSS e IRRF das férias (pré) |
+| 18 | FLH-03 | Férias coletivas |
+| 19 | FLH-03 | Antecedência do alerta de vencimento |
+| 20 | FLH-04 | Regras do 13º: avos, médias, prazos, FGTS e tributação (pré) |
+| 21 | FLH-04 | Previsão do 13º no caixa desde janeiro |
+| 22 | FLH-05 | Matriz de verbas por tipo de desligamento, aviso prévio e prazo (pré) |
+| 23 | FLH-05 | Saldo do FGTS para a multa (pré) |
+| 24 | FLH-05 | Termo de rescisão: só conferência ou modelo oficial |
+| 25 | FLH-06 | Critério de aceite da competência (pré) |
+| 26 | FLH-06 | Quem da contadora assina a virada |
+| 27 | FLH-06 | O período de 3 meses precisa incluir férias, 13º ou rescisão? |
+| 28 | Fase | eSocial, DCTFWeb e FGTS Digital: fora do produto (PRD §3.3), "avaliar após a folha calculada" |
+
+---
+
+
+# Fase 8 — Cliente e comunicação
+
+Stories detalhadas da Fase 8, escritas pelo @sm (River) e validadas pelo @po (Pax) em 21/10/2026. O portal do cliente é a quarta superfície do front (`02-arquitetura` §4, `/portal`), com **público externo, autenticação separada do backoffice e isolamento estrito por cliente**: o cliente vê etapas, documentos compartilhados, parcelas e boletos, nunca custo, margem ou dado interno. Todas as stories estão `Draft`.
+
+## Índice
+| Ordem | ID | Título | Tam. | Status | Requisitos | Depende de | Arquivo |
+|---|---|---|---|---|---|---|---|
+| 1 (8.1) | POR-01a | Portal: acesso separado e isolamento por cliente | G | Draft | PRD §5.15, R-SEC-1/2/3/5/11 | Fases 0–6, CAD-01a, COM-04a | [POR-01a](POR-01a-acesso-portal-cliente.md) |
+| 2 (8.2) | POR-01b | Portal: projetos, etapa, entrega e documentos | M | Draft | PRD §5.15, R-PRJ-4, R-COM-3 | POR-01a, COM-05, COM-06; PLN-01, FIS-03 | [POR-01b](POR-01b-portal-projetos-documentos.md) |
+| 3 (8.2) | POR-01c | Portal: parcelas e boletos | M | Draft | PRD §5.15, R-FIN-3, R-FIN-7 | POR-01b, FIN-01; BNK-01, BNK-02 | [POR-01c](POR-01c-portal-parcelas-boletos.md) |
+| 4 (8.3) | POR-02 | Portal: aceite online do orçamento | M | Draft | R-COML-10 | POR-01b, COM-02, COM-03, COM-04a | [POR-02](POR-02-aprovacao-online-orcamento.md) |
+| 5 (8.4) | WPP-01 | Notificações por WhatsApp | G | Draft | Backlog WPP-01, R-FIN-9 | POR-01c, FIN-09, BNK-01 | [WPP-01](WPP-01-notificacoes-whatsapp.md) |
+
+Total da Fase 8: 5 stories (M: 3 · G: 2), todas `Draft`.
+
+## Ordem de execução
+```
+8.1 Acesso do cliente:   POR-01a
+8.2 Acompanhamento:      POR-01b → POR-01c
+8.3 Aceite online:       POR-02
+8.4 Comunicação:         WPP-01
+```
+
+## Quebras
+- **POR-01 (maior que G)** → **01a** (identidade e isolamento, G), **01b** (projetos e documentos, M) e **01c** (parcelas e boletos, M).
+
+## Padrões comuns da Fase 8
+1. **Identidade do portal separada:** usuários em `portal.portal_users` ligados a um contato de um terceiro Cliente; `aud`, claim e cookie próprios; token de um lado responde 401 no outro (teste sobre todos os endpoints).
+2. **`party_id` sempre da sessão**, nunca de parâmetro; toda rota com id de outro cliente responde 404 uniforme (teste com dois clientes e dois tenants).
+3. **DTOs do portal por allowlist** e contratos `ForPortal*` nos módulos donos; teste de arquitetura sem custo, margem, orçado, observação interna ou dado de funcionário.
+4. **Nada compartilhado por padrão:** documento só aparece no portal marcado pelo backoffice (proposta: NF-e do próprio cliente por padrão).
+5. **O sistema sugere, não decide:** o aceite do cliente pré-preenche a aprovação interna, que continua gerando o contrato (ADR 0005 D5).
+6. **Mensagens externas** só por modelo aprovado, com consentimento registrado e webhook com assinatura.
+
+## Validação do PO (21/10/2026)
+As 5 stories tiveram 10/10. Vereditos: **GO** para a POR-01c (sem decisão pendente; depende da BNK-01/02 para os boletos); **GO condicional** para POR-01a, POR-01b, POR-02 e WPP-01. Correção da validação cruzada: a POR-02 deixou de gerar contrato sozinha (ponto 14), para não contrariar a ADR 0005 D5.
+
+## Dependências de outras fases ainda abertas
+- **Fase 4 (só no backlog):** PLN-01 (data prevista de entrega, POR-01b).
+- **Fase 5 (só no backlog):** FIS-03 (NF-e e DANFE no portal), BNK-01 e BNK-02 (boleto e baixa), FIN-09 (régua de cobrança, D, base do WhatsApp de cobrança).
+- **LGPD-01a** (Fase 6): o usuário do portal entra no `IPersonalDataProvider`.
+
+## Pontos em aberto da Fase 8
+| # | Story | Ponto |
+|---|---|---|
+| 1 | POR-01a | ADR do portal: identidade separada, rotas anônimas, `aud` e cookies (pré) |
+| 2 | POR-01a | Módulo `portal` no `ModuleCatalog` (não existe hoje) e seed patch do Comercial (pré) |
+| 3 | POR-01a | Host do portal: `/portal` no host do tenant ou host próprio (pré) |
+| 4 | POR-01a | 2FA do portal opcional ou obrigatório |
+| 5 | POR-01a | Um contato ver mais de um cliente (grupo econômico) |
+| 6 | POR-01b | Qual data de entrega o cliente vê (prometida, prevista) (pré) |
+| 7 | POR-01b | NF-e compartilhada por padrão |
+| 8 | POR-01b | Onde guardar a marca "Compartilhar no portal" |
+| 9 | POR-01b | Aviso por e-mail quando a etapa muda |
+| 10 | POR-01b | Endereço da obra completo ou só cidade e bairro |
+| 11 | POR-01c | Mostrar parcelas previstas sem data |
+| 12 | POR-01c | Segunda via do boleto pelo próprio cliente |
+| 13 | POR-01c | Período do histórico financeiro |
+| 14 | POR-02 | Aceite do cliente só avisa ou gera o contrato (muda a ADR 0005 D5) (pré) |
+| 15 | POR-02 | Assinatura eletrônica com validade jurídica |
+| 16 | POR-02 | Link de aceite sem login (rota anônima, ADR) |
+| 17 | WPP-01 | Provedor do WhatsApp e quem paga (pré) |
+| 18 | WPP-01 | Base legal e forma do opt-in (pré, jurídico) |
+| 19 | WPP-01 | Textos dos modelos aprovados no provedor |
+| 20 | WPP-01 | Horário permitido para envio |
+| 21 | WPP-01 | Sem a FIN-09, só a mensagem de etapa |
