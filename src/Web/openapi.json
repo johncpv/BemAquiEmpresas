@@ -4183,6 +4183,14 @@
             }
           },
           {
+            "name": "partyId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
             "name": "page",
             "in": "query",
             "schema": {
@@ -8733,6 +8741,57 @@
         }
       }
     },
+    "/api/v1/finance/aging/projects": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetAgingByProject",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgingProjectReport"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/parties/{id}/summary": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetPartyFinanceSummary",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartyFinanceSummary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/bank-accounts": {
       "get": {
         "tags": [
@@ -11977,6 +12036,111 @@
           "count": {
             "type": "integer",
             "format": "int32"
+          },
+          "avgDelayDays": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "pctPaidLate": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "AgingProject": {
+        "required": [
+          "projectId",
+          "projectNumber",
+          "projectName",
+          "partyId",
+          "partyName",
+          "buckets",
+          "total",
+          "maxDaysLate",
+          "count"
+        ],
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "projectName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "partyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "buckets": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxDaysLate": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "AgingProjectReport": {
+        "required": [
+          "today",
+          "total",
+          "rows"
+        ],
+        "type": "object",
+        "properties": {
+          "today": {
+            "type": "string",
+            "format": "date"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AgingProject"
+            }
           }
         }
       },
@@ -14675,6 +14839,42 @@
               "string"
             ],
             "format": "uuid"
+          }
+        }
+      },
+      "CustomerPaymentStats": {
+        "required": [
+          "avgDelayDays",
+          "pctPaidLate",
+          "pctOverdueNow",
+          "last12mInvoiced",
+          "hasHistory",
+          "tenantAvgDelayDays"
+        ],
+        "type": "object",
+        "properties": {
+          "avgDelayDays": {
+            "type": "number",
+            "format": "double"
+          },
+          "pctPaidLate": {
+            "type": "number",
+            "format": "double"
+          },
+          "pctOverdueNow": {
+            "type": "number",
+            "format": "double"
+          },
+          "last12mInvoiced": {
+            "type": "number",
+            "format": "double"
+          },
+          "hasHistory": {
+            "type": "boolean"
+          },
+          "tenantAvgDelayDays": {
+            "type": "number",
+            "format": "double"
           }
         }
       },
@@ -18911,6 +19111,47 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "PartyFinanceSummary": {
+        "required": [
+          "receivables",
+          "payables",
+          "paymentStats"
+        ],
+        "type": "object",
+        "properties": {
+          "receivables": {
+            "$ref": "#/components/schemas/PartyFinanceTotals"
+          },
+          "payables": {
+            "$ref": "#/components/schemas/PartyFinanceTotals"
+          },
+          "paymentStats": {
+            "$ref": "#/components/schemas/CustomerPaymentStats"
+          }
+        }
+      },
+      "PartyFinanceTotals": {
+        "required": [
+          "open",
+          "overdue",
+          "paidLast12m"
+        ],
+        "type": "object",
+        "properties": {
+          "open": {
+            "type": "number",
+            "format": "double"
+          },
+          "overdue": {
+            "type": "number",
+            "format": "double"
+          },
+          "paidLast12m": {
+            "type": "number",
+            "format": "double"
           }
         }
       },

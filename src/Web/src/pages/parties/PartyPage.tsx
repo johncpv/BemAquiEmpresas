@@ -13,6 +13,8 @@ import { ImportedTag } from '@/components/ui/imported-tag'
 import { Tag } from '@/components/ui/tag'
 import { useUrlTab } from '@/components/ui/url-tab'
 import { UrlTabs } from '@/components/ui/url-tabs'
+import { usePartyBusinessVisible } from './party-business'
+import { PartyBusinessTab } from './PartyBusinessTab'
 import { useNavigation } from '@/navigation/navigation-context'
 import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
@@ -37,6 +39,7 @@ export function PartyPage() {
   const client = useQueryClient()
   const query = useGetParty(id)
   const canEdit = useCanParties('edit')
+  const business = usePartyBusinessVisible()
   const [, setTab] = useUrlTab('dados')
   const [steps, setSteps] = useState(search.novo === '1')
   const [addingAddress, setAddingAddress] = useState<AddressKind | null>(null)
@@ -103,6 +106,7 @@ export function PartyPage() {
         { id: 'dados', label: 'Dados', keepMounted: true, content: <PartyDataForm key={party.id} party={party} canEdit={canEdit} onSaved={setParty} /> },
         { id: 'enderecos', label: `Endereços (${party.addresses.length})`, content: <PartyAddresses party={party} canEdit={canEdit} onSaved={setParty} adding={addingAddress} onAddingChange={setAddingAddress} /> },
         { id: 'contatos', label: `Contatos (${party.contacts.length})`, content: <PartyContacts party={party} canEdit={canEdit} onSaved={setParty} adding={addingContact} onAddingChange={setAddingContact} /> },
+        ...(business ? [{ id: 'comercial-financeiro', label: 'Comercial e financeiro', content: <PartyBusinessTab partyId={party.id} /> }] : []),
         { id: 'historico', label: 'Histórico de alterações', content: <RecordHistory entity="Party" id={party.id} /> },
       ]} />
       {receita ? <ReceitaUpdate party={party} onClose={() => setReceita(false)} onSaved={setParty} /> : null}

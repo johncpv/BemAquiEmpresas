@@ -246,7 +246,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-2--comercial-proj
 - Requisitos: R-PRJ-3, R-FIN-4, R-PRJ-6, R-COM-4, R-COM-3, R-PRP-2, R-PRP-7.
 - CA: criar a partir do projeto com instalador e valor, que gera o CP previsto do instalador com data estimada, na mesma transação; etapas e checklist de entrega técnica (alvos de 56 px); aceite técnico confirma o CP e dispara o evento que entrega o projeto e libera o recebível vinculado; mudança de valor avisa o financeiro.
 
-**FIN-06b [ ] Inadimplência por projeto, pontualidade e histórico do terceiro (M)** — 2.4, ordem 17 — quebra da FIN-06 — [story](stories/FIN-06b-inadimplencia-projeto-pontualidade.md)
+**FIN-06b [x] Inadimplência por projeto, pontualidade e histórico do terceiro (M)** — 2.4, ordem 17 — quebra da FIN-06 — [story](stories/FIN-06b-inadimplencia-projeto-pontualidade.md)
 - Requisitos: R-FIN-12 (parte), R-TER-4, R-TER-3, R-PRP-5.
 - CA: vencidos por projeto; atraso médio do cliente (sem títulos de implantação) para a FIN-07; aba "Comercial e financeiro" no terceiro, com cada bloco pela permissão do módulo dono.
 
