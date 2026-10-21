@@ -9,6 +9,9 @@ export type ListQuotesParams = {
 q?: string;
 situation?: string;
 partyId?: string;
+from?: string;
+to?: string;
+authorId?: string;
 page?: number;
 pageSize?: number;
 };

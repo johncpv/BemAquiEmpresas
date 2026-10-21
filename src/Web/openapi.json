@@ -4191,6 +4191,30 @@
             }
           },
           {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "authorId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
             "name": "page",
             "in": "query",
             "schema": {
@@ -4242,6 +4266,59 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/QuoteDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/quotes/funnel": {
+      "get": {
+        "tags": [
+          "Or\u00E7amentos"
+        ],
+        "operationId": "GetQuoteFunnel",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "authorId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteFunnel"
                 }
               }
             }
@@ -17073,6 +17150,179 @@
           }
         }
       },
+      "FunnelAuthor": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "FunnelConversion": {
+        "required": [
+          "byCount",
+          "byAmount",
+          "decided"
+        ],
+        "type": "object",
+        "properties": {
+          "byCount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "byAmount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "decided": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "FunnelExpiring": {
+        "required": [
+          "id",
+          "number",
+          "revision",
+          "partyId",
+          "partyName",
+          "totalPrice",
+          "validUntil",
+          "daysLeft"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "totalPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "validUntil": {
+            "type": "string",
+            "format": "date"
+          },
+          "daysLeft": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "FunnelLossReason": {
+        "required": [
+          "reason",
+          "count",
+          "amount",
+          "pct"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "$ref": "#/components/schemas/QuoteLostReason"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "pct": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "FunnelOtherLoss": {
+        "required": [
+          "id",
+          "number",
+          "revision",
+          "detail",
+          "totalPrice"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "totalPrice": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "FunnelStage": {
+        "required": [
+          "status",
+          "situation",
+          "count",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/QuoteStatus"
+          },
+          "situation": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "GroupActionInfo": {
         "required": [
           "code",
@@ -23562,6 +23812,70 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          }
+        }
+      },
+      "QuoteFunnel": {
+        "required": [
+          "from",
+          "to",
+          "authorId",
+          "stages",
+          "conversion",
+          "lossReasons",
+          "otherLosses",
+          "expiring",
+          "authors"
+        ],
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "authorId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "stages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FunnelStage"
+            }
+          },
+          "conversion": {
+            "$ref": "#/components/schemas/FunnelConversion"
+          },
+          "lossReasons": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FunnelLossReason"
+            }
+          },
+          "otherLosses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FunnelOtherLoss"
+            }
+          },
+          "expiring": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FunnelExpiring"
+            }
+          },
+          "authors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FunnelAuthor"
+            }
           }
         }
       },
