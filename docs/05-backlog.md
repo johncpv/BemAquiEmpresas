@@ -530,28 +530,131 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-
 
 ## Fase 6 — RH e Patrimônio (fim do MVP)
 
-**RH-01 [ ] Ponto básico (G)** — Marcação no PWA (geolocalização opcional), lançamento manual, espelho mensal, banco de horas simples, ajustes com aprovação, fechamento do período.
+Stories detalhadas em [`docs/stories/`](stories/README.md#fase-6--rh-e-patrimônio-fim-do-mvp), escritas pelo @sm e validadas pelo @po em 21/10/2026 (checklist de 10 itens, 10/10 em todas). **Todas estão `Draft`**: PAT-02 com GO; as demais com GO condicional, até as decisões marcadas como pré-condição nos pontos em aberto (README da Fase 6, 58 pontos). Dependências abertas de outras fases: CAD-04c, PRD-03a/03b e PRD-04 (Fase 3, rascunho), PLN-01 e DSH-04 (Fase 4), FIS-04 (Fase 5) e a P-01.
 
-**RH-02 [ ] Folha lançada e holerite (G)** — Lançar/importar rubricas do período, gerar holerites PDF, envio por e-mail, fechamento gera CP de salários e encargos.
-- CA: holerite com layout padrão (proventos, descontos, bases INSS/FGTS/IRRF, líquido).
+**Ordem de execução:** **6.1 Ponto:** RH-01a → RH-01b → RH-01c → **6.2 Folha lançada:** RH-02a → RH-02c → RH-02b → RH-03 (D) → **6.3 LGPD:** LGPD-01a → LGPD-01b. **6.4 Patrimônio** em paralelo: PAT-01a → PAT-01b → PAT-02 → PAT-03a → PAT-03b.
 
-**RH-03 [ ] Exportação para contadora (M)** — D, layout a definir.
+**Quebras:** RH-01 → 01a/01b/01c · RH-02 → 02a/02b/02c · LGPD-01 → 01a/01b · PAT-01 → 01a/01b · PAT-03 → 03a/03b. Depreciação (R-PAT-6) continua na Fase 9 (ponto em aberto da PAT-01a).
 
-**LGPD-01 [ ] Exportação e anonimização a pedido do titular (M)** — ADR 0018. O Proprietário atende o pedido; exportação em JSON e PDF de terceiro PF, contato ou funcionário; anonimização que preserva os documentos com movimento; pedido e atendimento auditados.
+**RH-01a [ ] Ponto: marcação pelo app, geolocalização opcional e consulta (M)** — 6.1, ordem 1 — quebra da RH-01 — [story](stories/RH-01a-marcacao-ponto.md)
+- Requisitos: R-RH-4 (parte), PRD §6 (LGPD, Usabilidade), R-SEC-5, R-PRP-1, R-PRP-2.
+- CA: "Meu ponto" no tablet (`/fab/ponto`, também por PIN) e no celular com a hora do servidor e a próxima marcação sugerida; funcionário sempre da sessão; duplo toque e `Idempotency-Key`; afastado ou desligado não marca; geolocalização por parâmetro, só em `/sensitive`; marcação nunca editada nem apagada. Pré-condição: regra do autoatendimento (ADR).
 
-**PAT-01 [ ] Cadastro de patrimônio e QR (M)** — Bens, etiquetas em lote (PDF para impressora de etiqueta), leitura pelo PWA.
+**RH-01b [ ] Ponto: lançamento manual, pedido de ajuste, abono e aprovação (M)** — 6.1, ordem 2 — quebra da RH-01 — [story](stories/RH-01b-ajustes-ponto-aprovacao.md)
+- Requisitos: R-RH-4 (parte), PRD §6 LGPD, R-SEC-5, R-COM-2, R-COM-3, R-PRP-2, R-PRP-5, R-PRP-6 (D).
+- CA: lançamento do RH e pedido do funcionário como ajuste `Pending`; abono com atestado como anexo sensível, sem CID; aprovação com `hr.approve` ("ajustes de ponto"), sem aprovar o próprio; "desconsiderar" no lugar de apagar; concorrência; período fechado bloqueia.
 
-**PAT-02 [ ] Movimentação de bens (P)**
+**RH-01c [ ] Ponto: espelho mensal, banco de horas e fechamento (G)** — 6.1, ordem 3 — quebra da RH-01 — [story](stories/RH-01c-espelho-banco-horas-fechamento.md)
+- Requisitos: R-RH-4 (parte), R-RH-5, R-COM-3, PRD §6 (Desempenho, LGPD), R-SEC-5, R-PRP-2, R-PRP-5.
+- CA: espelho por dia pela jornada e pelo calendário (dataset fixo minuto a minuto); tolerância e banco de horas como parâmetros; inconsistências acionáveis; fechamento com pré-condições e totais congelados; reabertura em cascata; PDF sem dado sensível; 50 funcionários em menos de 1 s.
 
-**PAT-03 [ ] Manutenção preventiva/corretiva (M)** — Planos, OS de manutenção, custo, CP do prestador; integração com capacidade (PAT-5).
+**RH-02a [ ] Folha lançada: competência, rubricas, lançamento e importação (G)** — 6.2, ordem 4 — quebra da RH-02 — [story](stories/RH-02a-folha-lancada-rubricas.md)
+- Requisitos: R-RH-5 (parte), R-RH-1, PRD §6 LGPD, R-SEC-5, R-SEC-10, R-PRP-1, R-PRP-3.
+- CA: rubricas com seed; folha por competência e tipo, sem duplicar; holerite preenchido com o salário e com o mês anterior; bases e encargos da empresa digitados; importação CSV no layout padrão com prévia e proteção de entrada; valores só com `hr.view_sensitive`; nenhum cálculo legal.
+
+**RH-02c [ ] Folha lançada: fechamento, CP de salários e encargos e folha prevista (M)** — 6.2, ordem 5 — quebra da RH-02 — [story](stories/RH-02c-fechamento-folha-cp-caixa.md)
+- Requisitos: R-RH-5 (parte), R-FIN-4, R-FIN-10, R-FIN-13, R-PRP-2, R-PRP-7, R-SEC-5.
+- CA: fechamento com impacto financeiro publica `PayrollClosed`; o Finance cria os títulos de origem `Payroll` pelo contrato do HR, idempotente; OP dos salários pré-selecionada; reabertura recusada com pagamento em andamento; folha prevista como estimativa no fluxo de caixa, substituída pela real. Pré-condição: favorecido do título de salário (ADR).
+
+**RH-02b [ ] Folha lançada: holerite em PDF e envio (M)** — 6.2, ordem 6 — quebra da RH-02 — [story](stories/RH-02b-holerite-pdf-envio.md)
+- Requisitos: R-RH-5 (parte), R-COM-1, R-COM-3, PRD §6 LGPD, R-SEC-5, R-PRP-2.
+- CA: holerite com layout padrão (proventos, descontos, bases INSS/FGTS/IRRF, líquido) pelo `IPdfRenderer`, sem CPF completo nem dados bancários; lote em ZIP; envio só com a folha fechada, só ao e-mail pessoal, sem valor no corpo; situação do envio por holerite. Pré-condição: proteção do holerite no e-mail.
+
+**RH-03 [ ] Exportação do RH para a contadora (M)** — D — 6.2, ordem 7 — [story](stories/RH-03-exportacao-contadora.md)
+- Requisitos: R-RH-8, P-06, PRD §6 LGPD, R-SEC-5, R-PRP-3.
+- CA: pacote CSV/XLSX no layout padrão documentado (movimentação, ponto fechado, folha); só período fechado; minimização; `SensitiveRead`; teste golden do layout.
+
+**LGPD-01a [ ] Direitos do titular: pedido e exportação (M)** — 6.3, ordem 8 — quebra da LGPD-01 — [story](stories/LGPD-01a-pedido-titular-exportacao.md)
+- Requisitos: PRD §6 LGPD, ADR 0018, R-SEC-5, R-COM-3.
+- CA: pedido registrado e acompanhado só pelo Proprietário, com prazo e aviso; exportação JSON e PDF de terceiro PF, contato ou funcionário por `IPersonalDataProvider` em cada módulo; teste de arquitetura impede dado pessoal sem provedor; arquivo sensível com expurgo.
+
+**LGPD-01b [ ] Direitos do titular: anonimização (M)** — 6.3, ordem 9 — quebra da LGPD-01 — [story](stories/LGPD-01b-anonimizacao.md)
+- Requisitos: PRD §6 LGPD, ADR 0018, R-SEC-5, R-PRP-7.
+- CA: prévia por módulo com o que fica retido por obrigação legal; anonimização irreversível com marcador, preservando documentos com movimento e a auditoria; parcial com retentativa; canário em todas as tabelas; arquivos não retidos apagados. Pré-condição: tabela de retenção por campo (contadora + jurídico).
+
+**PAT-01a [ ] Patrimônio: cadastro de bens (M)** — 6.4, ordem 10 — quebra da PAT-01 — [story](stories/PAT-01a-cadastro-bens.md)
+- Requisitos: R-PAT-1, R-COM-3, R-COM-4, R-SEC-5, R-PRP-1, R-PRP-3.
+- CA: seed patch `assets-permissions` (proposta); bem com etiqueta `PAT-00001`, responsável pelo `IEmployees`, centro e local; foto e documentos por dono de anexo; lista com 5 mil bens em menos de 1 s; excluir × baixar; `IAssets`.
+
+**PAT-01b [ ] Patrimônio: etiquetas QR em lote e leitura pelo app (M)** — 6.4, ordem 11 — quebra da PAT-01 — [story](stories/PAT-01b-etiqueta-qr-leitura.md)
+- Requisitos: R-PAT-2, R-PRP-6 (D), R-COM-3, R-SEC-5.
+- CA: PDF de etiqueta no tamanho da impressora (P-13) e em grade A4; QR só com a URL da etiqueta; leitura pela câmera ou pelo leitor do celular abre a ficha depois do login, com atalhos de manutenção e movimentação; 404 uniforme.
+
+**PAT-02 [ ] Patrimônio: movimentação e baixa (P)** — 6.4, ordem 12 — [story](stories/PAT-02-movimentacao-bens.md)
+- Requisitos: R-PAT-3, R-PRP-1, R-PRP-6 (D), R-SEC-5.
+- CA: transferência de local, responsável e centro com histórico imutável; lote; baixa com motivo e reativação, sem apagar nada.
+
+**PAT-03a [ ] Patrimônio: planos preventivos e OS de manutenção (M)** — 6.4, ordem 13 — quebra da PAT-03 — [story](stories/PAT-03a-planos-os-manutencao.md)
+- Requisitos: R-PAT-4, R-COM-2, R-COM-3, R-COM-4, R-PRP-2, R-PRP-5, R-SEC-5.
+- CA: plano por dias ou horas (horímetro); job diário que avisa e abre a OS uma vez; OS `MAN-2026-0001` preventiva e corretiva com checklist de 56 px; bem em manutenção enquanto parado.
+
+**PAT-03b [ ] Patrimônio: custo, CP do prestador e capacidade (M)** — 6.4, ordem 14 — quebra da PAT-03 — [story](stories/PAT-03b-custo-cp-capacidade.md)
+- Requisitos: R-PAT-4 (parte), R-PAT-5 (D), R-FIN-4, R-FIN-10, R-PRD-9 (D), R-PRP-7, R-SEC-5.
+- CA: CP previsto do prestador (origem `Maintenance`) confirmado na conclusão; custo por bem e centro; `MaintenanceScheduled` vira parada no Production e reduz o `IWorkCenterCapacity` (efeito no planejamento com a PLN-01).
 
 ---
 
 ## Fase 7 — Folha calculada
-**FLH-01 [ ]** Tabelas parametrizadas por vigência (INSS, IRRF, salário-família) · **FLH-02 [ ]** Cálculo mensal (salário, HE e DSR do ponto, adicionais, faltas, INSS, IRRF, FGTS) · **FLH-03 [ ]** Férias · **FLH-04 [ ]** 13º · **FLH-05 [ ]** Rescisão · **FLH-06 [ ]** Conferência paralela com a folha da contadora por 3 meses antes de virar a chave.
+
+Stories detalhadas em [`docs/stories/`](stories/README.md#fase-7--folha-calculada), validadas pelo @po em 21/10/2026 (10/10, todas `Draft` com GO condicional). Regras legais por vigência no banco, conferidas pela contadora, nunca no código; a calculada só substitui a lançada depois de 3 competências seguidas aceitas (FLH-06). eSocial fica fora do produto (PRD §3.3).
+
+**Ordem de execução:** **7.1:** FLH-01 → FLH-02a → FLH-02b → **7.2:** FLH-03 → FLH-04 → FLH-05 → **7.3:** FLH-06 (começa depois da FLH-02b, em paralelo ao 7.2). **Quebra:** FLH-02 → 02a/02b.
+
+**FLH-01 [ ] Tabelas legais por vigência (M)** — 7.1, ordem 1 — [story](stories/FLH-01-tabelas-legais-vigencia.md)
+- Requisitos: R-RH-6, R-SEC-5.
+- CA: INSS, IRRF (com dedução por dependente, desconto simplificado e redução adicional), salário-família, salário mínimo, FGTS, VT e encargos por vigência; conferência com segregação; versão ativa imutável e retificação explícita; escolha da versão pela competência.
+
+**FLH-02a [ ] Cálculo mensal (G)** — 7.1, ordem 2 — quebra da FLH-02 — [story](stories/FLH-02a-calculo-mensal.md)
+- Requisitos: R-RH-6, R-RH-5, R-FIN-10, PRD §6 LGPD, R-SEC-5, R-PRP-7.
+- CA: salário proporcional, adicionais, faltas do ponto fechado, salário-família, VT, INSS, IRRF e FGTS pelo motor puro, centavo a centavo com o dataset da contadora; memória de cálculo; recálculo e avulsos; fechamento bloqueado até a virada.
+
+**FLH-02b [ ] Horas extras, adicional noturno e DSR do ponto (M)** — 7.1, ordem 3 — quebra da FLH-02 — [story](stories/FLH-02b-horas-extras-dsr.md)
+- Requisitos: R-RH-6, R-RH-4, R-SEC-5.
+- CA: extras por tipo de dia com percentuais parametrizados, banco de horas pago ou descontado por decisão do RH, adicional noturno opcional, DSR e perda do DSR por parâmetro.
+
+**FLH-03 [ ] Férias (G)** — 7.2, ordem 4 — [story](stories/FLH-03-ferias.md)
+- Requisitos: R-RH-6, R-RH-4, R-RH-5, R-FIN-10, R-PRP-5, R-SEC-5.
+- CA: períodos aquisitivos com alerta de vencimento; programação validada pelas regras parametrizadas; cálculo com 1/3, abono e médias; título antes do início; dias no espelho e no planejamento.
+
+**FLH-04 [ ] 13º salário (M)** — 7.2, ordem 5 — [story](stories/FLH-04-decimo-terceiro.md)
+- Requisitos: R-RH-6, R-RH-5, R-FIN-10, R-SEC-5.
+- CA: 1ª e 2ª parcelas com avos e médias pela regra da contadora, adiantamento das férias abatido, previsão no fluxo de caixa.
+
+**FLH-05 [ ] Rescisão (G)** — 7.2, ordem 6 — [story](stories/FLH-05-rescisao.md)
+- Requisitos: R-RH-6, R-RH-3, R-RH-5, R-FIN-10, R-PRP-2, R-PRP-7, R-SEC-5.
+- CA: simulação com custo total sem gravar; verbas pela matriz parametrizada por tipo de desligamento; multa do FGTS como encargo; termo de conferência; prazo de pagamento com aviso.
+
+**FLH-06 [ ] Conferência paralela e virada (M)** — 7.3, ordem 7 — [story](stories/FLH-06-conferencia-paralela.md)
+- Requisitos: R-RH-6, `06` Riscos, R-SEC-5, R-PRP-2.
+- CA: lançada × calculada por funcionário e rubrica; diferenças classificadas; aceite da competência; virada pelo Proprietário só depois de 3 competências seguidas aceitas, com volta possível.
+
+---
 
 ## Fase 8 — Cliente e comunicação
-**POR-01 [ ]** Portal do cliente (projetos, etapa, previsão, documentos, boletos) · **POR-02 [ ]** Aprovação online de orçamento · **WPP-01 [ ]** Notificações por WhatsApp (cobrança, status do projeto).
+
+Stories detalhadas em [`docs/stories/`](stories/README.md#fase-8--cliente-e-comunicação), validadas pelo @po em 21/10/2026 (10/10, todas `Draft`; POR-01c com GO, as demais com GO condicional). Dependências abertas: PLN-01 (Fase 4), FIS-03, BNK-01, BNK-02 e FIN-09 (Fase 5).
+
+**Ordem de execução:** **8.1:** POR-01a → **8.2:** POR-01b → POR-01c → **8.3:** POR-02 → **8.4:** WPP-01. **Quebra:** POR-01 → 01a/01b/01c.
+
+**POR-01a [ ] Portal do cliente: acesso separado e isolamento (G)** — 8.1, ordem 1 — quebra da POR-01 — [story](stories/POR-01a-acesso-portal-cliente.md)
+- Requisitos: PRD §5.15, R-SEC-1, R-SEC-2, R-SEC-3, R-SEC-5, R-SEC-11, PRD §6.
+- CA: usuário do portal ligado a contato de cliente, convidado pelo backoffice; `aud`, claim e cookie próprios, token cruzado recusado nos dois sentidos; bloqueio e recuperação; `party_id` sempre da sessão com IDOR testado em todos os endpoints; DTOs por allowlist. Pré-condições: ADR do portal, módulo `portal` no catálogo, host.
+
+**POR-01b [ ] Portal: projetos, etapa, entrega e documentos (M)** — 8.2, ordem 2 — quebra da POR-01 — [story](stories/POR-01b-portal-projetos-documentos.md)
+- Requisitos: PRD §5.15, R-PRJ-4 (parte pública), R-COM-3, R-SEC-5, PRD §6 LGPD.
+- CA: projetos do cliente com o `StageIndicator` e os marcos públicos, sem custo, margem nem dado interno; documentos só quando compartilhados; download conferido e auditado. Pré-condição: qual data de entrega mostrar.
+
+**POR-01c [ ] Portal: parcelas e boletos (M)** — 8.2, ordem 3 — quebra da POR-01 — [story](stories/POR-01c-portal-parcelas-boletos.md)
+- Requisitos: PRD §5.15, R-FIN-3, R-FIN-7, R-SEC-5, PRD §6 LGPD.
+- CA: parcelas do cliente com campos públicos; boleto com linha digitável, Pix copia e cola e PDF (BNK-01); pago pelo webhook (BNK-02); funciona sem a BNK-01.
+
+**POR-02 [ ] Aceite online do orçamento (M)** — 8.3, ordem 4 — [story](stories/POR-02-aprovacao-online-orcamento.md)
+- Requisitos: R-COML-10, R-COML-4, R-COML-3, R-COM-2, R-PRP-2, R-PRP-7, R-SEC-5.
+- CA: revisão corrente no portal com o PDF enviado; aceite com nome digitado, IP e hash do PDF; recusa com motivo; avisa o comercial e pré-preenche a aprovação interna (ADR 0005 D5 mantida). Pré-condição: valor do aceite.
+
+**WPP-01 [ ] Notificações por WhatsApp (G)** — 8.4, ordem 5 — [story](stories/WPP-01-notificacoes-whatsapp.md)
+- Requisitos: backlog WPP-01, R-FIN-9, PRD §3.2, PRD §6 (LGPD, Observabilidade), R-SEC-5.
+- CA: provedor atrás de `IWhatsAppSender` com credenciais cifradas por tenant; só modelos aprovados; consentimento por contato e descadastro; régua de cobrança e etapa do projeto idempotentes; webhook com assinatura. Pré-condições: provedor e base legal do opt-in.
 
 ## Fase 9 — Evolução
 Ponto legal (Portaria 671) · Depreciação · Retalhos de corte · Etapas terceirizadas · SSO · Contratos de manutenção recorrente (se validado).
