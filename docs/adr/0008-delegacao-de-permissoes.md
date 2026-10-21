@@ -44,3 +44,8 @@
 - **2FA:** continua exigido no login de quem tem `*.approve` ou `*.pay` (FND-06c CA 12). A exigência de 2FA a cada ação (aprovar, pagar, estornar, transferir) foi adiada pelo PO (P-19 em `06-pendencias-riscos.md`).
 
 - Ver ADR 0019 (custo e margem com `quotes.view_cost` e `projects.view_cost`, que não são ações reservadas).
+
+## Adendo 21/10/2026 (revisão pré-Fase 3, decisões D5 e D13 do PO)
+- **`engineering.approve` para o grupo Engenharia por seed patch** (`engineering-release-bom`, ENG-02): libera a BOM. O patch é aplicado pelo sistema, fora da regra de delegação, como o `finance-pay-financeiro`; fora do seed, só um membro do Proprietário concede `engineering.approve`. Quem tem `engineering.approve` passa a ter 2FA obrigatório no login (FND-06c CA 12).
+- **`amr` no access token:** o token continua só com identidade (`sub`, `tid`, `aud`, `sstamp`) e ganha `amr` (`pwd`, `otp`, `pin`). A sessão aberta por PIN (`amr = ["pin"]`) só alcança os endpoints da lista permitida (ADR 0026 §4); a permissão efetiva continua vindo do cache versionado, e o filtro do Host recusa o resto com 403 `pin_session_scope`.
+- **Perfil sensível e PIN:** ganhar `*.approve`, `finance.pay`, `hr.view_sensitive`, `identity.edit` ou `settings.edit` apaga o PIN do usuário, conferido a cada login por PIN; exceção da `production.approve_quality` (ADR 0003, adendo de 21/10/2026).

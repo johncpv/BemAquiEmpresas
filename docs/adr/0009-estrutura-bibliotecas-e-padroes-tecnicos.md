@@ -68,3 +68,8 @@
 - Ver ADR 0016 (rota anônima `GET /api/v1/public/tenant-logo`, dados sensíveis por rota e auditoria sem dado pessoal), ADR 0017 (importação do Dolibarr) e ADR 0018 (LGPD).
 
 - Ver ADR 0021 (mensagens no topo do conteúdo, no lugar do toast) e ADR 0022 (geração de PDF com QuestPDF atrás do `IPdfRenderer`).
+
+## Adendo 21/10/2026 (revisão pré-Fase 3, decisão D5 do PO): rota anônima do PIN
+- Ficam anônimas, **só com o cookie do aparelho registrado válido** (`__Host-bq_dev`), `POST /api/v1/auth/pin` (entrar por PIN) e `GET /api/v1/auth/pin/users` (primeiro nome e inicial de quem tem PIN no aparelho). Sem o cookie, as duas respondem 404, como rota inexistente.
+- Valem as mesmas proteções do refresh e do logout: `Origin` igual ao host do tenant, `X-CSRF: 1`, rate limit do login (ADR 0010 item 6), resposta e tempo uniformes (ADR 0011).
+- O cookie `__Host-bq_dev` segue o padrão do `__Host-bq_rt` (`Secure`, `HttpOnly`, `SameSite=Strict`, `Path=/`). Detalhes na ADR 0026.
