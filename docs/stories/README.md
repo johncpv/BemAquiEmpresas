@@ -438,7 +438,7 @@ Stories detalhadas da Fase 3, uma por arquivo, escritas pelo @sm (River) e valid
 ## Índice
 | Ordem | ID | Título | Tam. | Status | Requisitos | Depende de | Arquivo |
 |---|---|---|---|---|---|---|---|
-| 1 (3.1) | ENG-01 | Templates de roteiro | M | Ready | R-ENG-1, R-ENG-2, R-PRP-1, R-PLN-1 | CAD-03, CAD-02a | [ENG-01](ENG-01-templates-roteiro.md) |
+| 1 (3.1) | ENG-01 | Templates de roteiro | M | Done | R-ENG-1, R-ENG-2, R-PRP-1, R-PLN-1 | CAD-03, CAD-02a | [ENG-01](ENG-01-templates-roteiro.md) |
 | 2 (3.1) | PRD-01 | Geração da OS de fabricação | G | Ready | R-PRD-1, R-PRJ-2, R-ENG-1, R-PRP-1, R-COM-4 | ENG-01, COM-04a, COM-06 | [PRD-01](PRD-01-geracao-os-fabricacao.md) |
 | 3 (3.1) | PRD-02 | Kanban da produção | M | Ready | R-PRD-2, R-COM-2, PRD §5.14, PRD §6 | PRD-01, FND-02 | [PRD-02](PRD-02-kanban.md) |
 | 4 (3.1) | CAD-04c1 | Funcionários: afastamentos e situação | P | Ready | R-RH-3, PRD §6 LGPD, R-SEC-5, R-SEC-10 | CAD-04b | [CAD-04c1](CAD-04c1-afastamentos-situacao.md) |

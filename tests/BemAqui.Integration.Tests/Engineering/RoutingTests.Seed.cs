@@ -47,10 +47,10 @@ public partial class RoutingTests
         // Tenant B: provisionado sem centros e sem uso nos outros testes.
         await using var scope = await ScopeAsync(tenancy.TenantB);
         var db = scope.ServiceProvider.GetRequiredService<IEngineeringDb>();
-        var example = await db.RoutingTemplates.SingleAsync(t => t.SeedKey == RoutingTemplate.ExampleSeedKey);
+        var example = await db.RoutingTemplates.AsNoTracking().SingleAsync(t => t.SeedKey == RoutingTemplate.ExampleSeedKey);
         example.Name.Should().Be("Roteiro padrão (exemplo)");
         example.IsActive.Should().BeFalse("sem centro único, as etapas ficam sem centro e o roteiro nasce inativo (CA 8)");
-        var steps = await db.RoutingTemplateSteps.Where(s => s.TemplateId == example.Id).OrderBy(s => s.Sequence).ToListAsync();
+        var steps = await db.RoutingTemplateSteps.AsNoTracking().Where(s => s.TemplateId == example.Id).OrderBy(s => s.Sequence).ToListAsync();
         steps.Select(s => (s.Code, s.Name)).Should().Equal(("P", "Projeto"), ("C", "Corte"), ("M", "Montagem"), ("Q", "Qualidade"), ("E", "Expedição"));
         steps.Should().OnlyContain(s => s.StandardHours == 0 && s.WorkCenterId == null);
         steps.Single(s => s.IsQualityStep).Code.Should().Be("Q");
@@ -59,8 +59,7 @@ public partial class RoutingTests
         await RunSeedersAsync(scope.ServiceProvider);
         (await db.RoutingTemplates.CountAsync(t => t.SeedKey == RoutingTemplate.ExampleSeedKey)).Should().Be(1, "idempotente");
 
-        db.RoutingTemplates.Remove(example);
-        await db.SaveChangesAsync();
+        (await scope.ServiceProvider.GetRequiredService<RoutingTemplateService>().DeleteAsync(example.Id)).IsSuccess.Should().BeTrue();
         await RunSeedersAsync(scope.ServiceProvider);
         (await db.RoutingTemplates.CountAsync(t => t.SeedKey == RoutingTemplate.ExampleSeedKey)).Should().Be(0, "não recria o roteiro que o tenant excluiu");
 

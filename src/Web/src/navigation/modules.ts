@@ -46,7 +46,7 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
   quotes: { slug: 'orcamentos', icon: FileText, tabs: [{ slug: 'funil', label: 'Funil' }] },
   projects: { slug: 'projetos', aliases: ['contratos'], icon: FolderKanban },
   parties: { slug: 'cadastros', icon: Contact, tabs: [{ slug: 'terceiros', label: 'Terceiros' }] },
-  engineering: { slug: 'engenharia', icon: DraftingCompass },
+  engineering: { slug: 'engenharia', icon: DraftingCompass, tabs: [{ slug: 'roteiros', label: 'Roteiros' }] },
   production: { slug: 'producao', icon: Factory, tabs: [{ slug: 'instalacoes', label: 'Instalações' }, { slug: 'centros-de-trabalho', label: 'Centros de trabalho' }, { slug: 'calendario', label: 'Calendário' }, { slug: 'modelo-instalacao', label: 'Modelo da OS de instalação' }] },
   inventory: { slug: 'estoque', icon: Boxes, tabs: [{ slug: 'itens', label: 'Itens' }, { slug: 'locais', label: 'Locais' }, { slug: 'unidades', label: 'Unidades' }, { slug: 'categorias', label: 'Categorias' }, { slug: 'garantia', label: 'Garantia padrão' }] },
   purchasing: { slug: 'compras', icon: ShoppingCart },

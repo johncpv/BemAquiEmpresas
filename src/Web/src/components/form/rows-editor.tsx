@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, Copy, Plus, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, Copy, GripVertical, Plus, Trash2 } from 'lucide-react'
 import { type ReactNode, useRef, useState } from 'react'
 import { InlineError } from '@/components/ui/states'
 
@@ -27,6 +27,8 @@ interface RowsEditorProps<T> {
   min?: number
   max?: number
   reorder?: boolean
+  /** Com reorder: também arrastar a linha pela alça (o teclado continua com Mover para cima/baixo). */
+  draggable?: boolean
   /** "Duplicar" em cada linha: a cópia entra logo abaixo, com o foco no primeiro campo (lançamento em lote, FIN-00). */
   duplicate?: boolean
   disabled?: boolean
@@ -40,7 +42,8 @@ const newKey = () => `r${++seed}`
  * estável (nunca o índice); cada botão diz o que faz e em qual linha; depois de remover, o foco vai para a linha
  * seguinte (ou para "Adicionar"); a 400 px as colunas viram um cartão empilhado.
  */
-export function RowsEditor<T>({ noun, rows, onChange, newRow, columns, headers = [], renderRow, rowError, summary, min = 0, max = 50, reorder, duplicate, disabled }: RowsEditorProps<T>) {
+export function RowsEditor<T>({ noun, rows, onChange, newRow, columns, headers = [], renderRow, rowError, summary, min = 0, max = 50, reorder, draggable, duplicate, disabled }: RowsEditorProps<T>) {
+  const [dragging, setDragging] = useState<number | null>(null)
   const [stored, setKeys] = useState<string[]>(() => rows.map(newKey))
   let keys = stored
   // Linhas trocadas de fora (reset do formulário): as chaves acompanham o tamanho, ajustadas durante o render.
@@ -62,6 +65,19 @@ export function RowsEditor<T>({ noun, rows, onChange, newRow, columns, headers =
     ;[next[a], next[b]] = [next[b], next[a]]
     const k = [...keys]
     ;[k[a], k[b]] = [k[b], k[a]]
+    setKeys(k)
+    onChange(next)
+  }
+
+  /** Leva a linha de from para to, com a chave junto (o foco e o estado da linha acompanham). */
+  const move = (from: number, to: number) => {
+    if (from === to) return
+    const next = [...rows]
+    const [row] = next.splice(from, 1)
+    next.splice(to, 0, row)
+    const k = [...keys]
+    const [key] = k.splice(from, 1)
+    k.splice(to, 0, key)
     setKeys(k)
     onChange(next)
   }
@@ -102,7 +118,9 @@ export function RowsEditor<T>({ noun, rows, onChange, newRow, columns, headers =
           const cells = cellsOf(row, i, update(i))
           const error = rowError?.(i)
           return (
-            <div key={keys[i]} data-row={keys[i]}>
+            <div key={keys[i]} data-row={keys[i]}
+              onDragOver={draggable && dragging !== null ? (e) => e.preventDefault() : undefined}
+              onDrop={draggable && dragging !== null ? (e) => { e.preventDefault(); move(dragging, i); setDragging(null) } : undefined}>
               <div role="row" aria-label={`${noun} ${i + 1}`} aria-invalid={error ? true : undefined} className="grid gap-2 rounded-md border border-border p-2 sm:items-center sm:border-0 sm:p-0" style={{ gridTemplateColumns: template }}>
                 {cells.map((cell, c) => (
                   <div key={c} role="cell" className="col-span-full min-w-0 sm:col-span-1">
@@ -111,10 +129,14 @@ export function RowsEditor<T>({ noun, rows, onChange, newRow, columns, headers =
                   </div>
                 ))}
                 <div role="cell" className="col-span-full flex justify-end gap-1 sm:col-span-1">
+                  {reorder && draggable && !disabled ? (
+                    <span draggable onDragStart={(e) => { e.dataTransfer.effectAllowed = 'move'; setDragging(i) }} onDragEnd={() => setDragging(null)} title={`Arrastar ${noun} ${i + 1}`}
+                      aria-hidden="true" className="grid size-8 cursor-grab place-items-center rounded-md text-muted-foreground"><GripVertical className="size-4" /></span>
+                  ) : null}
                   {reorder ? (
                     <>
-                      <button type="button" disabled={disabled || i === 0} onClick={() => swap(i, i - 1)} aria-label={`Subir ${noun} ${i + 1}`} className={iconButton}><ArrowUp aria-hidden="true" className="size-4" /></button>
-                      <button type="button" disabled={disabled || i === rows.length - 1} onClick={() => swap(i, i + 1)} aria-label={`Descer ${noun} ${i + 1}`} className={iconButton}><ArrowDown aria-hidden="true" className="size-4" /></button>
+                      <button type="button" disabled={disabled || i === 0} onClick={() => swap(i, i - 1)} aria-label={`Mover ${noun} ${i + 1} para cima`} className={iconButton}><ArrowUp aria-hidden="true" className="size-4" /></button>
+                      <button type="button" disabled={disabled || i === rows.length - 1} onClick={() => swap(i, i + 1)} aria-label={`Mover ${noun} ${i + 1} para baixo`} className={iconButton}><ArrowDown aria-hidden="true" className="size-4" /></button>
                     </>
                   ) : null}
                   {duplicate ? <button type="button" disabled={disabled || rows.length >= max} onClick={() => copy(i)} aria-label={`Duplicar ${noun} ${i + 1}`} className={iconButton}><Copy aria-hidden="true" className="size-4" /></button> : null}
