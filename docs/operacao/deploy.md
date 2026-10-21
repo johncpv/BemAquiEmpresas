@@ -1,6 +1,6 @@
 # Runbook: deploy da homologação (FND-10, ADR 0015)
 
-Para quem opera a VPS. Este runbook prepara a homologação **uma vez**; depois disso, cada push na `main` com o CI verde publica sozinho.
+Para quem opera a VPS. Este runbook prepara a homologação **uma vez**; depois disso, a publicação automática liga com a variável `HOMOLOG_DEPLOY`. Desde a economia de minutos do Actions (21/10/2026), o CI roda só no PR pronto para revisão e não no push da `main`; com a variável ligada, dispare "Deploy homologação" à mão (workflow_dispatch). Enquanto ela estiver desligada, o deploy de homologação é feito pelo script local, que monta as imagens do commit da `main`, envia à VPS, roda o migrator e a fumaça.
 
 Regras que valem em toda a operação:
 - **VPS compartilhada:** não mexa nos containers, volumes e vhosts dos outros projetos (`bemaqui-atende`, `konebras`, `nshome`…). `app.konebras.com.br` continua com o Dolibarr até a GOL-01.

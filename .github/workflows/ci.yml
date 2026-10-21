@@ -1,9 +1,14 @@
 name: CI
 
+# Economia de minutos (plano Free, repositório privado): roda no PR pronto para revisão, que é o mesmo código que
+# entra na main pelo squash, e não repete no push da main. PR que só muda docs/ não roda; rascunho espera ficar pronto.
+# Rodada manual (ex.: conferir a main) pelo workflow_dispatch.
 on:
-  push:
-    branches: [main]
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths-ignore:
+      - "docs/**"
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -15,6 +20,8 @@ concurrency:
 jobs:
   supply-chain:
     name: Cadeia de suprimentos
+    # Rascunho não gasta minutos; os outros jobs dependem deste e são pulados junto.
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

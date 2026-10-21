@@ -1,5 +1,7 @@
 # Homologação a cada push na main com o CI verde (FND-10 CA 1). Liga quando a variável HOMOLOG_DEPLOY=true existir
 # no repositório (Settings → Variables), depois da preparação da VPS descrita em docs/operacao/deploy.md.
+# Desde a economia de minutos o CI não roda no push da main: com HOMOLOG_DEPLOY ligado, dispare este workflow à mão
+# (workflow_dispatch) ou rode o CI na main pelo workflow_dispatch. Hoje o deploy de homologação é feito pelo script local.
 name: Deploy homologação
 
 on:
