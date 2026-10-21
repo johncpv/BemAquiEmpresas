@@ -5,7 +5,7 @@
 | ID | FIN-03b |
 | Título | Regras de alçada da ordem de pagamento por faixa de valor e por conta (com teto), com aprovador por grupo ou usuário e níveis; a regra mais específica vence; proteção contra fracionamento; alçada viável; todas as aprovações do nível N antes do N+1; e-mail ao aprovador com link autenticado para a OP |
 | Tamanho | M (quebra da FIN-03) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-FIN-5 (alçadas configuráveis por valor/categoria; aprovação no sistema e por link no e-mail, autenticado) · R-COM-1 · R-COM-2 · R-PRP-5 · R-SEC-5 |
 | Dependências | FIN-03a (OP, `IApprovalPolicy`, decisões, retrato), FND-08 (e-mail), FND-06b (grupos), FND-09e |
 | Bloqueia | CMP-03 (alçada do pedido de compra reaproveita o motor) |
@@ -90,16 +90,16 @@ Decididos pelo PO em 20/10/2026 (seção 1.1, item 13, e D5):
 5. P-18 decidida (ADR 0021).
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers) e E2E passando.
-- [ ] Migration criada (não destrutiva, com a extensão `btree_gist` se ainda não existir); seed da regra padrão idempotente.
-- [ ] Permissões só do `ModuleCatalog`; template de e-mail registrado.
-- [ ] Tela com estados.
-- [ ] Ajuda escrita; teste de cobertura passando.
-- [ ] Alertas acionáveis (e-mail e sino com link direto).
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers) e E2E passando.
+- [x] Migration criada (não destrutiva, com a extensão `btree_gist` se ainda não existir); seed da regra padrão idempotente.
+- [x] Permissões só do `ModuleCatalog`; template de e-mail registrado.
+- [x] Tela com estados.
+- [x] Ajuda escrita; teste de cobertura passando.
+- [x] Alertas acionáveis (e-mail e sino com link direto).
+- [x] Auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
 - [ ] `ApprovalRule`, `ApprovalRuleResolver` (Domain, puro, com o valor de referência) e `PaymentOrderLevel`.
@@ -138,3 +138,4 @@ Checklist do @po (Pax), 20/10/2026 (revalidação depois das decisões do PO e d
 | 19/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 20/10/2026 | 0.3 | Decisões do PO (D5, seção 1.1) e correções da revisão pré-Fase 2 (§2.1-A1, §2.2-A2, A3, baixos); ordem 19; CAs renumerados | River (SM) |
 | 20/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 21/10/2026 | 1.0 | Implementada. Desvios: a sobreposição de faixas é conferida no serviço, sem `EXCLUDE USING gist` (a extensão `btree_gist` exige permissão de superusuário no banco do tenant; fica para quando o provisionamento a criar); a exclusão da regra é lógica (soft delete), e o seed não recria a padrão excluída; a tela mostra os botões de edição para quem tem `finance.approve` (reservado ao Proprietário) e o servidor confere o grupo Proprietário; OP pendente da FIN-03a, sem níveis gravados, segue a regra antiga até ser decidida ou reenviada; `IUserDirectory` ganhou membros de grupo, grupo Proprietário, nome do grupo e e-mail; o e-mail `payment-order-pending` sai junto com o sino, na mesma transação | @dev |

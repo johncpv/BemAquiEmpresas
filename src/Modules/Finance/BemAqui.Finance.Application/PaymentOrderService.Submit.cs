@@ -54,7 +54,12 @@ public sealed partial class PaymentOrderService
         db.PaymentOrders.Add(order);
         db.PaymentOrderItems.AddRange(items);
         events.Publish(new PaymentOrderSubmitted(order.Id, order.Total, order.RequestedBy));
-        await NotifyApproversAsync(order, cancellationToken);
+        var levels = await ResolveLevelsAsync(order, payables.Values, cancellationToken);
+        if (levels.IsFailure)
+        {
+            return levels.Error!;
+        }
+
         await db.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return await DetailAsync(order, cancellationToken);
@@ -74,16 +79,4 @@ public sealed partial class PaymentOrderService
     private static PayeeSnapshot SnapshotOf(Payable payable, PartySummary? party, PaymentOrderItem item) => new(
         payable.PartyId, party is null ? string.Empty : party.TradeName ?? party.LegalName, party?.Document, party?.CreatedAt, payable.Number, payable.Description, payable.NetAmount,
         payable.Retentions, item.Amount, item.ExpectedCharges, item.ApprovedTotal, payable.DueDate, PaymentDetails.Deserialize(payable.PaymentDetails)!, payable.PaymentMethodChangedAt);
-
-    /// <summary>Aprovadores elegíveis (quem tem <c>finance.approve</c>), sem o solicitante (CA 5).</summary>
-    private async Task NotifyApproversAsync(PaymentOrder order, CancellationToken ct)
-    {
-        foreach (var user in await users.UsersWithPermissionAsync("finance.approve", ct))
-        {
-            if (user != order.RequestedBy)
-            {
-                notifications.Notify(user, NotificationType, $"OP {order.Number} de {ReceivableService.Money(order.Total)} aguarda sua aprovação", Link(order) + "?acao=aprovar");
-            }
-        }
-    }
 }

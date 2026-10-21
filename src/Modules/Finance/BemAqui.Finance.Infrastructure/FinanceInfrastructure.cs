@@ -47,6 +47,12 @@ public static class FinanceInfrastructure
         services.TryAddScoped<IReceivables, ReceivablesContract>();
         services.TryAddScoped<IFinancialOpening, FinancialOpeningContract>();
         services.TryAddScoped<PaymentStatsService>();
+        services.TryAddScoped<ApprovalRuleService>();
+        services.TryAddScoped<ApprovalResolver>();
+        services.TryAddScoped<ApprovalSimulator>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<ITenantSeeder, ApprovalRuleSeeder>());
+        services.AddAuditableEntity<ApprovalRule>("finance");
+        services.AddAuditableEntity<PaymentOrderLevel>("finance");
         services.TryAddScoped<ICustomerPaymentStats>(sp => sp.GetRequiredService<PaymentStatsService>());
         services.TryAddScoped<FinanceDeadLetters>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Messaging.IDeadLetterObserver, FinanceDeadLetters>());

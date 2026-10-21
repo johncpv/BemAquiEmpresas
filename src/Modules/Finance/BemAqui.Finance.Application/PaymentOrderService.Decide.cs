@@ -53,15 +53,35 @@ public sealed partial class PaymentOrderService
             return Error.Forbidden("own_payment_order", "Quem solicitou a ordem não pode aprová-la.");
         }
 
+        // Alçada multinível (FIN-03b CA 12 a 15): decide o nível pendente mais baixo, só quem está na regra dele.
+        var level = await CurrentLevelAsync(order.Id, ct);
+        if (level is not null && await LevelErrorAsync(order, level, ct) is { } outside)
+        {
+            return outside;
+        }
+
         db.Entry(order).Property(o => o.Version).OriginalValue = input.Version;
         var approved = decision == PaymentOrderDecision.Approved;
-        order.Status = approved ? PaymentOrderStatus.Approved : PaymentOrderStatus.Rejected;
-        order.SelfApproved = approved && self;
         db.PaymentOrderApprovals.Add(new PaymentOrderApproval
         {
-            PaymentOrderId = order.Id, Kind = PaymentOrderDecisionKind.Decision, Decision = decision, Comment = comment, DecidedBy = currentUser.UserId, DecidedAt = clock.GetUtcNow(),
-            SelfApproved = order.SelfApproved,
+            PaymentOrderId = order.Id, Level = level?.Level ?? 1, Kind = PaymentOrderDecisionKind.Decision, Decision = decision, Comment = comment, DecidedBy = currentUser.UserId,
+            DecidedAt = clock.GetUtcNow(), SelfApproved = approved && self,
         });
+        if (level is not null)
+        {
+            level.Status = approved ? LevelStatus.Approved : LevelStatus.Rejected;
+            var next = approved ? await db.PaymentOrderLevels.Where(l => l.PaymentOrderId == order.Id && l.Status == LevelStatus.Pending && l.Level > level.Level).OrderBy(l => l.Level).FirstOrDefaultAsync(ct) : null;
+            if (next is not null)
+            {
+                order.SelfApproved = order.SelfApproved || self;
+                db.Entry(order).Property(o => o.SubmittedAt).IsModified = true;
+                await NotifyLevelAsync(order, next.Level, await resolver.EligibleAsync(next, order.RequestedBy, ct), ct);
+                return await SaveDecisionAsync(order, ct);
+            }
+        }
+
+        order.Status = approved ? PaymentOrderStatus.Approved : PaymentOrderStatus.Rejected;
+        order.SelfApproved = approved && (self || order.SelfApproved);
         foreach (var payable in await PayablesOfAsync(order, ct))
         {
             if (approved)
@@ -138,6 +158,24 @@ public sealed partial class PaymentOrderService
         }
 
         return await SaveDecisionAsync(order, cancellationToken);
+    }
+
+    /// <summary>Fora da alçada (CA 15) ou já decidiu outro nível (CA 13): 403 com o motivo.</summary>
+    private async Task<Error?> LevelErrorAsync(PaymentOrder order, PaymentOrderLevel level, CancellationToken ct)
+    {
+        var me = currentUser.UserId;
+        var other = await db.PaymentOrderApprovals.AsNoTracking()
+            .Where(a => a.PaymentOrderId == order.Id && a.DecidedBy == me && a.Decision == PaymentOrderDecision.Approved && a.Level != level.Level && a.Kind == PaymentOrderDecisionKind.Decision
+                && a.DecidedAt >= order.SubmittedAt)
+            .Select(a => (int?)a.Level).FirstOrDefaultAsync(ct);
+        if (other is { } decided)
+        {
+            return Error.Forbidden("already_decided_level", $"Você já aprovou o nível {decided} desta ordem.");
+        }
+
+        return me is { } user && (await resolver.EligibleAsync(level, order.RequestedBy, ct)).Contains(user)
+            ? null
+            : Error.Forbidden("outside_approval_rule", "Esta ordem não está na sua alçada.");
     }
 
     /// <summary>Regra do solicitante (CA 9 e 10) com o Proprietário de agora e o parâmetro.</summary>

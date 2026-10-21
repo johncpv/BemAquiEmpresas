@@ -103,6 +103,10 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<PayableSettlement> PayableSettlements => Set<PayableSettlement>();
 
+    public DbSet<BemAqui.Finance.Domain.ApprovalRule> ApprovalRules => Set<BemAqui.Finance.Domain.ApprovalRule>();
+
+    public DbSet<BemAqui.Finance.Domain.PaymentOrderLevel> PaymentOrderLevels => Set<BemAqui.Finance.Domain.PaymentOrderLevel>();
+
     public DbSet<BankTransfer> BankTransfers => Set<BankTransfer>();
 
     public DbSet<BankEntry> BankEntries => Set<BankEntry>();

@@ -4,6 +4,7 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { ApprovalLevelView } from './approvalLevelView';
 import type { PaymentOrderDecisionView } from './paymentOrderDecisionView';
 import type { PaymentOrderItemView } from './paymentOrderItemView';
 import type { PaymentOrderSummary } from './paymentOrderSummary';
@@ -23,4 +24,6 @@ export interface PaymentOrderDetail {
   /** @nullable */
   bankAccountId: string | null;
   version: number;
+  /** @nullable */
+  levels?: ApprovalLevelView[] | null;
 }

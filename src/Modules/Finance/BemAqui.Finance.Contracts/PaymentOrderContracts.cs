@@ -23,3 +23,6 @@ public sealed record PaymentOrderApproved(Guid PaymentOrderId) : IIntegrationEve
 
 /// <summary>OP paga (CA 13), sem consumidor nesta fase.</summary>
 public sealed record PaymentOrderPaid(Guid PaymentOrderId, DateOnly PaidOn) : IIntegrationEvent;
+
+/// <summary>Nível da OP liberado para decisão (FIN-03b): sino e e-mail aos aprovadores do nível.</summary>
+public sealed record PaymentOrderLevelReleased(Guid PaymentOrderId, int Level) : BemAqui.SharedKernel.IIntegrationEvent;

@@ -35,6 +35,7 @@ internal static partial class FinanceEndpoints
         MapSuppliers(finance.MapGroup("/suppliers"));
         MapProjects(finance.MapGroup("/projects"));
         MapDeadLetters(finance.MapGroup("/dead-letters"));
+        MapApprovalRules(finance.MapGroup("/approval-rules"));
         MapRecurringExpenses(finance.MapGroup("/recurring-expenses"));
         MapOpening(finance.MapGroup("/opening"));
         MapCashFlow(finance.MapGroup("/cash-flow"));

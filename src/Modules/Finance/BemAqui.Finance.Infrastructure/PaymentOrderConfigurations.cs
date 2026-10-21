@@ -61,3 +61,30 @@ internal sealed class PayableSettlementConfiguration : IEntityTypeConfiguration<
         b.HasIndex(e => e.PaymentOrderId);
     }
 }
+
+internal sealed class ApprovalRuleConfiguration : IEntityTypeConfiguration<ApprovalRule>
+{
+    public void Configure(EntityTypeBuilder<ApprovalRule> b)
+    {
+        b.ToTable("approval_rules", FinanceSchema.Name);
+        b.Property(e => e.DocumentType).HasMaxLength(20);
+        b.Property(e => e.MinAmount).HasPrecision(18, 2);
+        b.Property(e => e.MaxAmount).HasPrecision(18, 2);
+        b.Property(e => e.SeedKey).HasMaxLength(40);
+        b.HasIndex(e => e.SeedKey).IsUnique().HasFilter("seed_key IS NOT NULL");
+        b.HasIndex(e => new { e.DocumentType, e.Level });
+    }
+}
+
+internal sealed class PaymentOrderLevelConfiguration : IEntityTypeConfiguration<PaymentOrderLevel>
+{
+    public void Configure(EntityTypeBuilder<PaymentOrderLevel> b)
+    {
+        b.ToTable("payment_order_levels", FinanceSchema.Name);
+        b.Property(e => e.ReferenceAmount).HasPrecision(18, 2);
+        b.Property(e => e.SplitWarning).HasMaxLength(200);
+        b.Property(e => e.Status).HasConversion<string>().HasMaxLength(12);
+        b.HasOne<PaymentOrder>().WithMany().HasForeignKey(e => e.PaymentOrderId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => new { e.PaymentOrderId, e.Level }).IsUnique();
+    }
+}

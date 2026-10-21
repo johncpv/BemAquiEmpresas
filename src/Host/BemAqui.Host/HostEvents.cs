@@ -36,6 +36,7 @@ public static class HostEvents
             .AddHandler<BemAqui.Finance.Contracts.ReceivableSettled, BemAqui.Commercial.Application.ContractCompletionConsumer>()
             .AddEvent<BemAqui.Finance.Contracts.PaymentOrderSubmitted>()
             .AddEvent<BemAqui.Finance.Contracts.PaymentOrderApproved>()
-            .AddEvent<BemAqui.Finance.Contracts.PaymentOrderPaid>();
+            .AddEvent<BemAqui.Finance.Contracts.PaymentOrderPaid>()
+            .AddEvent<BemAqui.Finance.Contracts.PaymentOrderLevelReleased>();
     }
 }

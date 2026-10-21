@@ -1447,6 +1447,80 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("chart_of_accounts", "finance");
                 });
 
+            modelBuilder.Entity("BemAqui.Finance.Domain.ApprovalRule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("AccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("account_id");
+
+                    b.Property<Guid?>("ApproverGroupId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("approver_group_id");
+
+                    b.Property<Guid?>("ApproverUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("approver_user_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<string>("DocumentType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("document_type");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("integer")
+                        .HasColumnName("level");
+
+                    b.Property<decimal?>("MaxAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("max_amount");
+
+                    b.Property<decimal>("MinAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("min_amount");
+
+                    b.Property<string>("SeedKey")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("seed_key");
+
+                    b.HasKey("Id")
+                        .HasName("pk_approval_rules");
+
+                    b.HasIndex("SeedKey")
+                        .IsUnique()
+                        .HasDatabaseName("ix_approval_rules_seed_key")
+                        .HasFilter("seed_key IS NOT NULL");
+
+                    b.HasIndex("DocumentType", "Level")
+                        .HasDatabaseName("ix_approval_rules_document_type_level");
+
+                    b.ToTable("approval_rules", "finance");
+                });
+
             modelBuilder.Entity("BemAqui.Finance.Domain.BankAccount", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2420,6 +2494,51 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDatabaseName("ix_payment_order_items_payment_order_id");
 
                     b.ToTable("payment_order_items", "finance");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.PaymentOrderLevel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ApprovalRuleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("approval_rule_id");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("integer")
+                        .HasColumnName("level");
+
+                    b.Property<Guid>("PaymentOrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("payment_order_id");
+
+                    b.Property<decimal>("ReferenceAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("reference_amount");
+
+                    b.Property<string>("SplitWarning")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("split_warning");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id")
+                        .HasName("pk_payment_order_levels");
+
+                    b.HasIndex("PaymentOrderId", "Level")
+                        .IsUnique()
+                        .HasDatabaseName("ix_payment_order_levels_payment_order_id_level");
+
+                    b.ToTable("payment_order_levels", "finance");
                 });
 
             modelBuilder.Entity("BemAqui.Finance.Domain.PaymentTerm", b =>
@@ -5638,6 +5757,16 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_financial_transactions_bank_accounts_bank_account_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.PaymentOrderLevel", b =>
+                {
+                    b.HasOne("BemAqui.Finance.Domain.PaymentOrder", null)
+                        .WithMany()
+                        .HasForeignKey("PaymentOrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_payment_order_levels_payment_orders_payment_order_id");
                 });
 
             modelBuilder.Entity("BemAqui.Finance.Domain.ReceivableSettlement", b =>
