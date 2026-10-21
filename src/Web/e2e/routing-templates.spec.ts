@@ -40,7 +40,7 @@ test.describe('Roteiros de fabricação (ENG-01)', () => {
     await expect(page.getByLabel('Letra da etapa 5')).toHaveValue('E')
     await expect(page.getByText('Começa sem BOM')).toBeVisible()
     await expect(page.getByText('Sugerido').first()).toBeVisible()
-    await page.getByLabel('Nome', { exact: true }).fill('Cabine padrão')
+    await page.getByLabel('Nome (obrigatório)').fill('Cabine padrão')
 
     // Corte desce para a 3ª posição pelo teclado; a letra da Montagem (agora 2ª) vira N.
     await page.getByRole('button', { name: 'Mover etapa 2 para baixo' }).focus()
@@ -65,10 +65,10 @@ test.describe('Roteiros de fabricação (ENG-01)', () => {
     expect(steps.every((s) => s.workCenterId === 'c1')).toBe(true)
 
     await page.getByRole('button', { name: 'Vincular produtos' }).click()
-    await page.getByRole('button', { name: 'Vincular produto' }).click()
+    await page.getByRole('button', { name: 'Vincular produto', exact: true }).click()
     await page.getByRole('combobox', { name: 'Produto para vincular' }).click()
     await page.getByRole('option', { name: /CAB-01/ }).click()
-    await expect(page.getByText('Produto vinculado')).toBeVisible()
+    await expect(page.getByText('Produto vinculado').first()).toBeVisible()
     expect(linked).toEqual({ itemId: 'i1' })
   })
 
@@ -87,7 +87,7 @@ test.describe('Roteiros de fabricação (ENG-01)', () => {
 
     await page.getByRole('tab', { name: 'Produtos' }).click()
     await expect(page.getByText('Nenhum produto usa este roteiro. Vincule para a OS nascer com ele.')).toBeVisible()
-    await page.getByRole('button', { name: 'Vincular produto' }).click()
+    await page.getByRole('button', { name: 'Vincular produto', exact: true }).click()
     await page.getByRole('combobox', { name: 'Produto para vincular' }).click()
     await page.getByRole('option', { name: /CAB-01/ }).click()
     await expect(page.getByRole('alert').filter({ hasText: 'O produto CAB-01 já usa o roteiro Porta.' })).toBeVisible()

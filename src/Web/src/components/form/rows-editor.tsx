@@ -1,5 +1,5 @@
 import { ArrowDown, ArrowUp, Copy, GripVertical, Plus, Trash2 } from 'lucide-react'
-import { type ReactNode, useRef, useState } from 'react'
+import { type CSSProperties, type ReactNode, useRef, useState } from 'react'
 import { InlineError } from '@/components/ui/states'
 
 /** Coluna do editor (FND-09e CA 9): rótulo, largura na grade (ex.: "8rem", "2fr") e o campo da célula. */
@@ -121,7 +121,7 @@ export function RowsEditor<T>({ noun, rows, onChange, newRow, columns, headers =
             <div key={keys[i]} data-row={keys[i]}
               onDragOver={draggable && dragging !== null ? (e) => e.preventDefault() : undefined}
               onDrop={draggable && dragging !== null ? (e) => { e.preventDefault(); move(dragging, i); setDragging(null) } : undefined}>
-              <div role="row" aria-label={`${noun} ${i + 1}`} aria-invalid={error ? true : undefined} className="grid gap-2 rounded-md border border-border p-2 sm:items-center sm:border-0 sm:p-0" style={{ gridTemplateColumns: template }}>
+              <div role="row" aria-label={`${noun} ${i + 1}`} aria-invalid={error ? true : undefined} className="grid gap-2 rounded-md border border-border p-2 sm:grid-cols-(--cols) sm:items-center sm:border-0 sm:p-0" style={{ '--cols': template } as CSSProperties}>
                 {cells.map((cell, c) => (
                   <div key={c} role="cell" className="col-span-full min-w-0 sm:col-span-1">
                     <span className="mb-0.5 block text-xs font-medium text-muted-foreground sm:sr-only">{labels[c]}</span>
