@@ -2,6 +2,8 @@
 
 A Fase 1 está na [segunda parte deste arquivo](#fase-1--cadastros-e-migração) e a Fase 2 na [terceira](#fase-2--comercial-projetos-e-financeiro-núcleo).
 
+A Fase 4 (Planejamento, painéis e visão do dono) está na [seção própria](#fase-4--planejamento-painéis-e-visão-do-dono), no fim deste arquivo. A Fase 3 está sendo escrita na branch `docs/fase3-stories`.
+
 Stories detalhadas da Fase 0 do BemAqui Empresas, uma por arquivo. Fonte: `docs/01` a `06`, ADRs 0001–0005 e a revisão `docs/revisoes/2026-10-16-revisao-pre-fase0.md` (correções, ADRs técnicas propostas 0006–0008 e CAs de segurança da §2.3).
 
 ## Definition of Ready
@@ -421,3 +423,154 @@ Nenhum ponto bloqueante nas stories. Os 29 pontos do README anterior foram decid
 2. SPF, DKIM e DMARC antes do deploy da COM-03 (P-21 e P-22 decididas em 20/10/2026).
 3. Backup diário do tenant `konebras` no ar antes da primeira carga real da FIN-00; teste de restauração recomendado, sem bloquear.
 4. **P-01** (regime tributário) continua aberta, sem bloquear a fase.
+
+---
+
+# Fase 4 — Planejamento, painéis e visão do dono
+
+Stories detalhadas da Fase 4, uma por arquivo, escritas pelo @sm (River) e validadas pelo @po (Pax) em 21/10/2026. Fonte: `docs/01` a `06`, ADRs 0001–0022, a revisão pré-Fase 0 §3 (quiosque), as stories da Fase 3 em rascunho (branch `docs/fase3-stories`: OS de fabricação, etapas, apontamentos, `project_costs`, `ProductionHub`, faltas, compras), o código das Fases 0 a 2 (`ModuleCatalog` com `dashboard` e `kiosk`, `GroupSeeder`, `IProjects`, `IContracts`, `IReceivables`, `IPayables`, `ICustomerPaymentStats`, `CashFlowService`, `IWorkCenterCapacity`, `IInstallationOrders`, `PingHub`, `INotificationService`, `Chart` só de linhas, `StageIndicator`, `TvLayout` em `/tv/$token`) e o protótipo (Painel, TV). A Definition of Ready, a legenda e a escala de tamanho são as mesmas das fases anteriores. **Todas as stories estão `Draft`**: a Fase 4 só começa com a Fase 3 concluída (regra do backlog), e as que têm pontos em aberto marcados como pré-condição só passam a `Ready` depois da decisão do PO.
+
+## Índice
+| Ordem | ID | Título | Tam. | Status | Requisitos | Depende de | Arquivo |
+|---|---|---|---|---|---|---|---|
+| 1 (4.1) | FIN-07 | Projeção de caixa ajustada pelo histórico do cliente | M | Draft | R-FIN-11, R-FIN-10, R-TER-4, PRD §5.14 | FIN-05, FIN-06b | [FIN-07](FIN-07-projecao-ajustada.md) |
+| 2 (4.1) | DSH-02 | Orçado × realizado e margem, por projeto e consolidado | M | Draft | R-PRJ-5, PRD §5.14, PRD §1.2 | COM-05, COM-07, EST-03, PRD-04, CMP-03a | [DSH-02](DSH-02-orcado-realizado-margem.md) |
+| 3 (4.1) | FIN-08 | DRE gerencial mensal e por projeto | G (M → G) | Draft | R-FIN-13, R-FIN-1, PRD §5.14 | CAD-05a, FIN-01, FIN-02, FIN-04, DSH-02 | [FIN-08](FIN-08-dre-gerencial.md) |
+| 4 (4.2) | DSH-04 | Minha pauta | M | Draft | R-PRP-4, R-PRP-5, R-COM-2 | FIN-03b, COM-07, stories da Fase 3 (por fonte) | [DSH-04](DSH-04-minha-pauta.md) |
+| 5 (4.2) | DSH-01a | Painel do dono: estrutura, caixa, faturamento, inadimplência, comercial e pendências | G | Draft | PRD §5.14, R-FIN-10 a 13, R-COML-9, R-PRP-4 | FIN-07, FIN-08, FIN-06a, COM-08, DSH-04 | [DSH-01a](DSH-01a-painel-dono-financeiro-comercial.md) |
+| 6 (4.3) | PLN-01a | Motor de agendamento finito | G | Draft | R-PLN-3, R-PLN-1, PRD §6 | PRD-01, PRD-03a, PRD-05, CAD-03 | [PLN-01a](PLN-01a-motor-agendamento.md) |
+| 7 (4.3) | PLN-01b | Recálculo por evento, data prevista do projeto e risco | M | Draft | R-PLN-3, R-PLN-4, R-COM-2 | PLN-01a, COM-05, COM-07, PRD-02 | [PLN-01b](PLN-01b-recalculo-previsao-risco.md) |
+| 8 (4.3) | PLN-02 | Fila de prioridade dos projetos | M | Draft | R-PLN-2, R-PLN-3, R-PLN-4 | PLN-01a, PLN-01b | [PLN-02](PLN-02-fila-prioridade.md) |
+| 9 (4.3) | PLN-04 | Ocupação da fábrica por semana e centro | M | Draft | R-PLN-6, R-PLN-1, PRD §5.14 | PLN-01a | [PLN-04](PLN-04-ocupacao-fabrica.md) |
+| 10 (4.3) | PLN-03 | Cronograma (Gantt) por projeto e por centro | G | Draft | R-PLN-4, R-PLN-3 | PLN-01a, PLN-01b, PLN-02 | [PLN-03](PLN-03-gantt.md) |
+| 11 (4.4) | PNL-01a | Tokens de tela, sessão de quiosque e tempo real da TV | G | Draft | R-SEC-6, PRD §5.14, PRD §6 | PRD-02, FND-02, FND-04, FND-09b | [PNL-01a](PNL-01a-tokens-tela-sessao-quiosque.md) |
+| 12 (4.4) | PNL-01b | Visões do painel da TV | M | Draft | PRD §5.14, R-PRD-2, R-PLN-4, PRD §6 | PNL-01a, PRD-03a, PLN-01b, PLN-02 | [PNL-01b](PNL-01b-visoes-painel-tv.md) |
+| 13 (4.4) | DSH-03 | Painel do supervisor | M | Draft | PRD §5.14, R-PRD-2, R-PRD-6, R-PLN-6, R-EST-4, R-CMP-1 | PRD-02, PLN-04, PRD-05, EST-02, CMP-01 | [DSH-03](DSH-03-painel-supervisor.md) |
+| 14 (4.5) | DSH-01b | Painel do dono: margem, carteira, produção e entregas | M | Draft | PRD §5.14, R-PRJ-5, R-PLN-4, R-PLN-6 | DSH-01a, DSH-02, PLN-01b, PLN-04 | [DSH-01b](DSH-01b-painel-dono-margem-producao.md) |
+| 15 (4.5) | PLN-05 | Simulação de prazo do orçamento (D) | M | Draft | R-PLN-5, R-COML-1 | PLN-01a, PLN-01b, PLN-02, COM-01a | [PLN-05](PLN-05-simulacao-prazo-orcamento.md) |
+
+Total da Fase 4: 15 stories (M: 10 · G: 5), todas `Draft`.
+
+## Ordem de execução
+```
+4.1 O dinheiro do jeito que ele vai acontecer:  FIN-07 → DSH-02 → FIN-08
+4.2 O painel do dono, parte do dinheiro:         DSH-04 → DSH-01a
+4.3 Datas que a fábrica cumpre:                  PLN-01a → PLN-01b → PLN-02 → PLN-04 → PLN-03
+4.4 A fábrica na parede:                         PNL-01a → PNL-01b → DSH-03
+4.5 A visão completa do dono:                    DSH-01b → PLN-05 (D)
+```
+
+Por que esta ordem:
+- **Visibilidade financeira primeiro (4.1 e 4.2):** é o objetivo central do produto. A FIN-07 só depende da Fase 2 (fluxo base e pontualidade); o DSH-02 fecha o orçado × realizado com o material e as horas da Fase 3; a FIN-08 usa o realizado do DSH-02 na visão por projeto. A DSH-04 vem antes da DSH-01a porque as pendências do dono são categorias da pauta.
+- **4.3:** o motor (PLN-01a) é a base de tudo o que é data; a PLN-01b leva a data prevista ao projeto e troca a regra provisória de risco da PRD-02; a fila (PLN-02) precisa da simulação do motor; a ocupação e o cronograma só leem o plano.
+- **4.4:** a sessão de quiosque e o hub (PNL-01a) vêm antes das visões (PNL-01b), que usam a previsão e a fila; o painel do supervisor compõe Kanban, ocupação, qualidade e faltas.
+- **4.5:** a DSH-01b precisa da margem (DSH-02), da previsão (PLN-01b) e da ocupação (PLN-04); a PLN-05 é **D** no PRD.
+
+## Quebras e re-estimativas
+- **PLN-01** → **01a** (motor, gravação, recálculo manual e por hora, G) e **01b** (gatilhos por evento, data prevista do projeto, risco e aviso, M): o motor sozinho já é G pelos testes de cenário e de desempenho.
+- **PNL-01** → **01a** (tokens, sessão de quiosque, esquema de autenticação, hub, revogação e layout base, G) e **01b** (visões, rotação e < 2 s, M): a parte de segurança da rota anônima pesava sobre as visões.
+- **DSH-01** → **01a** (estrutura, cache e cards do Financeiro e do Comercial, G) e **01b** (margem, carteira, produção e entregas, M): a 01a entrega o painel do dono no Marco 4.2, sem esperar o planejamento.
+- **Re-estimada:** FIN-08 (M → G: duas visões, mapeamento de juros e descontos das baixas, drill-down por célula e o resumo para o painel).
+
+## Padrões comuns da Fase 4
+Valem além dos padrões das fases anteriores. Cada story só repete o que é específico dela.
+1. **Cada número tem regra e origem:** todo indicador mostra a regra em `<Dica>` ("Como calculamos") e leva ao relatório ou documento de origem; o painel nunca recalcula: chama o mesmo contrato que o relatório usa, com teste que compara os dois.
+2. **Um cálculo, um lugar:** `ICashForecast` (FIN-07), `IRevenueSummary` (FIN-08), `IProjectMargins` (DSH-02), `IProductionSchedule` (PLN-01a), `IFactoryLoad` (PLN-04), `IPlanningQueue` (PLN-02), `IAgendaService` (DSH-04).
+3. **Sigilo de custo (D7):** custo, orçado e margem só com `projects.view_cost`; DTO separado e teste de arquitetura em toda lista, card e painel novo; a TV e a simulação do orçamento nunca levam valores.
+4. **Card pela permissão do dono:** abrir o painel exige `dashboard.view`; cada card ou bloco exige a permissão do módulo dono do dado e não é chamado sem ela.
+5. **Consultas agregadas:** no módulo dono (ou composição no Host, ponto 18), sempre com parâmetros e ordenação por allowlist; metas: painel completo < 2 s, card < 1,5 s, relatórios < 1–2 s com 50 mil títulos, 5 mil projetos, 200 mil custos e 300 OS; materialized view só se a medição pedir (ADR 0006).
+6. **Cache:** só de agregados por tenant, nunca de resposta por usuário; TTL de 60 s com invalidação pelos eventos que mudam o número; "Atualizado às" e "Atualizar"; teste com dois tenants.
+7. **Plano finito, um escritor:** só o `ScheduleService` grava datas previstas e alocações, uma execução por vez por tenant, pedidos agrupados; o motor é puro e determinístico; o plano não tem efeito financeiro, fiscal nem de estoque.
+8. **Tempo real:** grupos SignalR derivados das claims (`{tenantId}:production`, `{tenantId}:kiosk:{id}`), hub sem método de entrada em grupo, mensagem só com id ou sinal, push depois do commit, polling de 60 s como reserva.
+9. **Quiosque:** token de 256 bits só como hash, mostrado uma vez, nunca no caminho nem na query (iria para o log do nginx), trocado por cookie `__Host-bq_kiosk`; principal de quiosque só em GET do painel; revogação em menos de 1 minuto; sem dado pessoal além do primeiro nome do operador.
+10. **Eventos fora de ordem:** quem publica previsão leva `computedAt` e o consumidor só aplica o mais novo (PLN-01b).
+11. **Gráficos:** linhas pelo `Chart`; barras pelo `ColumnChart` (PLN-04) e cronograma pelo `Gantt` (PLN-03), componentes próprios com tokens `--chart-*`, sem cor literal e com tabela equivalente acessível.
+12. **Parâmetros novos** no schema do módulo dono, editados em Configurações → Parâmetros com `settings.edit` (ADR 0016 M6): `finance.adjusted_default_threshold_pct`, contas do DRE, `finance.revenue_targets`, `planning.installation_days`.
+13. **Navegação:** Visão geral → Painel do proprietário (`/app/painel`); Financeiro → DRE; Comercial → Projetos → Orçado × realizado; Fábrica → Produção → Planejamento (Fila, Cronograma, Ocupação) e Painel do supervisor; Telas dedicadas → Painel da TV (`/app/painel-tv`) e a superfície `/tv`; Minha pauta no Início.
+
+## Validação do PO (21/10/2026)
+O @po (Pax) validou as 15 stories com a checklist de 10 itens das fases anteriores. **Todas tiveram 10/10.** Vereditos:
+- **GO** (sem pré-condição de decisão): PLN-03, DSH-03.
+- **GO condicional** (pontos em aberto marcados como pré-condição): FIN-07, DSH-02, FIN-08, DSH-04, DSH-01a, DSH-01b, PLN-01a, PLN-01b, PLN-02, PLN-04, PNL-01a, PNL-01b, PLN-05.
+- **Correções da validação cruzada:** a DSH-03 deixou de depender da DSH-04 (nenhum CA a usava); a PLN-01b passou a dizer como o Commercial resolve os destinatários do aviso de risco (síncrono no consumidor, ADR 0019 §18); os números de ocupação da PLN-04 foram conferidos com o cenário da PLN-01a (na semana atual, só os dias a partir de hoje).
+- **ADRs sugeridas:** antes do Marco 4.2, onde ficam as consultas do painel (Host × módulo `Reporting` da ADR 0006); antes do Marco 4.3, dono da fila de prioridade (`production.planning_queue` × `commercial.projects.priority`) e datas previstas fora da auditoria; antes do Marco 4.4, caminho e sessão da TV (`/tv#token` com cookie, atualizando o `02-arquitetura` §4).
+
+## Dependências da Fase 3 ainda em aberto
+Pontos da Fase 3 (numeração do README da branch `docs/fase3-stories`) que a Fase 4 recebe sem decisão:
+
+| Ponto da Fase 3 | Story da Fase 3 | Afeta | Efeito |
+|---|---|---|---|
+| 41 e 59 (contar a compra para o projeto duas vezes) | CMP-03a, EST-03 | DSH-02, FIN-08, DSH-01b | fonte do realizado de material (pré-condição da DSH-02) |
+| 39 (conta e natureza do título do pedido) | CMP-03a | FIN-08 | compra como custo no DRE ou estoque fora do DRE |
+| 38 e 40 (alçada do pedido por `Finance.Contracts`; um título por parcela) | CMP-03a | DSH-04, FIN-07 | categoria "pedido aguardando você"; parcelas previstas no fluxo |
+| 62 (regra provisória de "em risco") | PRD-02 | PLN-01b | substituída pela prevista × prometida |
+| 60 (arrastar no Kanban) | PRD-02 | PLN-02 | a fila tem arraste próprio; o Kanban continua sem |
+| 18, 19 e 20 (itens que geram OS, uma OS por item, projetos da Fase 2 sem OS) | PRD-01 | PLN-01a, PLN-02, PLN-05 | o que entra no plano, na fila e na simulação |
+| 64 e 65 (etapa Projeto sem BOM; vários operadores na etapa) | PRD-03a | PLN-01a, PNL-01b | capacidade por centro, não por operador; "operador +n" na TV |
+| 73 e 75 (momento do snapshot do custo-hora; pausa paga) | PRD-04 | DSH-02, DSH-03 | valor da mão de obra; indicador de horas paradas |
+| 78 e 79 (custo da NC; aprovação da última etapa) | PRD-05 | DSH-02, PLN-01a | NC fora do realizado; horas restantes em `Quality` |
+| 82 (conclusão parcial) | PRD-06a | PLN-01a | OS parcialmente concluída no plano |
+| 28 (quem recebe o material que chega) | EST-02 | PLN-02 | ordem das faltas pela fila (só com decisão) |
+| 6 (roteiro no item do orçamento) | ENG-01 | PLN-05 | ordem das etapas da simulação |
+
+## Pontos em aberto da Fase 4
+Pendências do `06` que afetam a fase: **P-17** (decidida: competência pela data da venda; a FIN-08 aplica e deixa a data antes da NF-e como ponto 10), **P-01** (aberta: impostos realizados antes da Fase 5, ponto 7, sem bloquear) e **P-12** (decidida: a TV é providenciada pela Konebras). Pontos por story (a proposta está em cada arquivo; nenhum foi decidido):
+
+| # | Story | Ponto |
+|---|---|---|
+| 1 | FIN-07 | Qual "% de inadimplência" pondera o ajustado (pré-condição) |
+| 2 | FIN-07 | Limite padrão de 20% |
+| 3 | FIN-07 | Deslocamento em dias corridos ou úteis |
+| 4 | FIN-07 | Vencido em aberto no ajustado (pré-condição) |
+| 5 | DSH-02 | Contar a compra para o projeto duas vezes (pré-condição; herdado da CMP-03a) |
+| 6 | DSH-02 | Título `Planned` vai para "Comprometido" (muda a COM-05; pré-condição) |
+| 7 | DSH-02 | Impostos realizados antes da Fase 5 (P-01) |
+| 8 | DSH-02 | Margem do consolidado ponderada pela receita |
+| 9 | DSH-02 | Custo da NC no realizado (herdado da PRD-05) |
+| 10 | FIN-08 | Data da receita antes da NF-e (pré-condição) |
+| 11 | FIN-08 | Juros, multas e descontos das baixas no DRE |
+| 12 | FIN-08 | Definição do DRE por projeto (pré-condição) |
+| 13 | FIN-08 | Cancelamento depois do mês (sem fechamento) |
+| 14 | FIN-08 | Compra para estoque no DRE (pré-condição; herdado da CMP-03a) |
+| 15 | DSH-04 | Ordem "do que mais destrava" (pré-condição) |
+| 16 | DSH-04 | Categorias e limites do MVP |
+| 17 | DSH-04 | Pauta no Início, acima dos "Próximos passos" da ADR 0010 item 9 (pré-condição) |
+| 18 | DSH-01a | Consultas do painel no Host ou no módulo `Reporting` (arquiteto; pré-condição) |
+| 19 | DSH-01a | Meta de faturamento: formato e permissão (pré-condição) |
+| 20 | DSH-01a | O que é "faturamento" antes da Fase 5 (pré-condição) |
+| 21 | DSH-01a | Cache de 60 s e frescor |
+| 22 | DSH-01a | Primeira tela do dono depois do login |
+| 23 | DSH-01b | Definição da carteira a produzir e a faturar (pré-condição) |
+| 24 | DSH-01b | Margem "realizada" do PRD × "projetada" do protótipo (pré-condição) |
+| 25 | PLN-01a | Ordem da fila antes da PLN-02 |
+| 26 | PLN-01a | Etapas em andamento antes da fila (pré-condição) |
+| 27 | PLN-01a | Início da etapa seguinte: dia seguinte ou mesmo dia (pré-condição) |
+| 28 | PLN-01a | Horas do retrabalho depois da NC |
+| 29 | PLN-01a | Datas previstas fora da auditoria (arquiteto; pré-condição) |
+| 30 | PLN-01a | Itens que geram OS e uma OS por item (herdado da PRD-01) |
+| 31 | PLN-01b | Prazo de instalação na data prevista (pré-condição) |
+| 32 | PLN-01b | Valor padrão do prazo de instalação (pré-condição) |
+| 33 | PLN-01b | Até 10 s para a data nova aparecer |
+| 34 | PLN-01b | Quem é avisado do risco e com qual tolerância |
+| 35 | PLN-01b | Regra provisória de risco da Fase 3 (herdado da PRD-02) |
+| 36 | PLN-02 | Dono da prioridade: Production × `commercial.projects.priority` (pré-condição; pede ADR) |
+| 37 | PLN-02 | Permissão para reordenar: `production.edit` ou `production.approve` (pré-condição) |
+| 38 | PLN-02 | Onde entra o projeto novo na fila |
+| 39 | PLN-02 | Ordem das faltas pela fila (herdado da EST-02) |
+| 40 | PLN-04 | Ocupação acima de 100% (protótipo × plano finito; pré-condição) |
+| 41 | PLN-04 | Faixas de cor da ocupação |
+| 42 | PLN-03 | Componente próprio de Gantt ou biblioteca (com ADR) |
+| 43 | PLN-03 | OS de instalação no cronograma |
+| 44 | PNL-01a | Caminho da TV: `/tv#token` com cookie × `/tv/{token}` (pré-condição; muda o `02` §4) |
+| 45 | PNL-01a | Quem edita e revoga a tela: `kiosk.create` ou ações novas no catálogo (pré-condição) |
+| 46 | PNL-01a | Duração da sessão da TV |
+| 47 | PNL-01a | `02-arquitetura` §2.1 ainda cita o índice de quiosque no catálogo |
+| 48 | PNL-01b | Nome do operador na TV (LGPD; pré-condição) |
+| 49 | PNL-01b | Cliente na TV (LGPD; pré-condição) |
+| 50 | PNL-01b | Visões do MVP |
+| 51 | DSH-03 | Indicadores do supervisor |
+| 52 | DSH-03 | Faltas que bloqueiam a próxima etapa |
+| 53 | DSH-03 | Supervisor sem `purchasing` no seed |
+| 54 | PLN-05 | Ordem das etapas sem roteiro |
+| 55 | PLN-05 | Quem pode simular (pré-condição) |
+| 56 | PLN-05 | Roteiro no item do orçamento (herdado da ENG-01) |
