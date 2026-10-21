@@ -137,3 +137,20 @@
 - **COM-04b:** registro de gatilhos, conclusão também no `ProjectDelivered`, reprocessar dead-letter.
 - **COM-06:** CP estimado do instalador.
 - **COM-07:** aditivo único por contrato; aplicação de gatilho já registrado.
+
+## Adendo 21/10/2026 (revisão pré-Fase 3, decisão D16 do PO): §7, donos de anexo da Fase 3
+- **Donos novos**, com as mesmas regras (`ReadAction`, `WriteAction`, `OwnerExists` obrigatório):
+
+| Dono | Leitura | Escrita | Tipos | Tamanho | Story |
+|---|---|---|---|---|---|
+| `ProductionOrder` (OS de fabricação: desenhos e documentos técnicos) | `production.view`; o operador lê pelo endpoint do chão de fábrica que confere a fila dele | `production.edit` | pdf, png, jpg, dwg, dxf | 25 MB | PRD-01 |
+| `Rfq` (proposta do fornecedor) | `purchasing.view` | `purchasing.edit` | pdf, png, jpg, xlsx | 10 MB | CMP-02 |
+| `PurchaseOrder` (PDF gerado e anexos) | `purchasing.view` | `purchasing.edit` | pdf, png, jpg | 10 MB | CMP-03a, CMP-03b |
+| `NonConformity` (fotos e evidências) | `production.view` | `production.edit` ou `production.approve_quality` | png, jpg, pdf | 10 MB | PRD-05 |
+| `Shipment` (romaneio gerado e comprovantes) | `production.view` | `production.create` | pdf, png, jpg | 10 MB | PRD-06b |
+| `EmployeeDocument` (documentos do funcionário) | `hr.view_sensitive`, com leitura sensível auditada (`AuditReads`) | `hr.view_sensitive` | pdf, png, jpg | 10 MB | CAD-04c2 |
+
+- A OS de instalação (COM-06) continua com png, jpg e pdf de até 10 MB: o limite por dono passa a depender do tipo da OS (`CanAttach`).
+- **dwg/dxf de 25 MB:** o antivírus (ClamAV) fica configurado para varrer arquivos de até **30 MB** (`StreamMaxLength`), com teste de um arquivo de 25 MB; acima do limite do antivírus o arquivo é recusado, nunca liberado sem varredura.
+- **Limite de envios** por usuário: 30 anexos por hora (parâmetro `attachments.max_uploads_per_hour`, valor inicial sugerido pelo SM), com 429 e a mensagem "Muitos envios em pouco tempo. Tente de novo em alguns minutos.".
+- `AttachmentOwnerRules.AuditReads` (BuildingBlocks): o download de dono com dado pessoal grava leitura sensível na auditoria (CAD-04c2).

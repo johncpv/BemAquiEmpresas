@@ -18,7 +18,7 @@ Draft ─enviar─► Sent ─aprovar─► Approved (gera Contrato)
 `Active → Completed` (projeto entregue e recebíveis quitados ou cancelados; avaliado no `ReceivableSettled` e no `ProjectDelivered`, o que vier por último) · `Completed → Active` (estorno de baixa de um título do contrato; o projeto volta a `Delivered`) · `Active → Cancelled` (exige motivo, guardado no contrato; cancela recebíveis em aberto sem baixa e OS não iniciadas; títulos com baixa e OS iniciadas viram decisão manual; projeto já `Delivered` não cancela). Contrato de implantação (COM-04c): marcos "Recebido antes da implantação" não geram título e contam como quitados. ADR 0019 §16.
 
 ### Projeto
-`Planned → InProgress` (primeira etapa de OS iniciada) `→ Fabricated` (todas OS de fabricação concluídas; até a PRD-06, registro manual "Registrar fabricação concluída") `→ Installing` (OS de instalação iniciada) `→ Delivered` (entrega técnica aceita em todas as OS de instalação não canceladas; venda sem instalação: "Registrar entrega" manual, com `projects.approve`, só sem OS de instalação aberta, D15) `→ Closed` (financeiro quitado). `Closed → Delivered` quando uma baixa é estornada. `Cancelled` a partir de qualquer estado antes de Delivered.
+`Planned → InProgress` (primeira etapa de OS iniciada) `→ Fabricated` (todas OS de fabricação não canceladas concluídas, PRD-06a1; o registro manual "Registrar fabricação concluída" fica só para projeto sem OS de fabricação, bloqueado quando algum item tem OS) `→ InProgress` (estorno da conclusão de uma OS, PRD-06a1) `→ Installing` (OS de instalação iniciada) `→ Delivered` (entrega técnica aceita em todas as OS de instalação não canceladas; venda sem instalação: "Registrar entrega" manual, com `projects.approve`, só sem OS de instalação aberta, D15) `→ Closed` (financeiro quitado). `Closed → Delivered` quando uma baixa é estornada. `Cancelled` a partir de qualquer estado antes de Delivered.
 - Etapas exibidas no `StageIndicator` (COM-04a): P Planejado · E Em produção · F Fabricado · I Instalando · T Entregue · C Encerrado.
 
 ### OS de instalação (COM-06)
@@ -26,16 +26,25 @@ Draft ─enviar─► Sent ─aprovar─► Approved (gera Contrato)
 
 ### OS (fabricação)
 ```
-Open ─(BOM liberada e primeira etapa iniciada)─► InProgress ◄─► Paused
-InProgress ─(etapa de qualidade)─► Quality ─aprovar─► InProgress (próxima) / Completed (se última)
+Open ─(primeira etapa iniciada; não exige BOM)─► InProgress ◄─► Paused
+InProgress ─(etapa de qualidade)─► Quality ─aprovar─► InProgress (próxima etapa) / ReadyToComplete (se última)
+InProgress ─(última etapa concluída)─► ReadyToComplete ("Pronta para concluir")
 Quality ─reprovar─► abre NC + volta etapa escolhida (InProgress)
-Completed: gera produto acabado com série
+ReadyToComplete ─concluir (production.approve, login completo)─► Completed
+Completed ─estornar a conclusão─► InProgress
 Cancelled: libera reservas; materiais já baixados exigem devolução ou apropriação ao projeto como perda
 ```
 Etapa da OS: `Waiting → Ready (anterior concluída) → InProgress ↔ Paused → Done` ou `Rejected`. Etapa só inicia se a anterior estiver Done (sequencial no MVP).
+- **Etapas sem BOM (D12, revisão pré-Fase 3, 21/10/2026):** a primeira etapa do roteiro inicia sem BOM (a BOM nasce na etapa Projeto); as seguintes exigem BOM liberada. O bloqueio liga junto com a ENG-02; antes dela (Marco 3.1) nenhuma etapa exige BOM.
+- **Conclusão explícita (D12):** aprovar a qualidade da última etapa, ou concluir a última etapa sem qualidade, deixa a OS em `ReadyToComplete`; a conclusão é uma ação própria, com `production.approve` e login completo (PRD-06a1). Na PRD-06a1 a conclusão não mexe no estoque; a partir da PRD-06a2 ela dá entrada no produto acabado com série, registra os lotes consumidos e libera as reservas restantes, na mesma transação (ADR 0023 §1).
+- **Estorno da conclusão (ponto 83 da revisão):** `Completed → InProgress` (volta para a última etapa); o projeto volta de `Fabricated` para `InProgress`; o título a receber já liberado não é estornado; o estorno é recusado se o título estiver em OP ou recebido, e notifica o Financeiro. Na PRD-06a2 também reverte a entrada e as séries ainda não expedidas.
+- **Quais itens geram OS (D14):** `Equipment` gera OS automática; `Product` por "Gerar OS" manual; `Service` nunca; contrato de implantação nunca. Uma OS por item do projeto, com a quantidade do item.
+- **Kanban (D10):** sem arraste; "Concluir etapa" no menu do cartão com `production.approve`; colunas pelo código da etapa (a letra do roteiro).
 
 ### Pedido de compra
 `Draft → PendingApproval → Approved → Sent → PartiallyReceived → Received`; `Cancelled` antes de receber.
+- **Alçada (ADR 0024 §4):** `PendingApproval` resolve os níveis pelo `IApprovalRouting` do Finance (tipo `PurchaseOrder`, aprovador com `purchasing.approve`); reprovar volta a `Draft` com o histórico imutável; editar pedido aprovado ou enviado volta a `PendingApproval` e exige reenvio ao fornecedor.
+- **Caixa (ADR 0024 §2 e §3):** aprovado → títulos a pagar `Planned` por parcela (origem `Purchase`), na mesma transação; cada recebimento → títulos próprios em aberto (origem `GoodsReceipt`) e os previstos replanejados para o saldo; Σ recebido ≤ aprovado + tolerância (padrão 0%), aumento volta à alçada; estorno do recebimento cancela os títulos dele.
 
 ### Título a pagar e Ordem de Pagamento
 ```
@@ -71,27 +80,33 @@ Regra dura: **nenhum pagamento é baixado sem OP aprovada**. Exceção: tarifas,
 | ContractSigned | Commercial | Finance cria receivables (Planned/Open por marco, com a conta de receita do evento; marcos "recebidos antes da implantação" não geram título) e notifica o financeiro |
 | ContractCancelled | Commercial | Finance cancela os receivables sem baixa e lista os com baixa; Production cancela as OS de instalação não iniciadas |
 | ContractAmended | Commercial | Finance cria os receivables do acréscimo ou reduz os títulos futuros sem baixa |
-| ProjectItemCreated | Commercial | Production cria OS de fabricação (status Open) a partir do template |
-| BomReleased | Engineering | Inventory cria reservas; se faltar disponível, Purchasing cria solicitação (origin BOMShortage) |
-| BomRevised | Engineering | Inventory ajusta reservas (libera ou reserva diferença) |
-| StockIssued | Inventory | Commercial/Projects registra custo de material do projeto |
-| LaborEntryClosed | Production | Registra custo de mão de obra no projeto; SignalR atualiza painéis |
+| ProjectItemCreated | Commercial | Production cria a OS de fabricação (status Open) a partir do roteiro sugerido, **só para item `Equipment` fora de contrato de implantação**; `Product` tem "Gerar OS" manual e `Service` nunca gera (D14). O evento leva `Kind`, `IsOnboarding` e `RoutingTemplateId`, compatível com as mensagens antigas (PRD-01, ADR 0023 §7) |
+| BomReleased | Engineering | Inventory **reconcilia** as reservas da OS a partir da fonte (`IBoms.ReleasedForOrderAsync`), sem aplicar o delta do evento; a falta vira `StockShortageChanged` (EST-02, ADR 0023 §6) |
+| BomRevised | Engineering | Inventory reconcilia as reservas até a necessidade da revisão vigente; evento de revisão antiga é ignorado (EST-02, ADR 0023 §6) |
+| ProductionOrderCancelled | Production | Inventory reconcilia as reservas da OS com alvo 0 (EST-02); materiais já baixados exigem devolução ou ficam no projeto como perda (EST-03) |
+| StockShortageChanged | Inventory | **Só aviso:** Purchasing recompõe a solicitação a partir das faltas abertas (`origin BOMShortage`), conferindo o módulo `purchasing` liberado (CMP-01) |
+| StockIssued / StockReturned | Inventory | Commercial grava a diferença na razão `commercial.project_costs` (valor anterior e novo, `seq`), que entra no realizado de Material do Projeto 360 (EST-03, ADR 0025 §2); a baixa em si é síncrona na requisição |
+| LaborEntryClosed / LaborEntryCorrected | Production | Commercial grava a diferença na `commercial.project_costs` (realizado de Mão de obra, PRD-04, ADR 0025 §2); SignalR atualiza painéis |
 | StepStatusChanged | Production | SignalR painel TV/Kanban; Planning recalcula datas da fila |
 | QualityRejected | Production | Cria NC; notifica supervisor |
-| ProductionOrderCompleted | Production | Inventory entra produto acabado com série; se todas OS do projeto → evento ProjectFabricated |
+| ProductionOrderCompleted | Production | A entrada do produto acabado com série, os lotes consumidos e a liberação das reservas são **síncronos na conclusão** (PRD-06a2, ADR 0023 §1); o evento serve à projeção: o Commercial passa o projeto a Fabricated quando todas as OS de fabricação não canceladas estão concluídas e publica ProjectFabricated (PRD-06a1); Inventory só reconcilia (alvo 0) |
+| ProductionOrderReopened | Production | Estorno da conclusão (PRD-06a1): o Commercial volta o projeto de Fabricated para InProgress; o Finance é notificado e não estorna o título já liberado |
 | ProjectFabricated / ProjectDelivered / TechnicalAcceptance | Commercial (manual na Fase 2, pela OS de instalação ou pela PRD-06) | Finance grava o evento em `finance.project_trigger_events` e libera receivables cujo gatilho é esse evento (Planned → Open, vencimento = data do evento + prazo do marco); título criado depois de um evento já registrado nasce Open (ADR 0019 §1). `ProjectDelivered` também avalia a conclusão do contrato |
 | InstallationStarted / InstallationAccepted | Production | Commercial passa o projeto a Installing / Delivered (quando todas as OS de instalação concluem) e publica TechnicalAcceptance e ProjectDelivered |
 | ReceivableSettled | Finance | Commercial conclui o contrato (ou o reabre, com `isReversal`) |
 | PaymentOrderSubmitted | Finance | Notifica os aprovadores da alçada |
-| PurchaseOrderApproved | Purchasing | Finance cria payables Planned (previsão) |
-| GoodsReceived | Purchasing | Inventory entrada (custo médio); Finance confirma payable (Open) com valor da NF |
+| PurchaseOrderApproved | Purchasing | **Só aviso e projeção** (notificação, custo comprometido do projeto). Os títulos a pagar `Planned` por parcela nascem na transação da aprovação, pelo `IPayables` (CMP-03a, ADR 0024 §1) |
+| GoodsReceived | Purchasing | **Só aviso e projeção.** A entrada no estoque (custo médio, ADR 0023) e os títulos do recebimento (origem `GoodsReceipt`, com o replanejamento dos previstos do pedido) são síncronos no recebimento (CMP-04, ADR 0024 §3) |
 | PaymentOrderApproved | Finance | Notifica financeiro para pagar |
 | BillingSlipPaid | Finance (webhook) | Baixa receivable, cria transação, atualiza estatística de pontualidade |
-| InvoiceAuthorized | Fiscal | Inventory baixa produto acabado (Shipment); anexa XML/PDF ao projeto; e-mail ao cliente |
+| ShipmentDispatched | Production | Só aviso e projeção: a baixa do produto acabado (`Shipment`) e as séries expedidas são síncronas na confirmação do romaneio, com 409 `insufficient_stock` (PRD-06b, D4 de 21/10/2026); o `Shipment` não entra no custo do projeto |
+| InvoiceAuthorized | Fiscal | A NF-e de saída **referencia o romaneio** e nunca baixa o estoque de novo (D4 de 21/10/2026); anexa XML/PDF ao projeto; e-mail ao cliente |
 | PayrollClosed | HR | Finance cria payables de salários e encargos |
 | MaintenanceScheduled | Assets | Planning reduz capacidade do centro de trabalho no período |
 
 - O outbox não garante ordem: o consumidor que depende de outro evento grava o que recebeu e aplica quando o documento existir (registro de gatilhos, ADR 0019 §1).
+- **Efeito síncrono, projeção por evento (ADR 0023 §1, revisão pré-Fase 3, 21/10/2026):** o efeito de estoque e de título de um documento é chamada síncrona ao contrato do dono, na transação do documento; o evento fica para custo do projeto, notificação e painéis. Consumidores de reserva e falta reconciliam a partir da fonte, nunca pelo delta do evento. Avisos de tempo real saem depois do commit, também nos consumidores do outbox.
+- **Recompor o passado (D3, ADR 0025 §3):** a story que entrega um consumidor recompõe o que foi publicado antes dela, a partir da fonte, com a marca "Calculado na implantação".
 - Notificação disparada dentro do próprio módulo é síncrona, pelo `INotificationService`, na transação do comando; só a reação de outro módulo passa pelo outbox (ADR 0019 §18).
 
 ## 3. Regras transversais de cálculo
@@ -140,3 +155,5 @@ pode(usuário, módulo, ação) = liberado ∧ habilitado ∧ ∃ grupo do usuá
 
 ## 4. Numeração padrão (editável)
 ORC-AAAA-0001 · CTR-AAAA-0001 · PRJ-AAAA-0001 · OS-AAAA-00001 · NC-AAAA-0001 · SC-AAAA-0001 (solicitação) · COT-AAAA-0001 · PC-AAAA-0001 · REC-AAAA-0001 (recebimento) · CR-AAAA-00001 · CP-AAAA-00001 · OP-AAAA-0001 · MAN-AAAA-0001 · PAT-00001 (etiqueta)
+
+Fase 3 (D15, decisão do PO de 21/10/2026, revisão pré-Fase 3): MOV-AAAA-000001 (movimento de estoque, EST-01a; as pernas de uma transferência e as linhas de um lote de saldo inicial dividem o número) · AJ-AAAA-0001 (ajuste, EST-01b) · REQ-AAAA-0001 (requisição de material, EST-03) · ROM-AAAA-0001 (romaneio, PRD-06b) · INV-AAAA-0001 (inventário, EST-05) · série do produto acabado `{código do item}-{AAAA}-{seq}` (PRD-06a2; antes de implementar, conferir a numeração que a Konebras já usa nos elevadores, campos `elev_*` do Dolibarr, só leitura). Os prefixos são únicos no tenant (teste); a entrada e a saída manual pendentes (D7) usam o número do movimento quando aprovadas.
