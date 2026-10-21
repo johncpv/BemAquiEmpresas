@@ -8,8 +8,8 @@
 | Status | Draft |
 | Requisitos | R-RH-1 (dependentes, dados bancários/Pix, vale-transporte, adicionais, documentos) · R-RH-3 (afastamentos) · PRD §6 LGPD · R-SEC-5 · R-SEC-10 |
 | Dependências | CAD-04b (funcionário base, rotas `/sensitive`, linha do tempo); FND-09d; Fase 0 (FND-07 anexos) |
-| Bloqueia | PRD-03 e PRD-04 (situação "Afastado" no apontamento), RH-01, RH-02 |
-| Ordem de execução | Início da Fase 3 (antes da PRD-03), conforme a decisão D6. A Fase 1 fecha sem ela |
+| Bloqueia | PRD-03a (afastado ou desligado não aponta), PRD-04, RH-01, RH-02 |
+| Ordem de execução | 1 (Marco 3.1, início da Fase 3, antes da PRD-03a), conforme a decisão D6 |
 
 ## User story
 Como **RH**, quero **completar o cadastro do funcionário com dependentes, conta para pagamento, adicionais, vale-transporte, afastamentos e documentos**, e como **proprietário**, quero **que dado de saúde e de conta bancária tenha proteção extra**, para **ter tudo o que a folha precisa sem expor o que a LGPD trata como sensível**.
@@ -37,14 +37,14 @@ Como **RH**, quero **completar o cadastro do funcionário com dependentes, conta
 7. **Dado** `hr.edit` + `hr.view_sensitive`, **quando** informo insalubridade (grau 10%, 20% ou 40%), periculosidade (sim/não) e vale-transporte (no formato decidido pelo PO, ponto em aberto 1) e clico "Salvar adicionais", **então** são gravados.
 
 **Afastamentos (LGPD art. 11)**
-8. **Dado** `hr.edit` + `hr.view_sensitive`, **quando** clico "Registrar afastamento", informo tipo (lista do ponto em aberto 2), início, fim previsto e motivo e confirmo "Registrar afastamento", **então** grava uma entrada `Leave` na linha do tempo e a situação mostra "Afastado" entre o início e o fim; afastamentos sobrepostos respondem 409; o toast diz "Afastamento registrado".
-9. **[Segurança]** **Dado** um usuário com `hr.view` sem `hr.view_sensitive`, **quando** vê o funcionário afastado (lista, detalhe, `IEmployees`), **então** recebe só a situação "Afastado", sem tipo, motivo nem datas; tipo, datas e motivo vêm só de `/sensitive`.
+8. **Dado** `hr.edit` + `hr.view_sensitive`, **quando** clico "Registrar afastamento", informo tipo (lista do ponto em aberto 2), início, fim previsto e motivo e confirmo "Registrar afastamento", **então** grava uma entrada `Leave` na linha do tempo e a situação mostra "Afastado" entre o início e o fim (calculada na leitura por `BusinessTime.Today`, nunca gravada, como o "Vencido" do Financeiro); afastamentos sobrepostos respondem 409; a mensagem de sucesso no topo diz "Afastamento registrado" (ADR 0021).
+9. **[Segurança]** **Dado** um usuário com `hr.view` sem `hr.view_sensitive`, **quando** vê o funcionário afastado (lista, detalhe, `IEmployees`), **então** recebe só a situação "Afastado", sem tipo, motivo nem datas; tipo, datas e motivo vêm só de `/sensitive`. O `EmployeeSummary` do `IEmployees` (`HR.Contracts`) ganha `Status` (`Active`/`OnLeave`/`Terminated`), sem tipo nem motivo, para a PRD-03a recusar apontamento de afastado.
 10. **[Segurança]** **Dado** o campo motivo, **quando** preencho, **então** ele aceita até 200 caracteres, mostra a orientação "Não informe CID nem diagnóstico." e o texto nunca vai para log nem para evento.
 11. **[Segurança]** **Dado** os eventos de afastamento (`EmployeeLeaveStarted`, `EmployeeLeaveEnded`), **quando** publicados, **então** levam só o id do funcionário e as datas, nunca o tipo nem o motivo.
 
 **Documentos extras**
-12. **Dado** `hr.edit` + `hr.view_sensitive`, **quando** informo CNH (número, categoria, validade) e certificado de reservista (opcional) e anexo documentos digitalizados (PDF, PNG ou JPG, até 10 MB), **então** são gravados; os anexos usam o dono `EmployeeDocument`.
-13. **[Segurança]** **Dado** o `AttachmentOwnerRegistry`, **quando** o dono `EmployeeDocument` é registrado, **então** leitura e escrita exigem `hr.view_sensitive`, o download registra `SensitiveRead` e verifica que o funcionário existe; sem a permissão, 403.
+12. **Dado** `hr.edit` + `hr.view_sensitive`, **quando** informo CNH (número, categoria, validade) e certificado de reservista (opcional) e anexo documentos digitalizados (PDF, PNG ou JPG, até 10 MB), **então** são gravados; os anexos usam o dono `EmployeeDocument`, registrado por `AttachmentOwnerRegistration` com `ReadAction` e `WriteAction` = `view_sensitive`, `OwnerExists` obrigatório (ADR 0019 §7), tipos pdf, png e jpg e até 10 MB.
+13. **[Segurança]** **Dado** o `AttachmentOwnerRegistry` (regras por dono da ADR 0019 §7), **quando** o dono `EmployeeDocument` é registrado, **então** leitura e escrita exigem `hr.view_sensitive`, o download registra `SensitiveRead` e verifica que o funcionário existe; sem a permissão, 403.
 
 **Permissões e auditoria**
 14. **Dado** o módulo `hr` não liberado, sem grupo que o habilite ou sem `hr.view_sensitive`, **quando** chamo os endpoints desta story, **então** recebo 403 com o código da camada que barrou; o teste de arquitetura confere `RequireModule` e `perm:` em todos.
@@ -54,7 +54,9 @@ Como **RH**, quero **completar o cadastro do funcionário com dependentes, conta
 - **Campos sensíveis:** todos desta story, inclusive a situação detalhada do afastamento.
 - **Banco/Pix:** `bank_code`, `bank_agency`, `bank_account`, `bank_account_type`, `pix_key_type`, `pix_key` (desdobramento do `bank/pix` do 03).
 - **Adicionais:** `insalubrity_pct` (10, 20 ou 40), `hazard_pay` (bool); vale-transporte conforme o ponto em aberto 1.
-- **Situação:** acrescenta `OnLeave`, derivada do afastamento vigente.
+- **Situação:** acrescenta `OnLeave`, derivada do afastamento vigente na leitura (`BusinessTime.Today`); a coluna `status` continua gravando só `Active`/`Terminated`.
+- **Notificação** da troca de conta: `INotificationService` síncrono, na transação do comando (ADR 0019 §18), com link para a aba Pagamento do funcionário.
+- **Concorrência:** `xmin` no funcionário (ADR 0019 §2), com 409 `concurrency_conflict` e "Recarregar".
 - **Ids:** Guid v7. **Auditoria:** `IAuditable` em dependente e nos dados novos.
 
 ## Permissões, eventos e tabelas
@@ -65,7 +67,9 @@ Como **RH**, quero **completar o cadastro do funcionário com dependentes, conta
 ## Telas e estados
 - No detalhe do funcionário (CAD-04b), abas novas antes do "Histórico de alterações": Dependentes, Pagamento e adicionais, Documentos; os afastamentos entram na "Linha do tempo" e no diálogo "Registrar afastamento".
 - **Estados:** carregando; vazio ("Nenhum dependente cadastrado." + "Novo dependente"); erro; "Dados protegidos".
-- **Ajuda:** novas abas em `Ajuda/rh-funcionario.md` (`dependentes`, `pagamento`, `documentos`); `<Dica>` em "Dependente de IR", "Salário-família" e "Motivo".
+- **400 px:** abas com rolagem horizontal; dependentes em cartões; diálogo de afastamento em tela cheia.
+- **Ajuda:** uma ajuda por aba nova, no padrão das abas que já existem: `Ajuda/rh-funcionario-dependentes.md`, `Ajuda/rh-funcionario-pagamento.md` e `Ajuda/rh-funcionario-documentos.md` (`rota: /app/rh/funcionarios/$id` e `aba`); a `Ajuda/rh-funcionario-linha-do-tempo.md` ganha "Afastamentos"; `<Dica>` em "Dependente de IR", "Salário-família" e "Motivo".
+- **Mensagens (ADR 0021):** sucesso na região do topo; erro dentro do diálogo, com foco; próximo passo no `NextSteps` (depois do primeiro dependente: "Registrar conta para pagamento").
 
 ## Plano de testes
 - **Unidade:** Pix por tipo (CA 4); CPF de dependente só com IR (CA 2); situação derivada do afastamento (CA 8).
@@ -121,8 +125,15 @@ Checklist do @po (Pax), 18/10/2026.
 - **Pré-condições para `Ready`:** pontos em aberto 1 (vale-transporte) e 2 (tipos de afastamento), a decidir pelo PO antes do início da Fase 3. Não fazem parte da tabela 1.1 aprovada.
 - **Prontidão:** 10/10 na checklist. **Veredito:** GO condicional. Status `Draft` até as duas decisões.
 
+**Revisão na preparação da Fase 3 (21/10/2026, @sm River e @po Pax)**, conferida contra o código atual (`BemAqui.HR.Domain.Employee`, `EmployeesContract`, `AttachmentOwnerRules`, ajudas `rh-funcionario-*`):
+- O código não tem nenhum campo desta story (`EmployeeStatus` só com `Active`/`Terminated`, `EmployeeHistoryKind` só com `Salary`/`Position`): o escopo continua válido.
+- Ajustes de coerência: "toast" trocado pela mensagem no topo (ADR 0021, CA 8); `OnLeave` calculado na leitura e `Status` no `EmployeeSummary` do `IEmployees`, para a PRD-03a (CA 9); regras do dono `EmployeeDocument` com `ReadAction`/`WriteAction` e `OwnerExists` (ADR 0019 §7, CA 12 e 13); ajuda em um arquivo por aba, como as abas atuais; notificação síncrona (ADR 0019 §18); `xmin`; 400 px; `Bloqueia` cita a PRD-03a.
+- Checklist reaplicada: 10/10. Veredito mantido: **GO condicional**, `Draft` até as decisões 1 e 2.
+
 ## Change Log
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 18/10/2026 | 0.1 | Story criada pela quebra D6 da CAD-04b, com os CAs de segurança da revisão pré-Fase 1 §2.5 | River (SM) |
 | 18/10/2026 | 0.2 | Validação do PO (checklist): GO condicional, `Draft` | Pax (PO) |
+| 21/10/2026 | 0.3 | Revisão na preparação da Fase 3 contra o código atual: mensagens da ADR 0021, `OnLeave` calculado e `Status` no `IEmployees`, regras do dono de anexo (ADR 0019 §7), ajuda por aba, notificação síncrona, `xmin`, 400 px, ordem 1 do Marco 3.1 | River (SM) |
+| 21/10/2026 | 0.4 | Revalidação do PO: 10/10, GO condicional, `Draft` até as decisões 1 e 2 | Pax (PO) |

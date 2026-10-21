@@ -268,51 +268,105 @@ _MIG-01e (títulos em aberto e histórico de pagamentos) não entra aqui: cancel
 
 ## Fase 3 — Engenharia, Estoque, Compras e Produção
 
-**CAD-04c [ ] Funcionários: dependentes, banco/Pix, adicionais, vale-transporte, afastamentos e documentos (M)** — quebra D6 da CAD-04b, no início da Fase 3 (antes da PRD-03), `Draft` até o PO decidir o formato do vale-transporte e os tipos de afastamento — [story](stories/CAD-04c-funcionarios-complemento.md)
-- CA: afastamento visível como "Afastado" com `hr.view` e tipo/motivo só com `hr.view_sensitive` (LGPD art. 11), motivo sem CID; troca de banco/Pix notificada aos Proprietários; CPF de dependente só quando é de IR; documentos com `hr.view_sensitive` e `SensitiveRead`.
+Stories detalhadas em [`docs/stories/`](stories/README.md#fase-3--engenharia-estoque-compras-e-produção), com critérios de aceite completos, ordem de execução, padrões comuns, validação do PO e os 92 pontos em aberto consolidados. Escritas pelo @sm e validadas pelo @po em 21/10/2026: **todas `Draft`** (4 com GO e 19 com GO condicional, à espera das decisões do PO marcadas como pré-condição). Aqui fica o resumo de cada uma.
 
-_MIG-01d (saldos iniciais de estoque) não entra aqui: cancelada pelo PO em 18/10/2026._
+**Ordem de execução:** **3.1 "Estoque confiável":** CAD-04c → EST-01a → EST-01b → **3.2 "Da engenharia à OS":** ENG-01 → PRD-01 → ENG-02 → EST-02 → **3.3 "Comprar o que falta":** CMP-01 → CMP-02 → CMP-03a → CMP-03b → CMP-04 → **3.4 "Fábrica rodando":** EST-03 → PRD-02 → PRD-03a → PRD-03b → PRD-04 → PRD-05 → **3.5 "Fechar a OS":** PRD-06a → PRD-06b → EST-04 → EST-05 → EST-06 (D).
 
-**ENG-01 [ ] Templates de roteiro (M)** — CRUD de templates e etapas (centro, horas padrão, checklist, qualidade).
+**Quebras:** EST-01 → 01a/01b · CMP-03 → 03a/03b · PRD-03 → 03a/03b · PRD-06 → 06a/06b. **Re-estimadas:** PRD-01 (M → G), CMP-04 (M → G). **Revisada:** CAD-04c (coerência com o código atual). **ADR sugerida antes do Marco 3.3:** alçada do pedido de compra por `Finance.Contracts` e `IPayables` por parcela (CMP-03a).
 
-**ENG-02 [ ] BOM da OS (M)** — Criar na etapa Projeto, copiar de outra OS/item, liberar, revisar.
-- CA: liberar dispara reservas; revisão ajusta reservas e mantém histórico.
+**CAD-04c [ ] Funcionários: dependentes, banco/Pix, adicionais, vale-transporte, afastamentos e documentos (M)** — 3.1, ordem 1 — quebra D6 da CAD-04b, revisada em 21/10/2026, `Draft` até o PO decidir o formato do vale-transporte e os tipos de afastamento — [story](stories/CAD-04c-funcionarios-complemento.md)
+- Requisitos: R-RH-1, R-RH-3, R-SEC-5, R-SEC-10, PRD §6 (LGPD).
+- CA: afastamento visível como "Afastado" com `hr.view` (calculado na leitura) e tipo/motivo só com `hr.view_sensitive` (LGPD art. 11), motivo sem CID; `Status` no `IEmployees` para a PRD-03a; troca de banco/Pix notificada aos Proprietários; CPF de dependente só quando é de IR; documentos com `hr.view_sensitive`, `SensitiveRead` e regras do dono de anexo (ADR 0019 §7).
 
-**EST-01 [ ] Saldos e movimentos (G)** — Entrada manual, saída, transferência, ajuste com motivo/aprovação; custo médio; negativo bloqueado.
-- CA: movimento imutável; estorno gera movimento inverso; custo médio confere com cálculo de referência (testes).
+_MIG-01d (saldos iniciais de estoque) não entra aqui: cancelada pelo PO em 18/10/2026. O saldo inicial é digitado na EST-01a (`OpeningBalance`, ADR 0016)._
 
-**EST-02 [ ] Reservas e disponível (M)** — Reserva por linha de BOM; disponível = físico − reservado em todas as telas.
-- CA: tentativa de reservar acima do disponível reserva o possível e gera falta para compras.
+**EST-01a [ ] Saldos, movimentos e custo médio (G)** — 3.1, ordem 2 — quebra da EST-01 — [story](stories/EST-01a-saldos-movimentos-custo-medio.md)
+- Requisitos: R-EST-4, R-EST-5, R-EST-6, R-EST-7, R-EST-2, R-EST-3, R-EST-8, R-COM-4, R-PRP-7, R-SEC-5.
+- CA: saldo inicial `OpeningBalance` em D 23:59:59 (também em lote, atômico); entrada manual, saída avulsa e transferência com impacto no diálogo; negativo bloqueado, com lock do saldo e `CHECK`s (20 saídas paralelas da última unidade gravam uma); custo médio global confere com o cálculo de referência (dataset de 30 movimentos); movimento imutável (trigger) e estorno por movimento inverso, pelo documento de origem; `IStockMovements` idempotente por origem e `IStockBalances` em lote; Saldos com 50 mil linhas em menos de 1 s.
 
-**EST-03 [ ] Requisição de material para OS (M)** — Baixa das reservas, escolha de lote, apropriação ao projeto.
-- CA: baixa registra lote; custo vai para o projeto; devolução reverte.
+**EST-01b [ ] Ajuste de estoque com motivo e aprovação (M)** — 3.1, ordem 3 — quebra da EST-01 — [story](stories/EST-01b-ajuste-estoque-aprovacao.md)
+- Requisitos: R-EST-6, R-EST-5, R-EST-7, R-COM-2, R-PRP-5, R-PRP-7, R-SEC-5, R-SEC-10.
+- CA: ajuste lançado com `inventory.adjust` fica pendente sem mexer no saldo; aprovação com `inventory.approve` por outra pessoa (exceção do Proprietário único, D6) gera os movimentos `Adjustment`, recalculando sobre o saldo atual; reprovar e cancelar sem efeito; aprovação concorrente grava uma vez; estorno pelo documento.
 
-**EST-04 [ ] Lote e série + rastreabilidade (M)** — Consulta série → lotes de MP usados; lote → séries/projetos onde foi usado.
+**ENG-01 [ ] Templates de roteiro (M)** — 3.2, ordem 4 — [story](stories/ENG-01-templates-roteiro.md)
+- Requisitos: R-ENG-1, R-ENG-2, R-PRP-1, R-PLN-1, R-SEC-5.
+- CA: CRUD de roteiros com etapas (centro validado por `IWorkCenters`, horas padrão, qualidade, exige aprovação, checklist), sequência contígua e erros por linha; seed do roteiro de exemplo Projeto → Corte → Montagem → Qualidade → Expedição (P-04), inativo quando não há centro único; duplicar; excluir sem uso e inativar com uso; editar não muda OS já criadas; `IRoutingTemplates` para a Produção; seed patch de permissões (proposta).
 
-**EST-05 [ ] Inventário (M)** — Contagem por local, divergências, ajuste aprovado.
+**PRD-01 [ ] Geração da OS de fabricação (G)** — 3.2, ordem 5 — re-estimada de M — [story](stories/PRD-01-geracao-os-fabricacao.md)
+- Requisitos: R-PRD-1, R-PRJ-2, R-ENG-1, R-ENG-6, R-PRP-1, R-PRP-2, R-COM-3, R-COM-4, R-SEC-5.
+- CA: consumidor idempotente do `ProjectItemCreated` cria a OS `Open` com o roteiro sugerido copiado (ou "Sem roteiro" com aviso); "Gerar OS" para os itens dos projetos da Fase 2; etapas editáveis até a primeira iniciar; anexos técnicos; lista com atraso e filtros; cancelamento com `ProductionOrderCancelled`; `IProductionOrders`; migration N-1 que preserva a OS de instalação da COM-06.
 
-**EST-06 [ ] Capacidade de produzir (P)** — D.
+**ENG-02 [ ] BOM da OS (M)** — 3.2, ordem 6 — [story](stories/ENG-02-bom-da-os.md)
+- Requisitos: R-ENG-3, R-ENG-4, R-ENG-5, R-EST-3, R-PRP-2, R-PRP-3, R-SEC-5.
+- CA: BOM na aba da OS, copiada da última OS do produto, com necessidade (qtd × qtd da OS × (1 + perda), na unidade de estoque) e falta ao vivo; liberar com `engineering.approve` publica `BomReleased` com a necessidade calculada; revisão com histórico e comparação publica `BomRevised`; liberação concorrente publica um evento só.
 
-**CMP-01 [ ] Solicitação de compra (M)** — Manual, por falta de BOM e por estoque mínimo (job diário).
+**EST-02 [ ] Reservas e disponível (M)** — 3.2, ordem 7 — [story](stories/EST-02-reservas-disponivel.md)
+- Requisitos: R-EST-4, R-ENG-4, R-ENG-5, R-EST-5, R-CMP-1, R-PRP-5, R-SEC-5.
+- CA: reservar acima do disponível reserva o possível e gera falta para compras (`StockShortageChanged`), inclusive com disponível zero; liberações concorrentes nunca reservam além do físico; revisão ajusta pela necessidade vigente; OS cancelada ou concluída libera; material que chega completa as faltas; disponível = físico − reservado em todas as telas e contratos; aba Material da OS e lista Faltas.
 
-**CMP-02 [ ] Cotação (M)** — Fornecedores, comparativo, seleção.
+**CMP-01 [ ] Solicitação de compra (M)** — 3.3, ordem 8 — [story](stories/CMP-01-solicitacao-compra.md)
+- Requisitos: R-CMP-1, R-CMP-6, R-COM-2, R-COM-4, R-PRP-2, R-PRP-4, R-PRP-5, R-SEC-5.
+- CA: manual com destino projeto ou estoque geral; automática pela falta da BOM sem duplicar (atualiza e cancela a linha em aberto), com recomposição pelas faltas abertas; job diário do estoque mínimo idempotente, com teste de execução dupla e de dois tenants, e aviso consolidado; visão "Por item"; seed patch de Compras para o Almoxarifado (proposta).
 
-**CMP-03 [ ] Pedido de compra (M)** — Alçada, PDF, e-mail, previsão de CP.
+**CMP-02 [ ] Cotação (M)** — 3.3, ordem 9 — [story](stories/CMP-02-cotacao.md)
+- Requisitos: R-CMP-2, R-CMP-6, R-COM-4, R-PRP-1, R-PRP-3, R-SEC-5.
+- CA: cotação a partir das linhas de SC com os últimos fornecedores sugeridos; respostas com preço (unidade do fornecedor convertida), frete, IPI, prazo e condição; comparativo com o menor custo total destacado e a última compra; vencedor por linha, com motivo quando não é o menor; concluída imutável; próximo passo "Gerar pedidos de compra".
 
-**CMP-04 [ ] Recebimento manual (M)** — Conferência contra pedido, lote, local, entrada no estoque, confirmação do CP. (Recebimento por NF na Fase 5.)
+**CMP-03a [ ] Pedido de compra: alçada e CP previsto (G)** — 3.3, ordem 10 — quebra da CMP-03 — [story](stories/CMP-03a-pedido-compra-alcada-cp.md)
+- Requisitos: R-CMP-3, R-CMP-4, R-CMP-6, R-FIN-4, R-FIN-5, R-FIN-10, R-COM-2, R-COM-4, R-PRP-1, R-PRP-7, R-SEC-5.
+- CA: pedido por fornecedor vencedor ou manual com padrões; alçada do motor da FIN-03b para `PurchaseOrder` com valor de referência contra fracionamento, alçada viável e segregação solicitante × aprovador; e-mail só com número, fornecedor, total e link; aprovação gera os títulos a pagar `Planned` estimados por parcela no fluxo de caixa, sem duplicar; compra para o projeto como "Comprometido", não como realizado (ponto em aberto); reaprovação ao editar; cancelamento cancela as previsões.
 
-**PRD-01 [ ] Geração de OS (M)** — A partir do item do projeto e template; etapas editáveis antes do início.
+**CMP-03b [ ] PDF e envio do pedido ao fornecedor (P)** — 3.3, ordem 11 — quebra da CMP-03 — [story](stories/CMP-03b-pdf-envio-pedido.md)
+- Requisitos: R-CMP-3, R-COM-1, R-COM-3, R-PRP-2, R-SEC-5.
+- CA: PDF pelo `IPdfRenderer` (sem custo nem projeto, teste de extração de texto na imagem Alpine); envio pela fila com o PDF guardado como arquivo do sistema e enviado depois do `Clean`; pedido passa a `Sent`; reenvio e limite diário.
 
-**PRD-02 [ ] Kanban (M)** — Colunas por etapa, cartões com projeto/cliente/prazo/atraso, filtros, tempo real.
+**CMP-04 [ ] Recebimento manual contra o pedido (G)** — 3.3, ordem 12 — re-estimada de M — [story](stories/CMP-04-recebimento-manual.md)
+- Requisitos: R-CMP-5, R-EST-6, R-EST-7, R-EST-8, R-FIN-4, R-COM-4, R-PRP-2, R-PRP-7, R-SEC-5.
+- CA: conferência contra o saldo do pedido (acima é recusado), com lote e local; entrada no estoque com custo = valor + rateio de frete e IPI pelo valor (P-16), conferido com dataset; faltas de OS completadas; o Finance confirma os títulos previstos pelo valor recebido e tira o "Estimado"; estorno do recebimento e encerramento do saldo; recebimentos concorrentes não duplicam a entrada. (Recebimento por NF-e na Fase 5.)
 
-**PRD-03 [ ] PWA do operador (G)** — Login rápido (PIN opcional após login completo no dispositivo), minha fila, iniciar/pausar (motivo)/finalizar, checklist da etapa, tolerância a queda de rede.
-- CA: apontamento offline sincroniza ao reconectar sem duplicar; botões ≥ 56px; funciona em tablet Android de entrada.
+**EST-03 [ ] Requisição de material para a OS e devolução (M)** — 3.4, ordem 13 — [story](stories/EST-03-requisicao-material-os.md)
+- Requisitos: R-PRD-5, R-EST-4, R-EST-6, R-EST-8, R-PRJ-5, R-PRJ-4, R-PRP-7, R-SEC-5.
+- CA: baixa registra lote (sugerido pelo mais antigo) e consome a reserva; custo vai para o projeto (`StockIssued` → `commercial.project_costs` → realizado de Material no Projeto 360, dataset fixo); pedido do operador confirmado pelo almoxarife; devolução reverte o custo; OS cancelada devolve ou mantém como perda; baixas concorrentes nunca passam do reservado + disponível.
 
-**PRD-04 [ ] Custo de mão de obra (P)** — Apontamento fechado × custo-hora → custo da OS/projeto.
+**PRD-02 [ ] Kanban da produção (M)** — 3.4, ordem 14 — [story](stories/PRD-02-kanban.md)
+- Requisitos: R-PRD-2, PRD §5.14, PRD §6, R-PRP-5, R-SEC-5.
+- CA: colunas por etapa com a letra no display de andar e horas restantes; cartões com projeto, cliente, horas × padrão, prazo, atraso (faixa vermelha) e risco (âmbar); filtros na URL; tempo real pelo `ProductionHub` (grupo do tenant, mensagem só com o id, push depois do commit, < 2 s) com reserva por polling; sem mudar etapa pelo arraste (ponto em aberto); 300 OS em menos de 1 s.
 
-**PRD-05 [ ] Qualidade e NC (M)** — Checklist, aprovar/reprovar, NC com retorno a etapa escolhida.
+**PRD-03a [ ] App do operador: fila, apontamento e checklist (G)** — 3.4, ordem 15 — quebra da PRD-03 — [story](stories/PRD-03a-pwa-fila-apontamento.md)
+- Requisitos: R-PRD-3, R-PRD-6, PRD §6 (Usabilidade), R-PRP-5, R-SEC-5.
+- CA: `/fab` sem dock com a fila do operador; iniciar (OS e projeto passam a "Em produção"), pausar com motivo (falta de material avisa o almoxarifado), retomar e finalizar com checklist obrigatório e cronômetro; um apontamento aberto por funcionário, sempre o do usuário logado; afastado não aponta; supervisor aponta por funcionário, conclui e corrige; alvos ≥ 56 px no tablet de entrada e a 400 px.
 
-**PRD-06 [ ] Conclusão e expedição (M)** — Série do produto acabado, entrada em estoque pelo custo da OS, romaneio.
+**PRD-03b [ ] App do operador: PIN e funcionamento sem rede (M)** — 3.4, ordem 16 — quebra da PRD-03 — [story](stories/PRD-03b-pwa-pin-offline.md)
+- Requisitos: R-PRD-3, PRD §6 (Usabilidade, Segurança), R-SEC-1, R-SEC-3, R-SEC-7, R-SEC-5.
+- CA: PWA instalável; aparelho da fábrica registrado pelo supervisor (cookie `__Host-`); PIN opcional depois do login completo no aparelho, com bloqueio por tentativas, sessão curta limitada ao `shopfloor` e proibido para perfis com ações reservadas; apontamento offline sincroniza ao reconectar sem duplicar (reenvio duplo no teste), com conflitos avisados ao supervisor.
+
+**PRD-04 [ ] Custo de mão de obra (P)** — 3.4, ordem 17 — [story](stories/PRD-04-custo-mao-de-obra.md)
+- Requisitos: R-PRD-4, R-RH-2, R-PRJ-5, R-SEC-5, PRD §6 (LGPD).
+- CA: apontamento fechado × custo-hora do cargo (snapshot) = custo da OS e do projeto, levado pelo `LaborEntryClosed` ao realizado de Mão de obra no Projeto 360 (dataset fixo); custo-hora alterado depois não muda o passado; cargo sem custo-hora avisado; correção por estorno e novo valor; nunca mostra salário.
+
+**PRD-05 [ ] Qualidade e não conformidade (M)** — 3.4, ordem 18 — [story](stories/PRD-05-qualidade-nao-conformidade.md)
+- Requisitos: R-PRD-6, R-COM-2, R-COM-3, R-COM-4, R-PRP-5, R-SEC-5, R-SEC-10.
+- CA: aprovar com checklist libera a próxima etapa ou deixa a OS pronta para concluir; reprovar abre a NC (descrição, causa, ação, responsável) e devolve a OS à etapa escolhida, com nova tentativa na mesma etapa de qualidade; quem fez a etapa não aprova a qualidade dela (proposta); ciclo da NC até o encerramento; decisão concorrente grava uma vez.
+
+**PRD-06a [ ] Conclusão da OS: produto acabado com série e custo (M)** — 3.5, ordem 19 — quebra da PRD-06 — [story](stories/PRD-06a-conclusao-os-produto-acabado.md)
+- Requisitos: R-PRD-7, R-EST-8, R-EST-7, R-PRJ-6, R-PRJ-7, R-COM-4, R-PRP-2, R-PRP-7, R-SEC-5.
+- CA: série por unidade e entrada do produto acabado pelo custo apurado da OS (material + horas), sem voltar a contar no projeto; lotes consumidos registrados; reservas restantes liberadas; a última OS do projeto passa o projeto a "Fabricado" e publica `ProjectFabricated`, que libera a parcela (registro de gatilhos); estorno da conclusão sem série expedida.
+
+**PRD-06b [ ] Expedição: romaneio e saída do produto acabado (M)** — 3.5, ordem 20 — quebra da PRD-06 — [story](stories/PRD-06b-expedicao-romaneio.md)
+- Requisitos: R-PRD-8, R-EST-6, R-EST-8, R-COM-3, R-COM-4, R-PRP-2, R-PRP-7, R-SEC-5.
+- CA: romaneio do projeto com séries, endereço da obra e transporte; PDF sem valores; confirmar a expedição baixa o produto acabado (`Shipment`, sem custo de projeto) e marca as séries como expedidas (ponto em aberto: baixa no romaneio ou na NF-e da Fase 5); cancelar e estornar; série em dois romaneios recusada.
+
+**EST-04 [ ] Lote, série e rastreabilidade (M)** — 3.5, ordem 21 — [story](stories/EST-04-lote-serie-rastreabilidade.md)
+- Requisitos: R-EST-8, R-PRD-7, R-PRJ-4, R-SEC-5, PRD §6 (Desempenho).
+- CA: série → OS, projeto, cliente, romaneio e lotes de MP consumidos (com fornecedor e recebimento); lote → OS, séries, projetos e clientes onde foi usado, conciliado com o recebido; exportação CSV segura e auditada; abas Lotes e Séries no item; lote em 200 OS em menos de 1 s.
+
+**EST-05 [ ] Inventário (M)** — 3.5, ordem 22 — [story](stories/EST-05-inventario.md)
+- Requisitos: R-EST-9, R-EST-6, R-EST-5, R-PRP-7, R-SEC-5.
+- CA: inventário por local com a foto do saldo; contagem cega (também no celular) e recontagem das divergências; diferença corrigida pelos movimentos do período; fechar gera um ajuste da EST-01b, aprovado por outra pessoa; um inventário aberto por local.
+
+**EST-06 [ ] Capacidade de produzir (P)** — D — 3.5, ordem 23 — [story](stories/EST-06-capacidade-de-produzir.md)
+- Requisitos: R-EST-10, R-PRP-2, R-CMP-1.
+- CA: para uma BOM, quantas unidades o disponível (já sem o reservado) permite, o item que limita e a falta para uma quantidade desejada; atalho para a solicitação de compra preenchida, sem gravar sem confirmação; 100 itens em menos de 1 s.
 
 ---
 

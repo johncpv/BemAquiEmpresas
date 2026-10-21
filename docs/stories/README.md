@@ -1,6 +1,6 @@
-# Stories — Fase 0 (Fundação), Fase 1 (Cadastros e migração) e Fase 2 (Comercial, Projetos e Financeiro núcleo)
+# Stories — Fase 0 (Fundação), Fase 1 (Cadastros e migração), Fase 2 (Comercial, Projetos e Financeiro núcleo) e Fase 3 (Engenharia, Estoque, Compras e Produção)
 
-A Fase 1 está na [segunda parte deste arquivo](#fase-1--cadastros-e-migração) e a Fase 2 na [terceira](#fase-2--comercial-projetos-e-financeiro-núcleo).
+A Fase 1 está na [segunda parte deste arquivo](#fase-1--cadastros-e-migração), a Fase 2 na [terceira](#fase-2--comercial-projetos-e-financeiro-núcleo) e a Fase 3 na [quarta](#fase-3--engenharia-estoque-compras-e-produção).
 
 Stories detalhadas da Fase 0 do BemAqui Empresas, uma por arquivo. Fonte: `docs/01` a `06`, ADRs 0001–0005 e a revisão `docs/revisoes/2026-10-16-revisao-pre-fase0.md` (correções, ADRs técnicas propostas 0006–0008 e CAs de segurança da §2.3).
 
@@ -421,3 +421,180 @@ Nenhum ponto bloqueante nas stories. Os 29 pontos do README anterior foram decid
 2. SPF, DKIM e DMARC antes do deploy da COM-03 (P-21 e P-22 decididas em 20/10/2026).
 3. Backup diário do tenant `konebras` no ar antes da primeira carga real da FIN-00; teste de restauração recomendado, sem bloquear.
 4. **P-01** (regime tributário) continua aberta, sem bloquear a fase.
+
+---
+
+# Fase 3 — Engenharia, Estoque, Compras e Produção
+
+Stories detalhadas da Fase 3, uma por arquivo, escritas pelo @sm (River) e validadas pelo @po (Pax) em 21/10/2026. Fonte: `docs/01` a `06`, ADRs 0001–0022, o código das Fases 0 a 2 (`ModuleCatalog`, `GroupSeeder`, `ProductionOrder`/`InstallationOrderService` da COM-06, `IItems`, `ILocations`, `IUnitConversion`, `IItemSupplierCodes`, `IWorkCenters`, `IProjects`, `ProjectItemCreated`, `IPayables`, motor de alçadas da FIN-03b, `IHourlyCost`, `IEmployees`, `IPdfRenderer`, anexos, e-mail, outbox, `PingHub`) e o protótipo (Kanban, App do operador, Estoque). A Definition of Ready, a legenda e a escala de tamanho são as mesmas das fases anteriores. **Todas as stories estão `Draft`**: as que têm pontos em aberto marcados como pré-condição só passam a `Ready` depois da decisão do PO.
+
+## Índice
+| Ordem | ID | Título | Tam. | Status | Requisitos | Depende de | Arquivo |
+|---|---|---|---|---|---|---|---|
+| 1 (3.1) | CAD-04c | Funcionários: dependentes, banco/Pix, adicionais, VT, afastamentos e documentos (revisada) | M | Draft | R-RH-1, R-RH-3, PRD §6 LGPD | CAD-04b | [CAD-04c](CAD-04c-funcionarios-complemento.md) |
+| 2 (3.1) | EST-01a | Saldos, movimentos e custo médio | G | Draft | R-EST-4, R-EST-5, R-EST-6, R-EST-7, R-EST-8 | CAD-02a, CAD-02b, CAD-03, CAD-06, FND-09e | [EST-01a](EST-01a-saldos-movimentos-custo-medio.md) |
+| 3 (3.1) | EST-01b | Ajuste de estoque com motivo e aprovação | M | Draft | R-EST-6, R-EST-5, R-EST-7, R-SEC-10 | EST-01a | [EST-01b](EST-01b-ajuste-estoque-aprovacao.md) |
+| 4 (3.2) | ENG-01 | Templates de roteiro | M | Draft | R-ENG-1, R-ENG-2, R-PRP-1 | CAD-03, CAD-02a | [ENG-01](ENG-01-templates-roteiro.md) |
+| 5 (3.2) | PRD-01 | Geração da OS de fabricação | G | Draft | R-PRD-1, R-PRJ-2, R-ENG-1, R-ENG-6 | ENG-01, COM-04a, COM-06 | [PRD-01](PRD-01-geracao-os-fabricacao.md) |
+| 6 (3.2) | ENG-02 | BOM da OS | M | Draft | R-ENG-3, R-ENG-4, R-ENG-5, R-PRP-2 | PRD-01, EST-01a | [ENG-02](ENG-02-bom-da-os.md) |
+| 7 (3.2) | EST-02 | Reservas e disponível | M | Draft | R-EST-4, R-ENG-4, R-ENG-5, R-CMP-1 | ENG-02, EST-01a, PRD-01 | [EST-02](EST-02-reservas-disponivel.md) |
+| 8 (3.3) | CMP-01 | Solicitação de compra (manual, falta da BOM, estoque mínimo) | M | Draft | R-CMP-1, R-CMP-6, R-COM-2 | EST-02 | [CMP-01](CMP-01-solicitacao-compra.md) |
+| 9 (3.3) | CMP-02 | Cotação | M | Draft | R-CMP-2, R-CMP-6, R-PRP-1 | CMP-01 | [CMP-02](CMP-02-cotacao.md) |
+| 10 (3.3) | CMP-03a | Pedido de compra: alçada e CP previsto | G | Draft | R-CMP-3, R-CMP-4, R-CMP-6, R-FIN-4, R-FIN-5, R-FIN-10 | CMP-02, FIN-03b, FIN-02, FIN-05 | [CMP-03a](CMP-03a-pedido-compra-alcada-cp.md) |
+| 11 (3.3) | CMP-03b | PDF e envio do pedido ao fornecedor | P | Draft | R-CMP-3, R-COM-1, R-COM-3 | CMP-03a, COM-03 | [CMP-03b](CMP-03b-pdf-envio-pedido.md) |
+| 12 (3.3) | CMP-04 | Recebimento manual contra o pedido | G | Draft | R-CMP-5, R-EST-6, R-EST-7, R-EST-8, R-FIN-4 | CMP-03a, EST-01a, EST-02 | [CMP-04](CMP-04-recebimento-manual.md) |
+| 13 (3.4) | EST-03 | Requisição de material para a OS e devolução | M | Draft | R-PRD-5, R-EST-4, R-EST-6, R-PRJ-5 | EST-02, PRD-01, COM-05 | [EST-03](EST-03-requisicao-material-os.md) |
+| 14 (3.4) | PRD-02 | Kanban da produção (tempo real) | M | Draft | R-PRD-2, PRD §5.14, PRD §6 | PRD-01, FND-02 | [PRD-02](PRD-02-kanban.md) |
+| 15 (3.4) | PRD-03a | App do operador: fila, apontamento e checklist | G | Draft | R-PRD-3, R-PRD-6, PRD §6 Usabilidade | PRD-01, ENG-02, PRD-02, CAD-04c, EST-03 | [PRD-03a](PRD-03a-pwa-fila-apontamento.md) |
+| 16 (3.4) | PRD-03b | App do operador: PIN e funcionamento sem rede | M | Draft | R-PRD-3, R-SEC-1, R-SEC-3, R-SEC-7 | PRD-03a | [PRD-03b](PRD-03b-pwa-pin-offline.md) |
+| 17 (3.4) | PRD-04 | Custo de mão de obra | P | Draft | R-PRD-4, R-RH-2, R-PRJ-5 | PRD-03a, CAD-04a, EST-03 | [PRD-04](PRD-04-custo-mao-de-obra.md) |
+| 18 (3.4) | PRD-05 | Qualidade e não conformidade | M | Draft | R-PRD-6, R-COM-4, R-SEC-10 | PRD-03a | [PRD-05](PRD-05-qualidade-nao-conformidade.md) |
+| 19 (3.5) | PRD-06a | Conclusão da OS: produto acabado com série e custo | M | Draft | R-PRD-7, R-EST-8, R-EST-7, R-PRJ-6 | PRD-05, EST-03, PRD-04, COM-04b | [PRD-06a](PRD-06a-conclusao-os-produto-acabado.md) |
+| 20 (3.5) | PRD-06b | Expedição: romaneio e saída do produto acabado | M | Draft | R-PRD-8, R-EST-6, R-EST-8 | PRD-06a, COM-03 | [PRD-06b](PRD-06b-expedicao-romaneio.md) |
+| 21 (3.5) | EST-04 | Lote, série e rastreabilidade | M | Draft | R-EST-8, R-PRD-7 | CMP-04, EST-03, PRD-06a, PRD-06b | [EST-04](EST-04-lote-serie-rastreabilidade.md) |
+| 22 (3.5) | EST-05 | Inventário (contagem por local) | M | Draft | R-EST-9, R-EST-6 | EST-01b, EST-02 | [EST-05](EST-05-inventario.md) |
+| 23 (3.5) | EST-06 | Capacidade de produzir (D) | P | Draft | R-EST-10 | ENG-02, EST-02, CMP-01 | [EST-06](EST-06-capacidade-de-produzir.md) |
+
+Total da Fase 3: 23 stories (P: 3 · M: 15 · G: 5), todas `Draft`; a CAD-04c foi revisada e as outras 22 são novas.
+
+## Ordem de execução
+```
+3.1 Estoque confiável:       CAD-04c → EST-01a → EST-01b
+3.2 Da engenharia à OS:      ENG-01 → PRD-01 → ENG-02 → EST-02
+3.3 Comprar o que falta:     CMP-01 → CMP-02 → CMP-03a → CMP-03b → CMP-04
+3.4 Fábrica rodando:         EST-03 → PRD-02 → PRD-03a → PRD-03b → PRD-04 → PRD-05
+3.5 Fechar a OS:             PRD-06a → PRD-06b → EST-04 → EST-05 → EST-06 (D)
+```
+
+Por que esta ordem:
+- **3.1 primeiro:** o motor de estoque (saldo, custo médio, imutabilidade, `IStockMovements`) é usado por reserva, requisição, recebimento, conclusão e expedição; o saldo inicial (`OpeningBalance`, ADR 0016) leva o estoque real para a homologação. A CAD-04c fica no início da fase (D6) porque a PRD-03a recusa apontamento de afastado.
+- **3.2:** a BOM pertence à OS (R-ENG-3), então a ordem é ENG-01 (roteiro) → PRD-01 (OS) → ENG-02 (BOM) → EST-02 (reserva na liberação).
+- **3.3:** a solicitação nasce da falta da reserva; cotação → pedido (com a alçada da FIN-03b e o CP previsto) → recebimento (entrada no estoque e confirmação do CP). A CMP-03 vem antes da CMP-04.
+- **3.4:** a requisição (EST-03) leva o custo de material ao projeto; o Kanban cria o hub de tempo real antes do PWA; a PRD-04 depende do apontamento da PRD-03a; a qualidade (PRD-05) fecha o ciclo da OS.
+- **3.5:** a conclusão gera série e produto acabado pelo custo da OS e libera a parcela "fabricação concluída"; a rastreabilidade (EST-04) precisa de todas as pontas (lote do recebimento, consumo da OS, série e expedição); o inventário e a capacidade de produzir não bloqueiam nada.
+
+## Quebras e re-estimativas
+- **EST-01** → **01a** (saldos, movimentos, custo médio, estorno, G) e **01b** (ajuste com aprovação, M), porque o ajuste com segregação de função pesava sobre o motor.
+- **CMP-03** → **03a** (pedido, alçada e CP previsto por parcela, G) e **03b** (PDF e envio, P).
+- **PRD-03** → **03a** (fila, apontamento, checklist, supervisor, G) e **03b** (PIN no dispositivo registrado e fila sem rede, M).
+- **PRD-06** → **06a** (conclusão, série, custo da OS, fabricação concluída automática, M) e **06b** (romaneio e saída, M).
+- **Re-estimadas:** PRD-01 (M → G: estende a OS da COM-06 e cria o consumidor do `ProjectItemCreated`) e CMP-04 (M → G: entrada com custo rateado, recebimento parcial e confirmação do CP por parcela).
+
+## Padrões comuns da Fase 3
+Valem além dos padrões das fases anteriores. Cada story só repete o que é específico dela.
+1. **Movimento de estoque nunca é apagado nem editado:** estorno por movimento inverso (`reverses_movement_id`), pelo documento de origem; trigger no banco e teste de arquitetura.
+2. **Um motor só** (`IStockMovements`) escreve saldo e custo médio, com lock da linha de `stock_balances`, `CHECK`s (físico ≥ 0, reservado entre 0 e o físico) e idempotência por origem; estoque negativo bloqueado (409 `insufficient_stock`).
+3. **Unidades:** toda quantidade gravada está na unidade de estoque (`numeric(18,4)`); conversão na borda pelo `IUnitConversion`, nunca fator 1.
+4. **Custo:** custo médio ponderado móvel global por item (`numeric(18,6)`); total da linha em 2 casas `AwayFromZero`; frete e IPI rateados pelo valor no recebimento (P-16).
+5. **Custo real do projeto:** o Commercial grava `commercial.project_costs` pelos eventos `StockIssued`/`StockReturned` (EST-03) e `LaborEntryClosed`/`LaborEntryCorrected` (PRD-04); `Production` e `Shipment` não entram (o custo já entrou pela baixa e pelas horas); a compra para o projeto aparece como "Comprometido" até a decisão do ponto 4 da CMP-03a.
+6. **Caixa:** pedido aprovado → títulos a pagar `Planned` estimados por parcela (fluxo de caixa com "Estimado"); recebimento → confirmação pelo valor recebido; cancelamento ou encerramento do saldo → cancelamento das previsões.
+7. **Segregação de função:** quem lança o ajuste não aprova (EST-01b, EST-05); quem pede o pedido de compra não aprova, com alçada e valor de referência (CMP-03a); quem fez a etapa não aprova a qualidade dela (PRD-05, proposta); exceção só do Proprietário único (D6).
+8. **Idempotência e concorrência:** todo comando que cria documento ou movimento exige `Idempotency-Key`; `xmin` em todo documento; consumidores idempotentes pela inbox e pela origem.
+9. **Telas dedicadas:** `/fab` sem dock, alvos ≥ 56 px, uso com luva, tablet Android de entrada (P-12); tempo real pelo `ProductionHub` (grupo `{tenantId}:production`, mensagem só com o id, push depois do commit); PIN só em dispositivo registrado e sessão por PIN limitada ao `shopfloor`. O token de tela (quiosque) é do painel da TV (PNL-01, Fase 4).
+10. **Permissões novas por seed patch (propostas):** `engineering-permissions`, `engineering-release-bom`, `inventory-adjust-warehouse`, `purchasing-permissions`; `*.approve` continua reservada ao Proprietário para conceder (ADR 0008).
+11. **Navegação:** Engenharia (Roteiros, BOMs), Estoque (Saldos, Movimentos, Ajustes, Faltas, Requisições, Inventários, Rastreabilidade, Capacidade, mais os cadastros), Compras (Solicitações, Cotações, Pedidos, Recebimentos), Produção (OS de fabricação, Kanban, Qualidade, Não conformidades, Expedição, Instalações e os cadastros); cada story declara a entrada no `modules.ts` e a ajuda de cada rota e aba.
+
+## Validação do PO (21/10/2026)
+O @po (Pax) validou as 23 stories com a checklist de 10 itens das fases anteriores. **Todas tiveram 10/10.** Vereditos:
+- **GO** (sem pré-condição de decisão): CMP-02, CMP-03b, EST-04, EST-06.
+- **GO condicional** (pontos em aberto marcados como pré-condição): CAD-04c, EST-01a, EST-01b, ENG-01, PRD-01, ENG-02, EST-02, CMP-01, CMP-03a, CMP-04, EST-03, PRD-02, PRD-03a, PRD-03b, PRD-04, PRD-05, PRD-06a, PRD-06b, EST-05.
+- **Correções da validação cruzada:** a ENG-02 passou a depender da PRD-01 (a BOM é da OS); a PRD-04 deixou de criar o evento `LaborCostRecorded` e usa o `LaborEntryClosed` do `04-fluxos` com o valor; o consumidor do `ProductionOrderCompleted` na EST-02 é testado com evento do próprio teste até a PRD-06a; a EST-03 entrega a API do pedido do operador e a PRD-03a o botão; a CAD-04c foi ajustada ao código atual (ADR 0021, `Status` no `IEmployees`, regras de anexo da ADR 0019 §7, ajuda por aba).
+- **ADR sugerida antes do Marco 3.3:** motor de alçada do pedido de compra por `Finance.Contracts` e `IPayables` por parcela (CMP-03a, pontos 1 e 3).
+
+## Pontos em aberto da Fase 3
+Pendências do `06` que afetam a fase: **P-01** (aberta: crédito de imposto no custo médio e IPI recuperável; EST-01a ponto 2 e CMP-04 ponto 1, sem bloquear); P-04, P-05, P-12 e P-16 decididas e aplicadas. Pontos por story (a proposta está em cada arquivo; nenhum foi decidido):
+
+| # | Story | Ponto |
+|---|---|---|
+| 1 | CAD-04c | Formato do vale-transporte (pré-condição) |
+| 2 | CAD-04c | Tipos de afastamento (pré-condição) |
+| 3 | ENG-01 | Chave do "tipo de produto" e vínculo do roteiro ao item |
+| 4 | ENG-01 | Absorver ou não o modelo da OS de instalação |
+| 5 | ENG-01 | Excluir roteiro sem a ação `delete` no `engineering` |
+| 6 | ENG-01 | `routing_template_id` no item do orçamento |
+| 7 | ENG-01 | Seed patch `engineering-permissions` |
+| 8 | EST-01a | Numeração do movimento (`MOV`) |
+| 9 | EST-01a | Saldo inicial depois da data de corte |
+| 10 | EST-01a | Quem estorna movimento manual |
+| 11 | EST-01a | Custo médio visível com `inventory.view` |
+| 12 | EST-01a | Saída avulsa com projeto |
+| 13 | EST-01b | Numeração do ajuste (`AJ`) |
+| 14 | EST-01b | Alçada por valor no ajuste |
+| 15 | EST-01b | Ajuste que deixa o saldo abaixo do reservado |
+| 16 | EST-01b | Autoaprovação do Proprietário único |
+| 17 | EST-01b | Seed patch `inventory-adjust-warehouse` |
+| 18 | PRD-01 | Quais itens geram OS de fabricação |
+| 19 | PRD-01 | Uma OS por item ou por unidade |
+| 20 | PRD-01 | OS para os projetos da Fase 2 (sem geração retroativa) |
+| 21 | PRD-01 | Cancelar OS iniciada com `production.approve` |
+| 22 | PRD-01 | dwg/dxf e 25 MB no dono de anexo `ProductionOrder` (muda a tabela da ADR 0019 §7) |
+| 23 | ENG-02 | `engineering.approve` para a Engenharia por seed patch (ADR 0008) |
+| 24 | ENG-02 | Quantidade da BOM por unidade ou por OS |
+| 25 | ENG-02 | Estado `Superseded` da revisão |
+| 26 | ENG-02 | Liberar BOM de OS sem item de estoque do produto |
+| 27 | EST-02 | Local da reserva com vários locais |
+| 28 | EST-02 | Quem recebe o material que chega (ordem das faltas) |
+| 29 | EST-02 | Completar a reserva automaticamente na entrada |
+| 30 | CMP-01 | Gatilho do estoque mínimo |
+| 31 | CMP-01 | Prazo padrão de compra (`purchasing.default_lead_days`) |
+| 32 | CMP-01 | Aprovação da solicitação |
+| 33 | CMP-01 | Serviço na solicitação |
+| 34 | CMP-01 | Seed patch `purchasing-permissions` |
+| 35 | CMP-02 | Pedir a cotação por e-mail |
+| 36 | CMP-02 | Número mínimo de cotações |
+| 37 | CMP-02 | IPI na cotação |
+| 38 | CMP-03a | Motor de alçada do pedido por `Finance.Contracts` (pede ADR) |
+| 39 | CMP-03a | Conta e natureza do título do pedido |
+| 40 | CMP-03a | Um título por parcela no `IPayables` |
+| 41 | CMP-03a | Compra para o projeto contada duas vezes (título × baixa) |
+| 42 | CMP-03a | Fracionamento e mínimo de cotações |
+| 43 | CMP-03a | Reprovação volta a rascunho ou é final |
+| 44 | CMP-03a | Regra padrão "Proprietário aprova tudo" para pedido |
+| 45 | CMP-03b | Limite diário de envios somado ao do orçamento |
+| 46 | CMP-03b | Endereço de entrega |
+| 47 | CMP-04 | IPI recuperável (P-01) |
+| 48 | CMP-04 | Tolerância de quantidade recebida |
+| 49 | CMP-04 | Preço diferente do pedido |
+| 50 | CMP-04 | Confirmação do CP no recebimento parcial |
+| 51 | CMP-04 | Quem estorna o recebimento |
+| 52 | CMP-04 | Quem registra o recebimento |
+| 53 | CMP-04 | Frete com outro fornecedor |
+| 54 | EST-03 | Numeração da requisição (`REQ`) |
+| 55 | EST-03 | Consumo acima da BOM |
+| 56 | EST-03 | Sugestão de lote |
+| 57 | EST-03 | Pedido do operador com confirmação do almoxarife |
+| 58 | EST-03 | Custo da devolução |
+| 59 | EST-03 | Contar duas vezes (depende do ponto 41) |
+| 60 | PRD-02 | Arrastar no Kanban para mudar de etapa (protótipo × `04-fluxos`) |
+| 61 | PRD-02 | Colunas com roteiros diferentes |
+| 62 | PRD-02 | Regra de "em risco" até a Fase 4 |
+| 63 | PRD-03a | Fila do operador (por centro do cargo) |
+| 64 | PRD-03a | Etapa Projeto sem BOM liberada |
+| 65 | PRD-03a | Vários operadores na mesma etapa |
+| 66 | PRD-03a | QR code da OS |
+| 67 | PRD-03a | Funcionário do usuário por `Identity.Contracts` |
+| 68 | PRD-03b | Formato e duração do PIN, da sessão e do aparelho |
+| 69 | PRD-03b | Lista de nomes no aparelho (LGPD) |
+| 70 | PRD-03b | Operador sem e-mail (mudaria a FND-06c, pede ADR) |
+| 71 | PRD-03b | Quem revoga aparelho |
+| 72 | PRD-03b | Janela do horário do aparelho e validade da fila |
+| 73 | PRD-04 | Momento do snapshot do custo-hora |
+| 74 | PRD-04 | Recalcular apontamentos sem custo-hora |
+| 75 | PRD-04 | Pausa paga |
+| 76 | PRD-05 | Segregação na qualidade |
+| 77 | PRD-05 | Responsável padrão da NC |
+| 78 | PRD-05 | Custo da NC |
+| 79 | PRD-05 | Aprovação da última etapa (`Quality → Completed` do `04-fluxos`) |
+| 80 | PRD-06a | Formato da série |
+| 81 | PRD-06a | Registro manual de fabricação com OS |
+| 82 | PRD-06a | Conclusão parcial |
+| 83 | PRD-06a | Estorno da conclusão com parcela já liberada |
+| 84 | PRD-06b | Quem baixa o estoque: romaneio (Fase 3) ou NF-e autorizada (`04-fluxos`, Fase 5) |
+| 85 | PRD-06b | Numeração do romaneio (`ROM`) |
+| 86 | PRD-06b | Quem monta o romaneio |
+| 87 | EST-04 | Lotes por série (rastreio por OS) |
+| 88 | EST-04 | Nome do cliente na consulta do estoque (LGPD) |
+| 89 | EST-05 | Numeração do inventário (`INV`) |
+| 90 | EST-05 | Contagem cega |
+| 91 | EST-05 | Movimentos durante a contagem |
+| 92 | EST-06 | Material a caminho na capacidade de produzir |
