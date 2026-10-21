@@ -40,6 +40,48 @@ describe('StageIndicator (CA 14)', () => {
     const indicator = screen.getByRole('img', { name: 'Etapa Montagem, 3 de 5' })
     expect(indicator.textContent).toBe('M')
   })
+
+  it('só a atual fica em âmbar; as concluídas apagadas e as futuras na linha (ENG-01 CA 14, D17 b)', () => {
+    const { container } = render(<StageIndicator stages={DEFAULT_STAGES} current={2} />)
+    const segments = [...container.querySelectorAll('[data-state]')]
+    expect(segments.map((s) => s.getAttribute('data-state'))).toEqual(['done', 'done', 'now', 'next', 'next'])
+    expect(segments.filter((s) => s.className.includes('bg-signal'))).toHaveLength(1)
+    expect(segments[0].className).toContain('bg-muted-foreground')
+    expect(segments[4].className).toContain('bg-border')
+  })
+
+  it('a letra vem do roteiro; a inicial do nome é só a reserva', () => {
+    render(<StageIndicator stages={['Projeto', 'Corte', 'Expedição']} letters={['P', null, 'X']} current={2} />)
+    expect(screen.getByRole('img', { name: 'Etapa Expedição, 3 de 3' }).textContent).toBe('X')
+    cleanup()
+    render(<StageIndicator stages={['Projeto', 'corte']} letters={['P']} current={1} />)
+    expect(screen.getByRole('img', { name: 'Etapa corte, 2 de 2' }).textContent).toBe('C')
+  })
+
+  it('nomes repetidos não quebram (key pelo índice)', () => {
+    const { container } = render(<StageIndicator stages={['Solda', 'Solda', 'Solda']} current={1} />)
+    expect(container.querySelectorAll('[data-state]')).toHaveLength(3)
+  })
+
+  it('acima de 8 etapas usa o formato compacto "M · 3/12" sem segmentos', () => {
+    const stages = Array.from({ length: 12 }, (_, i) => `Etapa ${i + 1}`)
+    const letters = Array.from({ length: 12 }, (_, i) => String.fromCharCode(65 + i))
+    const { container } = render(<StageIndicator stages={stages} letters={letters} current={2} />)
+    const indicator = screen.getByRole('img', { name: 'Etapa Etapa 3, 3 de 12' })
+    expect(nbsp(indicator.textContent)).toBe('C· 3/12')
+    expect(container.querySelectorAll('[data-state]')).toHaveLength(0)
+    cleanup()
+    const { container: eight } = render(<StageIndicator stages={stages.slice(0, 8)} current={0} />)
+    expect(eight.querySelectorAll('[data-state]')).toHaveLength(8)
+  })
+
+  it('30 etapas cabem a 400 px: o compacto tem largura fixa, sem um segmento por etapa', () => {
+    const stages = Array.from({ length: 30 }, (_, i) => `Etapa ${i + 1}`)
+    const { container } = render(<StageIndicator stages={stages} current={29} showLabel />)
+    expect(screen.getByRole('img', { name: 'Etapa Etapa 30, 30 de 30' })).toBeTruthy()
+    expect(container.querySelector('[data-compact]')?.textContent).toBe('· 30/30')
+    expect(container.querySelector('[role="img"]')?.className).toContain('max-w-full')
+  })
 })
 
 describe('datas', () => {

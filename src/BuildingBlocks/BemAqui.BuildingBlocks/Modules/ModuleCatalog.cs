@@ -74,7 +74,7 @@ public static partial class ModuleCatalog
         new("projects", "Projetos", ModuleAreas.Commercial, 2, 30, "Contratos e projetos, com etapas e aditivos.", CrudApprove,
             [new("view_cost", "Ver custo e margem", "Ver orçado, custo lançado e margem do projeto (sigilo comercial, D7).")], "aditivos de contrato"),
         new("parties", "Cadastros", ModuleAreas.Commercial, 1, 40, "Clientes, fornecedores e instaladores.", Crud, []),
-        new("engineering", "Engenharia", ModuleAreas.Factory, 3, 50, "Estrutura de produto (BOM) e roteiros de fabricação.", [StandardActions.View, StandardActions.Create, StandardActions.Edit, StandardActions.Approve], [], "liberar a BOM"),
+        new("engineering", "Engenharia", ModuleAreas.Factory, 3, 50, "Estrutura de produto (BOM) e roteiros de fabricação.", CrudApprove, [], "liberar a BOM"),
         new("production", "Produção", ModuleAreas.Factory, 3, 60, "Ordens de serviço, Kanban, apontamentos e qualidade.", CrudApprove, [], "liberar na qualidade"),
         new("inventory", "Estoque", ModuleAreas.Factory, 3, 70, "Itens, saldos, reservas e movimentos.", CrudApprove,
             [new("adjust", "Ajustar estoque", "Lançar ajuste de inventário, que muda o saldo sem documento de origem.")], "ajuste de inventário"),

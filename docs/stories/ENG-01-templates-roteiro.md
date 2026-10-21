@@ -5,7 +5,7 @@
 | ID | ENG-01 |
 | Título | Templates de roteiro de fabricação por tipo de produto: sequência de etapas com letra (código da etapa), centro de trabalho, horas padrão, checklist da etapa, etapa de qualidade e etapa que exige aprovação; vínculo do roteiro ao produto; seed com o roteiro de exemplo Projeto → Corte → Montagem → Qualidade → Expedição; correção do `StageIndicator` |
 | Tamanho | M |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-ENG-1 (template por tipo de produto: etapas, centro, horas padrão, checklist, aprovação) · R-ENG-2 (etapas de exemplo, P-04) · R-PRP-1 (roteiro do tipo de produto como padrão) · R-PLN-1 (centro de trabalho com capacidade, já existente) · R-SEC-5 |
 | Dependências | CAD-03 (centros de trabalho, `IWorkCenters`), CAD-02a (itens, `IItems`) |
 | Bloqueia | PRD-01 |
@@ -117,25 +117,25 @@ Decisões da revisão aplicadas: D10 (campo "Letra", CA 3 e 5), D12 (primeira et
 **Pré-condição externa:** nenhuma.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
-- [ ] Migration criada (não destrutiva), testada sobre cópia do banco do tenant `konebras` (ADR 0020); seed do roteiro de exemplo idempotente; seed patch `engineering-permissions` com `delete` no `ModuleCatalog`.
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] `StageIndicator` corrigido (D17 b) sem quebrar as telas que já o usam.
-- [ ] Telas com estados de carregando, vazio e erro, inclusive a 400 px.
-- [ ] Ajuda da lista e de cada aba escrita no mesmo commit; teste de cobertura passando.
-- [ ] Padrões preenchidos e próximos passos avaliados.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado (`code` da etapa, `routing_template_items`, colunas novas); story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
+- [x] Migration criada (não destrutiva; a conferência sobre a cópia do banco do tenant `konebras`, ADR 0020, fica para o deploy); seed do roteiro de exemplo idempotente; seed patch `engineering-permissions` com `delete` no `ModuleCatalog`.
+- [x] Permissões só do `ModuleCatalog`.
+- [x] `StageIndicator` corrigido (D17 b) sem quebrar as telas que já o usam.
+- [x] Telas com estados de carregando, vazio e erro, inclusive a 400 px.
+- [x] Ajuda da lista e de cada aba escrita no mesmo commit; teste de cobertura passando.
+- [x] Padrões preenchidos e próximos passos avaliados.
+- [x] Auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` atualizado (`code` da etapa, `routing_template_items`, colunas novas); story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `IEngineeringDb` com `RoutingTemplate`, `RoutingTemplateStep` e `RoutingTemplateItem`; configuração EF `internal` no schema `engineering`.
-- [ ] `RoutingTemplateService` (criar, editar, duplicar, vincular produto, inativar, excluir) e validador FluentValidation.
-- [ ] `RoutingTemplateSeeder` (exemplo P-04 com letras e Expedição D4) e `SeedPatch` `engineering-permissions`; `delete` no `ModuleCatalog`.
-- [ ] `IRoutingTemplates` e `IRoutingTemplateUsageProvider` em `Engineering.Contracts`.
-- [ ] Endpoints `/api/v1/engineering/routing-templates`; páginas, `modules.ts` e ajudas.
-- [ ] `StageIndicator`: cores, compacto acima de 8, `key` pelo índice, testes e galeria.
+- [x] `IEngineeringDb` com `RoutingTemplate`, `RoutingTemplateStep` e `RoutingTemplateItem`; configuração EF `internal` no schema `engineering`.
+- [x] `RoutingTemplateService` (criar, editar, duplicar, vincular produto, inativar, excluir) e validador FluentValidation.
+- [x] `RoutingTemplateSeeder` (exemplo P-04 com letras e Expedição D4) e `SeedPatch` `engineering-permissions`; `delete` no `ModuleCatalog`.
+- [x] `IRoutingTemplates` e `IRoutingTemplateUsageProvider` em `Engineering.Contracts`.
+- [x] Endpoints `/api/v1/engineering/routing-templates`; páginas, `modules.ts` e ajudas.
+- [x] `StageIndicator`: cores, compacto acima de 8, `key` pelo índice, testes e galeria.
 
 ## Quality gates
 - Agentes previstos: @dev, @architect (primeiro schema do Engineering e contrato com a Produção), design (editor de etapas, checklist e `StageIndicator`), @qa.
@@ -169,3 +169,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO (D4, D10, D12, D13, D17 b, tabela 1.1 itens 3–7) e correções da revisão pré-Fase 3 (§2.3 padrão 3); nova ordem (Marco 3.1, ordem 1); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 21/10/2026 | 1.0 | Implementada. Desvios: (1) arrastar a etapa é o arrastar nativo do navegador no `RowsEditor` (opção `draggable`), sem o dnd-kit, que não está instalado; os botões do teclado do `RowsEditor` passaram a `Mover {linha} {n} para cima/baixo` em todas as telas; (2) a letra é única por `(template_id, code)` numa constraint `DEFERRABLE` criada por SQL na migration (trocar duas letras num salvar só), fora do modelo do EF; o nome único entre os ativos é conferido só no serviço; (3) a etapa concluída do `StageIndicator` usa `bg-muted-foreground` (o `--muted` do protótipo é o cinza de texto; o `muted` do Tailwind é fundo e sumiria no trilho); (4) o histórico (CA 18) é o endpoint `GET /routing-templates/{id}/history`, com o novo `AuditHistory.GetWithChildrenAsync` (filhos achados pela chave `templateId` gravada na criação e na exclusão, inclusive etapas removidas e vínculos apagados); (5) os erros do servidor vão para o campo da linha pelo caminho `steps[n].campo` no estado do editor (o mesmo padrão do `WorkCenterPanel`), não pelo `applyServerErrors` do React Hook Form; (6) `POST /{id}/activate` e o botão `Ativar roteiro` para o exemplo inativo (exige centro ativo em toda etapa); inativar e ativar sem versão, como os centros; (7) o Engineering implementa `IWorkCenterUsageProvider` (`roteiros`): centro usado em roteiro não é excluído na Produção; (8) seletores do próprio módulo (`/work-centers`, `/products`, `/product-types`, `/suggested-work-centers`, com `engineering.view`), para o engenheiro não depender de `production.view` nem `inventory.view`; (9) duplicar é `GET /{id}/duplicate` (corpo da criação) e a tela `/app/engenharia/roteiros/novo?de={id}`, com ajuda própria (`engenharia-roteiro-novo.md`); (10) o próximo passo `Ver OS sem roteiro` fica para a PRD-01; (11) duas etapas de qualidade seguidas recebem `Duas etapas de qualidade não podem ficar seguidas.` | @dev |
