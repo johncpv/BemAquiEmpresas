@@ -108,6 +108,7 @@ import type {
   GetCashFlowDayParams,
   GetCashFlowParams,
   GetDiscountsAndCancellationsParams,
+  GetInstallationDefaultsParams,
   GroupDetail,
   GroupSaved,
   GroupSummary,
@@ -116,6 +117,20 @@ import type {
   HolidaySuggestion,
   HourlyCostInput,
   ImportRunDetail,
+  InstallationAcceptInput,
+  InstallationAcceptResult,
+  InstallationCancelInput,
+  InstallationChecklistInput,
+  InstallationCreateInput,
+  InstallationDateInput,
+  InstallationDefaults,
+  InstallationDetail,
+  InstallationPage,
+  InstallationTemplateInput,
+  InstallationTemplateView,
+  InstallationUpdateInput,
+  InstallationVersionInput,
+  InstallerOption,
   InstallmentDue,
   InviteAcceptedResponse,
   InviteInfo,
@@ -138,6 +153,8 @@ import type {
   ListFinanceSuppliersParams,
   ListImportPendingParams,
   ListImportRunsParams,
+  ListInstallationsParams,
+  ListInstallersParams,
   ListItemsParams,
   ListLocationsParams,
   ListMyNotificationsParams,
@@ -18088,6 +18105,1168 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getDeleteCalendarExceptionMutationOptions(options), queryClient);
+    }
+
+export const getListInstallationsUrl = (params?: ListInstallationsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/production/installations?${stringifiedParams}` : `/api/v1/production/installations`
+}
+
+export const listInstallations = async (params?: ListInstallationsParams, options?: Parameters<typeof apiFetch>[1]): Promise<InstallationPage> => {
+
+  return apiFetch<InstallationPage>(getListInstallationsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListInstallationsQueryKey = (params?: ListInstallationsParams,) => {
+    return [
+    `/api/v1/production/installations`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListInstallationsQueryOptions = <TData = Awaited<ReturnType<typeof listInstallations>>, TError = unknown>(params?: ListInstallationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInstallations>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListInstallationsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listInstallations>>> = ({ signal }) => listInstallations(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listInstallations>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListInstallationsQueryResult = NonNullable<Awaited<ReturnType<typeof listInstallations>>>
+export type ListInstallationsQueryError = unknown
+
+
+export function useListInstallations<TData = Awaited<ReturnType<typeof listInstallations>>, TError = unknown>(
+ params: undefined |  ListInstallationsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInstallations>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listInstallations>>,
+          TError,
+          Awaited<ReturnType<typeof listInstallations>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListInstallations<TData = Awaited<ReturnType<typeof listInstallations>>, TError = unknown>(
+ params?: ListInstallationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInstallations>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listInstallations>>,
+          TError,
+          Awaited<ReturnType<typeof listInstallations>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListInstallations<TData = Awaited<ReturnType<typeof listInstallations>>, TError = unknown>(
+ params?: ListInstallationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInstallations>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListInstallations<TData = Awaited<ReturnType<typeof listInstallations>>, TError = unknown>(
+ params?: ListInstallationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInstallations>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListInstallationsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateInstallationUrl = () => {
+
+
+
+
+  return `/api/v1/production/installations`
+}
+
+export const createInstallation = async (installationCreateInput: InstallationCreateInput, options?: Parameters<typeof apiFetch>[1]): Promise<InstallationDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<InstallationDetail>(getCreateInstallationUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(installationCreateInput)
+  }
+);}
+
+
+
+
+
+export const getCreateInstallationMutationKey = () => ['createInstallation'] as const;
+
+export const getCreateInstallationMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createInstallation>>, TError,CreateInstallationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createInstallation>>, TError,CreateInstallationMutationVariables, TContext> => {
+
+const mutationKey = getCreateInstallationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createInstallation>>, CreateInstallationMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createInstallation(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateInstallationMutationResult = NonNullable<Awaited<ReturnType<typeof createInstallation>>>
+    export type CreateInstallationMutationBody = InstallationCreateInput
+    export type CreateInstallationMutationError = unknown
+    export type CreateInstallationMutationVariables = {data: InstallationCreateInput}
+
+    export const useCreateInstallation = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createInstallation>>, TError,CreateInstallationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createInstallation>>,
+        TError,
+        CreateInstallationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateInstallationMutationOptions(options), queryClient);
+    }
+
+export const getGetInstallationDefaultsUrl = (params: GetInstallationDefaultsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/production/installations/defaults?${stringifiedParams}` : `/api/v1/production/installations/defaults`
+}
+
+export const getInstallationDefaults = async (params: GetInstallationDefaultsParams, options?: Parameters<typeof apiFetch>[1]): Promise<InstallationDefaults> => {
+
+  return apiFetch<InstallationDefaults>(getGetInstallationDefaultsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetInstallationDefaultsQueryKey = (params?: GetInstallationDefaultsParams,) => {
+    return [
+    `/api/v1/production/installations/defaults`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetInstallationDefaultsQueryOptions = <TData = Awaited<ReturnType<typeof getInstallationDefaults>>, TError = unknown>(params: GetInstallationDefaultsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInstallationDefaults>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetInstallationDefaultsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getInstallationDefaults>>> = ({ signal }) => getInstallationDefaults(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getInstallationDefaults>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetInstallationDefaultsQueryResult = NonNullable<Awaited<ReturnType<typeof getInstallationDefaults>>>
+export type GetInstallationDefaultsQueryError = unknown
+
+
+export function useGetInstallationDefaults<TData = Awaited<ReturnType<typeof getInstallationDefaults>>, TError = unknown>(
+ params: GetInstallationDefaultsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInstallationDefaults>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getInstallationDefaults>>,
+          TError,
+          Awaited<ReturnType<typeof getInstallationDefaults>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetInstallationDefaults<TData = Awaited<ReturnType<typeof getInstallationDefaults>>, TError = unknown>(
+ params: GetInstallationDefaultsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInstallationDefaults>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getInstallationDefaults>>,
+          TError,
+          Awaited<ReturnType<typeof getInstallationDefaults>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetInstallationDefaults<TData = Awaited<ReturnType<typeof getInstallationDefaults>>, TError = unknown>(
+ params: GetInstallationDefaultsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInstallationDefaults>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetInstallationDefaults<TData = Awaited<ReturnType<typeof getInstallationDefaults>>, TError = unknown>(
+ params: GetInstallationDefaultsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInstallationDefaults>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetInstallationDefaultsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListInstallersUrl = (params?: ListInstallersParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/production/installations/installers?${stringifiedParams}` : `/api/v1/production/installations/installers`
+}
+
+export const listInstallers = async (params?: ListInstallersParams, options?: Parameters<typeof apiFetch>[1]): Promise<InstallerOption[]> => {
+
+  return apiFetch<InstallerOption[]>(getListInstallersUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListInstallersQueryKey = (params?: ListInstallersParams,) => {
+    return [
+    `/api/v1/production/installations/installers`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListInstallersQueryOptions = <TData = Awaited<ReturnType<typeof listInstallers>>, TError = unknown>(params?: ListInstallersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInstallers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListInstallersQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listInstallers>>> = ({ signal }) => listInstallers(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listInstallers>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListInstallersQueryResult = NonNullable<Awaited<ReturnType<typeof listInstallers>>>
+export type ListInstallersQueryError = unknown
+
+
+export function useListInstallers<TData = Awaited<ReturnType<typeof listInstallers>>, TError = unknown>(
+ params: undefined |  ListInstallersParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInstallers>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listInstallers>>,
+          TError,
+          Awaited<ReturnType<typeof listInstallers>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListInstallers<TData = Awaited<ReturnType<typeof listInstallers>>, TError = unknown>(
+ params?: ListInstallersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInstallers>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listInstallers>>,
+          TError,
+          Awaited<ReturnType<typeof listInstallers>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListInstallers<TData = Awaited<ReturnType<typeof listInstallers>>, TError = unknown>(
+ params?: ListInstallersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInstallers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListInstallers<TData = Awaited<ReturnType<typeof listInstallers>>, TError = unknown>(
+ params?: ListInstallersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInstallers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListInstallersQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetInstallationUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/installations/${id}`
+}
+
+export const getInstallation = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<InstallationDetail> => {
+
+  return apiFetch<InstallationDetail>(getGetInstallationUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetInstallationQueryKey = (id: string,) => {
+    return [
+    `/api/v1/production/installations/${id}`
+    ] as const;
+    }
+
+
+export const getGetInstallationQueryOptions = <TData = Awaited<ReturnType<typeof getInstallation>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInstallation>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetInstallationQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getInstallation>>> = ({ signal }) => getInstallation(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getInstallation>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetInstallationQueryResult = NonNullable<Awaited<ReturnType<typeof getInstallation>>>
+export type GetInstallationQueryError = unknown
+
+
+export function useGetInstallation<TData = Awaited<ReturnType<typeof getInstallation>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInstallation>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getInstallation>>,
+          TError,
+          Awaited<ReturnType<typeof getInstallation>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetInstallation<TData = Awaited<ReturnType<typeof getInstallation>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInstallation>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getInstallation>>,
+          TError,
+          Awaited<ReturnType<typeof getInstallation>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetInstallation<TData = Awaited<ReturnType<typeof getInstallation>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInstallation>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetInstallation<TData = Awaited<ReturnType<typeof getInstallation>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInstallation>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetInstallationQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateInstallationUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/installations/${id}`
+}
+
+export const updateInstallation = async (id: string,
+    installationUpdateInput: InstallationUpdateInput, options?: Parameters<typeof apiFetch>[1]): Promise<InstallationDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<InstallationDetail>(getUpdateInstallationUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(installationUpdateInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateInstallationMutationKey = () => ['updateInstallation'] as const;
+
+export const getUpdateInstallationMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateInstallation>>, TError,UpdateInstallationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateInstallation>>, TError,UpdateInstallationMutationVariables, TContext> => {
+
+const mutationKey = getUpdateInstallationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateInstallation>>, UpdateInstallationMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateInstallation(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateInstallationMutationResult = NonNullable<Awaited<ReturnType<typeof updateInstallation>>>
+    export type UpdateInstallationMutationBody = InstallationUpdateInput
+    export type UpdateInstallationMutationError = unknown
+    export type UpdateInstallationMutationVariables = {id: string;data: InstallationUpdateInput}
+
+    export const useUpdateInstallation = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateInstallation>>, TError,UpdateInstallationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateInstallation>>,
+        TError,
+        UpdateInstallationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateInstallationMutationOptions(options), queryClient);
+    }
+
+export const getStartInstallationUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/installations/${id}/start`
+}
+
+export const startInstallation = async (id: string,
+    installationDateInput: InstallationDateInput, options?: Parameters<typeof apiFetch>[1]): Promise<InstallationDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<InstallationDetail>(getStartInstallationUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(installationDateInput)
+  }
+);}
+
+
+
+
+
+export const getStartInstallationMutationKey = () => ['startInstallation'] as const;
+
+export const getStartInstallationMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startInstallation>>, TError,StartInstallationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof startInstallation>>, TError,StartInstallationMutationVariables, TContext> => {
+
+const mutationKey = getStartInstallationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof startInstallation>>, StartInstallationMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  startInstallation(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StartInstallationMutationResult = NonNullable<Awaited<ReturnType<typeof startInstallation>>>
+    export type StartInstallationMutationBody = InstallationDateInput
+    export type StartInstallationMutationError = unknown
+    export type StartInstallationMutationVariables = {id: string;data: InstallationDateInput}
+
+    export const useStartInstallation = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startInstallation>>, TError,StartInstallationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof startInstallation>>,
+        TError,
+        StartInstallationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getStartInstallationMutationOptions(options), queryClient);
+    }
+
+export const getCompleteInstallationStepUrl = (id: string,
+    stepId: string,) => {
+
+
+
+
+  return `/api/v1/production/installations/${id}/steps/${stepId}/complete`
+}
+
+export const completeInstallationStep = async (id: string,
+    stepId: string,
+    installationVersionInput: InstallationVersionInput, options?: Parameters<typeof apiFetch>[1]): Promise<InstallationDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<InstallationDetail>(getCompleteInstallationStepUrl(id,stepId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(installationVersionInput)
+  }
+);}
+
+
+
+
+
+export const getCompleteInstallationStepMutationKey = () => ['completeInstallationStep'] as const;
+
+export const getCompleteInstallationStepMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeInstallationStep>>, TError,CompleteInstallationStepMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof completeInstallationStep>>, TError,CompleteInstallationStepMutationVariables, TContext> => {
+
+const mutationKey = getCompleteInstallationStepMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof completeInstallationStep>>, CompleteInstallationStepMutationVariables> = (props) => {
+          const {id,stepId,data} = props ?? {};
+
+          return  completeInstallationStep(id,stepId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CompleteInstallationStepMutationResult = NonNullable<Awaited<ReturnType<typeof completeInstallationStep>>>
+    export type CompleteInstallationStepMutationBody = InstallationVersionInput
+    export type CompleteInstallationStepMutationError = unknown
+    export type CompleteInstallationStepMutationVariables = {id: string;stepId: string;data: InstallationVersionInput}
+
+    export const useCompleteInstallationStep = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeInstallationStep>>, TError,CompleteInstallationStepMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof completeInstallationStep>>,
+        TError,
+        CompleteInstallationStepMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCompleteInstallationStepMutationOptions(options), queryClient);
+    }
+
+export const getMarkInstallationChecklistUrl = (id: string,
+    itemId: string,) => {
+
+
+
+
+  return `/api/v1/production/installations/${id}/checklist/${itemId}`
+}
+
+export const markInstallationChecklist = async (id: string,
+    itemId: string,
+    installationChecklistInput: InstallationChecklistInput, options?: Parameters<typeof apiFetch>[1]): Promise<InstallationDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<InstallationDetail>(getMarkInstallationChecklistUrl(id,itemId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(installationChecklistInput)
+  }
+);}
+
+
+
+
+
+export const getMarkInstallationChecklistMutationKey = () => ['markInstallationChecklist'] as const;
+
+export const getMarkInstallationChecklistMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markInstallationChecklist>>, TError,MarkInstallationChecklistMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof markInstallationChecklist>>, TError,MarkInstallationChecklistMutationVariables, TContext> => {
+
+const mutationKey = getMarkInstallationChecklistMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof markInstallationChecklist>>, MarkInstallationChecklistMutationVariables> = (props) => {
+          const {id,itemId,data} = props ?? {};
+
+          return  markInstallationChecklist(id,itemId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MarkInstallationChecklistMutationResult = NonNullable<Awaited<ReturnType<typeof markInstallationChecklist>>>
+    export type MarkInstallationChecklistMutationBody = InstallationChecklistInput
+    export type MarkInstallationChecklistMutationError = unknown
+    export type MarkInstallationChecklistMutationVariables = {id: string;itemId: string;data: InstallationChecklistInput}
+
+    export const useMarkInstallationChecklist = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markInstallationChecklist>>, TError,MarkInstallationChecklistMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof markInstallationChecklist>>,
+        TError,
+        MarkInstallationChecklistMutationVariables,
+        TContext
+      > => {
+      return useMutation(getMarkInstallationChecklistMutationOptions(options), queryClient);
+    }
+
+export const getAcceptInstallationUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/installations/${id}/accept`
+}
+
+export const acceptInstallation = async (id: string,
+    installationAcceptInput: InstallationAcceptInput, options?: Parameters<typeof apiFetch>[1]): Promise<InstallationAcceptResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<InstallationAcceptResult>(getAcceptInstallationUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(installationAcceptInput)
+  }
+);}
+
+
+
+
+
+export const getAcceptInstallationMutationKey = () => ['acceptInstallation'] as const;
+
+export const getAcceptInstallationMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptInstallation>>, TError,AcceptInstallationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof acceptInstallation>>, TError,AcceptInstallationMutationVariables, TContext> => {
+
+const mutationKey = getAcceptInstallationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof acceptInstallation>>, AcceptInstallationMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  acceptInstallation(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AcceptInstallationMutationResult = NonNullable<Awaited<ReturnType<typeof acceptInstallation>>>
+    export type AcceptInstallationMutationBody = InstallationAcceptInput
+    export type AcceptInstallationMutationError = unknown
+    export type AcceptInstallationMutationVariables = {id: string;data: InstallationAcceptInput}
+
+    export const useAcceptInstallation = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptInstallation>>, TError,AcceptInstallationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof acceptInstallation>>,
+        TError,
+        AcceptInstallationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAcceptInstallationMutationOptions(options), queryClient);
+    }
+
+export const getCancelInstallationUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/installations/${id}/cancel`
+}
+
+export const cancelInstallation = async (id: string,
+    installationCancelInput: InstallationCancelInput, options?: Parameters<typeof apiFetch>[1]): Promise<InstallationDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<InstallationDetail>(getCancelInstallationUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(installationCancelInput)
+  }
+);}
+
+
+
+
+
+export const getCancelInstallationMutationKey = () => ['cancelInstallation'] as const;
+
+export const getCancelInstallationMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelInstallation>>, TError,CancelInstallationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelInstallation>>, TError,CancelInstallationMutationVariables, TContext> => {
+
+const mutationKey = getCancelInstallationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelInstallation>>, CancelInstallationMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  cancelInstallation(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelInstallationMutationResult = NonNullable<Awaited<ReturnType<typeof cancelInstallation>>>
+    export type CancelInstallationMutationBody = InstallationCancelInput
+    export type CancelInstallationMutationError = unknown
+    export type CancelInstallationMutationVariables = {id: string;data: InstallationCancelInput}
+
+    export const useCancelInstallation = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelInstallation>>, TError,CancelInstallationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof cancelInstallation>>,
+        TError,
+        CancelInstallationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCancelInstallationMutationOptions(options), queryClient);
+    }
+
+export const getGetInstallationTemplateUrl = () => {
+
+
+
+
+  return `/api/v1/production/installation-template`
+}
+
+export const getInstallationTemplate = async ( options?: Parameters<typeof apiFetch>[1]): Promise<InstallationTemplateView> => {
+
+  return apiFetch<InstallationTemplateView>(getGetInstallationTemplateUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetInstallationTemplateQueryKey = () => {
+    return [
+    `/api/v1/production/installation-template`
+    ] as const;
+    }
+
+
+export const getGetInstallationTemplateQueryOptions = <TData = Awaited<ReturnType<typeof getInstallationTemplate>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInstallationTemplate>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetInstallationTemplateQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getInstallationTemplate>>> = ({ signal }) => getInstallationTemplate({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getInstallationTemplate>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetInstallationTemplateQueryResult = NonNullable<Awaited<ReturnType<typeof getInstallationTemplate>>>
+export type GetInstallationTemplateQueryError = unknown
+
+
+export function useGetInstallationTemplate<TData = Awaited<ReturnType<typeof getInstallationTemplate>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInstallationTemplate>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getInstallationTemplate>>,
+          TError,
+          Awaited<ReturnType<typeof getInstallationTemplate>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetInstallationTemplate<TData = Awaited<ReturnType<typeof getInstallationTemplate>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInstallationTemplate>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getInstallationTemplate>>,
+          TError,
+          Awaited<ReturnType<typeof getInstallationTemplate>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetInstallationTemplate<TData = Awaited<ReturnType<typeof getInstallationTemplate>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInstallationTemplate>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetInstallationTemplate<TData = Awaited<ReturnType<typeof getInstallationTemplate>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInstallationTemplate>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetInstallationTemplateQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSaveInstallationTemplateUrl = () => {
+
+
+
+
+  return `/api/v1/production/installation-template`
+}
+
+export const saveInstallationTemplate = async (installationTemplateInput: InstallationTemplateInput, options?: Parameters<typeof apiFetch>[1]): Promise<InstallationTemplateView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<InstallationTemplateView>(getSaveInstallationTemplateUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(installationTemplateInput)
+  }
+);}
+
+
+
+
+
+export const getSaveInstallationTemplateMutationKey = () => ['saveInstallationTemplate'] as const;
+
+export const getSaveInstallationTemplateMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveInstallationTemplate>>, TError,SaveInstallationTemplateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveInstallationTemplate>>, TError,SaveInstallationTemplateMutationVariables, TContext> => {
+
+const mutationKey = getSaveInstallationTemplateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveInstallationTemplate>>, SaveInstallationTemplateMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  saveInstallationTemplate(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveInstallationTemplateMutationResult = NonNullable<Awaited<ReturnType<typeof saveInstallationTemplate>>>
+    export type SaveInstallationTemplateMutationBody = InstallationTemplateInput
+    export type SaveInstallationTemplateMutationError = unknown
+    export type SaveInstallationTemplateMutationVariables = {data: InstallationTemplateInput}
+
+    export const useSaveInstallationTemplate = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveInstallationTemplate>>, TError,SaveInstallationTemplateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof saveInstallationTemplate>>,
+        TError,
+        SaveInstallationTemplateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSaveInstallationTemplateMutationOptions(options), queryClient);
     }
 
 export const getListLocationsUrl = (params?: ListLocationsParams,) => {

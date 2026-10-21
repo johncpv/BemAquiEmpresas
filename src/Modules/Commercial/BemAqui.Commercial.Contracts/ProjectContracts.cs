@@ -4,7 +4,7 @@ using BemAqui.SharedKernel;
 namespace BemAqui.Commercial.Contracts;
 
 /// <summary>Projeto visto pelos outros módulos (COM-04a CA 21): Finance (COM-04b), Production (COM-06, PRD-01).</summary>
-public sealed record ProjectSummary(Guid Id, string Number, string Name, Guid PartyId, Guid ContractId, string Status, Guid? SiteAddressId);
+public sealed record ProjectSummary(Guid Id, string Number, string Name, Guid PartyId, Guid ContractId, string Status, Guid? SiteAddressId, Guid? ManagerUserId = null);
 
 public interface IProjects
 {
@@ -14,7 +14,15 @@ public interface IProjects
 
     /// <summary>Projetos abertos para os seletores (título a pagar e a receber), com busca por número ou nome.</summary>
     Task<IReadOnlyList<ProjectSummary>> SearchAsync(string? term, int limit = 20, CancellationToken cancellationToken = default);
+
+    /// <summary>Itens do projeto (COM-06: a OS de instalação cobre itens).</summary>
+    Task<IReadOnlyList<ProjectItemInfo>> ItemsAsync(Guid projectId, CancellationToken cancellationToken = default);
+
+    /// <summary>Orçado de uma natureza (COM-06: valor padrão da OS e "Orçado" na OP). O chamador confere <c>projects.view_cost</c>.</summary>
+    Task<decimal?> BudgetedAsync(Guid projectId, CostType costType, CancellationToken cancellationToken = default);
 }
+
+public sealed record ProjectItemInfo(Guid Id, int Sequence, string Description, decimal Quantity);
 
 /// <summary>Marco do contrato no evento (sem dado pessoal).</summary>
 public sealed record ContractMilestoneInfo(Guid MilestoneId, int Sequence, string Description, decimal Amount, MilestoneTrigger Trigger, TriggerEvent? TriggerEvent, DateOnly? DueDate, int? DaysAfterEvent, decimal Percent = 0,

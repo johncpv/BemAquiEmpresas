@@ -15,7 +15,8 @@ namespace BemAqui.Commercial.Application;
 /// implementa <see cref="IProjects"/> e <see cref="IContracts"/> para os outros módulos (CA 21).
 /// </summary>
 public sealed partial class ProjectService(
-    ICommercialDb db, IParties parties, IUserDirectory users, IPermissionChecker permissions, IEventPublisher events, IReceivables receivables, IPayables payables, TimeProvider clock)
+    ICommercialDb db, IParties parties, IUserDirectory users, IPermissionChecker permissions, IEventPublisher events, IReceivables receivables, IPayables payables,
+    BemAqui.Production.Contracts.IInstallationOrders installations, TimeProvider clock)
     : IProjects, IContracts
 {
     public const string AttachmentOwner = "Project";
@@ -77,6 +78,13 @@ public sealed partial class ProjectService(
         return await Summaries(projects.OrderByDescending(p => p.CreatedAt).Take(Math.Clamp(limit, 1, 50))).ToListAsync(cancellationToken);
     }
 
+    async Task<IReadOnlyList<ProjectItemInfo>> IProjects.ItemsAsync(Guid projectId, CancellationToken cancellationToken) =>
+        await db.ProjectItems.AsNoTracking().Where(i => i.ProjectId == projectId).OrderBy(i => i.Sequence)
+            .Select(i => new ProjectItemInfo(i.Id, i.Sequence, i.Description, i.Quantity)).ToListAsync(cancellationToken);
+
+    async Task<decimal?> IProjects.BudgetedAsync(Guid projectId, CostType costType, CancellationToken cancellationToken) =>
+        await db.ProjectBudgets.AsNoTracking().Where(b => b.ProjectId == projectId && b.CostType == costType).Select(b => (decimal?)b.BudgetedAmount).FirstOrDefaultAsync(cancellationToken);
+
     async Task<bool?> IContracts.IsCancelledAsync(Guid contractId, CancellationToken cancellationToken) =>
         await db.Contracts.AsNoTracking().Where(c => c.Id == contractId).Select(c => (bool?)(c.Status == ContractStatus.Cancelled)).FirstOrDefaultAsync(cancellationToken);
 
@@ -89,7 +97,7 @@ public sealed partial class ProjectService(
     }
 
     private static IQueryable<ProjectSummary> Summaries(IQueryable<Project> projects) =>
-        projects.AsNoTracking().Select(p => new ProjectSummary(p.Id, p.Number, p.Name, p.PartyId, p.ContractId, p.Status.ToString(), p.SiteAddressId));
+        projects.AsNoTracking().Select(p => new ProjectSummary(p.Id, p.Number, p.Name, p.PartyId, p.ContractId, p.Status.ToString(), p.SiteAddressId, p.ManagerUserId));
 
     internal static Error NotFound() => Error.NotFound("project_not_found", "Projeto não encontrado.");
 }

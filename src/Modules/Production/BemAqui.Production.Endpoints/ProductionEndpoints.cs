@@ -9,13 +9,15 @@ using Microsoft.AspNetCore.Routing;
 namespace BemAqui.Production.Endpoints;
 
 /// <summary>Centros de trabalho e calendário (CAD-03 CA 8 a 14). Módulo <c>production</c> com as três camadas de acesso (CA 19).</summary>
-internal static class ProductionEndpoints
+internal static partial class ProductionEndpoints
 {
     public static IEndpointRouteBuilder MapProductionEndpoints(this IEndpointRouteBuilder api)
     {
         var production = api.MapGroup("/production").WithTags("Produção").RequireModule("production");
         MapWorkCenters(production.MapGroup("/work-centers"));
         MapCalendars(production.MapGroup("/calendars"));
+        MapInstallations(production.MapGroup("/installations"));
+        MapInstallationTemplate(production.MapGroup("/installation-template"));
         return api;
     }
 

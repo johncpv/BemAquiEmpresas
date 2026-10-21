@@ -23,7 +23,7 @@ public sealed record PayeeSnapshot(
 /// <summary>Item visto na OP: o retrato mascarado e os avisos âmbar (CA 6).</summary>
 public sealed record PaymentOrderItemView(
     Guid Id, Guid PayableId, string PayableNumber, string Description, string PartyName, decimal NetAmount, decimal Retentions, decimal Amount, decimal ExpectedCharges,
-    decimal ApprovedTotal, DateOnly? DueDate, PaymentDetailsInput Payment, IReadOnlyList<string> Warnings, decimal PaidTotal);
+    decimal ApprovedTotal, DateOnly? DueDate, PaymentDetailsInput Payment, IReadOnlyList<string> Warnings, decimal PaidTotal, decimal? InstallationBudget = null);
 
 public sealed record PaymentOrderDecisionView(PaymentOrderDecisionKind Kind, PaymentOrderDecision Decision, string? Comment, string? DecidedByName, DateTimeOffset DecidedAt, bool SelfApproved);
 

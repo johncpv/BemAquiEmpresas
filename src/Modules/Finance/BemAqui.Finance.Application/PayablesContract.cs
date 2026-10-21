@@ -120,6 +120,9 @@ public sealed class PayablesContract(IFinanceDb db, IChartOfAccounts chart, INum
         return Result.Success();
     }
 
+    public async Task<PayableRef?> FindByOriginAsync(DocumentOrigin origin, Guid originId, CancellationToken cancellationToken = default) =>
+        await FindAsync(origin, originId, cancellationToken) is { } payable ? Ref(payable) : null;
+
     public async Task<IReadOnlyList<ProjectPayable>> ByProjectAsync(Guid projectId, CancellationToken cancellationToken = default) =>
         await db.Payables.AsNoTracking().Where(p => p.ProjectId == projectId).OrderBy(p => p.DueDate == null).ThenBy(p => p.DueDate).ThenBy(p => p.Number)
             .Select(p => new ProjectPayable(p.Id, p.Number, p.PartyId, p.Origin, p.CostType, p.DueDate, p.Amount, p.Amount - p.RetentionIss - p.RetentionInss - p.RetentionIr - p.RetentionPcc - p.PaidAmount, p.Status, p.CreatedAt))

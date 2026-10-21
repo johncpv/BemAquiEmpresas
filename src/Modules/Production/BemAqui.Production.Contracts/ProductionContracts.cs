@@ -60,3 +60,29 @@ public interface IWorkCenterUsageProvider
     /// <summary>Descrição curta do uso ("cargos") ou null se não usa.</summary>
     Task<string?> UsageAsync(Guid workCenterId, CancellationToken cancellationToken = default);
 }
+
+/// <summary>Instalação iniciada (COM-06 CA 6): o Commercial passa o projeto a Instalando.</summary>
+public sealed record InstallationStarted(Guid ProductionOrderId, Guid ProjectId, DateOnly StartedOn) : BemAqui.SharedKernel.IIntegrationEvent;
+
+/// <summary>Aceite técnico da OS (COM-06 CA 9, 10): com todas as OS do projeto aceitas, o projeto é entregue.</summary>
+public sealed record InstallationAccepted(Guid ProductionOrderId, Guid ProjectId, DateOnly AcceptedOn) : BemAqui.SharedKernel.IIntegrationEvent;
+
+[JsonConverter(typeof(JsonStringEnumConverter<InstallationState>))]
+public enum InstallationState
+{
+    Open,
+    InProgress,
+    Completed,
+    Cancelled,
+}
+
+public sealed record InstallationOrderInfo(Guid Id, string Number, InstallationState Status, DateOnly PlannedStart, DateOnly PlannedEnd, IReadOnlyList<Guid> ProjectItemIds);
+
+/// <summary>OS de instalação para os outros módulos (COM-06): Commercial (entrega e projeto 360) e Finance (título órfão).</summary>
+public interface IInstallationOrders
+{
+    Task<IReadOnlyList<InstallationOrderInfo>> ByProjectAsync(Guid projectId, CancellationToken cancellationToken = default);
+
+    /// <summary>Situação da OS; null se não existe.</summary>
+    Task<InstallationState?> StatusAsync(Guid orderId, CancellationToken cancellationToken = default);
+}
