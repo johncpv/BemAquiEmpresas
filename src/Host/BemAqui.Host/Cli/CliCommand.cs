@@ -18,6 +18,24 @@ namespace BemAqui.Host.Cli;
 /// </summary>
 public static class CliCommand
 {
+    /// <summary>
+    /// Módulos compostos no CLI. Todo módulo com <c>ITenantSeeder</c> precisa estar aqui, senão o seed não roda no
+    /// <c>migrate</c> dos tenants existentes (teste <c>CliModulesTests</c>). A importação grava nos destinos pelos
+    /// <c>I*Import</c> dos módulos donos (ADR 0017).
+    /// </summary>
+    public static IReadOnlyList<BemAqui.BuildingBlocks.Modules.IModule> Modules { get; } =
+    [
+        new PlatformModule(),
+        new BemAqui.Identity.Endpoints.IdentityModule(),
+        new BemAqui.Parties.Endpoints.PartiesModule(),
+        new BemAqui.Finance.Endpoints.FinanceModule(),
+        new BemAqui.Inventory.Endpoints.InventoryModule(),
+        new BemAqui.Engineering.Endpoints.EngineeringModule(),
+        new BemAqui.Production.Endpoints.ProductionModule(),
+        new BemAqui.HR.Endpoints.HRModule(),
+        new BemAqui.Migrations.Endpoints.MigrationModule(),
+    ];
+
     public static bool IsCli(string[] args) => args is ["migrate", ..] or ["tenant", "provision", ..] or ["tenant", "invite-owner", ..] or ["tenant", "import-dolibarr", ..] or ["platform-admin", "create", ..] or ["alert", "raise", ..];
 
     public static async Task<int> RunAsync(string[] args, Action<IConfigurationBuilder>? configure = null, TextWriter? output = null)
@@ -44,16 +62,11 @@ public static class CliCommand
         // O convite do proprietário vai para o outbox do tenant; quem envia é a API (dispatcher desligado aqui).
         builder.Services.AddBemAquiMessaging(builder.Configuration, HostEvents.Register, runDispatcher: false);
         builder.Services.AddBemAquiSecrets(builder.Configuration, builder.Environment);
-        new PlatformModule().AddServices(builder.Services, builder.Configuration);
-        new BemAqui.Identity.Endpoints.IdentityModule().AddServices(builder.Services, builder.Configuration);
-        // A importação grava nos destinos pelos I*Import dos módulos donos (ADR 0017).
-        new BemAqui.Parties.Endpoints.PartiesModule().AddServices(builder.Services, builder.Configuration);
-        // O seed das condições de pagamento (CAD-05b) roda no migrate de todos os tenants.
-        new BemAqui.Finance.Endpoints.FinanceModule().AddServices(builder.Services, builder.Configuration);
-        new BemAqui.Inventory.Endpoints.InventoryModule().AddServices(builder.Services, builder.Configuration);
-        new BemAqui.Production.Endpoints.ProductionModule().AddServices(builder.Services, builder.Configuration);
-        new BemAqui.HR.Endpoints.HRModule().AddServices(builder.Services, builder.Configuration);
-        new BemAqui.Migrations.Endpoints.MigrationModule().AddServices(builder.Services, builder.Configuration);
+        foreach (var module in Modules)
+        {
+            module.AddServices(builder.Services, builder.Configuration);
+        }
+
         builder.Services.AddTenantPersistence();
         builder.Services.Configure<BemAqui.Host.Tenancy.PlatformHostOptions>(builder.Configuration.GetSection(BemAqui.Host.Tenancy.PlatformHostOptions.Section));
         builder.Services.AddSingleton<ITenantDatabaseMigrator, TenantDatabaseMigrator>();
