@@ -448,7 +448,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-4--planejamento-p
 
 ## Fase 5 — Integrações fiscais e bancárias (go-live)
 
-Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-fiscais-e-bancárias-go-live), com critérios de aceite completos, ordem por marcos, padrões comuns, checklist de go-live, dependências da Fase 3 e os 81 pontos em aberto numerados. Escritas e validadas em 21/10/2026 (checklist do @po, 10/10); **todas `Draft` (GO condicional)**: dependem da ADR 0023 (integração com o EmissorFiscal), da contadora (P-01, P-02, P-03), do certificado A1, da conta do Inter com API (P-08) e das stories da Fase 3 (PRD-06b, CMP-03a, CMP-04).
+Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-fiscais-e-bancárias-go-live), com critérios de aceite completos, ordem por marcos, padrões comuns, checklist de go-live, dependências da Fase 3 e os 81 pontos em aberto numerados. Escritas e validadas em 21/10/2026 (checklist do @po, 10/10); **todas `Draft` (GO condicional)**: dependem da ADR 0027 (integração com o EmissorFiscal), da contadora (P-01, P-02, P-03), do certificado A1, da conta do Inter com API (P-08) e das stories da Fase 3 (PRD-06b, CMP-03a, CMP-04).
 
 **Ordem de execução:** **5.1 Base:** FND-16 → FIS-01 → **5.2 Cobrança pelo Inter:** BNK-01a → BNK-01b → BNK-02 → **5.3 Conciliação:** BNK-03a → BNK-03b → **5.4 Nota de saída:** FIS-02a → FIS-02b → FIS-03a → FIS-03b → **5.5 Nota de entrada:** FIS-04a → FIS-04b → FIS-05 → **5.6 Desejáveis:** FIN-09 (D) → FIS-06 (D) → **5.7 Go-live:** GOL-01a → GOL-01b.
 
@@ -458,9 +458,9 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-
 - Requisitos: R-FIN-7, R-FIS-3, PRD §6 Segurança e Observabilidade, R-SEC-5.
 - CA: rota `POST /webhooks/{provider}/{tenantKey}` única anônima nova; HMAC sobre o corpo cru ou token na query (nunca no caminho logado), comparação em tempo constante; resposta igual para tenant inexistente e assinatura errada; `webhook_events` com deduplicação; 200 em até 2 s e processamento por `TenantJob`; dead-letter com "Reprocessar"; nada de corpo ou segredo em log.
 
-**FIS-01 [ ] Análise do EmissorFiscal, ADR 0023 e adaptador `IFiscalEmitter` (G)** — 5.1, ordem 2 — re-estimada — [story](stories/FIS-01-emissorfiscal-adr-adaptador.md)
+**FIS-01 [ ] Análise do EmissorFiscal, ADR 0027 e adaptador `IFiscalEmitter` (G)** — 5.1, ordem 2 — re-estimada — [story](stories/FIS-01-emissorfiscal-adr-adaptador.md)
 - Requisitos: R-FIS-1, R-FIS-8, R-FIS-6, R-FIS-7, PRD §6 Segurança, R-SEC-5.
-- CA: ADR 0023 aprovada pelo PO antes do código e da FIS-02a (análise com o que o EmissorFiscal cobre e as lacunas L-a a L-k); `IFiscalEmitter` sem DTO do EmissorFiscal; reenvio com o mesmo `Idempotency-Key`, nunca reemissão em contingência; chave por tenant cifrada, sem escopo `admin`; webhook HMAC que só dispara reconsulta; XML guardado 5 anos; job de pendentes; testes de contrato com fake e com a homologação do EmissorFiscal; rede Docker dedicada.
+- CA: ADR 0027 aprovada pelo PO antes do código e da FIS-02a (análise com o que o EmissorFiscal cobre e as lacunas L-a a L-k); `IFiscalEmitter` sem DTO do EmissorFiscal; reenvio com o mesmo `Idempotency-Key`, nunca reemissão em contingência; chave por tenant cifrada, sem escopo `admin`; webhook HMAC que só dispara reconsulta; XML guardado 5 anos; job de pendentes; testes de contrato com fake e com a homologação do EmissorFiscal; rede Docker dedicada.
 
 **BNK-01a [ ] Inter: configuração, mTLS e rotação (M)** — 5.2, ordem 3 — quebra da BNK-01 — [story](stories/BNK-01a-inter-configuracao-mtls.md)
 - Requisitos: R-FIN-7, R-FIN-8, R-FIN-2, PRD §6 Segurança, R-SEC-5.
@@ -484,7 +484,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-
 
 **FIS-02a [ ] Configuração fiscal do tenant (M)** — 5.4, ordem 8 — quebra da FIS-02 — [story](stories/FIS-02a-configuracao-fiscal-tenant.md)
 - Requisitos: R-FIS-2, R-COM-2, R-SEC-10.
-- CA: `fiscal.approve` no catálogo e seed patch `fiscal-permissions` (propostas); regime, CNAE, série e ambiente com `settings.edit`; produção só depois da GOL-01 (proposta); certificado conforme a ADR 0023, nunca em log; **alerta 30 dias antes do vencimento do certificado** (e 15, 7, 1).
+- CA: `fiscal.approve` no catálogo e seed patch `fiscal-permissions` (propostas); regime, CNAE, série e ambiente com `settings.edit`; produção só depois da GOL-01 (proposta); certificado conforme a ADR 0027, nunca em log; **alerta 30 dias antes do vencimento do certificado** (e 15, 7, 1).
 
 **FIS-02b [ ] Regras fiscais e cálculo dos tributos (G)** — 5.4, ordem 9 — quebra da FIS-02 — [story](stories/FIS-02b-regras-fiscais-calculo.md)
 - Requisitos: R-FIS-4, R-FIS-3, R-FIS-8, R-PRJ-5.
@@ -532,7 +532,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-
 
 Stories detalhadas em [`docs/stories/`](stories/README.md#fase-6--rh-e-patrimônio-fim-do-mvp), escritas pelo @sm e validadas pelo @po em 21/10/2026 (checklist de 10 itens, 10/10 em todas). **Todas estão `Draft`**: PAT-02 com GO; as demais com GO condicional, até as decisões marcadas como pré-condição nos pontos em aberto (README da Fase 6, 58 pontos). Dependências abertas de outras fases: CAD-04c, PRD-03a/03b e PRD-04 (Fase 3, rascunho), PLN-01 e DSH-04 (Fase 4), FIS-04 (Fase 5) e a P-01.
 
-**Ordem de execução:** **6.1 Ponto:** RH-01a → RH-01b → RH-01c → **6.2 Folha lançada:** RH-02a → RH-02c → RH-02b → RH-03 (D) → **6.3 LGPD:** LGPD-01a → LGPD-01b. **6.4 Patrimônio** em paralelo: PAT-01a → PAT-01b → PAT-02 → PAT-03a → PAT-03b.
+**Ordem de execução:** **6.1 Ponto:** RH-01a → RH-01b → RH-01c → **6.2 Folha lançada:** CAD-04c2 → RH-02a → RH-02c → RH-02b → RH-03 (D) → **6.3 LGPD:** LGPD-01a → LGPD-01b. **6.4 Patrimônio** em paralelo: PAT-01a → PAT-01b → PAT-02 → PAT-03a → PAT-03b.
 
 **Quebras:** RH-01 → 01a/01b/01c · RH-02 → 02a/02b/02c · LGPD-01 → 01a/01b · PAT-01 → 01a/01b · PAT-03 → 03a/03b. Depreciação (R-PAT-6) continua na Fase 9 (ponto em aberto da PAT-01a).
 
@@ -547,6 +547,9 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-6--rh-e-patrimôn
 **RH-01c [ ] Ponto: espelho mensal, banco de horas e fechamento (G)** — 6.1, ordem 3 — quebra da RH-01 — [story](stories/RH-01c-espelho-banco-horas-fechamento.md)
 - Requisitos: R-RH-4 (parte), R-RH-5, R-COM-3, PRD §6 (Desempenho, LGPD), R-SEC-5, R-PRP-2, R-PRP-5.
 - CA: espelho por dia pela jornada e pelo calendário (dataset fixo minuto a minuto); tolerância e banco de horas como parâmetros; inconsistências acionáveis; fechamento com pré-condições e totais congelados; reabertura em cascata; PDF sem dado sensível; 50 funcionários em menos de 1 s.
+
+**CAD-04c2 [ ] Funcionários: dependentes, banco/Pix, adicionais, vale-transporte e documentos (M)** — 6.2, antes da RH-02a — quebra da CAD-04c (D9 da revisão pré-Fase 3) — [story](stories/CAD-04c2-funcionarios-complemento.md)
+- Story Ready desde 21/10/2026; movida da Fase 3 porque só a folha consome esses dados. Entra antes da RH-02a.
 
 **RH-02a [ ] Folha lançada: competência, rubricas, lançamento e importação (G)** — 6.2, ordem 4 — quebra da RH-02 — [story](stories/RH-02a-folha-lancada-rubricas.md)
 - Requisitos: R-RH-5 (parte), R-RH-1, PRD §6 LGPD, R-SEC-5, R-SEC-10, R-PRP-1, R-PRP-3.

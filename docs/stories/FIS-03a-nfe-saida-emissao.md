@@ -19,7 +19,7 @@ Como **financeiro**, quero **emitir a nota do que foi expedido sem digitar item,
 - `04-fluxos-estados` §1 "NF-e de saída" (`Draft → Processing → Authorized | Rejected`) e revisão pré-Fase 0 §2.1 (estado `Denied` e inutilização); §2: `InvoiceAuthorized` (Fiscal) → "Inventory baixa produto acabado (Shipment); anexa XML/PDF ao projeto; e-mail ao cliente"; §3.3 (realizado: "impostos (NF autorizadas)").
 - `03-modelo-dados` → `fiscal.outgoing_invoices` (`number`, `series`, `access_key`, `type`, `party_id`, `project_id`, `shipment_id`, `status`, `xml_path`, `pdf_path`, `protocol`, `totals`, `receivable_ids` → tabela de junção pela revisão pré-Fase 0 §2.1), `outgoing_invoice_items` (`item_id`, `serial_ids`, `ncm`, `cfop`, `quantity`, `unit_price`, `taxes`).
 - **Fase 3 (rascunho em revisão, `D:\GIT\BemAquiEmpresas-fase3`):** PRD-06b (romaneio `Shipped` com séries; `ShipmentDispatched`; ponto em aberto 1 "**quem baixa o estoque**: romaneio ou NF-e autorizada"; CA 6 "Emitir NF-e" como "Disponível na Fase 5"; CA 8 estorno da expedição passa a exigir o cancelamento da nota).
-- ADR 0019 §7 (arquivo gerado e e-mail com anexo), ADR 0021 (assíncrono com estado de demora), ADR 0022 (DANFE próprio pelo `IPdfRenderer`, se a ADR 0023 decidir), ADR 0018 (guarda fiscal de 5 anos).
+- ADR 0019 §7 (arquivo gerado e e-mail com anexo), ADR 0021 (assíncrono com estado de demora), ADR 0022 (DANFE próprio pelo `IPdfRenderer`, se a ADR 0027 decidir), ADR 0018 (guarda fiscal de 5 anos).
 
 ## Critérios de aceite
 **Rascunho**
@@ -30,7 +30,7 @@ Como **financeiro**, quero **emitir a nota do que foi expedido sem digitar item,
 
 **Emitir**
 5. **Dado** o rascunho válido e as pré-condições (integração testada, configuração fiscal completa, certificado válido, regra ativa para cada item, cliente com documento e endereço com IBGE), **quando** clico "Emitir NF-e" e confirmo no diálogo grande com o impacto (destinatário, itens, totais, impostos, ambiente "Homologação: sem valor fiscal" ou "Produção"), **então** a nota vai a `Processing`, a chamada sai pelo `IFiscalEmitter.IssueNfeAsync` com o `Idempotency-Key` estável (FIS-01), e a tela mostra "Nota enviada à SEFAZ. Aguardando a autorização…"; pré-condição faltando: o diálogo lista com link e o botão fica desabilitado com o motivo.
-6. **Dado** a resposta ou o webhook (FIS-01 CA 8 e 10), **quando** a nota é **autorizada**, **então** numa transação: `Authorized` com número, série, chave de acesso, protocolo e data; XML autorizado guardado (FIS-01 CA 9) e DANFE em PDF guardada (conforme a ADR 0023, Pontos em aberto 5 da FIS-01), ambos anexos de sistema da nota e também listados no projeto (aba Documentos); e o evento `InvoiceAuthorized` (`{ invoiceId, projectId, shipmentId, partyId, issuedOn, totalAmount, costTaxes: [{ costType: Tax, amount }], receivableIds }`, sem dado pessoal) vai para o outbox.
+6. **Dado** a resposta ou o webhook (FIS-01 CA 8 e 10), **quando** a nota é **autorizada**, **então** numa transação: `Authorized` com número, série, chave de acesso, protocolo e data; XML autorizado guardado (FIS-01 CA 9) e DANFE em PDF guardada (conforme a ADR 0027, Pontos em aberto 5 da FIS-01), ambos anexos de sistema da nota e também listados no projeto (aba Documentos); e o evento `InvoiceAuthorized` (`{ invoiceId, projectId, shipmentId, partyId, issuedOn, totalAmount, costTaxes: [{ costType: Tax, amount }], receivableIds }`, sem dado pessoal) vai para o outbox.
 7. **Dado** a resposta **rejeitada**, **quando** chega, **então** a nota fica `Rejected` com o código, o motivo e a ação sugerida traduzidos (catálogo do EmissorFiscal), a notificação vai a quem emitiu com link, e "Corrigir e emitir de novo" volta a nota a `Draft` com os dados; a nova emissão usa a próxima tentativa do `Idempotency-Key` (FIS-01 ponto 7); o número consumido pela rejeição aparece na lista "Números a inutilizar" (FIS-03b).
 8. **Dado** a resposta **denegada**, **quando** chega, **então** a nota fica `Denied` (não pode ser corrigida nem reemitida para o mesmo destinatário sem resolver a situação dele), com a orientação "A SEFAZ denegou a nota por irregularidade do destinatário. Fale com a contadora."; o número fica registrado como denegado.
 9. **Dado** a situação `ContingencyPending` ou `Processing` por mais de 30 s, **quando** a tela está aberta, **então** mostra o estado de demora ("A SEFAZ está demorando. Avisaremos quando a nota for autorizada.") e **nunca** oferece reemitir; acima de 2 h, o alerta da FIS-01 CA 11.
@@ -129,7 +129,7 @@ Checklist do @po (Pax), 21/10/2026.
 | 10 | DoD ajustado; pontos em aberto registrados sem decidir | OK |
 
 - **Correções feitas na validação:** a baixa do estoque ficou dependente da decisão da PRD-06b, testada nos dois caminhos (CA 11); estado `Denied` e "nunca reemitir em contingência" (CA 8, 9); impostos no custo do projeto pelo evento (CA 10); nota não cria título (regras).
-- **Pré-condições para `Ready`:** PRD-06b ponto 1 decidido; FIS-01 (ADR 0023), FIS-02a e FIS-02b prontas; pontos em aberto 2, 4 e 6; A1 (ponto 7) para o CA 19.
+- **Pré-condições para `Ready`:** PRD-06b ponto 1 decidido; FIS-01 (ADR 0027), FIS-02a e FIS-02b prontas; pontos em aberto 2, 4 e 6; A1 (ponto 7) para o CA 19.
 - **Prontidão:** 10/10. **Veredito:** GO condicional. Status `Draft`.
 
 ## Change Log

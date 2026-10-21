@@ -3,11 +3,11 @@
 | Campo | Valor |
 |---|---|
 | ID | FIS-02a |
-| Título | Cadastro fiscal do tenant (regime tributário, IE, IM, CNAE principal e secundários, série da NF-e, ambiente homologação ou produção), situação do certificado A1 conforme a ADR 0023, alerta 30 dias antes do vencimento, permissões do módulo `fiscal` no catálogo e no seed |
+| Título | Cadastro fiscal do tenant (regime tributário, IE, IM, CNAE principal e secundários, série da NF-e, ambiente homologação ou produção), situação do certificado A1 conforme a ADR 0027, alerta 30 dias antes do vencimento, permissões do módulo `fiscal` no catálogo e no seed |
 | Tamanho | M (quebra da FIS-02) |
 | Status | Draft |
 | Requisitos | R-FIS-2 (cadastro fiscal do tenant: certificado A1 (criptografado), regime, IE, série, ambiente) · R-COM-2 · R-PRP-5 · R-SEC-10 · R-SEC-5 |
-| Dependências | FIS-01 (ADR 0023 aprovada e `IFiscalEmitter`), CAD-06 (`company_profile`: IE, IM, endereço, `city_ibge`), FND-06 (`ModuleCatalog`), CAD-01a (seed patch); P-01 e P-02 (conteúdo, não estrutura) |
+| Dependências | FIS-01 (ADR 0027 aprovada e `IFiscalEmitter`), CAD-06 (`company_profile`: IE, IM, endereço, `city_ibge`), FND-06 (`ModuleCatalog`), CAD-01a (seed patch); P-01 e P-02 (conteúdo, não estrutura) |
 | Bloqueia | FIS-02b (regras), FIS-03a (emissão), FIS-06 (NFS-e) |
 | Ordem de execução | 8 (Marco 5.4 "Nota de saída") |
 
@@ -18,7 +18,7 @@ Como **proprietário**, quero **informar uma vez os dados fiscais da empresa e s
 - PRD R-FIS-2; `05-backlog` FIS-02 ("Certificado A1, série, ambiente, regras por operação (conteúdo da contadora). CA: alerta 30 dias antes do vencimento do certificado").
 - `03-modelo-dados` → `fiscal.fiscal_settings` (`regime`, `ie`, `cnae`, `certificate_secret`, `certificate_expiry`, `environment`, `nfe_series`, `next_number`; a FIS-01 tira o `next_number`, porque o número é do EmissorFiscal).
 - `06-pendencias-riscos` P-01 (regime: "hoje consta fora do Simples (provável Lucro Presumido)"; o `CLAUDE.md` do EmissorFiscal registra "Lucro Presumido desde 01/01/2026", ainda sem decisão no `06`), P-02 (CNAE de fabricação em inclusão).
-- ADR 0007 (`fiscal-certificate`), ADR 0008 (`*.approve` e `settings.edit` reservadas), ADR 0016 adendo M6 (cada módulo é dono dos próprios parâmetros; Configurações monta a tela), ADR 0023 (proposta na FIS-01: onde fica o A1).
+- ADR 0007 (`fiscal-certificate`), ADR 0008 (`*.approve` e `settings.edit` reservadas), ADR 0016 adendo M6 (cada módulo é dono dos próprios parâmetros; Configurações monta a tela), ADR 0027 (proposta na FIS-01: onde fica o A1).
 - EmissorFiscal: alertas próprios em 60/30/15/7/1 dias; série exclusiva acordada com o contador (lacuna L3 de lá).
 - `ModuleCatalog` atual: `fiscal` com `view`, `create`, `edit` e nenhum grupo do seed com o módulo.
 
@@ -32,8 +32,8 @@ Como **proprietário**, quero **informar uma vez os dados fiscais da empresa e s
 4. **[Segurança]** **Dado** a troca do ambiente para **Produção**, **quando** salvo, **então** o diálogo "Ligar a emissão com valor fiscal" explica "Notas em produção têm valor fiscal e só podem ser canceladas no prazo legal." e exige o mesmo verbo; no tenant `konebras`, Produção só é aceita depois da GOL-01 (flag do catálogo `fiscal_production_allowed`, ligada no checklist do go-live; Pontos em aberto 4); a troca de série com nota já emitida na série atual pede confirmação mostrando a última nota.
 5. **Dado** a configuração salva, **quando** o regime ou o CRT mudam, **então** o sistema avisa que as regras fiscais (FIS-02b) do regime anterior ficam inativas e lista as que precisam de revisão; nenhuma nota já emitida muda.
 
-**Certificado A1 (conforme a ADR 0023)**
-6. **Dado** a decisão (a) da ADR 0023 (A1 só no EmissorFiscal), **quando** abro a seção "Certificado", **então** vejo titular, CNPJ, validade e situação lidos pelo `IFiscalEmitter.GetCertificateStatusAsync` (cache de 1 h), e o texto "O certificado é carregado no Emissor Fiscal pelo administrador."; **dado** a decisão (b), **quando** o Proprietário envia o `.pfx` e a senha, **então** o servidor valida (abre, tem chave privada, CNPJ do titular = CNPJ do tenant, não vencido, tipo A1), cifra com `SecretKind.FiscalCertificate` (`fiscal-certificate`, ADR 0007), envia ao EmissorFiscal e nunca o devolve (a tela mostra só titular e validade).
+**Certificado A1 (conforme a ADR 0027)**
+6. **Dado** a decisão (a) da ADR 0027 (A1 só no EmissorFiscal), **quando** abro a seção "Certificado", **então** vejo titular, CNPJ, validade e situação lidos pelo `IFiscalEmitter.GetCertificateStatusAsync` (cache de 1 h), e o texto "O certificado é carregado no Emissor Fiscal pelo administrador."; **dado** a decisão (b), **quando** o Proprietário envia o `.pfx` e a senha, **então** o servidor valida (abre, tem chave privada, CNPJ do titular = CNPJ do tenant, não vencido, tipo A1), cifra com `SecretKind.FiscalCertificate` (`fiscal-certificate`, ADR 0007), envia ao EmissorFiscal e nunca o devolve (a tela mostra só titular e validade).
 7. **[Segurança]** **Dado** qualquer um dos caminhos, **quando** o certificado ou a senha passam pelo BemAqui, **então** não aparecem no log, na auditoria (só "certificado trocado, válido até…"), no `IFileStorage` nem na resposta; teste de canário com um certificado de teste gerado no próprio teste (nunca arquivo `.pfx` no repositório; a CI já recusa).
 8. **Dado** o certificado com vencimento em 30 dias (e de novo em 15, 7 e 1), **quando** o recorrente global `fiscal-certificate-expiry` roda (diário, 08:00 de São Paulo), **então** os membros do Proprietário e quem tem `fiscal.edit` recebem "O certificado digital da empresa vence em {n} dias. Sem ele, nenhuma nota é emitida." com link para a seção Certificado, sem repetir no mesmo limiar (`dedup_key = fiscal-cert:{limiar}:{validade}`); vencido, a emissão responde 409 `fiscal_certificate_expired` e sai o alerta `fiscal_integration` (FND-12); teste de execução dupla e de dois tenants.
 
@@ -42,7 +42,7 @@ Como **proprietário**, quero **informar uma vez os dados fiscais da empresa e s
 10. **Dado** qualquer alteração, **quando** abro o histórico, **então** vejo antes e depois (regime, CNAE, série, ambiente), quem e quando; certificado só como "trocado".
 
 ## Regras de negócio e técnicas
-- **`fiscal.fiscal_settings`** (03 ajustado): `regime`, `crt`, `cnae_main`, `cnae_secondary` (array), `nfe_series`, `environment`, `certificate_mode` (`EmissorFiscal`/`Uploaded`, pela ADR 0023), `certificate_cipher` e `certificate_password_cipher` (só no modo (b)), `certificate_not_after`, `certificate_subject`, `updated_at`, `updated_by`, `xmin`; uma linha por tenant; auditada com `[ProtectedSecret]`.
+- **`fiscal.fiscal_settings`** (03 ajustado): `regime`, `crt`, `cnae_main`, `cnae_secondary` (array), `nfe_series`, `environment`, `certificate_mode` (`EmissorFiscal`/`Uploaded`, pela ADR 0027), `certificate_cipher` e `certificate_password_cipher` (só no modo (b)), `certificate_not_after`, `certificate_subject`, `updated_at`, `updated_by`, `xmin`; uma linha por tenant; auditada com `[ProtectedSecret]`.
 - **Fonte única:** IE, IM, endereço e IBGE ficam em `settings.company_profile` (CAD-06); o Fiscal lê, não copia.
 - **Parâmetros** do Fiscal são dele (ADR 0016 adendo M6); a tela fica em Configurações com `settings.edit`.
 - **Sem decidir o regime:** a story guarda o que o Proprietário informa; o conteúdo vem da contadora (P-01).
@@ -113,8 +113,8 @@ Checklist do @po (Pax), 21/10/2026.
 | 9 | Telas com estados, ajuda e comportamento propositivo | OK |
 | 10 | DoD ajustado; pontos em aberto registrados sem decidir | OK |
 
-- **Correções feitas na validação:** IE, IM e endereço lidos do CAD-06, sem cópia (CA 2); o certificado segue a decisão da ADR 0023, com os dois caminhos testáveis (CA 6); o regime registrado no EmissorFiscal não foi tomado como decisão (ponto 5).
-- **Pré-condições para `Ready`:** ADR 0023 (FIS-01); pontos em aberto 1, 2 e 3.
+- **Correções feitas na validação:** IE, IM e endereço lidos do CAD-06, sem cópia (CA 2); o certificado segue a decisão da ADR 0027, com os dois caminhos testáveis (CA 6); o regime registrado no EmissorFiscal não foi tomado como decisão (ponto 5).
+- **Pré-condições para `Ready`:** ADR 0027 (FIS-01); pontos em aberto 1, 2 e 3.
 - **Prontidão:** 10/10. **Veredito:** GO condicional. Status `Draft`.
 
 ## Change Log

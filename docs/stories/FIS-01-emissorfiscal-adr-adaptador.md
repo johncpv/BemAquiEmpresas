@@ -68,7 +68,7 @@ Como **PO**, quero **saber exatamente o que o EmissorFiscal já faz e como o Bem
 
 ## Critérios de aceite
 **ADR (gate da story)**
-1. **Dado** a análise acima, **quando** a story começa, **então** o @architect redige a **ADR 0023 "Integração com o EmissorFiscal"** com: forma de integração (proposta: **(b) serviço HTTP**, porque o EmissorFiscal é um produto com banco, RLS, cofre, outbox e webhooks próprios; a opção (a) exigiria copiar ou referenciar código de outro produto, o que o CLAUDE.md proíbe sem ADR), o mapa tenant BemAqui → tenant, emitente e sistema cliente do EmissorFiscal, os escopos da chave, onde fica o certificado A1 (Pontos em aberto 2), a rede entre os dois serviços (CA 14), a numeração (do EmissorFiscal), a guarda do XML, a tabela de lacunas com dono e prazo e o plano de homologação SEFAZ sem escrever no tenant `konebras` (Pontos em aberto 3); **e o PO a aprova antes de qualquer código desta story e da FIS-02a** (CA do backlog).
+1. **Dado** a análise acima, **quando** a story começa, **então** o @architect redige a **ADR 0027 "Integração com o EmissorFiscal"** com: forma de integração (proposta: **(b) serviço HTTP**, porque o EmissorFiscal é um produto com banco, RLS, cofre, outbox e webhooks próprios; a opção (a) exigiria copiar ou referenciar código de outro produto, o que o CLAUDE.md proíbe sem ADR), o mapa tenant BemAqui → tenant, emitente e sistema cliente do EmissorFiscal, os escopos da chave, onde fica o certificado A1 (Pontos em aberto 2), a rede entre os dois serviços (CA 14), a numeração (do EmissorFiscal), a guarda do XML, a tabela de lacunas com dono e prazo e o plano de homologação SEFAZ sem escrever no tenant `konebras` (Pontos em aberto 3); **e o PO a aprova antes de qualquer código desta story e da FIS-02a** (CA do backlog).
 
 **Contrato `IFiscalEmitter`**
 2. **Dado** o módulo Fiscal, **quando** precisa do EmissorFiscal, **então** usa só `IFiscalEmitter` (`Fiscal.Application`), com as operações: `PreviewAsync`, `IssueNfeAsync(request, idempotencyKey)`, `GetNfeAsync(accessKey)`, `GetXmlAsync`, `GetDanfeAsync`, `CancelNfeAsync(accessKey, justification)`, `CorrectNfeAsync(accessKey, text)`, `InvalidateRangeAsync(series, from, to, justification)`, `GetEventsAsync`, `SefazStatusAsync`, `GetCertificateStatusAsync` (se a ADR permitir) e, reservadas para a FIS-06, `IssueNfseAsync`/`GetNfseAsync`; os tipos do contrato são do BemAqui (inglês, `decimal`, `DateOnly`/`DateTimeOffset`), nunca os DTOs do EmissorFiscal; um teste de arquitetura impede qualquer referência a assembly do EmissorFiscal ou da Unimake.
@@ -97,7 +97,7 @@ Como **PO**, quero **saber exatamente o que o EmissorFiscal já faz e como o Bem
 15. **Dado** o módulo `fiscal` não liberado, **quando** chamo a tela ou a API de integração, **então** 403 `module_not_released`; sem `settings.edit`, a tela fica em modo leitura (com `settings.view`) e o POST responde 403 `forbidden`; `RequireModule` e `perm:` em todo endpoint.
 
 ## Regras de negócio e técnicas
-- **Forma de integração (proposta da ADR 0023):** serviço HTTP. O BemAqui é um "sistema conectado" do EmissorFiscal, com uma `ClientApplication` por tenant e escopos `nfe:emitir`, `consultar` (e `nfse:emitir` na FIS-06); o emitente é o CNPJ do tenant; nenhum código do EmissorFiscal é copiado.
+- **Forma de integração (proposta da ADR 0027):** serviço HTTP. O BemAqui é um "sistema conectado" do EmissorFiscal, com uma `ClientApplication` por tenant e escopos `nfe:emitir`, `consultar` (e `nfse:emitir` na FIS-06); o emitente é o CNPJ do tenant; nenhum código do EmissorFiscal é copiado.
 - **Numeração da NF-e:** dona é o EmissorFiscal (emitente + série + ambiente). O BemAqui grava o número e a chave devolvidos; `fiscal_settings.next_number` do `03-modelo-dados` deixa de existir (corrigir o 03 nesta story).
 - **Cálculo de tributos:** fora do EmissorFiscal por desenho; é do BemAqui (FIS-02b).
 - **Retorno:** webhook (FND-16) como caminho principal, `fiscal-pending-check` como reserva; transição sempre pela reconsulta.
@@ -110,7 +110,7 @@ Como **PO**, quero **saber exatamente o que o EmissorFiscal já faz e como o Bem
 - **Eventos:** nenhum de domínio nesta story (as transições da nota publicam na FIS-03a); provedor de webhook `emissor-fiscal`.
 - **Tabelas:** `fiscal.integration_settings` (proposta: `base_url`, `api_key_cipher`, `webhook_secret_cipher`, `previous_webhook_secret_cipher`, `rotated_at`, `issuer_document`, `environment`, `scopes`, `last_test_at`, `last_test_result`; uma linha por tenant; auditada sem os segredos).
 - **Jobs:** recorrente global `fiscal-pending-check`.
-- **ADR:** 0023 (nova). Adendo à ADR 0007.
+- **ADR:** 0027 (nova). Adendo à ADR 0007.
 
 ## Telas e estados
 - **Configurações → Integrações → Emissor fiscal** (`/app/configuracoes/integracoes/emissor-fiscal`): seções Conexão (URL, chave write-only, segredo do webhook write-only com "Gerar novo" mostrado uma vez), Emitente e ambiente (lidos do teste), Situação (último teste, último aviso recebido, notas pendentes).
@@ -129,11 +129,11 @@ Como **PO**, quero **saber exatamente o que o EmissorFiscal já faz e como o Bem
 ## Fora do escopo
 - Configuração fiscal do tenant e regras de tributação: FIS-02a e FIS-02b. Emissão, eventos e DANFE: FIS-03a e FIS-03b. NFS-e: FIS-06.
 - Implantar o EmissorFiscal na VPS, criar o tenant e o emitente lá, obter o A1: fora deste repositório (pré-condição externa).
-- Corrigir as lacunas L-b a L-h no EmissorFiscal: trabalho no outro repositório, registrado na ADR 0023 com dono.
+- Corrigir as lacunas L-b a L-h no EmissorFiscal: trabalho no outro repositório, registrado na ADR 0027 com dono.
 
 ## Pontos em aberto
 1. **Implantação do EmissorFiscal** (PO): quem implanta, quando, e em que ambiente (homologação e produção, com dois emitentes ou um com dois ambientes). Pré-condição dos testes de contrato `emissor-homolog`.
-2. **Onde fica o certificado A1** (PO/arquiteto, decide na ADR 0023): (a) só no cofre do EmissorFiscal, carregado pelo painel do BemAqui Fiscal; o BemAqui guarda só a chave sem `admin` e precisaria de um endpoint de status do certificado sem `admin` (lacuna L-h); (b) o Proprietário carrega o A1 na tela do BemAqui (`SecretKind.FiscalCertificate`), que o repassa ao EmissorFiscal com uma chave `admin` separada. Recomendação: (a), menor privilégio e um cofre só; conflita com a leitura literal de R-FIS-2 ("cadastro fiscal do tenant: certificado A1 (criptografado)"), por isso precisa de decisão.
+2. **Onde fica o certificado A1** (PO/arquiteto, decide na ADR 0027): (a) só no cofre do EmissorFiscal, carregado pelo painel do BemAqui Fiscal; o BemAqui guarda só a chave sem `admin` e precisaria de um endpoint de status do certificado sem `admin` (lacuna L-h); (b) o Proprietário carrega o A1 na tela do BemAqui (`SecretKind.FiscalCertificate`), que o repassa ao EmissorFiscal com uma chave `admin` separada. Recomendação: (a), menor privilégio e um cofre só; conflita com a leitura literal de R-FIS-2 ("cadastro fiscal do tenant: certificado A1 (criptografado)"), por isso precisa de decisão.
 3. **Homologação SEFAZ sem o tenant `konebras`** (PO, ADR 0020): proposta: o tenant `demo` usa o emitente da WSP no ambiente de homologação da SEFAZ (notas sem valor fiscal) para os cenários da contadora; o tenant `konebras` só recebe a integração fiscal na GOL-01, já em produção. Alternativa: ligar a integração no `konebras` antes, em homologação SEFAZ, e excluir essas notas na promoção.
 4. **Reforma Tributária** (contadora + PO, P-03): a NT vigente exige os grupos IBS/CBS na NF-e e na NFS-e? Em Caçapava o `Reg60_RTC` já é obrigatório (ADR 005 do EmissorFiscal). Se sim, a lacuna L-b bloqueia a FIS-03a; precisa de prazo no EmissorFiscal.
 5. **DANFE em PDF** (PO/arquiteto): (a) o EmissorFiscal passa a gerar PDF; (b) o BemAqui renderiza o DANFE pelo `IPdfRenderer` (ADR 0022 já prevê "o DANFE próprio, se houver") a partir do XML; (c) enviar o HTML. Recomendação: (a) ou (b); (c) não atende R-FIS-3.
@@ -141,7 +141,7 @@ Como **PO**, quero **saber exatamente o que o EmissorFiscal já faz e como o Bem
 7. **Formato do `Idempotency-Key`** (arquiteto): proposta `nfe-{id da nota local}-{tentativa}`, em que a tentativa só muda quando a nota anterior foi **rejeitada** (a rejeição consome o número e a correção é uma nova emissão).
 
 ## Definition of Done
-- [ ] ADR 0023 aprovada pelo PO antes do código (CA 1); adendo à ADR 0007.
+- [ ] ADR 0027 aprovada pelo PO antes do código (CA 1); adendo à ADR 0007.
 - [ ] Critérios de aceite atendidos.
 - [ ] Testes de unidade, integração (Testcontainers), contrato (fake no CI) e E2E passando; suíte `emissor-homolog` executada uma vez e registrada.
 - [ ] Migration criada (não destrutiva), testada sobre cópia do banco do tenant `konebras`.
@@ -154,14 +154,14 @@ Como **PO**, quero **saber exatamente o que o EmissorFiscal já faz e como o Bem
 - [ ] `docs/02-arquitetura.md` §6.1 e `docs/03-modelo-dados.md` (`fiscal_settings` sem `next_number`, `integration_settings`) atualizados; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] ADR 0023 com a análise desta story e a tabela de lacunas.
+- [ ] ADR 0027 com a análise desta story e a tabela de lacunas.
 - [ ] `IFiscalEmitter` e tipos do contrato (Application); `EmissorFiscalHttpEmitter` (Infrastructure, `HttpClient` tipado com timeout e Polly só para leitura).
 - [ ] `IntegrationSettings`, `SecretKind.FiscalApiKey`, tela e ajuda.
 - [ ] Handler do provedor `emissor-fiscal` (FND-16) e recorrente `fiscal-pending-check`.
 - [ ] Fake do EmissorFiscal e suíte de contrato; rede `bqe-fiscal` no compose e no `check-compose.mjs`.
 
 ## Quality gates
-- Agentes previstos: @architect (ADR 0023), @dev, cybersecurity (chave, rede, webhook, log), @qa.
+- Agentes previstos: @architect (ADR 0027), @dev, cybersecurity (chave, rede, webhook, log), @qa.
 - Gate: CA 1, 4, 5, 8, 12, 13 e 14 obrigatórios.
 
 ## Validação do PO
@@ -181,7 +181,7 @@ Checklist do @po (Pax), 21/10/2026.
 | 10 | DoD ajustado; pontos em aberto registrados sem decidir | OK |
 
 - **Correções feitas na validação:** a numeração da NF-e passou a ser do EmissorFiscal (o `next_number` do 03 sai); a chave com escopo `admin` é recusada por padrão (CA 6); rede dedicada no lugar da `stack_stack` (CA 14); o webhook só dispara reconsulta (CA 8); re-estimada para G.
-- **Pré-condições para `Ready`:** ADR 0023 aprovada (CA 1) com os pontos em aberto 2, 3 e 7 decididos; ponto 1 (instância de homologação do EmissorFiscal) para a suíte de contrato real.
+- **Pré-condições para `Ready`:** ADR 0027 aprovada (CA 1) com os pontos em aberto 2, 3 e 7 decididos; ponto 1 (instância de homologação do EmissorFiscal) para a suíte de contrato real.
 - **Prontidão:** 10/10. **Veredito:** GO condicional. Status `Draft`.
 
 ## Change Log

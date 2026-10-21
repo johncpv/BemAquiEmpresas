@@ -764,7 +764,7 @@ Stories detalhadas da Fase 5, uma por arquivo, escritas pelo @sm (River) e valid
 | Ordem | ID | Título | Tam. | Status | Requisitos | Depende de | Arquivo |
 |---|---|---|---|---|---|---|---|
 | 1 (5.1) | FND-16 | Recepção de webhooks: rota, validação, idempotência e fila (nova) | M | Draft | R-FIN-7, R-FIS-3, PRD §6 Segurança | FND-02, FND-07, FND-11, FND-12 | [FND-16](FND-16-webhooks-de-entrada.md) |
-| 2 (5.1) | FIS-01 | Análise do EmissorFiscal, ADR 0023 e adaptador `IFiscalEmitter` | G | Draft | R-FIS-1, R-FIS-8, R-FIS-6, R-FIS-7 | FND-16, FND-11 | [FIS-01](FIS-01-emissorfiscal-adr-adaptador.md) |
+| 2 (5.1) | FIS-01 | Análise do EmissorFiscal, ADR 0027 e adaptador `IFiscalEmitter` | G | Draft | R-FIS-1, R-FIS-8, R-FIS-6, R-FIS-7 | FND-16, FND-11 | [FIS-01](FIS-01-emissorfiscal-adr-adaptador.md) |
 | 3 (5.2) | BNK-01a | Inter: credenciais, mTLS cifrado, token e rotação | M | Draft | R-FIN-7, R-FIN-8, R-FIN-2 | CAD-05b, FND-11; P-08 | [BNK-01a](BNK-01a-inter-configuracao-mtls.md) |
 | 4 (5.2) | BNK-01b | Bolepix a partir do título: emissão, PDF, e-mail, cancelamento | G | Draft | R-FIN-7, R-FIN-3, R-COM-1 | BNK-01a, FIN-01, COM-03 | [BNK-01b](BNK-01b-bolepix-emissao-cancelamento.md) |
 | 5 (5.2) | BNK-02 | Webhook de pagamento: reconsulta, baixa e conferência diária | G | Draft | R-FIN-7, R-FIN-3, R-TER-4 | FND-16, BNK-01b, FIN-01 | [BNK-02](BNK-02-webhook-pagamento-baixa.md) |
@@ -786,7 +786,7 @@ Total da Fase 5: 18 stories (M: 11 · G: 7), todas `Draft`.
 
 ## Ordem de execução
 ```
-5.1 Base das integrações:  FND-16 → FIS-01 (a ADR 0023 pode correr em paralelo ao 5.2)
+5.1 Base das integrações:  FND-16 → FIS-01 (a ADR 0027 pode correr em paralelo ao 5.2)
 5.2 Cobrança pelo Inter:   BNK-01a → BNK-01b → BNK-02
 5.3 Conciliação:           BNK-03a → BNK-03b
 5.4 Nota de saída:         FIS-02a → FIS-02b → FIS-03a → FIS-03b
@@ -797,7 +797,7 @@ Total da Fase 5: 18 stories (M: 11 · G: 7), todas `Draft`.
 
 Por que esta ordem:
 - **FND-16 primeiro:** o EmissorFiscal e o Inter avisam por webhook; a rota única, a validação e a deduplicação vêm antes dos dois consumidores.
-- **Banco antes do fiscal:** o Inter não depende da P-01/P-02/P-03 nem do A1 e entrega cedo a visibilidade financeira (boleto do título, baixa automática, conciliação). O fiscal depende da ADR 0023, da contadora e do certificado.
+- **Banco antes do fiscal:** o Inter não depende da P-01/P-02/P-03 nem do A1 e entrega cedo a visibilidade financeira (boleto do título, baixa automática, conciliação). O fiscal depende da ADR 0027, da contadora e do certificado.
 - **FIS-02a/02b antes da FIS-03a:** o EmissorFiscal não calcula imposto; regra e cálculo são do BemAqui.
 - **Entrada depois da saída:** depende da CMP-03a e da CMP-04 (Fase 3) e não bloqueia o faturamento.
 - **GOL-01a/01b por último:** ensaio completo e rollback testado antes do dia da virada.
@@ -821,7 +821,7 @@ Valem além dos padrões das fases anteriores.
 ## Validação do PO (21/10/2026)
 O @po (Pax) validou as 18 stories com a checklist de 10 itens das fases anteriores. **Todas tiveram 10/10, veredito GO condicional, status `Draft`.**
 - **Correções da validação cruzada:** a FND-16 abre o corpo dos eventos do Fiscal só para o Proprietário até a FIS-02a criar `fiscal.approve`; o número da NF-e passou a ser do EmissorFiscal (o `next_number` do 03 sai na FIS-01); a FIS-03a testa os dois caminhos da baixa do estoque até a decisão da PRD-06b; a FIS-04b usa o recebimento da CMP-04, sem caminho paralelo; a GOL-01 foi quebrada para o ensaio e o rollback virem antes da virada.
-- **ADR antes do Marco 5.4:** ADR 0023 (integração com o EmissorFiscal), aprovada pelo PO, gate da FIS-01 e da FIS-02a; adendo à ADR 0007 (novos `SecretKind`).
+- **ADR antes do Marco 5.4:** ADR 0027 (integração com o EmissorFiscal), aprovada pelo PO, gate da FIS-01 e da FIS-02a; adendo à ADR 0007 (novos `SecretKind`).
 
 ## Checklist de go-live (resumo; detalhe na GOL-01a e na GOL-01b)
 Critérios de entrada com evidência e "Go" do PO → ensaio completo e rollback numa cópia restaurada → D−1 backups extras → congelamento do Dolibarr (só leitura) e Konebras UI fora → carga final só dos cadastros alterados (dry-run, aceite, real) → `DROP USER`, secrets da migração e staging apagados → promoção do banco do tenant `konebras` com segredos novos (o key ring acompanha) → `app.konebras.com.br` no BemAqui, Dolibarr em `adm.konebras.com.br`, `tenant_domains` atualizado → EmissorFiscal e Inter em produção, webhook no host novo, `deploy-prod.yml` ligado → smoke, primeira nota e primeiro boleto reais com o PO (ponto sem retorno) → rollback possível até o fim do primeiro dia útil → primeira semana acompanhada → fechamento do go-live com a linha de base das métricas.
@@ -928,6 +928,8 @@ Pendências do `06` que afetam a fase: **P-01** (regime e crédito de impostos; 
 
 Stories detalhadas da Fase 6, uma por arquivo, escritas pelo @sm (River) e validadas pelo @po (Pax) em 21/10/2026. Fonte: `docs/01` a `06`, ADRs 0001–0022 (atenção à 0003, `hr.view_sensitive`; à 0016, dado sensível por rota; e à 0018, LGPD), o código das Fases 0 a 2 (`HR` com funcionários, cargos, jornadas, sindicatos e custo-hora; `IEmployees`, `IHourlyCost`, `IUserEmployeeLink`; auditoria com `[PersonalData]`/`[ProtectedSecret]` e `SensitiveRead`; anexos com ClamAV e regras por dono; `ModuleCatalog` e `GroupSeeder`; `IPdfRenderer`; e-mail por fila; `IPayables` com `DocumentOrigin.Payroll` e `Maintenance`) e as stories em rascunho da Fase 3 (CAD-04c, PRD-03a/03b, PRD-04). A Definition of Ready, a legenda e a escala de tamanho são as mesmas das fases anteriores. **Todas as stories estão `Draft`**: as que têm pontos em aberto marcados como pré-condição só passam a `Ready` depois da decisão do PO.
 
+
+> **CAD-04c2** (dependentes, banco/Pix, adicionais, vale-transporte, documentos; M, Ready) veio da Fase 3 pela D9 da revisão pré-Fase 3 e entra no Marco 6.2, antes da RH-02a: [CAD-04c2](CAD-04c2-funcionarios-complemento.md).
 ## Índice
 | Ordem | ID | Título | Tam. | Status | Requisitos | Depende de | Arquivo |
 |---|---|---|---|---|---|---|---|

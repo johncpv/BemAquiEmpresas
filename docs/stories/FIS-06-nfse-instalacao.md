@@ -26,7 +26,7 @@ Como **financeiro**, quero **emitir a nota de serviço da instalação quando o 
 3. **Dado** o retorno assíncrono, **quando** o EmissorFiscal não tem webhook de NFS-e (lacuna L-g), **então** o `fiscal-pending-check` (FIS-01 CA 10) consulta as NFS-e em processamento.
 4. **Dado** a necessidade de cancelar uma NFS-e, **quando** o EmissorFiscal ainda não suporta (lacuna L-g), **então** "Cancelar NFS-e" mostra "Cancele no portal da prefeitura e registre aqui." com "Registrar cancelamento feito na prefeitura" (`fiscal.approve`, motivo e número do protocolo), que lança o custo inverso e marca a nota `Cancelled` (origem "manual"), sem apagar nada.
 5. **Dado** o módulo `fiscal` não liberado, **quando** chamo, **então** 403 `module_not_released`; emitir sem `fiscal.create`, cancelar sem `fiscal.approve`: 403; `RequireModule` e `perm:`; IDOR em `/outgoing-invoices/{id}`; OS e projeto validados pelos Contracts dos donos.
-6. **[Segurança]** **Dado** as credenciais da prefeitura, **quando** são configuradas, **então** ficam no EmissorFiscal (não no BemAqui), conforme a ADR 0023; o BemAqui não recebe nem guarda a senha web da prefeitura.
+6. **[Segurança]** **Dado** as credenciais da prefeitura, **quando** são configuradas, **então** ficam no EmissorFiscal (não no BemAqui), conforme a ADR 0027; o BemAqui não recebe nem guarda a senha web da prefeitura.
 7. **Dado** a NFS-e, **quando** existe com número, **então** nunca é apagada; XML guardado 5 anos; histórico com quem emitiu e quem cancelou.
 
 ## Regras de negócio e técnicas
