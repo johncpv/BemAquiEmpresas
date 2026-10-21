@@ -5657,6 +5657,348 @@
         }
       }
     },
+    "/api/v1/contracts/{contractId}/amendments": {
+      "get": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "ListAmendments",
+        "parameters": [
+          {
+            "name": "contractId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AmendmentSummary"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "CreateAmendment",
+        "parameters": [
+          {
+            "name": "contractId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AmendmentInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AmendmentDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contracts/{contractId}/amendments/context": {
+      "get": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "GetAmendmentContext",
+        "parameters": [
+          {
+            "name": "contractId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AmendmentContext"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contracts/{contractId}/amendments/{id}": {
+      "get": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "GetAmendment",
+        "parameters": [
+          {
+            "name": "contractId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AmendmentDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "UpdateAmendment",
+        "parameters": [
+          {
+            "name": "contractId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AmendmentInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AmendmentDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contracts/{contractId}/amendments/{id}/submit": {
+      "post": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "SubmitAmendment",
+        "parameters": [
+          {
+            "name": "contractId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AmendmentVersionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AmendmentDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contracts/{contractId}/amendments/{id}/approve": {
+      "post": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "ApproveAmendment",
+        "parameters": [
+          {
+            "name": "contractId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AmendmentVersionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AmendmentDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contracts/{contractId}/amendments/{id}/reject": {
+      "post": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "RejectAmendment",
+        "parameters": [
+          {
+            "name": "contractId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AmendmentCommentInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AmendmentDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/projects": {
       "get": {
         "tags": [
@@ -12296,6 +12638,496 @@
           }
         }
       },
+      "AmendmentCommentInput": {
+        "required": [
+          "comment",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "comment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "AmendmentContext": {
+        "required": [
+          "currentValue",
+          "promisedDate",
+          "reducible",
+          "budget"
+        ],
+        "type": "object",
+        "properties": {
+          "currentValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "promisedDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "reducible": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReducibleReceivable"
+            }
+          },
+          "budget": {
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        }
+      },
+      "AmendmentDetail": {
+        "required": [
+          "id",
+          "contractId",
+          "contractNumber",
+          "number",
+          "description",
+          "valueDelta",
+          "daysDelta",
+          "status",
+          "milestones",
+          "reductions",
+          "preview",
+          "budgetDeltas",
+          "isAuthor",
+          "canDecide",
+          "selfApproved",
+          "rejectionComment",
+          "approvedAt",
+          "approvedByName",
+          "createdByName",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contractId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contractNumber": {
+            "type": "string"
+          },
+          "number": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": {
+            "type": "string"
+          },
+          "valueDelta": {
+            "type": "number",
+            "format": "double"
+          },
+          "daysDelta": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AmendmentStatus"
+          },
+          "milestones": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AmendmentMilestoneView"
+            }
+          },
+          "reductions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AmendmentReductionView"
+            }
+          },
+          "preview": {
+            "$ref": "#/components/schemas/AmendmentPreview"
+          },
+          "budgetDeltas": {
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "isAuthor": {
+            "type": "boolean"
+          },
+          "canDecide": {
+            "type": "boolean"
+          },
+          "selfApproved": {
+            "type": "boolean"
+          },
+          "rejectionComment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "approvedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "approvedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "AmendmentInput": {
+        "required": [
+          "description",
+          "valueDelta",
+          "daysDelta",
+          "milestones",
+          "reductions",
+          "budgetDeltas",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "valueDelta": {
+            "type": "number",
+            "format": "double"
+          },
+          "daysDelta": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "milestones": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/AmendmentMilestoneInput"
+            }
+          },
+          "reductions": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/AmendmentReductionInput"
+            }
+          },
+          "budgetDeltas": {
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "version": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "uint32"
+          }
+        }
+      },
+      "AmendmentMilestoneInput": {
+        "required": [
+          "description",
+          "percent",
+          "trigger",
+          "triggerEvent",
+          "dueDate",
+          "daysAfterEvent"
+        ],
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "percent": {
+            "type": "number",
+            "format": "double"
+          },
+          "trigger": {
+            "$ref": "#/components/schemas/MilestoneTrigger"
+          },
+          "triggerEvent": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TriggerEvent"
+              }
+            ]
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "daysAfterEvent": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "AmendmentMilestoneView": {
+        "required": [
+          "sequence",
+          "description",
+          "percent",
+          "amount",
+          "trigger",
+          "triggerEvent",
+          "dueDate",
+          "daysAfterEvent"
+        ],
+        "type": "object",
+        "properties": {
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": {
+            "type": "string"
+          },
+          "percent": {
+            "type": "number",
+            "format": "double"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "trigger": {
+            "$ref": "#/components/schemas/MilestoneTrigger"
+          },
+          "triggerEvent": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TriggerEvent"
+              }
+            ]
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "daysAfterEvent": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "AmendmentPreview": {
+        "required": [
+          "valueBefore",
+          "valueAfter",
+          "promisedBefore",
+          "promisedAfter"
+        ],
+        "type": "object",
+        "properties": {
+          "valueBefore": {
+            "type": "number",
+            "format": "double"
+          },
+          "valueAfter": {
+            "type": "number",
+            "format": "double"
+          },
+          "promisedBefore": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "promisedAfter": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          }
+        }
+      },
+      "AmendmentReductionInput": {
+        "required": [
+          "receivableId",
+          "newAmount"
+        ],
+        "type": "object",
+        "properties": {
+          "receivableId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "newAmount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "AmendmentReductionView": {
+        "required": [
+          "receivableId",
+          "number",
+          "currentAmount",
+          "newAmount"
+        ],
+        "type": "object",
+        "properties": {
+          "receivableId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "currentAmount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "newAmount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "AmendmentStatus": {
+        "enum": [
+          "Draft",
+          "PendingApproval",
+          "Approved",
+          "Rejected"
+        ]
+      },
+      "AmendmentSummary": {
+        "required": [
+          "id",
+          "number",
+          "description",
+          "valueDelta",
+          "daysDelta",
+          "status",
+          "createdAt",
+          "approvedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": {
+            "type": "string"
+          },
+          "valueDelta": {
+            "type": "number",
+            "format": "double"
+          },
+          "daysDelta": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AmendmentStatus"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "approvedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "AmendmentVersionInput": {
+        "required": [
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
       "ApprovalAccount": {
         "required": [
           "id",
@@ -14199,6 +15031,13 @@
           "isOnboarding": {
             "type": "boolean",
             "default": false
+          },
+          "currentValue": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },
@@ -23491,6 +24330,42 @@
           }
         },
         "additionalProperties": false
+      },
+      "ReducibleReceivable": {
+        "required": [
+          "id",
+          "number",
+          "description",
+          "amount",
+          "dueDate"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          }
+        }
       },
       "ResetPasswordRequest": {
         "required": [

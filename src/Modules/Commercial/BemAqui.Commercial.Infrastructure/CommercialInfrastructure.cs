@@ -26,6 +26,7 @@ public static class CommercialInfrastructure
         services.TryAddScoped<QuoteApprovalService>();
         services.TryAddScoped<ContractService>();
         services.TryAddScoped<ProjectService>();
+        services.TryAddScoped<AmendmentService>();
         services.TryAddScoped<IProjects>(sp => sp.GetRequiredService<ProjectService>());
         services.TryAddScoped<IContracts>(sp => sp.GetRequiredService<ProjectService>());
         services.TryAddScoped<CommercialUsage>();
@@ -42,6 +43,9 @@ public static class CommercialInfrastructure
         services.AddAuditableEntity<Project>("projects");
         services.AddAuditableEntity<ProjectItem>("projects");
         services.AddAuditableEntity<ProjectBudget>("projects", "view_cost");
+        services.AddAuditableEntity<ContractAmendment>("projects");
+        services.AddAuditableEntity<ContractAmendmentMilestone>("projects");
+        services.AddAuditableEntity<ContractAmendmentReduction>("projects");
 
         // Contrato assinado (CA 15): só PDF até 25 MB; o anterior fica no histórico de anexos.
         services.AddAttachmentOwner(ContractService.AttachmentOwner, new AttachmentOwnerRules("projects", ["application/pdf"], 25 * 1024 * 1024,

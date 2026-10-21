@@ -82,3 +82,14 @@ public sealed record TechnicalAcceptance(Guid ProjectId, Guid ContractId, DateOn
 
 /// <summary>Contrato cancelado (COM-04b CA 12), sem texto livre (ADR 0019 §19).</summary>
 public sealed record ContractCancelled(Guid ContractId, Guid ProjectId) : IIntegrationEvent;
+
+/// <summary>Redução de título pedida pelo aditivo (COM-07 CA 4, 7).</summary>
+public sealed record AmendmentReduction(Guid ReceivableId, decimal NewAmount);
+
+/// <summary>
+/// Aditivo aprovado (COM-07 CA 6, 7): o Finance cria os títulos dos marcos do acréscimo (como o <see cref="ContractSigned"/>)
+/// ou reduz os títulos indicados, revalidando cada um.
+/// </summary>
+public sealed record ContractAmended(
+    Guid ContractId, Guid ProjectId, Guid AmendmentId, int AmendmentNumber, Guid PartyId, Guid RevenueAccountId, DateOnly ApprovedOn, decimal ValueDelta,
+    IReadOnlyList<ContractMilestoneInfo> NewMilestones, IReadOnlyList<AmendmentReduction> Reductions) : IIntegrationEvent;

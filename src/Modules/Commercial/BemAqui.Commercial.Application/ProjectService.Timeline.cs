@@ -28,6 +28,11 @@ public sealed partial class ProjectService
         }
 
         entries.Add(new(At(contract.SignedAt), "contract_signed", $"Contrato {contract.Number} assinado", await WhoAsync(contract.CreatedBy, cancellationToken), "/app/contratos/" + contract.Id));
+        foreach (var a in await db.ContractAmendments.AsNoTracking().Where(a => a.ContractId == contract.Id && a.Status == AmendmentStatus.Approved).ToListAsync(cancellationToken))
+        {
+            entries.Add(new(a.ApprovedAt ?? a.CreatedAt, "amendment_approved", $"Aditivo {a.Number} aprovado: {a.Description}", await WhoAsync(a.ApprovedBy, cancellationToken), $"/app/contratos/{contract.Id}/aditivos/{a.Id}"));
+        }
+
         if (project.FabricatedOn is { } fabricated)
         {
             entries.Add(new(At(fabricated), "fabricated", "Fabricação concluída registrada", null, null));

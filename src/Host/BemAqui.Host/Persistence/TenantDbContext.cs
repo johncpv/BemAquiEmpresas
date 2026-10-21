@@ -127,6 +127,12 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BemAqui.Commercial.Domain.ProjectBudget> ProjectBudgets => Set<BemAqui.Commercial.Domain.ProjectBudget>();
 
+    public DbSet<BemAqui.Commercial.Domain.ContractAmendment> ContractAmendments => Set<BemAqui.Commercial.Domain.ContractAmendment>();
+
+    public DbSet<BemAqui.Commercial.Domain.ContractAmendmentMilestone> ContractAmendmentMilestones => Set<BemAqui.Commercial.Domain.ContractAmendmentMilestone>();
+
+    public DbSet<BemAqui.Commercial.Domain.ContractAmendmentReduction> ContractAmendmentReductions => Set<BemAqui.Commercial.Domain.ContractAmendmentReduction>();
+
     public DbSet<Location> Locations => Set<Location>();
 
     public DbSet<MeasureUnit> Units => Set<MeasureUnit>();

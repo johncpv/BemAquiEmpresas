@@ -27,6 +27,7 @@ public static class HostEvents
             .AddHandler<BemAqui.Commercial.Contracts.ProjectDelivered, BemAqui.Commercial.Application.ContractCompletionConsumer>()
             .AddHandler<BemAqui.Commercial.Contracts.TechnicalAcceptance, BemAqui.Finance.Application.MilestoneReachedConsumer>()
             .AddHandler<BemAqui.Commercial.Contracts.ContractCancelled, BemAqui.Finance.Application.ContractCancelledConsumer>()
+            .AddHandler<BemAqui.Commercial.Contracts.ContractAmended, BemAqui.Finance.Application.ContractAmendedConsumer>()
             .AddHandler<BemAqui.Commercial.Contracts.ContractCancelled, BemAqui.Production.Application.InstallationContractCancelledConsumer>()
             // OS de instalação (COM-06).
             .AddHandler<BemAqui.Production.Contracts.InstallationStarted, BemAqui.Commercial.Application.InstallationConsumers>()

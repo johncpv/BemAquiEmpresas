@@ -5,7 +5,7 @@
 | ID | COM-07 |
 | Título | Aditivo de valor, escopo e prazo com aprovação (`projects.approve`), editado em página própria com prévia "antes → depois": ajusta o orçamento do projeto por natureza, a data prometida e os recebíveis futuros, sem tocar no contrato original nem nos títulos com baixa |
 | Tamanho | M |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-COML-8 (aditivo recalcula orçado e recebíveis futuros, **D**) · R-PRJ-5 (orçado ajustado por aditivo) · R-PRP-7 · R-SEC-5 |
 | Dependências | COM-04b (recebíveis do contrato, registro de gatilhos), COM-05 (projeto), COM-01b (editor de marcos reaproveitado), FIN-01, FND-09e |
 | Bloqueia | DSH-01 ("aditivos aguardando aprovação"), DSH-02 (orçado com aditivos) |
@@ -71,16 +71,16 @@ Decididos pelo PO em 20/10/2026 (seção 1.1, item 28, e D6):
 4. P-18 decidida (ADR 0021).
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers) e E2E passando.
-- [ ] Migration criada (não destrutiva).
-- [ ] Permissões só do `ModuleCatalog`; consumidor registrado.
-- [ ] Telas com estados.
-- [ ] Ajuda da aba e da página; teste de cobertura passando.
-- [ ] Confirmação com impacto aplicada.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers) e E2E passando.
+- [x] Migration criada (não destrutiva).
+- [x] Permissões só do `ModuleCatalog`; consumidor registrado.
+- [x] Telas com estados.
+- [x] Ajuda da aba e da página; teste de cobertura passando.
+- [x] Confirmação com impacto aplicada.
+- [x] Auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
 - [ ] Entidades `ContractAmendment`, `ContractAmendmentMilestone` e `ContractAmendmentReduction`; `AmendmentReductionPlanner` (Domain).
@@ -119,3 +119,4 @@ Checklist do @po (Pax), 20/10/2026 (revalidação depois das decisões do PO e d
 | 19/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 20/10/2026 | 0.3 | Decisões do PO (D6, D7, seção 1.1) e correções da revisão pré-Fase 2 (§2.1-A2, C1, baixos, §2.2-M8, §2.3); CAs renumerados | River (SM) |
 | 20/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 20/10/2026 | 1.0 | Implementada. Desvios: a tela registra o aditivo como acréscimo, redução ou só prazo; a distribuição no orçado sai proporcional ao orçado atual (o servidor aceita a distribuição informada com `projects.view_cost`, mas a tela ainda não tem o editor); o marco do acréscimo na assinatura vence na data da aprovação; o Finance reusa a criação de parcelas do `ContractSigned` (idempotente pelo marco) e cancela o título reduzido a zero; a regra "o autor não aprova" lê o `OwnerCanApproveOwn` pelo `IFinanceParameters`; o valor vigente aparece no contrato, no Resumo e na lista de projetos e nos custos | @dev |

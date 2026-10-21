@@ -13,6 +13,7 @@ import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { CancelContractDialog } from './CancelContractDialog'
 import { ContractDocuments } from './ContractDocuments'
+import { AmendmentsTab } from './amendments/AmendmentsTab'
 import { ContractItems } from './ContractItems'
 import { CONTRACT_DICAS, CONTRACT_STATUS, receivablesState } from './contracts'
 
@@ -44,7 +45,7 @@ export function ContractPage() {
       {parcels === 'pending' ? <p role="status" className="mb-4 rounded-md border border-border bg-muted px-3 py-2 text-sm">Gerando parcelas no financeiro…</p> : null}
       {parcels === 'slow' ? <p role="status" className="mb-4 rounded-md border border-warn-soft bg-warn-soft px-3 py-2 text-sm text-warn-ink">As parcelas estão demorando. Avisaremos quando estiverem prontas.</p> : null}
       <dl className="mb-4 grid gap-3 rounded-md border border-border bg-card p-4 text-sm sm:grid-cols-4">
-        <div><dt className="text-xs text-muted-foreground">Valor</dt><dd><Money value={c.totalValue} className="font-semibold" /></dd></div>
+        <div><dt className="flex items-center text-xs text-muted-foreground">Valor vigente<Dica nome="Valor vigente" texto="Valor original do contrato mais os aditivos aprovados. O contrato original não muda." /></dt><dd><Money value={c.currentValue ?? c.totalValue} className="font-semibold" />{c.currentValue !== null && c.currentValue !== undefined && c.currentValue !== c.totalValue ? <span className="block text-xs text-muted-foreground">Original <Money value={c.totalValue} /></span> : null}</dd></div>
         <div><dt className="flex items-center text-xs text-muted-foreground">Assinatura<Dica nome="Data de assinatura" texto={CONTRACT_DICAS.assinatura} /></dt><dd className="tabular-nums">{formatDate(c.signedAt)}</dd></div>
         <div><dt className="flex items-center text-xs text-muted-foreground">Conta de receita<Dica nome="Conta de receita das parcelas" texto={CONTRACT_DICAS.receita} /></dt><dd>{c.revenueAccount ?? '—'}</dd></div>
         <div><dt className="text-xs text-muted-foreground">Orçamento de origem</dt><dd><Link to={'/app/orcamentos/$id' as never} params={{ id: c.quoteId } as never} className="font-semibold text-primary hover:underline">{c.quoteNumber}{c.quoteRevision > 0 ? ` rev. ${c.quoteRevision}` : ''}</Link></dd></div>
@@ -59,6 +60,7 @@ export function ContractPage() {
           </dl>
         ) },
         { id: 'itens', label: 'Itens e marcos', content: <ContractItems contract={c} /> },
+        { id: 'aditivos', label: 'Aditivos', content: <AmendmentsTab contractId={id} active={c.status === 'Active'} /> },
         { id: 'documentos', label: 'Documentos', content: <ContractDocuments contractId={id} /> },
         { id: 'historico', label: 'Histórico de alterações', content: <RecordHistory entity="Contract" id={id} /> },
       ]} />

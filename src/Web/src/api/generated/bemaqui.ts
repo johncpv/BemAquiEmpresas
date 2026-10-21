@@ -39,6 +39,12 @@ import type {
   AiSettingsDto,
   AiSettingsRequest,
   AiTestResult,
+  AmendmentCommentInput,
+  AmendmentContext,
+  AmendmentDetail,
+  AmendmentInput,
+  AmendmentSummary,
+  AmendmentVersionInput,
   ApprovalCostView,
   ApprovalPreview,
   ApprovalResult,
@@ -15527,6 +15533,722 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getCancelContractMutationOptions(options), queryClient);
+    }
+
+export const getListAmendmentsUrl = (contractId: string,) => {
+
+
+
+
+  return `/api/v1/contracts/${contractId}/amendments`
+}
+
+export const listAmendments = async (contractId: string, options?: Parameters<typeof apiFetch>[1]): Promise<AmendmentSummary[]> => {
+
+  return apiFetch<AmendmentSummary[]>(getListAmendmentsUrl(contractId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAmendmentsQueryKey = (contractId: string,) => {
+    return [
+    `/api/v1/contracts/${contractId}/amendments`
+    ] as const;
+    }
+
+
+export const getListAmendmentsQueryOptions = <TData = Awaited<ReturnType<typeof listAmendments>>, TError = unknown>(contractId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAmendments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAmendmentsQueryKey(contractId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAmendments>>> = ({ signal }) => listAmendments(contractId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: contractId !== null && contractId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAmendments>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListAmendmentsQueryResult = NonNullable<Awaited<ReturnType<typeof listAmendments>>>
+export type ListAmendmentsQueryError = unknown
+
+
+export function useListAmendments<TData = Awaited<ReturnType<typeof listAmendments>>, TError = unknown>(
+ contractId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAmendments>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAmendments>>,
+          TError,
+          Awaited<ReturnType<typeof listAmendments>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAmendments<TData = Awaited<ReturnType<typeof listAmendments>>, TError = unknown>(
+ contractId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAmendments>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAmendments>>,
+          TError,
+          Awaited<ReturnType<typeof listAmendments>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAmendments<TData = Awaited<ReturnType<typeof listAmendments>>, TError = unknown>(
+ contractId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAmendments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListAmendments<TData = Awaited<ReturnType<typeof listAmendments>>, TError = unknown>(
+ contractId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAmendments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListAmendmentsQueryOptions(contractId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateAmendmentUrl = (contractId: string,) => {
+
+
+
+
+  return `/api/v1/contracts/${contractId}/amendments`
+}
+
+export const createAmendment = async (contractId: string,
+    amendmentInput: AmendmentInput, options?: Parameters<typeof apiFetch>[1]): Promise<AmendmentDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<AmendmentDetail>(getCreateAmendmentUrl(contractId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(amendmentInput)
+  }
+);}
+
+
+
+
+
+export const getCreateAmendmentMutationKey = () => ['createAmendment'] as const;
+
+export const getCreateAmendmentMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAmendment>>, TError,CreateAmendmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createAmendment>>, TError,CreateAmendmentMutationVariables, TContext> => {
+
+const mutationKey = getCreateAmendmentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createAmendment>>, CreateAmendmentMutationVariables> = (props) => {
+          const {contractId,data} = props ?? {};
+
+          return  createAmendment(contractId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateAmendmentMutationResult = NonNullable<Awaited<ReturnType<typeof createAmendment>>>
+    export type CreateAmendmentMutationBody = AmendmentInput
+    export type CreateAmendmentMutationError = unknown
+    export type CreateAmendmentMutationVariables = {contractId: string;data: AmendmentInput}
+
+    export const useCreateAmendment = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAmendment>>, TError,CreateAmendmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createAmendment>>,
+        TError,
+        CreateAmendmentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateAmendmentMutationOptions(options), queryClient);
+    }
+
+export const getGetAmendmentContextUrl = (contractId: string,) => {
+
+
+
+
+  return `/api/v1/contracts/${contractId}/amendments/context`
+}
+
+export const getAmendmentContext = async (contractId: string, options?: Parameters<typeof apiFetch>[1]): Promise<AmendmentContext> => {
+
+  return apiFetch<AmendmentContext>(getGetAmendmentContextUrl(contractId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAmendmentContextQueryKey = (contractId: string,) => {
+    return [
+    `/api/v1/contracts/${contractId}/amendments/context`
+    ] as const;
+    }
+
+
+export const getGetAmendmentContextQueryOptions = <TData = Awaited<ReturnType<typeof getAmendmentContext>>, TError = unknown>(contractId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAmendmentContext>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAmendmentContextQueryKey(contractId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAmendmentContext>>> = ({ signal }) => getAmendmentContext(contractId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: contractId !== null && contractId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAmendmentContext>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAmendmentContextQueryResult = NonNullable<Awaited<ReturnType<typeof getAmendmentContext>>>
+export type GetAmendmentContextQueryError = unknown
+
+
+export function useGetAmendmentContext<TData = Awaited<ReturnType<typeof getAmendmentContext>>, TError = unknown>(
+ contractId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAmendmentContext>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAmendmentContext>>,
+          TError,
+          Awaited<ReturnType<typeof getAmendmentContext>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAmendmentContext<TData = Awaited<ReturnType<typeof getAmendmentContext>>, TError = unknown>(
+ contractId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAmendmentContext>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAmendmentContext>>,
+          TError,
+          Awaited<ReturnType<typeof getAmendmentContext>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAmendmentContext<TData = Awaited<ReturnType<typeof getAmendmentContext>>, TError = unknown>(
+ contractId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAmendmentContext>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetAmendmentContext<TData = Awaited<ReturnType<typeof getAmendmentContext>>, TError = unknown>(
+ contractId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAmendmentContext>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetAmendmentContextQueryOptions(contractId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetAmendmentUrl = (contractId: string,
+    id: string,) => {
+
+
+
+
+  return `/api/v1/contracts/${contractId}/amendments/${id}`
+}
+
+export const getAmendment = async (contractId: string,
+    id: string, options?: Parameters<typeof apiFetch>[1]): Promise<AmendmentDetail> => {
+
+  return apiFetch<AmendmentDetail>(getGetAmendmentUrl(contractId,id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAmendmentQueryKey = (contractId: string,
+    id: string,) => {
+    return [
+    `/api/v1/contracts/${contractId}/amendments/${id}`
+    ] as const;
+    }
+
+
+export const getGetAmendmentQueryOptions = <TData = Awaited<ReturnType<typeof getAmendment>>, TError = unknown>(contractId: string,
+    id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAmendment>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAmendmentQueryKey(contractId,id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAmendment>>> = ({ signal }) => getAmendment(contractId,id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: contractId !== null && contractId !== undefined && id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAmendment>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAmendmentQueryResult = NonNullable<Awaited<ReturnType<typeof getAmendment>>>
+export type GetAmendmentQueryError = unknown
+
+
+export function useGetAmendment<TData = Awaited<ReturnType<typeof getAmendment>>, TError = unknown>(
+ contractId: string,
+    id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAmendment>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAmendment>>,
+          TError,
+          Awaited<ReturnType<typeof getAmendment>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAmendment<TData = Awaited<ReturnType<typeof getAmendment>>, TError = unknown>(
+ contractId: string,
+    id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAmendment>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAmendment>>,
+          TError,
+          Awaited<ReturnType<typeof getAmendment>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAmendment<TData = Awaited<ReturnType<typeof getAmendment>>, TError = unknown>(
+ contractId: string,
+    id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAmendment>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetAmendment<TData = Awaited<ReturnType<typeof getAmendment>>, TError = unknown>(
+ contractId: string,
+    id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAmendment>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetAmendmentQueryOptions(contractId,id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateAmendmentUrl = (contractId: string,
+    id: string,) => {
+
+
+
+
+  return `/api/v1/contracts/${contractId}/amendments/${id}`
+}
+
+export const updateAmendment = async (contractId: string,
+    id: string,
+    amendmentInput: AmendmentInput, options?: Parameters<typeof apiFetch>[1]): Promise<AmendmentDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<AmendmentDetail>(getUpdateAmendmentUrl(contractId,id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(amendmentInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateAmendmentMutationKey = () => ['updateAmendment'] as const;
+
+export const getUpdateAmendmentMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAmendment>>, TError,UpdateAmendmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAmendment>>, TError,UpdateAmendmentMutationVariables, TContext> => {
+
+const mutationKey = getUpdateAmendmentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAmendment>>, UpdateAmendmentMutationVariables> = (props) => {
+          const {contractId,id,data} = props ?? {};
+
+          return  updateAmendment(contractId,id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAmendmentMutationResult = NonNullable<Awaited<ReturnType<typeof updateAmendment>>>
+    export type UpdateAmendmentMutationBody = AmendmentInput
+    export type UpdateAmendmentMutationError = unknown
+    export type UpdateAmendmentMutationVariables = {contractId: string;id: string;data: AmendmentInput}
+
+    export const useUpdateAmendment = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAmendment>>, TError,UpdateAmendmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateAmendment>>,
+        TError,
+        UpdateAmendmentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateAmendmentMutationOptions(options), queryClient);
+    }
+
+export const getSubmitAmendmentUrl = (contractId: string,
+    id: string,) => {
+
+
+
+
+  return `/api/v1/contracts/${contractId}/amendments/${id}/submit`
+}
+
+export const submitAmendment = async (contractId: string,
+    id: string,
+    amendmentVersionInput: AmendmentVersionInput, options?: Parameters<typeof apiFetch>[1]): Promise<AmendmentDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<AmendmentDetail>(getSubmitAmendmentUrl(contractId,id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(amendmentVersionInput)
+  }
+);}
+
+
+
+
+
+export const getSubmitAmendmentMutationKey = () => ['submitAmendment'] as const;
+
+export const getSubmitAmendmentMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitAmendment>>, TError,SubmitAmendmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof submitAmendment>>, TError,SubmitAmendmentMutationVariables, TContext> => {
+
+const mutationKey = getSubmitAmendmentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof submitAmendment>>, SubmitAmendmentMutationVariables> = (props) => {
+          const {contractId,id,data} = props ?? {};
+
+          return  submitAmendment(contractId,id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SubmitAmendmentMutationResult = NonNullable<Awaited<ReturnType<typeof submitAmendment>>>
+    export type SubmitAmendmentMutationBody = AmendmentVersionInput
+    export type SubmitAmendmentMutationError = unknown
+    export type SubmitAmendmentMutationVariables = {contractId: string;id: string;data: AmendmentVersionInput}
+
+    export const useSubmitAmendment = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitAmendment>>, TError,SubmitAmendmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof submitAmendment>>,
+        TError,
+        SubmitAmendmentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSubmitAmendmentMutationOptions(options), queryClient);
+    }
+
+export const getApproveAmendmentUrl = (contractId: string,
+    id: string,) => {
+
+
+
+
+  return `/api/v1/contracts/${contractId}/amendments/${id}/approve`
+}
+
+export const approveAmendment = async (contractId: string,
+    id: string,
+    amendmentVersionInput: AmendmentVersionInput, options?: Parameters<typeof apiFetch>[1]): Promise<AmendmentDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<AmendmentDetail>(getApproveAmendmentUrl(contractId,id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(amendmentVersionInput)
+  }
+);}
+
+
+
+
+
+export const getApproveAmendmentMutationKey = () => ['approveAmendment'] as const;
+
+export const getApproveAmendmentMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof approveAmendment>>, TError,ApproveAmendmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof approveAmendment>>, TError,ApproveAmendmentMutationVariables, TContext> => {
+
+const mutationKey = getApproveAmendmentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof approveAmendment>>, ApproveAmendmentMutationVariables> = (props) => {
+          const {contractId,id,data} = props ?? {};
+
+          return  approveAmendment(contractId,id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ApproveAmendmentMutationResult = NonNullable<Awaited<ReturnType<typeof approveAmendment>>>
+    export type ApproveAmendmentMutationBody = AmendmentVersionInput
+    export type ApproveAmendmentMutationError = unknown
+    export type ApproveAmendmentMutationVariables = {contractId: string;id: string;data: AmendmentVersionInput}
+
+    export const useApproveAmendment = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof approveAmendment>>, TError,ApproveAmendmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof approveAmendment>>,
+        TError,
+        ApproveAmendmentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getApproveAmendmentMutationOptions(options), queryClient);
+    }
+
+export const getRejectAmendmentUrl = (contractId: string,
+    id: string,) => {
+
+
+
+
+  return `/api/v1/contracts/${contractId}/amendments/${id}/reject`
+}
+
+export const rejectAmendment = async (contractId: string,
+    id: string,
+    amendmentCommentInput: AmendmentCommentInput, options?: Parameters<typeof apiFetch>[1]): Promise<AmendmentDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<AmendmentDetail>(getRejectAmendmentUrl(contractId,id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(amendmentCommentInput)
+  }
+);}
+
+
+
+
+
+export const getRejectAmendmentMutationKey = () => ['rejectAmendment'] as const;
+
+export const getRejectAmendmentMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rejectAmendment>>, TError,RejectAmendmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof rejectAmendment>>, TError,RejectAmendmentMutationVariables, TContext> => {
+
+const mutationKey = getRejectAmendmentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof rejectAmendment>>, RejectAmendmentMutationVariables> = (props) => {
+          const {contractId,id,data} = props ?? {};
+
+          return  rejectAmendment(contractId,id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RejectAmendmentMutationResult = NonNullable<Awaited<ReturnType<typeof rejectAmendment>>>
+    export type RejectAmendmentMutationBody = AmendmentCommentInput
+    export type RejectAmendmentMutationError = unknown
+    export type RejectAmendmentMutationVariables = {contractId: string;id: string;data: AmendmentCommentInput}
+
+    export const useRejectAmendment = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rejectAmendment>>, TError,RejectAmendmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof rejectAmendment>>,
+        TError,
+        RejectAmendmentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRejectAmendmentMutationOptions(options), queryClient);
     }
 
 export const getListProjectsUrl = (params?: ListProjectsParams,) => {
