@@ -27,10 +27,11 @@ public sealed partial class QuoteService(
 {
     public const string DocType = "ORC";
 
-    public async Task<QuotePage> ListAsync(string? q, string? situation, PageRequest page, Guid? partyId = null, CancellationToken cancellationToken = default)
+    public async Task<QuotePage> ListAsync(
+        string? q, string? situation, PageRequest page, Guid? partyId = null, DateOnly? createdFrom = null, DateOnly? createdTo = null, Guid? authorId = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(page);
-        var quotes = db.Quotes.AsNoTracking().Where(x => x.IsCurrent);
+        var quotes = InPeriod(db.Quotes.AsNoTracking().Where(x => x.IsCurrent), createdFrom, createdTo, authorId);
         if (partyId is { } party)
         {
             quotes = quotes.Where(x => x.PartyId == party);

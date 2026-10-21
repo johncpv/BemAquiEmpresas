@@ -120,6 +120,7 @@ import type {
   GetCashFlowParams,
   GetDiscountsAndCancellationsParams,
   GetInstallationDefaultsParams,
+  GetQuoteFunnelParams,
   GroupDetail,
   GroupSaved,
   GroupSummary,
@@ -280,6 +281,7 @@ import type {
   QuoteCostsInput,
   QuoteCreateInput,
   QuoteDetail,
+  QuoteFunnel,
   QuoteHeaderInput,
   QuoteItemInput,
   QuoteItemOption,
@@ -11974,6 +11976,108 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getCreateQuoteMutationOptions(options), queryClient);
     }
+
+export const getGetQuoteFunnelUrl = (params?: GetQuoteFunnelParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/quotes/funnel?${stringifiedParams}` : `/api/v1/quotes/funnel`
+}
+
+export const getQuoteFunnel = async (params?: GetQuoteFunnelParams, options?: Parameters<typeof apiFetch>[1]): Promise<QuoteFunnel> => {
+
+  return apiFetch<QuoteFunnel>(getGetQuoteFunnelUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetQuoteFunnelQueryKey = (params?: GetQuoteFunnelParams,) => {
+    return [
+    `/api/v1/quotes/funnel`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetQuoteFunnelQueryOptions = <TData = Awaited<ReturnType<typeof getQuoteFunnel>>, TError = unknown>(params?: GetQuoteFunnelParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuoteFunnel>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetQuoteFunnelQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getQuoteFunnel>>> = ({ signal }) => getQuoteFunnel(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getQuoteFunnel>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetQuoteFunnelQueryResult = NonNullable<Awaited<ReturnType<typeof getQuoteFunnel>>>
+export type GetQuoteFunnelQueryError = unknown
+
+
+export function useGetQuoteFunnel<TData = Awaited<ReturnType<typeof getQuoteFunnel>>, TError = unknown>(
+ params: undefined |  GetQuoteFunnelParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuoteFunnel>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getQuoteFunnel>>,
+          TError,
+          Awaited<ReturnType<typeof getQuoteFunnel>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetQuoteFunnel<TData = Awaited<ReturnType<typeof getQuoteFunnel>>, TError = unknown>(
+ params?: GetQuoteFunnelParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuoteFunnel>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getQuoteFunnel>>,
+          TError,
+          Awaited<ReturnType<typeof getQuoteFunnel>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetQuoteFunnel<TData = Awaited<ReturnType<typeof getQuoteFunnel>>, TError = unknown>(
+ params?: GetQuoteFunnelParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuoteFunnel>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetQuoteFunnel<TData = Awaited<ReturnType<typeof getQuoteFunnel>>, TError = unknown>(
+ params?: GetQuoteFunnelParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuoteFunnel>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetQuoteFunnelQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getListQuoteCostsUrl = (params: ListQuoteCostsParams,) => {
   const normalizedParams = new URLSearchParams();
