@@ -13,6 +13,7 @@ Ver e alterar os dados gerais do funcionário: nome, matrícula, admissão, jorn
 - Altere o que precisar e clique em **Salvar dados gerais**.
 - Para mudar o cargo, use **Trocar cargo** no topo: a troca entra na linha do tempo, com a vigência e o motivo.
 - **Registrar desligamento** muda a situação para Desligado. Nada é apagado.
+- **Registrar afastamento** (com a permissão Ver dados sensíveis) deixa a situação Afastado do início ao fim previsto. O tipo e o motivo ficam na aba Linha do tempo.
 - Em **Usuário do sistema**, **Vincular usuário** liga um login ao funcionário (para o ponto e o apontamento). Exige a permissão de editar usuários.
 
 ## Perguntas frequentes

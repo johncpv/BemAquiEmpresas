@@ -25,4 +25,5 @@ export interface EmployeeDetail {
   /** @nullable */
   terminationDate: string | null;
   status: EmployeeStatus;
+  version: number;
 }

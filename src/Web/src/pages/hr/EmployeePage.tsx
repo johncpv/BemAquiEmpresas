@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
-import { deactivateUser, deleteEmployee, getGetEmployeeQueryKey, getGetEmployeeTimelineQueryKey, getGetEmployeeUserQueryKey, useGetEmployee, useGetEmployeeUser } from '@/api/generated/bemaqui'
+import { deactivateUser, deleteEmployee, getGetEmployeeQueryKey, getGetEmployeeTimelineQueryKey, getGetEmployeeUserQueryKey, getListEmployeeLeavesSensitiveQueryKey, useGetEmployee, useGetEmployeeUser } from '@/api/generated/bemaqui'
 import type { EmployeeDetail } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { RecordHistory } from '@/components/history/RecordHistory'
@@ -15,10 +15,11 @@ import { useUrlTab } from '@/components/ui/url-tab'
 import { UrlTabs } from '@/components/ui/url-tabs'
 import { Can } from '@/pages/ModuleGate'
 import { useCan } from '@/pages/use-can'
+import { Dica } from '@/help/Dica'
 import { PageHeading } from '@/shell/PageHeading'
-import { STATUS_LABELS } from './employee'
+import { EMPLOYEE_DICAS, STATUS_LABELS, STATUS_TONES } from './employee'
 import { EmployeeContract } from './EmployeeContract'
-import { PositionDialog, TerminationDialog } from './EmployeeDialogs'
+import { LeaveDialog, PositionDialog, TerminationDialog } from './EmployeeDialogs'
 import { EmployeeGeneral } from './EmployeeGeneral'
 import { EmployeePersonal } from './EmployeePersonal'
 import { EmployeeProtected } from './EmployeeProtected'
@@ -37,10 +38,11 @@ export function EmployeePage() {
   const canEdit = useCan('hr.edit')
   const canSensitive = useCan('hr.view_sensitive')
   const canUsers = useCan('identity.edit')
-  const [steps, setSteps] = useState<'created' | 'terminated' | null>(search.novo === '1' ? 'created' : null)
+  const [steps, setSteps] = useState<'created' | 'terminated' | 'leave' | null>(search.novo === '1' ? 'created' : null)
   const [, setTab] = useUrlTab('geral')
   const [linking, setLinking] = useState(false)
   const [terminating, setTerminating] = useState(false)
+  const [leaving, setLeaving] = useState(false)
 
   if (query.isPending) return <div className="space-y-3"><Skeleton className="h-10 w-2/3" /><Skeleton className="h-96" /></div>
   if (query.isError || !query.data) {
@@ -49,7 +51,8 @@ export function EmployeePage() {
   }
 
   const employee = query.data
-  const active = employee.status === 'Active'
+  // Afastado continua no quadro: troca de cargo, desligamento e novo afastamento seguem disponíveis (CAD-04c1).
+  const active = employee.status !== 'Terminated'
   const user = linked.data?.user ?? null
   const setEmployee = (e: EmployeeDetail) => {
     client.setQueryData(getGetEmployeeQueryKey(id), e)
@@ -64,14 +67,16 @@ export function EmployeePage() {
     label: `Desativar o usuário ${user.name}`,
     onSelect: async () => { await deactivateUser(user.userId); notifySuccess('Usuário desativado'); setSteps(null); void client.invalidateQueries({ queryKey: getGetEmployeeUserQueryKey(id) }) },
   }] : []
-  const shown = steps === 'created' ? createdSteps : steps === 'terminated' ? terminatedSteps : []
+  const leaveSteps = [{ label: 'Ver na linha do tempo', onSelect: () => { setTab('linha-do-tempo'); setSteps(null) } }]
+  const shown = steps === 'created' ? createdSteps : steps === 'terminated' ? terminatedSteps : steps === 'leave' ? leaveSteps : []
 
   return (
     <>
       <PageHeading title={employee.name}>
         <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-1.5">
-            <StatusChip tone={active ? 'ok' : 'neutral'}>{STATUS_LABELS[employee.status]}</StatusChip>
+            <StatusChip tone={STATUS_TONES[employee.status]}>{STATUS_LABELS[employee.status]}</StatusChip>
+            {employee.status === 'OnLeave' ? <Dica nome="Afastado" texto={EMPLOYEE_DICAS.afastado} /> : null}
             <Tag>{employee.positionName}</Tag>
             {employee.registration ? <span className="text-sm tabular-nums text-muted-foreground">Matrícula {employee.registration}</span> : null}
             <Link to="/app/rh/funcionarios" className="ml-2 text-sm font-semibold text-primary">Voltar à lista</Link>
@@ -80,6 +85,7 @@ export function EmployeePage() {
             {canEdit && active ? (
               <>
                 <PositionDialog employee={employee} onDone={setEmployee} />
+                {canSensitive ? <button type="button" onClick={() => setLeaving(true)} className={button}>Registrar afastamento</button> : null}
                 <button type="button" onClick={() => setTerminating(true)} className={button}>Registrar desligamento</button>
               </>
             ) : null}
@@ -92,6 +98,10 @@ export function EmployeePage() {
           </div>
         </div>
       </PageHeading>
+      {canEdit && canSensitive && active ? (
+        <LeaveDialog employee={employee} open={leaving} onOpenChange={setLeaving} onReload={() => query.refetch()}
+          onDone={(e) => { setEmployee(e); void client.invalidateQueries({ queryKey: getListEmployeeLeavesSensitiveQueryKey(id) }); setSteps('leave') }} />
+      ) : null}
       <TerminationDialog employee={employee} open={terminating} onOpenChange={setTerminating} onDone={(e) => { setEmployee(e); setSteps('terminated') }} />
       {shown.length > 0 ? <div className="mb-4"><NextSteps onDismiss={() => setSteps(null)} steps={shown} /></div> : null}
       <UrlTabs label="Seções do funcionário" fallback="geral" tabs={[

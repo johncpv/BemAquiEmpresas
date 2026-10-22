@@ -11,4 +11,5 @@ export type EmployeeHistoryKind = typeof EmployeeHistoryKind[keyof typeof Employ
 export const EmployeeHistoryKind = {
   Salary: 'Salary',
   Position: 'Position',
+  Leave: 'Leave',
 } as const;

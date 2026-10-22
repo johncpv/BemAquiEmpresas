@@ -1,14 +1,15 @@
 import { useState } from 'react'
-import { changeEmployeePosition, changeEmployeeSalary, getPositionSalary, terminateEmployee, useListPositions } from '@/api/generated/bemaqui'
-import type { EmployeeDetail } from '@/api/generated/model'
+import { changeEmployeePosition, changeEmployeeSalary, getPositionSalary, registerEmployeeLeave, terminateEmployee, useListPositions } from '@/api/generated/bemaqui'
+import type { EmployeeDetail, EmployeeLeaveType } from '@/api/generated/model'
 import { Field } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { DateInput, MoneyInput } from '@/components/form/inputs'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { DialogMessage } from '@/components/ui/dialog-message'
-import { formatMoney } from '@/lib/format'
+import { formatDate, formatMoney } from '@/lib/format'
+import { Dica } from '@/help/Dica'
 import { useCan } from '@/pages/use-can'
-import { todayIso } from './employee'
+import { EMPLOYEE_DICAS, emptyLeaveDraft, LEAVE_REASON_MAX, LEAVE_TYPE_LABELS, leaveDraftError, returnDate, todayIso } from './employee'
 
 const button = 'rounded-md border border-border px-3 py-2 text-sm font-semibold'
 
@@ -92,6 +93,55 @@ export function TerminationDialog({ employee, onDone, open, onOpenChange }: { em
       onConfirm={async () => onDone(await terminateEmployee(employee.id, { terminationDate: filled(date, 'Informe a data do desligamento.') }))}
       trigger={open === undefined ? <button type="button" className={button}>Registrar desligamento</button> : undefined}>
       <Field label="Data do desligamento" required>{(p) => <DateInput {...p} value={date} onChange={setDate} />}</Field>
+    </ConfirmDialog>
+  )
+}
+
+/**
+ * Registrar afastamento (CAD-04c1 CA 1 e 5): tipo, início (vem em hoje), fim previsto e motivo sem CID. Tela cheia a 400 px;
+ * erro dentro do diálogo; 409 de versão oferece "Recarregar" (ADR 0019).
+ */
+export function LeaveDialog({ employee, onDone, onReload, open, onOpenChange }: {
+  employee: EmployeeDetail
+  onDone: (e: EmployeeDetail) => void
+  onReload: () => Promise<unknown>
+  open: boolean
+  onOpenChange: (o: boolean) => void
+}) {
+  const [draft, setDraft] = useState(emptyLeaveDraft(todayIso()))
+  const set = (patch: Partial<typeof draft>) => setDraft((d) => ({ ...d, ...patch }))
+  return (
+    <ConfirmDialog verb="Registrar afastamento" done="Afastamento registrado" title={`Registrar afastamento de ${employee.name}`} size="lg"
+      description="Durante o afastamento, a situação fica Afastado e o apontamento recusa o funcionário. A situação volta a Ativo sozinha no dia seguinte ao fim previsto."
+      open={open} onOpenChange={onOpenChange} onOpen={() => setDraft(emptyLeaveDraft(todayIso()))} onReload={onReload}
+      onConfirm={async () => {
+        const error = leaveDraftError(draft)
+        if (error) throw new DialogMessage(error)
+        onDone(await registerEmployeeLeave(employee.id, {
+          type: draft.type as EmployeeLeaveType, startDate: draft.startDate, expectedEndDate: draft.expectedEndDate, reason: draft.reason.trim() || null, version: employee.version,
+        }))
+      }}>
+      <Field label="Tipo" required>
+        {(p) => (
+          <select {...p} value={draft.type} onChange={(e) => set({ type: e.target.value as EmployeeLeaveType | '' })} className={inputClass}>
+            <option value="">Escolha</option>
+            {(Object.keys(LEAVE_TYPE_LABELS) as EmployeeLeaveType[]).map((t) => <option key={t} value={t}>{LEAVE_TYPE_LABELS[t]}</option>)}
+          </select>
+        )}
+      </Field>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field label="Início" required>{(p) => <DateInput {...p} value={draft.startDate} onChange={(v) => set({ startDate: v })} />}</Field>
+        <Field label="Fim previsto" required hint="Último dia afastado.">{(p) => <DateInput {...p} value={draft.expectedEndDate} onChange={(v) => set({ expectedEndDate: v })} />}</Field>
+      </div>
+      {draft.expectedEndDate && draft.expectedEndDate >= draft.startDate ? <p className="text-sm tabular-nums text-muted-foreground">Volta prevista em {formatDate(returnDate(draft.expectedEndDate))}.</p> : null}
+      <Field label="Motivo" hint="Não informe CID nem diagnóstico.">
+        {(p) => (
+          <div className="flex items-start gap-1.5">
+            <input {...p} value={draft.reason} maxLength={LEAVE_REASON_MAX} onChange={(e) => set({ reason: e.target.value })} className={inputClass} />
+            <Dica nome="Motivo do afastamento" texto={EMPLOYEE_DICAS.motivoAfastamento} />
+          </div>
+        )}
+      </Field>
     </ConfirmDialog>
   )
 }

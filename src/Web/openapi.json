@@ -4069,6 +4069,81 @@
         }
       }
     },
+    "/api/v1/hr/employees/{id}/leaves": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "RegisterEmployeeLeave",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LeaveInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/leaves/sensitive": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ListEmployeeLeavesSensitive",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LeaveDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/hr/employees/{id}/user": {
       "get": {
         "tags": [
@@ -17202,7 +17277,8 @@
           "unionId",
           "admissionDate",
           "terminationDate",
-          "status"
+          "status",
+          "version"
         ],
         "type": "object",
         "properties": {
@@ -17266,6 +17342,10 @@
           },
           "status": {
             "$ref": "#/components/schemas/EmployeeStatus"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
           }
         }
       },
@@ -17312,7 +17392,18 @@
       "EmployeeHistoryKind": {
         "enum": [
           "Salary",
-          "Position"
+          "Position",
+          "Leave"
+        ]
+      },
+      "EmployeeLeaveType": {
+        "enum": [
+          "Illness",
+          "WorkAccident",
+          "Maternity",
+          "Paternity",
+          "Military",
+          "Other"
         ]
       },
       "EmployeePersonalInput": {
@@ -17557,7 +17648,8 @@
       "EmployeeStatus": {
         "enum": [
           "Active",
-          "Terminated"
+          "Terminated",
+          "OnLeave"
         ]
       },
       "EntitySummary": {
@@ -19661,6 +19753,101 @@
             "type": "string"
           }
         }
+      },
+      "LeaveDetail": {
+        "required": [
+          "id",
+          "type",
+          "startDate",
+          "expectedEndDate",
+          "expectedReturnDate",
+          "reason",
+          "userId",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "$ref": "#/components/schemas/EmployeeLeaveType"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "expectedEndDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "expectedReturnDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "userId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "LeaveInput": {
+        "required": [
+          "type",
+          "startDate",
+          "expectedEndDate",
+          "reason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/EmployeeLeaveType"
+              }
+            ]
+          },
+          "startDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "expectedEndDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
       },
       "LinkableUser": {
         "required": [
