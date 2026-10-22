@@ -1,4 +1,5 @@
 using BemAqui.BuildingBlocks.Identity;
+using BemAqui.BuildingBlocks.Persistence;
 using BemAqui.BuildingBlocks.Tenancy;
 using BemAqui.Identity.Application;
 using BemAqui.Identity.Domain;
@@ -11,7 +12,8 @@ namespace BemAqui.Identity.Infrastructure;
 /// Confere o sstamp do token contra o usuário, com cache curto por tenant e usuário (ADR 0008). Desativar,
 /// redefinir senha e mexer no 2FA chamam <see cref="Invalidate"/>, então o efeito é no próximo request.
 /// </summary>
-public sealed class CachedSecurityStampValidator(IIdentityDb db, ITenantContext tenant, IMemoryCache cache) : ISecurityStampValidator, ISecurityStampCache
+public sealed class CachedSecurityStampValidator(IIdentityDb db, ITenantContext tenant, IMemoryCache cache, IAfterCommit afterCommit, IRealtimeConnections connections)
+    : ISecurityStampValidator, ISecurityStampCache
 {
     public static readonly TimeSpan Ttl = TimeSpan.FromSeconds(30);
 
@@ -30,7 +32,17 @@ public sealed class CachedSecurityStampValidator(IIdentityDb db, ITenantContext 
         return !string.IsNullOrEmpty(current) && string.Equals(current, stamp, StringComparison.Ordinal);
     }
 
-    public void Invalidate(Guid tenantId, Guid userId) => cache.Remove(Key(tenantId, userId));
+    /// <summary>O stamp mudou: limpa o cache e fecha as conexões do hub do usuário depois do commit (PRD-02 CA 17).</summary>
+    public void Invalidate(Guid tenantId, Guid userId)
+    {
+        cache.Remove(Key(tenantId, userId));
+        _ = afterCommit.RunAsync(_ =>
+        {
+            cache.Remove(Key(tenantId, userId));
+            connections.CloseFor(tenantId, [userId]);
+            return Task.CompletedTask;
+        });
+    }
 
     private static string Key(Guid tenantId, Guid userId) => $"sstamp:{tenantId:N}:{userId:N}";
 }

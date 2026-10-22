@@ -32,6 +32,7 @@ public static class LoggingSetup
             .Destructure.With<PersonalDataDestructuringPolicy>()
             .Enrich.FromLogContext()
             .Enrich.With<SensitivePropertyMask>()
+            .Enrich.With<AccessTokenQueryMask>()
             .Enrich.WithProperty("Application", "bemaqui-empresas");
 
         if (environment.IsDevelopment())

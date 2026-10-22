@@ -19,6 +19,10 @@ public static class PersistenceServiceCollectionExtensions
         services.TryAddScoped<ICurrentUser, SystemCurrentUser>();
         services.TryAddScoped<AuditOrigin>();
         services.TryAddScoped<AuditSaveChangesInterceptor>();
+        services.TryAddScoped<AfterCommitActions>();
+        services.TryAddScoped<AfterCommitInterceptor>();
+        services.TryAddScoped<IAfterCommit, AfterCommit>();
+        services.TryAddSingleton<IRealtimeConnections, NoRealtimeConnections>();
         services.TryAddScoped<INumberSequence, NumberSequenceService>();
         services.TryAddScoped<INumberFormatAdmin, NumberFormatAdmin>();
         services.TryAddSingleton(sp => new AuditableEntityRegistry(sp.GetServices<AuditableEntity>()));
@@ -44,13 +48,13 @@ public static class PersistenceServiceCollectionExtensions
         return services;
     }
 
-    /// <summary>Opções padrão do DbContext de tenant: Npgsql, snake_case e o interceptor de auditoria.</summary>
+    /// <summary>Opções padrão do DbContext de tenant: Npgsql, snake_case e os interceptores de auditoria e de avisos depois do commit.</summary>
     public static DbContextOptionsBuilder UseBemAquiDefaults(this DbContextOptionsBuilder builder, string connectionString, IServiceProvider services)
     {
         ArgumentNullException.ThrowIfNull(builder);
         return builder
             .UseNpgsql(connectionString)
             .UseSnakeCaseNamingConvention()
-            .AddInterceptors(services.GetRequiredService<AuditSaveChangesInterceptor>());
+            .AddInterceptors(services.GetRequiredService<AuditSaveChangesInterceptor>(), services.GetRequiredService<AfterCommitInterceptor>());
     }
 }

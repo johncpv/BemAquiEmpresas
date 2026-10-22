@@ -27,6 +27,10 @@ internal sealed class RecurringJobsRegistrar(IRecurringJobManager recurring, ICo
             new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         recurring.AddOrUpdate<BemAqui.BuildingBlocks.Persistence.IdempotencyPurgeRecurringJob>(BemAqui.BuildingBlocks.Persistence.IdempotencyPurgeRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             BemAqui.BuildingBlocks.Persistence.IdempotencyPurgeRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
+        // 07:00 de São Paulo como valor inicial; o horário é parâmetro (Jobs:Cron:production-late-orders).
+        recurring.AddOrUpdate<BemAqui.Production.Application.LateOrdersRecurringJob>(BemAqui.Production.Application.LateOrdersRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
+            configuration["Jobs:Cron:" + BemAqui.Production.Application.LateOrdersRecurringJob.Id] is { Length: > 0 } cron ? cron : BemAqui.Production.Application.LateOrdersRecurringJob.Cron,
+            new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         return Task.CompletedTask;
     }
 

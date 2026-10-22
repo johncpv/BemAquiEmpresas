@@ -23,7 +23,8 @@ namespace BemAqui.Production.Application;
 /// </summary>
 public sealed partial class FabricationOrderService(
     IProductionDb db, IProjects projects, IParties parties, IItems items, IWorkCenters workCenters, IRoutingTemplates routings, INumberSequence numbers,
-    IPermissionChecker permissions, ICurrentUser currentUser, IUserDirectory users, INotificationService notifications, IEventPublisher events, TimeProvider clock)
+    IPermissionChecker permissions, ICurrentUser currentUser, IUserDirectory users, INotificationService notifications, IEventPublisher events, TimeProvider clock,
+    ProductionBoardNotifier board)
 {
     public const string Link = "/app/producao/os/";
 
@@ -127,8 +128,8 @@ public sealed partial class FabricationOrderService(
         return (byProject, names, projectItems, products);
     }
 
-    private int? DelayDays(ProductionOrderStatus status, DateOnly? promised) =>
-        promised is { } date && date < Today && status is not (ProductionOrderStatus.Completed or ProductionOrderStatus.Cancelled) ? Today.DayNumber - date.DayNumber : null;
+    /// <summary>Dias de atraso pela regra única do Kanban (PRD-02 CA 4).</summary>
+    private int? DelayDays(ProductionOrderStatus status, DateOnly? promised) => ProductionOrderRisk.Evaluate(promised, Today, status, atLastStep: true).DelayDays;
 
     private static IQueryable<ProductionOrder> Fabrication(IQueryable<ProductionOrder> orders) => orders.Where(o => o.Type == ProductionOrderType.Fabrication);
 

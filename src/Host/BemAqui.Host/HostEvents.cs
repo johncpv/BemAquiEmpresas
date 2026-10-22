@@ -33,6 +33,8 @@ public static class HostEvents
             // PRD-01 CA 18: handler próprio da fabricação; CA 16: a EST-02 consome o cancelamento da OS.
             .AddHandler<BemAqui.Commercial.Contracts.ContractCancelled, BemAqui.Production.Application.FabricationContractCancelledConsumer>()
             .AddEvent<BemAqui.Production.Contracts.ProductionOrderCancelled>()
+            // PRD-02 CA 8: "Concluir etapa" tira a OS de Aberta; o Commercial passa o projeto a InProgress.
+            .AddHandler<BemAqui.Production.Contracts.ProductionStepStarted, BemAqui.Commercial.Application.FabricationConsumers>()
             // OS de instalação (COM-06).
             .AddHandler<BemAqui.Production.Contracts.InstallationStarted, BemAqui.Commercial.Application.InstallationConsumers>()
             .AddHandler<BemAqui.Production.Contracts.InstallationAccepted, BemAqui.Commercial.Application.InstallationConsumers>()

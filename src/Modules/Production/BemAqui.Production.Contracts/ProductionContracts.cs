@@ -132,5 +132,11 @@ public interface IProductionOrders
     Task<ProductionOrderState?> StatusAsync(Guid id, CancellationToken cancellationToken = default);
 }
 
+/// <summary>
+/// Primeira etapa da OS de fabricação iniciada: a OS saiu de <c>Open</c> (PRD-02 CA 8 pela "Concluir etapa" do supervisor; PRD-03a CA 7
+/// pelo apontamento). O Commercial passa o projeto a <c>InProgress</c> se ainda estava <c>Planned</c>.
+/// </summary>
+public sealed record ProductionStepStarted(Guid ProductionOrderId, Guid ProjectId, Guid StepId, DateTimeOffset StartedAt) : BemAqui.SharedKernel.IIntegrationEvent;
+
 /// <summary>OS de fabricação cancelada (PRD-01 CA 16): a EST-02 reconcilia as reservas pela fonte (ADR 0023 §6).</summary>
 public sealed record ProductionOrderCancelled(Guid ProductionOrderId, Guid ProjectId) : BemAqui.SharedKernel.IIntegrationEvent;

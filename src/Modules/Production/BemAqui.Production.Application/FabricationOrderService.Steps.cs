@@ -50,6 +50,7 @@ public sealed partial class FabricationOrderService
         }
 
         await ReplaceStepsAsync(order, current, steps, cancellationToken);
+        await board.ChangedAsync(order.Id, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         return await GetAsync(id, cancellationToken);
     }
@@ -89,6 +90,7 @@ public sealed partial class FabricationOrderService
         order.RoutingTemplateId = routing.Id;
         await ReplaceStepsAsync(order, current, routing.Steps.Select(s => new FabricationStepDraft(null, s.Sequence, s.Name, s.Code, s.WorkCenterId, s.StandardHours, s.IsQualityStep,
             s.RequiresApproval, s.Checklist.OrderBy(c => c.Sequence).Select(c => c.Text).ToList())).ToList(), cancellationToken);
+        await board.ChangedAsync(order.Id, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         return await GetAsync(id, cancellationToken);
     }
@@ -208,6 +210,7 @@ public sealed partial class FabricationOrderService
         }
 
         Cancel(order, reason);
+        await board.ChangedAsync(order.Id, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         return await GetAsync(id, cancellationToken);
     }
@@ -232,6 +235,7 @@ public sealed partial class FabricationOrderService
             else
             {
                 Cancel(order, "Contrato cancelado.");
+                await board.ChangedAsync(order.Id, ct);
             }
         }
 

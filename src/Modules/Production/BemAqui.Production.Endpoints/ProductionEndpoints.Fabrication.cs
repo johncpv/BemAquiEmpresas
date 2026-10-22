@@ -40,8 +40,17 @@ internal static partial class ProductionEndpoints
             .RequirePermission("production.edit").WithName("ChangeFabricationRouting").Produces<FabricationOrderDetail>();
         orders.MapPost("/{id:guid}/cancel", async (Guid id, FabricationCancelInput input, FabricationOrderService service, CancellationToken ct) => (await service.CancelAsync(id, input, ct)).ToHttpResult())
             .RequirePermission("production.edit").WithName("CancelFabricationOrder").Produces<FabricationOrderDetail>();
+        orders.MapPost("/{id:guid}/steps/{stepId:guid}/complete", async (Guid id, Guid stepId, CompleteStepInput input, FabricationOrderService service, CancellationToken ct) =>
+                (await service.CompleteStepAsync(id, stepId, input, ct)).ToHttpResult())
+            .RequirePermission("production.approve").WithName("CompleteFabricationStep").Produces<FabricationOrderDetail>();
         orders.MapGet("/{id:guid}/history", async (Guid id, int? page, int? pageSize, AuditHistory history, CancellationToken ct) =>
                 (await history.GetWithChildrenAsync(nameof(ProductionOrder), id.ToString(), OrderHistoryChildren, "orderId", new PageRequest(page ?? 1, pageSize ?? PageRequest.DefaultPageSize).Normalize(), ct)).ToHttpResult())
             .RequirePermission("production.view").WithName("GetFabricationOrderHistory").Produces<PagedList<RelatedAuditEntryDto>>();
     }
+
+    /// <summary>Kanban (PRD-02 CA 1 a 6, 15): o quadro inteiro numa resposta, com production.view; filtros na query.</summary>
+    private static void MapBoard(RouteGroupBuilder board) =>
+        board.MapGet(string.Empty, async (Guid? projectId, Guid? partyId, string? line, Guid? routingTemplateId, bool? late, bool? atRisk, ProductionBoardService service, CancellationToken ct) =>
+                Results.Ok(await service.GetAsync(new ProductionBoardQuery(projectId, partyId, line, routingTemplateId, late == true, atRisk == true), ct)))
+            .RequirePermission("production.view").WithName("GetProductionBoard").Produces<ProductionBoard>();
 }

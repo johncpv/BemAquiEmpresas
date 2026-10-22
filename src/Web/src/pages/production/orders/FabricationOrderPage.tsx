@@ -64,6 +64,7 @@ export function FabricationOrderPage() {
           ...(editable && canEdit ? [{ label: 'Ajustar as etapas', onSelect: () => { setJustCreated(false); void navigate({ to: '.', search: { aba: 'etapas' } } as never) } }] : []),
           { label: 'Ver projeto', onSelect: () => void navigate({ to: '/app/projetos/$id', params: { id: o.projectId }, search: { aba: 'itens' } } as never) },
           { label: 'Ver OS de fabricação', onSelect: () => void navigate({ to: '/app/producao/os' } as never) },
+          { label: 'Ver no Kanban', onSelect: () => void navigate({ to: '/app/producao/kanban', search: o.routingTemplateId ? { roteiro: o.routingTemplateId } : {} } as never) },
         ]} /></div>
       ) : null}
       {o.status === 'Cancelled' ? <p role="note" className="mb-4 rounded-md border border-border bg-muted px-3 py-2 text-sm">OS cancelada{o.cancelReason ? `: ${o.cancelReason}` : ''}.</p> : null}

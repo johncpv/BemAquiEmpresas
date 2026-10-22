@@ -5864,6 +5864,15 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("completed_by");
 
+                    b.Property<bool>("CompletedBySupervisor")
+                        .HasColumnType("boolean")
+                        .HasColumnName("completed_by_supervisor");
+
+                    b.Property<string>("CompletionReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("completion_reason");
+
                     b.Property<bool>("IsQualityStep")
                         .HasColumnType("boolean")
                         .HasColumnName("is_quality_step");

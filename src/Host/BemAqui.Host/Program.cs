@@ -13,6 +13,7 @@ using BemAqui.Host.Cli;
 using BemAqui.Host.Health;
 using BemAqui.Host.Observability;
 using BemAqui.Host.Persistence;
+using BemAqui.Host.Realtime;
 using BemAqui.Host.Security;
 using BemAqui.Host.Tenancy;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -102,6 +103,10 @@ try
         sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<ReverseProxyOptions>>().Value, sp.GetRequiredService<ILogger<TrustedProxies>>()));
     builder.Services.AddTenantJwtAuthentication(builder.Configuration, builder.Environment);
     builder.Services.AddSignalR();
+    // Tempo real (PRD-02): conexões por usuário (fechadas ao mudar permissão ou stamp) e o aviso do Kanban pelo ProductionHub.
+    builder.Services.AddSingleton<BemAqui.Host.Realtime.HubConnectionRegistry>();
+    builder.Services.AddSingleton<BemAqui.BuildingBlocks.Identity.IRealtimeConnections>(sp => sp.GetRequiredService<BemAqui.Host.Realtime.HubConnectionRegistry>());
+    builder.Services.AddSingleton<BemAqui.Production.Application.IProductionBoardPush, BemAqui.Host.Realtime.SignalRProductionBoardPush>();
     builder.Services.AddAuthRateLimiting(builder.Configuration);
     // Número é número no contrato (OpenAPI/Orval): sem aceitar "1" como 1, que gerava tipos integer|string no cliente.
     builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.Strict);
@@ -145,6 +150,7 @@ try
     app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = c => c.Tags.Contains("ready") }).AllowAnonymous();
     app.MapHealthChecks("/health", new HealthCheckOptions { Predicate = c => c.Tags.Contains("ready") }).AllowAnonymous();
     app.MapHub<PingHub>(PingHub.Path);
+    app.MapHub<BemAqui.Host.Realtime.ProductionHub>(BemAqui.Host.Realtime.ProductionHub.Path).RequireHubAccess("production", "production.view", "shopfloor.view");
 
     var api = app.MapGroup("/api/v1");
     api.MapAuditEndpoints();

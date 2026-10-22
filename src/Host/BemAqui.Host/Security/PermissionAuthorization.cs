@@ -16,6 +16,12 @@ public sealed record PermissionRequirement(string Permission) : IAuthorizationRe
     public IReadOnlyList<string> Alternatives => Permission.Split('|');
 }
 
+/// <summary>
+/// Acesso a um hub (PRD-02 CA 10): módulo liberado e ao menos uma das ações, que podem ser de módulos diferentes
+/// (<c>production.view</c> ou <c>shopfloor.view</c>). Policy <c>hub:{modulo}:{acao}|{acao}</c>.
+/// </summary>
+public sealed record HubAccessRequirement(string Module, IReadOnlyList<string> Alternatives) : IAuthorizationRequirement;
+
 /// <summary>Policy dinâmica <c>perm:{modulo}.{acao}</c> (02-arquitetura §3): usuário autenticado + requisito de permissão.</summary>
 public sealed class PermissionPolicyProvider(IOptions<AuthorizationOptions> options) : DefaultAuthorizationPolicyProvider(options)
 {
@@ -26,6 +32,16 @@ public sealed class PermissionPolicyProvider(IOptions<AuthorizationOptions> opti
             return new AuthorizationPolicyBuilder()
                 .RequireAuthenticatedUser()
                 .AddRequirements(new PermissionRequirement(policyName[ModuleEndpoints.PermissionPolicyPrefix.Length..]))
+                .Build();
+        }
+
+        if (policyName.StartsWith(BemAqui.Host.Realtime.HubAccess.PolicyPrefix, StringComparison.Ordinal))
+        {
+            var rest = policyName[BemAqui.Host.Realtime.HubAccess.PolicyPrefix.Length..];
+            var separator = rest.IndexOf(':', StringComparison.Ordinal);
+            return new AuthorizationPolicyBuilder()
+                .RequireAuthenticatedUser()
+                .AddRequirements(new HubAccessRequirement(rest[..separator], rest[(separator + 1)..].Split('|')))
                 .Build();
         }
 
@@ -67,6 +83,37 @@ public sealed class PermissionHandler : AuthorizationHandler<PermissionRequireme
     }
 }
 
+/// <summary>Hub: módulo liberado no tenant, depois uma das ações na permissão efetiva (mesma ordem do <see cref="PermissionHandler"/>).</summary>
+public sealed class HubAccessHandler : AuthorizationHandler<HubAccessRequirement>
+{
+    protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, HubAccessRequirement requirement)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(requirement);
+        if (context.Resource is not HttpContext http)
+        {
+            return;
+        }
+
+        if (http.RequestServices.GetRequiredService<TenantContextHolder>().Resolved?.IsReleased(requirement.Module) != true)
+        {
+            context.Fail(new AuthorizationFailureReason(this, PermissionHandler.NotReleasedReason + ":" + requirement.Module));
+            return;
+        }
+
+        if (!Guid.TryParse(context.User.FindFirst("sub")?.Value, out var userId))
+        {
+            return;
+        }
+
+        var effective = await http.RequestServices.GetRequiredService<IPermissionService>().GetAsync(userId, http.RequestAborted);
+        if (requirement.Alternatives.Any(effective.Has))
+        {
+            context.Succeed(requirement);
+        }
+    }
+}
+
 /// <summary>403 com <c>code</c>: <c>module_not_released</c> (camada 1) ou <c>forbidden</c> (camadas 2 e 3).</summary>
 public sealed class PermissionResultHandler : IAuthorizationMiddlewareResultHandler
 {
@@ -78,7 +125,7 @@ public sealed class PermissionResultHandler : IAuthorizationMiddlewareResultHand
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(authorizeResult);
-        if (authorizeResult.Forbidden && policy?.Requirements.OfType<PermissionRequirement>().Any() == true)
+        if (authorizeResult.Forbidden && policy?.Requirements.Any(r => r is PermissionRequirement or HubAccessRequirement) == true)
         {
             var notReleased = authorizeResult.AuthorizationFailure?.FailureReasons
                 .Select(r => r.Message).FirstOrDefault(m => m.StartsWith(PermissionHandler.NotReleasedReason + ":", StringComparison.Ordinal));
@@ -96,6 +143,7 @@ public sealed class PermissionResultHandler : IAuthorizationMiddlewareResultHand
     {
         services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
         services.AddScoped<IAuthorizationHandler, PermissionHandler>();
+        services.AddScoped<IAuthorizationHandler, HubAccessHandler>();
         services.AddSingleton<IAuthorizationMiddlewareResultHandler, PermissionResultHandler>();
     }
 }
