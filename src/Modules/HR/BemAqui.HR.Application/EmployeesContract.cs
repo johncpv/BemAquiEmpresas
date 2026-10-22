@@ -38,7 +38,7 @@ public sealed class EmployeesContract(IHrDb db, TimeProvider clock) : IEmployees
             select new
             {
                 e.Id, e.Name, e.Registration, e.PositionId, PositionName = p.Name, p.DefaultWorkCenterId, e.Status, e.IsDeleted,
-                OnLeave = db.EmployeeHistory.Any(h => h.EmployeeId == e.Id && h.Kind == EmployeeHistoryKind.Leave && h.EffectiveDate <= today && h.LeaveEndDate >= today),
+                OnLeave = db.EmployeeHistory.Any(h => h.EmployeeId == e.Id && h.Kind == EmployeeHistoryKind.Leave && h.CancelledAt == null && h.EffectiveDate <= today && h.LeaveEndDate >= today),
             }).OrderBy(r => r.Name).ToListAsync(ct);
         return rows.Select(r => new EmployeeSummary(r.Id, r.Name, r.Registration, r.PositionId, r.PositionName, r.DefaultWorkCenterId,
             r.Status == EmployeeStatus.Active && !r.IsDeleted, Situation(EmployeeLeaveRules.Situation(r.Status, r.OnLeave)))).ToList();

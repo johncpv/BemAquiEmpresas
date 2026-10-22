@@ -59,6 +59,12 @@ public sealed class SeedPatchSeeder : ITenantSeeder
         [
             ("production_supervision", "production", ["approve_quality"]),
         ]),
+        // CAD-04c1b (PO 22/10/2026, ADR 0003 adendo de 21/10/2026): o RH do seed via o tipo de afastamento pela hr.view_sensitive
+        // e continua vendo pela ação nova de dado de saúde; o Proprietário tem tudo. A RH-01b usa a mesma ação.
+        new("hr-view-health",
+        [
+            ("hr", "hr", ["view_health"]),
+        ]),
     ];
 
     public int Order => 25;

@@ -45,6 +45,14 @@ internal static partial class HrEndpoints
             .RequirePermission("hr.edit").WithName("RegisterEmployeeLeave").Produces<EmployeeDetail>();
         employees.MapGet("/{id:guid}/leaves/sensitive", async (Guid id, EmployeeService service, CancellationToken ct) => (await service.LeavesAsync(id, ct)).ToHttpResult())
             .RequirePermission("hr.view_sensitive").WithName("ListEmployeeLeavesSensitive").Produces<IReadOnlyList<LeaveDetail>>();
+        // CAD-04c1b: editar, encerrar antes e cancelar seguem o registro (hr.edit e, no serviço, hr.view_sensitive; tipo de saúde
+        // com hr.view_health). O afastamento precisa ser do funcionário da rota.
+        employees.MapPut("/{id:guid}/leaves/{leaveId:guid}", async (Guid id, Guid leaveId, LeaveInput input, EmployeeService service, CancellationToken ct) => (await service.UpdateLeaveAsync(id, leaveId, input, ct)).ToHttpResult())
+            .RequirePermission("hr.edit").WithName("UpdateEmployeeLeave").Produces<EmployeeDetail>();
+        employees.MapPost("/{id:guid}/leaves/{leaveId:guid}/end", async (Guid id, Guid leaveId, LeaveEndInput input, EmployeeService service, CancellationToken ct) => (await service.EndLeaveAsync(id, leaveId, input, ct)).ToHttpResult())
+            .RequirePermission("hr.edit").WithName("EndEmployeeLeave").Produces<EmployeeDetail>();
+        employees.MapPost("/{id:guid}/leaves/{leaveId:guid}/cancel", async (Guid id, Guid leaveId, LeaveCancelInput input, EmployeeService service, CancellationToken ct) => (await service.CancelLeaveAsync(id, leaveId, input, ct)).ToHttpResult())
+            .RequirePermission("hr.edit").WithName("CancelEmployeeLeave").Produces<EmployeeDetail>();
         employees.MapDelete("/{id:guid}", async (Guid id, EmployeeService service, CancellationToken ct) => (await service.DeleteAsync(id, ct)).ToHttpResult())
             .RequirePermission("hr.delete").WithName("DeleteEmployee");
         employees.MapGet("/{id:guid}/user", async (Guid id, EmployeeService service, CancellationToken ct) => (await service.LinkedUserAsync(id, ct)).ToHttpResult())
