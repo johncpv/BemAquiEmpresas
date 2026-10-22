@@ -204,7 +204,7 @@ public partial class FabricationTests(TenancyFixture tenancy) : IClassFixture<Te
     /// Devolve o projeto e os itens do projeto na ordem.
     /// </summary>
     private async Task<(Guid Project, Guid Contract, List<Guid> Items)> ApprovedAsync(
-        HttpClient owner, (string Kind, Guid? ItemId, decimal Quantity)[] lines, bool onboarding = false, Guid? routingOnItems = null)
+        HttpClient owner, (string Kind, Guid? ItemId, decimal Quantity)[] lines, bool onboarding = false, Guid? routingOnItems = null, object[]? milestones = null)
     {
         var customer = await CustomerAsync(owner);
         var quote = await JsonAsync(await owner.SendAsync(Post(Quotes, new { partyId = customer, contactId = (Guid?)null, siteAddressId = (Guid?)null })));
@@ -226,7 +226,7 @@ public partial class FabricationTests(TenancyFixture tenancy) : IClassFixture<Te
 
         var conditions = await owner.PutAsJsonAsync($"{Quotes}/{id}/conditions", new
         {
-            milestones = new object[] { new { description = "Sinal", percent = 100m, trigger = "Event", triggerEvent = "Signature", dueDate = (string?)null, daysAfterEvent = 0 } },
+            milestones = milestones ?? [new { description = "Sinal", percent = 100m, trigger = "Event", triggerEvent = "Signature", dueDate = (string?)null, daysAfterEvent = 0 }],
             validUntil = Iso(Today.AddDays(15)), version = Version(quote),
         });
         conditions.StatusCode.Should().Be(HttpStatusCode.OK, await conditions.Content.ReadAsStringAsync());
