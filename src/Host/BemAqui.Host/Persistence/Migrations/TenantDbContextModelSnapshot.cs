@@ -992,6 +992,74 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("project_budget", "commercial");
                 });
 
+            modelBuilder.Entity("BemAqui.Commercial.Domain.ProjectCost", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<string>("CostType")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("cost_type");
+
+                    b.Property<bool>("IsBackfill")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_backfill");
+
+                    b.Property<DateOnly>("OccurredOn")
+                        .HasColumnType("date")
+                        .HasColumnName("occurred_on");
+
+                    b.Property<Guid?>("ProductionOrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("production_order_id");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<int>("Seq")
+                        .HasColumnType("integer")
+                        .HasColumnName("seq");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)")
+                        .HasColumnName("source");
+
+                    b.Property<Guid>("SourceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_project_costs");
+
+                    b.HasIndex("SourceId")
+                        .HasDatabaseName("ix_project_costs_source_id");
+
+                    b.HasIndex("ProjectId", "CostType")
+                        .HasDatabaseName("ix_project_costs_project_id_cost_type");
+
+                    b.HasIndex("Source", "SourceId", "Seq")
+                        .IsUnique()
+                        .HasDatabaseName("ix_project_costs_source_source_id_seq");
+
+                    b.ToTable("project_costs", "commercial");
+                });
+
             modelBuilder.Entity("BemAqui.Commercial.Domain.ProjectItem", b =>
                 {
                     b.Property<Guid>("Id")
@@ -5604,6 +5672,78 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("installation_template", "production");
                 });
 
+            modelBuilder.Entity("BemAqui.Production.Domain.LaborCostRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<bool>("CostMissing")
+                        .HasColumnType("boolean")
+                        .HasColumnName("cost_missing");
+
+                    b.Property<int>("CostVersion")
+                        .HasColumnType("integer")
+                        .HasColumnName("cost_version");
+
+                    b.Property<decimal?>("HourlyCostSnapshot")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)")
+                        .HasColumnName("hourly_cost_snapshot");
+
+                    b.Property<Guid>("LaborEntryId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("labor_entry_id");
+
+                    b.Property<int>("Minutes")
+                        .HasColumnType("integer")
+                        .HasColumnName("minutes");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("order_id");
+
+                    b.Property<string>("Origin")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("origin");
+
+                    b.Property<decimal>("PreviousAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("previous_amount");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<Guid?>("RecordedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recorded_by");
+
+                    b.HasKey("Id")
+                        .HasName("pk_labor_cost_history");
+
+                    b.HasIndex("OrderId")
+                        .HasDatabaseName("ix_labor_cost_history_order_id");
+
+                    b.HasIndex("LaborEntryId", "CostVersion")
+                        .IsUnique()
+                        .HasDatabaseName("ix_labor_cost_history_labor_entry_id_cost_version");
+
+                    b.ToTable("labor_cost_history", "production", t =>
+                        {
+                            t.HasCheckConstraint("ck_labor_cost_history_version", "cost_version >= 1");
+                        });
+                });
+
             modelBuilder.Entity("BemAqui.Production.Domain.LaborEntry", b =>
                 {
                     b.Property<Guid>("Id")
@@ -5633,6 +5773,27 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("correction_reason");
 
+                    b.Property<decimal>("Cost")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("cost");
+
+                    b.Property<bool>("CostBackfilled")
+                        .HasColumnType("boolean")
+                        .HasColumnName("cost_backfilled");
+
+                    b.Property<bool>("CostMissing")
+                        .HasColumnType("boolean")
+                        .HasColumnName("cost_missing");
+
+                    b.Property<Guid?>("CostPositionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cost_position_id");
+
+                    b.Property<int>("CostVersion")
+                        .HasColumnType("integer")
+                        .HasColumnName("cost_version");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -5644,6 +5805,11 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<DateTimeOffset?>("EndedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("ended_at");
+
+                    b.Property<decimal?>("HourlyCostSnapshot")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)")
+                        .HasColumnName("hourly_cost_snapshot");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(500)
@@ -5686,6 +5852,10 @@ namespace BemAqui.Host.Persistence.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_labor_entries");
+
+                    b.HasIndex("CostPositionId")
+                        .HasDatabaseName("ix_labor_entries_cost_missing")
+                        .HasFilter("cost_missing");
 
                     b.HasIndex("EmployeeId")
                         .IsUnique()
@@ -6220,6 +6390,16 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasConstraintName("fk_project_budget_projects_project_id");
                 });
 
+            modelBuilder.Entity("BemAqui.Commercial.Domain.ProjectCost", b =>
+                {
+                    b.HasOne("BemAqui.Commercial.Domain.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_project_costs_projects_project_id");
+                });
+
             modelBuilder.Entity("BemAqui.Commercial.Domain.ProjectItem", b =>
                 {
                     b.HasOne("BemAqui.Commercial.Domain.Project", null)
@@ -6590,6 +6770,16 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_calendar_exceptions_calendars_calendar_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Production.Domain.LaborCostRecord", b =>
+                {
+                    b.HasOne("BemAqui.Production.Domain.LaborEntry", null)
+                        .WithMany()
+                        .HasForeignKey("LaborEntryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_labor_cost_history_labor_entries_labor_entry_id");
                 });
 
             modelBuilder.Entity("BemAqui.Production.Domain.LaborEntry", b =>

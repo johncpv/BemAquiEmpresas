@@ -81,6 +81,22 @@ internal sealed class ProjectBudgetConfiguration : IEntityTypeConfiguration<Proj
     }
 }
 
+/// <summary>Razão de diferenças (ADR 0025 §2, PRD-04 CA 7): único por <c>(source, source_id, seq)</c>; consulta por projeto e natureza.</summary>
+internal sealed class ProjectCostConfiguration : IEntityTypeConfiguration<ProjectCost>
+{
+    public void Configure(EntityTypeBuilder<ProjectCost> b)
+    {
+        b.ToTable("project_costs", CommercialSchema.Name);
+        b.Property(e => e.CostType).HasConversion<string>().HasMaxLength(16);
+        b.Property(e => e.Source).HasConversion<string>().HasMaxLength(24);
+        b.Property(e => e.Amount).HasPrecision(18, 2);
+        b.HasOne<Project>().WithMany().HasForeignKey(e => e.ProjectId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => new { e.Source, e.SourceId, e.Seq }).IsUnique();
+        b.HasIndex(e => new { e.ProjectId, e.CostType });
+        b.HasIndex(e => e.SourceId);
+    }
+}
+
 internal sealed class ContractAmendmentConfiguration : IEntityTypeConfiguration<ContractAmendment>
 {
     public void Configure(EntityTypeBuilder<ContractAmendment> b)

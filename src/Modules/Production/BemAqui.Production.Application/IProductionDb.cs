@@ -28,6 +28,8 @@ public interface IProductionDb
 
     DbSet<StepPause> StepPauses { get; }
 
+    DbSet<LaborCostRecord> LaborCostHistory { get; }
+
     DatabaseFacade Database { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);

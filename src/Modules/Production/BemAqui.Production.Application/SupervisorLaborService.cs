@@ -18,7 +18,7 @@ namespace BemAqui.Production.Application;
 /// </summary>
 public sealed class SupervisorLaborService(
     IProductionDb db, LaborWorkflow workflow, IBomGate bom, IEmployees employees, IUserEmployeeLink links, IUserDirectory users, IPermissionChecker permissions,
-    ICurrentUser currentUser, IEventPublisher events, IConfiguration configuration)
+    ICurrentUser currentUser, IConfiguration configuration)
 {
     public const string AlertHoursSetting = "Production:OpenLaborAlertHours";
 
@@ -112,7 +112,7 @@ public sealed class SupervisorLaborService(
         entry.Notes = Clean(input.Notes);
         var created = pauses.Select(p => new StepPause { LaborEntryId = entry.Id, OrderId = orderId, Reason = p.Reason, Notes = p.Notes, StartedAt = p.StartedAt, EndedAt = p.EndedAt }).ToList();
         db.StepPauses.AddRange(created);
-        workflow.Close(scope, entry, endedAt, LaborCloseKind.Supervisor, created);
+        await workflow.CloseAsync(scope, entry, endedAt, LaborCloseKind.Supervisor, created, cancellationToken);
         await workflow.SettleAsync(scope, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         return await ListAsync(orderId, cancellationToken);
@@ -120,7 +120,8 @@ public sealed class SupervisorLaborService(
 
     /// <summary>
     /// "Corrigir apontamento" (CA 20, 21): início, fim e pausas com motivo, nas regras do CA 19; a correção fica auditada (antes e
-    /// depois) e publica <see cref="LaborEntryCorrected"/>; o aberto fecha como "Encerrado pelo supervisor".
+    /// depois), refaz o custo com o mesmo snapshot (PRD-04 CA 4) e publica <see cref="LaborEntryCorrected"/>; o aberto fecha como
+    /// "Encerrado pelo supervisor".
     /// </summary>
     public async Task<Result<OrderLaborView>> CorrectAsync(Guid orderId, Guid entryId, LaborCorrectionInput input, CancellationToken cancellationToken = default)
     {
@@ -175,13 +176,14 @@ public sealed class SupervisorLaborService(
         entry.SelfApproved = entry.SelfApproved || segregation.Value;
         if (wasOpen)
         {
-            workflow.Close(scope, entry, input.EndedAt, LaborCloseKind.Supervisor, created);
+            await workflow.CloseAsync(scope, entry, input.EndedAt, LaborCloseKind.Supervisor, created, cancellationToken);
         }
         else
         {
+            var spans = created.Select(p => new PauseSpan(p.StartedAt, p.EndedAt)).ToList();
             entry.EndedAt = input.EndedAt;
-            entry.PausedMinutes = LaborRules.PausedMinutes(created.Select(p => new PauseSpan(p.StartedAt, p.EndedAt)), input.EndedAt);
-            events.Publish(new LaborEntryCorrected(entry.Id));
+            entry.PausedMinutes = LaborRules.PausedMinutes(spans, input.EndedAt);
+            await workflow.CorrectCostAsync(scope, entry, LaborRules.NetMinutes(input.StartedAt, input.EndedAt, spans, input.EndedAt), cancellationToken);
         }
 
         await workflow.SettleAsync(scope, cancellationToken);

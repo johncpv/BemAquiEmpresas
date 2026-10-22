@@ -133,6 +133,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BemAqui.Commercial.Domain.ProjectBudget> ProjectBudgets => Set<BemAqui.Commercial.Domain.ProjectBudget>();
 
+    public DbSet<BemAqui.Commercial.Domain.ProjectCost> ProjectCosts => Set<BemAqui.Commercial.Domain.ProjectCost>();
+
     public DbSet<BemAqui.Commercial.Domain.ContractAmendment> ContractAmendments => Set<BemAqui.Commercial.Domain.ContractAmendment>();
 
     public DbSet<BemAqui.Commercial.Domain.ContractAmendmentMilestone> ContractAmendmentMilestones => Set<BemAqui.Commercial.Domain.ContractAmendmentMilestone>();
@@ -172,6 +174,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
     public DbSet<BemAqui.Production.Domain.LaborEntry> LaborEntries => Set<BemAqui.Production.Domain.LaborEntry>();
 
     public DbSet<BemAqui.Production.Domain.StepPause> StepPauses => Set<BemAqui.Production.Domain.StepPause>();
+
+    public DbSet<BemAqui.Production.Domain.LaborCostRecord> LaborCostHistory => Set<BemAqui.Production.Domain.LaborCostRecord>();
 
     public DbSet<BemAqui.Engineering.Domain.RoutingTemplate> RoutingTemplates => Set<BemAqui.Engineering.Domain.RoutingTemplate>();
 

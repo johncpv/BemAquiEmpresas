@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using BemAqui.Production.Contracts;
 using BemAqui.SharedKernel;
 
 namespace BemAqui.Production.Domain;
@@ -27,7 +28,9 @@ public enum PauseReason
 /// <summary>
 /// Apontamento de um funcionário numa etapa da OS (<c>production.labor_entries</c>, PRD-03a): início, fim e pausas. O funcionário
 /// é sempre o do usuário que apontou, exceto no "Apontar por funcionário" do supervisor (<see cref="OnBehalf"/>). Um apontamento
-/// aberto por funcionário (índice único parcial). Sem custo: a PRD-04 grava o custo-hora e o valor.
+/// aberto por funcionário (índice único parcial). Custo (PRD-04): snapshot do custo-hora do cargo no fechamento, valor e versão; os
+/// valores ficam fora do diff da auditoria (<see cref="ProtectedSecretAttribute"/>, como o orçado do projeto), porque o histórico da
+/// OS é de <c>production.view</c>; o histórico do custo é <see cref="LaborCostRecord"/>, com <c>projects.view_cost</c> (CA 17).
 /// </summary>
 [DocumentName("O apontamento")]
 public sealed class LaborEntry : Entity, IAuditable, IConcurrencyVersioned
@@ -66,9 +69,59 @@ public sealed class LaborEntry : Entity, IAuditable, IConcurrencyVersioned
 
     public string? Notes { get; set; }
 
+    /// <summary>Custo-hora do cargo lido no fechamento (<c>numeric(18,6)</c>, CA 1 e 3); nulo sem custo-hora (CA 5).</summary>
+    [ProtectedSecret]
+    public decimal? HourlyCostSnapshot { get; set; }
+
+    /// <summary>Minutos líquidos ÷ 60 × snapshot, arredondado no total (<c>numeric(18,2)</c>).</summary>
+    [ProtectedSecret]
+    public decimal Cost { get; set; }
+
+    /// <summary>"Sem custo-hora" (CA 5): cargo sem custo-hora ou funcionário sem cargo; custo 0 até o recálculo (CA 6).</summary>
+    public bool CostMissing { get; set; }
+
+    /// <summary>Versão do custo (0 = ainda sem custo, apontamento aberto ou fechado antes da PRD-04): o <c>seq</c> da razão.</summary>
+    public int CostVersion { get; set; }
+
+    /// <summary>"Calculado na implantação" (D3, CA 12 e 13): custo-hora do dia da recomposição.</summary>
+    public bool CostBackfilled { get; set; }
+
+    /// <summary>Cargo do funcionário no cálculo do custo (aviso e recálculo por cargo, CA 5 e 6).</summary>
+    public Guid? CostPositionId { get; set; }
+
     public DateTimeOffset CreatedAt { get; init; }
 
     public uint Version { get; set; }
+}
+
+/// <summary>
+/// Histórico do custo do apontamento (<c>production.labor_cost_history</c>, PRD-04 CA 17): uma linha por versão, só inserida (nunca
+/// alterada nem apagada), com o snapshot, as horas, o valor, a origem e quem fez. Lida só com <c>projects.view_cost</c>.
+/// </summary>
+public sealed class LaborCostRecord : Entity
+{
+    public Guid LaborEntryId { get; init; }
+
+    public Guid OrderId { get; init; }
+
+    public int CostVersion { get; init; }
+
+    public LaborCostOrigin Origin { get; init; }
+
+    public int Minutes { get; init; }
+
+    public decimal? HourlyCostSnapshot { get; init; }
+
+    public decimal PreviousAmount { get; init; }
+
+    public decimal Amount { get; init; }
+
+    public bool CostMissing { get; init; }
+
+    /// <summary>Usuário do comando; nulo no job de recomposição.</summary>
+    public Guid? RecordedBy { get; init; }
+
+    public DateTimeOffset RecordedAt { get; init; }
 }
 
 /// <summary>Pausa de um apontamento (<c>production.step_pauses</c>, CA 11 e 12): uma aberta por apontamento.</summary>

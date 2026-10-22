@@ -51,6 +51,10 @@ public static class ProductionInfrastructure
 
         // App do operador e apontamento (PRD-03a): fila, comandos, supervisor; o bloqueio por BOM liga na ENG-02 (IBomGate).
         services.TryAddScoped<LaborWorkflow>();
+        // Custo de mão de obra (PRD-04): snapshot no fechamento, correção, recálculo, consultas de custo e a recomposição (D3).
+        services.TryAddScoped<LaborCosting>();
+        services.TryAddScoped<LaborCostService>();
+        services.TryAddScoped<LaborCostBackfill>();
         services.TryAddScoped<ShopfloorService>();
         services.TryAddScoped<SupervisorLaborService>();
         services.TryAddScoped<IBomGate, NoBomGate>();
