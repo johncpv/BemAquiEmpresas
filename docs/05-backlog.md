@@ -306,7 +306,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-3--engenharia-est
 - Requisitos: R-PRD-7, R-PRJ-6, R-COM-4, R-PRP-2, R-PRP-7, R-SEC-5.
 - CA: estado `ReadyToComplete`; concluir com `production.approve` e login completo; projeto "Fabricado" e `ProjectFabricated` liberando a parcela, sem estoque; registro manual de fabricação bloqueado quando o projeto tem OS; sem conclusão parcial; estorno `Completed → InProgress` e `Fabricated → InProgress`, recusado com a parcela recebida.
 
-**PRD-03b [ ] App do operador: aparelho registrado e PIN (M)** — 3.1, ordem 9 — ADR 0026 — [story](stories/PRD-03b-pwa-pin-aparelho.md)
+**PRD-03b [x] App do operador: aparelho registrado e PIN (M)** — 3.1, ordem 9 — ADR 0026 — [story](stories/PRD-03b-pwa-pin-aparelho.md)
 - Requisitos: R-PRD-3, PRD §6 (Usabilidade, Segurança), R-SEC-1, R-SEC-3, R-SEC-7, R-SEC-5.
 - CA: PIN de 6 dígitos só em aparelho registrado (segredo rotativo, 180 dias, revogado depois de 30 dias sem uso); sessão de 12 h com saída depois de 15 min sem toque; `amr=pin` e lista `[PinSessionAllowed]` com teste de arquitetura; perfil sensível apaga o PIN, exceto `production.approve_quality`; prazo absoluto de 30 dias também na sessão completa (D17 d). Sem rede: fora do escopo (P-23).
 

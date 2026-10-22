@@ -32,7 +32,7 @@ test.describe('ajuda contextual (FND-14)', () => {
   test('<Dica> abre por teclado e por toque e fecha com Esc (CA 7)', async ({ page }) => {
     await mockApi(page, { 'GET /api/v1/ajuda/vistas': (r) => json(r, ['configuracoes-seguranca']) })
     await page.goto('/app/configuracoes/seguranca')
-    const dica = page.getByRole('button', { name: 'Dica' })
+    const dica = page.getByRole('button', { name: 'Dica', exact: true }) // a de Aparelhos da fábrica (PRD-03b) tem nome próprio
     await dica.focus()
     await expect(page.getByRole('dialog').getByText('Quem ainda não tem será levado à configuração no próximo acesso.')).toBeVisible()
     await page.keyboard.press('Escape')

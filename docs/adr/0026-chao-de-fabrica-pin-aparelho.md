@@ -65,3 +65,11 @@
 ## Adendo 22/10/2026 (PRD-05): qualidade no tablet
 - A fila e a decisão de qualidade ficam em `/api/v1/production/quality/*` (`GetQualityQueue`, `GetQualityStep`, `MarkQualityChecklist`, `StartQualityInspection`, `ApproveQuality`, `RejectQuality`), num arquivo próprio (`ProductionEndpoints.Quality.cs`), todos com `production.approve_quality` e nada mais; um teste de arquitetura garante que a ação só abre esses endpoints. A PRD-03b põe só eles (e o upload de anexo da NC, `UploadNonConformityAttachment`) na lista permitida da sessão por PIN.
 - No front, `/fab/qualidade` e `/fab/qualidade/$stepId` usam o layout do `/fab`, mas conferem o módulo `production` (não o `shopfloor`): o inspetor não precisa do app do operador. Quem tem a ação vê a entrada "Qualidade" no topo da fila do operador.
+
+## Nota de aplicação 22/10/2026 (PRD-03b)
+- **Conferência a cada request** sem claim nova: o `PinSessionScopeMiddleware` (Host, logo depois da autenticação) usa o cookie `__Host-bq_dev` e a família por PIN viva de (usuário, aparelho); depois, só os endpoints com `[PinSessionAllowed]`. O token leva `amr` em toda sessão (`pwd`, `otp`, `pin`).
+- **Segredo anterior:** aceito dentro da tolerância do refresh (`Auth:RefreshReuseTolerance`); fora dela, revoga o aparelho.
+- **GET `/api/v1/auth/pin/users`:** o navegador não manda `Origin` num GET da mesma origem; vale o `X-CSRF: 1`, com `Origin` igual ao host e `Sec-Fetch-Site: same-origin` quando vierem.
+- **Login completo no tablet:** sem refresh quando a tela pede (`ephemeral`) ou quando o navegador já tem o cookie do aparelho; registrar o aparelho revoga o refresh que houver.
+- **Refresh preso ao host** em que a sessão nasceu, nas duas sessões.
+- Desvios e detalhes na Change Log da PRD-03b.

@@ -22,7 +22,7 @@ export function ShopfloorDevicesSection() {
   return (
     <section aria-labelledby="aparelhos" className="max-w-3xl space-y-3 rounded-md border border-border bg-card p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 id="aparelhos" className="font-semibold">Aparelhos da fábrica<Dica texto="Tablets liberados para a entrada por PIN no app do operador. Cada registro vale 180 dias e cai sozinho depois de 30 dias sem uso." /></h2>
+        <h2 id="aparelhos" className="font-semibold">Aparelhos da fábrica<Dica nome="Aparelhos da fábrica" texto="Tablets liberados para a entrada por PIN no app do operador. Cada registro vale 180 dias e cai sozinho depois de 30 dias sem uso." /></h2>
         {list.data ? <span className="text-sm text-muted-foreground tabular-nums">{list.data.activeCount} de {list.data.maxActive} ativos</span> : null}
       </div>
       {list.isPending ? <Skeleton className="h-24" /> : list.isError ? <ErrorState onRetry={() => list.refetch()} /> : list.data.devices.length === 0 ? (

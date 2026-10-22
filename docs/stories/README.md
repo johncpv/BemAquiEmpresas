@@ -446,7 +446,7 @@ Stories detalhadas da Fase 3, uma por arquivo, escritas pelo @sm (River) e valid
 | 6 (3.1) | PRD-04 | Custo de mão de obra e custo real do projeto | M (re-estimada de P) | Ready | R-PRD-4, R-RH-2, R-PRJ-5 | PRD-03a, CAD-04a, COM-05; ADR 0025 | [PRD-04](PRD-04-custo-mao-de-obra.md) |
 | 7 (3.1) | PRD-05 | Qualidade e não conformidade | M | Ready | R-PRD-6, R-COM-2, R-COM-3, R-COM-4 | PRD-03a | [PRD-05](PRD-05-qualidade-nao-conformidade.md) |
 | 8 (3.1) | PRD-06a1 | Conclusão da OS e fabricação concluída do projeto | P | Ready | R-PRD-7, R-PRJ-6, R-COM-4 | PRD-05, PRD-04, COM-04b | [PRD-06a1](PRD-06a1-conclusao-os.md) |
-| 9 (3.1) | PRD-03b | App do operador: aparelho registrado e PIN | M | Ready (pré-condição externa) | R-PRD-3, R-SEC-1, R-SEC-3, R-SEC-7 | PRD-03a, PRD-05; ADR 0026 | [PRD-03b](PRD-03b-pwa-pin-aparelho.md) |
+| 9 (3.1) | PRD-03b | App do operador: aparelho registrado e PIN | M | Done | R-PRD-3, R-SEC-1, R-SEC-3, R-SEC-7 | PRD-03a, PRD-05; ADR 0026 | [PRD-03b](PRD-03b-pwa-pin-aparelho.md) |
 | 10 (3.2) | EST-01a | Saldos, movimentos e custo médio | G | Ready (pré-condição externa) | R-EST-4, R-EST-5, R-EST-6, R-EST-7, R-EST-8 | CAD-02a, CAD-02b, CAD-03, CAD-06, FND-09e; ADR 0023 | [EST-01a](EST-01a-saldos-movimentos-custo-medio.md) |
 | 11 (3.2) | ENG-02 | BOM da OS | M | Ready | R-ENG-3, R-ENG-4, R-ENG-5, R-PRP-2 | PRD-01, PRD-03a, EST-01a | [ENG-02](ENG-02-bom-da-os.md) |
 | 12 (3.2) | EST-02 | Reservas e disponível | M | Ready | R-EST-4, R-ENG-4, R-ENG-5, R-CMP-1 | ENG-02, EST-01a, PRD-01 | [EST-02](EST-02-reservas-disponivel.md) |

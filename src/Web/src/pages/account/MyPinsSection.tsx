@@ -11,7 +11,7 @@ export function MyPinsSection() {
   const pins = useListMyPins()
   return (
     <section aria-labelledby="meus-pins" className="mt-6 max-w-md space-y-3 rounded-md border border-border bg-card p-5">
-      <h2 id="meus-pins" className="font-semibold">Meus PINs<Dica texto="PIN é um número de 6 dígitos que abre o app do operador num tablet da fábrica registrado. Cada tablet tem o seu." /></h2>
+      <h2 id="meus-pins" className="font-semibold">Meus PINs<Dica nome="PIN" texto="PIN é um número de 6 dígitos que abre o app do operador num tablet da fábrica registrado. Cada tablet tem o seu." /></h2>
       {pins.isPending ? <Skeleton className="h-16" /> : pins.isError ? <ErrorState onRetry={() => pins.refetch()} /> : pins.data.length === 0 ? (
         <EmptyState title="Você não tem PIN em nenhum tablet." description="No tablet da fábrica, entre com e-mail e senha e toque em Criar PIN para entrar mais rápido." />
       ) : (
