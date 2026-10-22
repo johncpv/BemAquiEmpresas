@@ -72,6 +72,7 @@ public sealed partial class QualityService
         order.QualityAttempt++;
         order.QualityAttemptStartedAt = now;
         await ResetChecklistsAsync(scope, returnIndex, cancellationToken);
+        await UncheckReworkAsync(scope, returnIndex, cancellationToken);
         events.Publish(new QualityRejected(nc.Id, order.Id, order.ProjectId, returnStep.Id));
 
         var text = $"NC {nc.Number} na {order.Number}: {QualityRules.Excerpt(nc.Description)}. Voltou para {returnStep.Name}.";
@@ -85,6 +86,21 @@ public sealed partial class QualityService
         return new QualityDecisionResult(
             order.Id, order.Number, QualityResult.Rejected, nc.Attempt, false, returnStep.Name, returnStep.Id, false, false, nc.Id, nc.Number, returnStep.Name,
             $"NC {nc.Number} aberta");
+    }
+
+    /// <summary>
+    /// O checklist das etapas produtivas que serão refeitas volta desmarcado: o operador confere de novo no retrabalho (o histórico da
+    /// OS guarda quem tinha marcado e quando).
+    /// </summary>
+    private async Task UncheckReworkAsync(LaborScope scope, int returnIndex, CancellationToken ct)
+    {
+        var ids = scope.Steps.Skip(returnIndex).Take(scope.Index - returnIndex).Where(s => !s.IsQualityStep).Select(s => s.Id).ToList();
+        foreach (var item in await db.ProductionOrderChecklist.Where(c => c.StepId != null && ids.Contains(c.StepId.Value) && c.Result != null).ToListAsync(ct))
+        {
+            item.Result = null;
+            item.MarkedAt = null;
+            item.MarkedBy = null;
+        }
     }
 
     /// <summary>A etapa volta para ser refeita: situação nova e as marcas da conclusão anterior limpas (o histórico guarda os valores).</summary>

@@ -251,7 +251,7 @@ function RejectSheet({ detail: d, onOpenChange, onDecided }: { detail: QualitySt
             {photos.map((p, i) => (
               <li key={`${p.name}-${i}`} className="flex items-center gap-[8px] rounded-md border border-border bg-card p-2">
                 <span className="min-w-0 flex-1 truncate px-2">{p.name}</span>
-                <FloorButton tone="secondary" aria-label={`Tirar ${p.name}`} onClick={() => setPhotos(photos.filter((_, j) => j !== i))}><X aria-hidden="true" className="size-6" /></FloorButton>
+                <FloorButton tone="secondary" aria-label={`Remover ${p.name}`} onClick={() => setPhotos(photos.filter((_, j) => j !== i))}><X aria-hidden="true" className="size-6" /></FloorButton>
               </li>
             ))}
           </ul>
