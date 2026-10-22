@@ -133,7 +133,9 @@ import type {
   GetFabricationOrderHistoryParams,
   GetInstallationDefaultsParams,
   GetMissingLaborCostsParams,
+  GetNonConformityHistoryParams,
   GetProductionBoardParams,
+  GetQualityQueueParams,
   GetQuoteFunnelParams,
   GetRoutingTemplateHistoryParams,
   GroupDetail,
@@ -195,6 +197,7 @@ import type {
   ListItemsParams,
   ListLocationsParams,
   ListMyNotificationsParams,
+  ListNonConformitiesParams,
   ListPartiesParams,
   ListPayablesParams,
   ListPaymentOrdersParams,
@@ -227,6 +230,12 @@ import type {
   ModuleRelease,
   ModuleSummary,
   MyPermissionsResponse,
+  NonConformityActionInput,
+  NonConformityCloseInput,
+  NonConformityCostInput,
+  NonConformityDetail,
+  NonConformityPage,
+  NonConformityUpdateInput,
   NotificationPage,
   NumberFormatInput,
   NumberFormatRow,
@@ -238,6 +247,7 @@ import type {
   OpeningStatus,
   OrderLaborCostView,
   OrderLaborView,
+  OrderQualityView,
   PagedListOfAuditEntryDto,
   PagedListOfBankAccountDetail,
   PagedListOfEmployeeDetail,
@@ -307,6 +317,12 @@ import type {
   ProjectUpdateInput,
   ProvisionAccepted,
   ProvisionTenantRequest,
+  QualityApproveInput,
+  QualityChecklistInput,
+  QualityDecisionResult,
+  QualityQueueView,
+  QualityRejectInput,
+  QualityStepDetail,
   QuoteConditions,
   QuoteConditionsInput,
   QuoteContractRef,
@@ -400,6 +416,7 @@ import type {
   UpdatePartyRequest,
   UploadAttachmentBody,
   UploadCompanyLogoBody,
+  UploadNonConformityAttachmentBody,
   UserInvited,
   UserLinkInput,
   UserRow,
@@ -23049,6 +23066,1628 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getRecalculateMissingLaborCostsMutationOptions(options), queryClient);
     }
+
+export const getGetOrderQualityUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/production-orders/${id}/quality`
+}
+
+export const getOrderQuality = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<OrderQualityView> => {
+
+  return apiFetch<OrderQualityView>(getGetOrderQualityUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOrderQualityQueryKey = (id: string,) => {
+    return [
+    `/api/v1/production/production-orders/${id}/quality`
+    ] as const;
+    }
+
+
+export const getGetOrderQualityQueryOptions = <TData = Awaited<ReturnType<typeof getOrderQuality>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderQuality>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOrderQualityQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOrderQuality>>> = ({ signal }) => getOrderQuality(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOrderQuality>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetOrderQualityQueryResult = NonNullable<Awaited<ReturnType<typeof getOrderQuality>>>
+export type GetOrderQualityQueryError = unknown
+
+
+export function useGetOrderQuality<TData = Awaited<ReturnType<typeof getOrderQuality>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderQuality>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrderQuality>>,
+          TError,
+          Awaited<ReturnType<typeof getOrderQuality>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOrderQuality<TData = Awaited<ReturnType<typeof getOrderQuality>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderQuality>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrderQuality>>,
+          TError,
+          Awaited<ReturnType<typeof getOrderQuality>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOrderQuality<TData = Awaited<ReturnType<typeof getOrderQuality>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderQuality>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetOrderQuality<TData = Awaited<ReturnType<typeof getOrderQuality>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderQuality>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetOrderQualityQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetOrderNonConformityUrl = (id: string,
+    ncId: string,) => {
+
+
+
+
+  return `/api/v1/production/production-orders/${id}/non-conformities/${ncId}`
+}
+
+export const getOrderNonConformity = async (id: string,
+    ncId: string, options?: Parameters<typeof apiFetch>[1]): Promise<NonConformityDetail> => {
+
+  return apiFetch<NonConformityDetail>(getGetOrderNonConformityUrl(id,ncId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOrderNonConformityQueryKey = (id: string,
+    ncId: string,) => {
+    return [
+    `/api/v1/production/production-orders/${id}/non-conformities/${ncId}`
+    ] as const;
+    }
+
+
+export const getGetOrderNonConformityQueryOptions = <TData = Awaited<ReturnType<typeof getOrderNonConformity>>, TError = unknown>(id: string,
+    ncId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderNonConformity>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOrderNonConformityQueryKey(id,ncId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOrderNonConformity>>> = ({ signal }) => getOrderNonConformity(id,ncId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && ncId !== null && ncId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOrderNonConformity>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetOrderNonConformityQueryResult = NonNullable<Awaited<ReturnType<typeof getOrderNonConformity>>>
+export type GetOrderNonConformityQueryError = unknown
+
+
+export function useGetOrderNonConformity<TData = Awaited<ReturnType<typeof getOrderNonConformity>>, TError = unknown>(
+ id: string,
+    ncId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderNonConformity>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrderNonConformity>>,
+          TError,
+          Awaited<ReturnType<typeof getOrderNonConformity>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOrderNonConformity<TData = Awaited<ReturnType<typeof getOrderNonConformity>>, TError = unknown>(
+ id: string,
+    ncId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderNonConformity>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrderNonConformity>>,
+          TError,
+          Awaited<ReturnType<typeof getOrderNonConformity>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOrderNonConformity<TData = Awaited<ReturnType<typeof getOrderNonConformity>>, TError = unknown>(
+ id: string,
+    ncId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderNonConformity>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetOrderNonConformity<TData = Awaited<ReturnType<typeof getOrderNonConformity>>, TError = unknown>(
+ id: string,
+    ncId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderNonConformity>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetOrderNonConformityQueryOptions(id,ncId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetQualityQueueUrl = (params?: GetQualityQueueParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/production/quality/queue?${stringifiedParams}` : `/api/v1/production/quality/queue`
+}
+
+export const getQualityQueue = async (params?: GetQualityQueueParams, options?: Parameters<typeof apiFetch>[1]): Promise<QualityQueueView> => {
+
+  return apiFetch<QualityQueueView>(getGetQualityQueueUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetQualityQueueQueryKey = (params?: GetQualityQueueParams,) => {
+    return [
+    `/api/v1/production/quality/queue`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetQualityQueueQueryOptions = <TData = Awaited<ReturnType<typeof getQualityQueue>>, TError = unknown>(params?: GetQualityQueueParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQualityQueue>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetQualityQueueQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getQualityQueue>>> = ({ signal }) => getQualityQueue(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getQualityQueue>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetQualityQueueQueryResult = NonNullable<Awaited<ReturnType<typeof getQualityQueue>>>
+export type GetQualityQueueQueryError = unknown
+
+
+export function useGetQualityQueue<TData = Awaited<ReturnType<typeof getQualityQueue>>, TError = unknown>(
+ params: undefined |  GetQualityQueueParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQualityQueue>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getQualityQueue>>,
+          TError,
+          Awaited<ReturnType<typeof getQualityQueue>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetQualityQueue<TData = Awaited<ReturnType<typeof getQualityQueue>>, TError = unknown>(
+ params?: GetQualityQueueParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQualityQueue>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getQualityQueue>>,
+          TError,
+          Awaited<ReturnType<typeof getQualityQueue>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetQualityQueue<TData = Awaited<ReturnType<typeof getQualityQueue>>, TError = unknown>(
+ params?: GetQualityQueueParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQualityQueue>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetQualityQueue<TData = Awaited<ReturnType<typeof getQualityQueue>>, TError = unknown>(
+ params?: GetQualityQueueParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQualityQueue>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetQualityQueueQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetQualityStepUrl = (stepId: string,) => {
+
+
+
+
+  return `/api/v1/production/quality/steps/${stepId}`
+}
+
+export const getQualityStep = async (stepId: string, options?: Parameters<typeof apiFetch>[1]): Promise<QualityStepDetail> => {
+
+  return apiFetch<QualityStepDetail>(getGetQualityStepUrl(stepId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetQualityStepQueryKey = (stepId: string,) => {
+    return [
+    `/api/v1/production/quality/steps/${stepId}`
+    ] as const;
+    }
+
+
+export const getGetQualityStepQueryOptions = <TData = Awaited<ReturnType<typeof getQualityStep>>, TError = unknown>(stepId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQualityStep>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetQualityStepQueryKey(stepId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getQualityStep>>> = ({ signal }) => getQualityStep(stepId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: stepId !== null && stepId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getQualityStep>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetQualityStepQueryResult = NonNullable<Awaited<ReturnType<typeof getQualityStep>>>
+export type GetQualityStepQueryError = unknown
+
+
+export function useGetQualityStep<TData = Awaited<ReturnType<typeof getQualityStep>>, TError = unknown>(
+ stepId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQualityStep>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getQualityStep>>,
+          TError,
+          Awaited<ReturnType<typeof getQualityStep>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetQualityStep<TData = Awaited<ReturnType<typeof getQualityStep>>, TError = unknown>(
+ stepId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQualityStep>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getQualityStep>>,
+          TError,
+          Awaited<ReturnType<typeof getQualityStep>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetQualityStep<TData = Awaited<ReturnType<typeof getQualityStep>>, TError = unknown>(
+ stepId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQualityStep>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetQualityStep<TData = Awaited<ReturnType<typeof getQualityStep>>, TError = unknown>(
+ stepId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQualityStep>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetQualityStepQueryOptions(stepId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getMarkQualityChecklistUrl = (stepId: string,
+    itemId: string,) => {
+
+
+
+
+  return `/api/v1/production/quality/steps/${stepId}/checklist/${itemId}`
+}
+
+export const markQualityChecklist = async (stepId: string,
+    itemId: string,
+    qualityChecklistInput: QualityChecklistInput, options?: Parameters<typeof apiFetch>[1]): Promise<QualityStepDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<QualityStepDetail>(getMarkQualityChecklistUrl(stepId,itemId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(qualityChecklistInput)
+  }
+);}
+
+
+
+
+
+export const getMarkQualityChecklistMutationKey = () => ['markQualityChecklist'] as const;
+
+export const getMarkQualityChecklistMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markQualityChecklist>>, TError,MarkQualityChecklistMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof markQualityChecklist>>, TError,MarkQualityChecklistMutationVariables, TContext> => {
+
+const mutationKey = getMarkQualityChecklistMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof markQualityChecklist>>, MarkQualityChecklistMutationVariables> = (props) => {
+          const {stepId,itemId,data} = props ?? {};
+
+          return  markQualityChecklist(stepId,itemId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MarkQualityChecklistMutationResult = NonNullable<Awaited<ReturnType<typeof markQualityChecklist>>>
+    export type MarkQualityChecklistMutationBody = QualityChecklistInput
+    export type MarkQualityChecklistMutationError = unknown
+    export type MarkQualityChecklistMutationVariables = {stepId: string;itemId: string;data: QualityChecklistInput}
+
+    export const useMarkQualityChecklist = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markQualityChecklist>>, TError,MarkQualityChecklistMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof markQualityChecklist>>,
+        TError,
+        MarkQualityChecklistMutationVariables,
+        TContext
+      > => {
+      return useMutation(getMarkQualityChecklistMutationOptions(options), queryClient);
+    }
+
+export const getStartQualityInspectionUrl = (stepId: string,) => {
+
+
+
+
+  return `/api/v1/production/quality/steps/${stepId}/start`
+}
+
+export const startQualityInspection = async (stepId: string, options?: Parameters<typeof apiFetch>[1]): Promise<QualityStepDetail> => {
+
+  return apiFetch<QualityStepDetail>(getStartQualityInspectionUrl(stepId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getStartQualityInspectionMutationKey = () => ['startQualityInspection'] as const;
+
+export const getStartQualityInspectionMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startQualityInspection>>, TError,StartQualityInspectionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof startQualityInspection>>, TError,StartQualityInspectionMutationVariables, TContext> => {
+
+const mutationKey = getStartQualityInspectionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof startQualityInspection>>, StartQualityInspectionMutationVariables> = (props) => {
+          const {stepId} = props ?? {};
+
+          return  startQualityInspection(stepId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StartQualityInspectionMutationResult = NonNullable<Awaited<ReturnType<typeof startQualityInspection>>>
+
+    export type StartQualityInspectionMutationError = unknown
+    export type StartQualityInspectionMutationVariables = {stepId: string}
+
+    export const useStartQualityInspection = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startQualityInspection>>, TError,StartQualityInspectionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof startQualityInspection>>,
+        TError,
+        StartQualityInspectionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getStartQualityInspectionMutationOptions(options), queryClient);
+    }
+
+export const getApproveQualityUrl = (stepId: string,) => {
+
+
+
+
+  return `/api/v1/production/quality/steps/${stepId}/approve`
+}
+
+export const approveQuality = async (stepId: string,
+    qualityApproveInput: QualityApproveInput, options?: Parameters<typeof apiFetch>[1]): Promise<QualityDecisionResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<QualityDecisionResult>(getApproveQualityUrl(stepId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(qualityApproveInput)
+  }
+);}
+
+
+
+
+
+export const getApproveQualityMutationKey = () => ['approveQuality'] as const;
+
+export const getApproveQualityMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof approveQuality>>, TError,ApproveQualityMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof approveQuality>>, TError,ApproveQualityMutationVariables, TContext> => {
+
+const mutationKey = getApproveQualityMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof approveQuality>>, ApproveQualityMutationVariables> = (props) => {
+          const {stepId,data} = props ?? {};
+
+          return  approveQuality(stepId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ApproveQualityMutationResult = NonNullable<Awaited<ReturnType<typeof approveQuality>>>
+    export type ApproveQualityMutationBody = QualityApproveInput
+    export type ApproveQualityMutationError = unknown
+    export type ApproveQualityMutationVariables = {stepId: string;data: QualityApproveInput}
+
+    export const useApproveQuality = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof approveQuality>>, TError,ApproveQualityMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof approveQuality>>,
+        TError,
+        ApproveQualityMutationVariables,
+        TContext
+      > => {
+      return useMutation(getApproveQualityMutationOptions(options), queryClient);
+    }
+
+export const getRejectQualityUrl = (stepId: string,) => {
+
+
+
+
+  return `/api/v1/production/quality/steps/${stepId}/reject`
+}
+
+export const rejectQuality = async (stepId: string,
+    qualityRejectInput: QualityRejectInput, options?: Parameters<typeof apiFetch>[1]): Promise<QualityDecisionResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<QualityDecisionResult>(getRejectQualityUrl(stepId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(qualityRejectInput)
+  }
+);}
+
+
+
+
+
+export const getRejectQualityMutationKey = () => ['rejectQuality'] as const;
+
+export const getRejectQualityMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rejectQuality>>, TError,RejectQualityMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof rejectQuality>>, TError,RejectQualityMutationVariables, TContext> => {
+
+const mutationKey = getRejectQualityMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof rejectQuality>>, RejectQualityMutationVariables> = (props) => {
+          const {stepId,data} = props ?? {};
+
+          return  rejectQuality(stepId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RejectQualityMutationResult = NonNullable<Awaited<ReturnType<typeof rejectQuality>>>
+    export type RejectQualityMutationBody = QualityRejectInput
+    export type RejectQualityMutationError = unknown
+    export type RejectQualityMutationVariables = {stepId: string;data: QualityRejectInput}
+
+    export const useRejectQuality = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rejectQuality>>, TError,RejectQualityMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof rejectQuality>>,
+        TError,
+        RejectQualityMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRejectQualityMutationOptions(options), queryClient);
+    }
+
+export const getListNonConformitiesUrl = (params?: ListNonConformitiesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/production/non-conformities?${stringifiedParams}` : `/api/v1/production/non-conformities`
+}
+
+export const listNonConformities = async (params?: ListNonConformitiesParams, options?: Parameters<typeof apiFetch>[1]): Promise<NonConformityPage> => {
+
+  return apiFetch<NonConformityPage>(getListNonConformitiesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListNonConformitiesQueryKey = (params?: ListNonConformitiesParams,) => {
+    return [
+    `/api/v1/production/non-conformities`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListNonConformitiesQueryOptions = <TData = Awaited<ReturnType<typeof listNonConformities>>, TError = unknown>(params?: ListNonConformitiesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listNonConformities>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListNonConformitiesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listNonConformities>>> = ({ signal }) => listNonConformities(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listNonConformities>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListNonConformitiesQueryResult = NonNullable<Awaited<ReturnType<typeof listNonConformities>>>
+export type ListNonConformitiesQueryError = unknown
+
+
+export function useListNonConformities<TData = Awaited<ReturnType<typeof listNonConformities>>, TError = unknown>(
+ params: undefined |  ListNonConformitiesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listNonConformities>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listNonConformities>>,
+          TError,
+          Awaited<ReturnType<typeof listNonConformities>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListNonConformities<TData = Awaited<ReturnType<typeof listNonConformities>>, TError = unknown>(
+ params?: ListNonConformitiesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listNonConformities>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listNonConformities>>,
+          TError,
+          Awaited<ReturnType<typeof listNonConformities>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListNonConformities<TData = Awaited<ReturnType<typeof listNonConformities>>, TError = unknown>(
+ params?: ListNonConformitiesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listNonConformities>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListNonConformities<TData = Awaited<ReturnType<typeof listNonConformities>>, TError = unknown>(
+ params?: ListNonConformitiesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listNonConformities>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListNonConformitiesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetNonConformityUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/non-conformities/${id}`
+}
+
+export const getNonConformity = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<NonConformityDetail> => {
+
+  return apiFetch<NonConformityDetail>(getGetNonConformityUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetNonConformityQueryKey = (id: string,) => {
+    return [
+    `/api/v1/production/non-conformities/${id}`
+    ] as const;
+    }
+
+
+export const getGetNonConformityQueryOptions = <TData = Awaited<ReturnType<typeof getNonConformity>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNonConformity>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetNonConformityQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getNonConformity>>> = ({ signal }) => getNonConformity(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getNonConformity>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetNonConformityQueryResult = NonNullable<Awaited<ReturnType<typeof getNonConformity>>>
+export type GetNonConformityQueryError = unknown
+
+
+export function useGetNonConformity<TData = Awaited<ReturnType<typeof getNonConformity>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNonConformity>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getNonConformity>>,
+          TError,
+          Awaited<ReturnType<typeof getNonConformity>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetNonConformity<TData = Awaited<ReturnType<typeof getNonConformity>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNonConformity>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getNonConformity>>,
+          TError,
+          Awaited<ReturnType<typeof getNonConformity>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetNonConformity<TData = Awaited<ReturnType<typeof getNonConformity>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNonConformity>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetNonConformity<TData = Awaited<ReturnType<typeof getNonConformity>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNonConformity>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetNonConformityQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateNonConformityUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/non-conformities/${id}`
+}
+
+export const updateNonConformity = async (id: string,
+    nonConformityUpdateInput: NonConformityUpdateInput, options?: Parameters<typeof apiFetch>[1]): Promise<NonConformityDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<NonConformityDetail>(getUpdateNonConformityUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(nonConformityUpdateInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateNonConformityMutationKey = () => ['updateNonConformity'] as const;
+
+export const getUpdateNonConformityMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateNonConformity>>, TError,UpdateNonConformityMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateNonConformity>>, TError,UpdateNonConformityMutationVariables, TContext> => {
+
+const mutationKey = getUpdateNonConformityMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateNonConformity>>, UpdateNonConformityMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateNonConformity(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateNonConformityMutationResult = NonNullable<Awaited<ReturnType<typeof updateNonConformity>>>
+    export type UpdateNonConformityMutationBody = NonConformityUpdateInput
+    export type UpdateNonConformityMutationError = unknown
+    export type UpdateNonConformityMutationVariables = {id: string;data: NonConformityUpdateInput}
+
+    export const useUpdateNonConformity = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateNonConformity>>, TError,UpdateNonConformityMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateNonConformity>>,
+        TError,
+        UpdateNonConformityMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateNonConformityMutationOptions(options), queryClient);
+    }
+
+export const getStartNonConformityActionUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/non-conformities/${id}/start-action`
+}
+
+export const startNonConformityAction = async (id: string,
+    nonConformityActionInput: NonConformityActionInput, options?: Parameters<typeof apiFetch>[1]): Promise<NonConformityDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<NonConformityDetail>(getStartNonConformityActionUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(nonConformityActionInput)
+  }
+);}
+
+
+
+
+
+export const getStartNonConformityActionMutationKey = () => ['startNonConformityAction'] as const;
+
+export const getStartNonConformityActionMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startNonConformityAction>>, TError,StartNonConformityActionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof startNonConformityAction>>, TError,StartNonConformityActionMutationVariables, TContext> => {
+
+const mutationKey = getStartNonConformityActionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof startNonConformityAction>>, StartNonConformityActionMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  startNonConformityAction(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StartNonConformityActionMutationResult = NonNullable<Awaited<ReturnType<typeof startNonConformityAction>>>
+    export type StartNonConformityActionMutationBody = NonConformityActionInput
+    export type StartNonConformityActionMutationError = unknown
+    export type StartNonConformityActionMutationVariables = {id: string;data: NonConformityActionInput}
+
+    export const useStartNonConformityAction = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startNonConformityAction>>, TError,StartNonConformityActionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof startNonConformityAction>>,
+        TError,
+        StartNonConformityActionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getStartNonConformityActionMutationOptions(options), queryClient);
+    }
+
+export const getCloseNonConformityUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/non-conformities/${id}/close`
+}
+
+export const closeNonConformity = async (id: string,
+    nonConformityCloseInput: NonConformityCloseInput, options?: Parameters<typeof apiFetch>[1]): Promise<NonConformityDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<NonConformityDetail>(getCloseNonConformityUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(nonConformityCloseInput)
+  }
+);}
+
+
+
+
+
+export const getCloseNonConformityMutationKey = () => ['closeNonConformity'] as const;
+
+export const getCloseNonConformityMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof closeNonConformity>>, TError,CloseNonConformityMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof closeNonConformity>>, TError,CloseNonConformityMutationVariables, TContext> => {
+
+const mutationKey = getCloseNonConformityMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof closeNonConformity>>, CloseNonConformityMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  closeNonConformity(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CloseNonConformityMutationResult = NonNullable<Awaited<ReturnType<typeof closeNonConformity>>>
+    export type CloseNonConformityMutationBody = NonConformityCloseInput
+    export type CloseNonConformityMutationError = unknown
+    export type CloseNonConformityMutationVariables = {id: string;data: NonConformityCloseInput}
+
+    export const useCloseNonConformity = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof closeNonConformity>>, TError,CloseNonConformityMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof closeNonConformity>>,
+        TError,
+        CloseNonConformityMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCloseNonConformityMutationOptions(options), queryClient);
+    }
+
+export const getSetNonConformityCostUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/non-conformities/${id}/cost`
+}
+
+export const setNonConformityCost = async (id: string,
+    nonConformityCostInput: NonConformityCostInput, options?: Parameters<typeof apiFetch>[1]): Promise<NonConformityDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<NonConformityDetail>(getSetNonConformityCostUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(nonConformityCostInput)
+  }
+);}
+
+
+
+
+
+export const getSetNonConformityCostMutationKey = () => ['setNonConformityCost'] as const;
+
+export const getSetNonConformityCostMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setNonConformityCost>>, TError,SetNonConformityCostMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof setNonConformityCost>>, TError,SetNonConformityCostMutationVariables, TContext> => {
+
+const mutationKey = getSetNonConformityCostMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setNonConformityCost>>, SetNonConformityCostMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  setNonConformityCost(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetNonConformityCostMutationResult = NonNullable<Awaited<ReturnType<typeof setNonConformityCost>>>
+    export type SetNonConformityCostMutationBody = NonConformityCostInput
+    export type SetNonConformityCostMutationError = unknown
+    export type SetNonConformityCostMutationVariables = {id: string;data: NonConformityCostInput}
+
+    export const useSetNonConformityCost = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setNonConformityCost>>, TError,SetNonConformityCostMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof setNonConformityCost>>,
+        TError,
+        SetNonConformityCostMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSetNonConformityCostMutationOptions(options), queryClient);
+    }
+
+export const getGetNonConformityHistoryUrl = (id: string,
+    params?: GetNonConformityHistoryParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/production/non-conformities/${id}/history?${stringifiedParams}` : `/api/v1/production/non-conformities/${id}/history`
+}
+
+export const getNonConformityHistory = async (id: string,
+    params?: GetNonConformityHistoryParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfAuditEntryDto> => {
+
+  return apiFetch<PagedListOfAuditEntryDto>(getGetNonConformityHistoryUrl(id,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetNonConformityHistoryQueryKey = (id: string,
+    params?: GetNonConformityHistoryParams,) => {
+    return [
+    `/api/v1/production/non-conformities/${id}/history`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetNonConformityHistoryQueryOptions = <TData = Awaited<ReturnType<typeof getNonConformityHistory>>, TError = unknown>(id: string,
+    params?: GetNonConformityHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNonConformityHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetNonConformityHistoryQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getNonConformityHistory>>> = ({ signal }) => getNonConformityHistory(id,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getNonConformityHistory>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetNonConformityHistoryQueryResult = NonNullable<Awaited<ReturnType<typeof getNonConformityHistory>>>
+export type GetNonConformityHistoryQueryError = unknown
+
+
+export function useGetNonConformityHistory<TData = Awaited<ReturnType<typeof getNonConformityHistory>>, TError = unknown>(
+ id: string,
+    params: undefined |  GetNonConformityHistoryParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNonConformityHistory>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getNonConformityHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getNonConformityHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetNonConformityHistory<TData = Awaited<ReturnType<typeof getNonConformityHistory>>, TError = unknown>(
+ id: string,
+    params?: GetNonConformityHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNonConformityHistory>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getNonConformityHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getNonConformityHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetNonConformityHistory<TData = Awaited<ReturnType<typeof getNonConformityHistory>>, TError = unknown>(
+ id: string,
+    params?: GetNonConformityHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNonConformityHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetNonConformityHistory<TData = Awaited<ReturnType<typeof getNonConformityHistory>>, TError = unknown>(
+ id: string,
+    params?: GetNonConformityHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNonConformityHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetNonConformityHistoryQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListNonConformityAttachmentsUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/non-conformities/${id}/attachments`
+}
+
+export const listNonConformityAttachments = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<AttachmentDto[]> => {
+
+  return apiFetch<AttachmentDto[]>(getListNonConformityAttachmentsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListNonConformityAttachmentsQueryKey = (id: string,) => {
+    return [
+    `/api/v1/production/non-conformities/${id}/attachments`
+    ] as const;
+    }
+
+
+export const getListNonConformityAttachmentsQueryOptions = <TData = Awaited<ReturnType<typeof listNonConformityAttachments>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listNonConformityAttachments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListNonConformityAttachmentsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listNonConformityAttachments>>> = ({ signal }) => listNonConformityAttachments(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listNonConformityAttachments>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListNonConformityAttachmentsQueryResult = NonNullable<Awaited<ReturnType<typeof listNonConformityAttachments>>>
+export type ListNonConformityAttachmentsQueryError = unknown
+
+
+export function useListNonConformityAttachments<TData = Awaited<ReturnType<typeof listNonConformityAttachments>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listNonConformityAttachments>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listNonConformityAttachments>>,
+          TError,
+          Awaited<ReturnType<typeof listNonConformityAttachments>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListNonConformityAttachments<TData = Awaited<ReturnType<typeof listNonConformityAttachments>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listNonConformityAttachments>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listNonConformityAttachments>>,
+          TError,
+          Awaited<ReturnType<typeof listNonConformityAttachments>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListNonConformityAttachments<TData = Awaited<ReturnType<typeof listNonConformityAttachments>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listNonConformityAttachments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListNonConformityAttachments<TData = Awaited<ReturnType<typeof listNonConformityAttachments>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listNonConformityAttachments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListNonConformityAttachmentsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUploadNonConformityAttachmentUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/non-conformities/${id}/attachments`
+}
+
+export const uploadNonConformityAttachment = async (id: string,
+    uploadNonConformityAttachmentBody: UploadNonConformityAttachmentBody, options?: Parameters<typeof apiFetch>[1]): Promise<AttachmentDto> => {
+    const formData = new FormData();
+formData.append(`file`, uploadNonConformityAttachmentBody.file);
+
+  return apiFetch<AttachmentDto>(getUploadNonConformityAttachmentUrl(id),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getUploadNonConformityAttachmentMutationKey = () => ['uploadNonConformityAttachment'] as const;
+
+export const getUploadNonConformityAttachmentMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadNonConformityAttachment>>, TError,UploadNonConformityAttachmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof uploadNonConformityAttachment>>, TError,UploadNonConformityAttachmentMutationVariables, TContext> => {
+
+const mutationKey = getUploadNonConformityAttachmentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof uploadNonConformityAttachment>>, UploadNonConformityAttachmentMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  uploadNonConformityAttachment(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UploadNonConformityAttachmentMutationResult = NonNullable<Awaited<ReturnType<typeof uploadNonConformityAttachment>>>
+    export type UploadNonConformityAttachmentMutationBody = UploadNonConformityAttachmentBody
+    export type UploadNonConformityAttachmentMutationError = unknown
+    export type UploadNonConformityAttachmentMutationVariables = {id: string;data: UploadNonConformityAttachmentBody}
+
+    export const useUploadNonConformityAttachment = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadNonConformityAttachment>>, TError,UploadNonConformityAttachmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof uploadNonConformityAttachment>>,
+        TError,
+        UploadNonConformityAttachmentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUploadNonConformityAttachmentMutationOptions(options), queryClient);
+    }
+
+export const getDownloadNonConformityAttachmentUrl = (id: string,
+    attachmentId: string,) => {
+
+
+
+
+  return `/api/v1/production/non-conformities/${id}/attachments/${attachmentId}`
+}
+
+export const downloadNonConformityAttachment = async (id: string,
+    attachmentId: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDownloadNonConformityAttachmentUrl(id,attachmentId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadNonConformityAttachmentQueryKey = (id: string,
+    attachmentId: string,) => {
+    return [
+    `/api/v1/production/non-conformities/${id}/attachments/${attachmentId}`
+    ] as const;
+    }
+
+
+export const getDownloadNonConformityAttachmentQueryOptions = <TData = Awaited<ReturnType<typeof downloadNonConformityAttachment>>, TError = unknown>(id: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadNonConformityAttachment>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadNonConformityAttachmentQueryKey(id,attachmentId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadNonConformityAttachment>>> = ({ signal }) => downloadNonConformityAttachment(id,attachmentId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && attachmentId !== null && attachmentId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadNonConformityAttachment>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DownloadNonConformityAttachmentQueryResult = NonNullable<Awaited<ReturnType<typeof downloadNonConformityAttachment>>>
+export type DownloadNonConformityAttachmentQueryError = unknown
+
+
+export function useDownloadNonConformityAttachment<TData = Awaited<ReturnType<typeof downloadNonConformityAttachment>>, TError = unknown>(
+ id: string,
+    attachmentId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadNonConformityAttachment>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadNonConformityAttachment>>,
+          TError,
+          Awaited<ReturnType<typeof downloadNonConformityAttachment>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadNonConformityAttachment<TData = Awaited<ReturnType<typeof downloadNonConformityAttachment>>, TError = unknown>(
+ id: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadNonConformityAttachment>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadNonConformityAttachment>>,
+          TError,
+          Awaited<ReturnType<typeof downloadNonConformityAttachment>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadNonConformityAttachment<TData = Awaited<ReturnType<typeof downloadNonConformityAttachment>>, TError = unknown>(
+ id: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadNonConformityAttachment>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useDownloadNonConformityAttachment<TData = Awaited<ReturnType<typeof downloadNonConformityAttachment>>, TError = unknown>(
+ id: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadNonConformityAttachment>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDownloadNonConformityAttachmentQueryOptions(id,attachmentId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getListInstallationsUrl = (params?: ListInstallationsParams,) => {
   const normalizedParams = new URLSearchParams();

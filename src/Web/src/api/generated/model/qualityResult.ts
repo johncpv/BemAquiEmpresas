@@ -5,7 +5,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type QualityResult = typeof QualityResult[keyof typeof QualityResult];
+export type QualityResult = typeof QualityResult[keyof typeof QualityResult] | null;
 
 
 export const QualityResult = {
