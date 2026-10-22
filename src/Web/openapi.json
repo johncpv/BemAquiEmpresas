@@ -15644,6 +15644,252 @@
           }
         }
       },
+      "BoardCard": {
+        "required": [
+          "id",
+          "number",
+          "status",
+          "productName",
+          "quantity",
+          "projectId",
+          "projectNumber",
+          "projectName",
+          "partyId",
+          "partyName",
+          "columnKey",
+          "currentStepId",
+          "currentStepCode",
+          "currentStepName",
+          "currentStepStatus",
+          "currentStepIsQuality",
+          "standardHours",
+          "appliedHours",
+          "line",
+          "codes",
+          "stepNames",
+          "currentStepIndex",
+          "promisedDate",
+          "risk",
+          "delayDays",
+          "readyToComplete",
+          "noRouting",
+          "inExecution",
+          "pausedReason",
+          "operatorInitials",
+          "routingTemplateId",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProductionOrderStatus"
+          },
+          "productName": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": "string"
+          },
+          "projectName": {
+            "type": "string"
+          },
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "columnKey": {
+            "type": "string"
+          },
+          "currentStepId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "currentStepCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "currentStepName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "currentStepStatus": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ProductionStepStatus"
+              }
+            ]
+          },
+          "currentStepIsQuality": {
+            "type": "boolean"
+          },
+          "standardHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "appliedHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "line": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "codes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "stepNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "currentStepIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "promisedDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "risk": {
+            "$ref": "#/components/schemas/DeliveryRisk"
+          },
+          "delayDays": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "readyToComplete": {
+            "type": "boolean"
+          },
+          "noRouting": {
+            "type": "boolean"
+          },
+          "inExecution": {
+            "type": "boolean"
+          },
+          "pausedReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "operatorInitials": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "routingTemplateId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "BoardColumn": {
+        "required": [
+          "key",
+          "kind",
+          "code",
+          "name",
+          "count",
+          "remainingHours"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/BoardColumnKind"
+          },
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "remainingHours": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "BoardColumnKind": {
+        "enum": [
+          "Step",
+          "NoRouting",
+          "ReadyToComplete"
+        ]
+      },
+      "BoardOption": {
+        "required": [
+          "id",
+          "label"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "label": {
+            "type": "string"
+          }
+        }
+      },
       "CalendarDetail": {
         "required": [
           "id",
@@ -16576,6 +16822,25 @@
           }
         },
         "additionalProperties": false
+      },
+      "CompleteStepInput": {
+        "required": [
+          "reason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
       },
       "ConfirmTwoFactorRequest": {
         "required": [
@@ -17526,6 +17791,13 @@
             "format": "uint32"
           }
         }
+      },
+      "DeliveryRisk": {
+        "enum": [
+          "None",
+          "AtRisk",
+          "Late"
+        ]
       },
       "DisableTwoFactorRequest": {
         "required": [
@@ -24595,6 +24867,70 @@
           }
         }
       },
+      "ProductionBoard": {
+        "required": [
+          "columns",
+          "cards",
+          "lateCount",
+          "atRiskCount",
+          "openCount",
+          "projects",
+          "parties",
+          "routings",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "columns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BoardColumn"
+            }
+          },
+          "cards": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BoardCard"
+            }
+          },
+          "lateCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "atRiskCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "openCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "projects": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BoardOption"
+            }
+          },
+          "parties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BoardOption"
+            }
+          },
+          "routings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BoardOption"
+            }
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "ProductionOrderStatus": {
         "enum": [
           "Open",
@@ -29660,342 +29996,6 @@
           }
         },
         "additionalProperties": false
-      },
-      "BoardColumnKind": {
-        "enum": [
-          "Step",
-          "NoRouting",
-          "ReadyToComplete"
-        ]
-      },
-      "DeliveryRisk": {
-        "enum": [
-          "None",
-          "AtRisk",
-          "Late"
-        ]
-      },
-      "BoardColumn": {
-        "required": [
-          "key",
-          "kind",
-          "code",
-          "name",
-          "count",
-          "remainingHours"
-        ],
-        "type": "object",
-        "properties": {
-          "key": {
-            "type": "string"
-          },
-          "kind": {
-            "$ref": "#/components/schemas/BoardColumnKind"
-          },
-          "code": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "name": {
-            "type": "string"
-          },
-          "count": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "remainingHours": {
-            "type": "number",
-            "format": "double"
-          }
-        }
-      },
-      "BoardOption": {
-        "required": [
-          "id",
-          "label"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "label": {
-            "type": "string"
-          }
-        }
-      },
-      "BoardCard": {
-        "required": [
-          "id",
-          "number",
-          "status",
-          "productName",
-          "quantity",
-          "projectId",
-          "projectNumber",
-          "projectName",
-          "partyId",
-          "partyName",
-          "columnKey",
-          "currentStepId",
-          "currentStepCode",
-          "currentStepName",
-          "currentStepStatus",
-          "currentStepIsQuality",
-          "standardHours",
-          "appliedHours",
-          "line",
-          "codes",
-          "stepNames",
-          "currentStepIndex",
-          "promisedDate",
-          "risk",
-          "delayDays",
-          "readyToComplete",
-          "noRouting",
-          "inExecution",
-          "pausedReason",
-          "operatorInitials",
-          "routingTemplateId",
-          "version"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "number": {
-            "type": "string"
-          },
-          "status": {
-            "$ref": "#/components/schemas/ProductionOrderStatus"
-          },
-          "productName": {
-            "type": "string"
-          },
-          "quantity": {
-            "type": "number",
-            "format": "double"
-          },
-          "projectId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "projectNumber": {
-            "type": "string"
-          },
-          "projectName": {
-            "type": "string"
-          },
-          "partyId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "partyName": {
-            "type": "string"
-          },
-          "columnKey": {
-            "type": "string"
-          },
-          "currentStepId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "uuid"
-          },
-          "currentStepCode": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "currentStepName": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "currentStepStatus": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/ProductionStepStatus"
-              }
-            ]
-          },
-          "currentStepIsQuality": {
-            "type": "boolean"
-          },
-          "standardHours": {
-            "type": "number",
-            "format": "double"
-          },
-          "appliedHours": {
-            "type": "number",
-            "format": "double"
-          },
-          "line": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "codes": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "stepNames": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "currentStepIndex": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "promisedDate": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date"
-          },
-          "risk": {
-            "$ref": "#/components/schemas/DeliveryRisk"
-          },
-          "delayDays": {
-            "type": [
-              "null",
-              "integer"
-            ],
-            "format": "int32"
-          },
-          "readyToComplete": {
-            "type": "boolean"
-          },
-          "noRouting": {
-            "type": "boolean"
-          },
-          "inExecution": {
-            "type": "boolean"
-          },
-          "pausedReason": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "operatorInitials": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "routingTemplateId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "uuid"
-          },
-          "version": {
-            "type": "integer",
-            "format": "uint32"
-          }
-        }
-      },
-      "ProductionBoard": {
-        "required": [
-          "columns",
-          "cards",
-          "lateCount",
-          "atRiskCount",
-          "openCount",
-          "projects",
-          "parties",
-          "routings",
-          "lines"
-        ],
-        "type": "object",
-        "properties": {
-          "columns": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/BoardColumn"
-            }
-          },
-          "cards": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/BoardCard"
-            }
-          },
-          "lateCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "atRiskCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "openCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "projects": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/BoardOption"
-            }
-          },
-          "parties": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/BoardOption"
-            }
-          },
-          "routings": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/BoardOption"
-            }
-          },
-          "lines": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "CompleteStepInput": {
-        "required": [
-          "reason",
-          "version"
-        ],
-        "type": "object",
-        "properties": {
-          "reason": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "version": {
-            "type": "integer",
-            "format": "uint32"
-          }
-        }
       }
     }
   },
