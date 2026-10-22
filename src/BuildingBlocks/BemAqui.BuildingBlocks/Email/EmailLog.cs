@@ -20,8 +20,11 @@ public sealed class EmailLog : Entity
 
     public string Subject { get; set; } = string.Empty;
 
-    /// <summary>JSONB: o modelo do template (sem segredo; links de convite já vêm com token de uso único).</summary>
-    public required string Model { get; init; }
+    /// <summary>
+    /// JSONB: o modelo do template. Link com token (convite, redefinição de senha) fica só até o envio terminar:
+    /// <see cref="RedactSecrets"/> apaga esses campos (D19).
+    /// </summary>
+    public required string Model { get; set; }
 
     public EmailStatus Status { get; set; } = EmailStatus.Queued;
 
@@ -52,6 +55,9 @@ public sealed class EmailLog : Entity
     public DateTimeOffset CreatedAt { get; init; }
 
     public DateTimeOffset? SentAt { get; set; }
+
+    /// <summary>Envio terminado (Sent, Failed ou Skipped): o token não precisa mais ficar guardado.</summary>
+    public void RedactSecrets() => Model = EmailSecrets.Redact(Template, Model);
 }
 
 /// <summary>Evento interno: e-mail gravado na fila (outbox) e pronto para virar job no Hangfire.</summary>

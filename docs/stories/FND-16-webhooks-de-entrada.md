@@ -1,0 +1,151 @@
+# FND-16 — Recepção de webhooks: rota pública, validação, idempotência e processamento por fila
+
+| Campo | Valor |
+|---|---|
+| ID | FND-16 |
+| Título | Mecanismo único para receber webhooks de provedores externos (EmissorFiscal, Banco Inter e os futuros): rota pública `/webhooks/{provider}/{tenantKey}` no host da plataforma, com `tenantKey` opaco, validação da origem (assinatura HMAC ou token na URL, guardado só como hash), limite de tamanho e de taxa, registro do evento cru com deduplicação (`shared.webhook_events`) na mesma transação da mensagem do outbox, resposta rápida e processamento assíncrono por `TenantJob`, sem nunca registrar segredo nem corpo em log |
+| Tamanho | M (nova, Fase 5: a revisão pré-Fase 0 §2.1 pediu `webhook_events` e a §3 os cuidados do webhook; nenhuma story anterior criou a recepção) |
+| Status | Ready |
+| Requisitos | R-FIN-7 (baixa automática por webhook) · R-FIS-3 (retorno assíncrono da autorização) · PRD §6 Segurança (OWASP, segredos por tenant) · PRD §6 Observabilidade (alerta de falha em integrações) · R-SEC-5 |
+| Dependências | FND-02 (resolução de tenant e catálogo), FND-07 (outbox, inbox, `TenantJob<T>`), FND-11 (`ISecretProtector`, `Secret`), FND-12 (logs mascarados e alertas), FND-10b (vhost e log `bqe_masked`); PR de reforço da D19 (`KnownProxies` só com o IP do `stack-nginx` e teste de arquitetura da lista versionada de rotas anônimas), porque o rate limit por IP e a lista de rotas anônimas desta story dependem dele |
+| Bloqueia | BNK-01a (aba Integrações em Configurações), BNK-02 (webhook do Inter), FIS-01 (webhook do EmissorFiscal) |
+| Ordem de execução | 1 (Marco 5.1 "Base das integrações") |
+
+## User story
+Como **proprietário da plataforma (PO)**, quero **que todo aviso que chega de um sistema externo passe por uma porta única, que confere a origem, guarda o evento uma vez só e responde rápido**, para **nenhuma nota ou pagamento ser baixado duas vezes, nem por um aviso falso, e nenhum segredo vazar em log**.
+
+## Contexto e referências
+- **ADR 0031** (recepção de webhooks: atomicidade com o outbox, roteamento fora do tenant por host, retenção, `tenantKey` opaco), **ADR 0007, adendo de 21/10/2026** (`SecretKind.WebhookSecret`, `FiscalApiKey`, `WhatsAppCredentials`; Inter por conta), **ADR 0009, adendo de 21/10/2026** (`/webhooks/*` na lista de rotas anônimas), ADR 0003 adendo de 21/10/2026 (`fiscal.approve`, criada na FIS-02a), ADR 0008 adendo de 21/10/2026 (D6: 2FA de novo; `fiscal.approve` reservado ao Proprietário), ADR 0042 (telas de Configurações, segredos só de escrita).
+- **Revisão pré-Fases 4 a 8** (`docs/revisoes/2026-10-21-revisao-pre-fases4-8.md`): D13, D19; tabela 3.2, pontos 1 a 5; §4.1 (FND-16 CA 14 e CA 6), §4.2 (FND-16), §4.3 (transversal e FND-16), §4.4 (padrão 6 e achado "Ver conteúdo" com JSON mascarado).
+- `02-arquitetura` §2.1: webhooks levam o tenant na URL e validam a origem; a correção da §4.1 tira o tenant pelo nome da URL (vira `tenantKey` opaco).
+- CLAUDE.md, controle de acesso: "Sem rota anônima, exceto … webhooks (assinatura validada)".
+- ADR 0005 D2: o host da plataforma (`plataforma.bemaquiapp.com.br`) atende super admin, Hangfire e webhooks; ADR 0018 adendo: se a allowlist de IP do painel for ligada, `/webhooks/` fica fora dela (decidido, CA 1).
+- Revisão pré-Fase 0 §2.1 (`webhook_events` para idempotência) e §3 ("o webhook só dispara uma reconsulta da cobrança via mTLS, nunca a baixa direta; URL com segredo; chave única para idempotência").
+- ADR 0006 (outbox, inbox, `TenantJob<T>`, filas `default`, `email` e `fiscal`), ADR 0015 (log `bqe_masked` grava só `$uri`, sem query string), ADR 0019 §12 (job idempotente com testes de execução dupla e de dois tenants).
+- EmissorFiscal, `docs/integracao/README.md` §6: webhook de saída assinado com HMAC-SHA256 sobre o corpo cru (`X-BemAqui-Signature: sha256=…`), `X-BemAqui-Event` e `X-BemAqui-Delivery-Id`, 2xx em até 15 s, reentrega em falha e desativação depois de 10 falhas seguidas; `http` só em rede interna. EmissorFiscal ADR 003: "validar assinatura, idempotência por evento, aceitar antes de processar, nunca confiar no valor do corpo, registrar o evento cru".
+
+## Critérios de aceite
+**Rota e resolução do tenant**
+1. **Dado** um provedor registrado no `WebhookProviderRegistry` (nesta story, só o provedor de teste `test`; o `inter` entra na BNK-02 e o `emissor-fiscal` na FIS-01), **quando** chega `POST /webhooks/{provider}/{tenantKey}` no host da plataforma (ou no host interno da API, só para o EmissorFiscal pela rede interna), **então** o tenant é resolvido pelo `tenantKey` no catálogo, nunca pelo host: a rota `/webhooks/*` fica **fora do middleware de tenant por host** e **fora da allowlist de IP** do painel da plataforma (teste de integração para os dois); a requisição é aceita só se o tenant estiver `Active` e pelo método POST; a única exceção é o **GET de verificação** para o provedor que o declara no registro (`SupportsVerificationGet`; o `whatsapp` da WPP-01, padrão da Meta: `hub.mode=subscribe`, `hub.verify_token` comparado em tempo constante com o hash guardado, resposta 200 com o `hub.challenge` em `text/plain`, sem gravar evento; token errado ou provedor sem a declaração: 403 com a resposta uniforme do CA 3); qualquer outro método responde 405.
+2. **Dado** um tenant novo ou existente, **quando** o primeiro provedor é configurado, **então** o tenant ganha um `tenantKey` **opaco** (128 bits aleatórios em base64url, guardado em `catalog.tenants.webhook_key`), sem relação com o nome, o slug ou o id do tenant; a URL nunca leva o nome do tenant (correção do `02` §2.1).
+3. **[Segurança]** **Dado** um `tenantKey` inexistente, um tenant suspenso, um provedor desconhecido ou uma validação de origem que falha, **quando** a requisição chega, **então** a resposta é a mesma (401 com corpo vazio, sem dizer qual parte falhou), o evento não é gravado e o contador `webhook_rejected{provider}` sobe; a partir de 20 recusas em 5 minutos do mesmo provedor e tenant, sai o alerta `webhook_rejections` pela FND-12 (uma vez por janela).
+4. **[Segurança]** **Dado** a rota de webhook, **quando** o teste de arquitetura da lista versionada de rotas anônimas (D19) roda, **então** `/webhooks/{provider}/{tenantKey}` é a única rota anônima nova, e todo provedor registrado declara um validador de origem (registro sem validador reprova o teste).
+
+**Validação da origem**
+5. **[Segurança]** **Dado** um provedor com assinatura HMAC (`HmacSha256Validator`, cabeçalho e prefixo configuráveis por provedor), **quando** o corpo chega, **então** a assinatura é calculada sobre os **bytes crus** do corpo, antes de qualquer desserialização, com o segredo do tenant decifrado só nesse momento (`SecretKind.WebhookSecret`, nome fixo `webhook-secret`, adendo à ADR 0007), e comparada em tempo constante (`CryptographicOperations.FixedTimeEquals`); corpo alterado em 1 byte é recusado (CA 3).
+6. **[Segurança]** **Dado** um provedor que não assina o corpo (`UrlTokenValidator`), **quando** o corpo chega, **então** o token vem na **query string** (`?t=`, modo padrão; o log `bqe_masked` grava o caminho e descarta a query, ADR 0015) ou, no modo `PathToken`, no **último segmento do caminho**, só para o provedor que não aceitar query (decisão da BNK-02 no sandbox do Inter), com a máscara desse segmento no log do nginx; o token tem 256 bits aleatórios, **só o hash SHA-256 é guardado** e a comparação é em tempo constante; o processamento **nunca confia no conteúdo**: o handler do provedor reconsulta a fonte antes de qualquer efeito (regra para a BNK-02).
+7. **[Segurança]** **Dado** um membro do Proprietário (`settings.edit`), **quando** gera um segredo ou um token novo de um provedor (rotação), **então** precisa de **2FA de novo** (`RequireRecentTwoFactor`, criado na BNK-01a, D6) — até a BNK-01a, a rotação só existe para o provedor `test`; o anterior continua aceito por **24 horas** de sobreposição e depois é recusado; uso do segredo antigo dentro da janela gera o aviso "O {provedor} ainda usa o endereço antigo do aviso." aos membros do Proprietário (uma vez por dia); a troca é auditada sem o valor (`[ProtectedSecret]`: só "alterado"), notificada aos membros do Proprietário, e o segredo novo aparece **uma única vez** na tela de quem o gerou; sem `settings.edit`, 403 `forbidden`.
+8. **[Segurança]** **Dado** um corpo acima de 64 KB, um `Content-Type` diferente do declarado pelo provedor (padrão `application/json`) ou mais de 60 requisições por minuto do mesmo IP para o mesmo provedor (política nomeada `webhooks` do rate limiter, §4.3), **quando** a requisição chega, **então** responde 413, 415 ou 429 (com `Retry-After`) antes de ler o corpo inteiro e antes de abrir o banco do tenant; o IP vem só do `stack-nginx` confiável (`KnownProxies`, D19).
+
+**Registro, atomicidade e idempotência**
+9. **Dado** uma requisição válida, **quando** é aceita, **então** numa **única transação** do banco do tenant (ADR 0031) grava em `shared.webhook_events` (`provider`, `external_id`, `body_sha256`, `event_type`, `received_at`, `payload` cru em `bytea`, `[PersonalData]`, `status` `Received`) e a mensagem `WebhookReceived` no outbox; o handler do provedor é consumidor dessa mensagem com inbox (o `ProcessWebhookEventJob`, `TenantJob` só com `tenantId` e o id do evento, na fila do provedor); responde **200 em até 2 s** (p95 medido em teste), sem esperar o processamento; falha na transação devolve 503 e o provedor reentrega (nada fica gravado pela metade).
+10. **Dado** a mesma entrega repetida, **quando** chega de novo, **então** o índice único `(provider, external_id)` **e** o índice único `(provider, body_sha256)` impedem o segundo registro; a resposta é 200 e nenhuma mensagem nova vai ao outbox. O `external_id` é o id de entrega do provedor (ex.: `X-BemAqui-Delivery-Id`) ou, sem ele, a chave composta que o provedor declara no registro (o `inter` declara cobrança + situação + data na BNK-02).
+11. **Dado** o `ProcessWebhookEventJob`, **quando** roda, **então** confere que o módulo dono está liberado no tenant (senão `Ignored` "Módulo não liberado"), chama o `IWebhookHandler` do provedor numa transação própria que grava o efeito e marca o evento `Processed` (ou `Ignored`, com o motivo); exceção marca `Failed` com o erro (sem dado pessoal) e segue o backoff do Hangfire; depois de 10 tentativas, o evento fica `DeadLettered`, aparece no painel da plataforma e gera notificação a quem tem a permissão de edição do módulo dono (`fiscal.edit` ou `finance.edit`), com a ação "Reprocessar" (ADR 0019 §5); evento `Received` há mais de 5 min sem mensagem processada é recolocado no outbox pelo varredor de reserva (ADR 0031 §3) e, se continuar parado, gera o alerta `webhook_stalled` (FND-12).
+12. **[Segurança]** **Dado** dois tenants recebendo eventos ao mesmo tempo, ou o job executado duas vezes para o mesmo evento, **quando** roda, **então** o efeito acontece uma vez só (inbox por handler e transição `Received → Processed` pela entidade com `xmin`), um tenant nunca vê o evento do outro e o `tenantKey` ou o token de um tenant nunca vale no outro (testes obrigatórios da ADR 0019 §12, com dois tenants reais no Testcontainers).
+
+**Log, retenção e consulta**
+13. **[Segurança]** **Dado** qualquer webhook, **quando** é recebido, recusado ou processado, **então** o log estruturado traz só provedor, tenant, id do evento, tipo, resultado e duração; **nunca** o corpo, os cabeçalhos de assinatura, o token nem o segredo (teste de canário: valores conhecidos no corpo, no token e no segredo não aparecem no sink do Serilog, no `audit.audit_log`, no `access_log` **nem no `error_log` do nginx**; o `error_log` é conferido no ensaio do vhost com uma requisição que estoura o limite de corpo).
+14. **Dado** eventos `Processed` ou `Ignored` com mais de **90 dias**, **quando** o recorrente global `webhook-events-purge` roda (diário, 03:00 de São Paulo, abrindo cada tenant pelo `tenantId`), **então** o `payload` é apagado e a linha fica (provedor, ids, hash, tipo, datas, situação), para a deduplicação continuar valendo; eventos `Failed` e `DeadLettered` não são expurgados (ADR 0031 e ADR 0018).
+15. **Dado** o módulo dono do provedor liberado, **quando** um usuário com a visualização dele (`fiscal.view` ou `finance.view`) abre **Configurações → Integrações → Eventos recebidos**, **então** vê a lista (provedor, tipo, recebido em, situação, tentativas, erro) **sem o corpo**; "Ver conteúdo" só aparece com a ação de aprovação do módulo dono (`fiscal.approve`, que nasce na FIS-02a e até lá fica só com os membros do Proprietário; ou `finance.approve`), abre o JSON **mascarado** (CPF/CNPJ, nome, e-mail, telefone, endereço e chave Pix trocados por máscara; valores, ids e datas visíveis), com `Cache-Control: no-store`, e a leitura fica registrada como `SensitiveRead` (ADR 0016).
+16. **Dado** o módulo `settings` ou o módulo dono não liberado, **quando** chamo a tela ou a API de "Eventos recebidos", **então** 403 `module_not_released`; sem grupo que habilite, 403 `forbidden` e a aba some do menu; sem a ação, 403; "Reprocessar" exige a edição do módulo dono; IDOR em `/settings/integrations/events/{id}` (evento de outro tenant: 404).
+
+## Regras de negócio e técnicas
+- **Rota:** `POST /webhooks/{provider}/{tenantKey}` (e `GET` só para a verificação do provedor que a declara, CA 1) fora de `/api/v1` (não versionada, porque a URL fica cadastrada no provedor), mapeada no Host, sem autenticação de usuário, sem CSRF, sem cookies, fora do middleware de tenant por host e fora da allowlist de IP da plataforma. Atende no host da plataforma e no host interno da API (`http://bqe-<ambiente>-api:8080`, só para o EmissorFiscal na rede interna; FIS-01).
+- **`WebhookProviderRegistry`** (BuildingBlocks): por provedor, o módulo dono, o validador de origem (`HmacSha256Validator` | `UrlTokenValidator` em modo `Query` ou `PathToken`), o cabeçalho do id de entrega ou a chave composta, o `Content-Type`, a fila do Hangfire e o `IWebhookHandler` (no módulo dono, que lê o segredo pelo próprio Contracts).
+- **`shared.webhook_events`** (banco do tenant): `id` (v7), `provider`, `external_id`, `body_sha256` (`bytea`, 32), `event_type`, `received_at`, `payload` (`bytea`, `[PersonalData]`, anulável depois do expurgo), `status` (`Received`/`Processed`/`Ignored`/`Failed`/`DeadLettered`), `attempts`, `last_error`, `processed_at`, `xmin`; índices únicos `(provider, external_id)` e `(provider, body_sha256)`; índice parcial `(status) WHERE status IN ('Received','Failed')`.
+- **`shared.webhook_tokens`** (banco do tenant): `provider`, `scope_id` (ex.: conta bancária), `token_hash`, `previous_token_hash`, `previous_valid_until`, `created_at`, `created_by`; para o `UrlTokenValidator`.
+- **Segredos:** `SecretKind.WebhookSecret` (`webhook-secret`), no teste golden das cadeias de propósito (adendo à ADR 0007, que traz também `FiscalApiKey` e `WhatsAppCredentials` para as stories donas).
+- **Atomicidade (ADR 0031):** evento e mensagem do outbox no mesmo `SaveChanges`; é o único acesso ao banco antes da resposta.
+- **Nunca confiar no corpo:** o handler valida tipo, versão e ids pelo esquema; dinheiro e situação vindos do corpo só disparam reconsulta (BNK-02) ou são conferidos com o documento local (FIS-01).
+- **Jobs:** todo job recebe `tenantId` e confere o módulo liberado (§4.3 transversal).
+
+## Permissões, eventos e tabelas
+- **Permissões:** rota anônima validada; "Eventos recebidos" com `fiscal.view`/`finance.view` (lista), `fiscal.approve`/`finance.approve` (corpo mascarado), `fiscal.edit`/`finance.edit` (reprocessar); rotação com `settings.edit` + 2FA de novo. Nenhuma ação nova no `ModuleCatalog`.
+- **Eventos:** `WebhookReceived` (mensagem interna do outbox para o consumidor do provedor); o handler de cada provedor publica os seus.
+- **Tabelas:** `shared.webhook_events`, `shared.webhook_tokens` (novas); `catalog.tenants.webhook_key` (nova coluna, única).
+- **Segredos:** `SecretKind.WebhookSecret` (adendo à ADR 0007).
+- **Jobs:** `ProcessWebhookEventJob` (`TenantJob`), recorrente global `webhook-events-purge`; alertas `webhook_rejections` e `webhook_stalled`.
+
+## Telas e estados
+- **Padrões comuns das Fases 4 a 8:** 6 (integração externa assíncrona: situação do evento e sem reenvio enquanto processa).
+- **Configurações → Integrações** (aba nova em `SettingsTabs`, com subnavegação: "Eventos recebidos" nesta story; "Banco Inter" na BNK-01a; "WhatsApp" na WPP-01) e **Eventos recebidos** (`/app/configuracoes/integracoes/eventos`): h1 "Avisos recebidos de sistemas externos."; DataTable com provedor, tipo, recebido em, situação (Recebido info, Processado ok, Ignorado neutro, Falhou alerta, Parado crítico), tentativas e erro; filtros por provedor, situação e período na URL; ações "Reprocessar" (para `DeadLettered`) e "Ver conteúdo" (CA 15, em painel lateral com o JSON mascarado e a faixa "Dados pessoais mascarados").
+- **Verbos:** "Reprocessar" / "Evento reenviado para processamento"; "Gerar novo segredo" / "Segredo gerado".
+- **Estados:** carregando; vazio ("Nenhum aviso recebido ainda. Os avisos aparecem aqui quando a nota fiscal ou o banco responderem."); erro com "Tentar de novo"; sem permissão do corpo, o botão "Ver conteúdo" some.
+- **Propositivo:** evento parado leva direto a "Reprocessar"; filtro "Parados" aberto por padrão quando houver algum.
+- **400 px:** provedor, tipo, recebido em e situação sempre visíveis; tentativas e erro na linha expansível; botões de `ErrorState` e `EmptyState` com 44 px.
+- **Ajuda:** `Ajuda/configuracoes-integracoes-eventos.md` (prevista); `<Dica>` em "Parado" ("O aviso falhou 10 vezes. Corrija a causa e clique em Reprocessar.") e em "Ver conteúdo" ("Os dados pessoais aparecem mascarados.").
+
+## Plano de testes
+- **Unidade:** `HmacSha256Validator` (corpo alterado, cabeçalho ausente, prefixo errado, `FixedTimeEquals`); `UrlTokenValidator` nos modos `Query` e `PathToken`; janela de 24 h da rotação (CA 7); máscara do JSON (CA 15).
+- **Integração (Testcontainers):** rota fora do tenant por host e fora da allowlist, GET de verificação com o provedor de teste declarando `SupportsVerificationGet` (challenge devolvido, token errado 403, provedor sem a declaração 405/403, nada gravado) (CA 1); `tenantKey` opaco (CA 2); tenant inexistente, suspenso, provedor desconhecido e origem errada com a mesma resposta (CA 3); rotação com 2FA de novo e aviso do segredo antigo (CA 7); 413/415/429 antes de abrir o banco (CA 8); evento e outbox na mesma transação, com falha simulada no meio e resposta em até 2 s (CA 9); entrega repetida pelo id e pelo hash (CA 10); módulo não liberado, `DeadLettered`, notificação, "Reprocessar" e alerta de parado (CA 11); execução dupla e **dois tenants** (CA 12); canário no log e na auditoria (CA 13); expurgo mantendo a deduplicação (CA 14); corpo mascarado só com a aprovação e `SensitiveRead` (CA 15); três camadas e IDOR (CA 16).
+- **Arquitetura:** única rota anônima nova na lista versionada; todo provedor com validador; handler só no módulo dono.
+- **Infra (ensaio do vhost):** canário no `access_log` e no `error_log` do nginx (CA 13), máscara do modo `PathToken`.
+- **E2E (Playwright):** abrir "Eventos recebidos" com eventos do provedor de teste, filtrar, ver o conteúdo mascarado e reprocessar um parado; tela a 400 px.
+
+## Fora do escopo
+- Handlers do EmissorFiscal (FIS-01) e do Inter (BNK-02); cadastro do webhook no provedor (cada story).
+- mTLS de cliente no nginx (decidido: não no MVP; a segurança vem do token e da reconsulta por mTLS de saída).
+- Webhook de saída do BemAqui para terceiros: fora do MVP.
+
+## Pontos em aberto
+Decididos pelo PO em 21/10/2026 (revisão pré-Fases 4 a 8, tabela 3.2, pontos 1–5):
+1. Sem mTLS no nginx: token na URL, só o hash guardado, e reconsulta por mTLS antes de qualquer baixa (D13; CA 6).
+2. Host da plataforma; `/webhooks/*` fora da allowlist de IP e fora do middleware de tenant por host; o EmissorFiscal entra pela rede interna (CA 1).
+3. Rotação com 24 h de sobreposição e alerta de uso do segredo antigo (CA 7).
+4. Corpo guardado 90 dias, nunca além do necessário (CA 14).
+5. Adendo à ADR 0007: `WebhookSecret`, `FiscalApiKey`, `WhatsAppCredentials` (CA 5; os dois últimos nas stories donas).
+
+Decisões da revisão aplicadas: D13 (`tenantKey` opaco, hash do token, dedup pelo SHA-256 do corpo, CA 2, 6, 10); D19 (dependência do PR de reforço: `KnownProxies` e lista de rotas anônimas, CA 4, 8); D6 (2FA de novo na rotação, CA 7); §4.1 (`fiscal.approve` da FIS-02a, CA 15; `settings.edit` na rotação, CA 7); §4.2 (evento e outbox na mesma transação, `bytea`, fora do tenant por host, CA 1, 9); §4.3 (dois tenants, canário no `error_log`, política nomeada de rate limit, job com módulo conferido, CA 8, 11–13); §4.4 ("Ver conteúdo" com JSON mascarado, CA 15).
+
+**Pré-condição externa:** nenhuma.
+
+## Definition of Done
+- [ ] Critérios de aceite atendidos.
+- [ ] Testes de unidade, integração (Testcontainers, com dois tenants), arquitetura e E2E passando; canário do nginx conferido no ensaio do vhost.
+- [ ] Migration criada (não destrutiva), testada sobre cópia do banco do tenant `konebras` (ADR 0020); coluna `webhook_key` no catálogo.
+- [ ] Nenhuma permissão fora do `ModuleCatalog`; adendos às ADRs 0007 e 0009 e ADR 0031 aplicados.
+- [ ] Tela com estados de carregando, vazio e erro, inclusive a 400 px.
+- [ ] Ajuda da tela escrita; teste de cobertura passando.
+- [ ] Alertas acionáveis (dead-letter com "Reprocessar", evento parado, uso do segredo antigo).
+- [ ] Auditoria ligada (rotação de segredo, reprocessamento, leitura do corpo).
+- [ ] OpenAPI e cliente Orval regenerados (a rota de webhook fica fora do OpenAPI do front).
+- [ ] `docs/03-modelo-dados.md` e `docs/02-arquitetura.md` §2.1 (sem o tenant pelo nome na URL) atualizados; story marcada no backlog.
+
+## Tarefas técnicas sugeridas
+- [ ] `WebhookProviderRegistry`, `IWebhookOriginValidator` (`HmacSha256Validator`, `UrlTokenValidator` com os dois modos), `IWebhookHandler` (BuildingBlocks).
+- [ ] Endpoint no Host fora do middleware de tenant por host, com limite de corpo, `Content-Type` e política `webhooks` do rate limiter antes de ler o corpo.
+- [ ] `WebhookEvent`, `WebhookToken`, gravação com o outbox na mesma transação, `ProcessWebhookEventJob`, recorrente `webhook-events-purge`, alertas.
+- [ ] `SecretKind.WebhookSecret` com teste golden; `catalog.tenants.webhook_key`; aba Integrações, tela "Eventos recebidos", máscara do JSON e ajuda.
+
+## Quality gates
+- Agentes previstos: @dev, @architect (atomicidade com o outbox, roteamento fora do tenant por host), cybersecurity (rota anônima, assinatura, tempo constante, enumeração de tenant, log e nginx), @qa.
+- Gate: CA 1, 3, 5, 6, 9, 10, 12 e 13 obrigatórios.
+
+## Validação do PO
+Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e da revisão pré-Fases 4 a 8).
+
+| # | Item | Resultado |
+|---|---|---|
+| 1 | Template completo | OK |
+| 2 | User story no formato "Como / quero / para" | OK |
+| 3 | `Requisitos:` com IDs `R-` do PRD e rastreáveis | OK |
+| 4 | CAs numerados, testáveis, em Dado/Quando/Então | OK |
+| 5 | CAs de segurança e de permissão (3 camadas) | OK (ajustado: CA 16 com as três camadas da tela) |
+| 6 | Dependências e sequência coerentes com a ordem de execução | OK (ajustado: depende do PR da D19; bloqueia a BNK-01a) |
+| 7 | Plano de testes cobre os CAs | OK |
+| 8 | Fontes citadas; nada inventado contra os docs | OK (ADRs 0031, 0007, 0009 e 0042) |
+| 9 | Telas com estados, ajuda e comportamento propositivo | OK |
+| 10 | DoD ajustado; pontos em aberto decididos e registrados | OK (ajustado) |
+
+- **Correções feitas na validação (21/10/2026, primeira validação):** `fiscal.approve` só existe a partir da FIS-02a; até lá, o corpo dos eventos do Fiscal abre só para o Proprietário; token do provedor sem assinatura movido do caminho para a query string; resposta única para tenant inexistente e assinatura errada; corpo do evento atrás da ação de aprovação, com `SensitiveRead`.
+- **Correções da revalidação (21/10/2026):** pontos 1 a 5 decididos (CA 1, 6, 7, 14, 5); `tenantKey` opaco (CA 2); rota fora do tenant por host e da allowlist, com teste (CA 1); evento e outbox na mesma transação, payload em `bytea`, dedup também pelo SHA-256 do corpo (CA 9, 10); modo `PathToken` para o provedor que não aceitar query (CA 6); rotação com `settings.edit` e 2FA de novo (CA 7); rate limit por política nomeada e IP pelo `KnownProxies` da D19 (CA 8); job confere o módulo liberado e alerta de evento parado (CA 11); teste com dois tenants (CA 12); canário no `error_log` do nginx (CA 13); "Ver conteúdo" com JSON mascarado (CA 15); três camadas da tela (CA 16); aba Integrações em Configurações; CAs renumerados.
+- **Pré-condições para `Ready`:** nenhuma de decisão de story.
+- **Prontidão:** 10/10. **Veredito:** GO. Status `Ready`.
+
+## Change Log
+| Data | Versão | Descrição | Autor |
+|---|---|---|---|
+| 21/10/2026 | 0.1 | Story detalhada (nova, Fase 5) | River (SM) |
+| 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
+| 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D6, D13, D19, tabela 3.2 pontos 1–5, §4.1 a §4.4); nova ordem (Marco 5.1, ordem 1); CAs renumerados | River (SM) |
+| 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |

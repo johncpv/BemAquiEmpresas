@@ -6,6 +6,8 @@ Fase 2 (decisões do PO de 20/10/2026, revisão pré-Fase 2 e ADR 0019): cada ta
 
 Fase 3 (decisões do PO de 21/10/2026, revisão pré-Fase 3 e ADRs 0023 a 0026): idem; o que ainda não existe no código está marcado com a story da Fase 3 que o cria.
 
+Fases 4 a 8 (decisões do PO de 21/10/2026, revisão pré-Fases 4 a 8 e ADRs 0027 a 0042): idem; cada tabela ou campo aprovado traz a story que o cria.
+
 ## catalog (banco de plataforma)
 - **tenants** (FND-02a): key (identificador curto, único), legal_name, trade_name, document, status (Provisioning/Active/Suspended), plan_id, db_name, connection_secret (cifrado, FND-11), created_at — auditado em `audit.audit_log` do catálogo
 - **tenant_domains** (FND-02a, ADR 0004): tenant_id, host (normalizado, **único**), is_primary, verified_at — o tenant é resolvido pelo host completo; o host da plataforma nunca entra aqui
@@ -21,6 +23,7 @@ Fase 3 (decisões do PO de 21/10/2026, revisão pré-Fase 3 e ADRs 0023 a 0026):
 - **provisioning_logs** (FND-03a): tenant_id, step (Register/CreateRole/CreateDatabase/Migrate/Seed/CreateOwner/SendInvite/Activate), status (Started/Succeeded/Failed), message (nunca com segredo), at
 - **tenants** recebe também `schema_version` (última migration aplicada no banco do tenant) e `migrated_at` (FND-03a)
 - **security.data_protection_keys** (FND-11, ADR 0007): id, friendly_name, xml. É o key ring do Data Protection. Cada chave é gravada cifrada pelo certificado de proteção, que fica fora do banco.
+- **Fases 4 a 8:** `tenants.webhook_key` (único, opaco, 128 bits; FND-16, ADR 0031); `tenants.bank_production_allowed` (padrão falso; BNK-01a, ADR 0034) e `tenants.fiscal_environment_allowed` (padrão `None`; FIS-01); `tenant_domains.kind` (Backoffice/Portal; host próprio do portal, POR-01a, ADR 0040). **Sem índice de quiosque no catálogo** (ADR 0030).
 
 ## identity
 - **users** (FND-04a, ADR 0011): name, email, normalized_email (único), password_hash (PBKDF2 do Identity), security_stamp, status (Invited/Active/Inactive), access_failed_count, lockout_end, last_login_at, totp_enabled, totp_secret_cipher (cifrado, FND-05), totp_last_step (anti-replay); employee_id (CAD-04b: opcional, único, gravado só por `IUserEmployeeLink`)
@@ -44,9 +47,14 @@ Fase 3 (decisões do PO de 21/10/2026, revisão pré-Fase 3 e ADRs 0023 a 0026):
 - **ai_usage_logs** (FND-15): at, user_id, provider, model, input_tokens, output_tokens, duration_ms, outcome (`answered` | `no_citation` | `failed` | `test_ok` | `test_failed`)
 - **recovery_codes** (FND-05): user_id, code_hash (SHA-256), created_at, used_at. 10 por usuário, de uso único
 - **two_factor_challenges** (FND-05, ADR 0011): user_id, token_hash (único), purpose (Verify/Setup), created_at, expires_at (5 min), attempts (máx. 5), completed_at, invalidated_at, created_by_ip
+- **kiosk_tokens**, Fase 4 (PNL-01a, ADR 0030): + token_prefix, allowed_networks, consumed_at (pareamento de uso único), created_by, revoked_by, xmin; scope com linha, visões e rotação. Conferir as linhas existentes antes de trocar a rota da TV para `/tv#token`
+- **kiosk_sessions** (PNL-01a): token_hash, kiosk_id, created_at, last_seen_at, expires_at (30 dias sem uso), absolute_expires_at (180 dias), ip, revoked_at
+- **users**, Fase 6: anonymized_at (LGPD-01b)
 
 ## settings (dono: Identity, ADR 0014 e 0016)
 - **company_profile** (CAD-06): legal_name, trade_name, state_registration, municipal_registration, zip_code, street, number, complement, district, city, city_ibge, state, phone, email; uma linha por tenant; auditada. O logo é o anexo `TenantLogo` mais recente com verificação `Clean` (sem coluna `logo_attachment_id`: o anexo novo fica pendente enquanto o anterior continua valendo). Fonte da verdade de razão social e nome fantasia; o CNPJ vem do catálogo, só leitura
+- **privacy_requests** (LGPD-01a, ADR 0037): subject_type (Party/Contact/Employee/User), subject_id, requested_at, due_on (15 dias corridos), identity_checked_by, identity_checked_at, identity_method, status, export_attachment_id (30 dias, download de uso único), anonymization_* (LGPD-01b)
+- **retention_rules** (LGPD-01b): entity, field, retention (prazo e base legal), review_state ("A confirmar com a contadora", ADR 0042); pré-configurada e editável em Configurações → Privacidade
 
 ## shared
 - **number_sequences** (schema `shared`, FND-07a): doc_type, year (0 = sem ano), last_value; único por (doc_type, year). Prefixo e dígitos vêm de `NumberFormats` (padrão de `04-fluxos` §4) mais as exceções de `number_formats`. "Próximo número" por `INSERT … ON CONFLICT DO UPDATE SET last_value = GREATEST(…)` (ADR 0016). Toda tabela de documento numerado tem índice único em `number`
@@ -59,6 +67,9 @@ Fase 3 (decisões do PO de 21/10/2026, revisão pré-Fase 3 e ADRs 0023 a 0026):
 - **notifications** (schema `shared`, FND-07c): user_id, type, title, link (obrigatório, rota relativa do app), created_at, read_at; dedup_key (FND-09e: texto anulável, único parcial em `(user_id, dedup_key)`, ADR 0019 §12)
 - **idempotency_records** (schema `shared`, FND-09e, adendo da ADR 0019 §3): key (uuid, PK, o `Idempotency-Key`), scope (método e rota), body_hash (SHA-256), status_code e response (texto) preenchidos quando o primeiro envio termina com sucesso, created_at
 - **email_logs** (schema `shared`, FND-08): to (`[PersonalData]`), template, subject, model (jsonb), status (Queued/Sent/Failed/Skipped), attempts, error, related_type, related_id, created_at, sent_at; attachment_ids (uuid[]) e cc (até 3, `[PersonalData]`) (COM-03, ADR 0019 §7)
+- **webhook_events** (FND-16, ADR 0031): provider, tenant, external_id, body_sha256, payload (`bytea`, 90 dias, `[PersonalData]`), status (Received/Processed/Ignored/Failed/DeadLetter), attempts, error, received_at, processed_at; únicos em `(provider, external_id)` e `(provider, body_sha256)`; gravado na mesma transação da mensagem do outbox; expurgo `webhook-events-purge`
+- **webhook_tokens** (FND-16): provider, token_hash, previous_token_hash, rotated_at (24 h de sobreposição), last_used_at
+- **whatsapp_settings**, **whatsapp_templates** e **whatsapp_logs** (WPP-01, ADR 0041): parceiro, número, ambiente, `credentials_secret_id` (`WhatsAppCredentials`), `verify_token_hash` (GET de verificação da Meta), test_numbers; modelos aprovados com variáveis; envios com `to` (`[PersonalData]`), dedup_key, status, provider_message_id, scheduled_for
 
 ## parties
 - **parties** (CAD-01a): kind (PF/PJ), document (opcional; único parcial `WHERE NOT is_deleted AND document IS NOT NULL`; `[PersonalData]`), legal_name, trade_name, state_registration, municipal_registration, tax_regime, email, phone, notes, is_active (CAD-01a); default_payment_term_id (CAD-05b, só o id de `finance.payment_terms`); import_source (MIG-01b, ex.: `dolibarr:llx_societe:42`, gravado só pelo `IPartyImport`)
@@ -68,6 +79,8 @@ Fase 3 (decisões do PO de 21/10/2026, revisão pré-Fase 3 e ADRs 0023 a 0026):
 - **cnpj_lookups** (CAD-01b): document (único), payload (jsonb, sem o quadro societário), looked_up_at. Cache da consulta de CNPJ por tenant, apagado aos 30 dias por um job diário
 - **cnpj_lookups** (CAD-01b): document, payload (jsonb, sem QSA), looked_up_at; cache por tenant, expurgado aos 30 dias
 - As condições de pagamento pertencem ao Finance (`finance.payment_terms`, ADR 0016)
+- **party_contacts**, Fase 8: + whatsapp_opt_in_phone, whatsapp_opt_in_at, whatsapp_opt_in_text_version, whatsapp_opt_in_ip, whatsapp_opt_in_user_agent, whatsapp_opt_out_at, whatsapp_opt_out_reason (WPP-01; trocar o número derruba o opt-in pelo `PartyContactChanged`, POR-01a)
+- **parties**, Fase 6: anonymized_at (LGPD-01b)
 
 ## hr
 - **job_positions** (CAD-04a): name, cbo, salary_min, salary_max, reference_salary (padrão na média da faixa), monthly_hours (semanais × 5, editável), hourly_cost (numeric(18,6), calculado/ajustável), hourly_cost_manual, default_work_center_id (padrão, só o id de `production.work_centers`), work_schedule_id, is_active; nome único entre os não excluídos; soft delete. Faixa e salário de referência são `[PersonalData]` e só saem em `/sensitive`
@@ -82,6 +95,14 @@ Fase 3 (decisões do PO de 21/10/2026, revisão pré-Fase 3 e ADRs 0023 a 0026):
 - **payslips**: payroll_run_id, employee_id, gross, deductions, net, fgts_base, inss_base, irrf_base
 - **payslip_lines**: payslip_id, code, description, reference, type (Earning/Deduction), amount
 - **payroll_tax_tables** (fase 7): type (INSS/IRRF/SalarioFamilia), valid_from, brackets (JSON)
+- **employees**, Fase 6 (CAD-04c2, ADR 0036): bank_holder_name, bank_holder_cpf, bank_changed_at, bank_changed_by, bank_quarantine_until (30 dias), bank_reviewed_at, bank_reviewed_by, bank_mismatch_reason, bank_account_version; uses_transport_voucher; hour_bank_agreement_on (RH-01c); anonymized_at (LGPD-01b)
+- **employee_dependents**, Fase 7: + family_allowance_docs_ok (FLH-02a)
+- **parameters** (schema `hr`, RH-02a, ADR 0016 M6 e ADR 0042): tolerâncias, banco de horas, período de apuração (RH-01c), vencimentos e contas da folha (RH-02c), parâmetros da folha calculada (FLH-02a a FLH-05) e `hr.payroll_mode`/`hr.parallel_months` (FLH-06); cada chave com review_state ("A confirmar com a contadora")
+- **time_entries**, Fase 6 (RH-01a/01b): + status, source (App/Tablet/Manual), device_id, accuracy_m, adjustment_id; **time_clock_geo_consents** (RH-01a), **time_adjustments** (RH-01b, lista única de ausências `AbsenceReason`, que substitui o tipo de afastamento da CAD-04c1), **timesheet_day_reviews** (RH-01c); **timesheets** + totais em minutos, employee_ack_* ("Li e confirmo"), bank_payout_minutes (FLH-02b)
+- **payroll_runs**, Fase 6/7: tipos Monthly/Advance/Vacation/Thirteenth1/Thirteenth2/Termination (RH-02a); payment_date, paid_at, reopen_reason (RH-02c); calculated_at, is_simulation, rectifies_run_id (FLH-02a); **payroll_items** + confirmed_at, confirmed_by, timesheet_source; **payroll_run_charges** (RH-02a/02c: guia por linha, payee_party_id do órgão, vencimento); **payroll_forecasts** (RH-02c, origem `PayrollForecast`)
+- **payslips**, Fase 6/7: + fgts_amount, pdf_attachment_id, notified_at, first_viewed_at, changed_after_notice (RH-02b); calculator_version, tax_table_ids, parameter_ids, inputs_snapshot (jsonb, `[PersonalData]`) (FLH-02a, ADR 0039); **payslip_lines** + calculated, memory (jsonb)
+- **payroll_tax_tables**, Fase 7 (FLH-01, ADR 0039): kind (Inss/Irrf/FamilyAllowance/MinimumWage/Fgts/TransportVoucher/EmployerCharges), valid_from, status (Unconfirmed/Active/Superseded), rectifies_id, content (jsonb com schema_version), rounding, source, seed_package, edited_by, checked_by, checked_at, checked_with_dataset_id
+- **vacation_periods** e **vacation_schedules** (FLH-03); **terminations** (FLH-05); **parallel_runs**, **parallel_differences** (`[PersonalData]`), **payroll_item_mappings**, **payroll_mode_changes** (FLH-06)
 
 ## commercial
 - **quotes** (COM-01a): number, revision, is_current, party_id, contact_id, site_address_id, status (Draft/Sent/Approved/Rejected/Expired/Superseded), valid_until (COM-01b), delivery_days_promised, notes, total_cost, total_price, margin_pct (numeric(9,4), nulo com preço 0), pricing_mode, sent_at, client_request_id; lost_reason, lost_detail, lost_at, lost_by, copied_from_quote_id (COM-01b); parent_quote_id (revisão anterior), expired_at (COM-02); approved_at, approved_by (COM-04a). Índices: único `(number, revision)` e único parcial `(number) WHERE is_current` (ADR 0016 adendo M7). O JSON `payment_term` foi substituído por `quote_milestones` (COM-01b)
@@ -101,6 +122,9 @@ Fase 3 (decisões do PO de 21/10/2026, revisão pré-Fase 3 e ADRs 0023 a 0026):
 - **project_items** (COM-04a): project_id, quote_item_id, sequence, description, quantity, item_id (item do estoque); routing_template_id (PRD-01, anulável, herdado do item do orçamento). O tipo (Equipment/Product/Service) não é coluna: vem do `quote_items.kind` pelo `quote_item_id` no `IProjects.ItemsAsync`, junto com o `IsOnboarding` do contrato. `quote_items.routing_template_id` anulável entra junto, sem tela (ENG-01 ponto 6). O `ProjectItemCreated` leva `Kind`, `IsOnboarding` e `RoutingTemplateId` com valor padrão nulo (ADR 0023 §7): mensagem antiga sem eles não gera OS automática
 - **project_budget** (COM-04a): project_id, cost_type, budgeted_amount (do contrato, distribuído pelo maior resto; ajustado por aditivo, COM-07) — base do orçado × realizado; só sai com `projects.view_cost`
 - **project_costs** (PRD-04, ADR 0025 §2; **tabela**, razão de diferenças, só o Commercial grava): project_id, cost_type, source (Labor/LaborCorrection na PRD-04; StockIssue/StockReturn na EST-03), source_id, seq, amount (diferença, com sinal), occurred_on, recorded_at, is_backfill ("Calculado na implantação", D3), production_order_id; único `(source, source_id, seq)`. Os títulos a pagar continuam lidos pelo `IPayables.ByProjectAsync`. Realizado, comprometido e projetado do Projeto 360 pela ADR 0025 §1 (D2, muda a COM-05)
+- **project_forecasts** (PLN-01b, ADR 0029; fora da auditoria): project_id (único), forecast_date, reason, at_risk, computed_at (o mais novo vence); customer_reason_override (POR-01b). `projects.forecast_date` e `projects.priority` ficam **sem uso**, sem apagar a coluna (contração só com ADR)
+- **project_costs**, Fase 5: source + `InvoiceTax` e `InvoiceTaxReversal` (FIS-03a/03b, ADR 0025 adendo), invoice_amount (DSH-02)
+- **quote_customer_decisions** (POR-02): quote_id, revision, portal_user_id, decision (Accepted/Rejected), typed_name, decided_at, ip, user_agent, pdf_sha256, lost_reason, comment, invalidated_by_revision; só de inclusão (trigger); o envio da COM-03 ganha pdf_sha256 (POR-02)
 
 ## engineering
 - **routing_templates** (ENG-01): name (até 100, único entre os ativos sem diferenciar maiúsculas, conferido no serviço), product_type (texto livre até 60, com sugestões), is_active, seed_key (índice único parcial; o exemplo usa `example-routing` e não volta se o tenant excluir), is_deleted, deleted_at, created_at, xmin (versão, ADR 0019 §2: toda gravação das etapas passa por ela)
@@ -125,6 +149,10 @@ Fase 3 (decisões do PO de 21/10/2026, revisão pré-Fase 3 e ADRs 0023 a 0026):
 - **non_conformities** (PRD-05): number (NC-AAAA-0001), order_id, order_step_id, description, cause, action, responsible_user_id (padrão: quem reprovou), return_to_step_id, status (Open/InAction/Closed), cost (informativo); dono de anexo `NonConformity`. A decisão de qualidade guarda self_inspection ("Autoinspeção") quando não há outro aprovador elegível
 - **shipments** (PRD-06b): number (ROM-AAAA-0001), project_id, party_id, delivery_address (cópia), carrier_party_id, vehicle_plate, driver_name (`[PersonalData]`), volumes, gross_weight, planned_date, status (Draft/Shipped/Cancelled/Reversed), shipped_at, shipped_by, confirmed_by (outra pessoa com `inventory.approve` quando há produto do estoque geral), xmin; **shipment_lines**: shipment_id, item_id, quantity, location_id, séries em shipment_line_serials. A confirmação baixa o estoque de forma síncrona (D4); a NF-e da Fase 5 referencia o romaneio
 - **downtimes**: work_center_id, asset_id, reason, started_at, ended_at
+- **schedule_runs**, **schedule_allocations** e **schedule_step_forecasts** (PLN-01a, ADR 0029; fora da auditoria, um escritor): execuções com gatilho e situação; horas por etapa, centro e dia; início e fim previstos por etapa. O motor **não grava** `planned_start/planned_end` das OS de fabricação; nas OS de instalação continuam as datas digitadas (COM-06)
+- **planning_queue** (PLN-02): project_id (único), position; **planning_queue_state**: versão (xmin), reordered_by, reordered_at; auditada
+- **parameters** (schema `production`, PLN-01b): `planning.installation_days` (5 dias úteis)
+- **downtimes**, Fase 6 (PAT-03b, ADR 0038): + origin (Maintenance), maintenance_order_id, hours_per_day; lidos pelo `IWorkCenterCapacity`
 
 ## inventory
 - **units** (CAD-02a, classe `MeasureUnit`): code (até 6, maiúsculas, único entre os não excluídos; seed UN, KG, M, M2, M3, L, PC), name, is_active, seed_key; soft delete; em uso por item não inativa nem exclui; import_source (MIG-01c)
@@ -183,6 +211,12 @@ Fase 3 (decisões do PO de 21/10/2026, revisão pré-Fase 3 e ADRs 0023 a 0026):
 - **billing_slips** (boletos): receivable_id, provider, our_number, barcode, digitable_line, pix_copy_paste, qr_code, pdf_path, status (Issued/Paid/Cancelled/Expired), paid_at, paid_amount, provider_payload
 - **bank_statement_lines**: bank_account_id, date, amount, description, external_id, source (API/OFX), matched_transaction_id
 - **customer_payment_stats** (view, FIN-06b): party_id, avg_delay_days, pct_overdue, pct_paid_late, last_12m_invoiced — sem os títulos de origem `Opening`. Os títulos `Opening` também ficam fora do DRE por competência (FIN-08) — no MVP calculada na consulta (FIN-06b), sem view no banco
+- **Fases 4 a 8:** **revenue_targets** (DSH-01a): year, month, amount, único em `(year, month)`; **dre_view_marks** (FIN-08): user_id único, viewed_at; **parameters** + `finance.adjusted_default_threshold_pct` (20,00, FIN-07), contas do DRE (FIN-08), parâmetros de cobrança `late_fine_pct` (2,00), `late_interest_month_pct` (1,00), `default_discount_pct` (0), `billing_slip_auto_email`, `daily_email_limit` (200), `overdue_fine_from` (BNK-01b), `ofx_bank_entry_cap` (BNK-03b), `portal_reissue_due_days` e `portal_reissue_limits` (POR-01c); cada chave com review_state, reviewed_by e reviewed_at (BNK-01b, ADR 0042)
+- **payables**, Fase 6 (RH-02c, ADR 0036): + payee_type (Party/Employee) e payee_id com `CHECK`; party_id passa a aceitar nulo (expansão, código N-1 tolerante); `DocumentOrigin` + `PayrollForecast` e `IncomingInvoice` (FIS-04b); payment_method + `EmployeeAccount`; marca de "pago e estornado" na OP (BNK-02, P-20)
+- **bank_integrations** (BNK-01a, ADR 0032; uma por conta): provider, environment, scopes, credentials e certificate (segredos `InterCredentials`/`InterCertificate`), certificate_thumbprint, certificate_expiry, last_test_at, webhook_registered_at, webhook_mode, last_reconcile_at (BNK-02); `bank_accounts.provider`
+- **billing_slips**, Fase 5 (BNK-01b/02): + status Requested e PaidPendingReview, credit_date; `receivables.billing_slip_id`; **billing_reference_sequences** ("seu número" opaco por conta)
+- **bank_statement_lines**, **bank_statement_batches**, **bank_statement_balances**, **bank_ofx_contingencies** (BNK-03a; dono de anexo `BankStatementBatch`); **bank_reconciliations**, **bank_reconciliation_links**, **bank_statement_rules**, **bank_reconciliation_closings** (BNK-03b); `financial_transactions.pending_review` (BNK-02)
+- **collection_rules**, **collection_notices**, **collection_pauses** (FIN-09); **portal_reissue_requests** (POR-01c)
 
 ## fiscal
 - **fiscal_settings**: regime, ie, cnae, certificate_secret, certificate_expiry, environment, nfe_series, next_number
@@ -192,12 +226,20 @@ Fase 3 (decisões do PO de 21/10/2026, revisão pré-Fase 3 e ADRs 0023 a 0026):
 - **incoming_invoices**: access_key, party_id, number, series, issue_date, total, source (XML/PDF/DFe), status (Imported/Checked/Received/Rejected), xml_path, pdf_path, purchase_order_id
 - **incoming_invoice_items**: invoice_id, supplier_code, description, ncm, cfop, quantity, unit, unit_price, item_id (de-para), conversion_factor
 - **fiscal_events**: invoice_id, type (Cancel/CCe), protocol, at, payload
+- **Fase 5 (ADRs 0027 e 0042):** **integration_settings** (FIS-01): base_url, api_key_cipher (`FiscalApiKey`), webhook_secret_cipher, emitter_tenant_id, issuer_document, environment, scopes, last_test_*; **fiscal_settings** (FIS-02a) passa a guardar os parâmetros de Configurações → Fiscal (regime, CRT, série exclusiva, ambiente, CFOP/CST e alíquotas por cenário, tributos no custo do projeto, NFS-e, IBS/CBS, prazo de cancelamento, input_tax_credit da FIS-04b) e do certificado só validade, titular e thumbprint (o A1 fica no cofre do EmissorFiscal; `certificate_secret` e `next_number` saem); **setting_confirmations** (FIS-02a: chave, valor conferido, quem, quando)
+- **tax_rules** (FIS-02b): + versão, ativação por outra pessoa, seed `fiscal-tax-rules` "a confirmar"; **outgoing_invoices** (FIS-03a/FIS-06): + attempt, payload_hash, service, linked_invoice_id, installation_order_id, verification_code; índice único parcial de NFS-e ativa por OS; **outgoing_invoice_receivables**; **fiscal_events** + **cancellation_requests** e **number_gaps** (FIS-03b); **incoming_invoices** + source (Xml/Pdf/Manual), goods_receipt_id, input_tax_credit_applied; **incoming_invoice_readings** (FIS-05); `purchasing.goods_receipts.origin` (FIS-04b)
 
 ## assets
 - **assets**: tag (código do QR), name, type, brand, model, serial_number, acquisition_date, acquisition_value, invoice_ref, location_id, responsible_employee_id, work_center_id, status (Active/Maintenance/Disposed), photo
 - **asset_movements**: asset_id, from/to location, from/to responsible, at, reason
 - **maintenance_plans**: asset_id, description, frequency_type (Days/Hours), frequency_value, last_done_at, next_due_at, checklist (JSON)
 - **maintenance_orders**: number, asset_id, plan_id, type (Preventive/Corrective), status, scheduled_at, done_at, cost, supplier_party_id, notes, payable_id
+- **Fase 6 (ADR 0038):** **sites** (PAT-01a, local do bem); **parameters** (tamanho da etiqueta, contas da manutenção); **maintenance_orders** + contract_value, expected_hours, hours_per_day; **maintenance_order_costs** e **asset_meter_readings** (horímetro digitado) (PAT-03a/03b)
+
+## portal (POR-01a, ADR 0040; Fase 8)
+- **portal_users**: party_id, contact_id, email, normalized_email (único no tenant), password_hash, security_stamp, status (Invited/Active/Inactive), access_failed_count, lockout_end, totp_*, last_login_at, notify_email (POR-01b)
+- **portal_invites**, **portal_refresh_tokens** (family_id, replaced_by, revoked_at; reuso revoga a família), **portal_password_resets**, **portal_recovery_codes**, **portal_confirmation_codes** (POR-02, código por e-mail do aceite)
+- **shared_documents** (POR-01b): documento compartilhado com o cliente (NF-e por padrão)
 
 ## migration (MIG-01a, ADR 0017; módulo `Migrations`, fora do `ModuleCatalog`)
 - **import_runs**: started_at, finished_at, mode (DryRun/Real), entities, status (Running/Succeeded/Failed), summary (jsonb, totais por entidade), operator, snapshot_taken_at, failure, accepted_at, purged_at
