@@ -25,3 +25,10 @@ public sealed class ProtectedSecretAttribute : Attribute;
 /// <summary>Coluna grande gravada uma vez (ex.: snapshot do contrato, COM-04a CA 13): a auditoria registra só que mudou, sem o conteúdo.</summary>
 [AttributeUsage(AttributeTargets.Property)]
 public sealed class AuditOnCreateOnlyAttribute : Attribute;
+
+/// <summary>
+/// Coluna mantida por um motor, fora do diff da auditoria (ADR 0023 §4): o custo médio do item muda a cada movimento e o
+/// movimento de estoque é a trilha. Mudança só nessas colunas não gera linha na auditoria.
+/// </summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class NotAuditedAttribute : Attribute;

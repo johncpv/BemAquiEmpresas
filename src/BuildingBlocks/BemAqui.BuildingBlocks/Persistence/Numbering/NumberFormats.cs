@@ -27,6 +27,7 @@ public static class NumberFormats
         ["OP"] = new("OP", true, 4),
         ["MAN"] = new("MAN", true, 4),
         ["PAT"] = new("PAT", false, 5),
+        ["MOV"] = new("MOV", true, 6),
     };
 
     /// <summary>Nome de cada tipo na tela (CA 9) e na confirmação ("O próximo orçamento sairá como...").</summary>
@@ -35,5 +36,6 @@ public static class NumberFormats
         ["ORC"] = "Orçamento", ["CTR"] = "Contrato", ["PRJ"] = "Projeto", ["OS"] = "Ordem de serviço", ["NC"] = "Não conformidade",
         ["SC"] = "Solicitação de compra", ["COT"] = "Cotação", ["PC"] = "Pedido de compra", ["REC"] = "Recebimento",
         ["CR"] = "Conta a receber", ["CP"] = "Conta a pagar", ["OP"] = "Ordem de pagamento", ["MAN"] = "Manutenção", ["PAT"] = "Patrimônio",
+        ["MOV"] = "Movimento de estoque",
     };
 }
