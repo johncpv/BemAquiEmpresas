@@ -53,6 +53,12 @@ public sealed class SeedPatchSeeder : ITenantSeeder
             ("engineering", "engineering", ["view", "create", "edit", "delete"]),
             ("production_supervision", "engineering", ["view"]),
         ]),
+        // PRD-05 CA 1 (D6, ADR 0003 adendo de 21/10/2026): a Supervisão decidia a qualidade por production.approve e continua
+        // decidindo pela ação nova; valor inicial do seed, o tenant ajusta.
+        new("production-quality",
+        [
+            ("production_supervision", "production", ["approve_quality"]),
+        ]),
     ];
 
     public int Order => 25;

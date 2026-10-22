@@ -64,6 +64,20 @@ public static class ProductionInfrastructure
         services.AddAuditableEntity<LaborEntry>("production");
         services.AddAuditableEntity<StepPause>("production");
 
+        // Qualidade e não conformidade (PRD-05): fila e decisão separadas da supervisão (ADR 0026 §4), NC com anexos.
+        services.TryAddScoped<QualityService>();
+        services.TryAddScoped<NonConformityService>();
+        services.AddAuditableEntity<NonConformity>("production");
+        services.AddAuditableEntity<QualityDecision>("production");
+
+        // Dono NonConformity (ADR 0019 §7 adendo): fotos e evidências png, jpg e pdf até 10 MB; ler com production.view, gravar com
+        // production.edit ou production.approve_quality; encerrada não recebe anexo. O limite de envios por hora é o geral (429).
+        services.AddAttachmentOwner(NonConformityService.AttachmentOwner, new AttachmentOwnerRules(
+            "production", InstallationTypes, 10 * 1024 * 1024,
+            OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<NonConformityService>().ExistsAsync(id, ct),
+            ReadAction: "view", WriteAction: "edit", CanAttach: async (sp, id, ct) => await sp.GetRequiredService<NonConformityService>().CanAttachAsync(id, ct),
+            AlternateWriteAction: "approve_quality"));
+
         // Dono ProductionOrder (ADR 0019 §7 e adendo de 21/10/2026, D16): fabricação com pdf, png, jpg, dwg e dxf até 25 MB;
         // instalação continua com png, jpg e pdf até 10 MB (CA 12).
         services.AddAttachmentOwner(InstallationOrderService.AttachmentOwner, new AttachmentOwnerRules(

@@ -160,7 +160,10 @@ public sealed class LaborWorkflow(
         events.Publish(await costing.CorrectAsync(entry, scope.Order.ProjectId, minutes, ct));
     }
 
-    /// <summary>Etapa concluída (CA 13, 20): <c>Done</c> com o fim real e quem concluiu; a próxima fica pronta.</summary>
+    /// <summary>
+    /// Etapa concluída (CA 13, 20): <c>Done</c> com o fim real e quem concluiu; a próxima fica pronta, inclusive a de qualidade que
+    /// reprovou e espera o retrabalho (<c>Rejected</c>, PRD-05 CA 7: a mesma etapa volta a <c>Ready</c>).
+    /// </summary>
     public void Complete(LaborScope scope, DateTimeOffset now, bool bySupervisor, string? reason, bool selfApproved)
     {
         ArgumentNullException.ThrowIfNull(scope);
@@ -179,7 +182,7 @@ public sealed class LaborWorkflow(
         }
 
         var index = scope.Index;
-        if (index + 1 < scope.Steps.Count && scope.Steps[index + 1].Status == ProductionStepStatus.Waiting)
+        if (index + 1 < scope.Steps.Count && scope.Steps[index + 1].Status is ProductionStepStatus.Waiting or ProductionStepStatus.Rejected)
         {
             scope.Steps[index + 1].Status = ProductionStepStatus.Ready;
         }

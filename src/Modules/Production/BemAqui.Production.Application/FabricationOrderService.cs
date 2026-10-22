@@ -96,8 +96,11 @@ public sealed partial class FabricationOrderService(
 
         var steps = await db.ProductionOrderSteps.AsNoTracking().Where(s => s.OrderId == id).OrderBy(s => s.Sequence).ToListAsync(cancellationToken);
         var stepIds = steps.Select(s => s.Id).ToList();
+        // PRD-05 CA 7: o checklist de cada etapa é o da tentativa dela (as tentativas anteriores da qualidade ficam na aba Qualidade).
+        var attempts = steps.ToDictionary(s => s.Id, s => s.Attempt);
         var checklist = (await db.ProductionOrderChecklist.AsNoTracking().Where(c => c.OrderId == id && c.StepId != null).OrderBy(c => c.Sequence).ToListAsync(cancellationToken))
-            .ToLookup(c => c.StepId!.Value);
+            .Where(c => attempts.GetValueOrDefault(c.StepId!.Value) == c.Attempt).ToLookup(c => c.StepId!.Value);
+        var openNc = await db.NonConformities.AsNoTracking().CountAsync(n => n.OrderId == id && n.Status != NonConformityStatus.Closed, cancellationToken);
         var centers = (await workCenters.FindAsync(steps.Where(s => s.WorkCenterId is not null).Select(s => s.WorkCenterId!.Value).Distinct().ToList(), cancellationToken))
             .ToDictionary(c => c.Id);
         var context = await ContextAsync([order], cancellationToken);
@@ -110,13 +113,14 @@ public sealed partial class FabricationOrderService(
             s.Id, s.Sequence, s.Code ?? string.Empty, s.Name, s.WorkCenterId, s.WorkCenterId is { } c ? centers.GetValueOrDefault(c)?.Name : null,
             s.WorkCenterId is { } l ? centers.GetValueOrDefault(l)?.Line : null, s.StandardHours.GetValueOrDefault(), s.Status ?? ProductionStepStatus.Waiting, s.IsQualityStep,
             s.RequiresApproval, checklist[s.Id].Select(x => x.Text).ToList(), LaborRules.Hours(applied.GetValueOrDefault(s.Id)), s.AwaitingApprovalSince is not null,
-            s.SelfApproved)).ToList();
+            s.SelfApproved, s.SelfInspection)).ToList();
         return new FabricationOrderDetail(
             order.Id, order.Number, order.Status, order.ProjectId, project?.Number ?? string.Empty, project?.Name ?? string.Empty, project?.PartyId ?? Guid.Empty,
             project is null ? string.Empty : context.Parties.GetValueOrDefault(project.PartyId, string.Empty), project?.PromisedDate, order.ProjectItemId.GetValueOrDefault(),
             item?.Description ?? string.Empty, order.ProductId, product?.Code, product?.Name, order.Quantity.GetValueOrDefault(), order.Priority, order.RoutingTemplateId, routing?.Name,
             views, views.Sum(s => s.StandardHours), FabricationRules.CurrentIndex(steps.Select(s => s.Status).ToList()), FabricationRules.HasStarted(order.Status, steps.Select(s => s.Status)),
-            DelayDays(order.Status, project?.PromisedDate), order.CancelReason, order.CancelledAt, order.CreatedAt, order.Version);
+            DelayDays(order.Status, project?.PromisedDate), order.CancelReason, order.CancelledAt, order.CreatedAt, order.Version, order.QualityAttempt, order.SelfInspection,
+            QualityRules.ReadyToComplete(steps.Select(s => s.Status)) && order.Status is not (ProductionOrderStatus.Completed or ProductionOrderStatus.Cancelled), openNc);
     }
 
     /// <summary>Projetos, clientes, itens do projeto e produtos das OS, de uma vez por contrato.</summary>

@@ -33,6 +33,9 @@ public static class HostEvents
             // PRD-01 CA 18: handler próprio da fabricação; CA 16: a EST-02 consome o cancelamento da OS.
             .AddHandler<BemAqui.Commercial.Contracts.ContractCancelled, BemAqui.Production.Application.FabricationContractCancelledConsumer>()
             .AddEvent<BemAqui.Production.Contracts.ProductionOrderCancelled>()
+            // PRD-05: decisões de qualidade no outbox para a DSH-03 e o PNL-01.
+            .AddEvent<BemAqui.Production.Contracts.QualityApproved>()
+            .AddEvent<BemAqui.Production.Contracts.QualityRejected>()
             // PRD-02 CA 8: "Concluir etapa" tira a OS de Aberta; o Commercial passa o projeto a InProgress.
             .AddHandler<BemAqui.Production.Contracts.ProductionStepStarted, BemAqui.Commercial.Application.FabricationConsumers>()
             // PRD-03a e PRD-04: apontamento fechado e corrigido viram custo de mão de obra na razão commercial.project_costs (ADR 0025 §2);

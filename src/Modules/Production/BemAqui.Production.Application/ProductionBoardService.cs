@@ -27,9 +27,12 @@ public sealed class ProductionBoardService(
         var orders = await db.ProductionOrders.AsNoTracking()
             .Where(o => o.Type == ProductionOrderType.Fabrication && OpenStatuses.Contains(o.Status))
             .OrderBy(o => o.Priority).ThenBy(o => o.CreatedAt).ThenBy(o => o.Id)
-            .Select(o => new { o.Id, o.Number, o.Status, o.ProjectId, o.ProjectItemId, o.ProductId, o.Quantity, o.RoutingTemplateId, o.Version })
+            .Select(o => new { o.Id, o.Number, o.Status, o.ProjectId, o.ProjectItemId, o.ProductId, o.Quantity, o.RoutingTemplateId, o.Version, o.SelfInspection })
             .ToListAsync(cancellationToken);
         var ids = orders.Select(o => o.Id).ToList();
+        // PRD-05 CA 11: chip "NC aberta" no cartão (NC não encerrada da OS).
+        var openNc = (await db.NonConformities.AsNoTracking().Where(n => ids.Contains(n.OrderId) && n.Status != NonConformityStatus.Closed).GroupBy(n => n.OrderId)
+            .Select(g => new { g.Key, Count = g.Count() }).ToListAsync(cancellationToken)).ToDictionary(g => g.Key, g => g.Count);
         var steps = (await db.ProductionOrderSteps.AsNoTracking().Where(s => ids.Contains(s.OrderId)).OrderBy(s => s.Sequence)
                 .Select(s => new { s.OrderId, s.Id, s.Sequence, s.Code, s.Name, s.WorkCenterId, s.StandardHours, s.Status, s.IsQualityStep })
                 .ToListAsync(cancellationToken))
@@ -79,7 +82,7 @@ public sealed class ProductionBoardService(
                 lineStep?.WorkCenterId is { } center ? centers.GetValueOrDefault(center)?.Line : null, mine.Select(s => s.Code ?? string.Empty).ToList(),
                 mine.Select(s => s.Name).ToList(), mine.Count == 0 ? -1 : currentIndex < 0 ? mine.Count - 1 : currentIndex, project?.PromisedDate, risk.Risk,
                 risk.DelayDays, mine.Count > 0 && currentIndex < 0, mine.Count == 0, current?.Status == ProductionStepStatus.InProgress && working, pausedReason, initials,
-                o.RoutingTemplateId, o.Version);
+                o.RoutingTemplateId, o.Version, openNc.GetValueOrDefault(o.Id), o.SelfInspection);
         }).ToList();
 
         // Opções dos filtros: das OS abertas, antes de filtrar.

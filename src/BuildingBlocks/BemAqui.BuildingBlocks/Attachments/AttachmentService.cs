@@ -14,7 +14,9 @@ public sealed record AttachmentContent(Stream Content, string ContentType, strin
 /// <summary>
 /// Regras de um dono de anexos: o módulo e as ações de ler e gravar (padrão <c>view</c> e <c>edit</c>), os tipos aceitos, o
 /// tamanho máximo, o maior lado da imagem, a conferência de que o documento dono existe (CAD-06 CA 8, obrigatória nos donos
-/// inscritos, teste de arquitetura) e se o dono aceita anexo no estado atual (<c>CanAttach</c>, ADR 0019 §7).
+/// inscritos, teste de arquitetura) e se o dono aceita anexo no estado atual (<c>CanAttach</c>, ADR 0019 §7). <c>AlternateWriteAction</c>
+/// é uma segunda ação do mesmo módulo que também grava (ex.: a NC aceita <c>production.edit</c> ou <c>production.approve_quality</c>,
+/// ADR 0019 §7 adendo).
 /// </summary>
 public sealed record AttachmentOwnerRules(
     string Module,
@@ -25,7 +27,8 @@ public sealed record AttachmentOwnerRules(
     string ReadAction = StandardActions.View,
     string WriteAction = StandardActions.Edit,
     Func<IServiceProvider, Guid, CancellationToken, Task<Error?>>? CanAttach = null,
-    Func<IServiceProvider, Guid, AttachmentFile, CancellationToken, Task<Error?>>? CheckFile = null);
+    Func<IServiceProvider, Guid, AttachmentFile, CancellationToken, Task<Error?>>? CheckFile = null,
+    string? AlternateWriteAction = null);
 
 /// <summary>Arquivo já aceito pela allowlist, para a regra do dono que depende do documento (ex.: tipo da OS, PRD-01 CA 12).</summary>
 public sealed record AttachmentFile(string ContentType, long Size);
@@ -92,7 +95,8 @@ public sealed partial class AttachmentService(
             return Error.NotFound(Error.Codes.NotFound, "Este tipo de documento não aceita anexos.");
         }
 
-        if (!await permissions.HasPermissionAsync(rules.Module, rules.WriteAction, cancellationToken))
+        if (!await permissions.HasPermissionAsync(rules.Module, rules.WriteAction, cancellationToken)
+            && !(rules.AlternateWriteAction is { } alternate && await permissions.HasPermissionAsync(rules.Module, alternate, cancellationToken)))
         {
             return Forbidden();
         }

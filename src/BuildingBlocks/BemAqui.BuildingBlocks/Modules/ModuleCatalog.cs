@@ -75,7 +75,11 @@ public static partial class ModuleCatalog
             [new("view_cost", "Ver custo e margem", "Ver orçado, custo lançado e margem do projeto (sigilo comercial, D7).")], "aditivos de contrato"),
         new("parties", "Cadastros", ModuleAreas.Commercial, 1, 40, "Clientes, fornecedores e instaladores.", Crud, []),
         new("engineering", "Engenharia", ModuleAreas.Factory, 3, 50, "Estrutura de produto (BOM) e roteiros de fabricação.", CrudApprove, [], "liberar a BOM"),
-        new("production", "Produção", ModuleAreas.Factory, 3, 60, "Ordens de serviço, Kanban, apontamentos e qualidade.", CrudApprove, [], "liberar na qualidade"),
+        // PRD-05 (D6, ADR 0003 adendo de 21/10/2026): a decisão de qualidade sai da production.approve para a ação específica,
+        // usável por PIN (ADR 0026 §2); a production.approve fica com a conclusão da OS e a aprovação de etapa.
+        new("production", "Produção", ModuleAreas.Factory, 3, 60, "Ordens de serviço, Kanban, apontamentos e qualidade.", CrudApprove,
+            [new("approve_quality", "Aprovar ou reprovar a qualidade", "Aprovar ou reprovar a qualidade: decidir a etapa de qualidade da OS, sem concluir a OS nem liberar parcela.")],
+            "concluir a OS e aprovar etapas"),
         new("inventory", "Estoque", ModuleAreas.Factory, 3, 70, "Itens, saldos, reservas e movimentos.", CrudApprove,
             [new("adjust", "Ajustar estoque", "Lançar ajuste de inventário, que muda o saldo sem documento de origem.")], "ajuste de inventário"),
         new("purchasing", "Compras", ModuleAreas.Factory, 3, 80, "Solicitações, cotações, pedidos e recebimento.", CrudApprove, [], "pedido de compra dentro da alçada"),

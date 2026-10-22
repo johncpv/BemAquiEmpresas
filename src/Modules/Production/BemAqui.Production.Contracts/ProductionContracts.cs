@@ -138,6 +138,15 @@ public interface IProductionOrders
 /// </summary>
 public sealed record ProductionStepStarted(Guid ProductionOrderId, Guid ProjectId, Guid StepId, DateTimeOffset StartedAt) : BemAqui.SharedKernel.IIntegrationEvent;
 
+/// <summary>
+/// Qualidade aprovada (PRD-05 CA 3): a etapa de qualidade foi a <c>Done</c> na tentativa dada, com a marca "Autoinspeção" quando
+/// quem aprovou fez parte do trabalho. Consumidores futuros: DSH-03 (indicadores) e PNL-01 (painel).
+/// </summary>
+public sealed record QualityApproved(Guid ProductionOrderId, Guid StepId, int Attempt, bool SelfInspection) : BemAqui.SharedKernel.IIntegrationEvent;
+
+/// <summary>Qualidade reprovada (PRD-05 CA 6): nasceu a NC e a OS voltou à etapa de retorno.</summary>
+public sealed record QualityRejected(Guid NonConformityId, Guid ProductionOrderId, Guid ProjectId, Guid ReturnToStepId) : BemAqui.SharedKernel.IIntegrationEvent;
+
 /// <summary>OS de fabricação cancelada (PRD-01 CA 16): a EST-02 reconcilia as reservas pela fonte (ADR 0023 §6).</summary>
 public sealed record ProductionOrderCancelled(Guid ProductionOrderId, Guid ProjectId) : BemAqui.SharedKernel.IIntegrationEvent;
 
