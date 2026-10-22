@@ -5,9 +5,14 @@ export const FABRICATION_STATUS: Record<string, { label: string; tone: StatusTon
   Open: { label: 'Aberta', tone: 'info' },
   InProgress: { label: 'Em produção', tone: 'warn' },
   Paused: { label: 'Pausada', tone: 'warn' },
-  Quality: { label: 'Em qualidade', tone: 'info' },
+  Quality: { label: 'Aguardando qualidade', tone: 'info' },
   Completed: { label: 'Concluída', tone: 'ok' },
   Cancelled: { label: 'Cancelada', tone: 'neutral' },
+}
+
+/** Rótulos do apontamento (PRD-03a CA 31): como o apontamento fechou. */
+export const CLOSE_KIND: Record<string, string> = {
+  Operator: 'Finalizado pelo operador', Left: 'Saiu da etapa', Supervisor: 'Encerrado pelo supervisor', StepCompleted: 'Encerrado por',
 }
 
 export const STEP_STATUS: Record<string, string> = {

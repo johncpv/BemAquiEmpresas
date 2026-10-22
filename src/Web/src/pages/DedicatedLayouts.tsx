@@ -1,13 +1,22 @@
 import { Outlet } from '@tanstack/react-router'
+import { FloorMessages } from '@/components/shopfloor/kit'
+import { FloorHelp } from '@/help/FloorHelp'
+import { ModuleGate } from './ModuleGate'
 
-/** PWA do operador (/fab): layout próprio, sem dock nem topbar, alvos grandes (esqueleto; Fase 3). */
+/**
+ * App do operador (/fab, PRD-03a): layout próprio, sem dock nem topbar do backoffice, com o kit "chão de fábrica". As três
+ * camadas valem como no backoffice (módulo shopfloor liberado e no grupo); o cabeçalho de cada tela traz o botão "Ajuda".
+ */
 export function ShopfloorLayout() {
   return (
-    <main id="conteudo" className="min-h-dvh bg-background p-4 text-base">
-      <h1 className="text-2xl font-bold">App do operador</h1>
-      <p className="mt-2 text-muted-foreground">A fila de etapas chega na Fase 3.</p>
-      <Outlet />
-    </main>
+    <FloorHelp>
+      <main id="conteudo" className="min-h-dvh bg-background pb-8 text-[18px] text-foreground">
+        <ModuleGate code="shopfloor">
+          <FloorMessages />
+          <Outlet />
+        </ModuleGate>
+      </main>
+    </FloorHelp>
   )
 }
 

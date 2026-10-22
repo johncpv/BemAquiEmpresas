@@ -100,3 +100,15 @@ export async function apiDownload(url: string, fileName: string): Promise<void> 
   link.click()
   URL.revokeObjectURL(href)
 }
+
+/** Arquivo autenticado como endereço local (blob:) para abrir na tela, ex.: desenho da OS no app do operador (PRD-03a CA 6). */
+export async function apiBlobUrl(url: string): Promise<string> {
+  let response = await send(url, {})
+  if (response.status === 401 && (await refreshSession())) response = await send(url, {})
+  if (!response.ok) {
+    const text = await response.text()
+    throw new ApiError(response.status, (text ? JSON.parse(text) : {}) as ConstructorParameters<typeof ApiError>[1])
+  }
+
+  return URL.createObjectURL(await response.blob())
+}

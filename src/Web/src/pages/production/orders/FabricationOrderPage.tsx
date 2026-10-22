@@ -15,6 +15,7 @@ import { OrderDocuments } from '../OrderDocuments'
 import { CancelFabricationDialog, ChangeRoutingDialog } from './FabricationActions'
 import { FabricationHistory } from './FabricationHistory'
 import { FabricationSteps } from './FabricationSteps'
+import { LaborEntriesTab } from './LaborEntriesTab'
 import { canChangeSteps, delayLabel, FABRICATION_DICAS, FABRICATION_STATUS, hours, quantity } from './fabrication'
 
 /**
@@ -51,6 +52,7 @@ export function FabricationOrderPage() {
             <span>{o.productCode ? `${o.productCode} · ` : ''}{o.productName ?? o.itemDescription}</span>
             <span className="tabular-nums">Qtd. {quantity(o.quantity)}</span>
             {noRouting && o.status !== 'Cancelled' ? <span className="inline-flex items-center"><StatusChip tone="warn">Sem roteiro</StatusChip><Dica nome="Sem roteiro" texto={FABRICATION_DICAS.semRoteiro} /></span> : null}
+            {!noRouting && o.status !== 'Cancelled' && o.status !== 'Completed' && o.steps.every((s) => s.status === 'Done') ? <StatusChip tone="ok">Pronta para concluir</StatusChip> : null}
           </span>
         )}
         actions={(
@@ -83,6 +85,7 @@ export function FabricationOrderPage() {
       ]} />
       <UrlTabs label="Seções da OS" fallback="etapas" tabs={[
         { id: 'etapas', label: 'Etapas', content: <FabricationSteps key={o.version} order={o} onSaved={refresh} /> },
+        { id: 'apontamentos', label: 'Apontamentos', content: <LaborEntriesTab order={o} onChanged={refresh} /> },
         { id: 'documentos', label: 'Documentos', content: <OrderDocuments orderId={id} inputId="desenho-os" accept=".pdf,.png,.jpg,.jpeg,.dwg,.dxf"
           empty={{ title: 'Nenhum desenho ou documento anexado.', description: 'Anexe os desenhos técnicos (DWG, DXF ou PDF até 25 MB) e as fotos de referência da OS.' }} /> },
         { id: 'historico', label: 'Histórico de alterações', content: <FabricationHistory id={id} /> },

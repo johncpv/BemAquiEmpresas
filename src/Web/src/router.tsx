@@ -54,6 +54,9 @@ import { InstallationPage } from '@/pages/production/installations/InstallationP
 import { FabricationOrderPage } from '@/pages/production/orders/FabricationOrderPage'
 import { FabricationOrdersPage } from '@/pages/production/orders/FabricationOrdersPage'
 import { KanbanPage } from '@/pages/production/kanban/KanbanPage'
+import { OpenLaborPage } from '@/pages/production/labor/OpenLaborPage'
+import { FabQueuePage } from '@/pages/shopfloor/FabQueuePage'
+import { FabStepPage } from '@/pages/shopfloor/FabStepPage'
 import { InstallationsPage } from '@/pages/production/installations/InstallationsPage'
 import { InstallationTemplatePage } from '@/pages/production/installations/InstallationTemplatePage'
 import { QuotesPage } from '@/pages/quotes/QuotesPage'
@@ -164,6 +167,10 @@ const fabricationOrdersRoute = createRoute({ getParentRoute: () => appRoute, pat
 const fabricationOrderRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/os/$id', component: gated('production', FabricationOrderPage) })
 // Kanban (PRD-02): colunas pelo código da etapa, filtros na URL e tempo real.
 const kanbanRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/kanban', component: gated('production', KanbanPage) })
+// Apontamentos abertos há muito tempo (PRD-03a CA 22).
+const openLaborRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/apontamentos-abertos', component: gated('production', OpenLaborPage) })
+// "Operador" no dock leva ao app do operador (PRD-03a CA 27).
+const operatorRoute = createRoute({ getParentRoute: () => appRoute, path: 'operador', beforeLoad: () => { throw redirect({ to: '/fab' }) } })
 const workCentersRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/centros-de-trabalho', component: gated('production', WorkCentersPage) })
 const installationsRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/instalacoes', component: gated('production', InstallationsPage) })
 const installationRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/instalacoes/$id', component: gated('production', InstallationPage) })
@@ -249,7 +256,17 @@ const tenantsRoute = createRoute({ getParentRoute: () => platformRoute, path: 't
 const tenantRoute = createRoute({ getParentRoute: () => platformRoute, path: 'tenants/$key', component: TenantDetailPage, validateSearch: (s: Record<string, unknown>): { aba?: string } => ({ aba: text(s.aba) }) })
 
 // Superfícies com layout próprio (02-arquitetura §4): /fab operador, /tv painel. /portal reservado.
-const fabRoute = createRoute({ getParentRoute: () => rootRoute, path: '/fab', component: ShopfloorLayout })
+// App do operador (PRD-03a): login normal (o PIN é da PRD-03b), fila em /fab e a etapa em /fab/etapa/$stepId.
+const fabRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/fab',
+  component: ShopfloorLayout,
+  beforeLoad: async ({ location }) => {
+    if (!(await ensureSession())) throw redirect({ to: '/entrar', search: { volta: location.href } })
+  },
+})
+const fabQueueRoute = createRoute({ getParentRoute: () => fabRoute, path: '/', component: FabQueuePage })
+const fabStepRoute = createRoute({ getParentRoute: () => fabRoute, path: 'etapa/$stepId', component: FabStepPage })
 const tvRoute = createRoute({ getParentRoute: () => rootRoute, path: '/tv/$token', component: TvLayout })
 const galleryRoute = createRoute({ getParentRoute: () => rootRoute, path: '/dev/galeria', component: Gallery ?? NotFound })
 
@@ -263,12 +280,12 @@ export const routeTree = rootRoute.addChildren([
   inviteRoute,
   appRoute.addChildren([appIndexRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute,
     aiSettingsRoute, importRunsRoute, importRunRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute,
-    inventoryRootRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, productionRootRoute, fabricationOrdersRoute, fabricationOrderRoute, kanbanRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute,
+    inventoryRootRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, productionRootRoute, fabricationOrdersRoute, fabricationOrderRoute, kanbanRoute, openLaborRoute, operatorRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute,
     financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, payablesRoute, newPayableRoute, payableRoute, recurringRoute, approvalRulesRoute, openingRoute, cashFlowRoute, agingRoute, paymentOrdersRoute, newPaymentOrderRoute, paymentOrderRoute, statementRoute, quotesRoute, quoteFunnelRoute, quoteRoute, quoteCompareRoute, contractsRoute, contractRoute, amendmentRoute, projectsRoute, projectRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
   platformLoginRoute,
   platformPasswordRoute,
   platformRoute.addChildren([platformIndexRoute, tenantsRoute, tenantRoute]),
-  fabRoute,
+  fabRoute.addChildren([fabQueueRoute, fabStepRoute]),
   tvRoute,
   galleryRoute,
 ])

@@ -1,5 +1,5 @@
 import { HubConnectionBuilder, HubConnectionState, LogLevel } from '@microsoft/signalr'
-import { useQueryClient } from '@tanstack/react-query'
+import { type QueryClient, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { getGetProductionBoardQueryKey } from '@/api/generated/bemaqui'
 import { getAccessToken } from '@/api/session'
@@ -42,13 +42,24 @@ export function createBatcher(flush: (ids: string[]) => void, delay = PUSH_DEBOU
  * O token vai pela query do WebSocket (o servidor e o nginx não gravam a query no log, CA 18).
  */
 export function useBoardLive(): LiveStatus {
+  return useProductionLive(refreshBoard)
+}
+
+const refreshBoard = (client: QueryClient) => void client.invalidateQueries({ queryKey: getGetProductionBoardQueryKey() })
+
+/** Mesmo hub para o app do operador (PRD-03a CA 23): recarrega a fila e a etapa abertas pela API. */
+export const refreshShopfloor = (client: QueryClient) =>
+  void client.invalidateQueries({ predicate: (q) => typeof q.queryKey[0] === 'string' && q.queryKey[0].startsWith('/api/v1/shopfloor') })
+
+/** Conexão com o hub da produção; <c>reload</c> decide o que recarregar quando chega o aviso. */
+export function useProductionLive(reload: (client: QueryClient) => void): LiveStatus {
   const client = useQueryClient()
   const [status, setStatus] = useState<LiveStatus>('connecting')
 
   useEffect(() => {
     let disposed = false
     let restart: ReturnType<typeof setTimeout> | null = null
-    const refresh = () => void client.invalidateQueries({ queryKey: getGetProductionBoardQueryKey() })
+    const refresh = () => reload(client)
     const batch = createBatcher(() => refresh())
     const connection = new HubConnectionBuilder()
       .withUrl(HUB_PATH, { accessTokenFactory: () => getAccessToken() ?? '' })
@@ -102,7 +113,7 @@ export function useBoardLive(): LiveStatus {
       if (restart) clearTimeout(restart)
       void connection.stop()
     }
-  }, [client])
+  }, [client, reload])
 
   return status
 }
