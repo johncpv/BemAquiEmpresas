@@ -164,6 +164,7 @@ public sealed partial class FabricationOrderService
             ProjectItemId = item.Id, ProductId = item.ItemId, Quantity = item.Quantity, Priority = 0, CreatedAt = clock.GetUtcNow(), CreatedBy = currentUser.UserId,
         };
         db.ProductionOrders.Add(order);
+        await board.ChangedAsync(order.Id, ct); // sai no commit de quem chama (PRD-02 CA 12)
         if (await SuggestAsync(item.RoutingTemplateId, item.ItemId, ct) is { } routing)
         {
             order.RoutingTemplateId = routing.Id;

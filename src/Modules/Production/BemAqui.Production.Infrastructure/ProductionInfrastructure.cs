@@ -43,6 +43,12 @@ public static class ProductionInfrastructure
         services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.Engineering.Contracts.IRoutingTemplateUsageProvider, FabricationUsage>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IWorkCenterUsageProvider, FabricationUsage>());
 
+        // Kanban (PRD-02): quadro, aviso depois do commit (o Host troca o envio pelo SignalR) e o job "OS atrasada".
+        services.TryAddScoped<ProductionBoardService>();
+        services.TryAddScoped<ProductionBoardNotifier>();
+        services.TryAddSingleton<IProductionBoardPush, NoProductionBoardPush>();
+        services.TryAddScoped<LateOrdersNotifier>();
+
         // Dono ProductionOrder (ADR 0019 §7 e adendo de 21/10/2026, D16): fabricação com pdf, png, jpg, dwg e dxf até 25 MB;
         // instalação continua com png, jpg e pdf até 10 MB (CA 12).
         services.AddAttachmentOwner(InstallationOrderService.AttachmentOwner, new AttachmentOwnerRules(

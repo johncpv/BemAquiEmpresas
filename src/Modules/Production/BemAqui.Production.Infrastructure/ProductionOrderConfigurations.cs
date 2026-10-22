@@ -44,6 +44,7 @@ internal sealed class ProductionOrderStepConfiguration : IEntityTypeConfiguratio
         b.Property(e => e.Code).HasMaxLength(1);
         b.Property(e => e.StandardHours).HasPrecision(18, 4);
         b.Property(e => e.Status).HasConversion<string>().HasMaxLength(16);
+        b.Property(e => e.CompletionReason).HasMaxLength(200);
         b.HasOne<ProductionOrder>().WithMany().HasForeignKey(e => e.OrderId).OnDelete(DeleteBehavior.Restrict);
         b.HasIndex(e => e.OrderId);
         b.HasIndex(e => e.WorkCenterId);

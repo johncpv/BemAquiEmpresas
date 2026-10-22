@@ -17,6 +17,7 @@ internal static partial class ProductionEndpoints
         MapWorkCenters(production.MapGroup("/work-centers"));
         MapCalendars(production.MapGroup("/calendars"));
         MapFabricationOrders(production.MapGroup("/production-orders"));
+        MapBoard(production.MapGroup("/board"));
         MapInstallations(production.MapGroup("/installations"));
         MapInstallationTemplate(production.MapGroup("/installation-template"));
         return api;

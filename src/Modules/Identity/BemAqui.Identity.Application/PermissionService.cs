@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using BemAqui.BuildingBlocks.Identity;
 using BemAqui.BuildingBlocks.Modules;
+using BemAqui.BuildingBlocks.Persistence;
 using BemAqui.BuildingBlocks.Tenancy;
 using BemAqui.Identity.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -14,7 +15,7 @@ namespace BemAqui.Identity.Application;
 /// cada request, então revogar vale no próximo request mesmo com várias instâncias. O filtro de módulos liberados é
 /// aplicado a cada chamada e também compõe a versão que vai para o front.
 /// </summary>
-public sealed class PermissionService(IIdentityDb db, TenantContextHolder tenant, IMemoryCache cache) : IPermissionService
+public sealed class PermissionService(IIdentityDb db, TenantContextHolder tenant, IMemoryCache cache, IAfterCommit afterCommit, IRealtimeConnections connections) : IPermissionService
 {
     private static readonly TimeSpan Ttl = TimeSpan.FromMinutes(10);
 
@@ -50,6 +51,16 @@ public sealed class PermissionService(IIdentityDb db, TenantContextHolder tenant
         {
             var ids = userIds.ToList();
             await db.Users.Where(u => ids.Contains(u.Id)).ExecuteUpdateAsync(s => s.SetProperty(u => u.PermVersion, u => u.PermVersion + 1), cancellationToken);
+
+            // PRD-02 CA 17: as conexões do hub caem depois do commit e a reconexão passa de novo pela autorização.
+            if (tenant.Tenant?.Id is { } tenantId)
+            {
+                await afterCommit.RunAsync(_ =>
+                {
+                    connections.CloseFor(tenantId, ids);
+                    return Task.CompletedTask;
+                }, cancellationToken);
+            }
         }
     }
 

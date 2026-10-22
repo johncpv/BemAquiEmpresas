@@ -149,6 +149,12 @@ public sealed class ProductionOrderStep : Entity, IAuditable
     public DateTimeOffset? CompletedAt { get; set; }
 
     public Guid? CompletedBy { get; set; }
+
+    /// <summary>"Concluir etapa" do supervisor no Kanban (PRD-02 CA 8, D10): concluída sem apontamento, com o motivo.</summary>
+    public bool CompletedBySupervisor { get; set; }
+
+    /// <summary>Motivo da conclusão pelo supervisor (até 200).</summary>
+    public string? CompletionReason { get; set; }
 }
 
 /// <summary>
