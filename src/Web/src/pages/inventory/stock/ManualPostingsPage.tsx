@@ -15,6 +15,7 @@ import { DICAS, KIND, POSTING_STATUS } from './stock'
 
 const STATUS_OPTIONS = (Object.keys(POSTING_STATUS) as ManualPostingStatus[]).map((value) => ({ value, label: POSTING_STATUS[value].label }))
 const KIND_OPTIONS = (Object.keys(KIND) as ManualPostingKind[]).map((value) => ({ value, label: KIND[value] }))
+const SHOW_LABELS: Record<string, string> = { 'aguardando-voce': 'Aguardando você', pendentes: 'Todos os pendentes', todos: 'Todos os lançamentos' }
 
 /**
  * Estoque → Lançamentos pendentes (CA 9, 10): "Aguardando você" é o filtro padrão de quem aprova (padrão 5 da Fase 3); quem não
@@ -44,6 +45,7 @@ export function ManualPostingsPage() {
         <p className="mt-2 inline-flex items-center text-muted-foreground">Entradas e saídas manuais que esperam a decisão de outra pessoa.<Dica nome="Aguardando aprovação" texto={DICAS.aprovacao} /></p>
       </PageHeading>
       <InventoryTabs />
+      <p className="mb-2 text-sm text-muted-foreground">Mostrando: {SHOW_LABELS[show] ?? SHOW_LABELS.todos}</p>
       <DataTable label="Lançamentos manuais" columns={columns} query={query} searchable={false} getRowId={(p) => p.id}
         filters={[
           { key: 'filtro', label: 'Mostrar', options: [{ value: 'aguardando-voce', label: 'Aguardando você' }, { value: 'pendentes', label: 'Todos os pendentes' }, { value: 'todos', label: 'Todos os lançamentos' }] },
