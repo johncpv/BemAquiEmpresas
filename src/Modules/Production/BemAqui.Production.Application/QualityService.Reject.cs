@@ -82,7 +82,11 @@ public sealed partial class QualityService
         }
 
         await SettleAsync(scope, cancellationToken);
-        await db.SaveChangesAsync(cancellationToken);
+        if (!await TrySaveDecisionAsync(cancellationToken))
+        {
+            return NotPending();
+        }
+
         return new QualityDecisionResult(
             order.Id, order.Number, QualityResult.Rejected, nc.Attempt, false, returnStep.Name, returnStep.Id, false, false, nc.Id, nc.Number, returnStep.Name,
             $"NC {nc.Number} aberta");

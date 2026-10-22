@@ -33,6 +33,8 @@ public sealed partial class QualityService(
 
     public static Error StepNotFound() => Error.NotFound("step_not_found", "Etapa de qualidade não encontrada.");
 
+    private const string DecisionIndex = "ix_quality_decisions_step_id_attempt";
+
     public static Error NotPending() => Error.Conflict("quality_not_pending", "Esta etapa de qualidade não está aguardando decisão.");
 
     /// <summary>Fila de qualidade (CA 2): "aguardando" (padrão: as que eu posso decidir) ou "todas"; a mais antiga primeiro.</summary>
@@ -170,12 +172,33 @@ public sealed partial class QualityService(
         }
 
         await SettleAsync(scope, cancellationToken);
-        await db.SaveChangesAsync(cancellationToken);
+        if (!await TrySaveDecisionAsync(cancellationToken))
+        {
+            return NotPending();
+        }
+
         var next = scope.Index + 1 < scope.Steps.Count ? scope.Steps[scope.Index + 1] : null;
         var ready = QualityRules.ReadyToComplete(scope.Steps.Select(s => s.Status));
         return new QualityDecisionResult(
             order.Id, order.Number, QualityResult.Approved, order.QualityAttempt, self, next?.Name, next?.Id, ready, await permissions.HasPermissionAsync("production", "approve", cancellationToken),
             null, null, null, self ? "Qualidade aprovada com a marca Autoinspeção" : "Qualidade aprovada");
+    }
+
+    /// <summary>
+    /// Duas decisões da mesma tentativa ao mesmo tempo: a segunda esbarra no índice único (etapa, tentativa) e vira 409, como o
+    /// conflito de versão. Só uma grava e a NC não duplica.
+    /// </summary>
+    private async Task<bool> TrySaveDecisionAsync(CancellationToken ct)
+    {
+        try
+        {
+            await db.SaveChangesAsync(ct);
+            return true;
+        }
+        catch (DbUpdateException ex) when (BemAqui.BuildingBlocks.Persistence.DbErrors.IsUniqueViolation(ex, DecisionIndex))
+        {
+            return false;
+        }
     }
 
     /// <summary>Envolvidos na tentativa atual (CA 5): donos dos apontamentos das etapas produtivas desde o início da tentativa.</summary>
