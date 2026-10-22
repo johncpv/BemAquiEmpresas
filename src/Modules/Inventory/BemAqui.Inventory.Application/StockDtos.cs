@@ -62,6 +62,8 @@ public sealed record StockLocationPosition(Guid LocationId, string LocationCode,
 
 public sealed record StockLotBalance(Guid LotId, string LotNumber, Guid LocationId, decimal OnHand);
 
+public sealed record StockProjectOption(Guid Id, string Number, string Name);
+
 public sealed record LotDetail(Guid Id, Guid ItemId, string LotNumber, Guid? SupplierPartyId, DateTimeOffset? ReceivedAt, DateOnly? Expiry, decimal OnHand);
 
 /// <summary>Saldo inicial avulso (CA 1): data de corte ≤ hoje, quantidade na unidade de estoque ou convertida, custo &gt; 0.</summary>

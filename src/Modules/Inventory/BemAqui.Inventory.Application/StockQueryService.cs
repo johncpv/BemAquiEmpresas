@@ -208,6 +208,11 @@ public sealed class StockQueryService(IInventoryDb db, IProjects projects, IUser
             defaultLocation, parameters.ManualApprovalAmount, parameters.ManualCostDeviationPct, parameters.OpeningCompletedAt is null);
     }
 
+    /// <summary>Projetos em andamento para a saída avulsa com projeto (ponto 12), sem exigir permissão do Commercial.</summary>
+    public async Task<IReadOnlyList<StockProjectOption>> ProjectsAsync(string? term, CancellationToken cancellationToken = default) =>
+        (await projects.SearchAsync(term, 20, cancellationToken)).Where(p => p.Status is not ("Closed" or "Cancelled"))
+            .Select(p => new StockProjectOption(p.Id, p.Number, p.Name)).ToList();
+
     public async Task<Result<IReadOnlyList<LotDetail>>> LotsAsync(Guid itemId, CancellationToken cancellationToken = default)
     {
         if (!await db.Items.AnyAsync(i => i.Id == itemId, cancellationToken))
