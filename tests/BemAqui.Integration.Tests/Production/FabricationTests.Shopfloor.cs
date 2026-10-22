@@ -100,7 +100,7 @@ public partial class FabricationTests
     private async Task<List<LaborEntry>> EntriesAsync(Guid stepId) =>
         await WithDbAsync(db => db.LaborEntries.AsNoTracking().Where(e => e.OrderStepId == stepId).OrderBy(e => e.StartedAt).ToListAsync());
 
-    private async Task<int> OutboxAsync<T>(Guid id) => await WithDbAsync(db => db.OutboxMessages.CountAsync(m => m.Type == typeof(T).FullName && m.Payload.Contains(id.ToString())));
+    private async Task<int> OutboxAsync<T>(Guid id) => (await WithDbAsync(db => db.OutboxMessages.AsNoTracking().Where(m => m.Type == typeof(T).FullName).ToListAsync())).Count(m => m.Payload.Contains(id.ToString()));
 
     /// <summary>Marca todos os itens do checklist da etapa pelo app (CA 13).</summary>
     private static async Task CheckAllAsync(HttpClient client, Guid stepId)
@@ -381,7 +381,7 @@ public partial class FabricationTests
         (await StepAsync(step)).ActualEnd.Should().NotBeNull();
         (await StepAsync(await StepIdAsync(orders[0], 3))).Status.Should().Be(ProductionStepStatus.Ready);
         (await OrderAsync(orders[0])).Status.Should().Be(ProductionOrderStatus.Quality, "a próxima é de qualidade: Aguardando qualidade até a PRD-05 (CA 16)");
-        var closed = await WithDbAsync(db => db.OutboxMessages.AsNoTracking().Where(m => m.Type == typeof(LaborEntryClosed).FullName && m.Payload.Contains(entry.Id.ToString())).ToListAsync());
+        var closed = (await WithDbAsync(db => db.OutboxMessages.AsNoTracking().Where(m => m.Type == typeof(LaborEntryClosed).FullName).ToListAsync())).Where(m => m.Payload.Contains(entry.Id.ToString())).ToList();
         closed.Should().ContainSingle();
         closed[0].Payload.Should().Contain(employeeId.ToString()).And.NotContain("cost", "o custo é da PRD-04");
 
@@ -416,7 +416,7 @@ public partial class FabricationTests
         entries.Single(e => e.EmployeeId == beto).CloseKind.Should().Be(LaborCloseKind.StepCompleted, "Encerrado por {nome}");
         entries.Count(e => e.CloseKind == LaborCloseKind.Left).Should().Be(1);
         (await StepAsync(step)).Status.Should().Be(ProductionStepStatus.Done);
-        (await WithDbAsync(db => db.OutboxMessages.CountAsync(m => m.Type == typeof(LaborEntryClosed).FullName && m.Payload.Contains(step.ToString())))).Should().Be(3);
+        (await WithDbAsync(db => db.OutboxMessages.AsNoTracking().Where(m => m.Type == typeof(LaborEntryClosed).FullName).ToListAsync())).Count(m => m.Payload.Contains(step.ToString())).Should().Be(3);
 
         var (_, _, solo, _) = await OperatorAsync(mine);
         var next = await StepIdAsync(orders[0], 2);
