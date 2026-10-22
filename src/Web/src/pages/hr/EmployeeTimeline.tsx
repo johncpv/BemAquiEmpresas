@@ -45,7 +45,7 @@ function EmployeeLeaves({ id }: { id: string }) {
         return (
           <li key={l.id} className="rounded-md border border-border bg-card p-3 text-sm">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <b>Afastamento: {LEAVE_TYPE_LABELS[l.type]}</b>
+              <b>Afastamento: {l.type ? LEAVE_TYPE_LABELS[l.type] : ""}</b>
               {current ? <StatusChip tone="warn">Vigente</StatusChip> : future ? <StatusChip tone="info">Previsto</StatusChip> : <StatusChip tone="neutral">Encerrado</StatusChip>}
             </div>
             <p className="mt-1 tabular-nums">

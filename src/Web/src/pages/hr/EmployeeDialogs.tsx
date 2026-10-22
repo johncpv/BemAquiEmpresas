@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { changeEmployeePosition, changeEmployeeSalary, getPositionSalary, registerEmployeeLeave, terminateEmployee, useListPositions } from '@/api/generated/bemaqui'
-import type { EmployeeDetail, EmployeeLeaveType } from '@/api/generated/model'
+import type { EmployeeDetail } from '@/api/generated/model'
 import { Field } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { DateInput, MoneyInput } from '@/components/form/inputs'
@@ -9,7 +9,7 @@ import { DialogMessage } from '@/components/ui/dialog-message'
 import { formatDate, formatMoney } from '@/lib/format'
 import { Dica } from '@/help/Dica'
 import { useCan } from '@/pages/use-can'
-import { EMPLOYEE_DICAS, emptyLeaveDraft, LEAVE_REASON_MAX, LEAVE_TYPE_LABELS, leaveDraftError, returnDate, todayIso } from './employee'
+import { EMPLOYEE_DICAS, emptyLeaveDraft, LEAVE_REASON_MAX, LEAVE_TYPE_LABELS, type LeaveType, leaveDraftError, returnDate, todayIso } from './employee'
 
 const button = 'rounded-md border border-border px-3 py-2 text-sm font-semibold'
 
@@ -118,14 +118,14 @@ export function LeaveDialog({ employee, onDone, onReload, open, onOpenChange }: 
         const error = leaveDraftError(draft)
         if (error) throw new DialogMessage(error)
         onDone(await registerEmployeeLeave(employee.id, {
-          type: draft.type as EmployeeLeaveType, startDate: draft.startDate, expectedEndDate: draft.expectedEndDate, reason: draft.reason.trim() || null, version: employee.version,
+          type: draft.type as LeaveType, startDate: draft.startDate, expectedEndDate: draft.expectedEndDate, reason: draft.reason.trim() || null, version: employee.version,
         }))
       }}>
       <Field label="Tipo" required>
         {(p) => (
-          <select {...p} value={draft.type} onChange={(e) => set({ type: e.target.value as EmployeeLeaveType | '' })} className={inputClass}>
+          <select {...p} value={draft.type} onChange={(e) => set({ type: e.target.value as LeaveType | '' })} className={inputClass}>
             <option value="">Escolha</option>
-            {(Object.keys(LEAVE_TYPE_LABELS) as EmployeeLeaveType[]).map((t) => <option key={t} value={t}>{LEAVE_TYPE_LABELS[t]}</option>)}
+            {(Object.keys(LEAVE_TYPE_LABELS) as LeaveType[]).map((t) => <option key={t} value={t}>{LEAVE_TYPE_LABELS[t]}</option>)}
           </select>
         )}
       </Field>

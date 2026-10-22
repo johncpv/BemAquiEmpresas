@@ -1,4 +1,4 @@
-import type { EmployeeLeaveType, EmployeeStatus } from '@/api/generated/model'
+import type { EmployeeLeaveType as GeneratedLeaveType, EmployeeStatus } from '@/api/generated/model'
 import type { StatusTone } from '@/components/ui/status-chip'
 import { formatMoney } from '@/lib/format'
 
@@ -8,7 +8,10 @@ export const STATUS_LABELS: Record<EmployeeStatus, string> = { Active: 'Ativo', 
 export const STATUS_TONES: Record<EmployeeStatus, StatusTone> = { Active: 'ok', OnLeave: 'warn', Terminated: 'neutral' }
 
 /** Tipos de afastamento (CAD-04c1, decisão do PO de 21/10/2026). Férias ficam para a folha. */
-export const LEAVE_TYPE_LABELS: Record<EmployeeLeaveType, string> = {
+/** O cliente gerado admite nulo no enum; nas telas o tipo é sempre um dos seis. */
+export type LeaveType = NonNullable<GeneratedLeaveType>
+
+export const LEAVE_TYPE_LABELS: Record<LeaveType, string> = {
   Illness: 'Doença',
   WorkAccident: 'Acidente de trabalho',
   Maternity: 'Maternidade',
@@ -19,7 +22,7 @@ export const LEAVE_TYPE_LABELS: Record<EmployeeLeaveType, string> = {
 
 export const LEAVE_REASON_MAX = 200
 
-export interface LeaveDraft { type: EmployeeLeaveType | ''; startDate: string; expectedEndDate: string; reason: string }
+export interface LeaveDraft { type: LeaveType | ''; startDate: string; expectedEndDate: string; reason: string }
 
 /** Diálogo vem com o início em hoje (propositivo, CAD-04c1). */
 export const emptyLeaveDraft = (today: string): LeaveDraft => ({ type: '', startDate: today, expectedEndDate: '', reason: '' })
