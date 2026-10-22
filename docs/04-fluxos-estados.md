@@ -148,13 +148,14 @@ Marcação imutável (controle interno, não registro oficial); ajuste `Pending 
 - Produto acabado entra pelo custo apurado da OS (materiais baixados + mão de obra apontada).
 
 ### 3.2 Custo-hora
-`custo_hora_cargo = (salário_base × (1 + %encargos_estimados)) / horas_mensais_contratuais` — %encargos configurável por tenant (padrão sugerido pela contadora). Snapshot gravado em cada apontamento.
+`custo_hora_cargo = (salário_base × (1 + %encargos_estimados)) / horas_mensais_contratuais` — %encargos configurável por tenant (padrão sugerido pela contadora). Snapshot gravado em cada apontamento **no fechamento** (PRD-04, ponto 73): custo = minutos líquidos (fim − início − Σ de todas as pausas) ÷ 60 × snapshot, arredondado só no total (2 casas, `AwayFromZero`). Mudança do custo-hora depois do fechamento não mexe no apontamento. Correção: mesmo snapshot, horas novas, versão + 1. Cargo sem custo-hora: custo 0 e "Sem custo-hora" (aviso a quem tem `hr.edit`, `labor-no-cost:{cargo}`); "Recalcular apontamentos sem custo" (`production.approve`) usa o custo-hora atual e publica a diferença. Apontamentos fechados antes da PRD-04: recompostos uma vez por job (D3) com o custo-hora do dia, "Calculado na implantação".
 
 ### 3.3 Orçado × realizado por projeto
 - Orçado: `project_budget` por tipo de custo, copiado do contrato (e ajustado por aditivo).
 - Realizado: material (movimentos de saída para OS do projeto + compras diretas ao projeto), mão de obra (apontamentos), instalação (payables do instalador vinculados), frete/outros (payables com projeto), impostos (só pela NF autorizada: `InvoiceTax`/`InvoiceTaxReversal`; até lá, o projetado usa o imposto orçado).
 - Comprometido de material (ADR 0025 adendo, D8): max(0, Σ títulos de compra de item estocável do projeto − Σ baixas líquidas para a OS), fonte única nos títulos do Finance.
-- Margem realizada = receita contratada − realizado; margem projetada = receita − (realizado + custo restante estimado), onde restante = orçado − realizado por tipo, nunca negativo.
+- **Três colunas por natureza (PRD-04, ADR 0025 §1, muda a COM-05):** **Realizado** = títulos a pagar confirmados (fora de `Planned` e `Cancelled`) que não são compra de item estocável + títulos `Opening` (saldo da data de corte) + Σ `project_costs` (horas; baixa de material na EST-03). **Comprometido** = títulos `Planned` (previsto do instalador, previsto do pedido) + compra de item estocável por saldo (acima). **Projetado** = realizado + max(orçado − realizado, comprometido). **Desvio** = projetado − orçado. Movimentos `Production` e `Shipment` nunca entram.
+- Margem realizada = receita contratada − realizado; margem projetada = (receita − Σ projetado) ÷ receita.
 
 ### 3.4 Planejamento (agendamento finito simples)
 1. Ordena projetos pela fila do Production (`production.planning_queue`, reordenada com `production.edit`; padrão: data prometida, depois a assinatura; ADR 0029); dentro do projeto, OS por item; dentro da OS, etapas pela sequência, com a etapa em andamento primeiro e a seguinte no dia útil seguinte.
