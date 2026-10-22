@@ -62,16 +62,20 @@ public sealed class FabricationCompletionConsumers(
         project.FabricatedByOrders = false;
         var info = await ((IProjects)projects).FabricationAsync(project.Id, cancellationToken);
         var released = info?.Milestones.Where(m => m.Released && m.ReceivableId is not null).ToList() ?? [];
-        if (released.Count > 0)
+        // O Financeiro sabe do estorno sempre (decisão do PO de 22/10/2026): com parcela liberada, um aviso por parcela; sem, um aviso
+        // de que não há nada a ajustar no financeiro.
+        var number = (await orders.FindAsync(integrationEvent.ProductionOrderId, cancellationToken))?.Number ?? "OS";
+        var editors = await users.UsersWithPermissionAsync("finance.edit", cancellationToken);
+        foreach (var user in editors)
         {
-            var number = (await orders.FindAsync(integrationEvent.ProductionOrderId, cancellationToken))?.Number ?? "OS";
-            var editors = await users.UsersWithPermissionAsync("finance.edit", cancellationToken);
+            if (released.Count == 0)
+            {
+                notifications.Notify(user, ReversedType, ProjectFabricationRules.ReversedWithoutReleaseNotice(number), "/app/projetos/" + project.Id);
+            }
+
             foreach (var milestone in released)
             {
-                foreach (var user in editors)
-                {
-                    notifications.Notify(user, ReversedType, ProjectFabricationRules.ReversedNotice(number, milestone.Description), "/app/financeiro/receber/" + milestone.ReceivableId);
-                }
+                notifications.Notify(user, ReversedType, ProjectFabricationRules.ReversedNotice(number, milestone.Description), "/app/financeiro/receber/" + milestone.ReceivableId);
             }
         }
 
@@ -94,4 +98,7 @@ public static class ProjectFabricationRules
 
     /// <summary>"Conclusão da {OS} estornada. A parcela {marco} já liberada continua em aberto." (CA 10).</summary>
     public static string ReversedNotice(string order, string milestone) => $"Conclusão da {order} estornada. A parcela {milestone} já liberada continua em aberto.";
+
+    /// <summary>Estorno sem parcela de fabricação liberada: o Financeiro é avisado mesmo assim, sem nada a ajustar.</summary>
+    public static string ReversedWithoutReleaseNotice(string order) => $"Conclusão da {order} estornada. Nenhuma parcela tinha sido liberada: não há nada a ajustar no financeiro.";
 }

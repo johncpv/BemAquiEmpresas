@@ -55,6 +55,8 @@ public class CompletionRulesTests
         ProjectFabricationRules.AllCompleted([]).Should().BeFalse("sem OS, o registro é manual");
         ProjectFabricationRules.ReversedNotice("OS-2026-00041", "Fabricação concluída (40%)")
             .Should().Be("Conclusão da OS-2026-00041 estornada. A parcela Fabricação concluída (40%) já liberada continua em aberto.");
+        ProjectFabricationRules.ReversedWithoutReleaseNotice("OS-2026-00041")
+            .Should().Be("Conclusão da OS-2026-00041 estornada. Nenhuma parcela tinha sido liberada: não há nada a ajustar no financeiro.");
         ProjectService.ByOrdersMessage(2).Should().Be("A fabricação deste projeto é concluída pelas OS (2 abertas).");
         ProjectService.ByOrdersMessage(1).Should().Be("A fabricação deste projeto é concluída pelas OS (1 aberta).");
         ProjectService.ReceivedMessage("Fabricação concluída (40%)").Should().Be("A parcela Fabricação concluída (40%) já foi recebida. Fale com o Financeiro antes de estornar.");
