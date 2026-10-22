@@ -20,7 +20,8 @@ public static class HostEvents
             .AddEvent<BemAqui.Commercial.Contracts.QuoteLost>()
             .AddEvent<BemAqui.Commercial.Contracts.QuoteExpired>()
             .AddEvent<BemAqui.Commercial.Contracts.QuoteApproved>()
-            .AddEvent<BemAqui.Commercial.Contracts.ProjectItemCreated>()
+            // PRD-01 CA 1 a 4: o equipamento vira OS de fabricação.
+            .AddHandler<BemAqui.Commercial.Contracts.ProjectItemCreated, BemAqui.Production.Application.FabricationProjectItemCreatedConsumer>()
             .AddHandler<BemAqui.Commercial.Contracts.ContractSigned, BemAqui.Finance.Application.ContractSignedConsumer>()
             .AddHandler<BemAqui.Commercial.Contracts.ProjectFabricated, BemAqui.Finance.Application.MilestoneReachedConsumer>()
             .AddHandler<BemAqui.Commercial.Contracts.ProjectDelivered, BemAqui.Finance.Application.MilestoneReachedConsumer>()
@@ -29,6 +30,9 @@ public static class HostEvents
             .AddHandler<BemAqui.Commercial.Contracts.ContractCancelled, BemAqui.Finance.Application.ContractCancelledConsumer>()
             .AddHandler<BemAqui.Commercial.Contracts.ContractAmended, BemAqui.Finance.Application.ContractAmendedConsumer>()
             .AddHandler<BemAqui.Commercial.Contracts.ContractCancelled, BemAqui.Production.Application.InstallationContractCancelledConsumer>()
+            // PRD-01 CA 18: handler próprio da fabricação; CA 16: a EST-02 consome o cancelamento da OS.
+            .AddHandler<BemAqui.Commercial.Contracts.ContractCancelled, BemAqui.Production.Application.FabricationContractCancelledConsumer>()
+            .AddEvent<BemAqui.Production.Contracts.ProductionOrderCancelled>()
             // OS de instalação (COM-06).
             .AddHandler<BemAqui.Production.Contracts.InstallationStarted, BemAqui.Commercial.Application.InstallationConsumers>()
             .AddHandler<BemAqui.Production.Contracts.InstallationAccepted, BemAqui.Commercial.Application.InstallationConsumers>()

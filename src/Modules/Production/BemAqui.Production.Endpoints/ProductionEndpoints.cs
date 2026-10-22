@@ -16,6 +16,7 @@ internal static partial class ProductionEndpoints
         var production = api.MapGroup("/production").WithTags("Produção").RequireModule("production");
         MapWorkCenters(production.MapGroup("/work-centers"));
         MapCalendars(production.MapGroup("/calendars"));
+        MapFabricationOrders(production.MapGroup("/production-orders"));
         MapInstallations(production.MapGroup("/installations"));
         MapInstallationTemplate(production.MapGroup("/installation-template"));
         return api;

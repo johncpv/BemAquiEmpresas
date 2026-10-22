@@ -6,5 +6,7 @@
     <ProjectReference Include="..\..\Commercial\BemAqui.Commercial.Contracts\BemAqui.Commercial.Contracts.csproj" />
     <ProjectReference Include="..\..\Finance\BemAqui.Finance.Contracts\BemAqui.Finance.Contracts.csproj" />
     <ProjectReference Include="..\..\Parties\BemAqui.Parties.Contracts\BemAqui.Parties.Contracts.csproj" />
+    <ProjectReference Include="..\..\Engineering\BemAqui.Engineering.Contracts\BemAqui.Engineering.Contracts.csproj" />
+    <ProjectReference Include="..\..\Inventory\BemAqui.Inventory.Contracts\BemAqui.Inventory.Contracts.csproj" />
   </ItemGroup>
 </Project>
