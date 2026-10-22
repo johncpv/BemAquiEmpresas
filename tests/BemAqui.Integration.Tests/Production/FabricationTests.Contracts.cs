@@ -136,7 +136,11 @@ public partial class FabricationTests
         row.GetProperty("currentStepIndex").GetInt32().Should().Be(0);
         row.GetProperty("partyId").GetGuid().Should().Be(party);
         (await JsonAsync(await owner.GetAsync($"{Base}?partyId={party}"))).GetProperty("total").GetInt32().Should().Be(2);
-        (await JsonAsync(await owner.GetAsync($"{Base}?line={Uri.EscapeDataString(line)}"))).GetProperty("items").EnumerateArray().Select(r => r.GetProperty("id").GetGuid()).Should().Equal(withLine.Id);
+        // O item sem produto pode receber o mesmo roteiro pela regra "único ativo" (depende dos roteiros que os outros testes deixaram):
+        // a lista pela linha traz a OS do roteiro da linha e só OS deste projeto.
+        var byLine = (await JsonAsync(await owner.GetAsync($"{Base}?line={Uri.EscapeDataString(line)}"))).GetProperty("items").EnumerateArray().ToList();
+        byLine.Select(r => r.GetProperty("id").GetGuid()).Should().Contain(withLine.Id);
+        byLine.Should().OnlyContain(r => r.GetProperty("projectId").GetGuid() == projectId);
         (await JsonAsync(await owner.GetAsync($"{Base}?projectId={projectId}&situation=cancelada"))).GetProperty("total").GetInt32().Should().Be(0);
 
         // Atraso (padrão 2): prometido no passado e OS não concluída.
