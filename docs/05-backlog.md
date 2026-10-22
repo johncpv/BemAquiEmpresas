@@ -286,7 +286,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-3--engenharia-est
 - Requisitos: R-PRD-2, R-COM-2, PRD §5.14, PRD §6, R-PRP-5, R-SEC-5.
 - CA: colunas pela letra da etapa, sem arraste; "Concluir etapa" no menu do cartão com `production.approve` (D10); "Em risco" numa função só; coluna "Pronta para concluir" (D12); job diário "OS atrasada"; `ProductionHub` com `RequireModule` e permissão no `MapHub`, conexão fechada quando muda a permissão ou o security stamp, token fora dos logs; push depois do commit.
 
-**CAD-04c1 [ ] Funcionários: afastamentos e situação (P)** — 3.1, ordem 4 — quebra da CAD-04c (D9) — [story](stories/CAD-04c1-afastamentos-situacao.md)
+**CAD-04c1 [x] Funcionários: afastamentos e situação (P)** — 3.1, ordem 4 — quebra da CAD-04c (D9) — [story](stories/CAD-04c1-afastamentos-situacao.md)
 - Requisitos: R-RH-3, R-SEC-5, R-SEC-10, PRD §6 (LGPD).
 - CA: afastamentos com seis tipos; situação "Afastado" calculada na leitura ("Desligado" prevalece); `IEmployees.Status` para a PRD-03a; job diário publica início e fim do afastamento com data futura, uma vez; afastamentos na exportação e anonimização (ADR 0018).
 
