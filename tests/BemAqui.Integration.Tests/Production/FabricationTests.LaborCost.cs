@@ -47,7 +47,7 @@ public partial class FabricationTests
 
     private async Task<T> PayloadAsync<T>(Guid entryId, int version) => await WithDbAsync(async db =>
     {
-        var payloads = await db.OutboxMessages.AsNoTracking().Where(m => m.Type == typeof(T).FullName && m.Payload.Contains(entryId.ToString())).Select(m => m.Payload).ToListAsync();
+        var payloads = (await db.OutboxMessages.AsNoTracking().Where(m => m.Type == typeof(T).FullName).Select(m => m.Payload).ToListAsync()).Where(p => p.Contains(entryId.ToString(), StringComparison.Ordinal)).ToList();
         return payloads.Select(p => JsonSerializer.Deserialize<T>(p)!).Single(e => (int)typeof(T).GetProperty("Version")!.GetValue(e)! == version);
     });
 
@@ -323,7 +323,7 @@ public partial class FabricationTests
         (after.Cost, after.CostVersion, after.CostBackfilled, after.HourlyCostSnapshot).Should().Be((60.00m, 1, true, 30m));
         var ledger = await LedgerAsync(entry.Id);
         ledger.Should().ContainSingle().Which.IsBackfill.Should().BeTrue();
-        (await WithDbAsync(db => db.OutboxMessages.AsNoTracking().Where(m => m.Type == typeof(LaborEntryClosed).FullName && m.Payload.Contains(entry.Id.ToString())).Select(m => m.Payload).ToListAsync()))
+        (await WithDbAsync(db => db.OutboxMessages.AsNoTracking().Where(m => m.Type == typeof(LaborEntryClosed).FullName).Select(m => m.Payload).ToListAsync())).Where(p => p.Contains(entry.Id.ToString(), StringComparison.Ordinal))
             .Select(p => JsonSerializer.Deserialize<LaborEntryClosed>(p)!.Origin).Should().ContainSingle(o => o == LaborCostOrigin.Backfill);
         var costs = await OkAsync(await supervisor.GetAsync($"{Base}/{orders[0]}/labor-costs"));
         costs.GetProperty("includesBackfill").GetBoolean().Should().BeTrue("marca Calculado na implantação (CA 13)");
