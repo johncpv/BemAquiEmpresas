@@ -7805,6 +7805,420 @@
         }
       }
     },
+    "/api/v1/production/production-orders": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "ListFabricationOrders",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "partyId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "line",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "situation",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "late",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FabricationOrderPage"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "GenerateFabricationOrder",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FabricationGenerateInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FabricationOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/production-orders/pending-items": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "ListPendingFabricationItems",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PendingFabricationPage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/production-orders/batch": {
+      "post": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "GenerateFabricationOrders",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FabricationBatchInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FabricationBatchResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/production-orders/{id}": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "GetFabricationOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FabricationOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/production-orders/{id}/steps": {
+      "put": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "SaveFabricationOrderSteps",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FabricationStepsInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FabricationOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/production-orders/{id}/routings": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "ListFabricationRoutingOptions",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FabricationRoutingOption"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/production-orders/{id}/routing": {
+      "post": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "ChangeFabricationRouting",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FabricationRoutingInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FabricationOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/production-orders/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "CancelFabricationOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FabricationCancelInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FabricationOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/production-orders/{id}/history": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "GetFabricationOrderHistory",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfRelatedAuditEntryDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/production/installations": {
       "get": {
         "tags": [
@@ -17642,6 +18056,586 @@
           }
         }
       },
+      "FabricationBatchInput": {
+        "required": [
+          "projectItemIds"
+        ],
+        "type": "object",
+        "properties": {
+          "projectItemIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        }
+      },
+      "FabricationBatchResult": {
+        "required": [
+          "created",
+          "numbers",
+          "skipped"
+        ],
+        "type": "object",
+        "properties": {
+          "created": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "numbers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "skipped": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FabricationBatchSkip"
+            }
+          }
+        }
+      },
+      "FabricationBatchSkip": {
+        "required": [
+          "projectItemId",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "projectItemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "FabricationCancelInput": {
+        "required": [
+          "reason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "FabricationGenerateInput": {
+        "required": [
+          "projectItemId"
+        ],
+        "type": "object",
+        "properties": {
+          "projectItemId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "FabricationOrderDetail": {
+        "required": [
+          "id",
+          "number",
+          "status",
+          "projectId",
+          "projectNumber",
+          "projectName",
+          "partyId",
+          "partyName",
+          "promisedDate",
+          "projectItemId",
+          "itemDescription",
+          "productId",
+          "productCode",
+          "productName",
+          "quantity",
+          "priority",
+          "routingTemplateId",
+          "routingTemplateName",
+          "steps",
+          "totalStandardHours",
+          "currentStepIndex",
+          "started",
+          "delayDays",
+          "cancelReason",
+          "cancelledAt",
+          "createdAt",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProductionOrderStatus"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": "string"
+          },
+          "projectName": {
+            "type": "string"
+          },
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "promisedDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "projectItemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemDescription": {
+            "type": "string"
+          },
+          "productId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "productCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "productName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "priority": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "routingTemplateId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "routingTemplateName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FabricationStepView"
+            }
+          },
+          "totalStandardHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "currentStepIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "started": {
+            "type": "boolean"
+          },
+          "delayDays": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "cancelReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cancelledAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "FabricationOrderPage": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FabricationOrderSummary"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "FabricationOrderSummary": {
+        "required": [
+          "id",
+          "number",
+          "status",
+          "projectId",
+          "projectNumber",
+          "projectName",
+          "partyId",
+          "partyName",
+          "projectItemId",
+          "itemDescription",
+          "productName",
+          "quantity",
+          "promisedDate",
+          "delayDays",
+          "codes",
+          "stepNames",
+          "currentStepIndex",
+          "noRouting"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProductionOrderStatus"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": "string"
+          },
+          "projectName": {
+            "type": "string"
+          },
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "projectItemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemDescription": {
+            "type": "string"
+          },
+          "productName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "promisedDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "delayDays": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "codes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "stepNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "currentStepIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "noRouting": {
+            "type": "boolean"
+          }
+        }
+      },
+      "FabricationRoutingInput": {
+        "required": [
+          "routingTemplateId",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "routingTemplateId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "FabricationRoutingOption": {
+        "required": [
+          "id",
+          "name",
+          "productType",
+          "stepCount",
+          "totalStandardHours",
+          "suggested",
+          "hasAllWorkCenters"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "productType": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "stepCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalStandardHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "suggested": {
+            "type": "boolean"
+          },
+          "hasAllWorkCenters": {
+            "type": "boolean"
+          }
+        }
+      },
+      "FabricationStepInput": {
+        "required": [
+          "id",
+          "name",
+          "code",
+          "workCenterId",
+          "standardHours",
+          "isQualityStep",
+          "requiresApproval",
+          "checklist"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "workCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "standardHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "isQualityStep": {
+            "type": "boolean"
+          },
+          "requiresApproval": {
+            "type": "boolean"
+          },
+          "checklist": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "FabricationStepsInput": {
+        "required": [
+          "steps",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FabricationStepInput"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "FabricationStepView": {
+        "required": [
+          "id",
+          "sequence",
+          "code",
+          "name",
+          "workCenterId",
+          "workCenterName",
+          "line",
+          "standardHours",
+          "status",
+          "isQualityStep",
+          "requiresApproval",
+          "checklist"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "workCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "workCenterName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "line": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "standardHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProductionStepStatus"
+          },
+          "isQualityStep": {
+            "type": "boolean"
+          },
+          "requiresApproval": {
+            "type": "boolean"
+          },
+          "checklist": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "FieldDifference": {
         "required": [
           "field",
@@ -22768,6 +23762,105 @@
           }
         }
       },
+      "PendingFabricationItem": {
+        "required": [
+          "projectItemId",
+          "projectId",
+          "projectNumber",
+          "projectName",
+          "partyName",
+          "sequence",
+          "description",
+          "quantity",
+          "kind",
+          "productId",
+          "productName",
+          "promisedDate"
+        ],
+        "type": "object",
+        "properties": {
+          "projectItemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": "string"
+          },
+          "projectName": {
+            "type": "string"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ProjectItemKind"
+          },
+          "productId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "productName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "promisedDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          }
+        }
+      },
+      "PendingFabricationPage": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PendingFabricationItem"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "PixKeyType": {
         "enum": [
           "Cpf",
@@ -23202,7 +24295,19 @@
           "Open",
           "InProgress",
           "Completed",
-          "Cancelled"
+          "Cancelled",
+          "Paused",
+          "Quality"
+        ]
+      },
+      "ProductionStepStatus": {
+        "enum": [
+          "Waiting",
+          "Ready",
+          "InProgress",
+          "Paused",
+          "Done",
+          "Rejected"
         ]
       },
       "ProjectBudgetLine": {
@@ -23501,6 +24606,13 @@
             "format": "double"
           }
         }
+      },
+      "ProjectItemKind": {
+        "enum": [
+          "Equipment",
+          "Product",
+          "Service"
+        ]
       },
       "ProjectItemView": {
         "required": [
