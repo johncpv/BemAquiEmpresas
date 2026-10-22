@@ -3,7 +3,7 @@ import { type ReactNode, useEffect, useMemo, useSyncExternalStore } from 'react'
 import { getGetMyPermissionsQueryKey, refreshSession, saveMyPreferences, useGetMyPreferences } from '@/api/generated/bemaqui'
 import { apiNotificationsSource } from '@/api/notifications-source'
 import { queryClient } from '@/api/query-client'
-import { getAccessToken, onSessionChange, setAccessToken, setPermVersionListener } from '@/api/session'
+import { getAccessToken, isPinSession, onSessionChange, setAccessToken, setPermVersionListener } from '@/api/session'
 import { NotificationsContext } from '@/shell/notifications'
 import { isThemePreference } from '@/theme/theme'
 import { ThemeProvider } from '@/theme/ThemeProvider'
@@ -14,7 +14,9 @@ const emptySource = { list: async () => ({ items: [], unread: 0 }), markRead: as
 function SessionBridge({ children }: { children: ReactNode }) {
   const client = useQueryClient()
   const token = useSyncExternalStore(onSessionChange, getAccessToken, () => null)
-  const preferences = useGetMyPreferences({ query: { enabled: !!token } })
+  // Sessão por PIN (ADR 0026 §4): só a lista permitida; preferências e sino ficam fora (o tema do /fab é do aparelho).
+  const pin = isPinSession(token)
+  const preferences = useGetMyPreferences({ query: { enabled: !!token && !pin } })
   const theme = preferences.data?.theme
 
   useEffect(() => {
@@ -27,9 +29,9 @@ function SessionBridge({ children }: { children: ReactNode }) {
     return () => setPermVersionListener(null)
   }, [client])
 
-  const source = useMemo(() => (token ? apiNotificationsSource : emptySource), [token])
+  const source = useMemo(() => (token && !pin ? apiNotificationsSource : emptySource), [token, pin])
   return (
-    <ThemeProvider profileTheme={isThemePreference(theme) ? theme : null} onPersist={(t) => token && saveMyPreferences({ theme: t }).catch(() => {})}>
+    <ThemeProvider profileTheme={isThemePreference(theme) ? theme : null} onPersist={(t) => token && !pin && saveMyPreferences({ theme: t }).catch(() => {})}>
       <NotificationsContext.Provider value={source}>{children}</NotificationsContext.Provider>
     </ThemeProvider>
   )

@@ -2,7 +2,7 @@ import { Link, Navigate, useNavigate } from '@tanstack/react-router'
 import { useMemo, useState } from 'react'
 import { beginRequiredTwoFactorSetup, confirmRequiredTwoFactorSetup, verifyTwoFactor } from '@/api/generated/bemaqui'
 import { ApiError } from '@/api/http'
-import { setAccessToken } from '@/api/session'
+import { markEphemeralSession, setAccessToken } from '@/api/session'
 import { inputClass } from '@/components/form/form-utils'
 import { InlineError } from '@/components/ui/states'
 import { AuthLayout } from './AuthLayout'
@@ -24,8 +24,9 @@ export function TwoFactorVerifyPage() {
   const submit = async () => {
     setError(undefined)
     try {
-      const result = await verifyTwoFactor({ challenge: pending.challenge, code: recovery ? null : value, recoveryCode: recovery ? value : null })
+      const result = await verifyTwoFactor({ challenge: pending.challenge, code: recovery ? null : value, recoveryCode: recovery ? value : null, ephemeral: pending.ephemeral ?? false })
       setAccessToken(result.accessToken)
+      markEphemeralSession(pending.ephemeral ?? false)
       pendingChallenge.set(null)
       await navigate({ to: pending.volta ?? '/app' })
     } catch (e) {
@@ -73,7 +74,7 @@ export function RequiredTwoFactorSetupPage() {
     () =>
       pending && {
         begin: () => beginRequiredTwoFactorSetup({ challenge: pending.challenge }),
-        confirm: (code: string) => confirmRequiredTwoFactorSetup({ challenge: pending.challenge, code }),
+        confirm: (code: string) => confirmRequiredTwoFactorSetup({ challenge: pending.challenge, code, ephemeral: pending.ephemeral ?? false }),
       },
     [pending],
   )
@@ -84,7 +85,7 @@ export function RequiredTwoFactorSetupPage() {
       <p className="mb-4 text-sm text-muted-foreground">A empresa exige a verificação em duas etapas para a sua conta. Leva um minuto.</p>
       <TwoFactorSetup
         api={api}
-        onActivated={(token) => setAccessToken(token)}
+        onActivated={(token) => { setAccessToken(token); markEphemeralSession(pending.ephemeral ?? false) }}
         onDone={() => {
           pendingChallenge.set(null)
           void navigate({ to: pending.volta ?? '/app' })

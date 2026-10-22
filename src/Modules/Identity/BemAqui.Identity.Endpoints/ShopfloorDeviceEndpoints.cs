@@ -23,12 +23,20 @@ internal static class ShopfloorDeviceEndpoints
         device.MapGet(string.Empty, async (HttpContext http, ICurrentUser user, ShopfloorDeviceService service, CancellationToken ct) =>
                 Results.Ok(await service.ContextAsync(DeviceSecret(http), user.UserId!.Value, IsFullSession(http.User), ct)))
             .RequirePermission("shopfloor.view").AllowPinSession().WithName("GetShopfloorDevice").Produces<ShopfloorDeviceContext>();
-        device.MapPost(string.Empty, async (RegisterDeviceInput input, HttpContext http, ICurrentUser user, ShopfloorDeviceService service, CancellationToken ct) =>
-                (await service.RegisterAsync(input, DeviceSecret(http), user.UserId!.Value, IsFullSession(http.User), ct)).ToHttpResult(registered =>
+        // CA 6: o login completo usado para registrar não deixa sessão persistente no tablet; o refresh que houver é revogado aqui.
+        device.MapPost(string.Empty, async (RegisterDeviceInput input, HttpContext http, ICurrentUser user, ShopfloorDeviceService service, BemAqui.Identity.Application.AuthService auth, CancellationToken ct) =>
+            {
+                var result = await service.RegisterAsync(input, DeviceSecret(http), user.UserId!.Value, IsFullSession(http.User), ct);
+                if (result.IsFailure)
                 {
-                    AuthEndpoints.SetDeviceCookie(http, registered.Secret, registered.ExpiresAt);
-                    return Results.Created("/api/v1/shopfloor/device", registered.Device);
-                }))
+                    return result.Error!.ToProblem();
+                }
+
+                await auth.LogoutAsync(http.Request.Cookies[AuthEndpoints.RefreshCookie], AuthEndpoints.Ip(http), ct);
+                http.Response.Cookies.Delete(AuthEndpoints.RefreshCookie, new CookieOptions { HttpOnly = true, Secure = true, SameSite = SameSiteMode.Strict, Path = "/" });
+                AuthEndpoints.SetDeviceCookie(http, result.Value.Secret, result.Value.ExpiresAt);
+                return Results.Created("/api/v1/shopfloor/device", result.Value.Device);
+            })
             .RequirePermission("production.edit").RequirePermission("shopfloor.create")
             .WithName("RegisterShopfloorDevice").Produces<ShopfloorDeviceContext>(StatusCodes.Status201Created);
         device.MapPut("/theme", async (DeviceThemeInput input, HttpContext http, ICurrentUser user, ShopfloorDeviceService service, CancellationToken ct) =>

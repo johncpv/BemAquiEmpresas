@@ -9,6 +9,7 @@ import { StatusChip } from '@/components/ui/status-chip'
 import { notifySuccess } from '@/components/ui/messages'
 import { z } from '@/lib/zod'
 import { PageHeading } from '@/shell/PageHeading'
+import { MyPinsSection } from './MyPinsSection'
 
 const profileApi = { begin: () => beginTwoFactorSetup(), confirm: (code: string) => confirmTwoFactorSetup({ code }) }
 const disableSchema = z.object({ password: z.string().min(1, 'Informe a senha.'), code: z.string().min(6, 'Informe o código do app.') })
@@ -67,6 +68,7 @@ export function AccountSecurityPage() {
           <button type="button" onClick={() => setActivating(true)} className="block rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Ativar verificação em duas etapas</button>
         </section>
       )}
+      <MyPinsSection />
     </>
   )
 }

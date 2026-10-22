@@ -36,9 +36,21 @@ function refreshSession(): Promise<boolean> {
   return refreshing
 }
 
+/** Mensagem do kit quando a rede cai (PRD-03b CA 3): nada fica guardado para enviar depois (ADR 0026 §6). */
+export const OFFLINE_MESSAGE = 'Sem conexão. Esta ação precisa de rede.'
+export const OFFLINE_CODE = 'offline'
+
+/** No app do operador, sem sessão volta à entrada do tablet (/fab/entrar: lista de nomes e PIN), não ao login do backoffice. */
+export const FAB_ENTRY = '/fab/entrar'
+
 /** Sem sessão: vai para o login (do tenant ou da plataforma) guardando a rota para voltar depois. */
 export function redirectToLogin(login = '/entrar'): void {
   setAccessToken(null)
+  if (login === '/entrar' && window.location.pathname.startsWith('/fab')) {
+    if (!window.location.pathname.startsWith(FAB_ENTRY)) window.location.assign(FAB_ENTRY)
+    return
+  }
+
   const back = window.location.pathname + window.location.search
   if (!window.location.pathname.startsWith(login)) window.location.assign(login + '?volta=' + encodeURIComponent(back))
 }
@@ -49,8 +61,14 @@ async function send(url: string, options: RequestInit): Promise<Response> {
   const headers = new Headers(options.headers)
   const token = getAccessToken()
   if (token) headers.set('Authorization', 'Bearer ' + token)
-  if (options.method && options.method !== 'GET') headers.set('X-CSRF', '1')
-  return fetch(url, { ...options, headers, credentials: 'same-origin' })
+  // As rotas do PIN (GET /auth/pin/users) também exigem o X-CSRF: o navegador não manda Origin num GET da mesma origem.
+  if ((options.method && options.method !== 'GET') || url.startsWith('/api/v1/auth/')) headers.set('X-CSRF', '1')
+  try {
+    return await fetch(url, { ...options, headers, credentials: 'same-origin' })
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') throw error
+    throw new ApiError(0, { code: OFFLINE_CODE, detail: OFFLINE_MESSAGE })
+  }
 }
 
 /**

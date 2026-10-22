@@ -4,6 +4,8 @@ export interface PendingChallenge {
   purpose: 'verify' | 'setup'
   expiresAt: string
   volta?: string
+  /** Login no tablet da fábrica: a sessão do 2FA também não persiste (PRD-03b CA 6). */
+  ephemeral?: boolean
 }
 
 let current: PendingChallenge | null = null
