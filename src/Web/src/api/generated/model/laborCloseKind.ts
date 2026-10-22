@@ -5,7 +5,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type LaborCloseKind = typeof LaborCloseKind[keyof typeof LaborCloseKind];
+export type LaborCloseKind = typeof LaborCloseKind[keyof typeof LaborCloseKind] | null;
 
 
 export const LaborCloseKind = {
