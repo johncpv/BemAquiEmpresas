@@ -50,11 +50,13 @@ export function FabricationSteps({ order: o, onSaved }: { order: FabricationOrde
               <span className="grid h-[26px] min-w-[30px] place-items-center rounded-[5px] bg-rail px-1.5 font-display text-[13px] font-extrabold text-signal">{s.code}</span>
               <b className="font-semibold">{s.name}</b>
             </span>
-            <StatusChip tone={s.status === 'Done' ? 'ok' : s.status === 'Ready' || s.status === 'InProgress' ? 'info' : 'neutral'}>{STEP_STATUS[s.status] ?? s.status}</StatusChip>
+            <StatusChip tone={s.status === 'Done' ? 'ok' : s.status === 'Paused' ? 'warn' : s.status === 'Ready' || s.status === 'InProgress' ? 'info' : 'neutral'}>{s.awaitingApproval ? 'Aguardando aprovação' : STEP_STATUS[s.status] ?? s.status}</StatusChip>
           </div>
           <p className="mt-1 flex flex-wrap items-center gap-x-3 text-muted-foreground">
             <span>{s.workCenterName ?? 'Sem centro'}{s.line ? ` · ${s.line}` : ''}</span>
             <span className="inline-flex items-center tabular-nums">{hours(s.standardHours)} h<Dica nome="Horas padrão" texto={FABRICATION_DICAS.horas} /></span>
+            {s.appliedHours ? <span className="tabular-nums">Apontadas {hours(s.appliedHours)} h</span> : null}
+            {s.selfApproved ? <Tag>Autoaprovado</Tag> : null}
             {s.isQualityStep ? <span className="inline-flex items-center"><Tag>Qualidade</Tag><Dica nome="Etapa de qualidade" texto={FABRICATION_DICAS.qualidade} /></span> : null}
             {s.requiresApproval ? <Tag>Exige aprovação</Tag> : null}
           </p>

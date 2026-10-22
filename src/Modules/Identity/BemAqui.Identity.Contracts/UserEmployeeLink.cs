@@ -13,6 +13,12 @@ public interface IUserEmployeeLink
 {
     Task<LinkableUser?> UserOfEmployeeAsync(Guid employeeId, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Funcionário ligado ao usuário (PRD-03a, ponto 67): o apontamento sempre resolve o funcionário por aqui, nunca pelo corpo
+    /// do pedido. Null se o usuário não existe, não está ativo ou não tem funcionário.
+    /// </summary>
+    Task<Guid?> EmployeeOfUserAsync(Guid userId, CancellationToken cancellationToken = default);
+
     /// <summary>Usuários ativos ainda sem funcionário.</summary>
     Task<IReadOnlyList<LinkableUser>> LinkableAsync(CancellationToken cancellationToken = default);
 

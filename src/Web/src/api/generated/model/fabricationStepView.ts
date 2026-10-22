@@ -22,4 +22,7 @@ export interface FabricationStepView {
   isQualityStep: boolean;
   requiresApproval: boolean;
   checklist: string[];
+  appliedHours?: number;
+  awaitingApproval?: boolean;
+  selfApproved?: boolean;
 }

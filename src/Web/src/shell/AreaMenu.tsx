@@ -24,8 +24,7 @@ export function AreaMenu({ area, onNavigate }: { area: NavArea; onNavigate: () =
           {area.modules.map((m) => (
             <li key={m.code}>
               <Link
-                to="/app/$module"
-                params={{ module: m.slug }}
+                to={m.path as never}
                 onClick={onNavigate}
                 aria-label={m.locked ? `${m.name}, não liberado` : m.count ? `${m.name}, ${m.count} pendentes` : undefined}
                 className="flex items-center gap-3 rounded-md px-2 py-2 text-sm font-medium text-foreground hover:bg-muted focus-visible:bg-muted"

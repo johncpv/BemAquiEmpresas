@@ -49,6 +49,14 @@ public static class ProductionInfrastructure
         services.TryAddSingleton<IProductionBoardPush, NoProductionBoardPush>();
         services.TryAddScoped<LateOrdersNotifier>();
 
+        // App do operador e apontamento (PRD-03a): fila, comandos, supervisor; o bloqueio por BOM liga na ENG-02 (IBomGate).
+        services.TryAddScoped<LaborWorkflow>();
+        services.TryAddScoped<ShopfloorService>();
+        services.TryAddScoped<SupervisorLaborService>();
+        services.TryAddScoped<IBomGate, NoBomGate>();
+        services.AddAuditableEntity<LaborEntry>("production");
+        services.AddAuditableEntity<StepPause>("production");
+
         // Dono ProductionOrder (ADR 0019 §7 e adendo de 21/10/2026, D16): fabricação com pdf, png, jpg, dwg e dxf até 25 MB;
         // instalação continua com png, jpg e pdf até 10 MB (CA 12).
         services.AddAttachmentOwner(InstallationOrderService.AttachmentOwner, new AttachmentOwnerRules(

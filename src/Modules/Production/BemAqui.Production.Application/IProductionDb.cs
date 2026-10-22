@@ -24,6 +24,10 @@ public interface IProductionDb
 
     DbSet<InstallationTemplateLine> InstallationTemplate { get; }
 
+    DbSet<LaborEntry> LaborEntries { get; }
+
+    DbSet<StepPause> StepPauses { get; }
+
     DatabaseFacade Database { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);

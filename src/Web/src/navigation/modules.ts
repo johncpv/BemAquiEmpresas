@@ -36,6 +36,8 @@ export interface ModuleUi {
   aliases?: readonly string[]
   icon: LucideIcon
   tabs?: readonly Tab[]
+  /** Tela dedicada fora do /app (ex.: o app do operador em /fab, PRD-03a CA 27): o menu e a busca levam direto a ela. */
+  href?: string
 }
 
 const CASH = 'Caixa e pagamentos'
@@ -47,7 +49,7 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
   projects: { slug: 'projetos', aliases: ['contratos'], icon: FolderKanban },
   parties: { slug: 'cadastros', icon: Contact, tabs: [{ slug: 'terceiros', label: 'Terceiros' }] },
   engineering: { slug: 'engenharia', icon: DraftingCompass, tabs: [{ slug: 'roteiros', label: 'Roteiros' }] },
-  production: { slug: 'producao', icon: Factory, tabs: [{ slug: 'os', label: 'OS de fabricação' }, { slug: 'kanban', label: 'Kanban' }, { slug: 'instalacoes', label: 'Instalações' }, { slug: 'centros-de-trabalho', label: 'Centros de trabalho' }, { slug: 'calendario', label: 'Calendário' }, { slug: 'modelo-instalacao', label: 'Modelo da OS de instalação' }] },
+  production: { slug: 'producao', icon: Factory, tabs: [{ slug: 'os', label: 'OS de fabricação' }, { slug: 'kanban', label: 'Kanban' }, { slug: 'apontamentos-abertos', label: 'Apontamentos abertos' }, { slug: 'instalacoes', label: 'Instalações' }, { slug: 'centros-de-trabalho', label: 'Centros de trabalho' }, { slug: 'calendario', label: 'Calendário' }, { slug: 'modelo-instalacao', label: 'Modelo da OS de instalação' }] },
   inventory: { slug: 'estoque', icon: Boxes, tabs: [{ slug: 'itens', label: 'Itens' }, { slug: 'locais', label: 'Locais' }, { slug: 'unidades', label: 'Unidades' }, { slug: 'categorias', label: 'Categorias' }, { slug: 'garantia', label: 'Garantia padrão' }] },
   purchasing: { slug: 'compras', icon: ShoppingCart },
   assets: { slug: 'patrimonio', icon: Tag },
@@ -68,7 +70,7 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
   fiscal: { slug: 'fiscal', icon: Receipt },
   hr: { slug: 'rh', icon: Users, tabs: [{ slug: 'funcionarios', label: 'Funcionários' }, { slug: 'cargos', label: 'Cargos' }, { slug: 'jornadas', label: 'Jornadas' }, { slug: 'sindicatos', label: 'Sindicatos' }] },
   kiosk: { slug: 'painel-tv', icon: MonitorPlay },
-  shopfloor: { slug: 'operador', icon: HardHat },
+  shopfloor: { slug: 'operador', icon: HardHat, href: '/fab' },
   identity: { slug: 'acessos', icon: ShieldCheck, tabs: [{ slug: 'usuarios', label: 'Usuários' }, { slug: 'grupos', label: 'Grupos' }] },
   settings: { slug: 'configuracoes', icon: Settings, tabs: [{ slug: 'empresa', label: 'Empresa' }, { slug: 'numeracao', label: 'Numeração' }, { slug: 'parametros', label: 'Parâmetros' }, { slug: 'seguranca', label: 'Segurança' }, { slug: 'ia', label: 'Inteligência artificial' }, { slug: 'importacao', label: 'Importação do Dolibarr' }] },
 }
@@ -109,7 +111,7 @@ export interface Navigation {
 
 const toNav = (m: PermissionModule): NavModule | null => {
   const ui = MODULE_UI[m.code]
-  return ui ? { ...m, slug: ui.slug, aliases: ui.aliases ?? [], path: `/app/${ui.slug}`, icon: ui.icon, tabs: ui.tabs ?? [], locked: !m.released } : null
+  return ui ? { ...m, slug: ui.slug, aliases: ui.aliases ?? [], path: ui.href ?? `/app/${ui.slug}`, icon: ui.icon, tabs: ui.tabs ?? [], locked: !m.released } : null
 }
 
 /** Visível no menu: liberado com acesso, ou não liberado (com cadeado). Liberado sem acesso fica oculto (CA 3). */
