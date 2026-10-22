@@ -79,8 +79,38 @@ public sealed partial class ProjectService(
     }
 
     async Task<IReadOnlyList<ProjectItemInfo>> IProjects.ItemsAsync(Guid projectId, CancellationToken cancellationToken) =>
-        await db.ProjectItems.AsNoTracking().Where(i => i.ProjectId == projectId).OrderBy(i => i.Sequence)
-            .Select(i => new ProjectItemInfo(i.Id, i.Sequence, i.Description, i.Quantity)).ToListAsync(cancellationToken);
+        await ItemInfosAsync(db.ProjectItems.Where(i => i.ProjectId == projectId), int.MaxValue, cancellationToken);
+
+    async Task<IReadOnlyList<ProjectItemInfo>> IProjects.FindItemsAsync(IReadOnlyCollection<Guid> projectItemIds, CancellationToken cancellationToken) =>
+        projectItemIds.Count == 0 ? [] : await ItemInfosAsync(db.ProjectItems.Where(i => projectItemIds.Contains(i.Id)), int.MaxValue, cancellationToken);
+
+    async Task<IReadOnlyList<ProjectItemInfo>> IProjects.FabricationCandidatesAsync(Guid? projectId, int limit, CancellationToken cancellationToken)
+    {
+        // PRD-01 CA 5 e 6 (D14): equipamento ou componente, projeto planejado ou em produção, contrato ativo e não de implantação.
+        var items = db.ProjectItems.Where(i =>
+            db.QuoteItems.Any(q => q.Id == i.QuoteItemId && q.Kind != QuoteItemKind.Service)
+            && db.Projects.Any(p => p.Id == i.ProjectId && (p.Status == ProjectStatus.Planned || p.Status == ProjectStatus.InProgress)
+                && db.Contracts.Any(c => c.Id == p.ContractId && c.Status == ContractStatus.Active && !c.IsOnboarding)));
+        if (projectId is { } project)
+        {
+            items = items.Where(i => i.ProjectId == project);
+        }
+
+        return await ItemInfosAsync(items, Math.Clamp(limit, 1, 5000), cancellationToken);
+    }
+
+    /// <summary>Itens com o tipo do item do orçamento e a implantação do contrato (PRD-01 CA 22).</summary>
+    private async Task<IReadOnlyList<ProjectItemInfo>> ItemInfosAsync(IQueryable<ProjectItem> items, int limit, CancellationToken ct)
+    {
+        var rows = await items.AsNoTracking()
+            .Join(db.QuoteItems, i => i.QuoteItemId, q => q.Id, (i, q) => new { Item = i, q.Kind })
+            .Join(db.Projects, x => x.Item.ProjectId, p => p.Id, (x, p) => new { x.Item, x.Kind, p.ContractId, p.CreatedAt })
+            .Join(db.Contracts, x => x.ContractId, c => c.Id, (x, c) => new { x.Item, x.Kind, c.IsOnboarding, x.CreatedAt })
+            .OrderBy(x => x.CreatedAt).ThenBy(x => x.Item.ProjectId).ThenBy(x => x.Item.Sequence).Take(limit)
+            .ToListAsync(ct);
+        return rows.Select(x => new ProjectItemInfo(x.Item.Id, x.Item.ProjectId, x.Item.Sequence, x.Item.Description, x.Item.Quantity, x.Item.ItemId,
+            Enum.Parse<ProjectItemKind>(x.Kind.ToString()), x.IsOnboarding, x.Item.RoutingTemplateId)).ToList();
+    }
 
     async Task<decimal?> IProjects.BudgetedAsync(Guid projectId, CostType costType, CancellationToken cancellationToken) =>
         await db.ProjectBudgets.AsNoTracking().Where(b => b.ProjectId == projectId && b.CostType == costType).Select(b => (decimal?)b.BudgetedAmount).FirstOrDefaultAsync(cancellationToken);
@@ -97,7 +127,7 @@ public sealed partial class ProjectService(
     }
 
     private static IQueryable<ProjectSummary> Summaries(IQueryable<Project> projects) =>
-        projects.AsNoTracking().Select(p => new ProjectSummary(p.Id, p.Number, p.Name, p.PartyId, p.ContractId, p.Status.ToString(), p.SiteAddressId, p.ManagerUserId));
+        projects.AsNoTracking().Select(p => new ProjectSummary(p.Id, p.Number, p.Name, p.PartyId, p.ContractId, p.Status.ToString(), p.SiteAddressId, p.ManagerUserId, p.PromisedDate));
 
     internal static Error NotFound() => Error.NotFound("project_not_found", "Projeto não encontrado.");
 }

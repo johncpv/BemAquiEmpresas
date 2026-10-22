@@ -3,8 +3,11 @@ using BemAqui.SharedKernel;
 
 namespace BemAqui.Commercial.Contracts;
 
-/// <summary>Projeto visto pelos outros módulos (COM-04a CA 21): Finance (COM-04b), Production (COM-06, PRD-01).</summary>
-public sealed record ProjectSummary(Guid Id, string Number, string Name, Guid PartyId, Guid ContractId, string Status, Guid? SiteAddressId, Guid? ManagerUserId = null);
+/// <summary>
+/// Projeto visto pelos outros módulos (COM-04a CA 21): Finance (COM-04b), Production (COM-06, PRD-01). <c>PromisedDate</c> é a
+/// data prometida ao cliente (PRD-01 CA 22: atraso da OS de fabricação).
+/// </summary>
+public sealed record ProjectSummary(Guid Id, string Number, string Name, Guid PartyId, Guid ContractId, string Status, Guid? SiteAddressId, Guid? ManagerUserId = null, DateOnly? PromisedDate = null);
 
 public interface IProjects
 {
@@ -15,14 +18,37 @@ public interface IProjects
     /// <summary>Projetos abertos para os seletores (título a pagar e a receber), com busca por número ou nome.</summary>
     Task<IReadOnlyList<ProjectSummary>> SearchAsync(string? term, int limit = 20, CancellationToken cancellationToken = default);
 
-    /// <summary>Itens do projeto (COM-06: a OS de instalação cobre itens).</summary>
+    /// <summary>Itens do projeto (COM-06: a OS de instalação cobre itens; PRD-01: tipo, implantação e roteiro decidem a OS de fabricação).</summary>
     Task<IReadOnlyList<ProjectItemInfo>> ItemsAsync(Guid projectId, CancellationToken cancellationToken = default);
+
+    /// <summary>Itens do projeto por id (PRD-01 CA 5 e 15); os que não existem ficam fora.</summary>
+    Task<IReadOnlyList<ProjectItemInfo>> FindItemsAsync(IReadOnlyCollection<Guid> projectItemIds, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Itens que podem gerar OS de fabricação (PRD-01 CA 5 e 6): equipamento ou componente fabricado, de projeto planejado ou em
+    /// produção, com contrato ativo que não é de implantação. Quem chama tira os que já têm OS.
+    /// </summary>
+    Task<IReadOnlyList<ProjectItemInfo>> FabricationCandidatesAsync(Guid? projectId, int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Orçado de uma natureza (COM-06: valor padrão da OS e "Orçado" na OP). O chamador confere <c>projects.view_cost</c>.</summary>
     Task<decimal?> BudgetedAsync(Guid projectId, CostType costType, CancellationToken cancellationToken = default);
 }
 
-public sealed record ProjectItemInfo(Guid Id, int Sequence, string Description, decimal Quantity);
+/// <summary>Tipo do item do projeto, copiado do item do orçamento (PRD-01, D14): só o equipamento gera OS de fabricação sozinho.</summary>
+[JsonConverter(typeof(JsonStringEnumConverter<ProjectItemKind>))]
+public enum ProjectItemKind
+{
+    Equipment,
+    Product,
+    Service,
+}
+
+/// <summary>
+/// Item do projeto (COM-06; PRD-01 CA 22): produto (<c>ItemId</c>), tipo, se o contrato é de implantação e o roteiro do item
+/// (herdado do item do orçamento).
+/// </summary>
+public sealed record ProjectItemInfo(
+    Guid Id, Guid ProjectId, int Sequence, string Description, decimal Quantity, Guid? ItemId, ProjectItemKind Kind, bool IsOnboarding, Guid? RoutingTemplateId);
 
 /// <summary>Marco do contrato no evento (sem dado pessoal).</summary>
 public sealed record ContractMilestoneInfo(Guid MilestoneId, int Sequence, string Description, decimal Amount, MilestoneTrigger Trigger, TriggerEvent? TriggerEvent, DateOnly? DueDate, int? DaysAfterEvent, decimal Percent = 0,
@@ -36,8 +62,13 @@ public sealed record ContractSigned(
     Guid ContractId, Guid ProjectId, Guid PartyId, DateOnly SignedAt, decimal TotalValue, Guid RevenueAccountId, IReadOnlyList<ContractMilestoneInfo> Milestones,
     bool IsOnboarding = false) : IIntegrationEvent;
 
-/// <summary>Item do projeto criado (COM-04a CA 7), sem consumidor até a PRD-01.</summary>
-public sealed record ProjectItemCreated(Guid ProjectId, Guid ProjectItemId, Guid QuoteItemId, Guid? ItemId, decimal Quantity) : IIntegrationEvent;
+/// <summary>
+/// Item do projeto criado (COM-04a CA 7; PRD-01 CA 1 a 3, ADR 0023 §7): a Produção gera a OS de fabricação do equipamento. Os
+/// campos novos têm valor padrão para as mensagens antigas do outbox: sem <c>Kind</c>, a OS não nasce sozinha.
+/// </summary>
+public sealed record ProjectItemCreated(
+    Guid ProjectId, Guid ProjectItemId, Guid QuoteItemId, Guid? ItemId, decimal Quantity, ProjectItemKind? Kind = null, bool? IsOnboarding = null, Guid? RoutingTemplateId = null)
+    : IIntegrationEvent;
 
 [JsonConverter(typeof(JsonStringEnumConverter<ContractState>))]
 public enum ContractState
