@@ -59,6 +59,7 @@ public sealed partial class SendEmailJob(ITenantDirectory directory, ITenantScop
         {
             log.Status = EmailStatus.Failed;
             log.Error = refused;
+            log.RedactSecrets();
             await db.SaveChangesAsync(cancellationToken);
             return;
         }
@@ -78,6 +79,7 @@ public sealed partial class SendEmailJob(ITenantDirectory directory, ITenantScop
             log.Status = EmailStatus.Sent;
             log.SentAt = clock.GetUtcNow();
             log.Error = null;
+            log.RedactSecrets();
             await db.SaveChangesAsync(cancellationToken);
             services.GetService<IntegrationHealthTracker>()?.RecordSuccess("smtp");
         }
@@ -92,6 +94,7 @@ public sealed partial class SendEmailJob(ITenantDirectory directory, ITenantScop
             if (log.Attempts >= MaxAttempts)
             {
                 log.Status = EmailStatus.Failed;
+                log.RedactSecrets();
                 await db.SaveChangesAsync(cancellationToken);
                 LogFailed(logger, ex, log.Id, tenant.Key, log.Attempts);
                 await services.GetRequiredService<IAlertSink>().RaiseAsync(new Alert(AlertKinds.EmailFailed, tenant.Key, "E-mail " + log.Template + " não foi enviado após " + log.Attempts + " tentativas", log.Error), cancellationToken);
@@ -111,6 +114,7 @@ public sealed partial class SendEmailJob(ITenantDirectory directory, ITenantScop
         {
             log.Status = EmailStatus.Skipped;
             log.Error = "Tenant não ativo (" + tenant.Status + "): e-mail não enviado.";
+            log.RedactSecrets();
             await db.SaveChangesAsync(cancellationToken);
         }
     }
