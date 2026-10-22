@@ -8,6 +8,7 @@ import { inputClass } from '@/components/form/form-utils'
 import { RecordHistory } from '@/components/history/RecordHistory'
 import { notifySuccess } from '@/components/ui/messages'
 import { Skeleton } from '@/components/ui/states'
+import { useCan } from '@/pages/use-can'
 
 const SHOW_DICA = 'Ligado, quem vê custo do projeto vê o custo-hora do cargo e o custo de cada apontamento. Desligado, só o total por etapa e por OS.'
 
@@ -16,7 +17,10 @@ const SHOW_DICA = 'Ligado, quem vê custo do projeto vê o custo-hora do cargo e
  * apontamento aberto (padrão 12 h, de 1 a 72). Salvar com settings.edit; cada parâmetro tem o histórico de alterações.
  */
 export function ProductionParametersSection({ canEdit }: { canEdit: boolean }) {
-  const query = useGetProductionParameters()
+  // Os parâmetros são do módulo production (como os limites do Finance): a seção só aparece para quem vê a produção.
+  const canSee = useCan('production.view')
+  const query = useGetProductionParameters({ query: { enabled: canSee } })
+  if (!canSee) return null
   if (query.isPending) return <Skeleton className="h-24" />
   if (query.isError) return null
   return <ProductionForm key={`${query.data.showLaborEntryCost}-${query.data.openLaborAlertHours}`} params={query.data} canEdit={canEdit} />

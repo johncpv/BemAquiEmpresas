@@ -33,9 +33,13 @@ public partial class FabricationTests
     });
 
     /// <summary>"Apontar por funcionário" de <paramref name="minutes"/> min (fim há 5 min), com as pausas dadas em (início relativo, duração).</summary>
-    private static async Task<JsonElement> RecordAsync(HttpClient supervisor, Guid order, Guid employee, Guid step, int minutes, params (int From, int Minutes, string Reason)[] pauses)
+    private static Task<JsonElement> RecordAsync(HttpClient supervisor, Guid order, Guid employee, Guid step, int minutes, params (int From, int Minutes, string Reason)[] pauses) =>
+        RecordEndingAsync(supervisor, order, employee, step, minutes, 5, pauses);
+
+    /// <summary>Como <see cref="RecordAsync"/>, terminando há <paramref name="endedMinutesAgo"/> min (apontamentos do mesmo funcionário sem sobreposição).</summary>
+    private static async Task<JsonElement> RecordEndingAsync(HttpClient supervisor, Guid order, Guid employee, Guid step, int minutes, int endedMinutesAgo, params (int From, int Minutes, string Reason)[] pauses)
     {
-        var end = DateTimeOffset.UtcNow.AddMinutes(-5);
+        var end = DateTimeOffset.UtcNow.AddMinutes(-endedMinutesAgo);
         var start = end.AddMinutes(-minutes - pauses.Sum(p => p.Minutes));
         var body = new
         {
@@ -105,7 +109,8 @@ public partial class FabricationTests
         var (_, supervisor) = await ActorAsync(CostGroup);
         var step = await StepIdAsync(orders[0], 1);
 
-        await RecordAsync(supervisor, orders[0], employee, step, 150, (10, 15, "Material"), (40, 10, "Machine"), (70, 30, "Break"), (120, 5, "Other"));
+        // O primeiro termina há 2 h (210 min de intervalo com as pausas); o segundo, de 60 min, termina há 5 min: sem sobreposição (PRD-03a CA 19).
+        await RecordEndingAsync(supervisor, orders[0], employee, step, 150, 120, (10, 15, "Material"), (40, 10, "Machine"), (70, 30, "Break"), (120, 5, "Other"));
         await SetRateAsync(employee, 60m);
         await RecordAsync(supervisor, orders[0], employee, step, 60);
 
@@ -128,7 +133,8 @@ public partial class FabricationTests
         var entry = (await EntriesAsync(step)).Single();
         await SetRateAsync(employee, 99m);
 
-        var fix = new { startedAt = entry.StartedAt, endedAt = entry.StartedAt.AddHours(3), pauses = Array.Empty<object>(), reason = "Faltou meia hora.", version = entry.Version };
+        // 3 h terminando no mesmo fim (no passado): o fim não pode ser no futuro (PRD-03a CA 19).
+        var fix = new { startedAt = entry.EndedAt!.Value.AddHours(-3), endedAt = entry.EndedAt!.Value, pauses = Array.Empty<object>(), reason = "Faltou meia hora.", version = entry.Version };
         await OkAsync(await supervisor.PostAsJsonAsync($"{Base}/{orders[0]}/labor-entries/{entry.Id}/correct", fix));
 
         var after = (await EntriesAsync(step)).Single();
@@ -240,7 +246,21 @@ public partial class FabricationTests
         var version = history.EnumerateArray().Single();
         (version.GetProperty("origin").GetString(), version.GetProperty("amount").GetDecimal(), version.GetProperty("costVersion").GetInt32()).Should().Be(("Closing", 120m, 1));
         version.GetProperty("recordedByName").ValueKind.Should().NotBe(JsonValueKind.Undefined, "CA 17: quem fez");
-        (await OkAsync(await hrViewer.GetAsync($"{Base}/{orders[0]}/history"))).GetRawText().Should().Contain("\"changed\":true", "o histórico da OS só diz que o custo mudou, sem o valor");
+        // Histórico da OS (production.view): os campos de custo do apontamento só dizem que mudaram, nunca o valor (ADR 0019 D7).
+        var osHistory = await OkAsync(await hrViewer.GetAsync($"{Base}/{orders[0]}/history"));
+        var laborChanges = osHistory.GetProperty("items").EnumerateArray().Where(i => i.GetProperty("entity").GetString() == nameof(LaborEntry))
+            .Select(i => JsonDocument.Parse(i.GetProperty("changes").GetString()!).RootElement.Clone()).ToList();
+        laborChanges.Should().NotBeEmpty();
+        foreach (var change in laborChanges)
+        {
+            foreach (var field in new[] { "cost", "hourlyCostSnapshot" }.Where(f => change.TryGetProperty(f, out _)))
+            {
+                change.GetProperty(field).TryGetProperty("changed", out _).Should().BeTrue($"{field} sem valor no histórico da OS");
+                change.GetProperty(field).TryGetProperty("new", out _).Should().BeFalse($"{field} sem valor no histórico da OS");
+            }
+        }
+
+        osHistory.GetRawText().Should().NotContain("labor_cost_history").And.NotContain(nameof(LaborCostRecord));
 
         var projectCosts = await OkAsync(await supervisor.GetAsync($"/api/v1/projects/{project}/costs"));
         projectCosts.GetProperty("lines").EnumerateArray().Single(l => l.GetProperty("costType").GetString() == "Labor").GetProperty("realized").GetDecimal().Should().Be(120m);
@@ -263,7 +283,7 @@ public partial class FabricationTests
     {
         const string Url = "/api/v1/production/parameters";
         var (_, owner) = await ActorAsync(BemAqui.Identity.Domain.Group.OwnerSeedKey);
-        var (_, viewer) = await ActorAsync("settings:view");
+        var (_, viewer) = await ActorAsync("settings:view;production:view");
         await ShowEntryCostAsync(false);
 
         var initial = await OkAsync(await viewer.GetAsync(Url));

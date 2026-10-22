@@ -22,20 +22,20 @@ internal static partial class ProductionEndpoints
         MapInstallations(production.MapGroup("/installations"));
         MapInstallationTemplate(production.MapGroup("/installation-template"));
         api.MapShopfloorEndpoints();
-        MapParameters(api.MapGroup("/production/parameters").WithTags("Produção"));
+        MapParameters(production.MapGroup("/parameters"));
         return api;
     }
 
     /// <summary>
-    /// Parâmetros da Produção em Configurações → Parâmetros (decisões do PO de 22/10/2026): ver com <c>settings.view</c> e salvar com
-    /// <c>settings.edit</c>, como os do Commercial e do Finance (fora do <c>RequireModule("production")</c>).
+    /// Parâmetros da Produção em Configurações → Parâmetros (decisões do PO de 22/10/2026), no módulo <c>production</c> como os
+    /// limites do Finance: ver com <c>production.view</c>; salvar com <c>production.view</c> e o serviço confere <c>settings.edit</c>.
     /// </summary>
     private static void MapParameters(RouteGroupBuilder parameters)
     {
         parameters.MapGet(string.Empty, async (ProductionParametersService service, CancellationToken ct) => Results.Ok(await service.GetAsync(ct)))
-            .RequirePermission("settings.view").WithName("GetProductionParameters").Produces<ProductionParametersView>();
+            .RequirePermission("production.view").WithName("GetProductionParameters").Produces<ProductionParametersView>();
         parameters.MapPut(string.Empty, async (ProductionParametersInput input, ProductionParametersService service, CancellationToken ct) => (await service.UpdateAsync(input, ct)).ToHttpResult())
-            .RequirePermission("settings.edit").WithName("UpdateProductionParameters").Produces<ProductionParametersView>();
+            .RequirePermission("production.view").WithName("UpdateProductionParameters").Produces<ProductionParametersView>();
     }
 
     private static void MapWorkCenters(RouteGroupBuilder centers)
