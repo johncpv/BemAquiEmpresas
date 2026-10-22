@@ -68,7 +68,12 @@ public sealed partial class SendEmailJob(ITenantDirectory directory, ITenantScop
         try
         {
             var model = ToModel(log.Model);
-            model["tenant_name"] ??= services.GetRequiredService<TenantContextHolder>().Resolved?.TradeName ?? services.GetRequiredService<TenantContextHolder>().Resolved?.LegalName;
+            // O modelo de quem não informou a empresa ganha o nome do tenant (o indexador lança sem a chave: usar TryGetValue).
+            if (!model.TryGetValue("tenant_name", out var tenantName) || tenantName is null)
+            {
+                var resolved = services.GetRequiredService<TenantContextHolder>().Resolved;
+                model["tenant_name"] = resolved?.TradeName ?? resolved?.LegalName;
+            }
             var content = services.GetRequiredService<EmailTemplateRenderer>().Render(log.Template, model);
             log.Subject = content.Subject;
             var outgoing = new OutgoingEmail(log.To, content)
