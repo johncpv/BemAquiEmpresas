@@ -24212,6 +24212,183 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getSaveInstallationTemplateMutationOptions(options), queryClient);
     }
 
+export const getGetProductionParametersUrl = () => {
+
+
+
+
+  return `/api/v1/production/parameters`
+}
+
+export const getProductionParameters = async ( options?: Parameters<typeof apiFetch>[1]): Promise<ProductionParametersView> => {
+
+  return apiFetch<ProductionParametersView>(getGetProductionParametersUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetProductionParametersQueryKey = () => {
+    return [
+    `/api/v1/production/parameters`
+    ] as const;
+    }
+
+
+export const getGetProductionParametersQueryOptions = <TData = Awaited<ReturnType<typeof getProductionParameters>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductionParameters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetProductionParametersQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getProductionParameters>>> = ({ signal }) => getProductionParameters({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getProductionParameters>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetProductionParametersQueryResult = NonNullable<Awaited<ReturnType<typeof getProductionParameters>>>
+export type GetProductionParametersQueryError = unknown
+
+
+export function useGetProductionParameters<TData = Awaited<ReturnType<typeof getProductionParameters>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductionParameters>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getProductionParameters>>,
+          TError,
+          Awaited<ReturnType<typeof getProductionParameters>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetProductionParameters<TData = Awaited<ReturnType<typeof getProductionParameters>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductionParameters>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getProductionParameters>>,
+          TError,
+          Awaited<ReturnType<typeof getProductionParameters>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetProductionParameters<TData = Awaited<ReturnType<typeof getProductionParameters>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductionParameters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetProductionParameters<TData = Awaited<ReturnType<typeof getProductionParameters>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductionParameters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetProductionParametersQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateProductionParametersUrl = () => {
+
+
+
+
+  return `/api/v1/production/parameters`
+}
+
+export const updateProductionParameters = async (productionParametersInput: ProductionParametersInput, options?: Parameters<typeof apiFetch>[1]): Promise<ProductionParametersView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ProductionParametersView>(getUpdateProductionParametersUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(productionParametersInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateProductionParametersMutationKey = () => ['updateProductionParameters'] as const;
+
+export const getUpdateProductionParametersMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateProductionParameters>>, TError,UpdateProductionParametersMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateProductionParameters>>, TError,UpdateProductionParametersMutationVariables, TContext> => {
+
+const mutationKey = getUpdateProductionParametersMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateProductionParameters>>, UpdateProductionParametersMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateProductionParameters(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateProductionParametersMutationResult = NonNullable<Awaited<ReturnType<typeof updateProductionParameters>>>
+    export type UpdateProductionParametersMutationBody = ProductionParametersInput
+    export type UpdateProductionParametersMutationError = unknown
+    export type UpdateProductionParametersMutationVariables = {data: ProductionParametersInput}
+
+    export const useUpdateProductionParameters = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateProductionParameters>>, TError,UpdateProductionParametersMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateProductionParameters>>,
+        TError,
+        UpdateProductionParametersMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateProductionParametersMutationOptions(options), queryClient);
+    }
+
 export const getGetShopfloorQueueUrl = () => {
 
 
@@ -25156,183 +25333,6 @@ export function useDownloadShopfloorAttachment<TData = Awaited<ReturnType<typeof
 
 
 
-
-export const getGetProductionParametersUrl = () => {
-
-
-
-
-  return `/api/v1/production/parameters`
-}
-
-export const getProductionParameters = async ( options?: Parameters<typeof apiFetch>[1]): Promise<ProductionParametersView> => {
-
-  return apiFetch<ProductionParametersView>(getGetProductionParametersUrl(),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getGetProductionParametersQueryKey = () => {
-    return [
-    `/api/v1/production/parameters`
-    ] as const;
-    }
-
-
-export const getGetProductionParametersQueryOptions = <TData = Awaited<ReturnType<typeof getProductionParameters>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductionParameters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetProductionParametersQueryKey();
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getProductionParameters>>> = ({ signal }) => getProductionParameters({ signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getProductionParameters>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetProductionParametersQueryResult = NonNullable<Awaited<ReturnType<typeof getProductionParameters>>>
-export type GetProductionParametersQueryError = unknown
-
-
-export function useGetProductionParameters<TData = Awaited<ReturnType<typeof getProductionParameters>>, TError = unknown>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductionParameters>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getProductionParameters>>,
-          TError,
-          Awaited<ReturnType<typeof getProductionParameters>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetProductionParameters<TData = Awaited<ReturnType<typeof getProductionParameters>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductionParameters>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getProductionParameters>>,
-          TError,
-          Awaited<ReturnType<typeof getProductionParameters>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetProductionParameters<TData = Awaited<ReturnType<typeof getProductionParameters>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductionParameters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useGetProductionParameters<TData = Awaited<ReturnType<typeof getProductionParameters>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductionParameters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetProductionParametersQueryOptions(options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getUpdateProductionParametersUrl = () => {
-
-
-
-
-  return `/api/v1/production/parameters`
-}
-
-export const updateProductionParameters = async (productionParametersInput: ProductionParametersInput, options?: Parameters<typeof apiFetch>[1]): Promise<ProductionParametersView> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return apiFetch<ProductionParametersView>(getUpdateProductionParametersUrl(),
-  {
-    ...options,
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(productionParametersInput)
-  }
-);}
-
-
-
-
-
-export const getUpdateProductionParametersMutationKey = () => ['updateProductionParameters'] as const;
-
-export const getUpdateProductionParametersMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateProductionParameters>>, TError,UpdateProductionParametersMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof updateProductionParameters>>, TError,UpdateProductionParametersMutationVariables, TContext> => {
-
-const mutationKey = getUpdateProductionParametersMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateProductionParameters>>, UpdateProductionParametersMutationVariables> = (props) => {
-          const {data} = props ?? {};
-
-          return  updateProductionParameters(data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type UpdateProductionParametersMutationResult = NonNullable<Awaited<ReturnType<typeof updateProductionParameters>>>
-    export type UpdateProductionParametersMutationBody = ProductionParametersInput
-    export type UpdateProductionParametersMutationError = unknown
-    export type UpdateProductionParametersMutationVariables = {data: ProductionParametersInput}
-
-    export const useUpdateProductionParameters = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateProductionParameters>>, TError,UpdateProductionParametersMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof updateProductionParameters>>,
-        TError,
-        UpdateProductionParametersMutationVariables,
-        TContext
-      > => {
-      return useMutation(getUpdateProductionParametersMutationOptions(options), queryClient);
-    }
 
 export const getListLocationsUrl = (params?: ListLocationsParams,) => {
   const normalizedParams = new URLSearchParams();
