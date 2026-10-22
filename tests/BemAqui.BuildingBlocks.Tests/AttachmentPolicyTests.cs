@@ -47,7 +47,7 @@ public class AttachmentPolicyTests
     [Theory]
     [InlineData("stream: OK", ScanVerdict.Clean, null)]
     [InlineData("stream: Eicar-Signature FOUND", ScanVerdict.Infected, "Eicar-Signature")]
-    [InlineData("INSTREAM size limit exceeded. ERROR", ScanVerdict.Unavailable, null)]
+    [InlineData("INSTREAM size limit exceeded. ERROR", ScanVerdict.TooLarge, null)]
     [InlineData("", ScanVerdict.Unavailable, null)]
     public void Resposta_do_clamd_e_interpretada(string reply, ScanVerdict verdict, string? signature)
     {
