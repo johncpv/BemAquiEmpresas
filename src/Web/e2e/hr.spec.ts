@@ -55,6 +55,30 @@ test.describe('RH (CAD-04a)', () => {
     expect(posted[1]).toEqual({ salaryMin: 3000, salaryMax: 3600, referenceSalary: null })
   })
 
+  test('aviso "Cargo sem custo-hora" abre o cargo pelo link e recalcula os apontamentos (PRD-04 CA 5 e 6)', async ({ page }) => {
+    const { api } = hrApi()
+    const position = { id: 'p9', name: 'Montador', cbo: null, defaultWorkCenterId: null, defaultWorkCenterName: null, workScheduleId: null, workScheduleName: null, monthlyHours: 220,
+      hourlyCost: 40, hourlyCostManual: true, isActive: true, activeEmployees: 1, createdAt: '2026-10-19T12:00:00Z' }
+    let missing = { count: 2, recalculableCount: 2, newTotal: 90, positions: [{ positionId: 'p9', positionName: 'Montador', count: 2, hasHourlyCost: true }] }
+    const sent: unknown[] = []
+    await mockApi(page, {
+      ...api,
+      'GET /api/v1/hr/positions/p9': (r: Route) => json(r, position),
+      'GET /api/v1/production/labor-costs/missing': (r: Route) => json(r, missing),
+      'POST /api/v1/production/labor-costs/recalculate': (r: Route) => { sent.push(r.request().postDataJSON()); missing = { ...missing, count: 0, recalculableCount: 0, positions: [] }; return json(r, { recalculated: 2, total: 90 }) },
+    })
+    await page.goto('/app/rh/cargos?cargo=p9')
+    const panel = page.getByRole('dialog', { name: 'Cargo Montador' })
+    await expect(panel.getByText('2 apontamentos deste cargo estão sem custo.')).toBeVisible()
+    await panel.getByRole('button', { name: 'Recalcular apontamentos sem custo' }).click()
+    const dialog = page.getByRole('alertdialog')
+    await expect(dialog.getByText(/2 apontamentos · R\$\s0,00 → R\$\s90,00/)).toBeVisible()
+    await dialog.getByRole('button', { name: 'Recalcular apontamentos sem custo' }).click()
+    await expect(page.getByText('Apontamentos recalculados')).toBeVisible()
+    expect(sent[0]).toEqual({ positionId: 'p9', orderId: null })
+    await expect(panel.getByText('2 apontamentos deste cargo estão sem custo.')).toHaveCount(0)
+  })
+
   test('sem hr.view_sensitive a faixa nem é pedida à API (CA 10)', async ({ page }) => {
     const { api, requests } = hrApi()
     const modules = allModules().map((m) => (m.code === 'hr' ? { ...m, actions: ['view', 'create', 'edit'] } : m))

@@ -7,14 +7,20 @@ modulo: projects
 ---
 
 ## Para que serve
-Ver quanto o orçamento aprovado previu gastar em cada natureza de custo. É a base do orçado contra o realizado.
+Comparar o que o orçamento aprovado previu gastar com o que já foi gasto, o que já está contratado e quanto o projeto deve custar no fim, em cada natureza de custo.
 
 ## Como usar
-- Cada natureza (material, mão de obra, instalação, frete, impostos e outros) mostra **Orçado**, **Realizado**, **Projetado** e **Desvio**.
-- **Realizado:** os títulos a pagar lançados com o projeto e a natureza. Material e horas entram com a produção (Fase 3).
-- **Projetado:** o realizado mais o que ainda falta do orçado. Se o realizado passou do orçado, é o próprio realizado.
+- Cada natureza (material, mão de obra, instalação, frete, impostos e outros) mostra **Orçado**, **Realizado**, **Comprometido**, **Projetado** e **Desvio**. No celular, **Comprometido** e **Desvio** ficam em **Comprometido e desvio**, dentro do cartão.
+- **Realizado:** o que já foi gasto. Entram os títulos a pagar **confirmados** com o projeto (instalador, frete, outros), as **horas apontadas** na produção (horas × custo-hora do cargo) e, quando o estoque entrar, o material baixado para a OS.
+- **Comprometido:** o que já está contratado, mas ainda não foi gasto. Entram o título **previsto** (por exemplo, o previsto do instalador quando a OS de instalação nasce) e o material comprado para o projeto que ainda não foi baixado para a OS.
+- **Projetado:** o realizado mais o maior entre o que ainda falta do orçado e o comprometido. Se o comprometido passa do que falta do orçado, o projetado já mostra o estouro.
 - **Desvio:** projetado menos orçado. Positivo quer dizer que o custo vai passar do orçado.
-- A margem projetada do Resumo usa estes valores.
+- A margem projetada do Resumo usa o projetado.
+- A marca **Calculado na implantação** aparece quando parte do realizado foi recomposta na implantação: as horas apontadas antes do cálculo de custo entrar no ar receberam o custo-hora do cargo daquele dia.
 
 ## Perguntas frequentes
-**Por que não vejo esta aba?** O orçado é sigilo comercial. Só quem tem a permissão **Ver custo e orçado do projeto** vê.
+**Por que o previsto do instalador saiu do realizado?** Porque ainda não foi gasto: o título previsto nasce com a OS de instalação, antes do serviço. Ele aparece em **Comprometido** até ser confirmado e, aí, passa ao **Realizado**. O projetado não muda com isso.
+
+**De onde vem o custo das horas?** De cada apontamento fechado: horas líquidas (sem as pausas) × custo-hora do cargo de quem trabalhou, gravado no fechamento. O salário de cada pessoa não aparece.
+
+**Por que não vejo esta aba?** O orçado é sigilo comercial. Só quem tem a permissão **Ver custo e margem** do projeto vê.

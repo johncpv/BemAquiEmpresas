@@ -2,7 +2,8 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
 import {
-  approveFabricationStep, completeFabricationStep, correctLaborEntry, getListOrderLaborEntriesQueryKey, recordLaborEntry, useListLaborEmployees, useListOrderLaborEntries,
+  approveFabricationStep, completeFabricationStep, correctLaborEntry, getGetOrderLaborCostsQueryKey, getListOrderLaborEntriesQueryKey, recordLaborEntry, useListLaborEmployees,
+  useListOrderLaborEntries,
 } from '@/api/generated/bemaqui'
 import type { FabricationOrderDetail, LaborEntryView, LaborPauseInput, PauseReason } from '@/api/generated/model'
 import { IDEMPOTENCY_HEADER } from '@/api/idempotency'
@@ -11,11 +12,14 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Tag } from '@/components/ui/tag'
-import { formatDateTime } from '@/lib/format'
+import { formatDateTime, formatMoney } from '@/lib/format'
 import { useCan } from '@/pages/use-can'
 import { PAUSE_REASONS, pauseLabel } from '@/pages/shopfloor/shopfloor'
+import { Dica } from '@/help/Dica'
 import { hours } from './fabrication'
 import { fromLocalInput, laborMarks, toLocalInput } from './labor'
+import { LABOR_COST_DICAS, useOrderLaborCosts } from './labor-cost'
+import { LaborCostCell, MissingCostNotice } from './labor-costs'
 
 const button = 'rounded-md border border-border px-3 py-2 text-sm font-semibold'
 const primary = 'rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground'
@@ -32,6 +36,9 @@ export function LaborEntriesTab({ order, onChanged }: { order: FabricationOrderD
   const navigate = useNavigate()
   const search = useSearch({ strict: false }) as { corrigir?: string; concluir?: string }
   const query = useListOrderLaborEntries(order.id)
+  // PRD-04 CA 14: custo só com projects.view_cost, num DTO separado; sem a permissão a aba mostra só as horas.
+  const { canSee: canSeeCost, query: costs } = useOrderLaborCosts(order.id)
+  const costOf = new Map((costs.data?.entries ?? []).map((c) => [c.entryId, c]))
   const canEdit = useCan('production.edit')
   const canPoint = useCan('shopfloor.create')
   const canRecord = canEdit && canPoint
@@ -41,6 +48,7 @@ export function LaborEntriesTab({ order, onChanged }: { order: FabricationOrderD
   const [picked, setCorrecting] = useState<LaborEntryView | null>(null)
   const refresh = async () => {
     await client.invalidateQueries({ queryKey: getListOrderLaborEntriesQueryKey(order.id) })
+    await client.invalidateQueries({ queryKey: getGetOrderLaborCostsQueryKey(order.id) })
     await onChanged()
   }
   const clearSearch = () => void navigate({ to: '.', search: { aba: 'apontamentos' }, replace: true } as never)
@@ -67,9 +75,10 @@ export function LaborEntriesTab({ order, onChanged }: { order: FabricationOrderD
         </div>
       ) : null}
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-muted-foreground tabular-nums">{data.entries.length} {data.entries.length === 1 ? 'apontamento' : 'apontamentos'} · {hours(data.totalHours)} h líquidas</p>
+        <p className="text-sm text-muted-foreground tabular-nums">{data.entries.length} {data.entries.length === 1 ? 'apontamento' : 'apontamentos'} · {hours(data.totalHours)} h líquidas{canSeeCost && costs.data ? ` · ${formatMoney(costs.data.laborCost)} de mão de obra` : ''}</p>
         {data.entries.length > 0 ? recordButton : null}
       </div>
+      {canSeeCost && costs.data ? <MissingCostNotice orderId={order.id} positions={costs.data.missingPositions} onDone={refresh} /> : null}
       {data.entries.length === 0 ? (
         <EmptyState title="Nenhum apontamento nesta OS." description="Os operadores apontam pelo app do chão de fábrica. Quem supervisiona pode apontar por um funcionário que não conseguiu." action={recordButton} />
       ) : (
@@ -77,7 +86,7 @@ export function LaborEntriesTab({ order, onChanged }: { order: FabricationOrderD
           <table className="w-full text-sm">
             <caption className="sr-only">Apontamentos da {data.orderNumber}</caption>
             <thead className="border-b border-border text-left text-xs uppercase text-muted-foreground">
-              <tr><th className="p-2">Funcionário</th><th className="p-2">Etapa</th><th className="p-2">Início</th><th className="p-2">Fim</th><th className="p-2 max-sm:hidden">Pausas</th><th className="p-2 text-right">Horas</th><th className="p-2 max-sm:hidden">Registrado por</th><th className="p-2"><span className="sr-only">Ações</span></th></tr>
+              <tr><th className="p-2">Funcionário</th><th className="p-2">Etapa</th><th className="p-2">Início</th><th className="p-2">Fim</th><th className="p-2 max-sm:hidden">Pausas</th><th className="p-2 text-right">Horas</th>{canSeeCost ? <th className="p-2 text-right"><span className="inline-flex items-center">Custo<Dica nome="Custo-hora" texto={LABOR_COST_DICAS.custoHora} /></span></th> : null}<th className="p-2 max-sm:hidden">Registrado por</th><th className="p-2"><span className="sr-only">Ações</span></th></tr>
             </thead>
             <tbody className="divide-y divide-border">
               {data.entries.map((e) => (
@@ -88,6 +97,7 @@ export function LaborEntriesTab({ order, onChanged }: { order: FabricationOrderD
                   <td className="p-2 tabular-nums">{e.endedAt ? formatDateTime(e.endedAt) : '—'}</td>
                   <td className="p-2 max-sm:hidden">{e.pauses.length === 0 ? '—' : e.pauses.map((p) => <span key={p.id} className="block">{pauseLabel(p.reason)}{p.notes ? ` (${p.notes})` : ''}{p.endedAt ? '' : ', em aberto'}</span>)}</td>
                   <td className="p-2 text-right tabular-nums">{hours(e.hours)}</td>
+                  {canSeeCost ? <td className="p-2 text-right">{costs.isError ? '—' : <LaborCostCell orderId={order.id} cost={costOf.get(e.id)} />}</td> : null}
                   <td className="p-2 max-sm:hidden">{e.recordedByName ?? '—'}{e.correctionReason ? <span className="block text-xs text-muted-foreground">Correção: {e.correctionReason}{e.correctedByName ? `, por ${e.correctedByName}` : ''}</span> : null}</td>
                   <td className="p-2">{canApprove ? <button type="button" className={button} onClick={() => setCorrecting(e)}>Corrigir apontamento</button> : null}</td>
                 </tr>

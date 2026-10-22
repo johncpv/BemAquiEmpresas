@@ -12,7 +12,7 @@ import { notifySuccess } from '@/components/ui/messages'
 import { useCan } from '@/pages/use-can'
 import { DICAS } from './hr'
 import { PositionActions } from './PositionActions'
-import { PositionCost } from './PositionCost'
+import { PositionCost, PositionMissingCosts } from './PositionCost'
 import { PositionSalary } from './PositionSalary'
 
 type Draft = { name: string; cbo: string; centerId: string; scheduleId: string; monthlyHours: string | null }
@@ -100,6 +100,7 @@ export function PositionPanel({ position, chargesPct, onClose, onSaved }: { posi
           </p>
         ) : null}
         {current ? <PositionCost position={current} onSaved={keep} /> : null}
+        {current ? <PositionMissingCosts key={current.hourlyCost} positionId={current.id} /> : null}
         <PositionSalary position={current} chargesPct={chargesPct} onSaved={keep} />
         {current && canHistory ? (
           <details className="rounded-md border border-border bg-card px-3 py-2 text-sm">

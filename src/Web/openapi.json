@@ -8411,219 +8411,6 @@
         }
       }
     },
-    "/api/v1/production/production-orders/{id}/labor-entries": {
-      "get": {
-        "tags": [
-          "Produ\u00E7\u00E3o"
-        ],
-        "operationId": "ListOrderLaborEntries",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OrderLaborView"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Produ\u00E7\u00E3o"
-        ],
-        "operationId": "RecordLaborEntry",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/LaborEntryInput"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OrderLaborView"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/production/production-orders/{id}/labor-entries/{entryId}/correct": {
-      "post": {
-        "tags": [
-          "Produ\u00E7\u00E3o"
-        ],
-        "operationId": "CorrectLaborEntry",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "entryId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/LaborCorrectionInput"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OrderLaborView"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/production/production-orders/{id}/steps/{stepId}/approve": {
-      "post": {
-        "tags": [
-          "Produ\u00E7\u00E3o"
-        ],
-        "operationId": "ApproveFabricationStep",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "stepId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ApproveStepInput"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OrderLaborView"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/production/labor-entries/open": {
-      "get": {
-        "tags": [
-          "Produ\u00E7\u00E3o"
-        ],
-        "operationId": "ListOpenLaborEntries",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OpenLaborList"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/production/labor-entries/employees": {
-      "get": {
-        "tags": [
-          "Produ\u00E7\u00E3o"
-        ],
-        "operationId": "ListLaborEmployees",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/LaborEmployeeOption"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/production/installations": {
       "get": {
         "tags": [
@@ -9105,381 +8892,6 @@
                 }
               }
             }
-          }
-        }
-      }
-    },
-    "/api/v1/shopfloor/queue": {
-      "get": {
-        "tags": [
-          "App do operador"
-        ],
-        "operationId": "GetShopfloorQueue",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ShopfloorQueueView"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/shopfloor/orders": {
-      "get": {
-        "tags": [
-          "App do operador"
-        ],
-        "operationId": "SearchShopfloorOrder",
-        "parameters": [
-          {
-            "name": "number",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ShopfloorQueueStep"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/shopfloor/steps/{stepId}": {
-      "get": {
-        "tags": [
-          "App do operador"
-        ],
-        "operationId": "GetShopfloorStep",
-        "parameters": [
-          {
-            "name": "stepId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ShopfloorStepDetail"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/shopfloor/steps/{stepId}/start": {
-      "post": {
-        "tags": [
-          "App do operador"
-        ],
-        "operationId": "StartShopfloorStep",
-        "parameters": [
-          {
-            "name": "stepId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ShopfloorActionResult"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/shopfloor/steps/{stepId}/pause": {
-      "post": {
-        "tags": [
-          "App do operador"
-        ],
-        "operationId": "PauseShopfloorStep",
-        "parameters": [
-          {
-            "name": "stepId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ShopfloorPauseInput"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ShopfloorActionResult"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/shopfloor/steps/{stepId}/resume": {
-      "post": {
-        "tags": [
-          "App do operador"
-        ],
-        "operationId": "ResumeShopfloorStep",
-        "parameters": [
-          {
-            "name": "stepId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ShopfloorActionResult"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/shopfloor/steps/{stepId}/leave": {
-      "post": {
-        "tags": [
-          "App do operador"
-        ],
-        "operationId": "LeaveShopfloorStep",
-        "parameters": [
-          {
-            "name": "stepId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ShopfloorActionResult"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/shopfloor/steps/{stepId}/finish": {
-      "post": {
-        "tags": [
-          "App do operador"
-        ],
-        "operationId": "FinishShopfloorStep",
-        "parameters": [
-          {
-            "name": "stepId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ShopfloorFinishInput"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ShopfloorActionResult"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/shopfloor/steps/{stepId}/checklist/{itemId}": {
-      "put": {
-        "tags": [
-          "App do operador"
-        ],
-        "operationId": "MarkShopfloorChecklist",
-        "parameters": [
-          {
-            "name": "stepId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "itemId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ShopfloorChecklistInput"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ShopfloorStepDetail"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/shopfloor/steps/{stepId}/attachments": {
-      "get": {
-        "tags": [
-          "App do operador"
-        ],
-        "operationId": "ListShopfloorAttachments",
-        "parameters": [
-          {
-            "name": "stepId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ShopfloorAttachment"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/shopfloor/steps/{stepId}/attachments/{attachmentId}": {
-      "get": {
-        "tags": [
-          "App do operador"
-        ],
-        "operationId": "DownloadShopfloorAttachment",
-        "parameters": [
-          {
-            "name": "stepId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "attachmentId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
           }
         }
       }
@@ -14120,6 +13532,736 @@
           }
         }
       }
+    },
+    "/api/v1/shopfloor/queue": {
+      "get": {
+        "tags": [
+          "App do operador"
+        ],
+        "operationId": "GetShopfloorQueue",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopfloorQueueView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/shopfloor/orders": {
+      "get": {
+        "tags": [
+          "App do operador"
+        ],
+        "operationId": "SearchShopfloorOrder",
+        "parameters": [
+          {
+            "name": "number",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ShopfloorQueueStep"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/shopfloor/steps/{stepId}": {
+      "get": {
+        "tags": [
+          "App do operador"
+        ],
+        "operationId": "GetShopfloorStep",
+        "parameters": [
+          {
+            "name": "stepId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopfloorStepDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/shopfloor/steps/{stepId}/start": {
+      "post": {
+        "tags": [
+          "App do operador"
+        ],
+        "operationId": "StartShopfloorStep",
+        "parameters": [
+          {
+            "name": "stepId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopfloorActionResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/shopfloor/steps/{stepId}/pause": {
+      "post": {
+        "tags": [
+          "App do operador"
+        ],
+        "operationId": "PauseShopfloorStep",
+        "parameters": [
+          {
+            "name": "stepId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShopfloorPauseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopfloorActionResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/shopfloor/steps/{stepId}/resume": {
+      "post": {
+        "tags": [
+          "App do operador"
+        ],
+        "operationId": "ResumeShopfloorStep",
+        "parameters": [
+          {
+            "name": "stepId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopfloorActionResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/shopfloor/steps/{stepId}/leave": {
+      "post": {
+        "tags": [
+          "App do operador"
+        ],
+        "operationId": "LeaveShopfloorStep",
+        "parameters": [
+          {
+            "name": "stepId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopfloorActionResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/shopfloor/steps/{stepId}/finish": {
+      "post": {
+        "tags": [
+          "App do operador"
+        ],
+        "operationId": "FinishShopfloorStep",
+        "parameters": [
+          {
+            "name": "stepId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShopfloorFinishInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopfloorActionResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/shopfloor/steps/{stepId}/checklist/{itemId}": {
+      "put": {
+        "tags": [
+          "App do operador"
+        ],
+        "operationId": "MarkShopfloorChecklist",
+        "parameters": [
+          {
+            "name": "stepId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShopfloorChecklistInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopfloorStepDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/shopfloor/steps/{stepId}/attachments": {
+      "get": {
+        "tags": [
+          "App do operador"
+        ],
+        "operationId": "ListShopfloorAttachments",
+        "parameters": [
+          {
+            "name": "stepId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ShopfloorAttachment"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/shopfloor/steps/{stepId}/attachments/{attachmentId}": {
+      "get": {
+        "tags": [
+          "App do operador"
+        ],
+        "operationId": "DownloadShopfloorAttachment",
+        "parameters": [
+          {
+            "name": "stepId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "attachmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/production/production-orders/{id}/labor-entries": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "ListOrderLaborEntries",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderLaborView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "RecordLaborEntry",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LaborEntryInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderLaborView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/production-orders/{id}/labor-entries/{entryId}/correct": {
+      "post": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "CorrectLaborEntry",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "entryId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LaborCorrectionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderLaborView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/production-orders/{id}/steps/{stepId}/approve": {
+      "post": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "ApproveFabricationStep",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "stepId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveStepInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderLaborView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/labor-entries/open": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "ListOpenLaborEntries",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenLaborList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/labor-entries/employees": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "ListLaborEmployees",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LaborEmployeeOption"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/production-orders/{id}/labor-costs": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "GetOrderLaborCosts",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderLaborCostView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/production-orders/{id}/labor-entries/{entryId}/cost-history": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "GetLaborEntryCostHistory",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "entryId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LaborCostHistoryView"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/labor-costs/missing": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "GetMissingLaborCosts",
+        "parameters": [
+          {
+            "name": "positionId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LaborCostMissingView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/labor-costs/recalculate": {
+      "post": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "RecalculateMissingLaborCosts",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LaborRecalculationInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LaborRecalculationResult"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -15780,18 +15922,6 @@
           }
         }
       },
-      "ApproveStepInput": {
-        "required": [
-          "version"
-        ],
-        "type": "object",
-        "properties": {
-          "version": {
-            "type": "integer",
-            "format": "uint32"
-          }
-        }
-      },
       "AskHelpRequest": {
         "required": [
           "question",
@@ -16241,252 +16371,6 @@
           "version": {
             "type": "integer",
             "format": "uint32"
-          }
-        }
-      },
-      "BoardCard": {
-        "required": [
-          "id",
-          "number",
-          "status",
-          "productName",
-          "quantity",
-          "projectId",
-          "projectNumber",
-          "projectName",
-          "partyId",
-          "partyName",
-          "columnKey",
-          "currentStepId",
-          "currentStepCode",
-          "currentStepName",
-          "currentStepStatus",
-          "currentStepIsQuality",
-          "standardHours",
-          "appliedHours",
-          "line",
-          "codes",
-          "stepNames",
-          "currentStepIndex",
-          "promisedDate",
-          "risk",
-          "delayDays",
-          "readyToComplete",
-          "noRouting",
-          "inExecution",
-          "pausedReason",
-          "operatorInitials",
-          "routingTemplateId",
-          "version"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "number": {
-            "type": "string"
-          },
-          "status": {
-            "$ref": "#/components/schemas/ProductionOrderStatus"
-          },
-          "productName": {
-            "type": "string"
-          },
-          "quantity": {
-            "type": "number",
-            "format": "double"
-          },
-          "projectId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "projectNumber": {
-            "type": "string"
-          },
-          "projectName": {
-            "type": "string"
-          },
-          "partyId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "partyName": {
-            "type": "string"
-          },
-          "columnKey": {
-            "type": "string"
-          },
-          "currentStepId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "uuid"
-          },
-          "currentStepCode": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "currentStepName": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "currentStepStatus": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/ProductionStepStatus"
-              }
-            ]
-          },
-          "currentStepIsQuality": {
-            "type": "boolean"
-          },
-          "standardHours": {
-            "type": "number",
-            "format": "double"
-          },
-          "appliedHours": {
-            "type": "number",
-            "format": "double"
-          },
-          "line": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "codes": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "stepNames": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "currentStepIndex": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "promisedDate": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date"
-          },
-          "risk": {
-            "$ref": "#/components/schemas/DeliveryRisk"
-          },
-          "delayDays": {
-            "type": [
-              "null",
-              "integer"
-            ],
-            "format": "int32"
-          },
-          "readyToComplete": {
-            "type": "boolean"
-          },
-          "noRouting": {
-            "type": "boolean"
-          },
-          "inExecution": {
-            "type": "boolean"
-          },
-          "pausedReason": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "operatorInitials": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "routingTemplateId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "uuid"
-          },
-          "version": {
-            "type": "integer",
-            "format": "uint32"
-          }
-        }
-      },
-      "BoardColumn": {
-        "required": [
-          "key",
-          "kind",
-          "code",
-          "name",
-          "count",
-          "remainingHours"
-        ],
-        "type": "object",
-        "properties": {
-          "key": {
-            "type": "string"
-          },
-          "kind": {
-            "$ref": "#/components/schemas/BoardColumnKind"
-          },
-          "code": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "name": {
-            "type": "string"
-          },
-          "count": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "remainingHours": {
-            "type": "number",
-            "format": "double"
-          }
-        }
-      },
-      "BoardColumnKind": {
-        "enum": [
-          "Step",
-          "NoRouting",
-          "ReadyToComplete"
-        ]
-      },
-      "BoardOption": {
-        "required": [
-          "id",
-          "label"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "label": {
-            "type": "string"
           }
         }
       },
@@ -17422,25 +17306,6 @@
           }
         },
         "additionalProperties": false
-      },
-      "CompleteStepInput": {
-        "required": [
-          "reason",
-          "version"
-        ],
-        "type": "object",
-        "properties": {
-          "reason": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "version": {
-            "type": "integer",
-            "format": "uint32"
-          }
-        }
       },
       "ConfirmTwoFactorRequest": {
         "required": [
@@ -18392,13 +18257,6 @@
           }
         }
       },
-      "DeliveryRisk": {
-        "enum": [
-          "None",
-          "AtRisk",
-          "Late"
-        ]
-      },
       "DisableTwoFactorRequest": {
         "required": [
           "password",
@@ -18806,8 +18664,7 @@
           "Maternity",
           "Paternity",
           "Military",
-          "Other",
-          null
+          "Other"
         ]
       },
       "EmployeePersonalInput": {
@@ -19718,16 +19575,13 @@
           },
           "appliedHours": {
             "type": "number",
-            "format": "double",
-            "default": 0
+            "format": "double"
           },
           "awaitingApproval": {
-            "type": "boolean",
-            "default": false
+            "type": "boolean"
           },
           "selfApproved": {
-            "type": "boolean",
-            "default": false
+            "type": "boolean"
           }
         }
       },
@@ -21706,335 +21560,6 @@
           "Service"
         ]
       },
-      "LaborCloseKind": {
-        "enum": [
-          "Operator",
-          "Left",
-          "Supervisor",
-          "StepCompleted",
-          null
-        ]
-      },
-      "LaborCorrectionInput": {
-        "required": [
-          "startedAt",
-          "endedAt",
-          "pauses",
-          "reason",
-          "version"
-        ],
-        "type": "object",
-        "properties": {
-          "startedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "endedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "pauses": {
-            "type": [
-              "null",
-              "array"
-            ],
-            "items": {
-              "$ref": "#/components/schemas/LaborPauseInput"
-            }
-          },
-          "reason": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "version": {
-            "type": "integer",
-            "format": "uint32"
-          }
-        },
-        "additionalProperties": false
-      },
-      "LaborEmployeeOption": {
-        "required": [
-          "id",
-          "name",
-          "registration",
-          "positionName"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "name": {
-            "type": "string"
-          },
-          "registration": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "positionName": {
-            "type": "string"
-          }
-        }
-      },
-      "LaborEntryInput": {
-        "required": [
-          "employeeId",
-          "stepId",
-          "startedAt",
-          "endedAt",
-          "pauses",
-          "notes"
-        ],
-        "type": "object",
-        "properties": {
-          "employeeId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "stepId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "startedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "endedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "pauses": {
-            "type": [
-              "null",
-              "array"
-            ],
-            "items": {
-              "$ref": "#/components/schemas/LaborPauseInput"
-            }
-          },
-          "notes": {
-            "type": [
-              "null",
-              "string"
-            ]
-          }
-        },
-        "additionalProperties": false
-      },
-      "LaborEntryView": {
-        "required": [
-          "id",
-          "stepId",
-          "stepCode",
-          "stepName",
-          "employeeId",
-          "employeeName",
-          "startedAt",
-          "endedAt",
-          "pausedMinutes",
-          "netMinutes",
-          "hours",
-          "pauses",
-          "recordedByName",
-          "onBehalf",
-          "closeKind",
-          "closedByName",
-          "correctedAt",
-          "correctedByName",
-          "correctionReason",
-          "selfApproved",
-          "notes",
-          "isMine",
-          "version"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "stepId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "stepCode": {
-            "type": "string"
-          },
-          "stepName": {
-            "type": "string"
-          },
-          "employeeId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "employeeName": {
-            "type": "string"
-          },
-          "startedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "endedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "pausedMinutes": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "netMinutes": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "hours": {
-            "type": "number",
-            "format": "double"
-          },
-          "pauses": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/LaborPauseView"
-            }
-          },
-          "recordedByName": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "onBehalf": {
-            "type": "boolean"
-          },
-          "closeKind": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/LaborCloseKind"
-              }
-            ]
-          },
-          "closedByName": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "correctedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "correctedByName": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "correctionReason": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "selfApproved": {
-            "type": "boolean"
-          },
-          "notes": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "isMine": {
-            "type": "boolean"
-          },
-          "version": {
-            "type": "integer",
-            "format": "uint32"
-          }
-        }
-      },
-      "LaborPauseInput": {
-        "required": [
-          "reason",
-          "notes",
-          "startedAt",
-          "endedAt"
-        ],
-        "type": "object",
-        "properties": {
-          "reason": {
-            "$ref": "#/components/schemas/PauseReason"
-          },
-          "notes": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "startedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "endedAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        },
-        "additionalProperties": false
-      },
-      "LaborPauseView": {
-        "required": [
-          "id",
-          "reason",
-          "notes",
-          "startedAt",
-          "endedAt"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "reason": {
-            "$ref": "#/components/schemas/PauseReason"
-          },
-          "notes": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "startedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "endedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          }
-        }
-      },
       "LaborPositionOption": {
         "required": [
           "id",
@@ -23063,150 +22588,6 @@
           }
         }
       },
-      "OpenLaborEntry": {
-        "required": [
-          "id",
-          "orderId",
-          "orderNumber",
-          "stepId",
-          "stepCode",
-          "stepName",
-          "employeeName",
-          "startedAt",
-          "openHours",
-          "lastPauseReason",
-          "lastPauseAt",
-          "orderVersion",
-          "version"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "orderId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "orderNumber": {
-            "type": "string"
-          },
-          "stepId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "stepCode": {
-            "type": "string"
-          },
-          "stepName": {
-            "type": "string"
-          },
-          "employeeName": {
-            "type": "string"
-          },
-          "startedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "openHours": {
-            "type": "number",
-            "format": "double"
-          },
-          "lastPauseReason": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/PauseReason"
-              }
-            ]
-          },
-          "lastPauseAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "orderVersion": {
-            "type": "integer",
-            "format": "uint32"
-          },
-          "version": {
-            "type": "integer",
-            "format": "uint32"
-          }
-        }
-      },
-      "OpenLaborList": {
-        "required": [
-          "hours",
-          "items"
-        ],
-        "type": "object",
-        "properties": {
-          "hours": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/OpenLaborEntry"
-            }
-          }
-        }
-      },
-      "OrderLaborView": {
-        "required": [
-          "orderId",
-          "orderNumber",
-          "entries",
-          "totalHours",
-          "awaitingApprovalStepId",
-          "awaitingApprovalStepName",
-          "version"
-        ],
-        "type": "object",
-        "properties": {
-          "orderId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "orderNumber": {
-            "type": "string"
-          },
-          "entries": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/LaborEntryView"
-            }
-          },
-          "totalHours": {
-            "type": "number",
-            "format": "double"
-          },
-          "awaitingApprovalStepId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "uuid"
-          },
-          "awaitingApprovalStepName": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "version": {
-            "type": "integer",
-            "format": "uint32"
-          }
-        }
-      },
       "PagedListOfAuditEntryDto": {
         "required": [
           "items",
@@ -24156,15 +23537,6 @@
             }
           }
         }
-      },
-      "PauseReason": {
-        "enum": [
-          "Material",
-          "Machine",
-          "Break",
-          "EndOfShift",
-          "Other"
-        ]
       },
       "PayableDetail": {
         "required": [
@@ -25962,70 +25334,6 @@
           }
         }
       },
-      "ProductionBoard": {
-        "required": [
-          "columns",
-          "cards",
-          "lateCount",
-          "atRiskCount",
-          "openCount",
-          "projects",
-          "parties",
-          "routings",
-          "lines"
-        ],
-        "type": "object",
-        "properties": {
-          "columns": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/BoardColumn"
-            }
-          },
-          "cards": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/BoardCard"
-            }
-          },
-          "lateCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "atRiskCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "openCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "projects": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/BoardOption"
-            }
-          },
-          "parties": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/BoardOption"
-            }
-          },
-          "routings": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/BoardOption"
-            }
-          },
-          "lines": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
       "ProductionOrderStatus": {
         "enum": [
           "Open",
@@ -26067,9 +25375,11 @@
           "costType",
           "budgeted",
           "realized",
+          "committed",
           "projected",
           "deviation",
-          "deviationPct"
+          "deviationPct",
+          "includesBackfill"
         ],
         "type": "object",
         "properties": {
@@ -26081,6 +25391,10 @@
             "format": "double"
           },
           "realized": {
+            "type": "number",
+            "format": "double"
+          },
+          "committed": {
             "type": "number",
             "format": "double"
           },
@@ -26098,6 +25412,9 @@
               "number"
             ],
             "format": "double"
+          },
+          "includesBackfill": {
+            "type": "boolean"
           }
         }
       },
@@ -29757,533 +29074,6 @@
           }
         }
       },
-      "ShopfloorActionResult": {
-        "required": [
-          "step",
-          "myHours",
-          "nextInQueue",
-          "closedFor"
-        ],
-        "type": "object",
-        "properties": {
-          "step": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/ShopfloorStepDetail"
-              }
-            ]
-          },
-          "myHours": {
-            "type": "number",
-            "format": "double"
-          },
-          "nextInQueue": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/ShopfloorQueueStep"
-              }
-            ]
-          },
-          "closedFor": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "ShopfloorAttachment": {
-        "required": [
-          "id",
-          "fileName",
-          "contentType",
-          "size",
-          "viewable"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "fileName": {
-            "type": "string"
-          },
-          "contentType": {
-            "type": "string"
-          },
-          "size": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "viewable": {
-            "type": "boolean"
-          }
-        }
-      },
-      "ShopfloorChecklistInput": {
-        "required": [
-          "done"
-        ],
-        "type": "object",
-        "properties": {
-          "done": {
-            "type": "boolean"
-          }
-        }
-      },
-      "ShopfloorChecklistItem": {
-        "required": [
-          "id",
-          "text",
-          "done",
-          "markedAt",
-          "markedByName"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "text": {
-            "type": "string"
-          },
-          "done": {
-            "type": "boolean"
-          },
-          "markedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "markedByName": {
-            "type": [
-              "null",
-              "string"
-            ]
-          }
-        }
-      },
-      "ShopfloorFinishInput": {
-        "required": [
-          "forAll"
-        ],
-        "type": "object",
-        "properties": {
-          "forAll": {
-            "type": "boolean"
-          }
-        }
-      },
-      "ShopfloorMyEntry": {
-        "required": [
-          "entryId",
-          "startedAt",
-          "closedPauseSeconds",
-          "pauseStartedAt",
-          "pauseReason",
-          "pauseNotes",
-          "netMinutes"
-        ],
-        "type": "object",
-        "properties": {
-          "entryId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "startedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "closedPauseSeconds": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "pauseStartedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "pauseReason": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/PauseReason"
-              }
-            ]
-          },
-          "pauseNotes": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "netMinutes": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "ShopfloorOperator": {
-        "required": [
-          "employeeId",
-          "name",
-          "firstName",
-          "workCenterId",
-          "workCenterName",
-          "line",
-          "today"
-        ],
-        "type": "object",
-        "properties": {
-          "employeeId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "name": {
-            "type": "string"
-          },
-          "firstName": {
-            "type": "string"
-          },
-          "workCenterId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "uuid"
-          },
-          "workCenterName": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "line": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "today": {
-            "type": "string",
-            "format": "date"
-          }
-        }
-      },
-      "ShopfloorPauseInput": {
-        "required": [
-          "reason",
-          "notes"
-        ],
-        "type": "object",
-        "properties": {
-          "reason": {
-            "$ref": "#/components/schemas/PauseReason"
-          },
-          "notes": {
-            "type": [
-              "null",
-              "string"
-            ]
-          }
-        }
-      },
-      "ShopfloorPerson": {
-        "required": [
-          "name",
-          "paused",
-          "pauseReason",
-          "startedAt",
-          "isMe"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "paused": {
-            "type": "boolean"
-          },
-          "pauseReason": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/PauseReason"
-              }
-            ]
-          },
-          "startedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "isMe": {
-            "type": "boolean"
-          }
-        }
-      },
-      "ShopfloorQueueStep": {
-        "required": [
-          "stepId",
-          "orderId",
-          "orderNumber",
-          "stepCode",
-          "stepName",
-          "stepIndex",
-          "codes",
-          "stepNames",
-          "status",
-          "workCenterId",
-          "workCenterName",
-          "isMyCenter",
-          "productName",
-          "projectNumber",
-          "projectName",
-          "partyName",
-          "promisedDate",
-          "standardHours",
-          "appliedHours",
-          "people",
-          "pausedReason",
-          "awaitingApproval"
-        ],
-        "type": "object",
-        "properties": {
-          "stepId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "orderId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "orderNumber": {
-            "type": "string"
-          },
-          "stepCode": {
-            "type": "string"
-          },
-          "stepName": {
-            "type": "string"
-          },
-          "stepIndex": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "codes": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "stepNames": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "status": {
-            "$ref": "#/components/schemas/ProductionStepStatus"
-          },
-          "workCenterId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "uuid"
-          },
-          "workCenterName": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "isMyCenter": {
-            "type": "boolean"
-          },
-          "productName": {
-            "type": "string"
-          },
-          "projectNumber": {
-            "type": "string"
-          },
-          "projectName": {
-            "type": "string"
-          },
-          "partyName": {
-            "type": "string"
-          },
-          "promisedDate": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date"
-          },
-          "standardHours": {
-            "type": "number",
-            "format": "double"
-          },
-          "appliedHours": {
-            "type": "number",
-            "format": "double"
-          },
-          "people": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "pausedReason": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "awaitingApproval": {
-            "type": "boolean"
-          }
-        }
-      },
-      "ShopfloorQueueView": {
-        "required": [
-          "operator",
-          "current",
-          "steps",
-          "serverNow"
-        ],
-        "type": "object",
-        "properties": {
-          "operator": {
-            "$ref": "#/components/schemas/ShopfloorOperator"
-          },
-          "current": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/ShopfloorQueueStep"
-              }
-            ]
-          },
-          "steps": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ShopfloorQueueStep"
-            }
-          },
-          "serverNow": {
-            "type": "string",
-            "format": "date-time"
-          }
-        }
-      },
-      "ShopfloorStepDetail": {
-        "required": [
-          "step",
-          "productCode",
-          "quantity",
-          "checklist",
-          "people",
-          "mine",
-          "attachments",
-          "requiresApproval",
-          "isQualityStep",
-          "nextStepName",
-          "suggestedPauseReason",
-          "canStart",
-          "startBlockedReason",
-          "serverNow"
-        ],
-        "type": "object",
-        "properties": {
-          "step": {
-            "$ref": "#/components/schemas/ShopfloorQueueStep"
-          },
-          "productCode": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "quantity": {
-            "type": "number",
-            "format": "double"
-          },
-          "checklist": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ShopfloorChecklistItem"
-            }
-          },
-          "people": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ShopfloorPerson"
-            }
-          },
-          "mine": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/ShopfloorMyEntry"
-              }
-            ]
-          },
-          "attachments": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ShopfloorAttachment"
-            }
-          },
-          "requiresApproval": {
-            "type": "boolean"
-          },
-          "isQualityStep": {
-            "type": "boolean"
-          },
-          "nextStepName": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "suggestedPauseReason": {
-            "$ref": "#/components/schemas/PauseReason"
-          },
-          "canStart": {
-            "type": "boolean"
-          },
-          "startBlockedReason": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "serverNow": {
-            "type": "string",
-            "format": "date-time"
-          }
-        }
-      },
       "SnapshotCost": {
         "required": [
           "costType",
@@ -31618,6 +30408,1672 @@
           }
         },
         "additionalProperties": false
+      },
+      "BoardColumnKind": {
+        "enum": [
+          "Step",
+          "NoRouting",
+          "ReadyToComplete"
+        ]
+      },
+      "DeliveryRisk": {
+        "enum": [
+          "None",
+          "AtRisk",
+          "Late"
+        ]
+      },
+      "BoardColumn": {
+        "required": [
+          "key",
+          "kind",
+          "code",
+          "name",
+          "count",
+          "remainingHours"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/BoardColumnKind"
+          },
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "remainingHours": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "BoardOption": {
+        "required": [
+          "id",
+          "label"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "label": {
+            "type": "string"
+          }
+        }
+      },
+      "BoardCard": {
+        "required": [
+          "id",
+          "number",
+          "status",
+          "productName",
+          "quantity",
+          "projectId",
+          "projectNumber",
+          "projectName",
+          "partyId",
+          "partyName",
+          "columnKey",
+          "currentStepId",
+          "currentStepCode",
+          "currentStepName",
+          "currentStepStatus",
+          "currentStepIsQuality",
+          "standardHours",
+          "appliedHours",
+          "line",
+          "codes",
+          "stepNames",
+          "currentStepIndex",
+          "promisedDate",
+          "risk",
+          "delayDays",
+          "readyToComplete",
+          "noRouting",
+          "inExecution",
+          "pausedReason",
+          "operatorInitials",
+          "routingTemplateId",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProductionOrderStatus"
+          },
+          "productName": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": "string"
+          },
+          "projectName": {
+            "type": "string"
+          },
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "columnKey": {
+            "type": "string"
+          },
+          "currentStepId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "currentStepCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "currentStepName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "currentStepStatus": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ProductionStepStatus"
+              }
+            ]
+          },
+          "currentStepIsQuality": {
+            "type": "boolean"
+          },
+          "standardHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "appliedHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "line": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "codes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "stepNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "currentStepIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "promisedDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "risk": {
+            "$ref": "#/components/schemas/DeliveryRisk"
+          },
+          "delayDays": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "readyToComplete": {
+            "type": "boolean"
+          },
+          "noRouting": {
+            "type": "boolean"
+          },
+          "inExecution": {
+            "type": "boolean"
+          },
+          "pausedReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "operatorInitials": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "routingTemplateId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "ProductionBoard": {
+        "required": [
+          "columns",
+          "cards",
+          "lateCount",
+          "atRiskCount",
+          "openCount",
+          "projects",
+          "parties",
+          "routings",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "columns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BoardColumn"
+            }
+          },
+          "cards": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BoardCard"
+            }
+          },
+          "lateCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "atRiskCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "openCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "projects": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BoardOption"
+            }
+          },
+          "parties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BoardOption"
+            }
+          },
+          "routings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BoardOption"
+            }
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CompleteStepInput": {
+        "required": [
+          "reason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "PauseReason": {
+        "enum": [
+          "Material",
+          "Machine",
+          "Break",
+          "EndOfShift",
+          "Other"
+        ]
+      },
+      "LaborCloseKind": {
+        "enum": [
+          "Operator",
+          "Left",
+          "Supervisor",
+          "StepCompleted"
+        ]
+      },
+      "ShopfloorOperator": {
+        "required": [
+          "employeeId",
+          "name",
+          "firstName",
+          "workCenterId",
+          "workCenterName",
+          "line",
+          "today"
+        ],
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "workCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "workCenterName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "line": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "today": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "ShopfloorQueueStep": {
+        "required": [
+          "stepId",
+          "orderId",
+          "orderNumber",
+          "stepCode",
+          "stepName",
+          "stepIndex",
+          "codes",
+          "stepNames",
+          "status",
+          "workCenterId",
+          "workCenterName",
+          "isMyCenter",
+          "productName",
+          "projectNumber",
+          "projectName",
+          "partyName",
+          "promisedDate",
+          "standardHours",
+          "appliedHours",
+          "people",
+          "pausedReason",
+          "awaitingApproval"
+        ],
+        "type": "object",
+        "properties": {
+          "stepId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "stepCode": {
+            "type": "string"
+          },
+          "stepName": {
+            "type": "string"
+          },
+          "stepIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "codes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "stepNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProductionStepStatus"
+          },
+          "workCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "workCenterName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isMyCenter": {
+            "type": "boolean"
+          },
+          "productName": {
+            "type": "string"
+          },
+          "projectNumber": {
+            "type": "string"
+          },
+          "projectName": {
+            "type": "string"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "promisedDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "standardHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "appliedHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "people": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "pausedReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "awaitingApproval": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ShopfloorQueueView": {
+        "required": [
+          "operator",
+          "current",
+          "steps",
+          "serverNow"
+        ],
+        "type": "object",
+        "properties": {
+          "operator": {
+            "$ref": "#/components/schemas/ShopfloorOperator"
+          },
+          "current": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ShopfloorQueueStep"
+              }
+            ]
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShopfloorQueueStep"
+            }
+          },
+          "serverNow": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ShopfloorChecklistItem": {
+        "required": [
+          "id",
+          "text",
+          "done",
+          "markedAt",
+          "markedByName"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "text": {
+            "type": "string"
+          },
+          "done": {
+            "type": "boolean"
+          },
+          "markedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "markedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ShopfloorPerson": {
+        "required": [
+          "name",
+          "paused",
+          "pauseReason",
+          "startedAt",
+          "isMe"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "paused": {
+            "type": "boolean"
+          },
+          "pauseReason": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PauseReason"
+              }
+            ]
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "isMe": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ShopfloorMyEntry": {
+        "required": [
+          "entryId",
+          "startedAt",
+          "closedPauseSeconds",
+          "pauseStartedAt",
+          "pauseReason",
+          "pauseNotes",
+          "netMinutes"
+        ],
+        "type": "object",
+        "properties": {
+          "entryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "closedPauseSeconds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pauseStartedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "pauseReason": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PauseReason"
+              }
+            ]
+          },
+          "pauseNotes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "netMinutes": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ShopfloorAttachment": {
+        "required": [
+          "id",
+          "fileName",
+          "contentType",
+          "size",
+          "viewable"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "viewable": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ShopfloorStepDetail": {
+        "required": [
+          "step",
+          "productCode",
+          "quantity",
+          "checklist",
+          "people",
+          "mine",
+          "attachments",
+          "requiresApproval",
+          "isQualityStep",
+          "nextStepName",
+          "suggestedPauseReason",
+          "canStart",
+          "startBlockedReason",
+          "serverNow"
+        ],
+        "type": "object",
+        "properties": {
+          "step": {
+            "$ref": "#/components/schemas/ShopfloorQueueStep"
+          },
+          "productCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "checklist": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShopfloorChecklistItem"
+            }
+          },
+          "people": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShopfloorPerson"
+            }
+          },
+          "mine": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ShopfloorMyEntry"
+              }
+            ]
+          },
+          "attachments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShopfloorAttachment"
+            }
+          },
+          "requiresApproval": {
+            "type": "boolean"
+          },
+          "isQualityStep": {
+            "type": "boolean"
+          },
+          "nextStepName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "suggestedPauseReason": {
+            "$ref": "#/components/schemas/PauseReason"
+          },
+          "canStart": {
+            "type": "boolean"
+          },
+          "startBlockedReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "serverNow": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ShopfloorPauseInput": {
+        "required": [
+          "reason",
+          "notes"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "$ref": "#/components/schemas/PauseReason"
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ShopfloorFinishInput": {
+        "required": [
+          "forAll"
+        ],
+        "type": "object",
+        "properties": {
+          "forAll": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ShopfloorChecklistInput": {
+        "required": [
+          "done"
+        ],
+        "type": "object",
+        "properties": {
+          "done": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ShopfloorActionResult": {
+        "required": [
+          "step",
+          "myHours",
+          "nextInQueue",
+          "closedFor"
+        ],
+        "type": "object",
+        "properties": {
+          "step": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ShopfloorStepDetail"
+              }
+            ]
+          },
+          "myHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "nextInQueue": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ShopfloorQueueStep"
+              }
+            ]
+          },
+          "closedFor": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "LaborPauseInput": {
+        "required": [
+          "reason",
+          "notes",
+          "startedAt",
+          "endedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "$ref": "#/components/schemas/PauseReason"
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "LaborEntryInput": {
+        "required": [
+          "employeeId",
+          "stepId",
+          "startedAt",
+          "endedAt",
+          "pauses",
+          "notes"
+        ],
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "stepId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "pauses": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/LaborPauseInput"
+            }
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "LaborCorrectionInput": {
+        "required": [
+          "startedAt",
+          "endedAt",
+          "pauses",
+          "reason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "pauses": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/LaborPauseInput"
+            }
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "ApproveStepInput": {
+        "required": [
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "LaborPauseView": {
+        "required": [
+          "id",
+          "reason",
+          "notes",
+          "startedAt",
+          "endedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reason": {
+            "$ref": "#/components/schemas/PauseReason"
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "LaborEntryView": {
+        "required": [
+          "id",
+          "stepId",
+          "stepCode",
+          "stepName",
+          "employeeId",
+          "employeeName",
+          "startedAt",
+          "endedAt",
+          "pausedMinutes",
+          "netMinutes",
+          "hours",
+          "pauses",
+          "recordedByName",
+          "onBehalf",
+          "closeKind",
+          "closedByName",
+          "correctedAt",
+          "correctedByName",
+          "correctionReason",
+          "selfApproved",
+          "notes",
+          "isMine",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "stepId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "stepCode": {
+            "type": "string"
+          },
+          "stepName": {
+            "type": "string"
+          },
+          "employeeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "employeeName": {
+            "type": "string"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "pausedMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "netMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hours": {
+            "type": "number",
+            "format": "double"
+          },
+          "pauses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LaborPauseView"
+            }
+          },
+          "recordedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "onBehalf": {
+            "type": "boolean"
+          },
+          "closeKind": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/LaborCloseKind"
+              }
+            ]
+          },
+          "closedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "correctedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "correctedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "correctionReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "selfApproved": {
+            "type": "boolean"
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isMine": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "OrderLaborView": {
+        "required": [
+          "orderId",
+          "orderNumber",
+          "entries",
+          "totalHours",
+          "awaitingApprovalStepId",
+          "awaitingApprovalStepName",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LaborEntryView"
+            }
+          },
+          "totalHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "awaitingApprovalStepId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "awaitingApprovalStepName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "OpenLaborEntry": {
+        "required": [
+          "id",
+          "orderId",
+          "orderNumber",
+          "stepId",
+          "stepCode",
+          "stepName",
+          "employeeName",
+          "startedAt",
+          "openHours",
+          "lastPauseReason",
+          "lastPauseAt",
+          "orderVersion",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "stepId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "stepCode": {
+            "type": "string"
+          },
+          "stepName": {
+            "type": "string"
+          },
+          "employeeName": {
+            "type": "string"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "openHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "lastPauseReason": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PauseReason"
+              }
+            ]
+          },
+          "lastPauseAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "orderVersion": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "OpenLaborList": {
+        "required": [
+          "hours",
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "hours": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenLaborEntry"
+            }
+          }
+        }
+      },
+      "LaborEmployeeOption": {
+        "required": [
+          "id",
+          "name",
+          "registration",
+          "positionName"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "registration": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "positionName": {
+            "type": "string"
+          }
+        }
+      },
+      "LaborCostOrigin": {
+        "enum": [
+          "Closing",
+          "Correction",
+          "Recalculation",
+          "Backfill"
+        ]
+      },
+      "LaborEntryCostView": {
+        "required": [
+          "entryId",
+          "hourlyCostSnapshot",
+          "cost",
+          "costMissing",
+          "costBackfilled",
+          "costVersion",
+          "pending"
+        ],
+        "type": "object",
+        "properties": {
+          "entryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "hourlyCostSnapshot": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "cost": {
+            "type": "number",
+            "format": "double"
+          },
+          "costMissing": {
+            "type": "boolean"
+          },
+          "costBackfilled": {
+            "type": "boolean"
+          },
+          "costVersion": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pending": {
+            "type": "boolean"
+          }
+        }
+      },
+      "StepLaborCostView": {
+        "required": [
+          "stepId",
+          "stepCode",
+          "stepName",
+          "minutes",
+          "hours",
+          "cost",
+          "missingCount",
+          "includesBackfill"
+        ],
+        "type": "object",
+        "properties": {
+          "stepId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "stepCode": {
+            "type": "string"
+          },
+          "stepName": {
+            "type": "string"
+          },
+          "minutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hours": {
+            "type": "number",
+            "format": "double"
+          },
+          "cost": {
+            "type": "number",
+            "format": "double"
+          },
+          "missingCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "includesBackfill": {
+            "type": "boolean"
+          }
+        }
+      },
+      "MissingCostPosition": {
+        "required": [
+          "positionId",
+          "positionName",
+          "count",
+          "hasHourlyCost"
+        ],
+        "type": "object",
+        "properties": {
+          "positionId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "positionName": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hasHourlyCost": {
+            "type": "boolean"
+          }
+        }
+      },
+      "OrderLaborCostView": {
+        "required": [
+          "orderId",
+          "orderNumber",
+          "entries",
+          "steps",
+          "totalHours",
+          "laborCost",
+          "missingCount",
+          "includesBackfill",
+          "missingPositions"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LaborEntryCostView"
+            }
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StepLaborCostView"
+            }
+          },
+          "totalHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "laborCost": {
+            "type": "number",
+            "format": "double"
+          },
+          "missingCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "includesBackfill": {
+            "type": "boolean"
+          },
+          "missingPositions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MissingCostPosition"
+            }
+          }
+        }
+      },
+      "LaborCostHistoryView": {
+        "required": [
+          "costVersion",
+          "origin",
+          "minutes",
+          "hours",
+          "hourlyCostSnapshot",
+          "previousAmount",
+          "amount",
+          "costMissing",
+          "recordedByName",
+          "recordedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "costVersion": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/LaborCostOrigin"
+          },
+          "minutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hours": {
+            "type": "number",
+            "format": "double"
+          },
+          "hourlyCostSnapshot": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "previousAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "costMissing": {
+            "type": "boolean"
+          },
+          "recordedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "recordedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "LaborCostMissingView": {
+        "required": [
+          "count",
+          "recalculableCount",
+          "newTotal",
+          "positions"
+        ],
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "recalculableCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "newTotal": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "positions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MissingCostPosition"
+            }
+          }
+        }
+      },
+      "LaborRecalculationInput": {
+        "required": [
+          "positionId",
+          "orderId"
+        ],
+        "type": "object",
+        "properties": {
+          "positionId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "orderId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "LaborRecalculationResult": {
+        "required": [
+          "recalculated",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "recalculated": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
       }
     }
   },
@@ -31671,13 +32127,13 @@
       "name": "Produ\u00E7\u00E3o"
     },
     {
-      "name": "App do operador"
-    },
-    {
       "name": "Estoque"
     },
     {
       "name": "Financeiro"
+    },
+    {
+      "name": "App do operador"
     }
   ]
 }

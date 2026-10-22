@@ -20,4 +20,6 @@ Cadastrar os cargos da empresa e saber quanto custa cada hora trabalhada, já co
 
 **Por que aparece "Dados protegidos"?** A faixa salarial é dado pessoal protegido pela LGPD. Só quem tem a permissão de ver dados sensíveis do RH consulta e altera.
 
-**Quando o % de encargos muda, o que acontece?** Os cargos com custo-hora calculado são recalculados sozinhos. Os ajustados à mão não mudam.
+**Quando o % de encargos muda, o que acontece?** Os cargos com custo-hora calculado são recalculados sozinhos. Os ajustados à mão não mudam. Os apontamentos já fechados mantêm o custo-hora do dia do fechamento.
+
+**O que é "apontamentos deste cargo estão sem custo"?** Funcionários deste cargo apontaram horas enquanto o cargo estava sem custo-hora. Defina o custo-hora e clique em **Recalcular apontamentos sem custo** (quem aprova na produção): só esses apontamentos recebem o custo-hora atual.

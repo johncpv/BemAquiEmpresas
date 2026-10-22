@@ -132,6 +132,7 @@ import type {
   GetDiscountsAndCancellationsParams,
   GetFabricationOrderHistoryParams,
   GetInstallationDefaultsParams,
+  GetMissingLaborCostsParams,
   GetProductionBoardParams,
   GetQuoteFunnelParams,
   GetRoutingTemplateHistoryParams,
@@ -167,9 +168,13 @@ import type {
   ItemSearchHit,
   ItemType,
   LaborCorrectionInput,
+  LaborCostHistoryView,
+  LaborCostMissingView,
   LaborEmployeeOption,
   LaborEntryInput,
   LaborPositionOption,
+  LaborRecalculationInput,
+  LaborRecalculationResult,
   LaborWorkCenterOption,
   LeaveDetail,
   LeaveInput,
@@ -231,6 +236,7 @@ import type {
   OpeningPayablesInput,
   OpeningReceivablesInput,
   OpeningStatus,
+  OrderLaborCostView,
   OrderLaborView,
   PagedListOfAuditEntryDto,
   PagedListOfBankAccountDetail,
@@ -22122,544 +22128,6 @@ export function useGetProductionBoard<TData = Awaited<ReturnType<typeof getProdu
 
 
 
-export const getListOrderLaborEntriesUrl = (id: string,) => {
-
-
-
-
-  return `/api/v1/production/production-orders/${id}/labor-entries`
-}
-
-export const listOrderLaborEntries = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<OrderLaborView> => {
-
-  return apiFetch<OrderLaborView>(getListOrderLaborEntriesUrl(id),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getListOrderLaborEntriesQueryKey = (id: string,) => {
-    return [
-    `/api/v1/production/production-orders/${id}/labor-entries`
-    ] as const;
-    }
-
-
-export const getListOrderLaborEntriesQueryOptions = <TData = Awaited<ReturnType<typeof listOrderLaborEntries>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrderLaborEntries>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getListOrderLaborEntriesQueryKey(id);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listOrderLaborEntries>>> = ({ signal }) => listOrderLaborEntries(id, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listOrderLaborEntries>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ListOrderLaborEntriesQueryResult = NonNullable<Awaited<ReturnType<typeof listOrderLaborEntries>>>
-export type ListOrderLaborEntriesQueryError = unknown
-
-
-export function useListOrderLaborEntries<TData = Awaited<ReturnType<typeof listOrderLaborEntries>>, TError = unknown>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrderLaborEntries>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listOrderLaborEntries>>,
-          TError,
-          Awaited<ReturnType<typeof listOrderLaborEntries>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListOrderLaborEntries<TData = Awaited<ReturnType<typeof listOrderLaborEntries>>, TError = unknown>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrderLaborEntries>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listOrderLaborEntries>>,
-          TError,
-          Awaited<ReturnType<typeof listOrderLaborEntries>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListOrderLaborEntries<TData = Awaited<ReturnType<typeof listOrderLaborEntries>>, TError = unknown>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrderLaborEntries>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useListOrderLaborEntries<TData = Awaited<ReturnType<typeof listOrderLaborEntries>>, TError = unknown>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrderLaborEntries>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getListOrderLaborEntriesQueryOptions(id,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getRecordLaborEntryUrl = (id: string,) => {
-
-
-
-
-  return `/api/v1/production/production-orders/${id}/labor-entries`
-}
-
-export const recordLaborEntry = async (id: string,
-    laborEntryInput: LaborEntryInput, options?: Parameters<typeof apiFetch>[1]): Promise<OrderLaborView> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return apiFetch<OrderLaborView>(getRecordLaborEntryUrl(id),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(laborEntryInput)
-  }
-);}
-
-
-
-
-
-export const getRecordLaborEntryMutationKey = () => ['recordLaborEntry'] as const;
-
-export const getRecordLaborEntryMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordLaborEntry>>, TError,RecordLaborEntryMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof recordLaborEntry>>, TError,RecordLaborEntryMutationVariables, TContext> => {
-
-const mutationKey = getRecordLaborEntryMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof recordLaborEntry>>, RecordLaborEntryMutationVariables> = (props) => {
-          const {id,data} = props ?? {};
-
-          return  recordLaborEntry(id,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type RecordLaborEntryMutationResult = NonNullable<Awaited<ReturnType<typeof recordLaborEntry>>>
-    export type RecordLaborEntryMutationBody = LaborEntryInput
-    export type RecordLaborEntryMutationError = unknown
-    export type RecordLaborEntryMutationVariables = {id: string;data: LaborEntryInput}
-
-    export const useRecordLaborEntry = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordLaborEntry>>, TError,RecordLaborEntryMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof recordLaborEntry>>,
-        TError,
-        RecordLaborEntryMutationVariables,
-        TContext
-      > => {
-      return useMutation(getRecordLaborEntryMutationOptions(options), queryClient);
-    }
-
-export const getCorrectLaborEntryUrl = (id: string,
-    entryId: string,) => {
-
-
-
-
-  return `/api/v1/production/production-orders/${id}/labor-entries/${entryId}/correct`
-}
-
-export const correctLaborEntry = async (id: string,
-    entryId: string,
-    laborCorrectionInput: LaborCorrectionInput, options?: Parameters<typeof apiFetch>[1]): Promise<OrderLaborView> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return apiFetch<OrderLaborView>(getCorrectLaborEntryUrl(id,entryId),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(laborCorrectionInput)
-  }
-);}
-
-
-
-
-
-export const getCorrectLaborEntryMutationKey = () => ['correctLaborEntry'] as const;
-
-export const getCorrectLaborEntryMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof correctLaborEntry>>, TError,CorrectLaborEntryMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof correctLaborEntry>>, TError,CorrectLaborEntryMutationVariables, TContext> => {
-
-const mutationKey = getCorrectLaborEntryMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof correctLaborEntry>>, CorrectLaborEntryMutationVariables> = (props) => {
-          const {id,entryId,data} = props ?? {};
-
-          return  correctLaborEntry(id,entryId,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type CorrectLaborEntryMutationResult = NonNullable<Awaited<ReturnType<typeof correctLaborEntry>>>
-    export type CorrectLaborEntryMutationBody = LaborCorrectionInput
-    export type CorrectLaborEntryMutationError = unknown
-    export type CorrectLaborEntryMutationVariables = {id: string;entryId: string;data: LaborCorrectionInput}
-
-    export const useCorrectLaborEntry = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof correctLaborEntry>>, TError,CorrectLaborEntryMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof correctLaborEntry>>,
-        TError,
-        CorrectLaborEntryMutationVariables,
-        TContext
-      > => {
-      return useMutation(getCorrectLaborEntryMutationOptions(options), queryClient);
-    }
-
-export const getApproveFabricationStepUrl = (id: string,
-    stepId: string,) => {
-
-
-
-
-  return `/api/v1/production/production-orders/${id}/steps/${stepId}/approve`
-}
-
-export const approveFabricationStep = async (id: string,
-    stepId: string,
-    approveStepInput: ApproveStepInput, options?: Parameters<typeof apiFetch>[1]): Promise<OrderLaborView> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return apiFetch<OrderLaborView>(getApproveFabricationStepUrl(id,stepId),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(approveStepInput)
-  }
-);}
-
-
-
-
-
-export const getApproveFabricationStepMutationKey = () => ['approveFabricationStep'] as const;
-
-export const getApproveFabricationStepMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof approveFabricationStep>>, TError,ApproveFabricationStepMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof approveFabricationStep>>, TError,ApproveFabricationStepMutationVariables, TContext> => {
-
-const mutationKey = getApproveFabricationStepMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof approveFabricationStep>>, ApproveFabricationStepMutationVariables> = (props) => {
-          const {id,stepId,data} = props ?? {};
-
-          return  approveFabricationStep(id,stepId,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type ApproveFabricationStepMutationResult = NonNullable<Awaited<ReturnType<typeof approveFabricationStep>>>
-    export type ApproveFabricationStepMutationBody = ApproveStepInput
-    export type ApproveFabricationStepMutationError = unknown
-    export type ApproveFabricationStepMutationVariables = {id: string;stepId: string;data: ApproveStepInput}
-
-    export const useApproveFabricationStep = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof approveFabricationStep>>, TError,ApproveFabricationStepMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof approveFabricationStep>>,
-        TError,
-        ApproveFabricationStepMutationVariables,
-        TContext
-      > => {
-      return useMutation(getApproveFabricationStepMutationOptions(options), queryClient);
-    }
-
-export const getListOpenLaborEntriesUrl = () => {
-
-
-
-
-  return `/api/v1/production/labor-entries/open`
-}
-
-export const listOpenLaborEntries = async ( options?: Parameters<typeof apiFetch>[1]): Promise<OpenLaborList> => {
-
-  return apiFetch<OpenLaborList>(getListOpenLaborEntriesUrl(),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getListOpenLaborEntriesQueryKey = () => {
-    return [
-    `/api/v1/production/labor-entries/open`
-    ] as const;
-    }
-
-
-export const getListOpenLaborEntriesQueryOptions = <TData = Awaited<ReturnType<typeof listOpenLaborEntries>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOpenLaborEntries>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getListOpenLaborEntriesQueryKey();
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listOpenLaborEntries>>> = ({ signal }) => listOpenLaborEntries({ signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listOpenLaborEntries>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ListOpenLaborEntriesQueryResult = NonNullable<Awaited<ReturnType<typeof listOpenLaborEntries>>>
-export type ListOpenLaborEntriesQueryError = unknown
-
-
-export function useListOpenLaborEntries<TData = Awaited<ReturnType<typeof listOpenLaborEntries>>, TError = unknown>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOpenLaborEntries>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listOpenLaborEntries>>,
-          TError,
-          Awaited<ReturnType<typeof listOpenLaborEntries>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListOpenLaborEntries<TData = Awaited<ReturnType<typeof listOpenLaborEntries>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOpenLaborEntries>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listOpenLaborEntries>>,
-          TError,
-          Awaited<ReturnType<typeof listOpenLaborEntries>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListOpenLaborEntries<TData = Awaited<ReturnType<typeof listOpenLaborEntries>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOpenLaborEntries>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useListOpenLaborEntries<TData = Awaited<ReturnType<typeof listOpenLaborEntries>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOpenLaborEntries>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getListOpenLaborEntriesQueryOptions(options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getListLaborEmployeesUrl = () => {
-
-
-
-
-  return `/api/v1/production/labor-entries/employees`
-}
-
-export const listLaborEmployees = async ( options?: Parameters<typeof apiFetch>[1]): Promise<LaborEmployeeOption[]> => {
-
-  return apiFetch<LaborEmployeeOption[]>(getListLaborEmployeesUrl(),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getListLaborEmployeesQueryKey = () => {
-    return [
-    `/api/v1/production/labor-entries/employees`
-    ] as const;
-    }
-
-
-export const getListLaborEmployeesQueryOptions = <TData = Awaited<ReturnType<typeof listLaborEmployees>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLaborEmployees>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getListLaborEmployeesQueryKey();
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listLaborEmployees>>> = ({ signal }) => listLaborEmployees({ signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listLaborEmployees>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ListLaborEmployeesQueryResult = NonNullable<Awaited<ReturnType<typeof listLaborEmployees>>>
-export type ListLaborEmployeesQueryError = unknown
-
-
-export function useListLaborEmployees<TData = Awaited<ReturnType<typeof listLaborEmployees>>, TError = unknown>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLaborEmployees>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listLaborEmployees>>,
-          TError,
-          Awaited<ReturnType<typeof listLaborEmployees>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListLaborEmployees<TData = Awaited<ReturnType<typeof listLaborEmployees>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLaborEmployees>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listLaborEmployees>>,
-          TError,
-          Awaited<ReturnType<typeof listLaborEmployees>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListLaborEmployees<TData = Awaited<ReturnType<typeof listLaborEmployees>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLaborEmployees>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useListLaborEmployees<TData = Awaited<ReturnType<typeof listLaborEmployees>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLaborEmployees>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getListLaborEmployeesQueryOptions(options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
 export const getListInstallationsUrl = (params?: ListInstallationsParams,) => {
   const normalizedParams = new URLSearchParams();
 
@@ -23821,951 +23289,6 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getSaveInstallationTemplateMutationOptions(options), queryClient);
     }
-
-export const getGetShopfloorQueueUrl = () => {
-
-
-
-
-  return `/api/v1/shopfloor/queue`
-}
-
-export const getShopfloorQueue = async ( options?: Parameters<typeof apiFetch>[1]): Promise<ShopfloorQueueView> => {
-
-  return apiFetch<ShopfloorQueueView>(getGetShopfloorQueueUrl(),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getGetShopfloorQueueQueryKey = () => {
-    return [
-    `/api/v1/shopfloor/queue`
-    ] as const;
-    }
-
-
-export const getGetShopfloorQueueQueryOptions = <TData = Awaited<ReturnType<typeof getShopfloorQueue>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShopfloorQueue>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetShopfloorQueueQueryKey();
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getShopfloorQueue>>> = ({ signal }) => getShopfloorQueue({ signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getShopfloorQueue>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetShopfloorQueueQueryResult = NonNullable<Awaited<ReturnType<typeof getShopfloorQueue>>>
-export type GetShopfloorQueueQueryError = unknown
-
-
-export function useGetShopfloorQueue<TData = Awaited<ReturnType<typeof getShopfloorQueue>>, TError = unknown>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShopfloorQueue>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getShopfloorQueue>>,
-          TError,
-          Awaited<ReturnType<typeof getShopfloorQueue>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetShopfloorQueue<TData = Awaited<ReturnType<typeof getShopfloorQueue>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShopfloorQueue>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getShopfloorQueue>>,
-          TError,
-          Awaited<ReturnType<typeof getShopfloorQueue>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetShopfloorQueue<TData = Awaited<ReturnType<typeof getShopfloorQueue>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShopfloorQueue>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useGetShopfloorQueue<TData = Awaited<ReturnType<typeof getShopfloorQueue>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShopfloorQueue>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetShopfloorQueueQueryOptions(options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getSearchShopfloorOrderUrl = (params?: SearchShopfloorOrderParams,) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : String(value))
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `/api/v1/shopfloor/orders?${stringifiedParams}` : `/api/v1/shopfloor/orders`
-}
-
-export const searchShopfloorOrder = async (params?: SearchShopfloorOrderParams, options?: Parameters<typeof apiFetch>[1]): Promise<ShopfloorQueueStep[]> => {
-
-  return apiFetch<ShopfloorQueueStep[]>(getSearchShopfloorOrderUrl(params),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getSearchShopfloorOrderQueryKey = (params?: SearchShopfloorOrderParams,) => {
-    return [
-    `/api/v1/shopfloor/orders`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-
-export const getSearchShopfloorOrderQueryOptions = <TData = Awaited<ReturnType<typeof searchShopfloorOrder>>, TError = unknown>(params?: SearchShopfloorOrderParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchShopfloorOrder>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getSearchShopfloorOrderQueryKey(params);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchShopfloorOrder>>> = ({ signal }) => searchShopfloorOrder(params, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof searchShopfloorOrder>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type SearchShopfloorOrderQueryResult = NonNullable<Awaited<ReturnType<typeof searchShopfloorOrder>>>
-export type SearchShopfloorOrderQueryError = unknown
-
-
-export function useSearchShopfloorOrder<TData = Awaited<ReturnType<typeof searchShopfloorOrder>>, TError = unknown>(
- params: undefined |  SearchShopfloorOrderParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchShopfloorOrder>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof searchShopfloorOrder>>,
-          TError,
-          Awaited<ReturnType<typeof searchShopfloorOrder>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useSearchShopfloorOrder<TData = Awaited<ReturnType<typeof searchShopfloorOrder>>, TError = unknown>(
- params?: SearchShopfloorOrderParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchShopfloorOrder>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof searchShopfloorOrder>>,
-          TError,
-          Awaited<ReturnType<typeof searchShopfloorOrder>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useSearchShopfloorOrder<TData = Awaited<ReturnType<typeof searchShopfloorOrder>>, TError = unknown>(
- params?: SearchShopfloorOrderParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchShopfloorOrder>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useSearchShopfloorOrder<TData = Awaited<ReturnType<typeof searchShopfloorOrder>>, TError = unknown>(
- params?: SearchShopfloorOrderParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchShopfloorOrder>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getSearchShopfloorOrderQueryOptions(params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getGetShopfloorStepUrl = (stepId: string,) => {
-
-
-
-
-  return `/api/v1/shopfloor/steps/${stepId}`
-}
-
-export const getShopfloorStep = async (stepId: string, options?: Parameters<typeof apiFetch>[1]): Promise<ShopfloorStepDetail> => {
-
-  return apiFetch<ShopfloorStepDetail>(getGetShopfloorStepUrl(stepId),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getGetShopfloorStepQueryKey = (stepId: string,) => {
-    return [
-    `/api/v1/shopfloor/steps/${stepId}`
-    ] as const;
-    }
-
-
-export const getGetShopfloorStepQueryOptions = <TData = Awaited<ReturnType<typeof getShopfloorStep>>, TError = unknown>(stepId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShopfloorStep>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetShopfloorStepQueryKey(stepId);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getShopfloorStep>>> = ({ signal }) => getShopfloorStep(stepId, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: stepId !== null && stepId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getShopfloorStep>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetShopfloorStepQueryResult = NonNullable<Awaited<ReturnType<typeof getShopfloorStep>>>
-export type GetShopfloorStepQueryError = unknown
-
-
-export function useGetShopfloorStep<TData = Awaited<ReturnType<typeof getShopfloorStep>>, TError = unknown>(
- stepId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShopfloorStep>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getShopfloorStep>>,
-          TError,
-          Awaited<ReturnType<typeof getShopfloorStep>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetShopfloorStep<TData = Awaited<ReturnType<typeof getShopfloorStep>>, TError = unknown>(
- stepId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShopfloorStep>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getShopfloorStep>>,
-          TError,
-          Awaited<ReturnType<typeof getShopfloorStep>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetShopfloorStep<TData = Awaited<ReturnType<typeof getShopfloorStep>>, TError = unknown>(
- stepId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShopfloorStep>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useGetShopfloorStep<TData = Awaited<ReturnType<typeof getShopfloorStep>>, TError = unknown>(
- stepId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShopfloorStep>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetShopfloorStepQueryOptions(stepId,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getStartShopfloorStepUrl = (stepId: string,) => {
-
-
-
-
-  return `/api/v1/shopfloor/steps/${stepId}/start`
-}
-
-export const startShopfloorStep = async (stepId: string, options?: Parameters<typeof apiFetch>[1]): Promise<ShopfloorActionResult> => {
-
-  return apiFetch<ShopfloorActionResult>(getStartShopfloorStepUrl(stepId),
-  {
-    ...options,
-    method: 'POST'
-
-
-  }
-);}
-
-
-
-
-
-export const getStartShopfloorStepMutationKey = () => ['startShopfloorStep'] as const;
-
-export const getStartShopfloorStepMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startShopfloorStep>>, TError,StartShopfloorStepMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof startShopfloorStep>>, TError,StartShopfloorStepMutationVariables, TContext> => {
-
-const mutationKey = getStartShopfloorStepMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof startShopfloorStep>>, StartShopfloorStepMutationVariables> = (props) => {
-          const {stepId} = props ?? {};
-
-          return  startShopfloorStep(stepId,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type StartShopfloorStepMutationResult = NonNullable<Awaited<ReturnType<typeof startShopfloorStep>>>
-
-    export type StartShopfloorStepMutationError = unknown
-    export type StartShopfloorStepMutationVariables = {stepId: string}
-
-    export const useStartShopfloorStep = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startShopfloorStep>>, TError,StartShopfloorStepMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof startShopfloorStep>>,
-        TError,
-        StartShopfloorStepMutationVariables,
-        TContext
-      > => {
-      return useMutation(getStartShopfloorStepMutationOptions(options), queryClient);
-    }
-
-export const getPauseShopfloorStepUrl = (stepId: string,) => {
-
-
-
-
-  return `/api/v1/shopfloor/steps/${stepId}/pause`
-}
-
-export const pauseShopfloorStep = async (stepId: string,
-    shopfloorPauseInput: ShopfloorPauseInput, options?: Parameters<typeof apiFetch>[1]): Promise<ShopfloorActionResult> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return apiFetch<ShopfloorActionResult>(getPauseShopfloorStepUrl(stepId),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(shopfloorPauseInput)
-  }
-);}
-
-
-
-
-
-export const getPauseShopfloorStepMutationKey = () => ['pauseShopfloorStep'] as const;
-
-export const getPauseShopfloorStepMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof pauseShopfloorStep>>, TError,PauseShopfloorStepMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof pauseShopfloorStep>>, TError,PauseShopfloorStepMutationVariables, TContext> => {
-
-const mutationKey = getPauseShopfloorStepMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof pauseShopfloorStep>>, PauseShopfloorStepMutationVariables> = (props) => {
-          const {stepId,data} = props ?? {};
-
-          return  pauseShopfloorStep(stepId,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PauseShopfloorStepMutationResult = NonNullable<Awaited<ReturnType<typeof pauseShopfloorStep>>>
-    export type PauseShopfloorStepMutationBody = ShopfloorPauseInput
-    export type PauseShopfloorStepMutationError = unknown
-    export type PauseShopfloorStepMutationVariables = {stepId: string;data: ShopfloorPauseInput}
-
-    export const usePauseShopfloorStep = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof pauseShopfloorStep>>, TError,PauseShopfloorStepMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof pauseShopfloorStep>>,
-        TError,
-        PauseShopfloorStepMutationVariables,
-        TContext
-      > => {
-      return useMutation(getPauseShopfloorStepMutationOptions(options), queryClient);
-    }
-
-export const getResumeShopfloorStepUrl = (stepId: string,) => {
-
-
-
-
-  return `/api/v1/shopfloor/steps/${stepId}/resume`
-}
-
-export const resumeShopfloorStep = async (stepId: string, options?: Parameters<typeof apiFetch>[1]): Promise<ShopfloorActionResult> => {
-
-  return apiFetch<ShopfloorActionResult>(getResumeShopfloorStepUrl(stepId),
-  {
-    ...options,
-    method: 'POST'
-
-
-  }
-);}
-
-
-
-
-
-export const getResumeShopfloorStepMutationKey = () => ['resumeShopfloorStep'] as const;
-
-export const getResumeShopfloorStepMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resumeShopfloorStep>>, TError,ResumeShopfloorStepMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof resumeShopfloorStep>>, TError,ResumeShopfloorStepMutationVariables, TContext> => {
-
-const mutationKey = getResumeShopfloorStepMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof resumeShopfloorStep>>, ResumeShopfloorStepMutationVariables> = (props) => {
-          const {stepId} = props ?? {};
-
-          return  resumeShopfloorStep(stepId,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type ResumeShopfloorStepMutationResult = NonNullable<Awaited<ReturnType<typeof resumeShopfloorStep>>>
-
-    export type ResumeShopfloorStepMutationError = unknown
-    export type ResumeShopfloorStepMutationVariables = {stepId: string}
-
-    export const useResumeShopfloorStep = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resumeShopfloorStep>>, TError,ResumeShopfloorStepMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof resumeShopfloorStep>>,
-        TError,
-        ResumeShopfloorStepMutationVariables,
-        TContext
-      > => {
-      return useMutation(getResumeShopfloorStepMutationOptions(options), queryClient);
-    }
-
-export const getLeaveShopfloorStepUrl = (stepId: string,) => {
-
-
-
-
-  return `/api/v1/shopfloor/steps/${stepId}/leave`
-}
-
-export const leaveShopfloorStep = async (stepId: string, options?: Parameters<typeof apiFetch>[1]): Promise<ShopfloorActionResult> => {
-
-  return apiFetch<ShopfloorActionResult>(getLeaveShopfloorStepUrl(stepId),
-  {
-    ...options,
-    method: 'POST'
-
-
-  }
-);}
-
-
-
-
-
-export const getLeaveShopfloorStepMutationKey = () => ['leaveShopfloorStep'] as const;
-
-export const getLeaveShopfloorStepMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof leaveShopfloorStep>>, TError,LeaveShopfloorStepMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof leaveShopfloorStep>>, TError,LeaveShopfloorStepMutationVariables, TContext> => {
-
-const mutationKey = getLeaveShopfloorStepMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof leaveShopfloorStep>>, LeaveShopfloorStepMutationVariables> = (props) => {
-          const {stepId} = props ?? {};
-
-          return  leaveShopfloorStep(stepId,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type LeaveShopfloorStepMutationResult = NonNullable<Awaited<ReturnType<typeof leaveShopfloorStep>>>
-
-    export type LeaveShopfloorStepMutationError = unknown
-    export type LeaveShopfloorStepMutationVariables = {stepId: string}
-
-    export const useLeaveShopfloorStep = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof leaveShopfloorStep>>, TError,LeaveShopfloorStepMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof leaveShopfloorStep>>,
-        TError,
-        LeaveShopfloorStepMutationVariables,
-        TContext
-      > => {
-      return useMutation(getLeaveShopfloorStepMutationOptions(options), queryClient);
-    }
-
-export const getFinishShopfloorStepUrl = (stepId: string,) => {
-
-
-
-
-  return `/api/v1/shopfloor/steps/${stepId}/finish`
-}
-
-export const finishShopfloorStep = async (stepId: string,
-    shopfloorFinishInput: ShopfloorFinishInput, options?: Parameters<typeof apiFetch>[1]): Promise<ShopfloorActionResult> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return apiFetch<ShopfloorActionResult>(getFinishShopfloorStepUrl(stepId),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(shopfloorFinishInput)
-  }
-);}
-
-
-
-
-
-export const getFinishShopfloorStepMutationKey = () => ['finishShopfloorStep'] as const;
-
-export const getFinishShopfloorStepMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof finishShopfloorStep>>, TError,FinishShopfloorStepMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof finishShopfloorStep>>, TError,FinishShopfloorStepMutationVariables, TContext> => {
-
-const mutationKey = getFinishShopfloorStepMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof finishShopfloorStep>>, FinishShopfloorStepMutationVariables> = (props) => {
-          const {stepId,data} = props ?? {};
-
-          return  finishShopfloorStep(stepId,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type FinishShopfloorStepMutationResult = NonNullable<Awaited<ReturnType<typeof finishShopfloorStep>>>
-    export type FinishShopfloorStepMutationBody = ShopfloorFinishInput
-    export type FinishShopfloorStepMutationError = unknown
-    export type FinishShopfloorStepMutationVariables = {stepId: string;data: ShopfloorFinishInput}
-
-    export const useFinishShopfloorStep = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof finishShopfloorStep>>, TError,FinishShopfloorStepMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof finishShopfloorStep>>,
-        TError,
-        FinishShopfloorStepMutationVariables,
-        TContext
-      > => {
-      return useMutation(getFinishShopfloorStepMutationOptions(options), queryClient);
-    }
-
-export const getMarkShopfloorChecklistUrl = (stepId: string,
-    itemId: string,) => {
-
-
-
-
-  return `/api/v1/shopfloor/steps/${stepId}/checklist/${itemId}`
-}
-
-export const markShopfloorChecklist = async (stepId: string,
-    itemId: string,
-    shopfloorChecklistInput: ShopfloorChecklistInput, options?: Parameters<typeof apiFetch>[1]): Promise<ShopfloorStepDetail> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return apiFetch<ShopfloorStepDetail>(getMarkShopfloorChecklistUrl(stepId,itemId),
-  {
-    ...options,
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(shopfloorChecklistInput)
-  }
-);}
-
-
-
-
-
-export const getMarkShopfloorChecklistMutationKey = () => ['markShopfloorChecklist'] as const;
-
-export const getMarkShopfloorChecklistMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markShopfloorChecklist>>, TError,MarkShopfloorChecklistMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof markShopfloorChecklist>>, TError,MarkShopfloorChecklistMutationVariables, TContext> => {
-
-const mutationKey = getMarkShopfloorChecklistMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof markShopfloorChecklist>>, MarkShopfloorChecklistMutationVariables> = (props) => {
-          const {stepId,itemId,data} = props ?? {};
-
-          return  markShopfloorChecklist(stepId,itemId,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type MarkShopfloorChecklistMutationResult = NonNullable<Awaited<ReturnType<typeof markShopfloorChecklist>>>
-    export type MarkShopfloorChecklistMutationBody = ShopfloorChecklistInput
-    export type MarkShopfloorChecklistMutationError = unknown
-    export type MarkShopfloorChecklistMutationVariables = {stepId: string;itemId: string;data: ShopfloorChecklistInput}
-
-    export const useMarkShopfloorChecklist = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markShopfloorChecklist>>, TError,MarkShopfloorChecklistMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof markShopfloorChecklist>>,
-        TError,
-        MarkShopfloorChecklistMutationVariables,
-        TContext
-      > => {
-      return useMutation(getMarkShopfloorChecklistMutationOptions(options), queryClient);
-    }
-
-export const getListShopfloorAttachmentsUrl = (stepId: string,) => {
-
-
-
-
-  return `/api/v1/shopfloor/steps/${stepId}/attachments`
-}
-
-export const listShopfloorAttachments = async (stepId: string, options?: Parameters<typeof apiFetch>[1]): Promise<ShopfloorAttachment[]> => {
-
-  return apiFetch<ShopfloorAttachment[]>(getListShopfloorAttachmentsUrl(stepId),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getListShopfloorAttachmentsQueryKey = (stepId: string,) => {
-    return [
-    `/api/v1/shopfloor/steps/${stepId}/attachments`
-    ] as const;
-    }
-
-
-export const getListShopfloorAttachmentsQueryOptions = <TData = Awaited<ReturnType<typeof listShopfloorAttachments>>, TError = unknown>(stepId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShopfloorAttachments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getListShopfloorAttachmentsQueryKey(stepId);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listShopfloorAttachments>>> = ({ signal }) => listShopfloorAttachments(stepId, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: stepId !== null && stepId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listShopfloorAttachments>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ListShopfloorAttachmentsQueryResult = NonNullable<Awaited<ReturnType<typeof listShopfloorAttachments>>>
-export type ListShopfloorAttachmentsQueryError = unknown
-
-
-export function useListShopfloorAttachments<TData = Awaited<ReturnType<typeof listShopfloorAttachments>>, TError = unknown>(
- stepId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShopfloorAttachments>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listShopfloorAttachments>>,
-          TError,
-          Awaited<ReturnType<typeof listShopfloorAttachments>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListShopfloorAttachments<TData = Awaited<ReturnType<typeof listShopfloorAttachments>>, TError = unknown>(
- stepId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShopfloorAttachments>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listShopfloorAttachments>>,
-          TError,
-          Awaited<ReturnType<typeof listShopfloorAttachments>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListShopfloorAttachments<TData = Awaited<ReturnType<typeof listShopfloorAttachments>>, TError = unknown>(
- stepId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShopfloorAttachments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useListShopfloorAttachments<TData = Awaited<ReturnType<typeof listShopfloorAttachments>>, TError = unknown>(
- stepId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShopfloorAttachments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getListShopfloorAttachmentsQueryOptions(stepId,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getDownloadShopfloorAttachmentUrl = (stepId: string,
-    attachmentId: string,) => {
-
-
-
-
-  return `/api/v1/shopfloor/steps/${stepId}/attachments/${attachmentId}`
-}
-
-export const downloadShopfloorAttachment = async (stepId: string,
-    attachmentId: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
-
-  return apiFetch<void>(getDownloadShopfloorAttachmentUrl(stepId,attachmentId),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getDownloadShopfloorAttachmentQueryKey = (stepId: string,
-    attachmentId: string,) => {
-    return [
-    `/api/v1/shopfloor/steps/${stepId}/attachments/${attachmentId}`
-    ] as const;
-    }
-
-
-export const getDownloadShopfloorAttachmentQueryOptions = <TData = Awaited<ReturnType<typeof downloadShopfloorAttachment>>, TError = unknown>(stepId: string,
-    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadShopfloorAttachment>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getDownloadShopfloorAttachmentQueryKey(stepId,attachmentId);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadShopfloorAttachment>>> = ({ signal }) => downloadShopfloorAttachment(stepId,attachmentId, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: stepId !== null && stepId !== undefined && attachmentId !== null && attachmentId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadShopfloorAttachment>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type DownloadShopfloorAttachmentQueryResult = NonNullable<Awaited<ReturnType<typeof downloadShopfloorAttachment>>>
-export type DownloadShopfloorAttachmentQueryError = unknown
-
-
-export function useDownloadShopfloorAttachment<TData = Awaited<ReturnType<typeof downloadShopfloorAttachment>>, TError = unknown>(
- stepId: string,
-    attachmentId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadShopfloorAttachment>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof downloadShopfloorAttachment>>,
-          TError,
-          Awaited<ReturnType<typeof downloadShopfloorAttachment>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useDownloadShopfloorAttachment<TData = Awaited<ReturnType<typeof downloadShopfloorAttachment>>, TError = unknown>(
- stepId: string,
-    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadShopfloorAttachment>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof downloadShopfloorAttachment>>,
-          TError,
-          Awaited<ReturnType<typeof downloadShopfloorAttachment>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useDownloadShopfloorAttachment<TData = Awaited<ReturnType<typeof downloadShopfloorAttachment>>, TError = unknown>(
- stepId: string,
-    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadShopfloorAttachment>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useDownloadShopfloorAttachment<TData = Awaited<ReturnType<typeof downloadShopfloorAttachment>>, TError = unknown>(
- stepId: string,
-    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadShopfloorAttachment>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getDownloadShopfloorAttachmentQueryOptions(stepId,attachmentId,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
 
 export const getListLocationsUrl = (params?: ListLocationsParams,) => {
   const normalizedParams = new URLSearchParams();
@@ -36280,3 +34803,1874 @@ export function useListImportPending<TData = Awaited<ReturnType<typeof listImpor
 
   return withQueryKey(query, queryOptions.queryKey);
 }
+
+
+
+
+
+
+
+export const getGetShopfloorQueueUrl = () => {
+
+
+
+
+  return `/api/v1/shopfloor/queue`
+}
+
+export const getShopfloorQueue = async ( options?: Parameters<typeof apiFetch>[1]): Promise<ShopfloorQueueView> => {
+
+  return apiFetch<ShopfloorQueueView>(getGetShopfloorQueueUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetShopfloorQueueQueryKey = () => {
+    return [
+    `/api/v1/shopfloor/queue`
+    ] as const;
+    }
+
+
+export const getGetShopfloorQueueQueryOptions = <TData = Awaited<ReturnType<typeof getShopfloorQueue>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShopfloorQueue>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetShopfloorQueueQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getShopfloorQueue>>> = ({ signal }) => getShopfloorQueue({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getShopfloorQueue>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetShopfloorQueueQueryResult = NonNullable<Awaited<ReturnType<typeof getShopfloorQueue>>>
+export type GetShopfloorQueueQueryError = unknown
+
+
+export function useGetShopfloorQueue<TData = Awaited<ReturnType<typeof getShopfloorQueue>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShopfloorQueue>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getShopfloorQueue>>,
+          TError,
+          Awaited<ReturnType<typeof getShopfloorQueue>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetShopfloorQueue<TData = Awaited<ReturnType<typeof getShopfloorQueue>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShopfloorQueue>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getShopfloorQueue>>,
+          TError,
+          Awaited<ReturnType<typeof getShopfloorQueue>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetShopfloorQueue<TData = Awaited<ReturnType<typeof getShopfloorQueue>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShopfloorQueue>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetShopfloorQueue<TData = Awaited<ReturnType<typeof getShopfloorQueue>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShopfloorQueue>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetShopfloorQueueQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSearchShopfloorOrderUrl = (params?: SearchShopfloorOrderParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/shopfloor/orders?${stringifiedParams}` : `/api/v1/shopfloor/orders`
+}
+
+export const searchShopfloorOrder = async (params?: SearchShopfloorOrderParams, options?: Parameters<typeof apiFetch>[1]): Promise<ShopfloorQueueStep[]> => {
+
+  return apiFetch<ShopfloorQueueStep[]>(getSearchShopfloorOrderUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getSearchShopfloorOrderQueryKey = (params?: SearchShopfloorOrderParams,) => {
+    return [
+    `/api/v1/shopfloor/orders`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getSearchShopfloorOrderQueryOptions = <TData = Awaited<ReturnType<typeof searchShopfloorOrder>>, TError = unknown>(params?: SearchShopfloorOrderParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchShopfloorOrder>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSearchShopfloorOrderQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchShopfloorOrder>>> = ({ signal }) => searchShopfloorOrder(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof searchShopfloorOrder>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type SearchShopfloorOrderQueryResult = NonNullable<Awaited<ReturnType<typeof searchShopfloorOrder>>>
+export type SearchShopfloorOrderQueryError = unknown
+
+
+export function useSearchShopfloorOrder<TData = Awaited<ReturnType<typeof searchShopfloorOrder>>, TError = unknown>(
+ params: undefined |  SearchShopfloorOrderParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchShopfloorOrder>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof searchShopfloorOrder>>,
+          TError,
+          Awaited<ReturnType<typeof searchShopfloorOrder>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSearchShopfloorOrder<TData = Awaited<ReturnType<typeof searchShopfloorOrder>>, TError = unknown>(
+ params?: SearchShopfloorOrderParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchShopfloorOrder>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof searchShopfloorOrder>>,
+          TError,
+          Awaited<ReturnType<typeof searchShopfloorOrder>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSearchShopfloorOrder<TData = Awaited<ReturnType<typeof searchShopfloorOrder>>, TError = unknown>(
+ params?: SearchShopfloorOrderParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchShopfloorOrder>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useSearchShopfloorOrder<TData = Awaited<ReturnType<typeof searchShopfloorOrder>>, TError = unknown>(
+ params?: SearchShopfloorOrderParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchShopfloorOrder>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getSearchShopfloorOrderQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetShopfloorStepUrl = (stepId: string,) => {
+
+
+
+
+  return `/api/v1/shopfloor/steps/${stepId}`
+}
+
+export const getShopfloorStep = async (stepId: string, options?: Parameters<typeof apiFetch>[1]): Promise<ShopfloorStepDetail> => {
+
+  return apiFetch<ShopfloorStepDetail>(getGetShopfloorStepUrl(stepId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetShopfloorStepQueryKey = (stepId: string,) => {
+    return [
+    `/api/v1/shopfloor/steps/${stepId}`
+    ] as const;
+    }
+
+
+export const getGetShopfloorStepQueryOptions = <TData = Awaited<ReturnType<typeof getShopfloorStep>>, TError = unknown>(stepId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShopfloorStep>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetShopfloorStepQueryKey(stepId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getShopfloorStep>>> = ({ signal }) => getShopfloorStep(stepId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: stepId !== null && stepId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getShopfloorStep>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetShopfloorStepQueryResult = NonNullable<Awaited<ReturnType<typeof getShopfloorStep>>>
+export type GetShopfloorStepQueryError = unknown
+
+
+export function useGetShopfloorStep<TData = Awaited<ReturnType<typeof getShopfloorStep>>, TError = unknown>(
+ stepId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShopfloorStep>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getShopfloorStep>>,
+          TError,
+          Awaited<ReturnType<typeof getShopfloorStep>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetShopfloorStep<TData = Awaited<ReturnType<typeof getShopfloorStep>>, TError = unknown>(
+ stepId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShopfloorStep>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getShopfloorStep>>,
+          TError,
+          Awaited<ReturnType<typeof getShopfloorStep>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetShopfloorStep<TData = Awaited<ReturnType<typeof getShopfloorStep>>, TError = unknown>(
+ stepId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShopfloorStep>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetShopfloorStep<TData = Awaited<ReturnType<typeof getShopfloorStep>>, TError = unknown>(
+ stepId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShopfloorStep>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetShopfloorStepQueryOptions(stepId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getStartShopfloorStepUrl = (stepId: string,) => {
+
+
+
+
+  return `/api/v1/shopfloor/steps/${stepId}/start`
+}
+
+export const startShopfloorStep = async (stepId: string, options?: Parameters<typeof apiFetch>[1]): Promise<ShopfloorActionResult> => {
+
+  return apiFetch<ShopfloorActionResult>(getStartShopfloorStepUrl(stepId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getStartShopfloorStepMutationKey = () => ['startShopfloorStep'] as const;
+
+export const getStartShopfloorStepMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startShopfloorStep>>, TError,StartShopfloorStepMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof startShopfloorStep>>, TError,StartShopfloorStepMutationVariables, TContext> => {
+
+const mutationKey = getStartShopfloorStepMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof startShopfloorStep>>, StartShopfloorStepMutationVariables> = (props) => {
+          const {stepId} = props ?? {};
+
+          return  startShopfloorStep(stepId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StartShopfloorStepMutationResult = NonNullable<Awaited<ReturnType<typeof startShopfloorStep>>>
+
+    export type StartShopfloorStepMutationError = unknown
+    export type StartShopfloorStepMutationVariables = {stepId: string}
+
+    export const useStartShopfloorStep = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startShopfloorStep>>, TError,StartShopfloorStepMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof startShopfloorStep>>,
+        TError,
+        StartShopfloorStepMutationVariables,
+        TContext
+      > => {
+      return useMutation(getStartShopfloorStepMutationOptions(options), queryClient);
+    }
+
+export const getPauseShopfloorStepUrl = (stepId: string,) => {
+
+
+
+
+  return `/api/v1/shopfloor/steps/${stepId}/pause`
+}
+
+export const pauseShopfloorStep = async (stepId: string,
+    shopfloorPauseInput: ShopfloorPauseInput, options?: Parameters<typeof apiFetch>[1]): Promise<ShopfloorActionResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ShopfloorActionResult>(getPauseShopfloorStepUrl(stepId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(shopfloorPauseInput)
+  }
+);}
+
+
+
+
+
+export const getPauseShopfloorStepMutationKey = () => ['pauseShopfloorStep'] as const;
+
+export const getPauseShopfloorStepMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof pauseShopfloorStep>>, TError,PauseShopfloorStepMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof pauseShopfloorStep>>, TError,PauseShopfloorStepMutationVariables, TContext> => {
+
+const mutationKey = getPauseShopfloorStepMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof pauseShopfloorStep>>, PauseShopfloorStepMutationVariables> = (props) => {
+          const {stepId,data} = props ?? {};
+
+          return  pauseShopfloorStep(stepId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PauseShopfloorStepMutationResult = NonNullable<Awaited<ReturnType<typeof pauseShopfloorStep>>>
+    export type PauseShopfloorStepMutationBody = ShopfloorPauseInput
+    export type PauseShopfloorStepMutationError = unknown
+    export type PauseShopfloorStepMutationVariables = {stepId: string;data: ShopfloorPauseInput}
+
+    export const usePauseShopfloorStep = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof pauseShopfloorStep>>, TError,PauseShopfloorStepMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof pauseShopfloorStep>>,
+        TError,
+        PauseShopfloorStepMutationVariables,
+        TContext
+      > => {
+      return useMutation(getPauseShopfloorStepMutationOptions(options), queryClient);
+    }
+
+export const getResumeShopfloorStepUrl = (stepId: string,) => {
+
+
+
+
+  return `/api/v1/shopfloor/steps/${stepId}/resume`
+}
+
+export const resumeShopfloorStep = async (stepId: string, options?: Parameters<typeof apiFetch>[1]): Promise<ShopfloorActionResult> => {
+
+  return apiFetch<ShopfloorActionResult>(getResumeShopfloorStepUrl(stepId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getResumeShopfloorStepMutationKey = () => ['resumeShopfloorStep'] as const;
+
+export const getResumeShopfloorStepMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resumeShopfloorStep>>, TError,ResumeShopfloorStepMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof resumeShopfloorStep>>, TError,ResumeShopfloorStepMutationVariables, TContext> => {
+
+const mutationKey = getResumeShopfloorStepMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof resumeShopfloorStep>>, ResumeShopfloorStepMutationVariables> = (props) => {
+          const {stepId} = props ?? {};
+
+          return  resumeShopfloorStep(stepId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ResumeShopfloorStepMutationResult = NonNullable<Awaited<ReturnType<typeof resumeShopfloorStep>>>
+
+    export type ResumeShopfloorStepMutationError = unknown
+    export type ResumeShopfloorStepMutationVariables = {stepId: string}
+
+    export const useResumeShopfloorStep = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resumeShopfloorStep>>, TError,ResumeShopfloorStepMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof resumeShopfloorStep>>,
+        TError,
+        ResumeShopfloorStepMutationVariables,
+        TContext
+      > => {
+      return useMutation(getResumeShopfloorStepMutationOptions(options), queryClient);
+    }
+
+export const getLeaveShopfloorStepUrl = (stepId: string,) => {
+
+
+
+
+  return `/api/v1/shopfloor/steps/${stepId}/leave`
+}
+
+export const leaveShopfloorStep = async (stepId: string, options?: Parameters<typeof apiFetch>[1]): Promise<ShopfloorActionResult> => {
+
+  return apiFetch<ShopfloorActionResult>(getLeaveShopfloorStepUrl(stepId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getLeaveShopfloorStepMutationKey = () => ['leaveShopfloorStep'] as const;
+
+export const getLeaveShopfloorStepMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof leaveShopfloorStep>>, TError,LeaveShopfloorStepMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof leaveShopfloorStep>>, TError,LeaveShopfloorStepMutationVariables, TContext> => {
+
+const mutationKey = getLeaveShopfloorStepMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof leaveShopfloorStep>>, LeaveShopfloorStepMutationVariables> = (props) => {
+          const {stepId} = props ?? {};
+
+          return  leaveShopfloorStep(stepId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LeaveShopfloorStepMutationResult = NonNullable<Awaited<ReturnType<typeof leaveShopfloorStep>>>
+
+    export type LeaveShopfloorStepMutationError = unknown
+    export type LeaveShopfloorStepMutationVariables = {stepId: string}
+
+    export const useLeaveShopfloorStep = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof leaveShopfloorStep>>, TError,LeaveShopfloorStepMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof leaveShopfloorStep>>,
+        TError,
+        LeaveShopfloorStepMutationVariables,
+        TContext
+      > => {
+      return useMutation(getLeaveShopfloorStepMutationOptions(options), queryClient);
+    }
+
+export const getFinishShopfloorStepUrl = (stepId: string,) => {
+
+
+
+
+  return `/api/v1/shopfloor/steps/${stepId}/finish`
+}
+
+export const finishShopfloorStep = async (stepId: string,
+    shopfloorFinishInput: ShopfloorFinishInput, options?: Parameters<typeof apiFetch>[1]): Promise<ShopfloorActionResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ShopfloorActionResult>(getFinishShopfloorStepUrl(stepId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(shopfloorFinishInput)
+  }
+);}
+
+
+
+
+
+export const getFinishShopfloorStepMutationKey = () => ['finishShopfloorStep'] as const;
+
+export const getFinishShopfloorStepMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof finishShopfloorStep>>, TError,FinishShopfloorStepMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof finishShopfloorStep>>, TError,FinishShopfloorStepMutationVariables, TContext> => {
+
+const mutationKey = getFinishShopfloorStepMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof finishShopfloorStep>>, FinishShopfloorStepMutationVariables> = (props) => {
+          const {stepId,data} = props ?? {};
+
+          return  finishShopfloorStep(stepId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type FinishShopfloorStepMutationResult = NonNullable<Awaited<ReturnType<typeof finishShopfloorStep>>>
+    export type FinishShopfloorStepMutationBody = ShopfloorFinishInput
+    export type FinishShopfloorStepMutationError = unknown
+    export type FinishShopfloorStepMutationVariables = {stepId: string;data: ShopfloorFinishInput}
+
+    export const useFinishShopfloorStep = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof finishShopfloorStep>>, TError,FinishShopfloorStepMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof finishShopfloorStep>>,
+        TError,
+        FinishShopfloorStepMutationVariables,
+        TContext
+      > => {
+      return useMutation(getFinishShopfloorStepMutationOptions(options), queryClient);
+    }
+
+export const getMarkShopfloorChecklistUrl = (stepId: string,
+    itemId: string,) => {
+
+
+
+
+  return `/api/v1/shopfloor/steps/${stepId}/checklist/${itemId}`
+}
+
+export const markShopfloorChecklist = async (stepId: string,
+    itemId: string,
+    shopfloorChecklistInput: ShopfloorChecklistInput, options?: Parameters<typeof apiFetch>[1]): Promise<ShopfloorStepDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ShopfloorStepDetail>(getMarkShopfloorChecklistUrl(stepId,itemId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(shopfloorChecklistInput)
+  }
+);}
+
+
+
+
+
+export const getMarkShopfloorChecklistMutationKey = () => ['markShopfloorChecklist'] as const;
+
+export const getMarkShopfloorChecklistMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markShopfloorChecklist>>, TError,MarkShopfloorChecklistMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof markShopfloorChecklist>>, TError,MarkShopfloorChecklistMutationVariables, TContext> => {
+
+const mutationKey = getMarkShopfloorChecklistMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof markShopfloorChecklist>>, MarkShopfloorChecklistMutationVariables> = (props) => {
+          const {stepId,itemId,data} = props ?? {};
+
+          return  markShopfloorChecklist(stepId,itemId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MarkShopfloorChecklistMutationResult = NonNullable<Awaited<ReturnType<typeof markShopfloorChecklist>>>
+    export type MarkShopfloorChecklistMutationBody = ShopfloorChecklistInput
+    export type MarkShopfloorChecklistMutationError = unknown
+    export type MarkShopfloorChecklistMutationVariables = {stepId: string;itemId: string;data: ShopfloorChecklistInput}
+
+    export const useMarkShopfloorChecklist = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markShopfloorChecklist>>, TError,MarkShopfloorChecklistMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof markShopfloorChecklist>>,
+        TError,
+        MarkShopfloorChecklistMutationVariables,
+        TContext
+      > => {
+      return useMutation(getMarkShopfloorChecklistMutationOptions(options), queryClient);
+    }
+
+export const getListShopfloorAttachmentsUrl = (stepId: string,) => {
+
+
+
+
+  return `/api/v1/shopfloor/steps/${stepId}/attachments`
+}
+
+export const listShopfloorAttachments = async (stepId: string, options?: Parameters<typeof apiFetch>[1]): Promise<ShopfloorAttachment[]> => {
+
+  return apiFetch<ShopfloorAttachment[]>(getListShopfloorAttachmentsUrl(stepId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListShopfloorAttachmentsQueryKey = (stepId: string,) => {
+    return [
+    `/api/v1/shopfloor/steps/${stepId}/attachments`
+    ] as const;
+    }
+
+
+export const getListShopfloorAttachmentsQueryOptions = <TData = Awaited<ReturnType<typeof listShopfloorAttachments>>, TError = unknown>(stepId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShopfloorAttachments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListShopfloorAttachmentsQueryKey(stepId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listShopfloorAttachments>>> = ({ signal }) => listShopfloorAttachments(stepId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: stepId !== null && stepId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listShopfloorAttachments>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListShopfloorAttachmentsQueryResult = NonNullable<Awaited<ReturnType<typeof listShopfloorAttachments>>>
+export type ListShopfloorAttachmentsQueryError = unknown
+
+
+export function useListShopfloorAttachments<TData = Awaited<ReturnType<typeof listShopfloorAttachments>>, TError = unknown>(
+ stepId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShopfloorAttachments>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listShopfloorAttachments>>,
+          TError,
+          Awaited<ReturnType<typeof listShopfloorAttachments>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListShopfloorAttachments<TData = Awaited<ReturnType<typeof listShopfloorAttachments>>, TError = unknown>(
+ stepId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShopfloorAttachments>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listShopfloorAttachments>>,
+          TError,
+          Awaited<ReturnType<typeof listShopfloorAttachments>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListShopfloorAttachments<TData = Awaited<ReturnType<typeof listShopfloorAttachments>>, TError = unknown>(
+ stepId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShopfloorAttachments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListShopfloorAttachments<TData = Awaited<ReturnType<typeof listShopfloorAttachments>>, TError = unknown>(
+ stepId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShopfloorAttachments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListShopfloorAttachmentsQueryOptions(stepId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getDownloadShopfloorAttachmentUrl = (stepId: string,
+    attachmentId: string,) => {
+
+
+
+
+  return `/api/v1/shopfloor/steps/${stepId}/attachments/${attachmentId}`
+}
+
+export const downloadShopfloorAttachment = async (stepId: string,
+    attachmentId: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDownloadShopfloorAttachmentUrl(stepId,attachmentId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadShopfloorAttachmentQueryKey = (stepId: string,
+    attachmentId: string,) => {
+    return [
+    `/api/v1/shopfloor/steps/${stepId}/attachments/${attachmentId}`
+    ] as const;
+    }
+
+
+export const getDownloadShopfloorAttachmentQueryOptions = <TData = Awaited<ReturnType<typeof downloadShopfloorAttachment>>, TError = unknown>(stepId: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadShopfloorAttachment>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadShopfloorAttachmentQueryKey(stepId,attachmentId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadShopfloorAttachment>>> = ({ signal }) => downloadShopfloorAttachment(stepId,attachmentId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: stepId !== null && stepId !== undefined && attachmentId !== null && attachmentId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadShopfloorAttachment>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DownloadShopfloorAttachmentQueryResult = NonNullable<Awaited<ReturnType<typeof downloadShopfloorAttachment>>>
+export type DownloadShopfloorAttachmentQueryError = unknown
+
+
+export function useDownloadShopfloorAttachment<TData = Awaited<ReturnType<typeof downloadShopfloorAttachment>>, TError = unknown>(
+ stepId: string,
+    attachmentId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadShopfloorAttachment>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadShopfloorAttachment>>,
+          TError,
+          Awaited<ReturnType<typeof downloadShopfloorAttachment>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadShopfloorAttachment<TData = Awaited<ReturnType<typeof downloadShopfloorAttachment>>, TError = unknown>(
+ stepId: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadShopfloorAttachment>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadShopfloorAttachment>>,
+          TError,
+          Awaited<ReturnType<typeof downloadShopfloorAttachment>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadShopfloorAttachment<TData = Awaited<ReturnType<typeof downloadShopfloorAttachment>>, TError = unknown>(
+ stepId: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadShopfloorAttachment>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useDownloadShopfloorAttachment<TData = Awaited<ReturnType<typeof downloadShopfloorAttachment>>, TError = unknown>(
+ stepId: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadShopfloorAttachment>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDownloadShopfloorAttachmentQueryOptions(stepId,attachmentId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListOrderLaborEntriesUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/production-orders/${id}/labor-entries`
+}
+
+export const listOrderLaborEntries = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<OrderLaborView> => {
+
+  return apiFetch<OrderLaborView>(getListOrderLaborEntriesUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListOrderLaborEntriesQueryKey = (id: string,) => {
+    return [
+    `/api/v1/production/production-orders/${id}/labor-entries`
+    ] as const;
+    }
+
+
+export const getListOrderLaborEntriesQueryOptions = <TData = Awaited<ReturnType<typeof listOrderLaborEntries>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrderLaborEntries>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListOrderLaborEntriesQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listOrderLaborEntries>>> = ({ signal }) => listOrderLaborEntries(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listOrderLaborEntries>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListOrderLaborEntriesQueryResult = NonNullable<Awaited<ReturnType<typeof listOrderLaborEntries>>>
+export type ListOrderLaborEntriesQueryError = unknown
+
+
+export function useListOrderLaborEntries<TData = Awaited<ReturnType<typeof listOrderLaborEntries>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrderLaborEntries>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listOrderLaborEntries>>,
+          TError,
+          Awaited<ReturnType<typeof listOrderLaborEntries>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListOrderLaborEntries<TData = Awaited<ReturnType<typeof listOrderLaborEntries>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrderLaborEntries>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listOrderLaborEntries>>,
+          TError,
+          Awaited<ReturnType<typeof listOrderLaborEntries>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListOrderLaborEntries<TData = Awaited<ReturnType<typeof listOrderLaborEntries>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrderLaborEntries>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListOrderLaborEntries<TData = Awaited<ReturnType<typeof listOrderLaborEntries>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrderLaborEntries>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListOrderLaborEntriesQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getRecordLaborEntryUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/production-orders/${id}/labor-entries`
+}
+
+export const recordLaborEntry = async (id: string,
+    laborEntryInput: LaborEntryInput, options?: Parameters<typeof apiFetch>[1]): Promise<OrderLaborView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<OrderLaborView>(getRecordLaborEntryUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(laborEntryInput)
+  }
+);}
+
+
+
+
+
+export const getRecordLaborEntryMutationKey = () => ['recordLaborEntry'] as const;
+
+export const getRecordLaborEntryMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordLaborEntry>>, TError,RecordLaborEntryMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof recordLaborEntry>>, TError,RecordLaborEntryMutationVariables, TContext> => {
+
+const mutationKey = getRecordLaborEntryMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof recordLaborEntry>>, RecordLaborEntryMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  recordLaborEntry(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RecordLaborEntryMutationResult = NonNullable<Awaited<ReturnType<typeof recordLaborEntry>>>
+    export type RecordLaborEntryMutationBody = LaborEntryInput
+    export type RecordLaborEntryMutationError = unknown
+    export type RecordLaborEntryMutationVariables = {id: string;data: LaborEntryInput}
+
+    export const useRecordLaborEntry = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordLaborEntry>>, TError,RecordLaborEntryMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof recordLaborEntry>>,
+        TError,
+        RecordLaborEntryMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRecordLaborEntryMutationOptions(options), queryClient);
+    }
+
+export const getCorrectLaborEntryUrl = (id: string,
+    entryId: string,) => {
+
+
+
+
+  return `/api/v1/production/production-orders/${id}/labor-entries/${entryId}/correct`
+}
+
+export const correctLaborEntry = async (id: string,
+    entryId: string,
+    laborCorrectionInput: LaborCorrectionInput, options?: Parameters<typeof apiFetch>[1]): Promise<OrderLaborView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<OrderLaborView>(getCorrectLaborEntryUrl(id,entryId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(laborCorrectionInput)
+  }
+);}
+
+
+
+
+
+export const getCorrectLaborEntryMutationKey = () => ['correctLaborEntry'] as const;
+
+export const getCorrectLaborEntryMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof correctLaborEntry>>, TError,CorrectLaborEntryMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof correctLaborEntry>>, TError,CorrectLaborEntryMutationVariables, TContext> => {
+
+const mutationKey = getCorrectLaborEntryMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof correctLaborEntry>>, CorrectLaborEntryMutationVariables> = (props) => {
+          const {id,entryId,data} = props ?? {};
+
+          return  correctLaborEntry(id,entryId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CorrectLaborEntryMutationResult = NonNullable<Awaited<ReturnType<typeof correctLaborEntry>>>
+    export type CorrectLaborEntryMutationBody = LaborCorrectionInput
+    export type CorrectLaborEntryMutationError = unknown
+    export type CorrectLaborEntryMutationVariables = {id: string;entryId: string;data: LaborCorrectionInput}
+
+    export const useCorrectLaborEntry = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof correctLaborEntry>>, TError,CorrectLaborEntryMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof correctLaborEntry>>,
+        TError,
+        CorrectLaborEntryMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCorrectLaborEntryMutationOptions(options), queryClient);
+    }
+
+export const getApproveFabricationStepUrl = (id: string,
+    stepId: string,) => {
+
+
+
+
+  return `/api/v1/production/production-orders/${id}/steps/${stepId}/approve`
+}
+
+export const approveFabricationStep = async (id: string,
+    stepId: string,
+    approveStepInput: ApproveStepInput, options?: Parameters<typeof apiFetch>[1]): Promise<OrderLaborView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<OrderLaborView>(getApproveFabricationStepUrl(id,stepId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(approveStepInput)
+  }
+);}
+
+
+
+
+
+export const getApproveFabricationStepMutationKey = () => ['approveFabricationStep'] as const;
+
+export const getApproveFabricationStepMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof approveFabricationStep>>, TError,ApproveFabricationStepMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof approveFabricationStep>>, TError,ApproveFabricationStepMutationVariables, TContext> => {
+
+const mutationKey = getApproveFabricationStepMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof approveFabricationStep>>, ApproveFabricationStepMutationVariables> = (props) => {
+          const {id,stepId,data} = props ?? {};
+
+          return  approveFabricationStep(id,stepId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ApproveFabricationStepMutationResult = NonNullable<Awaited<ReturnType<typeof approveFabricationStep>>>
+    export type ApproveFabricationStepMutationBody = ApproveStepInput
+    export type ApproveFabricationStepMutationError = unknown
+    export type ApproveFabricationStepMutationVariables = {id: string;stepId: string;data: ApproveStepInput}
+
+    export const useApproveFabricationStep = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof approveFabricationStep>>, TError,ApproveFabricationStepMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof approveFabricationStep>>,
+        TError,
+        ApproveFabricationStepMutationVariables,
+        TContext
+      > => {
+      return useMutation(getApproveFabricationStepMutationOptions(options), queryClient);
+    }
+
+export const getListOpenLaborEntriesUrl = () => {
+
+
+
+
+  return `/api/v1/production/labor-entries/open`
+}
+
+export const listOpenLaborEntries = async ( options?: Parameters<typeof apiFetch>[1]): Promise<OpenLaborList> => {
+
+  return apiFetch<OpenLaborList>(getListOpenLaborEntriesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListOpenLaborEntriesQueryKey = () => {
+    return [
+    `/api/v1/production/labor-entries/open`
+    ] as const;
+    }
+
+
+export const getListOpenLaborEntriesQueryOptions = <TData = Awaited<ReturnType<typeof listOpenLaborEntries>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOpenLaborEntries>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListOpenLaborEntriesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listOpenLaborEntries>>> = ({ signal }) => listOpenLaborEntries({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listOpenLaborEntries>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListOpenLaborEntriesQueryResult = NonNullable<Awaited<ReturnType<typeof listOpenLaborEntries>>>
+export type ListOpenLaborEntriesQueryError = unknown
+
+
+export function useListOpenLaborEntries<TData = Awaited<ReturnType<typeof listOpenLaborEntries>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOpenLaborEntries>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listOpenLaborEntries>>,
+          TError,
+          Awaited<ReturnType<typeof listOpenLaborEntries>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListOpenLaborEntries<TData = Awaited<ReturnType<typeof listOpenLaborEntries>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOpenLaborEntries>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listOpenLaborEntries>>,
+          TError,
+          Awaited<ReturnType<typeof listOpenLaborEntries>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListOpenLaborEntries<TData = Awaited<ReturnType<typeof listOpenLaborEntries>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOpenLaborEntries>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListOpenLaborEntries<TData = Awaited<ReturnType<typeof listOpenLaborEntries>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOpenLaborEntries>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListOpenLaborEntriesQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListLaborEmployeesUrl = () => {
+
+
+
+
+  return `/api/v1/production/labor-entries/employees`
+}
+
+export const listLaborEmployees = async ( options?: Parameters<typeof apiFetch>[1]): Promise<LaborEmployeeOption[]> => {
+
+  return apiFetch<LaborEmployeeOption[]>(getListLaborEmployeesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListLaborEmployeesQueryKey = () => {
+    return [
+    `/api/v1/production/labor-entries/employees`
+    ] as const;
+    }
+
+
+export const getListLaborEmployeesQueryOptions = <TData = Awaited<ReturnType<typeof listLaborEmployees>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLaborEmployees>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListLaborEmployeesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listLaborEmployees>>> = ({ signal }) => listLaborEmployees({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listLaborEmployees>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListLaborEmployeesQueryResult = NonNullable<Awaited<ReturnType<typeof listLaborEmployees>>>
+export type ListLaborEmployeesQueryError = unknown
+
+
+export function useListLaborEmployees<TData = Awaited<ReturnType<typeof listLaborEmployees>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLaborEmployees>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listLaborEmployees>>,
+          TError,
+          Awaited<ReturnType<typeof listLaborEmployees>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListLaborEmployees<TData = Awaited<ReturnType<typeof listLaborEmployees>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLaborEmployees>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listLaborEmployees>>,
+          TError,
+          Awaited<ReturnType<typeof listLaborEmployees>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListLaborEmployees<TData = Awaited<ReturnType<typeof listLaborEmployees>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLaborEmployees>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListLaborEmployees<TData = Awaited<ReturnType<typeof listLaborEmployees>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLaborEmployees>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListLaborEmployeesQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetOrderLaborCostsUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/production-orders/${id}/labor-costs`
+}
+
+export const getOrderLaborCosts = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<OrderLaborCostView> => {
+
+  return apiFetch<OrderLaborCostView>(getGetOrderLaborCostsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOrderLaborCostsQueryKey = (id: string,) => {
+    return [
+    `/api/v1/production/production-orders/${id}/labor-costs`
+    ] as const;
+    }
+
+
+export const getGetOrderLaborCostsQueryOptions = <TData = Awaited<ReturnType<typeof getOrderLaborCosts>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderLaborCosts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOrderLaborCostsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOrderLaborCosts>>> = ({ signal }) => getOrderLaborCosts(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOrderLaborCosts>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetOrderLaborCostsQueryResult = NonNullable<Awaited<ReturnType<typeof getOrderLaborCosts>>>
+export type GetOrderLaborCostsQueryError = unknown
+
+
+export function useGetOrderLaborCosts<TData = Awaited<ReturnType<typeof getOrderLaborCosts>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderLaborCosts>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrderLaborCosts>>,
+          TError,
+          Awaited<ReturnType<typeof getOrderLaborCosts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOrderLaborCosts<TData = Awaited<ReturnType<typeof getOrderLaborCosts>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderLaborCosts>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrderLaborCosts>>,
+          TError,
+          Awaited<ReturnType<typeof getOrderLaborCosts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOrderLaborCosts<TData = Awaited<ReturnType<typeof getOrderLaborCosts>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderLaborCosts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetOrderLaborCosts<TData = Awaited<ReturnType<typeof getOrderLaborCosts>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderLaborCosts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetOrderLaborCostsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetLaborEntryCostHistoryUrl = (id: string,
+    entryId: string,) => {
+
+
+
+
+  return `/api/v1/production/production-orders/${id}/labor-entries/${entryId}/cost-history`
+}
+
+export const getLaborEntryCostHistory = async (id: string,
+    entryId: string, options?: Parameters<typeof apiFetch>[1]): Promise<LaborCostHistoryView[]> => {
+
+  return apiFetch<LaborCostHistoryView[]>(getGetLaborEntryCostHistoryUrl(id,entryId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLaborEntryCostHistoryQueryKey = (id: string,
+    entryId: string,) => {
+    return [
+    `/api/v1/production/production-orders/${id}/labor-entries/${entryId}/cost-history`
+    ] as const;
+    }
+
+
+export const getGetLaborEntryCostHistoryQueryOptions = <TData = Awaited<ReturnType<typeof getLaborEntryCostHistory>>, TError = unknown>(id: string,
+    entryId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLaborEntryCostHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLaborEntryCostHistoryQueryKey(id,entryId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLaborEntryCostHistory>>> = ({ signal }) => getLaborEntryCostHistory(id,entryId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && entryId !== null && entryId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLaborEntryCostHistory>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetLaborEntryCostHistoryQueryResult = NonNullable<Awaited<ReturnType<typeof getLaborEntryCostHistory>>>
+export type GetLaborEntryCostHistoryQueryError = unknown
+
+
+export function useGetLaborEntryCostHistory<TData = Awaited<ReturnType<typeof getLaborEntryCostHistory>>, TError = unknown>(
+ id: string,
+    entryId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLaborEntryCostHistory>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLaborEntryCostHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getLaborEntryCostHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLaborEntryCostHistory<TData = Awaited<ReturnType<typeof getLaborEntryCostHistory>>, TError = unknown>(
+ id: string,
+    entryId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLaborEntryCostHistory>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLaborEntryCostHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getLaborEntryCostHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLaborEntryCostHistory<TData = Awaited<ReturnType<typeof getLaborEntryCostHistory>>, TError = unknown>(
+ id: string,
+    entryId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLaborEntryCostHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetLaborEntryCostHistory<TData = Awaited<ReturnType<typeof getLaborEntryCostHistory>>, TError = unknown>(
+ id: string,
+    entryId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLaborEntryCostHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetLaborEntryCostHistoryQueryOptions(id,entryId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetMissingLaborCostsUrl = (params?: GetMissingLaborCostsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/production/labor-costs/missing?${stringifiedParams}` : `/api/v1/production/labor-costs/missing`
+}
+
+export const getMissingLaborCosts = async (params?: GetMissingLaborCostsParams, options?: Parameters<typeof apiFetch>[1]): Promise<LaborCostMissingView> => {
+
+  return apiFetch<LaborCostMissingView>(getGetMissingLaborCostsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMissingLaborCostsQueryKey = (params?: GetMissingLaborCostsParams,) => {
+    return [
+    `/api/v1/production/labor-costs/missing`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetMissingLaborCostsQueryOptions = <TData = Awaited<ReturnType<typeof getMissingLaborCosts>>, TError = unknown>(params?: GetMissingLaborCostsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMissingLaborCosts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMissingLaborCostsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMissingLaborCosts>>> = ({ signal }) => getMissingLaborCosts(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMissingLaborCosts>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetMissingLaborCostsQueryResult = NonNullable<Awaited<ReturnType<typeof getMissingLaborCosts>>>
+export type GetMissingLaborCostsQueryError = unknown
+
+
+export function useGetMissingLaborCosts<TData = Awaited<ReturnType<typeof getMissingLaborCosts>>, TError = unknown>(
+ params: undefined |  GetMissingLaborCostsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMissingLaborCosts>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMissingLaborCosts>>,
+          TError,
+          Awaited<ReturnType<typeof getMissingLaborCosts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMissingLaborCosts<TData = Awaited<ReturnType<typeof getMissingLaborCosts>>, TError = unknown>(
+ params?: GetMissingLaborCostsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMissingLaborCosts>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMissingLaborCosts>>,
+          TError,
+          Awaited<ReturnType<typeof getMissingLaborCosts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMissingLaborCosts<TData = Awaited<ReturnType<typeof getMissingLaborCosts>>, TError = unknown>(
+ params?: GetMissingLaborCostsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMissingLaborCosts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetMissingLaborCosts<TData = Awaited<ReturnType<typeof getMissingLaborCosts>>, TError = unknown>(
+ params?: GetMissingLaborCostsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMissingLaborCosts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetMissingLaborCostsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getRecalculateMissingLaborCostsUrl = () => {
+
+
+
+
+  return `/api/v1/production/labor-costs/recalculate`
+}
+
+export const recalculateMissingLaborCosts = async (laborRecalculationInput: LaborRecalculationInput, options?: Parameters<typeof apiFetch>[1]): Promise<LaborRecalculationResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<LaborRecalculationResult>(getRecalculateMissingLaborCostsUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(laborRecalculationInput)
+  }
+);}
+
+
+
+
+
+export const getRecalculateMissingLaborCostsMutationKey = () => ['recalculateMissingLaborCosts'] as const;
+
+export const getRecalculateMissingLaborCostsMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recalculateMissingLaborCosts>>, TError,RecalculateMissingLaborCostsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof recalculateMissingLaborCosts>>, TError,RecalculateMissingLaborCostsMutationVariables, TContext> => {
+
+const mutationKey = getRecalculateMissingLaborCostsMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof recalculateMissingLaborCosts>>, RecalculateMissingLaborCostsMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  recalculateMissingLaborCosts(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RecalculateMissingLaborCostsMutationResult = NonNullable<Awaited<ReturnType<typeof recalculateMissingLaborCosts>>>
+    export type RecalculateMissingLaborCostsMutationBody = LaborRecalculationInput
+    export type RecalculateMissingLaborCostsMutationError = unknown
+    export type RecalculateMissingLaborCostsMutationVariables = {data: LaborRecalculationInput}
+
+    export const useRecalculateMissingLaborCosts = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recalculateMissingLaborCosts>>, TError,RecalculateMissingLaborCostsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof recalculateMissingLaborCosts>>,
+        TError,
+        RecalculateMissingLaborCostsMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRecalculateMissingLaborCostsMutationOptions(options), queryClient);
+    }
