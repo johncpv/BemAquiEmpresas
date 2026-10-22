@@ -15,9 +15,8 @@ import { StatusChip } from '@/components/ui/status-chip'
 import { useHelp } from '@/help/help-context'
 import { refreshShopfloor, useProductionLive } from '@/pages/production/kanban/useBoardLive'
 import { cn } from '@/lib/utils'
-import { NO_EMPLOYEE } from './FabQueuePage'
 import {
-  FAB_DICAS, finishImpact, floorHours, formatTimer, hoursFromSeconds, MAX_PAUSE_NOTES, missingCount, missingLabel, orderedReasons, pauseLabel, viewableKind, workedSeconds,
+  markStepSeen, NO_EMPLOYEE, FAB_DICAS, finishImpact, floorHours, formatTimer, hoursFromSeconds, MAX_PAUSE_NOTES, missingCount, missingLabel, orderedReasons, pauseLabel, viewableKind, workedSeconds,
 } from './shopfloor'
 
 const tap = () => ({ headers: { [IDEMPOTENCY_HEADER]: crypto.randomUUID() } })
@@ -38,7 +37,10 @@ export function FabStepPage() {
   const [finishedState, setFinished] = useState<{ stepId: string; result: ShopfloorActionResult; text: string } | null>(null)
   const finished = finishedState?.stepId === stepId ? finishedState : null
 
-  useEffect(() => { document.title = 'Etapa · App do operador · BemAqui Empresas' }, [])
+  useEffect(() => {
+    document.title = 'Etapa · App do operador · BemAqui Empresas'
+    markStepSeen()
+  }, [])
 
   const header = (title: string, subtitle?: string) => (
     <FloorHeader title={title} subtitle={subtitle} onHelp={() => help.setOpen(true)}>

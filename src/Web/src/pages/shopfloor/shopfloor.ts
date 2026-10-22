@@ -107,3 +107,13 @@ export function floorDate(isoDate: string) {
 
 /** Tipo que abre na tela (CA 6): pdf, png e jpg; dwg e dxf só com "Baixar". */
 export const viewableKind = (contentType: string) => (contentType === 'application/pdf' ? 'pdf' : contentType.startsWith('image/') ? 'image' : null)
+export const NO_EMPLOYEE = 'Seu usuário não está ligado a um funcionário ativo. Fale com o supervisor.'
+
+/** A etapa em andamento abre direto na primeira entrada (propositivo); depois de ver a etapa, "Fila" fica na fila. */
+let currentSeen = false
+
+export const stepSeen = () => currentSeen
+
+export function markStepSeen() {
+  currentSeen = true
+}

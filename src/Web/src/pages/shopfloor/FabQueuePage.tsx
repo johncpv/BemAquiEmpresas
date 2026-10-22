@@ -7,13 +7,10 @@ import { ApiError } from '@/api/http'
 import { FloorButton, FloorDica, FloorHeader, FloorSheet, FloorSkeleton, FloorState, NumericKeypad } from '@/components/shopfloor/kit'
 import { useHelp } from '@/help/help-context'
 import { refreshShopfloor, useProductionLive } from '@/pages/production/kanban/useBoardLive'
-import { FAB_DICAS, filterQueue, floorDate, loadMyCenter, saveMyCenter } from './shopfloor'
+import { FAB_DICAS, filterQueue, floorDate, loadMyCenter, markStepSeen, NO_EMPLOYEE, saveMyCenter, stepSeen } from './shopfloor'
 import { QueueCard } from './QueueCard'
 
-/** A etapa em andamento abre direto na primeira entrada (propositivo); depois, "Voltar à fila" fica na fila. */
-let openedCurrent = false
 
-export const NO_EMPLOYEE = 'Seu usuário não está ligado a um funcionário ativo. Fale com o supervisor.'
 
 /**
  * Fila do operador (/fab, CA 1 a 4): "Olá, {nome}", o centro do cargo e a data; a etapa em andamento em destaque; todas as etapas
@@ -29,8 +26,8 @@ export function FabQueuePage() {
   const current = queue.data?.current
 
   useEffect(() => {
-    if (current && !openedCurrent) {
-      openedCurrent = true
+    if (current && !stepSeen()) {
+      markStepSeen()
       void navigate({ to: '/fab/etapa/$stepId', params: { stepId: current.stepId }, replace: true })
     }
   }, [current, navigate])

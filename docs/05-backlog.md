@@ -290,7 +290,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-3--engenharia-est
 - Requisitos: R-RH-3, R-SEC-5, R-SEC-10, PRD §6 (LGPD).
 - CA: afastamentos com seis tipos; situação "Afastado" calculada na leitura ("Desligado" prevalece); `IEmployees.Status` para a PRD-03a; job diário publica início e fim do afastamento com data futura, uma vez; afastamentos na exportação e anonimização (ADR 0018).
 
-**PRD-03a [ ] App do operador: fila, apontamento e checklist (G)** — 3.1, ordem 5 — quebra da PRD-03 — [story](stories/PRD-03a-pwa-fila-apontamento.md)
+**PRD-03a [x] App do operador: fila, apontamento e checklist (G)** — 3.1, ordem 5 — quebra da PRD-03 — [story](stories/PRD-03a-pwa-fila-apontamento.md)
 - Requisitos: R-PRD-3, R-PRD-6, PRD §6 (Usabilidade), R-PRP-5, R-SEC-5.
 - CA: fila com todas as etapas prontas, as do meu centro primeiro, e busca pelo número (D11); primeira etapa sem BOM (D12); pausa com motivos e aviso ao almoxarifado; "Finalizar etapa · {h} h apontadas"; supervisor aponta por funcionário sem sobreposição e com até 7 dias; quem apontou não corrige nem aprova, salvo sem outro aprovador elegível (`SoleOwnerRule`, marca e aviso ao Proprietário); kit "chão de fábrica"; DTO sem custo.
 

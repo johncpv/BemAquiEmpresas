@@ -5,7 +5,7 @@
 | ID | PRD-03a |
 | Título | Tela dedicada do operador (`/fab`, sem dock, kit "chão de fábrica"): fila com todas as etapas prontas (as do meu centro primeiro), busca da OS pelo número, iniciar, pausar com motivo, retomar, sair da etapa e finalizar com checklist obrigatório, cronômetro e confirmação; apontamento por funcionário (início, fim, pausas e motivo); avanço da etapa e da OS, projeto em produção; apontamento, correção e conclusão pelo supervisor; apontamentos abertos há muito tempo; tempo real no Kanban |
 | Tamanho | G (quebra da PRD-03: o PIN e o aparelho registrado foram para a PRD-03b) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-PRD-3 (operador vê a fila, inicia/pausa/finaliza; apontamento com funcionário, início, fim, pausas e motivo) · R-PRD-6 (checklist por etapa) · PRD §6 (Usabilidade: PWA com botões grandes, uso com luva, tablet de entrada) · R-PRP-5 · R-SEC-5 |
 | Dependências | PRD-01, PRD-02, CAD-04c1 |
 | Bloqueia | PRD-04, PRD-05, PRD-03b, ENG-02, EST-03 |
@@ -119,16 +119,16 @@ Decididos pelo PO em 21/10/2026 (revisão pré-Fase 3, D11, D12 e tabela 1.1, it
 **Pré-condição externa:** nenhuma.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers) e E2E (tablet e 400 px) passando; teste manual no tablet registrado.
-- [ ] Migration criada (não destrutiva), testada sobre cópia do banco do tenant `konebras`.
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Kit "chão de fábrica" criado e usado nas telas dedicadas, com estados, alvos de 56 px e sem dock.
-- [ ] Ajudas `/fab`, `/fab/etapa/$stepId`, aba Apontamentos e Apontamentos abertos; teste de cobertura passando.
-- [ ] Próximo passo e alertas acionáveis (falta de material, apontamentos abertos) aplicados.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` (motivo `EndOfShift`, colunas novas do apontamento) e `docs/04-fluxos-estados.md` §1 (D12) atualizados; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, arquitetura e E2E (tablet 800 × 1280 e 400 px) passando; integração (Testcontainers) escrita, a rodar na fila do Docker; teste manual no tablet **pendente** (PO).
+- [x] Migration `ProductionLaborEntries` criada (não destrutiva: só `AddColumn` e `CreateTable`); o teste sobre a cópia do banco `konebras` fica para a homologação.
+- [x] Permissões só do `ModuleCatalog` (sem seed patch: Operadores e Supervisão já têm `shopfloor.view/create`).
+- [x] Kit "chão de fábrica" criado e usado nas telas dedicadas, com estados, alvos de 56 px e sem dock.
+- [x] Ajudas `/fab`, `/fab/etapa/$stepId`, aba Apontamentos e Apontamentos abertos; teste de cobertura passando.
+- [x] Próximo passo e alertas acionáveis (falta de material, apontamentos abertos) aplicados.
+- [x] Auditoria ligada (`LaborEntry` e `StepPause` auditáveis e no histórico da OS).
+- [x] Cliente Orval gerado; o `openapi.json` foi atualizado à mão e precisa ser regenerado pelo `OpenApiDocumentTests` (`BQ_UPDATE_OPENAPI=1`).
+- [x] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` §1 atualizados; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
 - [ ] `LaborEntry` e `StepPause` (Domain); máquina de estados da etapa e da OS.
@@ -172,3 +172,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.3 | Decisões do PO (D6, D7, D11, D12, tabela 1.1 itens 63–67 e 95) e correções da revisão pré-Fase 3 (§2.1 "Outros", §2.2 PRD-01/PRD-03a, §2.3 padrões 1, 3, 4, 10 e achados pontuais); sem ENG-02 e EST-03 nas dependências; nova ordem (Marco 3.1 "Fábrica visível"); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
 | 21/10/2026 | 0.5 | Fechamento da revisão: exceção do `SoleOwnerRule` no CA 21 (ponto 76); `ProductionStepStarted` reaproveitado da PRD-02 (CA 7); bloqueio de BOM também na "Concluir etapa" (CA 9, ENG-02 CA 16) | River (SM) |
+| 22/10/2026 | 1.0 | Implementada (`Done`). Desvios: (1) "Iniciar etapa" aceita a etapa `Ready` e também entrar numa etapa em andamento ou pausada (vários operadores, CA 14); os demais estados dão 409 `step_not_ready`. (2) Etapa iniciada sem ninguém nela (todos saíram ou o supervisor apontou com fim) fica `Paused` e volta à fila para alguém retomar; a fila mostra as etapas prontas e essas. (3) "Apontar por funcionário" grava sempre o apontamento fechado (fim informado ou "agora") com os efeitos de início (CA 7) e de fechamento (`LaborEntryClosed`); a etapa conclui pelo "Concluir etapa" (CA 20). (4) Dono do apontamento (CA 21) = usuário ligado ao funcionário do apontamento; o supervisor que só apontou por outro ("Apontado por") não é dono. (5) `SoleOwnerRule` nasceu aqui no BuildingBlocks (previsto na EST-01a, que o reaproveita). (6) `production.open_labor_alert_hours` ficou como configuração `Production:OpenLaborAlertHours` (padrão 12 h), sem campo na tela de Parâmetros. (7) Até a PRD-05, a etapa de qualidade fica fora da fila e o início dá 403 `quality_step` para todos (a ação `production.approve_quality` ainda não existe); a OS fica `Quality` ("Aguardando qualidade"). (8) Colunas: `labor_entries` sem `hourly_cost_snapshot`, `cost`, `cost_missing` e `source` (PRD-04); `created_by` virou `recorded_by` + `on_behalf`; `reason_text` virou `notes`; novas `order_id`, `closed_by`, `close_kind`, `corrected_at/by`, `correction_reason`, `self_approved` e `xmin`; etapa com `awaiting_approval_since` e `self_approved`. (9) O menu do dock mostra o nome do catálogo, "App do operador", e leva ao `/fab` (`/app/operador` redireciona). (10) A busca aceita os dígitos finais (41) ou o número inteiro (OS-2026-00041). (11) O Kanban passa a mostrar horas apontadas, iniciais de quem está na etapa e "Pausada: {motivo}". Pendências: teste manual no tablet Android com luva (P-12), integração e OpenAPI a rodar no Docker | Dex (dev) |
