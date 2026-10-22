@@ -54,6 +54,8 @@ public static class HrInfrastructure
         services.TryAddScoped<IEmployees>(sp => sp.GetRequiredService<EmployeesContract>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IPositionUsageProvider, EmployeesContract>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IUnionUsageProvider, EmployeesContract>());
+        // Afastamentos (CAD-04c1): eventos do job diário.
+        services.TryAddScoped<EmployeeLeaveEvents>();
         services.AddAuditableEntity<Employee>("hr", PositionService.SensitiveAction);
         services.AddAuditableEntity<EmployeeHistoryEntry>("hr", PositionService.SensitiveAction);
         services.AddAuditableEntity<JobPosition>("hr", PositionService.SensitiveAction);

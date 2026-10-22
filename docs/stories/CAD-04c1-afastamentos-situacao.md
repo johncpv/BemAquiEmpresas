@@ -5,7 +5,7 @@
 | ID | CAD-04c1 |
 | Título | Afastamentos do funcionário (LGPD art. 11), situação `Afastado` calculada na leitura, `Status` no `IEmployees` para o apontamento recusar afastado, e job diário para afastamento com data futura |
 | Tamanho | P (quebra da CAD-04c, D9) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-RH-3 (afastamentos) · PRD §6 LGPD · R-SEC-5 · R-SEC-10 |
 | Dependências | CAD-04b |
 | Bloqueia | PRD-03a (afastado ou desligado não aponta), CAD-04c2 |
@@ -82,23 +82,23 @@ Decididos pelo PO em 21/10/2026 (revisão pré-Fase 3, D9 e tabela 1.1, item 2):
 **Pré-condição externa:** nenhuma.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração, arquitetura e E2E passando.
-- [ ] Migration criada (não destrutiva).
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Linha do tempo com estados; ajuda atualizada; teste de cobertura passando.
-- [ ] Padrões comuns dos cadastros aplicados.
-- [ ] Auditoria ligada, com `[PersonalData]` e `SensitiveRead`.
-- [ ] Job diário por tenant registrado no Hangfire, com `tenantId`.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado (colunas do `Leave`, `OnLeave` calculado, regra da LGPD-01); story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração, arquitetura e E2E escritos; unidade, front e E2E passando (integração e arquitetura rodam na fila do CI/Docker).
+- [x] Migration criada (não destrutiva).
+- [x] Permissões só do `ModuleCatalog`.
+- [x] Linha do tempo com estados; ajuda atualizada; teste de cobertura passando.
+- [x] Padrões comuns dos cadastros aplicados.
+- [x] Auditoria ligada, com `[PersonalData]` e `SensitiveRead`.
+- [x] Job diário por tenant registrado no Hangfire, com `tenantId`.
+- [ ] OpenAPI e cliente Orval regenerados (editados à mão no `openapi.json` e gerados pelo Orval; falta regravar com `BQ_UPDATE_OPENAPI=1`).
+- [x] `docs/03-modelo-dados.md` atualizado (colunas do `Leave`, `OnLeave` calculado, regra da LGPD-01); story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `Leave` em `EmployeeHistory`, com tipo, fim previsto e marcas de publicação.
-- [ ] Comando "Registrar afastamento" e rota `/sensitive` dos detalhes.
-- [ ] `Status` calculado no `EmployeesContract`.
-- [ ] Job diário `EmployeeLeaveEventsJob` por tenant.
-- [ ] Diálogo, chip e ajuda.
+- [x] `Leave` em `EmployeeHistory`, com tipo, fim previsto e marcas de publicação.
+- [x] Comando "Registrar afastamento" e rota `/sensitive` dos detalhes.
+- [x] `Status` calculado no `EmployeesContract`.
+- [x] Job diário `EmployeeLeaveEventsJob` por tenant.
+- [x] Diálogo, chip e ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, cybersecurity (LGPD art. 11), @qa.
@@ -134,3 +134,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.4 | CAD-04c: revalidação do PO: 10/10, GO condicional, `Draft` até as decisões 1 e 2 | Pax (PO) |
 | 21/10/2026 | 0.5 | Quebra da CAD-04c (D9): afastamentos e situação; tipos do ponto 2; job diário para data futura (§2.1); afastamentos na exportação e anonimização (§2.2, ADR 0018); ordem 4 do Marco 3.1 "Fábrica visível" | River (SM) |
 | 21/10/2026 | 0.6 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 22/10/2026 | 1.0 | Implementada (@dev). Desvios: (1) a coluna `reason` da linha do tempo virou `[PersonalData]` para todos os tipos (o motivo de troca de cargo e de reajuste também sai mascarado na auditoria); (2) o motivo do afastamento é opcional (minimização, LGPD), tipo, início e fim previsto são obrigatórios; (3) afastamento todo no passado publica `EmployeeLeaveStarted` e `EmployeeLeaveEnded` no próprio registro; (4) o filtro "Ativo" da lista deixa de fora os afastados, e entra o filtro "Afastado"; (5) o funcionário ganhou `xmin` e `version` no detalhe, conferido só no registro de afastamento; (6) desligado não recebe afastamento (409 `employee_terminated`) e início antes da admissão responde 422; (7) a leitura dos afastamentos grava `SensitiveRead` na entidade `Employee`; (8) o horário do job vem do parâmetro de configuração `Jobs:HrLeaveEvents:Cron` (padrão `15 0 * * *`); (9) `IEmployees` ganhou o enum `EmployeeSituation` (Contracts), e o `IsActive` foi mantido (afastado continua ativo); (10) `hr.view_health` não foi usada: a story pede `hr.view_sensitive` e não há CID nem atestado aqui; (11) não há edição nem encerramento antecipado do afastamento (fora dos CAs); (12) `openapi.json` editado à mão, regravar com `BQ_UPDATE_OPENAPI=1`. | @dev |

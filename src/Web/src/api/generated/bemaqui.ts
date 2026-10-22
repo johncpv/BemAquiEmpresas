@@ -165,6 +165,8 @@ import type {
   ItemType,
   LaborPositionOption,
   LaborWorkCenterOption,
+  LeaveDetail,
+  LeaveInput,
   LinkableUser,
   LinkedUserView,
   ListBankAccountsParams,
@@ -11576,6 +11578,184 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getTerminateEmployeeMutationOptions(options), queryClient);
     }
+
+export const getRegisterEmployeeLeaveUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/leaves`
+}
+
+export const registerEmployeeLeave = async (id: string,
+    leaveInput: LeaveInput, options?: Parameters<typeof apiFetch>[1]): Promise<EmployeeDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<EmployeeDetail>(getRegisterEmployeeLeaveUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(leaveInput)
+  }
+);}
+
+
+
+
+
+export const getRegisterEmployeeLeaveMutationKey = () => ['registerEmployeeLeave'] as const;
+
+export const getRegisterEmployeeLeaveMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof registerEmployeeLeave>>, TError,RegisterEmployeeLeaveMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof registerEmployeeLeave>>, TError,RegisterEmployeeLeaveMutationVariables, TContext> => {
+
+const mutationKey = getRegisterEmployeeLeaveMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof registerEmployeeLeave>>, RegisterEmployeeLeaveMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  registerEmployeeLeave(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RegisterEmployeeLeaveMutationResult = NonNullable<Awaited<ReturnType<typeof registerEmployeeLeave>>>
+    export type RegisterEmployeeLeaveMutationBody = LeaveInput
+    export type RegisterEmployeeLeaveMutationError = unknown
+    export type RegisterEmployeeLeaveMutationVariables = {id: string;data: LeaveInput}
+
+    export const useRegisterEmployeeLeave = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof registerEmployeeLeave>>, TError,RegisterEmployeeLeaveMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof registerEmployeeLeave>>,
+        TError,
+        RegisterEmployeeLeaveMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRegisterEmployeeLeaveMutationOptions(options), queryClient);
+    }
+
+export const getListEmployeeLeavesSensitiveUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/leaves/sensitive`
+}
+
+export const listEmployeeLeavesSensitive = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<LeaveDetail[]> => {
+
+  return apiFetch<LeaveDetail[]>(getListEmployeeLeavesSensitiveUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListEmployeeLeavesSensitiveQueryKey = (id: string,) => {
+    return [
+    `/api/v1/hr/employees/${id}/leaves/sensitive`
+    ] as const;
+    }
+
+
+export const getListEmployeeLeavesSensitiveQueryOptions = <TData = Awaited<ReturnType<typeof listEmployeeLeavesSensitive>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployeeLeavesSensitive>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListEmployeeLeavesSensitiveQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listEmployeeLeavesSensitive>>> = ({ signal }) => listEmployeeLeavesSensitive(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listEmployeeLeavesSensitive>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListEmployeeLeavesSensitiveQueryResult = NonNullable<Awaited<ReturnType<typeof listEmployeeLeavesSensitive>>>
+export type ListEmployeeLeavesSensitiveQueryError = unknown
+
+
+export function useListEmployeeLeavesSensitive<TData = Awaited<ReturnType<typeof listEmployeeLeavesSensitive>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployeeLeavesSensitive>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listEmployeeLeavesSensitive>>,
+          TError,
+          Awaited<ReturnType<typeof listEmployeeLeavesSensitive>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListEmployeeLeavesSensitive<TData = Awaited<ReturnType<typeof listEmployeeLeavesSensitive>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployeeLeavesSensitive>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listEmployeeLeavesSensitive>>,
+          TError,
+          Awaited<ReturnType<typeof listEmployeeLeavesSensitive>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListEmployeeLeavesSensitive<TData = Awaited<ReturnType<typeof listEmployeeLeavesSensitive>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployeeLeavesSensitive>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListEmployeeLeavesSensitive<TData = Awaited<ReturnType<typeof listEmployeeLeavesSensitive>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployeeLeavesSensitive>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListEmployeeLeavesSensitiveQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getGetEmployeeUserUrl = (id: string,) => {
 

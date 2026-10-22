@@ -11,4 +11,5 @@ export type EmployeeStatus = typeof EmployeeStatus[keyof typeof EmployeeStatus];
 export const EmployeeStatus = {
   Active: 'Active',
   Terminated: 'Terminated',
+  OnLeave: 'OnLeave',
 } as const;

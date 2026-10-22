@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using BemAqui.SharedKernel;
 
 namespace BemAqui.HR.Contracts;
@@ -29,8 +30,24 @@ public interface IUnionUsageProvider
     Task<bool> InUseAsync(Guid unionId, CancellationToken cancellationToken = default);
 }
 
-/// <summary>Funcionário para Production e Assets (CAD-04b CA 21): só o que não é sensível. O custo-hora vem de <see cref="IHourlyCost"/>, por cargo.</summary>
-public sealed record EmployeeSummary(Guid Id, string Name, string? Registration, Guid PositionId, string PositionName, Guid? WorkCenterId, bool IsActive);
+/// <summary>
+/// Situação do funcionário para os outros módulos (CAD-04c1 CA 3): <c>OnLeave</c> é calculado na leitura pelo afastamento
+/// vigente (hoje em São Paulo) e <c>Terminated</c> prevalece. Sem tipo, motivo nem datas do afastamento.
+/// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter<EmployeeSituation>))]
+public enum EmployeeSituation
+{
+    Active,
+    OnLeave,
+    Terminated,
+}
+
+/// <summary>
+/// Funcionário para Production e Assets (CAD-04b CA 21): só o que não é sensível. O custo-hora vem de <see cref="IHourlyCost"/>,
+/// por cargo. <c>IsActive</c>: não desligado nem excluído (o afastado continua ativo); <c>Status</c>: a situação de hoje, pela qual
+/// o apontamento recusa afastado ou desligado (PRD-03a).
+/// </summary>
+public sealed record EmployeeSummary(Guid Id, string Name, string? Registration, Guid PositionId, string PositionName, Guid? WorkCenterId, bool IsActive, EmployeeSituation Status);
 
 public interface IEmployees
 {
@@ -44,3 +61,9 @@ public sealed record EmployeeTerminated(Guid EmployeeId, DateOnly TerminationDat
 
 /// <summary>Salário mudou (CA 14), só o id e a vigência, sem valor; sem consumidor nesta fase.</summary>
 public sealed record EmployeeSalaryChanged(Guid EmployeeId, DateOnly EffectiveDate) : IIntegrationEvent;
+
+/// <summary>Afastamento começou (CAD-04c1 CA 6 e 7): só o id do funcionário e as datas, nunca o tipo nem o motivo.</summary>
+public sealed record EmployeeLeaveStarted(Guid EmployeeId, DateOnly StartDate, DateOnly ExpectedEndDate) : IIntegrationEvent;
+
+/// <summary>Afastamento terminou (no dia seguinte ao fim previsto, CA 7): só o id do funcionário e as datas.</summary>
+public sealed record EmployeeLeaveEnded(Guid EmployeeId, DateOnly StartDate, DateOnly EndDate) : IIntegrationEvent;

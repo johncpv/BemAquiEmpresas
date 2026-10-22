@@ -47,7 +47,11 @@ internal sealed class EmployeeHistoryConfiguration : IEntityTypeConfiguration<Em
         b.Property(e => e.OldValue).HasMaxLength(200);
         b.Property(e => e.NewValue).HasMaxLength(200);
         b.Property(e => e.Reason).HasMaxLength(200);
+        // Afastamento (CAD-04c1): tipo e fim previsto só no Leave; marcas de publicação dos eventos (CA 7).
+        b.Property(e => e.LeaveType).HasConversion<string>().HasMaxLength(20);
         b.HasOne<Employee>().WithMany().HasForeignKey(e => e.EmployeeId).OnDelete(DeleteBehavior.Restrict);
         b.HasIndex(e => new { e.EmployeeId, e.EffectiveDate }).HasDatabaseName("ix_employee_history_employee");
+        // Job diário (CA 7): só os afastamentos com evento pendente.
+        b.HasIndex(e => e.EffectiveDate).HasFilter("kind = 'Leave' AND (start_published_at IS NULL OR end_published_at IS NULL)").HasDatabaseName("ix_employee_history_leave_pending");
     }
 }

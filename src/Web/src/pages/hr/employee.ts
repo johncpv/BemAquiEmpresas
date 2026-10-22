@@ -1,7 +1,48 @@
-import type { EmployeeStatus } from '@/api/generated/model'
+import type { EmployeeLeaveType as GeneratedLeaveType, EmployeeStatus } from '@/api/generated/model'
+import type { StatusTone } from '@/components/ui/status-chip'
 import { formatMoney } from '@/lib/format'
 
-export const STATUS_LABELS: Record<EmployeeStatus, string> = { Active: 'Ativo', Terminated: 'Desligado' }
+export const STATUS_LABELS: Record<EmployeeStatus, string> = { Active: 'Ativo', OnLeave: 'Afastado', Terminated: 'Desligado' }
+
+/** Afastado em âmbar (alerta), desligado neutro (CAD-04c1). */
+export const STATUS_TONES: Record<EmployeeStatus, StatusTone> = { Active: 'ok', OnLeave: 'warn', Terminated: 'neutral' }
+
+/** Tipos de afastamento (CAD-04c1, decisão do PO de 21/10/2026). Férias ficam para a folha. */
+/** O cliente gerado admite nulo no enum; nas telas o tipo é sempre um dos seis. */
+export type LeaveType = NonNullable<GeneratedLeaveType>
+
+export const LEAVE_TYPE_LABELS: Record<LeaveType, string> = {
+  Illness: 'Doença',
+  WorkAccident: 'Acidente de trabalho',
+  Maternity: 'Maternidade',
+  Paternity: 'Paternidade',
+  Military: 'Serviço militar',
+  Other: 'Outros',
+}
+
+export const LEAVE_REASON_MAX = 200
+
+export interface LeaveDraft { type: LeaveType | ''; startDate: string; expectedEndDate: string; reason: string }
+
+/** Diálogo vem com o início em hoje (propositivo, CAD-04c1). */
+export const emptyLeaveDraft = (today: string): LeaveDraft => ({ type: '', startDate: today, expectedEndDate: '', reason: '' })
+
+/** Primeiro erro do afastamento, na ordem dos campos; o servidor confere de novo (CA 1 e 5). */
+export function leaveDraftError(d: LeaveDraft): string | undefined {
+  if (!d.type) return 'Escolha o tipo do afastamento.'
+  if (!d.startDate) return 'Informe o início do afastamento.'
+  if (!d.expectedEndDate) return 'Informe o fim previsto do afastamento.'
+  if (d.expectedEndDate < d.startDate) return 'O fim previsto precisa ser igual ou depois do início.'
+  if (d.reason.trim().length > LEAVE_REASON_MAX) return 'O motivo aceita até 200 caracteres.'
+  return undefined
+}
+
+/** Volta prevista: o dia seguinte ao fim previsto (aaaa-mm-dd). */
+export function returnDate(expectedEndDate: string) {
+  const [y, m, d] = expectedEndDate.split('-').map(Number)
+  const next = new Date(Date.UTC(y, m - 1, d + 1))
+  return next.toISOString().slice(0, 10)
+}
 
 export const STATUS_OPTIONS = (Object.keys(STATUS_LABELS) as EmployeeStatus[]).map((value) => ({ value, label: STATUS_LABELS[value] }))
 
@@ -10,6 +51,8 @@ export const EMPLOYEE_DICAS = {
   pis: 'Número do PIS/PASEP/NIT, com 11 dígitos. O último é o dígito verificador.',
   ctps: 'Carteira de Trabalho: número e série. Na carteira digital, o número é o CPF.',
   matricula: 'Código do funcionário na empresa, se houver. É único e aparece nas listas e no ponto.',
+  afastado: 'Há um afastamento vigente hoje. A situação volta a Ativo sozinha no dia seguinte ao fim previsto. O tipo e o motivo só aparecem com a permissão Ver dados sensíveis.',
+  motivoAfastamento: 'Texto curto para o RH se lembrar do caso. Não informe CID nem diagnóstico: dado de saúde é sensível pela LGPD.',
 }
 
 /** Rascunho da criação (CAD-04b CA 1): salário e jornada vêm do cargo enquanto não forem editados. */

@@ -8,7 +8,7 @@ import { StatusChip } from '@/components/ui/status-chip'
 import { formatDate } from '@/lib/format'
 import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
-import { STATUS_LABELS, STATUS_OPTIONS } from './employee'
+import { STATUS_LABELS, STATUS_OPTIONS, STATUS_TONES } from './employee'
 import { HrTabs } from './HrTabs'
 
 /** RH → Funcionários (CAD-04b): lista sem dado pessoal (CA 8), com filtros por situação, cargo e centro na URL. */
@@ -26,7 +26,7 @@ export function EmployeesPage() {
     { id: 'position', header: 'Cargo', cell: ({ row: { original: e } }) => e.positionName },
     { id: 'center', header: 'Centro', meta: { secondary: true }, cell: ({ row: { original: e } }) => e.workCenterName ?? '—' },
     { id: 'admission', header: 'Admissão', meta: { sortField: 'admissionDate', secondary: true }, cell: ({ row: { original: e } }) => <span className="tabular-nums">{formatDate(e.admissionDate)}</span> },
-    { id: 'status', header: 'Situação', cell: ({ row: { original: e } }) => <StatusChip tone={e.status === 'Active' ? 'ok' : 'neutral'}>{STATUS_LABELS[e.status]}</StatusChip> },
+    { id: 'status', header: 'Situação', cell: ({ row: { original: e } }) => <StatusChip tone={STATUS_TONES[e.status]}>{STATUS_LABELS[e.status]}</StatusChip> },
   ]
 
   return (

@@ -3346,6 +3346,12 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("union_id");
 
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
                     b.Property<string>("VoterId")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
@@ -3404,11 +3410,24 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("employee_id");
 
+                    b.Property<DateTimeOffset?>("EndPublishedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("end_published_at");
+
                     b.Property<string>("Kind")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
                         .HasColumnName("kind");
+
+                    b.Property<DateOnly?>("LeaveEndDate")
+                        .HasColumnType("date")
+                        .HasColumnName("leave_end_date");
+
+                    b.Property<string>("LeaveType")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("leave_type");
 
                     b.Property<string>("NewValue")
                         .IsRequired()
@@ -3427,12 +3446,20 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("reason");
 
+                    b.Property<DateTimeOffset?>("StartPublishedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("start_published_at");
+
                     b.Property<Guid?>("UserId")
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
 
                     b.HasKey("Id")
                         .HasName("pk_employee_history");
+
+                    b.HasIndex("EffectiveDate")
+                        .HasDatabaseName("ix_employee_history_leave_pending")
+                        .HasFilter("kind = 'Leave' AND (start_published_at IS NULL OR end_published_at IS NULL)");
 
                     b.HasIndex("EmployeeId", "EffectiveDate")
                         .HasDatabaseName("ix_employee_history_employee");

@@ -3,6 +3,7 @@ using BemAqui.BuildingBlocks.Identity;
 using BemAqui.BuildingBlocks.Messaging;
 using BemAqui.BuildingBlocks.Paging;
 using BemAqui.BuildingBlocks.Persistence.Auditing;
+using BemAqui.BuildingBlocks.Time;
 using BemAqui.HR.Domain;
 using BemAqui.Identity.Contracts;
 using BemAqui.Production.Contracts;
@@ -36,7 +37,14 @@ public sealed partial class EmployeeService(
         var employees = db.Employees.AsNoTracking();
         if (query.Status is { } status)
         {
-            employees = employees.Where(e => e.Status == status);
+            // Afastado é calculado na leitura (CAD-04c1 CA 2): "Ativo" é quem não está desligado nem afastado hoje.
+            var onLeave = CurrentLeaves(BusinessTime.Today(clock));
+            employees = status switch
+            {
+                EmployeeStatus.Terminated => employees.Where(e => e.Status == EmployeeStatus.Terminated),
+                EmployeeStatus.OnLeave => employees.Where(e => e.Status == EmployeeStatus.Active && onLeave.Contains(e.Id)),
+                _ => employees.Where(e => e.Status == EmployeeStatus.Active && !onLeave.Contains(e.Id)),
+            };
         }
 
         if (query.PositionId is { } position)
@@ -91,7 +99,10 @@ public sealed partial class EmployeeService(
             e.ZipCode, e.Street, e.Number, e.Complement, e.District, e.City, e.State, e.Phone, e.Email);
     }
 
-    /// <summary>Linha do tempo (CA 16): trocas de cargo com <c>hr.view</c>; reajustes só com <c>hr.view_sensitive</c>.</summary>
+    /// <summary>
+    /// Linha do tempo (CA 16): trocas de cargo com <c>hr.view</c>; reajustes só com <c>hr.view_sensitive</c>. Afastamentos nunca
+    /// saem aqui, só por <see cref="LeavesAsync"/> (CAD-04c1 CA 4).
+    /// </summary>
     public async Task<Result<IReadOnlyList<TimelineEntry>>> TimelineAsync(Guid id, CancellationToken cancellationToken = default)
     {
         if (!await db.Employees.AnyAsync(e => e.Id == id, cancellationToken))
@@ -100,12 +111,16 @@ public sealed partial class EmployeeService(
         }
 
         var sensitive = await CanSensitiveAsync(cancellationToken);
-        return await db.EmployeeHistory.AsNoTracking().Where(h => h.EmployeeId == id && (sensitive || h.Kind != EmployeeHistoryKind.Salary))
+        return await db.EmployeeHistory.AsNoTracking().Where(h => h.EmployeeId == id && h.Kind != EmployeeHistoryKind.Leave && (sensitive || h.Kind != EmployeeHistoryKind.Salary))
             .OrderByDescending(h => h.EffectiveDate).ThenByDescending(h => h.CreatedAt)
             .Select(h => new TimelineEntry(h.Id, h.Kind, h.EffectiveDate, h.OldValue, h.NewValue, h.Reason, h.UserId, h.CreatedAt)).ToListAsync(cancellationToken);
     }
 
     private ValueTask<bool> CanSensitiveAsync(CancellationToken ct) => permissions.HasPermissionAsync("hr", PositionService.SensitiveAction, ct);
+
+    /// <summary>Ids dos funcionários com afastamento vigente no dia (início ≤ dia ≤ fim previsto).</summary>
+    private IQueryable<Guid> CurrentLeaves(DateOnly day) =>
+        db.EmployeeHistory.Where(h => h.Kind == EmployeeHistoryKind.Leave && h.EffectiveDate <= day && h.LeaveEndDate >= day).Select(h => h.EmployeeId);
 
     private async Task<List<EmployeeDetail>> DetailsAsync(IReadOnlyList<Employee> employees, CancellationToken ct)
     {
@@ -114,11 +129,13 @@ public sealed partial class EmployeeService(
             .ToDictionaryAsync(p => p.Id, p => (p.Name, p.DefaultWorkCenterId), ct);
         var centerIds = positions.Values.Select(p => p.DefaultWorkCenterId).OfType<Guid>().Distinct().ToList();
         var centers = centerIds.Count == 0 ? [] : (await workCenters.FindAsync(centerIds, ct)).ToDictionary(c => c.Id, c => c.Name);
+        var ids = employees.Select(e => e.Id).ToList();
+        var onLeave = (await CurrentLeaves(BusinessTime.Today(clock)).Where(id => ids.Contains(id)).ToListAsync(ct)).ToHashSet();
         return employees.Select(e =>
         {
             var (positionName, center) = positions.GetValueOrDefault(e.PositionId, (string.Empty, null));
             return new EmployeeDetail(e.Id, e.Name, e.Registration, e.PositionId, positionName, center, center is { } c ? centers.GetValueOrDefault(c) : null,
-                e.WorkScheduleId, e.UnionId, e.AdmissionDate, e.TerminationDate, e.Status);
+                e.WorkScheduleId, e.UnionId, e.AdmissionDate, e.TerminationDate, EmployeeLeaveRules.Situation(e.Status, onLeave.Contains(e.Id)), e.Version);
         }).ToList();
     }
 

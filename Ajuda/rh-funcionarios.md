@@ -20,3 +20,5 @@ Ver quem trabalha na empresa, em qual cargo e centro de trabalho, e abrir o cada
 **Dá para buscar pelo CPF?** Sim, com a permissão Ver dados sensíveis: digite o CPF completo, com 11 dígitos. Parte do CPF não encontra.
 
 **Onde estão os desligados?** Filtre a situação por Desligado. Eles continuam no cadastro, com todo o histórico.
+
+**O que é a situação Afastado?** O funcionário tem um afastamento vigente hoje (doença, maternidade e outros). A situação volta a Ativo sozinha depois do fim previsto. O tipo e o motivo só aparecem para quem tem a permissão Ver dados sensíveis.

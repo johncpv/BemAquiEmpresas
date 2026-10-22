@@ -40,6 +40,11 @@ internal static partial class HrEndpoints
             .RequirePermission("hr.edit").WithName("ChangeEmployeePosition").Produces<EmployeeDetail>();
         employees.MapPost("/{id:guid}/termination", async (Guid id, TerminationInput input, EmployeeService service, CancellationToken ct) => (await service.TerminateAsync(id, input, ct)).ToHttpResult())
             .RequirePermission("hr.edit").WithName("TerminateEmployee").Produces<EmployeeDetail>();
+        // Afastamentos (CAD-04c1): registrar exige hr.edit e, no serviço, hr.view_sensitive; tipo, datas e motivo só pela rota /sensitive.
+        employees.MapPost("/{id:guid}/leaves", async (Guid id, LeaveInput input, EmployeeService service, CancellationToken ct) => (await service.RegisterLeaveAsync(id, input, ct)).ToHttpResult())
+            .RequirePermission("hr.edit").WithName("RegisterEmployeeLeave").Produces<EmployeeDetail>();
+        employees.MapGet("/{id:guid}/leaves/sensitive", async (Guid id, EmployeeService service, CancellationToken ct) => (await service.LeavesAsync(id, ct)).ToHttpResult())
+            .RequirePermission("hr.view_sensitive").WithName("ListEmployeeLeavesSensitive").Produces<IReadOnlyList<LeaveDetail>>();
         employees.MapDelete("/{id:guid}", async (Guid id, EmployeeService service, CancellationToken ct) => (await service.DeleteAsync(id, ct)).ToHttpResult())
             .RequirePermission("hr.delete").WithName("DeleteEmployee");
         employees.MapGet("/{id:guid}/user", async (Guid id, EmployeeService service, CancellationToken ct) => (await service.LinkedUserAsync(id, ct)).ToHttpResult())
