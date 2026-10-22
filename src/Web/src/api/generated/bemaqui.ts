@@ -184,7 +184,9 @@ import type {
   LaborRecalculationInput,
   LaborRecalculationResult,
   LaborWorkCenterOption,
+  LeaveCancelInput,
   LeaveDetail,
+  LeaveEndInput,
   LeaveInput,
   LinkableUser,
   LinkedUserView,
@@ -12747,6 +12749,261 @@ export function useListEmployeeLeavesSensitive<TData = Awaited<ReturnType<typeof
 
 
 
+
+export const getUpdateEmployeeLeaveUrl = (id: string,
+    leaveId: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/leaves/${leaveId}`
+}
+
+export const updateEmployeeLeave = async (id: string,
+    leaveId: string,
+    leaveInput: LeaveInput, options?: Parameters<typeof apiFetch>[1]): Promise<EmployeeDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<EmployeeDetail>(getUpdateEmployeeLeaveUrl(id,leaveId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(leaveInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateEmployeeLeaveMutationKey = () => ['updateEmployeeLeave'] as const;
+
+export const getUpdateEmployeeLeaveMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateEmployeeLeave>>, TError,UpdateEmployeeLeaveMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateEmployeeLeave>>, TError,UpdateEmployeeLeaveMutationVariables, TContext> => {
+
+const mutationKey = getUpdateEmployeeLeaveMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateEmployeeLeave>>, UpdateEmployeeLeaveMutationVariables> = (props) => {
+          const {id,leaveId,data} = props ?? {};
+
+          return  updateEmployeeLeave(id,leaveId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateEmployeeLeaveMutationResult = NonNullable<Awaited<ReturnType<typeof updateEmployeeLeave>>>
+    export type UpdateEmployeeLeaveMutationBody = LeaveInput
+    export type UpdateEmployeeLeaveMutationError = unknown
+    export type UpdateEmployeeLeaveMutationVariables = {id: string;leaveId: string;data: LeaveInput}
+
+    export const useUpdateEmployeeLeave = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateEmployeeLeave>>, TError,UpdateEmployeeLeaveMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateEmployeeLeave>>,
+        TError,
+        UpdateEmployeeLeaveMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateEmployeeLeaveMutationOptions(options), queryClient);
+    }
+
+export const getEndEmployeeLeaveUrl = (id: string,
+    leaveId: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/leaves/${leaveId}/end`
+}
+
+export const endEmployeeLeave = async (id: string,
+    leaveId: string,
+    leaveEndInput: LeaveEndInput, options?: Parameters<typeof apiFetch>[1]): Promise<EmployeeDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<EmployeeDetail>(getEndEmployeeLeaveUrl(id,leaveId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(leaveEndInput)
+  }
+);}
+
+
+
+
+
+export const getEndEmployeeLeaveMutationKey = () => ['endEmployeeLeave'] as const;
+
+export const getEndEmployeeLeaveMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof endEmployeeLeave>>, TError,EndEmployeeLeaveMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof endEmployeeLeave>>, TError,EndEmployeeLeaveMutationVariables, TContext> => {
+
+const mutationKey = getEndEmployeeLeaveMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof endEmployeeLeave>>, EndEmployeeLeaveMutationVariables> = (props) => {
+          const {id,leaveId,data} = props ?? {};
+
+          return  endEmployeeLeave(id,leaveId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type EndEmployeeLeaveMutationResult = NonNullable<Awaited<ReturnType<typeof endEmployeeLeave>>>
+    export type EndEmployeeLeaveMutationBody = LeaveEndInput
+    export type EndEmployeeLeaveMutationError = unknown
+    export type EndEmployeeLeaveMutationVariables = {id: string;leaveId: string;data: LeaveEndInput}
+
+    export const useEndEmployeeLeave = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof endEmployeeLeave>>, TError,EndEmployeeLeaveMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof endEmployeeLeave>>,
+        TError,
+        EndEmployeeLeaveMutationVariables,
+        TContext
+      > => {
+      return useMutation(getEndEmployeeLeaveMutationOptions(options), queryClient);
+    }
+
+export const getCancelEmployeeLeaveUrl = (id: string,
+    leaveId: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/leaves/${leaveId}/cancel`
+}
+
+export const cancelEmployeeLeave = async (id: string,
+    leaveId: string,
+    leaveCancelInput: LeaveCancelInput, options?: Parameters<typeof apiFetch>[1]): Promise<EmployeeDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<EmployeeDetail>(getCancelEmployeeLeaveUrl(id,leaveId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(leaveCancelInput)
+  }
+);}
+
+
+
+
+
+export const getCancelEmployeeLeaveMutationKey = () => ['cancelEmployeeLeave'] as const;
+
+export const getCancelEmployeeLeaveMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelEmployeeLeave>>, TError,CancelEmployeeLeaveMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelEmployeeLeave>>, TError,CancelEmployeeLeaveMutationVariables, TContext> => {
+
+const mutationKey = getCancelEmployeeLeaveMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelEmployeeLeave>>, CancelEmployeeLeaveMutationVariables> = (props) => {
+          const {id,leaveId,data} = props ?? {};
+
+          return  cancelEmployeeLeave(id,leaveId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelEmployeeLeaveMutationResult = NonNullable<Awaited<ReturnType<typeof cancelEmployeeLeave>>>
+    export type CancelEmployeeLeaveMutationBody = LeaveCancelInput
+    export type CancelEmployeeLeaveMutationError = unknown
+    export type CancelEmployeeLeaveMutationVariables = {id: string;leaveId: string;data: LeaveCancelInput}
+
+    export const useCancelEmployeeLeave = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelEmployeeLeave>>, TError,CancelEmployeeLeaveMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof cancelEmployeeLeave>>,
+        TError,
+        CancelEmployeeLeaveMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCancelEmployeeLeaveMutationOptions(options), queryClient);
+    }
 
 export const getGetEmployeeUserUrl = (id: string,) => {
 
