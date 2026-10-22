@@ -1,7 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query'
+import { useNavigate, useSearch } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
 import { useState } from 'react'
-import { getGetPositionsSummaryQueryKey, getListPositionsQueryKey, useGetPositionsSummary, useListPositions } from '@/api/generated/bemaqui'
+import { getGetPositionsSummaryQueryKey, getListPositionsQueryKey, useGetPosition, useGetPositionsSummary, useListPositions } from '@/api/generated/bemaqui'
 import type { PositionDetail } from '@/api/generated/model'
 import { DataTable } from '@/components/data-table/DataTable'
 import { useTableFilters, useTableSearch } from '@/components/data-table/table-search'
@@ -22,6 +23,15 @@ export function PositionsPage() {
   const query = useListPositions({ q: search.q, includeInactive: inativos === 'true', page: search.page, pageSize: search.pageSize, sort: search.sort })
   const summary = useGetPositionsSummary()
   const [editing, setEditing] = useState<{ position: PositionDetail | null } | null>(null)
+  // ?cargo={id}: o aviso "Cargo sem custo-hora" (PRD-04 CA 5) abre o painel do cargo direto.
+  const { cargo } = useSearch({ strict: false }) as { cargo?: string }
+  const navigate = useNavigate()
+  const linked = useGetPosition(cargo ?? '', { query: { enabled: !!cargo } })
+  const panel = editing ?? (cargo && linked.data ? { position: linked.data } : null)
+  const close = () => {
+    setEditing(null)
+    if (cargo) void navigate({ to: '.', search: (s: Record<string, unknown>) => ({ ...s, cargo: undefined }), replace: true } as never)
+  }
   const refresh = () => {
     void client.invalidateQueries({ queryKey: getListPositionsQueryKey() })
     void client.invalidateQueries({ queryKey: getGetPositionsSummaryQueryKey() })
@@ -55,7 +65,7 @@ export function PositionsPage() {
           title: 'Cadastre os cargos da empresa para calcular o custo da hora trabalhada.',
           action: <Can perm="hr.create"><button type="button" onClick={open} className="text-sm font-semibold text-primary">Novo cargo</button></Can>,
         }} />
-      {editing ? <PositionPanel position={editing.position} chargesPct={summary.data?.chargesPct ?? 0} onClose={() => setEditing(null)} onSaved={refresh} /> : null}
+      {panel ? <PositionPanel key={panel.position?.id ?? 'novo'} position={panel.position} chargesPct={summary.data?.chargesPct ?? 0} onClose={close} onSaved={refresh} /> : null}
     </>
   )
 }

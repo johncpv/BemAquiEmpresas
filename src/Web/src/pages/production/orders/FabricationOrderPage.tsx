@@ -15,12 +15,13 @@ import { OrderDocuments } from '../OrderDocuments'
 import { CancelFabricationDialog, ChangeRoutingDialog } from './FabricationActions'
 import { FabricationHistory } from './FabricationHistory'
 import { FabricationSteps } from './FabricationSteps'
+import { FabricationCostsTab } from './labor-costs'
 import { LaborEntriesTab } from './LaborEntriesTab'
 import { canChangeSteps, delayLabel, FABRICATION_DICAS, FABRICATION_STATUS, hours, quantity } from './fabrication'
 
 /**
  * OS de fabricação (PRD-01 CA 10): OrderHeader e FactsBar comuns com a OS de instalação; abas na ordem do padrão 10 (as das
- * stories seguintes entram nelas): Etapas, Documentos e Histórico de alterações.
+ * stories seguintes entram nelas): Etapas, Apontamentos, Custos (só com projects.view_cost, PRD-04), Documentos e Histórico de alterações.
  */
 export function FabricationOrderPage() {
   const { id } = useParams({ strict: false }) as { id: string }
@@ -28,6 +29,7 @@ export function FabricationOrderPage() {
   const navigate = useNavigate()
   const client = useQueryClient()
   const canEdit = useCan('production.edit')
+  const canSeeCost = useCan('projects.view_cost')
   const query = useGetFabricationOrder(id)
   const [justCreated, setJustCreated] = useState(String(gerada) === '1')
   if (query.isPending) return <Skeleton className="h-96" />
@@ -86,6 +88,8 @@ export function FabricationOrderPage() {
       <UrlTabs label="Seções da OS" fallback="etapas" tabs={[
         { id: 'etapas', label: 'Etapas', content: <FabricationSteps key={o.version} order={o} onSaved={refresh} /> },
         { id: 'apontamentos', label: 'Apontamentos', content: <LaborEntriesTab order={o} onChanged={refresh} /> },
+        // PRD-04 CA 14: a aba Custos só existe com projects.view_cost (linha Mão de obra; a EST-03 acrescenta Material).
+        ...(canSeeCost ? [{ id: 'custos', label: 'Custos', content: <FabricationCostsTab orderId={id} /> }] : []),
         { id: 'documentos', label: 'Documentos', content: <OrderDocuments orderId={id} inputId="desenho-os" accept=".pdf,.png,.jpg,.jpeg,.dwg,.dxf"
           empty={{ title: 'Nenhum desenho ou documento anexado.', description: 'Anexe os desenhos técnicos (DWG, DXF ou PDF até 25 MB) e as fotos de referência da OS.' }} /> },
         { id: 'historico', label: 'Histórico de alterações', content: <FabricationHistory id={id} /> },

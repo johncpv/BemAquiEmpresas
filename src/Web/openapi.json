@@ -8624,6 +8624,148 @@
         }
       }
     },
+    "/api/v1/production/production-orders/{id}/labor-costs": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "GetOrderLaborCosts",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderLaborCostView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/production-orders/{id}/labor-entries/{entryId}/cost-history": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "GetLaborEntryCostHistory",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "entryId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LaborCostHistoryView"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/labor-costs/missing": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "GetMissingLaborCosts",
+        "parameters": [
+          {
+            "name": "positionId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LaborCostMissingView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/labor-costs/recalculate": {
+      "post": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "RecalculateMissingLaborCosts",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LaborRecalculationInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LaborRecalculationResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/production/installations": {
       "get": {
         "tags": [
@@ -9102,6 +9244,54 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/InstallationTemplateView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/parameters": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "GetProductionParameters",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductionParametersView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "UpdateProductionParameters",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductionParametersInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductionParametersView"
                 }
               }
             }
@@ -21755,6 +21945,106 @@
         },
         "additionalProperties": false
       },
+      "LaborCostHistoryView": {
+        "required": [
+          "costVersion",
+          "origin",
+          "minutes",
+          "hours",
+          "hourlyCostSnapshot",
+          "previousAmount",
+          "amount",
+          "costMissing",
+          "recordedByName",
+          "recordedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "costVersion": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/LaborCostOrigin"
+          },
+          "minutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hours": {
+            "type": "number",
+            "format": "double"
+          },
+          "hourlyCostSnapshot": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "previousAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "costMissing": {
+            "type": "boolean"
+          },
+          "recordedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "recordedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "LaborCostMissingView": {
+        "required": [
+          "count",
+          "recalculableCount",
+          "newTotal",
+          "positions"
+        ],
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "recalculableCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "newTotal": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "positions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MissingCostPosition"
+            }
+          }
+        }
+      },
+      "LaborCostOrigin": {
+        "enum": [
+          "Closing",
+          "Correction",
+          "Recalculation",
+          "Backfill"
+        ]
+      },
       "LaborEmployeeOption": {
         "required": [
           "id",
@@ -21779,6 +22069,48 @@
           },
           "positionName": {
             "type": "string"
+          }
+        }
+      },
+      "LaborEntryCostView": {
+        "required": [
+          "entryId",
+          "hourlyCostSnapshot",
+          "cost",
+          "costMissing",
+          "costBackfilled",
+          "costVersion",
+          "pending"
+        ],
+        "type": "object",
+        "properties": {
+          "entryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "hourlyCostSnapshot": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "cost": {
+            "type": "number",
+            "format": "double"
+          },
+          "costMissing": {
+            "type": "boolean"
+          },
+          "costBackfilled": {
+            "type": "boolean"
+          },
+          "costVersion": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pending": {
+            "type": "boolean"
           }
         }
       },
@@ -22060,6 +22392,49 @@
           },
           "hourlyCost": {
             "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "LaborRecalculationInput": {
+        "required": [
+          "positionId",
+          "orderId"
+        ],
+        "type": "object",
+        "properties": {
+          "positionId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "orderId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "LaborRecalculationResult": {
+        "required": [
+          "recalculated",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "recalculated": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": [
+              "null",
+              "number"
+            ],
             "format": "double"
           }
         }
@@ -22425,6 +22800,34 @@
           "Date",
           "Event"
         ]
+      },
+      "MissingCostPosition": {
+        "required": [
+          "positionId",
+          "positionName",
+          "count",
+          "hasHourlyCost"
+        ],
+        "type": "object",
+        "properties": {
+          "positionId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "positionName": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hasHourlyCost": {
+            "type": "boolean"
+          }
+        }
       },
       "ModuleRelease": {
         "required": [
@@ -23155,6 +23558,66 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/OpenLaborEntry"
+            }
+          }
+        }
+      },
+      "OrderLaborCostView": {
+        "required": [
+          "orderId",
+          "orderNumber",
+          "showsEntryCost",
+          "entries",
+          "steps",
+          "totalHours",
+          "laborCost",
+          "missingCount",
+          "includesBackfill",
+          "missingPositions"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "showsEntryCost": {
+            "type": "boolean"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LaborEntryCostView"
+            }
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StepLaborCostView"
+            }
+          },
+          "totalHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "laborCost": {
+            "type": "number",
+            "format": "double"
+          },
+          "missingCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "includesBackfill": {
+            "type": "boolean"
+          },
+          "missingPositions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MissingCostPosition"
             }
           }
         }
@@ -26036,6 +26499,54 @@
           "Quality"
         ]
       },
+      "ProductionParametersInput": {
+        "required": [
+          "showLaborEntryCost",
+          "openLaborAlertHours"
+        ],
+        "type": "object",
+        "properties": {
+          "showLaborEntryCost": {
+            "type": "boolean"
+          },
+          "openLaborAlertHours": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ProductionParametersView": {
+        "required": [
+          "showLaborEntryCost",
+          "openLaborAlertHours",
+          "showLaborEntryCostId",
+          "openLaborAlertHoursId"
+        ],
+        "type": "object",
+        "properties": {
+          "showLaborEntryCost": {
+            "type": "boolean"
+          },
+          "openLaborAlertHours": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "showLaborEntryCostId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "openLaborAlertHoursId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
       "ProductionStepStatus": {
         "enum": [
           "Waiting",
@@ -26067,9 +26578,11 @@
           "costType",
           "budgeted",
           "realized",
+          "committed",
           "projected",
           "deviation",
-          "deviationPct"
+          "deviationPct",
+          "includesBackfill"
         ],
         "type": "object",
         "properties": {
@@ -26081,6 +26594,10 @@
             "format": "double"
           },
           "realized": {
+            "type": "number",
+            "format": "double"
+          },
+          "committed": {
             "type": "number",
             "format": "double"
           },
@@ -26098,6 +26615,9 @@
               "number"
             ],
             "format": "double"
+          },
+          "includesBackfill": {
+            "type": "boolean"
           }
         }
       },
@@ -30669,6 +31189,50 @@
           },
           "lines": {
             "$ref": "#/components/schemas/StatementPage"
+          }
+        }
+      },
+      "StepLaborCostView": {
+        "required": [
+          "stepId",
+          "stepCode",
+          "stepName",
+          "minutes",
+          "hours",
+          "cost",
+          "missingCount",
+          "includesBackfill"
+        ],
+        "type": "object",
+        "properties": {
+          "stepId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "stepCode": {
+            "type": "string"
+          },
+          "stepName": {
+            "type": "string"
+          },
+          "minutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hours": {
+            "type": "number",
+            "format": "double"
+          },
+          "cost": {
+            "type": "number",
+            "format": "double"
+          },
+          "missingCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "includesBackfill": {
+            "type": "boolean"
           }
         }
       },

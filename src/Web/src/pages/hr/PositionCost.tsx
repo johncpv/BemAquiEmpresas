@@ -1,5 +1,6 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { resetPositionHourlyCost, setPositionHourlyCost } from '@/api/generated/bemaqui'
+import { getGetMissingLaborCostsQueryKey, resetPositionHourlyCost, setPositionHourlyCost, useGetMissingLaborCosts } from '@/api/generated/bemaqui'
 import type { PositionDetail } from '@/api/generated/model'
 import { Field, FormSection } from '@/components/form/form'
 import { MoneyInput } from '@/components/form/inputs'
@@ -7,8 +8,27 @@ import { StatusChip } from '@/components/ui/status-chip'
 import { notifySuccess } from '@/components/ui/messages'
 import { Dica } from '@/help/Dica'
 import { formatMoney } from '@/lib/format'
+import { RecalculateLaborButton } from '@/pages/production/orders/labor-costs'
 import { useCan } from '@/pages/use-can'
 import { DICAS } from './hr'
+
+/**
+ * Apontamentos "Sem custo-hora" do cargo (PRD-04 CA 5 e 6): só com production.approve; com o custo-hora já definido, o
+ * "Recalcular apontamentos sem custo" aparece aqui (propositivo: quem acabou de ajustar o custo-hora já resolve).
+ */
+export function PositionMissingCosts({ positionId }: { positionId: string }) {
+  const canApprove = useCan('production.approve')
+  const client = useQueryClient()
+  const query = useGetMissingLaborCosts({ positionId }, { query: { enabled: canApprove, refetchOnMount: 'always' } })
+  if (!canApprove || !query.data?.count) return null
+  const m = query.data
+  return (
+    <div role="note" className="space-y-2 rounded-md border border-l-4 border-warn-soft border-l-warn bg-warn-soft px-3 py-2 text-sm text-warn-ink">
+      <p>{m.count === 1 ? '1 apontamento deste cargo está sem custo.' : `${m.count} apontamentos deste cargo estão sem custo.`}{m.recalculableCount === 0 ? ' Defina o custo-hora e recalcule.' : ''}</p>
+      {m.recalculableCount > 0 ? <RecalculateLaborButton positionId={positionId} onDone={() => client.invalidateQueries({ queryKey: getGetMissingLaborCostsQueryKey({ positionId }) })} /> : null}
+    </div>
+  )
+}
 
 /** Custo-hora do cargo (CA 3 e 5): o calculado, ou o ajustado à mão com "Voltar ao calculado". */
 export function PositionCost({ position, onSaved }: { position: PositionDetail; onSaved: (p: PositionDetail) => void }) {

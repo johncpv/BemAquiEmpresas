@@ -5,7 +5,7 @@ namespace BemAqui.Host;
 
 /// <summary>
 /// Recorrentes globais do Hangfire, registrados na subida do processo que roda o servidor de jobs (ADR 0006: um recorrente
-/// por rotina, que enfileira um job por tenant). Hoje: o prazo da staging da importação (MIG-01a CA 22), a expiração de orçamentos, as despesas recorrentes, o aviso de vencidos e os eventos de afastamento (CAD-04c1).
+/// por rotina, que enfileira um job por tenant). Hoje: o prazo da staging da importação (MIG-01a CA 22), a expiração de orçamentos, as despesas recorrentes, o aviso de vencidos, a "OS atrasada" (PRD-02 CA 11), a recomposição do custo dos apontamentos (PRD-04 CA 12) e os eventos de afastamento (CAD-04c1).
 /// </summary>
 internal sealed class RecurringJobsRegistrar(IRecurringJobManager recurring, IConfiguration configuration) : IHostedService
 {
@@ -21,6 +21,11 @@ internal sealed class RecurringJobsRegistrar(IRecurringJobManager recurring, ICo
             BemAqui.Finance.Application.OverdueReceivablesRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         recurring.AddOrUpdate<BemAqui.Commercial.Application.ExpireQuotesRecurringJob>(BemAqui.Commercial.Application.ExpireQuotesRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             BemAqui.Commercial.Application.ExpireQuotesRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
+        // Recomposição do custo dos apontamentos fechados antes da PRD-04 (D3, CA 12): dispara já na subida (depois do deploy) e
+        // repete de madrugada; idempotente, termina sem fazer nada quando não há pendente.
+        recurring.AddOrUpdate<BemAqui.Production.Application.LaborCostBackfillRecurringJob>(BemAqui.Production.Application.LaborCostBackfillRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
+            BemAqui.Production.Application.LaborCostBackfillRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
+        recurring.Trigger(BemAqui.Production.Application.LaborCostBackfillRecurringJob.Id);
         // Afastamentos com data futura (CAD-04c1 CA 7): 00:15 de São Paulo, ou o horário do parâmetro.
         recurring.AddOrUpdate<BemAqui.HR.Application.EmployeeLeaveEventsRecurringJob>(BemAqui.HR.Application.EmployeeLeaveEventsRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             configuration[BemAqui.HR.Application.EmployeeLeaveEventsRecurringJob.CronSetting] ?? BemAqui.HR.Application.EmployeeLeaveEventsRecurringJob.Cron,

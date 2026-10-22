@@ -35,9 +35,10 @@ public static class HostEvents
             .AddEvent<BemAqui.Production.Contracts.ProductionOrderCancelled>()
             // PRD-02 CA 8: "Concluir etapa" tira a OS de Aberta; o Commercial passa o projeto a InProgress.
             .AddHandler<BemAqui.Production.Contracts.ProductionStepStarted, BemAqui.Commercial.Application.FabricationConsumers>()
-            // PRD-03a: apontamento fechado e corrigido; a PRD-04 consome para o custo de mão de obra (D3: recompõe o que veio antes).
-            .AddEvent<BemAqui.Production.Contracts.LaborEntryClosed>()
-            .AddEvent<BemAqui.Production.Contracts.LaborEntryCorrected>()
+            // PRD-03a e PRD-04: apontamento fechado e corrigido viram custo de mão de obra na razão commercial.project_costs (ADR 0025 §2);
+            // o que foi fechado antes da PRD-04 entra pela recomposição (D3, LaborCostBackfillJob).
+            .AddHandler<BemAqui.Production.Contracts.LaborEntryClosed, BemAqui.Commercial.Application.LaborCostConsumer>()
+            .AddHandler<BemAqui.Production.Contracts.LaborEntryCorrected, BemAqui.Commercial.Application.LaborCostConsumer>()
             // OS de instalação (COM-06).
             .AddHandler<BemAqui.Production.Contracts.InstallationStarted, BemAqui.Commercial.Application.InstallationConsumers>()
             .AddHandler<BemAqui.Production.Contracts.InstallationAccepted, BemAqui.Commercial.Application.InstallationConsumers>()

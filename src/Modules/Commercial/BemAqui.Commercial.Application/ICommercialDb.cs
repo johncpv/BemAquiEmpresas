@@ -30,6 +30,8 @@ public interface ICommercialDb
 
     DbSet<ProjectBudget> ProjectBudgets { get; }
 
+    DbSet<ProjectCost> ProjectCosts { get; }
+
     DbSet<ContractAmendment> ContractAmendments { get; }
 
     DbSet<ContractAmendmentMilestone> ContractAmendmentMilestones { get; }

@@ -7,7 +7,6 @@ using BemAqui.Production.Contracts;
 using BemAqui.Production.Domain;
 using BemAqui.SharedKernel;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 
 namespace BemAqui.Production.Application;
 
@@ -18,10 +17,8 @@ namespace BemAqui.Production.Application;
 /// </summary>
 public sealed class SupervisorLaborService(
     IProductionDb db, LaborWorkflow workflow, IBomGate bom, IEmployees employees, IUserEmployeeLink links, IUserDirectory users, IPermissionChecker permissions,
-    ICurrentUser currentUser, IEventPublisher events, IConfiguration configuration)
+    ICurrentUser currentUser, ProductionParametersService parameters)
 {
-    public const string AlertHoursSetting = "Production:OpenLaborAlertHours";
-
     /// <summary>Aba Apontamentos (CA 31): funcionário, início, fim, pausas com motivo, minutos líquidos, quem registrou e as correções.</summary>
     public async Task<Result<OrderLaborView>> ListAsync(Guid orderId, CancellationToken cancellationToken = default)
     {
@@ -112,7 +109,7 @@ public sealed class SupervisorLaborService(
         entry.Notes = Clean(input.Notes);
         var created = pauses.Select(p => new StepPause { LaborEntryId = entry.Id, OrderId = orderId, Reason = p.Reason, Notes = p.Notes, StartedAt = p.StartedAt, EndedAt = p.EndedAt }).ToList();
         db.StepPauses.AddRange(created);
-        workflow.Close(scope, entry, endedAt, LaborCloseKind.Supervisor, created);
+        await workflow.CloseAsync(scope, entry, endedAt, LaborCloseKind.Supervisor, created, cancellationToken);
         await workflow.SettleAsync(scope, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         return await ListAsync(orderId, cancellationToken);
@@ -120,7 +117,8 @@ public sealed class SupervisorLaborService(
 
     /// <summary>
     /// "Corrigir apontamento" (CA 20, 21): início, fim e pausas com motivo, nas regras do CA 19; a correção fica auditada (antes e
-    /// depois) e publica <see cref="LaborEntryCorrected"/>; o aberto fecha como "Encerrado pelo supervisor".
+    /// depois), refaz o custo com o mesmo snapshot (PRD-04 CA 4) e publica <see cref="LaborEntryCorrected"/>; o aberto fecha como
+    /// "Encerrado pelo supervisor".
     /// </summary>
     public async Task<Result<OrderLaborView>> CorrectAsync(Guid orderId, Guid entryId, LaborCorrectionInput input, CancellationToken cancellationToken = default)
     {
@@ -175,13 +173,14 @@ public sealed class SupervisorLaborService(
         entry.SelfApproved = entry.SelfApproved || segregation.Value;
         if (wasOpen)
         {
-            workflow.Close(scope, entry, input.EndedAt, LaborCloseKind.Supervisor, created);
+            await workflow.CloseAsync(scope, entry, input.EndedAt, LaborCloseKind.Supervisor, created, cancellationToken);
         }
         else
         {
+            var spans = created.Select(p => new PauseSpan(p.StartedAt, p.EndedAt)).ToList();
             entry.EndedAt = input.EndedAt;
-            entry.PausedMinutes = LaborRules.PausedMinutes(created.Select(p => new PauseSpan(p.StartedAt, p.EndedAt)), input.EndedAt);
-            events.Publish(new LaborEntryCorrected(entry.Id));
+            entry.PausedMinutes = LaborRules.PausedMinutes(spans, input.EndedAt);
+            await workflow.CorrectCostAsync(scope, entry, LaborRules.NetMinutes(input.StartedAt, input.EndedAt, spans, input.EndedAt), cancellationToken);
         }
 
         await workflow.SettleAsync(scope, cancellationToken);
@@ -226,12 +225,13 @@ public sealed class SupervisorLaborService(
     }
 
     /// <summary>
-    /// "Apontamentos abertos há mais de {x} h" (CA 22): {x} = 12 h (parâmetro <c>Production:OpenLaborAlertHours</c>), com funcionário,
+    /// "Apontamentos abertos há mais de {x} h" (CA 22): {x} = parâmetro da Produção em Configurações → Parâmetros (padrão 12 h, de 1 a
+    /// 72; decisão do PO de 22/10/2026, antes <c>Production:OpenLaborAlertHours</c> do servidor), com funcionário,
     /// OS, etapa, início e a última pausa, do mais antigo para o mais novo.
     /// </summary>
     public async Task<OpenLaborList> OpenAsync(CancellationToken cancellationToken = default)
     {
-        var hours = configuration.GetValue<int?>(AlertHoursSetting) is int h && h > 0 ? h : LaborRules.DefaultOpenAlertHours;
+        var hours = await parameters.OpenLaborAlertHoursAsync(cancellationToken);
         var now = workflow.Now;
         var limit = now.AddHours(-hours);
         var rows = await (from e in db.LaborEntries.AsNoTracking()

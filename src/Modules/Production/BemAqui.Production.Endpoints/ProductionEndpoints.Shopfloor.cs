@@ -77,5 +77,23 @@ internal static partial class ProductionEndpoints
             .RequirePermission("production.view").WithName("ListOpenLaborEntries").Produces<OpenLaborList>();
         production.MapGet("/labor-entries/employees", async (SupervisorLaborService service, CancellationToken ct) => Results.Ok(await service.EmployeesAsync(ct)))
             .RequirePermission("production.edit").WithName("ListLaborEmployees").Produces<IReadOnlyList<LaborEmployeeOption>>();
+        MapLaborCosts(production);
+    }
+
+    /// <summary>
+    /// Custo de mão de obra (PRD-04 CA 6, 14, 16 e 17): consultas de custo no módulo <c>production</c> (grupo), com
+    /// <c>production.view</c> e <c>projects.view_cost</c> (a policy responde <c>module_not_released</c> com <c>projects</c> não liberado); recálculo do "Sem custo-hora" com <c>production.approve</c>.
+    /// </summary>
+    private static void MapLaborCosts(RouteGroupBuilder production)
+    {
+        production.MapGet("/production-orders/{id:guid}/labor-costs", async (Guid id, LaborCostService service, CancellationToken ct) => (await service.OrderAsync(id, ct)).ToHttpResult())
+            .RequirePermission("production.view").RequirePermission("projects.view_cost").WithName("GetOrderLaborCosts").Produces<OrderLaborCostView>();
+        production.MapGet("/production-orders/{id:guid}/labor-entries/{entryId:guid}/cost-history", async (Guid id, Guid entryId, LaborCostService service, CancellationToken ct) =>
+                (await service.HistoryAsync(id, entryId, ct)).ToHttpResult())
+            .RequirePermission("production.view").RequirePermission("projects.view_cost").WithName("GetLaborEntryCostHistory").Produces<IReadOnlyList<LaborCostHistoryView>>();
+        production.MapGet("/labor-costs/missing", async (Guid? positionId, Guid? orderId, LaborCostService service, CancellationToken ct) => Results.Ok(await service.MissingAsync(positionId, orderId, ct)))
+            .RequirePermission("production.approve").WithName("GetMissingLaborCosts").Produces<LaborCostMissingView>();
+        production.MapPost("/labor-costs/recalculate", async (LaborRecalculationInput input, LaborCostService service, CancellationToken ct) => (await service.RecalculateAsync(input, ct)).ToHttpResult())
+            .RequirePermission("production.approve").WithName("RecalculateMissingLaborCosts").Produces<LaborRecalculationResult>();
     }
 }

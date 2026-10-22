@@ -132,6 +132,7 @@ import type {
   GetDiscountsAndCancellationsParams,
   GetFabricationOrderHistoryParams,
   GetInstallationDefaultsParams,
+  GetMissingLaborCostsParams,
   GetProductionBoardParams,
   GetQuoteFunnelParams,
   GetRoutingTemplateHistoryParams,
@@ -167,9 +168,13 @@ import type {
   ItemSearchHit,
   ItemType,
   LaborCorrectionInput,
+  LaborCostHistoryView,
+  LaborCostMissingView,
   LaborEmployeeOption,
   LaborEntryInput,
   LaborPositionOption,
+  LaborRecalculationInput,
+  LaborRecalculationResult,
   LaborWorkCenterOption,
   LeaveDetail,
   LeaveInput,
@@ -231,6 +236,7 @@ import type {
   OpeningPayablesInput,
   OpeningReceivablesInput,
   OpeningStatus,
+  OrderLaborCostView,
   OrderLaborView,
   PagedListOfAuditEntryDto,
   PagedListOfBankAccountDetail,
@@ -287,6 +293,8 @@ import type {
   PreferencesDto,
   PricingModeInput,
   ProductionBoard,
+  ProductionParametersInput,
+  ProductionParametersView,
   ProjectBudgetLine,
   ProjectCostView,
   ProjectDetail,
@@ -22660,6 +22668,388 @@ export function useListLaborEmployees<TData = Awaited<ReturnType<typeof listLabo
 
 
 
+export const getGetOrderLaborCostsUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/production-orders/${id}/labor-costs`
+}
+
+export const getOrderLaborCosts = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<OrderLaborCostView> => {
+
+  return apiFetch<OrderLaborCostView>(getGetOrderLaborCostsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOrderLaborCostsQueryKey = (id: string,) => {
+    return [
+    `/api/v1/production/production-orders/${id}/labor-costs`
+    ] as const;
+    }
+
+
+export const getGetOrderLaborCostsQueryOptions = <TData = Awaited<ReturnType<typeof getOrderLaborCosts>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderLaborCosts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOrderLaborCostsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOrderLaborCosts>>> = ({ signal }) => getOrderLaborCosts(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOrderLaborCosts>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetOrderLaborCostsQueryResult = NonNullable<Awaited<ReturnType<typeof getOrderLaborCosts>>>
+export type GetOrderLaborCostsQueryError = unknown
+
+
+export function useGetOrderLaborCosts<TData = Awaited<ReturnType<typeof getOrderLaborCosts>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderLaborCosts>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrderLaborCosts>>,
+          TError,
+          Awaited<ReturnType<typeof getOrderLaborCosts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOrderLaborCosts<TData = Awaited<ReturnType<typeof getOrderLaborCosts>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderLaborCosts>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrderLaborCosts>>,
+          TError,
+          Awaited<ReturnType<typeof getOrderLaborCosts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOrderLaborCosts<TData = Awaited<ReturnType<typeof getOrderLaborCosts>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderLaborCosts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetOrderLaborCosts<TData = Awaited<ReturnType<typeof getOrderLaborCosts>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderLaborCosts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetOrderLaborCostsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetLaborEntryCostHistoryUrl = (id: string,
+    entryId: string,) => {
+
+
+
+
+  return `/api/v1/production/production-orders/${id}/labor-entries/${entryId}/cost-history`
+}
+
+export const getLaborEntryCostHistory = async (id: string,
+    entryId: string, options?: Parameters<typeof apiFetch>[1]): Promise<LaborCostHistoryView[]> => {
+
+  return apiFetch<LaborCostHistoryView[]>(getGetLaborEntryCostHistoryUrl(id,entryId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLaborEntryCostHistoryQueryKey = (id: string,
+    entryId: string,) => {
+    return [
+    `/api/v1/production/production-orders/${id}/labor-entries/${entryId}/cost-history`
+    ] as const;
+    }
+
+
+export const getGetLaborEntryCostHistoryQueryOptions = <TData = Awaited<ReturnType<typeof getLaborEntryCostHistory>>, TError = unknown>(id: string,
+    entryId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLaborEntryCostHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLaborEntryCostHistoryQueryKey(id,entryId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLaborEntryCostHistory>>> = ({ signal }) => getLaborEntryCostHistory(id,entryId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && entryId !== null && entryId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLaborEntryCostHistory>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetLaborEntryCostHistoryQueryResult = NonNullable<Awaited<ReturnType<typeof getLaborEntryCostHistory>>>
+export type GetLaborEntryCostHistoryQueryError = unknown
+
+
+export function useGetLaborEntryCostHistory<TData = Awaited<ReturnType<typeof getLaborEntryCostHistory>>, TError = unknown>(
+ id: string,
+    entryId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLaborEntryCostHistory>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLaborEntryCostHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getLaborEntryCostHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLaborEntryCostHistory<TData = Awaited<ReturnType<typeof getLaborEntryCostHistory>>, TError = unknown>(
+ id: string,
+    entryId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLaborEntryCostHistory>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLaborEntryCostHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getLaborEntryCostHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLaborEntryCostHistory<TData = Awaited<ReturnType<typeof getLaborEntryCostHistory>>, TError = unknown>(
+ id: string,
+    entryId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLaborEntryCostHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetLaborEntryCostHistory<TData = Awaited<ReturnType<typeof getLaborEntryCostHistory>>, TError = unknown>(
+ id: string,
+    entryId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLaborEntryCostHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetLaborEntryCostHistoryQueryOptions(id,entryId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetMissingLaborCostsUrl = (params?: GetMissingLaborCostsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/production/labor-costs/missing?${stringifiedParams}` : `/api/v1/production/labor-costs/missing`
+}
+
+export const getMissingLaborCosts = async (params?: GetMissingLaborCostsParams, options?: Parameters<typeof apiFetch>[1]): Promise<LaborCostMissingView> => {
+
+  return apiFetch<LaborCostMissingView>(getGetMissingLaborCostsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMissingLaborCostsQueryKey = (params?: GetMissingLaborCostsParams,) => {
+    return [
+    `/api/v1/production/labor-costs/missing`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetMissingLaborCostsQueryOptions = <TData = Awaited<ReturnType<typeof getMissingLaborCosts>>, TError = unknown>(params?: GetMissingLaborCostsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMissingLaborCosts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMissingLaborCostsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMissingLaborCosts>>> = ({ signal }) => getMissingLaborCosts(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMissingLaborCosts>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetMissingLaborCostsQueryResult = NonNullable<Awaited<ReturnType<typeof getMissingLaborCosts>>>
+export type GetMissingLaborCostsQueryError = unknown
+
+
+export function useGetMissingLaborCosts<TData = Awaited<ReturnType<typeof getMissingLaborCosts>>, TError = unknown>(
+ params: undefined |  GetMissingLaborCostsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMissingLaborCosts>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMissingLaborCosts>>,
+          TError,
+          Awaited<ReturnType<typeof getMissingLaborCosts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMissingLaborCosts<TData = Awaited<ReturnType<typeof getMissingLaborCosts>>, TError = unknown>(
+ params?: GetMissingLaborCostsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMissingLaborCosts>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMissingLaborCosts>>,
+          TError,
+          Awaited<ReturnType<typeof getMissingLaborCosts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMissingLaborCosts<TData = Awaited<ReturnType<typeof getMissingLaborCosts>>, TError = unknown>(
+ params?: GetMissingLaborCostsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMissingLaborCosts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetMissingLaborCosts<TData = Awaited<ReturnType<typeof getMissingLaborCosts>>, TError = unknown>(
+ params?: GetMissingLaborCostsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMissingLaborCosts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetMissingLaborCostsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getRecalculateMissingLaborCostsUrl = () => {
+
+
+
+
+  return `/api/v1/production/labor-costs/recalculate`
+}
+
+export const recalculateMissingLaborCosts = async (laborRecalculationInput: LaborRecalculationInput, options?: Parameters<typeof apiFetch>[1]): Promise<LaborRecalculationResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<LaborRecalculationResult>(getRecalculateMissingLaborCostsUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(laborRecalculationInput)
+  }
+);}
+
+
+
+
+
+export const getRecalculateMissingLaborCostsMutationKey = () => ['recalculateMissingLaborCosts'] as const;
+
+export const getRecalculateMissingLaborCostsMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recalculateMissingLaborCosts>>, TError,RecalculateMissingLaborCostsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof recalculateMissingLaborCosts>>, TError,RecalculateMissingLaborCostsMutationVariables, TContext> => {
+
+const mutationKey = getRecalculateMissingLaborCostsMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof recalculateMissingLaborCosts>>, RecalculateMissingLaborCostsMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  recalculateMissingLaborCosts(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RecalculateMissingLaborCostsMutationResult = NonNullable<Awaited<ReturnType<typeof recalculateMissingLaborCosts>>>
+    export type RecalculateMissingLaborCostsMutationBody = LaborRecalculationInput
+    export type RecalculateMissingLaborCostsMutationError = unknown
+    export type RecalculateMissingLaborCostsMutationVariables = {data: LaborRecalculationInput}
+
+    export const useRecalculateMissingLaborCosts = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recalculateMissingLaborCosts>>, TError,RecalculateMissingLaborCostsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof recalculateMissingLaborCosts>>,
+        TError,
+        RecalculateMissingLaborCostsMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRecalculateMissingLaborCostsMutationOptions(options), queryClient);
+    }
+
 export const getListInstallationsUrl = (params?: ListInstallationsParams,) => {
   const normalizedParams = new URLSearchParams();
 
@@ -23820,6 +24210,183 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getSaveInstallationTemplateMutationOptions(options), queryClient);
+    }
+
+export const getGetProductionParametersUrl = () => {
+
+
+
+
+  return `/api/v1/production/parameters`
+}
+
+export const getProductionParameters = async ( options?: Parameters<typeof apiFetch>[1]): Promise<ProductionParametersView> => {
+
+  return apiFetch<ProductionParametersView>(getGetProductionParametersUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetProductionParametersQueryKey = () => {
+    return [
+    `/api/v1/production/parameters`
+    ] as const;
+    }
+
+
+export const getGetProductionParametersQueryOptions = <TData = Awaited<ReturnType<typeof getProductionParameters>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductionParameters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetProductionParametersQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getProductionParameters>>> = ({ signal }) => getProductionParameters({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getProductionParameters>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetProductionParametersQueryResult = NonNullable<Awaited<ReturnType<typeof getProductionParameters>>>
+export type GetProductionParametersQueryError = unknown
+
+
+export function useGetProductionParameters<TData = Awaited<ReturnType<typeof getProductionParameters>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductionParameters>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getProductionParameters>>,
+          TError,
+          Awaited<ReturnType<typeof getProductionParameters>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetProductionParameters<TData = Awaited<ReturnType<typeof getProductionParameters>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductionParameters>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getProductionParameters>>,
+          TError,
+          Awaited<ReturnType<typeof getProductionParameters>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetProductionParameters<TData = Awaited<ReturnType<typeof getProductionParameters>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductionParameters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetProductionParameters<TData = Awaited<ReturnType<typeof getProductionParameters>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductionParameters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetProductionParametersQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateProductionParametersUrl = () => {
+
+
+
+
+  return `/api/v1/production/parameters`
+}
+
+export const updateProductionParameters = async (productionParametersInput: ProductionParametersInput, options?: Parameters<typeof apiFetch>[1]): Promise<ProductionParametersView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ProductionParametersView>(getUpdateProductionParametersUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(productionParametersInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateProductionParametersMutationKey = () => ['updateProductionParameters'] as const;
+
+export const getUpdateProductionParametersMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateProductionParameters>>, TError,UpdateProductionParametersMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateProductionParameters>>, TError,UpdateProductionParametersMutationVariables, TContext> => {
+
+const mutationKey = getUpdateProductionParametersMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateProductionParameters>>, UpdateProductionParametersMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateProductionParameters(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateProductionParametersMutationResult = NonNullable<Awaited<ReturnType<typeof updateProductionParameters>>>
+    export type UpdateProductionParametersMutationBody = ProductionParametersInput
+    export type UpdateProductionParametersMutationError = unknown
+    export type UpdateProductionParametersMutationVariables = {data: ProductionParametersInput}
+
+    export const useUpdateProductionParameters = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateProductionParameters>>, TError,UpdateProductionParametersMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateProductionParameters>>,
+        TError,
+        UpdateProductionParametersMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateProductionParametersMutationOptions(options), queryClient);
     }
 
 export const getGetShopfloorQueueUrl = () => {

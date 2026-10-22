@@ -140,11 +140,33 @@ public sealed record ProductionStepStarted(Guid ProductionOrderId, Guid ProjectI
 
 /// <summary>OS de fabricação cancelada (PRD-01 CA 16): a EST-02 reconcilia as reservas pela fonte (ADR 0023 §6).</summary>
 public sealed record ProductionOrderCancelled(Guid ProductionOrderId, Guid ProjectId) : BemAqui.SharedKernel.IIntegrationEvent;
-/// <summary>
-/// Apontamento fechado (PRD-03a CA 13, 14 e 20): minutos líquidos = (fim − início) − pausas. A PRD-04 calcula o custo pelo cargo
-/// do funcionário; aqui não vai valor nenhum.
-/// </summary>
-public sealed record LaborEntryClosed(Guid LaborEntryId, Guid ProductionOrderId, Guid ProjectId, Guid StepId, Guid EmployeeId, int Minutes) : BemAqui.SharedKernel.IIntegrationEvent;
 
-/// <summary>Apontamento corrigido pelo supervisor (PRD-03a CA 20): a PRD-04 relê o apontamento e refaz o custo.</summary>
-public sealed record LaborEntryCorrected(Guid LaborEntryId) : BemAqui.SharedKernel.IIntegrationEvent;
+/// <summary>Origem do custo do apontamento (PRD-04 CA 17): fechamento, correção, recálculo sem custo-hora ou implantação (D3).</summary>
+[JsonConverter(typeof(JsonStringEnumConverter<LaborCostOrigin>))]
+public enum LaborCostOrigin
+{
+    Closing,
+    Correction,
+    Recalculation,
+    Backfill,
+}
+
+/// <summary>
+/// Apontamento fechado (PRD-03a CA 13, 14 e 20; PRD-04 CA 1 e 12): minutos líquidos = (fim − início) − pausas e o custo pelo custo-hora
+/// do cargo no fechamento, como razão de diferenças (ADR 0025 §2): <c>Version</c> (versão do custo, 1 no fechamento),
+/// <c>PreviousAmount</c> (0) e <c>NewAmount</c> (custo do apontamento). Só ids, valores e data (CA 15). <c>Origin</c> é
+/// <c>Closing</c> ou <c>Backfill</c> (recomposição dos apontamentos fechados antes da PRD-04). Mensagem antiga no outbox chega
+/// com <c>Version</c> 0 e o consumidor ignora (a recomposição cobre).
+/// </summary>
+public sealed record LaborEntryClosed(
+    Guid LaborEntryId, Guid ProductionOrderId, Guid ProjectId, Guid StepId, Guid EmployeeId, int Minutes, int Version = 0, decimal PreviousAmount = 0, decimal NewAmount = 0,
+    DateOnly OccurredOn = default, LaborCostOrigin Origin = LaborCostOrigin.Closing) : BemAqui.SharedKernel.IIntegrationEvent;
+
+/// <summary>
+/// Custo do apontamento refeito (PRD-03a CA 20; PRD-04 CA 4 e 6): correção do supervisor (<c>Correction</c>: mesmo snapshot e as horas
+/// novas) ou recálculo do apontamento sem custo-hora (<c>Recalculation</c>), com a versão nova e os valores antes e depois. Mensagem
+/// antiga (só o id) chega com <c>Version</c> 0 e o consumidor ignora.
+/// </summary>
+public sealed record LaborEntryCorrected(
+    Guid LaborEntryId, Guid ProductionOrderId = default, Guid ProjectId = default, int Minutes = 0, int Version = 0, decimal PreviousAmount = 0, decimal NewAmount = 0,
+    DateOnly OccurredOn = default, LaborCostOrigin Origin = LaborCostOrigin.Correction) : BemAqui.SharedKernel.IIntegrationEvent;

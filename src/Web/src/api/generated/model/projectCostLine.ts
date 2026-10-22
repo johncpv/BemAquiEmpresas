@@ -10,8 +10,10 @@ export interface ProjectCostLine {
   costType: CostType;
   budgeted: number;
   realized: number;
+  committed: number;
   projected: number;
   deviation: number;
   /** @nullable */
   deviationPct: number | null;
+  includesBackfill: boolean;
 }

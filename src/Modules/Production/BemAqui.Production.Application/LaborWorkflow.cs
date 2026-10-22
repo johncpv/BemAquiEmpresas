@@ -26,7 +26,7 @@ public sealed record LaborScope(ProductionOrder Order, List<ProductionOrderStep>
 /// </summary>
 public sealed class LaborWorkflow(
     IProductionDb db, IEventPublisher events, INotificationService notifications, IUserDirectory users, IUserEmployeeLink links, IEmployees employees,
-    ICurrentUser currentUser, TimeProvider clock, ProductionBoardNotifier board)
+    ICurrentUser currentUser, TimeProvider clock, ProductionBoardNotifier board, LaborCosting costing)
 {
     public const string OrderLink = FabricationOrderService.Link;
     public const string SelfApprovedType = "production.labor_self_approved";
@@ -117,8 +117,9 @@ public sealed class LaborWorkflow(
     }
 
     /// <summary>
-    /// Fecha o apontamento (CA 13, 14, 20): a pausa aberta fecha junto, <c>paused_minutes</c> = Σ pausas e o
-    /// <see cref="LaborEntryClosed"/> vai para o outbox com os minutos líquidos. Devolve os minutos líquidos.
+    /// Fecha o apontamento (CA 13, 14, 20): a pausa aberta fecha junto, <c>paused_minutes</c> = Σ pausas, o custo pelo custo-hora do
+    /// cargo no fechamento (PRD-04 CA 1) e o <see cref="LaborEntryClosed"/> vai para o outbox com os minutos líquidos e o custo.
+    /// Devolve os minutos líquidos.
     /// </summary>
     public async Task<int> CloseAsync(LaborScope scope, LaborEntry entry, DateTimeOffset endedAt, LaborCloseKind kind, CancellationToken ct)
     {
@@ -130,11 +131,11 @@ public sealed class LaborWorkflow(
             open.EndedAt = endedAt < open.StartedAt ? open.StartedAt : endedAt;
         }
 
-        return Close(scope, entry, endedAt, kind, pauses);
+        return await CloseAsync(scope, entry, endedAt, kind, pauses, ct);
     }
 
     /// <summary>Fecha com as pausas já carregadas (as do apontamento novo do supervisor ainda não estão no banco).</summary>
-    public int Close(LaborScope scope, LaborEntry entry, DateTimeOffset endedAt, LaborCloseKind kind, IReadOnlyCollection<StepPause> pauses)
+    public async Task<int> CloseAsync(LaborScope scope, LaborEntry entry, DateTimeOffset endedAt, LaborCloseKind kind, IReadOnlyCollection<StepPause> pauses, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(scope);
         ArgumentNullException.ThrowIfNull(entry);
@@ -145,8 +146,18 @@ public sealed class LaborWorkflow(
         entry.CloseKind = kind;
         entry.ClosedBy = currentUser.UserId;
         var minutes = LaborRules.NetMinutes(entry.StartedAt, endedAt, spans, endedAt);
-        events.Publish(new LaborEntryClosed(entry.Id, scope.Order.Id, scope.Order.ProjectId, scope.Step.Id, entry.EmployeeId, minutes));
+        events.Publish(await costing.CloseAsync(entry, scope.Order.ProjectId, minutes, LaborCostOrigin.Closing, BusinessTime.Today(clock), ct));
         return minutes;
+    }
+
+    /// <summary>
+    /// Correção de apontamento já fechado (PRD-03a CA 20, PRD-04 CA 4): o custo é refeito com o mesmo snapshot e as horas novas, e o
+    /// <see cref="LaborEntryCorrected"/> vai para o outbox com a versão e os valores antes e depois.
+    /// </summary>
+    public async Task CorrectCostAsync(LaborScope scope, LaborEntry entry, int minutes, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(scope);
+        events.Publish(await costing.CorrectAsync(entry, scope.Order.ProjectId, minutes, ct));
     }
 
     /// <summary>Etapa concluída (CA 13, 20): <c>Done</c> com o fim real e quem concluiu; a próxima fica pronta.</summary>
