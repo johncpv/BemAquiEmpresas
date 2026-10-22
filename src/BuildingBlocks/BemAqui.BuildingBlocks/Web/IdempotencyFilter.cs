@@ -35,7 +35,7 @@ public static class IdempotencyFilter
 
             var db = http.RequestServices.GetRequiredService<BemAquiDbContext>();
             var json = http.RequestServices.GetRequiredService<IOptions<JsonOptions>>().Value.SerializerOptions;
-            var scope = http.Request.Method + " " + ((http.GetEndpoint() as RouteEndpoint)?.RoutePattern.RawText ?? http.Request.Path.Value);
+            var scope = Scope(http);
             var hash = BodyHash(context, json);
             var clock = http.RequestServices.GetRequiredService<TimeProvider>();
             var inserted = await db.Database.ExecuteSqlInterpolatedAsync(
@@ -93,6 +93,17 @@ public static class IdempotencyFilter
         }
 
         return record.Response is null ? Results.StatusCode(status) : Results.Content(record.Response, "application/json", Encoding.UTF8, status);
+    }
+
+    /// <summary>
+    /// Método, rota e usuário ("POST /api/v1/finance/transfers 0192…"; "-" sem usuário): a chave de outra pessoa nunca
+    /// devolve a resposta guardada para quem não a enviou (D19).
+    /// </summary>
+    internal static string Scope(HttpContext http)
+    {
+        var user = http.RequestServices.GetService<Identity.ICurrentUser>()?.UserId;
+        var route = (http.GetEndpoint() as RouteEndpoint)?.RoutePattern.RawText ?? http.Request.Path.Value;
+        return http.Request.Method + " " + route + " " + (user?.ToString() ?? "-");
     }
 
     private static Task<int> ForgetAsync(BemAquiDbContext db, Guid key) =>
