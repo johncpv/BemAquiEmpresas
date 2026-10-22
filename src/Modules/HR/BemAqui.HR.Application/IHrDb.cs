@@ -1,5 +1,6 @@
 using BemAqui.HR.Domain;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace BemAqui.HR.Application;
 
@@ -17,4 +18,7 @@ public interface IHrDb
     DbSet<EmployeeHistoryEntry> EmployeeHistory { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+
+    EntityEntry<TEntity> Entry<TEntity>(TEntity entity)
+        where TEntity : class;
 }

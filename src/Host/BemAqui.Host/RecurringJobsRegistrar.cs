@@ -5,9 +5,9 @@ namespace BemAqui.Host;
 
 /// <summary>
 /// Recorrentes globais do Hangfire, registrados na subida do processo que roda o servidor de jobs (ADR 0006: um recorrente
-/// por rotina, que enfileira um job por tenant). Hoje: o prazo da staging da importação (MIG-01a CA 22).
+/// por rotina, que enfileira um job por tenant). Hoje: o prazo da staging da importação (MIG-01a CA 22), a expiração de orçamentos, as despesas recorrentes, o aviso de vencidos e os eventos de afastamento (CAD-04c1).
 /// </summary>
-internal sealed class RecurringJobsRegistrar(IRecurringJobManager recurring) : IHostedService
+internal sealed class RecurringJobsRegistrar(IRecurringJobManager recurring, IConfiguration configuration) : IHostedService
 {
     public Task StartAsync(CancellationToken cancellationToken)
     {
@@ -21,6 +21,10 @@ internal sealed class RecurringJobsRegistrar(IRecurringJobManager recurring) : I
             BemAqui.Finance.Application.OverdueReceivablesRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         recurring.AddOrUpdate<BemAqui.Commercial.Application.ExpireQuotesRecurringJob>(BemAqui.Commercial.Application.ExpireQuotesRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             BemAqui.Commercial.Application.ExpireQuotesRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
+        // Afastamentos com data futura (CAD-04c1 CA 7): 00:15 de São Paulo, ou o horário do parâmetro.
+        recurring.AddOrUpdate<BemAqui.HR.Application.EmployeeLeaveEventsRecurringJob>(BemAqui.HR.Application.EmployeeLeaveEventsRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
+            configuration[BemAqui.HR.Application.EmployeeLeaveEventsRecurringJob.CronSetting] ?? BemAqui.HR.Application.EmployeeLeaveEventsRecurringJob.Cron,
+            new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         return Task.CompletedTask;
     }
 

@@ -30,7 +30,20 @@ public sealed record TerminationInput(DateOnly TerminationDate);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record UserLinkInput(Guid UserId);
 
-/// <summary>Funcionário para a lista e o detalhe (CA 8): nunca traz dado pessoal nem salário.</summary>
+/// <summary>
+/// Registrar afastamento (CAD-04c1 CA 1), comando próprio com <c>hr.edit</c> e <c>hr.view_sensitive</c>. <c>ExpectedEndDate</c> é o
+/// último dia afastado; <c>Version</c> é o <c>xmin</c> do funcionário (ADR 0019 §2). O motivo não leva CID nem diagnóstico.
+/// </summary>
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record LeaveInput(EmployeeLeaveType? Type, DateOnly? StartDate, DateOnly? ExpectedEndDate, string? Reason, uint Version);
+
+/// <summary>Afastamento só pela rota <c>/leaves/sensitive</c> (CA 4), com <c>no-store</c> e <c>SensitiveRead</c>.</summary>
+public sealed record LeaveDetail(Guid Id, EmployeeLeaveType Type, DateOnly StartDate, DateOnly ExpectedEndDate, DateOnly ExpectedReturnDate, string Reason, Guid? UserId, DateTimeOffset CreatedAt);
+
+/// <summary>
+/// Funcionário para a lista e o detalhe (CA 8): nunca traz dado pessoal nem salário. <c>Status</c> é a situação de hoje
+/// (<c>OnLeave</c> calculado, CAD-04c1 CA 2), sem tipo, motivo nem datas do afastamento.
+/// </summary>
 public sealed record EmployeeDetail(
     Guid Id,
     string Name,
@@ -43,7 +56,8 @@ public sealed record EmployeeDetail(
     Guid? UnionId,
     DateOnly AdmissionDate,
     DateOnly? TerminationDate,
-    EmployeeStatus Status);
+    EmployeeStatus Status,
+    uint Version);
 
 /// <summary>Só pela rota <c>/sensitive</c> (CA 9), com <c>no-store</c> e <c>SensitiveRead</c>.</summary>
 public sealed record EmployeeSensitiveDetail(
@@ -56,7 +70,10 @@ public sealed record EmployeeCreated(EmployeeDetail Employee, string? Warning);
 /// <summary><c>WorkCenterId</c>: o centro padrão do cargo do funcionário.</summary>
 public sealed record EmployeeListQuery(string? Q, EmployeeStatus? Status, Guid? PositionId, Guid? WorkCenterId = null);
 
-/// <summary>Entrada da linha do tempo (CA 16): <c>OldValue</c> e <c>NewValue</c> são o nome do cargo ou o salário.</summary>
+/// <summary>
+/// Entrada da linha do tempo (CA 16): <c>OldValue</c> e <c>NewValue</c> são o nome do cargo ou o salário. Afastamentos não entram
+/// aqui: saem só por <c>/leaves/sensitive</c> (CAD-04c1 CA 4).
+/// </summary>
 public sealed record TimelineEntry(Guid Id, EmployeeHistoryKind Kind, DateOnly EffectiveDate, string? OldValue, string NewValue, string Reason, Guid? UserId, DateTimeOffset CreatedAt);
 
 /// <summary>Usuário vinculado ao funcionário, ou null (CA 19).</summary>
