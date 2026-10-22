@@ -54,3 +54,10 @@
 - **PRD-02** fecha a conexão do hub quando a permissão ou o security stamp mudam.
 - `docs/03-modelo-dados.md` registra `shopfloor_devices`, `user_pins` e as colunas novas de `refresh_tokens`.
 - Registrado em `06-pendencias-riscos.md` o adiamento do sem rede, com a condição (P-23), e o operador sem e-mail (P-24).
+
+## Adendo 21/10/2026 (revisão pré-Fases 4 a 8, decisão D15 do PO): PIN no "Meu ponto"
+- **Lista permitida da sessão por PIN** (§4) ganha os endpoints da marcação do próprio funcionário (ADR 0035): `GET /api/v1/me/hr/time-clock` (situação e próxima marcação sugerida) e `POST /api/v1/me/hr/time-entries` (marcar), com `[PinSessionAllowed]`. "Meu espelho", "Meus holerites" e todo o resto do `hr` continuam **fora** da lista (exigem login completo).
+- **Marcar encerra a sessão por PIN no servidor:** na mesma transação da marcação, a sessão por PIN e a família de refresh dela são revogadas; o access token deixa de valer no próximo request (a revogação entra no cache da sessão conferido a cada request). O tablet volta à lista de nomes depois do comprovante.
+- A marcação pela sessão por PIN grava `source = Pin` e o `device_id` do aparelho registrado; o aparelho registrado nunca pede geolocalização.
+- Sem mudança na regra de perfil sensível: ganhar `hr.view_sensitive` apaga o PIN (§2).
+- O teste de arquitetura do `[PinSessionAllowed]` passa a conter os dois endpoints, com a revisão registrada.

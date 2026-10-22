@@ -45,3 +45,7 @@
 - A FND-07 implementa o outbox, a inbox e o `TenantJob<T>`, e a FND-03a implementa o migrator.
 
 - Ver ADR 0019 (registro de eventos de gatilho, concorrência com `xmin`, idempotência, deduplicação de notificações e jobs, Contracts × Contracts).
+
+## Nota 21/10/2026 (revisão pré-Fases 4 a 8, decisão D9 do PO): `Reporting` revogado
+- O módulo `Reporting` da seção "Consultas de dashboard" **foi revogado pela ADR 0028** e nunca foi criado. Não existe exceção à fronteira: o painel é composto pelo módulo `Dashboard`, só de `Application` e `Endpoints`, a partir dos `*.Contracts` de cada módulo dono, com cache de 60 s.
+- Continua valendo o resto da seção: Dapper só pela conexão do `TenantDbContext`, sempre com parâmetros, e materialized view só quando a medição justificar, agora dentro do módulo dono.

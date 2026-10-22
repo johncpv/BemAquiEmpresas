@@ -49,3 +49,13 @@ Restaurar o catálogo e um tenant numa máquina limpa, com o certificado offline
 - A FND-11 implementa o key ring, os protetores e a máscara.
 - A FND-10b implementa a montagem dos secrets no compose, a trilha separada do backup do key ring, a lista de certificados antigos e o job de recifração.
 - A criação inicial do key ring passa a ser um passo explícito do provisionamento na FND-03a. A flag de subida fica só para o primeiro ambiente.
+
+## Adendo 21/10/2026 (revisão pré-Fases 4 a 8, decisões D3, D12, D13 e D17 do PO): segredos das integrações
+- **Tipos novos de segredo** (`SecretKind`, BuildingBlocks), com propósito fixo e o teste golden atualizado:
+  - `WebhookSecret` → `webhook-secret`: segredo de assinatura de webhook por provedor e tenant (FND-16, ADR 0031), com o anterior guardado durante a sobreposição de 24 h;
+  - `FiscalApiKey` → `fiscal-api-key`: chave do BemAqui no EmissorFiscal, sem o escopo `admin` (FIS-01, ADR 0027);
+  - `WhatsAppCredentials` → `whatsapp-credentials`: credenciais do parceiro (BSP) da API oficial do WhatsApp por tenant (WPP-01, ADR 0041).
+- **Inter por conta bancária:** os propósitos `inter-credentials` e `inter-certificate` (já previstos acima) passam a ser cifrados **por integração de conta** (`finance.bank_integrations`, BNK-01a, ADR 0032), não por tenant: cada conta tem o seu client id/secret e o seu certificado mTLS; a cadeia do propósito ganha o id da integração depois do tipo (`"tenant:{id}", "inter-credentials", "{integrationId}", "v1"`), travada no teste golden.
+- **Certificado A1 fora do BemAqui:** o propósito `fiscal-certificate` **não é usado**. O A1 fica só no cofre do EmissorFiscal (ADR 0027 §3); o BemAqui guarda só validade, titular, CNPJ e thumbprint, e repassa o `.pfx` ao Emissor sem gravá-lo em disco, log, auditoria ou `IFileStorage`.
+- **Token do webhook do Inter** não é segredo cifrado: só o hash fica guardado (ADR 0031 §6), como os tokens opacos da ADR 0011.
+- Todos seguem as regras de segredo só de escrita desta ADR (nunca voltam numa resposta, `Secret` mascarado, canário no log) e a ADR 0042 (telas de Configurações com "configurado em dd/mm/aaaa").
