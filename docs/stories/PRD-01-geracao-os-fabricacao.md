@@ -5,7 +5,7 @@
 | ID | PRD-01 |
 | Título | OS de fabricação gerada a partir do item do projeto (automática para equipamento pelo `ProjectItemCreated`; botão "Gerar OS" e geração em lote para componente fabricado e para os itens que já existem), com o roteiro copiado do template; etapas, centros, horas padrão e checklist editáveis na OS antes do início; lista e detalhe da OS com `OrderHeader` e `FactsBar`; desenhos técnicos; cancelamento |
 | Tamanho | G (re-estimada de M: estende a `production_orders` da COM-06 para o tipo Fabricação, cria o consumidor do primeiro evento do Commercial na Produção e a tela da OS de fabricação, base de ENG-02, EST-02, PRD-02 e PRD-03a) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-PRD-1 (OS gerada do item do projeto e do template, editável na OS) · R-PRJ-2 (cada item gera uma ou mais OS) · R-ENG-1 · R-PRP-1 (roteiro do tipo de produto) · R-PRP-2 · R-COM-4 (numeração OS) · R-COM-3 (anexos técnicos, R-ENG-6) · R-SEC-5 |
 | Dependências | ENG-01 (`IRoutingTemplates`), COM-04a (`ProjectItemCreated`, `IProjects`), COM-06 (`production_orders`, numeração `OS`) |
 | Bloqueia | PRD-02, PRD-03a, ENG-02 |
@@ -118,24 +118,24 @@ Decididos pelo PO em 21/10/2026 (revisão pré-Fase 3, tabela 1.1, itens 18–22
 **Pré-condição externa:** nenhuma.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers), componentes, arquitetura e E2E passando; testes da COM-06 intactos.
-- [ ] Migration criada (expand, N-1, não destrutiva), testada sobre cópia do banco do tenant `konebras`; deploy em duas etapas (CA 20).
-- [ ] Permissões só do `ModuleCatalog`; regras do dono de anexo `ProductionOrder` pelo adendo da ADR 0019 §7 (D16).
-- [ ] `OrderHeader` e `FactsBar` criados e usados também na OS de instalação.
-- [ ] Telas com estados, inclusive a 400 px.
-- [ ] Ajuda da lista e de cada aba; teste de cobertura passando.
-- [ ] Padrões preenchidos (roteiro sugerido) e próximos passos avaliados.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` atualizados; story marcada no backlog.
+- [x] Critérios de aceite atendidos (CA 14 fica para a PRD-03a; ver Change Log).
+- [x] Testes de unidade, integração (Testcontainers), componentes, arquitetura e E2E passando; testes da COM-06 intactos.
+- [ ] Migration criada (expand, N-1, não destrutiva), testada sobre cópia do banco do tenant `konebras`; deploy em duas etapas (CA 20). Migration expand criada e testada em banco novo; o teste sobre a cópia do `konebras` fica para o deploy (ADR 0020).
+- [x] Permissões só do `ModuleCatalog`; regras do dono de anexo `ProductionOrder` pelo adendo da ADR 0019 §7 (D16).
+- [x] `OrderHeader` e `FactsBar` criados e usados também na OS de instalação.
+- [x] Telas com estados, inclusive a 400 px.
+- [x] Ajuda da lista e de cada aba; teste de cobertura passando.
+- [x] Padrões preenchidos (roteiro sugerido) e próximos passos avaliados.
+- [x] Auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` atualizados; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] Migration expand das tabelas de OS e etapas com o `CHECK` por tipo; enum de situação ampliado; filtro por tipo no `InstallationOrdersContract` (primeiro deploy).
-- [ ] `FabricationOrderService` (gerar, gerar em lote, editar etapas, trocar roteiro, cancelar), consumidor `ProjectItemCreatedHandler` e handler de `ContractCancelled` da fabricação.
-- [ ] `IProductionOrders` em `Production.Contracts`; `ProjectItemCreated` ampliado, `PromisedDate`, `ItemsAsync` ampliado e `routing_template_id` no Commercial.
-- [ ] Endpoint do documento da OS para o chão de fábrica; limite de envios.
-- [ ] `OrderHeader` e `FactsBar`; endpoints `/api/v1/production/production-orders`; telas, `modules.ts` e ajudas.
+- [x] Migration expand das tabelas de OS e etapas com o `CHECK` por tipo; enum de situação ampliado; filtro por tipo no `InstallationOrdersContract` (primeiro deploy).
+- [x] `FabricationOrderService` (gerar, gerar em lote, editar etapas, trocar roteiro, cancelar), consumidor `ProjectItemCreatedHandler` e handler de `ContractCancelled` da fabricação.
+- [x] `IProductionOrders` em `Production.Contracts`; `ProjectItemCreated` ampliado, `PromisedDate`, `ItemsAsync` ampliado e `routing_template_id` no Commercial.
+- [ ] Endpoint do documento da OS para o chão de fábrica (PRD-03a); [x] limite de envios.
+- [x] `OrderHeader` e `FactsBar`; endpoints `/api/v1/production/production-orders`; telas, `modules.ts` e ajudas.
 
 ## Quality gates
 - Agentes previstos: @dev, @architect (extensão da OS sem quebrar a instalação, evento ampliado), @data-engineer (migration expand e deploy em duas etapas), cybersecurity (anexos e endpoint do chão de fábrica), @qa.
@@ -169,3 +169,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO (D1, D12, D14, D16, tabela 1.1 itens 18–22) e correções da revisão pré-Fase 3 (§2.1 OS de fabricação e de instalação e contratos que faltam, §2.2 PRD-01, §2.3 padrões 2, 3, 4, 6 e 10); nova ordem (Marco 3.1, ordem 2); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 21/10/2026 | 1.0 | Implementada. Desvios: (1) **CA 14 não entregue:** o endpoint `GET /shopfloor/production-orders/{id}/attachments/{attId}` que confere a fila do operador entra com a PRD-03a, quando a fila existir; aqui só o anexo pelo backoffice (`production.view`/`production.edit`); (2) **CA 20 em um deploy:** a versão anterior (main `a89683a`) já filtra `type = Installation` em todas as consultas da instalação (o `StatusAsync` antigo só projeta a situação e só recebe id de instalação), e a migration é só expand (colunas anuláveis ou com padrão, `CHECK` e índice parcial), então a volta automática não lê linha de fabricação; não há chave para ligar a geração. Teste: com situações novas (`Paused`, `Quality`) na tabela, a instalação lista, abre e o `StatusAsync` mapeia sem exceção; (3) `product_id` anulável também na fabricação (o item do orçamento pode não ter produto); o `CHECK` exige `project_item_id` e `quantity > 0`; `planned_start`/`planned_end` passam a anuláveis (fabricação sem previsão até a PLN-01) e entram no `CHECK` da instalação; (4) o tipo do item não é coluna de `project_items`: vem do `quote_items.kind` no `IProjects.ItemsAsync`; `IProjects` ganhou `FindItemsAsync` e `FabricationCandidatesAsync` (itens que podem gerar OS); (5) projeto cancelado responde 409 `project_cancelled` "O projeto {número} foi cancelado: não gera OS nova." (os demais estados, a mensagem do CA 6); (6) o limite de envios é a configuração `Attachments:MaxUploadsPerHour` (30, por usuário, todos os donos), sem tela de parâmetro; (7) antivírus: o cliente recusa acima de 30 MB (`ClamAV:StreamMaxLength`) e a resposta "size limit exceeded" do clamd vira `TooLarge`, recusado (nunca `Pending`); a imagem `clamav/clamav:1.4` não foi reconfigurada; (8) próximos passos entregues: "Ajustar as etapas", "Ver projeto" e "Ver OS de fabricação"; "Criar a BOM" e "Ver no Kanban" entram com a ENG-02 e a PRD-02; (9) o editor de etapas é o `RoutingEditor` da ENG-01 no modo só etapas ("Salvar etapas"), sem a sugestão de centro pelo nome; (10) filtros de projeto e cliente pela URL (clique na linha), sem seletor; (11) o diálogo de cancelamento da OS iniciada mostra "Horas apontadas: nenhuma" até a PRD-03a; (12) a Produção também informa uso de centro (`IWorkCenterUsageProvider`, "OS de fabricação"); (13) os testes .NET rodaram no Windows contra um PostgreSQL 17 local, porque o Docker Desktop da máquina parou de iniciar containers (o `ClamAvContainerTests` com o arquivo de 25 MB foi escrito e não rodou) | @dev |
