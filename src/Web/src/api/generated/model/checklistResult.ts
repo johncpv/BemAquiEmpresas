@@ -11,4 +11,5 @@ export type ChecklistResult = typeof ChecklistResult[keyof typeof ChecklistResul
 export const ChecklistResult = {
   Done: 'Done',
   NotApplicable: 'NotApplicable',
+  NonConforming: 'NonConforming',
 } as const;

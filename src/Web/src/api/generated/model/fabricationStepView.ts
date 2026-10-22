@@ -25,4 +25,5 @@ export interface FabricationStepView {
   appliedHours?: number;
   awaitingApproval?: boolean;
   selfApproved?: boolean;
+  selfInspection?: boolean;
 }
