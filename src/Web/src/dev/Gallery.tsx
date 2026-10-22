@@ -1,10 +1,13 @@
 import { Money } from '@/components/ui/money'
 import { StageIndicator } from '@/components/ui/stage-indicator'
-import { DEFAULT_STAGES } from '@/lib/stages'
+import { DEFAULT_LETTERS, DEFAULT_STAGES } from '@/lib/stages'
 import { StatusChip } from '@/components/ui/status-chip'
 import { ThemeToggle } from '@/theme/ThemeToggle'
 import { GalleryForm, GalleryStates, GalleryTable } from './GalleryData'
 import { MessageRegion } from '@/components/ui/message-region'
+
+/** Roteiro longo (12 etapas): o indicador passa ao formato compacto (ENG-01 CA 14). */
+const GALLERY_LONG_ROUTING = Array.from({ length: 12 }, (_, i) => `Etapa ${i + 1}`)
 
 const SWATCHES = ['background', 'card', 'muted', 'border', 'input', 'primary', 'primary-soft', 'rail', 'signal', 'ok', 'warn', 'crit', 'info'] as const
 
@@ -50,8 +53,12 @@ export default function Gallery() {
         <h2 id="etapas" className="text-[15px] font-semibold">Indicador de etapa</h2>
         <div className="flex flex-wrap gap-6">
           {DEFAULT_STAGES.map((stage, i) => (
-            <StageIndicator key={stage} stages={DEFAULT_STAGES} current={i} />
+            <StageIndicator key={stage} stages={DEFAULT_STAGES} letters={DEFAULT_LETTERS} current={i} />
           ))}
+        </div>
+        <div className="flex flex-wrap gap-6">
+          <StageIndicator stages={DEFAULT_STAGES} letters={DEFAULT_LETTERS} current={2} showLabel />
+          <StageIndicator stages={GALLERY_LONG_ROUTING} current={2} showLabel />
         </div>
       </section>
 

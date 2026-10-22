@@ -46,6 +46,13 @@ public sealed class SeedPatchSeeder : ITenantSeeder
         [
             ("engineering", "production", ["create"]),
         ]),
+        // ENG-01 CA 1 (D13, ADR 0003 adendo de 21/10/2026): a Engenharia cadastra os roteiros e a Supervisão consulta.
+        // engineering.approve (liberar a BOM) é da ENG-02.
+        new("engineering-permissions",
+        [
+            ("engineering", "engineering", ["view", "create", "edit", "delete"]),
+            ("production_supervision", "engineering", ["view"]),
+        ]),
     ];
 
     public int Order => 25;

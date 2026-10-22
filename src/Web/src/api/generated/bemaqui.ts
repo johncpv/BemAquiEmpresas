@@ -121,6 +121,7 @@ import type {
   GetDiscountsAndCancellationsParams,
   GetInstallationDefaultsParams,
   GetQuoteFunnelParams,
+  GetRoutingTemplateHistoryParams,
   GroupDetail,
   GroupSaved,
   GroupSummary,
@@ -185,6 +186,8 @@ import type {
   ListQuoteItemsParams,
   ListQuotesParams,
   ListReceivablesParams,
+  ListRoutingProductOptionsParams,
+  ListRoutingTemplatesParams,
   ListSupplierOptionsParams,
   ListTenantsParams,
   ListUnitsParams,
@@ -217,6 +220,8 @@ import type {
   PagedListOfPartyListItem,
   PagedListOfPaymentTermDetail,
   PagedListOfPositionDetail,
+  PagedListOfRelatedAuditEntryDto,
+  PagedListOfRoutingTemplateSummary,
   PagedListOfTenantRow,
   PagedListOfWorkCenterDetail,
   PartyAddressInfo,
@@ -306,6 +311,14 @@ import type {
   RemoveQuoteItemParams,
   ResetPasswordRequest,
   ResubmitInput,
+  RoutingItemLinkInput,
+  RoutingItemView,
+  RoutingProductOption,
+  RoutingStepView,
+  RoutingTemplateDetail,
+  RoutingTemplateInput,
+  RoutingTemplateUpdate,
+  RoutingWorkCenterOption,
   SalaryChangeInput,
   SaveGroupRequest,
   SaveModuleReleaseRequest,
@@ -325,6 +338,7 @@ import type {
   StatementResult,
   SuggestAccountParams,
   SuggestCostCenterParams,
+  SuggestedWorkCenter,
   SupplierCodeDetail,
   SupplierCodeInput,
   SupplierOption,
@@ -17909,6 +17923,1515 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getUpdateCommercialParametersMutationOptions(options), queryClient);
+    }
+
+export const getListRoutingTemplatesUrl = (params?: ListRoutingTemplatesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/engineering/routing-templates?${stringifiedParams}` : `/api/v1/engineering/routing-templates`
+}
+
+export const listRoutingTemplates = async (params?: ListRoutingTemplatesParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfRoutingTemplateSummary> => {
+
+  return apiFetch<PagedListOfRoutingTemplateSummary>(getListRoutingTemplatesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListRoutingTemplatesQueryKey = (params?: ListRoutingTemplatesParams,) => {
+    return [
+    `/api/v1/engineering/routing-templates`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListRoutingTemplatesQueryOptions = <TData = Awaited<ReturnType<typeof listRoutingTemplates>>, TError = unknown>(params?: ListRoutingTemplatesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRoutingTemplates>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListRoutingTemplatesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listRoutingTemplates>>> = ({ signal }) => listRoutingTemplates(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listRoutingTemplates>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListRoutingTemplatesQueryResult = NonNullable<Awaited<ReturnType<typeof listRoutingTemplates>>>
+export type ListRoutingTemplatesQueryError = unknown
+
+
+export function useListRoutingTemplates<TData = Awaited<ReturnType<typeof listRoutingTemplates>>, TError = unknown>(
+ params: undefined |  ListRoutingTemplatesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRoutingTemplates>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listRoutingTemplates>>,
+          TError,
+          Awaited<ReturnType<typeof listRoutingTemplates>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListRoutingTemplates<TData = Awaited<ReturnType<typeof listRoutingTemplates>>, TError = unknown>(
+ params?: ListRoutingTemplatesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRoutingTemplates>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listRoutingTemplates>>,
+          TError,
+          Awaited<ReturnType<typeof listRoutingTemplates>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListRoutingTemplates<TData = Awaited<ReturnType<typeof listRoutingTemplates>>, TError = unknown>(
+ params?: ListRoutingTemplatesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRoutingTemplates>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListRoutingTemplates<TData = Awaited<ReturnType<typeof listRoutingTemplates>>, TError = unknown>(
+ params?: ListRoutingTemplatesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRoutingTemplates>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListRoutingTemplatesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateRoutingTemplateUrl = () => {
+
+
+
+
+  return `/api/v1/engineering/routing-templates`
+}
+
+export const createRoutingTemplate = async (routingTemplateInput: RoutingTemplateInput, options?: Parameters<typeof apiFetch>[1]): Promise<RoutingTemplateDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<RoutingTemplateDetail>(getCreateRoutingTemplateUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(routingTemplateInput)
+  }
+);}
+
+
+
+
+
+export const getCreateRoutingTemplateMutationKey = () => ['createRoutingTemplate'] as const;
+
+export const getCreateRoutingTemplateMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createRoutingTemplate>>, TError,CreateRoutingTemplateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createRoutingTemplate>>, TError,CreateRoutingTemplateMutationVariables, TContext> => {
+
+const mutationKey = getCreateRoutingTemplateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createRoutingTemplate>>, CreateRoutingTemplateMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createRoutingTemplate(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateRoutingTemplateMutationResult = NonNullable<Awaited<ReturnType<typeof createRoutingTemplate>>>
+    export type CreateRoutingTemplateMutationBody = RoutingTemplateInput
+    export type CreateRoutingTemplateMutationError = unknown
+    export type CreateRoutingTemplateMutationVariables = {data: RoutingTemplateInput}
+
+    export const useCreateRoutingTemplate = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createRoutingTemplate>>, TError,CreateRoutingTemplateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createRoutingTemplate>>,
+        TError,
+        CreateRoutingTemplateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateRoutingTemplateMutationOptions(options), queryClient);
+    }
+
+export const getListRoutingProductTypesUrl = () => {
+
+
+
+
+  return `/api/v1/engineering/routing-templates/product-types`
+}
+
+export const listRoutingProductTypes = async ( options?: Parameters<typeof apiFetch>[1]): Promise<string[]> => {
+
+  return apiFetch<string[]>(getListRoutingProductTypesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListRoutingProductTypesQueryKey = () => {
+    return [
+    `/api/v1/engineering/routing-templates/product-types`
+    ] as const;
+    }
+
+
+export const getListRoutingProductTypesQueryOptions = <TData = Awaited<ReturnType<typeof listRoutingProductTypes>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRoutingProductTypes>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListRoutingProductTypesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listRoutingProductTypes>>> = ({ signal }) => listRoutingProductTypes({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listRoutingProductTypes>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListRoutingProductTypesQueryResult = NonNullable<Awaited<ReturnType<typeof listRoutingProductTypes>>>
+export type ListRoutingProductTypesQueryError = unknown
+
+
+export function useListRoutingProductTypes<TData = Awaited<ReturnType<typeof listRoutingProductTypes>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRoutingProductTypes>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listRoutingProductTypes>>,
+          TError,
+          Awaited<ReturnType<typeof listRoutingProductTypes>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListRoutingProductTypes<TData = Awaited<ReturnType<typeof listRoutingProductTypes>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRoutingProductTypes>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listRoutingProductTypes>>,
+          TError,
+          Awaited<ReturnType<typeof listRoutingProductTypes>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListRoutingProductTypes<TData = Awaited<ReturnType<typeof listRoutingProductTypes>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRoutingProductTypes>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListRoutingProductTypes<TData = Awaited<ReturnType<typeof listRoutingProductTypes>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRoutingProductTypes>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListRoutingProductTypesQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListRoutingWorkCentersUrl = () => {
+
+
+
+
+  return `/api/v1/engineering/routing-templates/work-centers`
+}
+
+export const listRoutingWorkCenters = async ( options?: Parameters<typeof apiFetch>[1]): Promise<RoutingWorkCenterOption[]> => {
+
+  return apiFetch<RoutingWorkCenterOption[]>(getListRoutingWorkCentersUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListRoutingWorkCentersQueryKey = () => {
+    return [
+    `/api/v1/engineering/routing-templates/work-centers`
+    ] as const;
+    }
+
+
+export const getListRoutingWorkCentersQueryOptions = <TData = Awaited<ReturnType<typeof listRoutingWorkCenters>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRoutingWorkCenters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListRoutingWorkCentersQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listRoutingWorkCenters>>> = ({ signal }) => listRoutingWorkCenters({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listRoutingWorkCenters>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListRoutingWorkCentersQueryResult = NonNullable<Awaited<ReturnType<typeof listRoutingWorkCenters>>>
+export type ListRoutingWorkCentersQueryError = unknown
+
+
+export function useListRoutingWorkCenters<TData = Awaited<ReturnType<typeof listRoutingWorkCenters>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRoutingWorkCenters>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listRoutingWorkCenters>>,
+          TError,
+          Awaited<ReturnType<typeof listRoutingWorkCenters>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListRoutingWorkCenters<TData = Awaited<ReturnType<typeof listRoutingWorkCenters>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRoutingWorkCenters>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listRoutingWorkCenters>>,
+          TError,
+          Awaited<ReturnType<typeof listRoutingWorkCenters>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListRoutingWorkCenters<TData = Awaited<ReturnType<typeof listRoutingWorkCenters>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRoutingWorkCenters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListRoutingWorkCenters<TData = Awaited<ReturnType<typeof listRoutingWorkCenters>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRoutingWorkCenters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListRoutingWorkCentersQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListSuggestedRoutingWorkCentersUrl = () => {
+
+
+
+
+  return `/api/v1/engineering/routing-templates/suggested-work-centers`
+}
+
+export const listSuggestedRoutingWorkCenters = async ( options?: Parameters<typeof apiFetch>[1]): Promise<SuggestedWorkCenter[]> => {
+
+  return apiFetch<SuggestedWorkCenter[]>(getListSuggestedRoutingWorkCentersUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListSuggestedRoutingWorkCentersQueryKey = () => {
+    return [
+    `/api/v1/engineering/routing-templates/suggested-work-centers`
+    ] as const;
+    }
+
+
+export const getListSuggestedRoutingWorkCentersQueryOptions = <TData = Awaited<ReturnType<typeof listSuggestedRoutingWorkCenters>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSuggestedRoutingWorkCenters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListSuggestedRoutingWorkCentersQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listSuggestedRoutingWorkCenters>>> = ({ signal }) => listSuggestedRoutingWorkCenters({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listSuggestedRoutingWorkCenters>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListSuggestedRoutingWorkCentersQueryResult = NonNullable<Awaited<ReturnType<typeof listSuggestedRoutingWorkCenters>>>
+export type ListSuggestedRoutingWorkCentersQueryError = unknown
+
+
+export function useListSuggestedRoutingWorkCenters<TData = Awaited<ReturnType<typeof listSuggestedRoutingWorkCenters>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSuggestedRoutingWorkCenters>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listSuggestedRoutingWorkCenters>>,
+          TError,
+          Awaited<ReturnType<typeof listSuggestedRoutingWorkCenters>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListSuggestedRoutingWorkCenters<TData = Awaited<ReturnType<typeof listSuggestedRoutingWorkCenters>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSuggestedRoutingWorkCenters>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listSuggestedRoutingWorkCenters>>,
+          TError,
+          Awaited<ReturnType<typeof listSuggestedRoutingWorkCenters>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListSuggestedRoutingWorkCenters<TData = Awaited<ReturnType<typeof listSuggestedRoutingWorkCenters>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSuggestedRoutingWorkCenters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListSuggestedRoutingWorkCenters<TData = Awaited<ReturnType<typeof listSuggestedRoutingWorkCenters>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSuggestedRoutingWorkCenters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListSuggestedRoutingWorkCentersQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListRoutingProductOptionsUrl = (params?: ListRoutingProductOptionsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/engineering/routing-templates/products?${stringifiedParams}` : `/api/v1/engineering/routing-templates/products`
+}
+
+export const listRoutingProductOptions = async (params?: ListRoutingProductOptionsParams, options?: Parameters<typeof apiFetch>[1]): Promise<RoutingProductOption[]> => {
+
+  return apiFetch<RoutingProductOption[]>(getListRoutingProductOptionsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListRoutingProductOptionsQueryKey = (params?: ListRoutingProductOptionsParams,) => {
+    return [
+    `/api/v1/engineering/routing-templates/products`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListRoutingProductOptionsQueryOptions = <TData = Awaited<ReturnType<typeof listRoutingProductOptions>>, TError = unknown>(params?: ListRoutingProductOptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRoutingProductOptions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListRoutingProductOptionsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listRoutingProductOptions>>> = ({ signal }) => listRoutingProductOptions(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listRoutingProductOptions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListRoutingProductOptionsQueryResult = NonNullable<Awaited<ReturnType<typeof listRoutingProductOptions>>>
+export type ListRoutingProductOptionsQueryError = unknown
+
+
+export function useListRoutingProductOptions<TData = Awaited<ReturnType<typeof listRoutingProductOptions>>, TError = unknown>(
+ params: undefined |  ListRoutingProductOptionsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRoutingProductOptions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listRoutingProductOptions>>,
+          TError,
+          Awaited<ReturnType<typeof listRoutingProductOptions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListRoutingProductOptions<TData = Awaited<ReturnType<typeof listRoutingProductOptions>>, TError = unknown>(
+ params?: ListRoutingProductOptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRoutingProductOptions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listRoutingProductOptions>>,
+          TError,
+          Awaited<ReturnType<typeof listRoutingProductOptions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListRoutingProductOptions<TData = Awaited<ReturnType<typeof listRoutingProductOptions>>, TError = unknown>(
+ params?: ListRoutingProductOptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRoutingProductOptions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListRoutingProductOptions<TData = Awaited<ReturnType<typeof listRoutingProductOptions>>, TError = unknown>(
+ params?: ListRoutingProductOptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRoutingProductOptions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListRoutingProductOptionsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetRoutingTemplateUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/engineering/routing-templates/${id}`
+}
+
+export const getRoutingTemplate = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<RoutingTemplateDetail> => {
+
+  return apiFetch<RoutingTemplateDetail>(getGetRoutingTemplateUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRoutingTemplateQueryKey = (id: string,) => {
+    return [
+    `/api/v1/engineering/routing-templates/${id}`
+    ] as const;
+    }
+
+
+export const getGetRoutingTemplateQueryOptions = <TData = Awaited<ReturnType<typeof getRoutingTemplate>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoutingTemplate>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRoutingTemplateQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRoutingTemplate>>> = ({ signal }) => getRoutingTemplate(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRoutingTemplate>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetRoutingTemplateQueryResult = NonNullable<Awaited<ReturnType<typeof getRoutingTemplate>>>
+export type GetRoutingTemplateQueryError = unknown
+
+
+export function useGetRoutingTemplate<TData = Awaited<ReturnType<typeof getRoutingTemplate>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoutingTemplate>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRoutingTemplate>>,
+          TError,
+          Awaited<ReturnType<typeof getRoutingTemplate>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRoutingTemplate<TData = Awaited<ReturnType<typeof getRoutingTemplate>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoutingTemplate>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRoutingTemplate>>,
+          TError,
+          Awaited<ReturnType<typeof getRoutingTemplate>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRoutingTemplate<TData = Awaited<ReturnType<typeof getRoutingTemplate>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoutingTemplate>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetRoutingTemplate<TData = Awaited<ReturnType<typeof getRoutingTemplate>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoutingTemplate>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetRoutingTemplateQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateRoutingTemplateUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/engineering/routing-templates/${id}`
+}
+
+export const updateRoutingTemplate = async (id: string,
+    routingTemplateUpdate: RoutingTemplateUpdate, options?: Parameters<typeof apiFetch>[1]): Promise<RoutingTemplateDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<RoutingTemplateDetail>(getUpdateRoutingTemplateUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(routingTemplateUpdate)
+  }
+);}
+
+
+
+
+
+export const getUpdateRoutingTemplateMutationKey = () => ['updateRoutingTemplate'] as const;
+
+export const getUpdateRoutingTemplateMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateRoutingTemplate>>, TError,UpdateRoutingTemplateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateRoutingTemplate>>, TError,UpdateRoutingTemplateMutationVariables, TContext> => {
+
+const mutationKey = getUpdateRoutingTemplateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateRoutingTemplate>>, UpdateRoutingTemplateMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateRoutingTemplate(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateRoutingTemplateMutationResult = NonNullable<Awaited<ReturnType<typeof updateRoutingTemplate>>>
+    export type UpdateRoutingTemplateMutationBody = RoutingTemplateUpdate
+    export type UpdateRoutingTemplateMutationError = unknown
+    export type UpdateRoutingTemplateMutationVariables = {id: string;data: RoutingTemplateUpdate}
+
+    export const useUpdateRoutingTemplate = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateRoutingTemplate>>, TError,UpdateRoutingTemplateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateRoutingTemplate>>,
+        TError,
+        UpdateRoutingTemplateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateRoutingTemplateMutationOptions(options), queryClient);
+    }
+
+export const getDeleteRoutingTemplateUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/engineering/routing-templates/${id}`
+}
+
+export const deleteRoutingTemplate = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDeleteRoutingTemplateUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteRoutingTemplateMutationKey = () => ['deleteRoutingTemplate'] as const;
+
+export const getDeleteRoutingTemplateMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteRoutingTemplate>>, TError,DeleteRoutingTemplateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteRoutingTemplate>>, TError,DeleteRoutingTemplateMutationVariables, TContext> => {
+
+const mutationKey = getDeleteRoutingTemplateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteRoutingTemplate>>, DeleteRoutingTemplateMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteRoutingTemplate(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteRoutingTemplateMutationResult = NonNullable<Awaited<ReturnType<typeof deleteRoutingTemplate>>>
+
+    export type DeleteRoutingTemplateMutationError = unknown
+    export type DeleteRoutingTemplateMutationVariables = {id: string}
+
+    export const useDeleteRoutingTemplate = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteRoutingTemplate>>, TError,DeleteRoutingTemplateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteRoutingTemplate>>,
+        TError,
+        DeleteRoutingTemplateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeleteRoutingTemplateMutationOptions(options), queryClient);
+    }
+
+export const getDuplicateRoutingTemplateUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/engineering/routing-templates/${id}/duplicate`
+}
+
+export const duplicateRoutingTemplate = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<RoutingTemplateInput> => {
+
+  return apiFetch<RoutingTemplateInput>(getDuplicateRoutingTemplateUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDuplicateRoutingTemplateQueryKey = (id: string,) => {
+    return [
+    `/api/v1/engineering/routing-templates/${id}/duplicate`
+    ] as const;
+    }
+
+
+export const getDuplicateRoutingTemplateQueryOptions = <TData = Awaited<ReturnType<typeof duplicateRoutingTemplate>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof duplicateRoutingTemplate>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDuplicateRoutingTemplateQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof duplicateRoutingTemplate>>> = ({ signal }) => duplicateRoutingTemplate(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof duplicateRoutingTemplate>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DuplicateRoutingTemplateQueryResult = NonNullable<Awaited<ReturnType<typeof duplicateRoutingTemplate>>>
+export type DuplicateRoutingTemplateQueryError = unknown
+
+
+export function useDuplicateRoutingTemplate<TData = Awaited<ReturnType<typeof duplicateRoutingTemplate>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof duplicateRoutingTemplate>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof duplicateRoutingTemplate>>,
+          TError,
+          Awaited<ReturnType<typeof duplicateRoutingTemplate>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDuplicateRoutingTemplate<TData = Awaited<ReturnType<typeof duplicateRoutingTemplate>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof duplicateRoutingTemplate>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof duplicateRoutingTemplate>>,
+          TError,
+          Awaited<ReturnType<typeof duplicateRoutingTemplate>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDuplicateRoutingTemplate<TData = Awaited<ReturnType<typeof duplicateRoutingTemplate>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof duplicateRoutingTemplate>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useDuplicateRoutingTemplate<TData = Awaited<ReturnType<typeof duplicateRoutingTemplate>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof duplicateRoutingTemplate>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDuplicateRoutingTemplateQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetRoutingTemplateStepUrl = (id: string,
+    stepId: string,) => {
+
+
+
+
+  return `/api/v1/engineering/routing-templates/${id}/steps/${stepId}`
+}
+
+export const getRoutingTemplateStep = async (id: string,
+    stepId: string, options?: Parameters<typeof apiFetch>[1]): Promise<RoutingStepView> => {
+
+  return apiFetch<RoutingStepView>(getGetRoutingTemplateStepUrl(id,stepId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRoutingTemplateStepQueryKey = (id: string,
+    stepId: string,) => {
+    return [
+    `/api/v1/engineering/routing-templates/${id}/steps/${stepId}`
+    ] as const;
+    }
+
+
+export const getGetRoutingTemplateStepQueryOptions = <TData = Awaited<ReturnType<typeof getRoutingTemplateStep>>, TError = unknown>(id: string,
+    stepId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoutingTemplateStep>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRoutingTemplateStepQueryKey(id,stepId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRoutingTemplateStep>>> = ({ signal }) => getRoutingTemplateStep(id,stepId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && stepId !== null && stepId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRoutingTemplateStep>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetRoutingTemplateStepQueryResult = NonNullable<Awaited<ReturnType<typeof getRoutingTemplateStep>>>
+export type GetRoutingTemplateStepQueryError = unknown
+
+
+export function useGetRoutingTemplateStep<TData = Awaited<ReturnType<typeof getRoutingTemplateStep>>, TError = unknown>(
+ id: string,
+    stepId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoutingTemplateStep>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRoutingTemplateStep>>,
+          TError,
+          Awaited<ReturnType<typeof getRoutingTemplateStep>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRoutingTemplateStep<TData = Awaited<ReturnType<typeof getRoutingTemplateStep>>, TError = unknown>(
+ id: string,
+    stepId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoutingTemplateStep>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRoutingTemplateStep>>,
+          TError,
+          Awaited<ReturnType<typeof getRoutingTemplateStep>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRoutingTemplateStep<TData = Awaited<ReturnType<typeof getRoutingTemplateStep>>, TError = unknown>(
+ id: string,
+    stepId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoutingTemplateStep>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetRoutingTemplateStep<TData = Awaited<ReturnType<typeof getRoutingTemplateStep>>, TError = unknown>(
+ id: string,
+    stepId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoutingTemplateStep>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetRoutingTemplateStepQueryOptions(id,stepId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetRoutingTemplateHistoryUrl = (id: string,
+    params?: GetRoutingTemplateHistoryParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/engineering/routing-templates/${id}/history?${stringifiedParams}` : `/api/v1/engineering/routing-templates/${id}/history`
+}
+
+export const getRoutingTemplateHistory = async (id: string,
+    params?: GetRoutingTemplateHistoryParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfRelatedAuditEntryDto> => {
+
+  return apiFetch<PagedListOfRelatedAuditEntryDto>(getGetRoutingTemplateHistoryUrl(id,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRoutingTemplateHistoryQueryKey = (id: string,
+    params?: GetRoutingTemplateHistoryParams,) => {
+    return [
+    `/api/v1/engineering/routing-templates/${id}/history`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetRoutingTemplateHistoryQueryOptions = <TData = Awaited<ReturnType<typeof getRoutingTemplateHistory>>, TError = unknown>(id: string,
+    params?: GetRoutingTemplateHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoutingTemplateHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRoutingTemplateHistoryQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRoutingTemplateHistory>>> = ({ signal }) => getRoutingTemplateHistory(id,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRoutingTemplateHistory>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetRoutingTemplateHistoryQueryResult = NonNullable<Awaited<ReturnType<typeof getRoutingTemplateHistory>>>
+export type GetRoutingTemplateHistoryQueryError = unknown
+
+
+export function useGetRoutingTemplateHistory<TData = Awaited<ReturnType<typeof getRoutingTemplateHistory>>, TError = unknown>(
+ id: string,
+    params: undefined |  GetRoutingTemplateHistoryParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoutingTemplateHistory>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRoutingTemplateHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getRoutingTemplateHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRoutingTemplateHistory<TData = Awaited<ReturnType<typeof getRoutingTemplateHistory>>, TError = unknown>(
+ id: string,
+    params?: GetRoutingTemplateHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoutingTemplateHistory>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRoutingTemplateHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getRoutingTemplateHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRoutingTemplateHistory<TData = Awaited<ReturnType<typeof getRoutingTemplateHistory>>, TError = unknown>(
+ id: string,
+    params?: GetRoutingTemplateHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoutingTemplateHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetRoutingTemplateHistory<TData = Awaited<ReturnType<typeof getRoutingTemplateHistory>>, TError = unknown>(
+ id: string,
+    params?: GetRoutingTemplateHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoutingTemplateHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetRoutingTemplateHistoryQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getInactivateRoutingTemplateUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/engineering/routing-templates/${id}/inactivate`
+}
+
+export const inactivateRoutingTemplate = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<RoutingTemplateDetail> => {
+
+  return apiFetch<RoutingTemplateDetail>(getInactivateRoutingTemplateUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getInactivateRoutingTemplateMutationKey = () => ['inactivateRoutingTemplate'] as const;
+
+export const getInactivateRoutingTemplateMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inactivateRoutingTemplate>>, TError,InactivateRoutingTemplateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof inactivateRoutingTemplate>>, TError,InactivateRoutingTemplateMutationVariables, TContext> => {
+
+const mutationKey = getInactivateRoutingTemplateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof inactivateRoutingTemplate>>, InactivateRoutingTemplateMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  inactivateRoutingTemplate(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type InactivateRoutingTemplateMutationResult = NonNullable<Awaited<ReturnType<typeof inactivateRoutingTemplate>>>
+
+    export type InactivateRoutingTemplateMutationError = unknown
+    export type InactivateRoutingTemplateMutationVariables = {id: string}
+
+    export const useInactivateRoutingTemplate = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inactivateRoutingTemplate>>, TError,InactivateRoutingTemplateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof inactivateRoutingTemplate>>,
+        TError,
+        InactivateRoutingTemplateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getInactivateRoutingTemplateMutationOptions(options), queryClient);
+    }
+
+export const getActivateRoutingTemplateUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/engineering/routing-templates/${id}/activate`
+}
+
+export const activateRoutingTemplate = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<RoutingTemplateDetail> => {
+
+  return apiFetch<RoutingTemplateDetail>(getActivateRoutingTemplateUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getActivateRoutingTemplateMutationKey = () => ['activateRoutingTemplate'] as const;
+
+export const getActivateRoutingTemplateMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activateRoutingTemplate>>, TError,ActivateRoutingTemplateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof activateRoutingTemplate>>, TError,ActivateRoutingTemplateMutationVariables, TContext> => {
+
+const mutationKey = getActivateRoutingTemplateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof activateRoutingTemplate>>, ActivateRoutingTemplateMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  activateRoutingTemplate(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ActivateRoutingTemplateMutationResult = NonNullable<Awaited<ReturnType<typeof activateRoutingTemplate>>>
+
+    export type ActivateRoutingTemplateMutationError = unknown
+    export type ActivateRoutingTemplateMutationVariables = {id: string}
+
+    export const useActivateRoutingTemplate = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activateRoutingTemplate>>, TError,ActivateRoutingTemplateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof activateRoutingTemplate>>,
+        TError,
+        ActivateRoutingTemplateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getActivateRoutingTemplateMutationOptions(options), queryClient);
+    }
+
+export const getListRoutingTemplateItemsUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/engineering/routing-templates/${id}/items`
+}
+
+export const listRoutingTemplateItems = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<RoutingItemView[]> => {
+
+  return apiFetch<RoutingItemView[]>(getListRoutingTemplateItemsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListRoutingTemplateItemsQueryKey = (id: string,) => {
+    return [
+    `/api/v1/engineering/routing-templates/${id}/items`
+    ] as const;
+    }
+
+
+export const getListRoutingTemplateItemsQueryOptions = <TData = Awaited<ReturnType<typeof listRoutingTemplateItems>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRoutingTemplateItems>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListRoutingTemplateItemsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listRoutingTemplateItems>>> = ({ signal }) => listRoutingTemplateItems(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listRoutingTemplateItems>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListRoutingTemplateItemsQueryResult = NonNullable<Awaited<ReturnType<typeof listRoutingTemplateItems>>>
+export type ListRoutingTemplateItemsQueryError = unknown
+
+
+export function useListRoutingTemplateItems<TData = Awaited<ReturnType<typeof listRoutingTemplateItems>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRoutingTemplateItems>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listRoutingTemplateItems>>,
+          TError,
+          Awaited<ReturnType<typeof listRoutingTemplateItems>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListRoutingTemplateItems<TData = Awaited<ReturnType<typeof listRoutingTemplateItems>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRoutingTemplateItems>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listRoutingTemplateItems>>,
+          TError,
+          Awaited<ReturnType<typeof listRoutingTemplateItems>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListRoutingTemplateItems<TData = Awaited<ReturnType<typeof listRoutingTemplateItems>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRoutingTemplateItems>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListRoutingTemplateItems<TData = Awaited<ReturnType<typeof listRoutingTemplateItems>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRoutingTemplateItems>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListRoutingTemplateItemsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getLinkRoutingTemplateItemUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/engineering/routing-templates/${id}/items`
+}
+
+export const linkRoutingTemplateItem = async (id: string,
+    routingItemLinkInput: RoutingItemLinkInput, options?: Parameters<typeof apiFetch>[1]): Promise<RoutingItemView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<RoutingItemView>(getLinkRoutingTemplateItemUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(routingItemLinkInput)
+  }
+);}
+
+
+
+
+
+export const getLinkRoutingTemplateItemMutationKey = () => ['linkRoutingTemplateItem'] as const;
+
+export const getLinkRoutingTemplateItemMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof linkRoutingTemplateItem>>, TError,LinkRoutingTemplateItemMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof linkRoutingTemplateItem>>, TError,LinkRoutingTemplateItemMutationVariables, TContext> => {
+
+const mutationKey = getLinkRoutingTemplateItemMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof linkRoutingTemplateItem>>, LinkRoutingTemplateItemMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  linkRoutingTemplateItem(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LinkRoutingTemplateItemMutationResult = NonNullable<Awaited<ReturnType<typeof linkRoutingTemplateItem>>>
+    export type LinkRoutingTemplateItemMutationBody = RoutingItemLinkInput
+    export type LinkRoutingTemplateItemMutationError = unknown
+    export type LinkRoutingTemplateItemMutationVariables = {id: string;data: RoutingItemLinkInput}
+
+    export const useLinkRoutingTemplateItem = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof linkRoutingTemplateItem>>, TError,LinkRoutingTemplateItemMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof linkRoutingTemplateItem>>,
+        TError,
+        LinkRoutingTemplateItemMutationVariables,
+        TContext
+      > => {
+      return useMutation(getLinkRoutingTemplateItemMutationOptions(options), queryClient);
+    }
+
+export const getUnlinkRoutingTemplateItemUrl = (id: string,
+    itemId: string,) => {
+
+
+
+
+  return `/api/v1/engineering/routing-templates/${id}/items/${itemId}`
+}
+
+export const unlinkRoutingTemplateItem = async (id: string,
+    itemId: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getUnlinkRoutingTemplateItemUrl(id,itemId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getUnlinkRoutingTemplateItemMutationKey = () => ['unlinkRoutingTemplateItem'] as const;
+
+export const getUnlinkRoutingTemplateItemMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unlinkRoutingTemplateItem>>, TError,UnlinkRoutingTemplateItemMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof unlinkRoutingTemplateItem>>, TError,UnlinkRoutingTemplateItemMutationVariables, TContext> => {
+
+const mutationKey = getUnlinkRoutingTemplateItemMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof unlinkRoutingTemplateItem>>, UnlinkRoutingTemplateItemMutationVariables> = (props) => {
+          const {id,itemId} = props ?? {};
+
+          return  unlinkRoutingTemplateItem(id,itemId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UnlinkRoutingTemplateItemMutationResult = NonNullable<Awaited<ReturnType<typeof unlinkRoutingTemplateItem>>>
+
+    export type UnlinkRoutingTemplateItemMutationError = unknown
+    export type UnlinkRoutingTemplateItemMutationVariables = {id: string;itemId: string}
+
+    export const useUnlinkRoutingTemplateItem = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unlinkRoutingTemplateItem>>, TError,UnlinkRoutingTemplateItemMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof unlinkRoutingTemplateItem>>,
+        TError,
+        UnlinkRoutingTemplateItemMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUnlinkRoutingTemplateItemMutationOptions(options), queryClient);
     }
 
 export const getListWorkCentersUrl = (params?: ListWorkCentersParams,) => {

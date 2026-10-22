@@ -6674,6 +6674,572 @@
         }
       }
     },
+    "/api/v1/engineering/routing-templates": {
+      "get": {
+        "tags": [
+          "Engenharia"
+        ],
+        "operationId": "ListRoutingTemplates",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "situation",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "productType",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfRoutingTemplateSummary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Engenharia"
+        ],
+        "operationId": "CreateRoutingTemplate",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoutingTemplateInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoutingTemplateDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/engineering/routing-templates/product-types": {
+      "get": {
+        "tags": [
+          "Engenharia"
+        ],
+        "operationId": "ListRoutingProductTypes",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/engineering/routing-templates/work-centers": {
+      "get": {
+        "tags": [
+          "Engenharia"
+        ],
+        "operationId": "ListRoutingWorkCenters",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RoutingWorkCenterOption"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/engineering/routing-templates/suggested-work-centers": {
+      "get": {
+        "tags": [
+          "Engenharia"
+        ],
+        "operationId": "ListSuggestedRoutingWorkCenters",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SuggestedWorkCenter"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/engineering/routing-templates/products": {
+      "get": {
+        "tags": [
+          "Engenharia"
+        ],
+        "operationId": "ListRoutingProductOptions",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RoutingProductOption"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/engineering/routing-templates/{id}": {
+      "get": {
+        "tags": [
+          "Engenharia"
+        ],
+        "operationId": "GetRoutingTemplate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoutingTemplateDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Engenharia"
+        ],
+        "operationId": "UpdateRoutingTemplate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoutingTemplateUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoutingTemplateDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Engenharia"
+        ],
+        "operationId": "DeleteRoutingTemplate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/engineering/routing-templates/{id}/duplicate": {
+      "get": {
+        "tags": [
+          "Engenharia"
+        ],
+        "operationId": "DuplicateRoutingTemplate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoutingTemplateInput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/engineering/routing-templates/{id}/steps/{stepId}": {
+      "get": {
+        "tags": [
+          "Engenharia"
+        ],
+        "operationId": "GetRoutingTemplateStep",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "stepId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoutingStepView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/engineering/routing-templates/{id}/history": {
+      "get": {
+        "tags": [
+          "Engenharia"
+        ],
+        "operationId": "GetRoutingTemplateHistory",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfRelatedAuditEntryDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/engineering/routing-templates/{id}/inactivate": {
+      "post": {
+        "tags": [
+          "Engenharia"
+        ],
+        "operationId": "InactivateRoutingTemplate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoutingTemplateDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/engineering/routing-templates/{id}/activate": {
+      "post": {
+        "tags": [
+          "Engenharia"
+        ],
+        "operationId": "ActivateRoutingTemplate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoutingTemplateDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/engineering/routing-templates/{id}/items": {
+      "get": {
+        "tags": [
+          "Engenharia"
+        ],
+        "operationId": "ListRoutingTemplateItems",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RoutingItemView"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Engenharia"
+        ],
+        "operationId": "LinkRoutingTemplateItem",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoutingItemLinkInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoutingItemView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/engineering/routing-templates/{id}/items/{itemId}": {
+      "delete": {
+        "tags": [
+          "Engenharia"
+        ],
+        "operationId": "UnlinkRoutingTemplateItem",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/production/work-centers": {
       "get": {
         "tags": [
@@ -20361,6 +20927,64 @@
           }
         }
       },
+      "PagedListOfRelatedAuditEntryDto": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RelatedAuditEntryDto"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PagedListOfRoutingTemplateSummary": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoutingTemplateSummary"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "PagedListOfTenantRow": {
         "required": [
           "items",
@@ -25368,6 +25992,54 @@
           }
         }
       },
+      "RelatedAuditEntryDto": {
+        "required": [
+          "id",
+          "entity",
+          "entityId",
+          "action",
+          "userId",
+          "at",
+          "changes",
+          "origin"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "entity": {
+            "type": "string"
+          },
+          "entityId": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          },
+          "userId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "changes": {
+            "type": "string"
+          },
+          "origin": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "ResetPasswordRequest": {
         "required": [
           "token",
@@ -25425,6 +26097,441 @@
           "suggestedDueDate": {
             "type": "string",
             "format": "date"
+          }
+        }
+      },
+      "RoutingChecklistItem": {
+        "required": [
+          "sequence",
+          "text"
+        ],
+        "type": "object",
+        "properties": {
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "text": {
+            "type": "string"
+          }
+        }
+      },
+      "RoutingItemLinkInput": {
+        "required": [
+          "itemId"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
+      "RoutingItemView": {
+        "required": [
+          "id",
+          "itemId",
+          "code",
+          "name",
+          "type",
+          "isActive",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ItemType"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "RoutingProductOption": {
+        "required": [
+          "id",
+          "code",
+          "name",
+          "type",
+          "routingTemplateId",
+          "routingTemplateName"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ItemType"
+          },
+          "routingTemplateId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "routingTemplateName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "RoutingStepInput": {
+        "required": [
+          "id",
+          "name",
+          "code",
+          "workCenterId",
+          "standardHours",
+          "isQualityStep",
+          "requiresApproval",
+          "checklist"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "workCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "standardHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "isQualityStep": {
+            "type": "boolean"
+          },
+          "requiresApproval": {
+            "type": "boolean"
+          },
+          "checklist": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "RoutingStepView": {
+        "required": [
+          "id",
+          "sequence",
+          "code",
+          "name",
+          "workCenterId",
+          "workCenterName",
+          "workCenterActive",
+          "standardHours",
+          "isQualityStep",
+          "requiresApproval",
+          "checklist"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "workCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "workCenterName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "workCenterActive": {
+            "type": "boolean"
+          },
+          "standardHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "isQualityStep": {
+            "type": "boolean"
+          },
+          "requiresApproval": {
+            "type": "boolean"
+          },
+          "checklist": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoutingChecklistItem"
+            }
+          }
+        }
+      },
+      "RoutingTemplateDetail": {
+        "required": [
+          "id",
+          "name",
+          "productType",
+          "isActive",
+          "isExample",
+          "totalStandardHours",
+          "itemCount",
+          "usageCount",
+          "usage",
+          "steps",
+          "version",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "productType": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "isExample": {
+            "type": "boolean"
+          },
+          "totalStandardHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "itemCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "usageCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "usage": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoutingStepView"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "RoutingTemplateInput": {
+        "required": [
+          "name",
+          "productType",
+          "steps"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "productType": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoutingStepInput"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "RoutingTemplateSummary": {
+        "required": [
+          "id",
+          "name",
+          "productType",
+          "isActive",
+          "codes",
+          "stepNames",
+          "totalStandardHours",
+          "itemCount",
+          "usageCount",
+          "usage"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "productType": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "codes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "stepNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "totalStandardHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "itemCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "usageCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "usage": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "RoutingTemplateUpdate": {
+        "required": [
+          "name",
+          "productType",
+          "steps",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "productType": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoutingStepInput"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "RoutingWorkCenterOption": {
+        "required": [
+          "id",
+          "name",
+          "line"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "line": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -26187,6 +27294,22 @@
           },
           "lines": {
             "$ref": "#/components/schemas/StatementPage"
+          }
+        }
+      },
+      "SuggestedWorkCenter": {
+        "required": [
+          "stepName",
+          "workCenterId"
+        ],
+        "type": "object",
+        "properties": {
+          "stepName": {
+            "type": "string"
+          },
+          "workCenterId": {
+            "type": "string",
+            "format": "uuid"
           }
         }
       },
@@ -27165,6 +28288,9 @@
     },
     {
       "name": "Contratos e projetos"
+    },
+    {
+      "name": "Engenharia"
     },
     {
       "name": "Produ\u00E7\u00E3o"

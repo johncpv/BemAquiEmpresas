@@ -274,7 +274,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-3--engenharia-est
 
 **Quebras:** EST-01 → 01a/01b · CMP-03 → 03a/03b · PRD-03 → 03a/03b · PRD-06 → 06a1/06a2/06b · CAD-04c → 04c1/04c2 (D9). **Re-estimadas:** PRD-01 (M → G), CMP-04 (M → G), PRD-04 (P → M). **Adiado:** o funcionamento sem rede da PRD-03b, depois do piloto (P-23). **CAD-04c2 movida para a Fase 6 (D9)**, antes da RH-02.
 
-**ENG-01 [ ] Templates de roteiro (M)** — 3.1, ordem 1 — [story](stories/ENG-01-templates-roteiro.md)
+**ENG-01 [x] Templates de roteiro (M)** — 3.1, ordem 1 — [story](stories/ENG-01-templates-roteiro.md)
 - Requisitos: R-ENG-1, R-ENG-2, R-PRP-1, R-PLN-1, R-SEC-5.
 - CA: roteiros com etapas (centro, horas padrão, qualidade, exige aprovação, checklist) e campo "Letra" (D10); primeira etapa marcada "Começa sem BOM" (D12); produto único por roteiro (`routing_template_items`); seed do exemplo com a Expedição "Preparar e embalar para o romaneio" (D4); `engineering.delete` e seed patch `engineering-permissions` (D13); `StageIndicator` corrigido (D17 b).
 
