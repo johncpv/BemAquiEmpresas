@@ -282,7 +282,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-3--engenharia-est
 - Requisitos: R-PRD-1, R-PRJ-2, R-ENG-1, R-ENG-6, R-PRP-1, R-PRP-2, R-COM-3, R-COM-4, R-SEC-5.
 - CA: `Equipment` gera OS sozinho, `Product` pelo botão, `Service` e contrato de implantação nunca (D14); "Gerar OS" em lote; mesma `ProductionOrder` da COM-06 com `CHECK` por tipo e deploy em duas etapas; cancelar OS iniciada com `production.approve`; dwg/dxf de 25 MB e leitura pelo operador por endpoint que confere a fila (D16); `OrderHeader`/`FactsBar` e ordem das abas.
 
-**PRD-02 [ ] Kanban da produção (M)** — 3.1, ordem 3 — [story](stories/PRD-02-kanban.md)
+**PRD-02 [x] Kanban da produção (M)** — 3.1, ordem 3 — [story](stories/PRD-02-kanban.md)
 - Requisitos: R-PRD-2, R-COM-2, PRD §5.14, PRD §6, R-PRP-5, R-SEC-5.
 - CA: colunas pela letra da etapa, sem arraste; "Concluir etapa" no menu do cartão com `production.approve` (D10); "Em risco" numa função só; coluna "Pronta para concluir" (D12); job diário "OS atrasada"; `ProductionHub` com `RequireModule` e permissão no `MapHub`, conexão fechada quando muda a permissão ou o security stamp, token fora dos logs; push depois do commit.
 

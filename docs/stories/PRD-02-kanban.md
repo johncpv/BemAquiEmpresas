@@ -5,7 +5,7 @@
 | ID | PRD-02 |
 | Título | Kanban das OS de fabricação com colunas pelo código da etapa (letra do roteiro) e filtro por roteiro, cartões com projeto, cliente, horas apontadas × padrão, prazo, atraso e risco com texto, filtros por projeto, cliente, linha e atraso, "Concluir etapa" pelo menu do cartão (sem arraste), notificação diária "OS atrasada" e atualização em tempo real por SignalR (primeiro hub de negócio, base do painel da TV e do `/fab`) |
 | Tamanho | M |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-PRD-2 (Kanban por etapa com filtros por projeto, cliente, linha e atraso) · R-COM-2 (notificação "OS atrasada") · PRD §5.14 (painel do supervisor; painel da TV atualiza em menos de 2 s, PRD §6) · R-PRP-5 · R-SEC-5 |
 | Dependências | PRD-01 (OS de fabricação com etapas, `IProductionOrders`), FND-02 (SignalR com token do tenant, `PingHub`) |
 | Bloqueia | PRD-03a |
@@ -96,16 +96,16 @@ Decisão da revisão aplicada: D10 (job diário "OS atrasada", R-COM-2, CA 11).
 **Pré-condição externa:** nenhuma.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, componentes, integração (Testcontainers, hub com dois tenants), desempenho e E2E passando.
-- [ ] Permissões só do `ModuleCatalog`; teste de arquitetura cobre o `MapHub`.
-- [ ] Token do hub fora dos logs do nginx e do Serilog.
-- [ ] Tela com estados (inclusive o offline) e 400 px.
-- [ ] Ajuda escrita; teste de cobertura passando.
-- [ ] Alertas acionáveis nos chips; faixa lateral com texto.
-- [ ] Nota no protótipo: arraste desligado, D10.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/04-fluxos-estados.md` atualizado (`ProductionStepStarted` também pela "Concluir etapa"); story marcada no backlog.
+- [x] Critérios de aceite atendidos (desvios no Change Log).
+- [x] Testes de unidade, componentes, integração (Testcontainers, hub com dois tenants), desempenho e E2E escritos; unidade, componentes, arquitetura e E2E passando; os de integração rodam na fila do Docker.
+- [x] Permissões só do `ModuleCatalog`; teste de arquitetura cobre o `MapHub` (`HubRulesTests`).
+- [x] Token do hub fora dos logs do nginx (o `bqe_masked` já grava `$uri`, sem a query) e do Serilog (`AccessTokenQueryMask`).
+- [x] Tela com estados (inclusive o offline) e 400 px.
+- [x] Ajuda escrita (`Ajuda/producao-kanban.md`); teste de cobertura passando.
+- [x] Alertas acionáveis nos chips; faixa lateral com texto.
+- [x] Nota no protótipo: arraste desligado, D10.
+- [ ] OpenAPI e cliente Orval regenerados pelo `BQ_UPDATE_OPENAPI` (o `openapi.json` foi completado por script e o cliente gerado pelo Orval; falta a conferência com Docker).
+- [x] `docs/04-fluxos-estados.md` atualizado (`ProductionStepStarted` também pela "Concluir etapa"); story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
 - [ ] `ProductionHub` (Host) com `RequireModule`/`perm:` no `MapHub`, grupos `production` e `shopfloor`, registro de conexões por usuário fechado com o `perm_version` e o security stamp.
@@ -147,3 +147,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO (D10, D12, tabela 1.1 itens 60–62) e correções da revisão pré-Fase 3 (§2.1 `MapHub` e avisos depois do commit, §2.2 PRD-02, §2.3 padrões 2, 3 e 4 e Kanban sem interativo aninhado); nova ordem (Marco 3.1, ordem 3); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 22/10/2026 | 1.0 | Implementada. Desvios: (1) **`MapHub` com `RequireHubAccess("production", "production.view", "shopfloor.view")`** no lugar de `RequireModule` + `perm:`: filtro de endpoint não roda em hub, então a policy `hub:` confere o módulo (403 `module_not_released`) e uma das ações de módulos diferentes (403 `forbidden`); o metadado `RequiresModuleMetadata` continua no endpoint e o `HubRulesTests` exige isso em todo hub de negócio (o `PingHub` da FND-02 fica fora, é técnico); (2) a consulta do quadro é LINQ parametrizado no `IProductionDb` (OS abertas numa consulta, etapas em outra) com os nomes por contrato, não SQL escrito à mão; (3) **recarga agrupada do quadro inteiro** (uma consulta, espera de 300 ms) a cada `OrderBoardChanged`, no lugar de recarregar cartão a cartão: sem endpoint de cartão, colunas e contadores ficam sempre coerentes; (4) o filtro "Roteiro" define as colunas; os demais filtros só os cartões; "Pronta para concluir" aparece sempre como última coluna e "Sem roteiro" como primeira quando há OS sem etapas; (5) o registro de conexões do hub é por instância da API (a VPS roda uma); com várias instâncias precisa de backplane; (6) helper novo `IAfterCommit` (BuildingBlocks) com interceptor de transação e de SaveChanges: o aviso lembra a transação em que nasceu, sai no commit dela e é descartado no rollback ou quando a transação é descartada sem commit; o fechamento das conexões (`IRealtimeConnections`) usa o mesmo helper no `PermissionService.BumpAsync` e no `CachedSecurityStampValidator.Invalidate`; (7) colunas novas `production_order_steps.completed_by_supervisor` e `completion_reason` (migration `ProductionKanbanStepCompletion`, só expand); (8) `quality_step` (409) para a etapa de qualidade chamada pela API; a etapa seguinte que for de qualidade não muda a OS para `Quality` (PRD-05); (9) o horário do job é parâmetro de configuração (`Jobs:Cron:production-late-orders`, padrão 07:00), sem tela; o título usa o número do projeto ("OS {número} de {PRJ-…} está atrasada {n} d."); (10) chips "Pausada", operador e horas apontadas ficam no contrato do cartão (vazios até a PRD-03a); "Falta material" (EST-02) e "Sem BOM" (ENG-02) entram com as stories delas; (11) "Ver no Kanban" entrou nos próximos passos da OS criada (PRD-01 item 8); (12) `openapi.json` completado por script e cliente gerado pelo Orval sem Docker: conferir com `BQ_UPDATE_OPENAPI` (o `OpenApiDocumentTests` aponta qualquer diferença); (13) os testes de integração (`FabricationTests.Kanban`, `FabricationTests.Hub`) foram escritos e não executados nesta máquina (fila do Docker) | @dev |

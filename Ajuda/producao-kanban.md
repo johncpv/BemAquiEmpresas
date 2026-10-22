@@ -9,7 +9,7 @@ modulo: production
 ## Para que serve
 Ver todas as OS de fabricação abertas por etapa, num quadro que se atualiza sozinho, e saber onde a fábrica está travando antes de atrasar a entrega.
 
-## Como ler o quadro
+## Como usar
 - Cada coluna é uma **etapa do roteiro**, pela letra (a mesma do display de andar): P Projeto, C Corte, M Montagem, Q Qualidade, E Expedição no roteiro padrão. OS com roteiros diferentes dividem as colunas pela letra.
 - No topo da coluna: quantas OS estão nela e as **horas restantes** (horas padrão das etapas atuais menos as apontadas, nunca abaixo de zero).
 - **Sem roteiro** junta as OS que nasceram sem etapas: abra a OS e escolha o roteiro.
