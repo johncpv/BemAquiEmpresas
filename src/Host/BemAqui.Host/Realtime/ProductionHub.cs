@@ -41,7 +41,9 @@ public sealed class ProductionHub(HubConnectionRegistry registry, ITenantDirecto
             permissions = await scope.ServiceProvider.GetRequiredService<IPermissionService>().GetAsync(userId, Context.ConnectionAborted);
         }
 
-        var panels = Panels(permissions).ToList();
+        // Sessão por PIN (ADR 0026 §4): só o grupo do chão de fábrica, com shopfloor.view.
+        var pin = user!.FindAll(BemAqui.BuildingBlocks.Security.AuthMethods.Claim).Any(c => c.Value == BemAqui.BuildingBlocks.Security.AuthMethods.Pin);
+        var panels = Panels(permissions).Where(p => !pin || p == ShopfloorPanel).ToList();
         if (panels.Count == 0)
         {
             Context.Abort();

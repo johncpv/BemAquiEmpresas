@@ -21,19 +21,19 @@ internal static partial class ProductionEndpoints
     {
         var quality = production.MapGroup("/quality").WithTags("Qualidade");
         quality.MapGet("/queue", async (string? filter, QualityService service, CancellationToken ct) => Results.Ok(await service.QueueAsync(filter, ct)))
-            .RequirePermission("production.approve_quality").WithName("GetQualityQueue").Produces<QualityQueueView>();
+            .RequirePermission("production.approve_quality").AllowPinSession().WithName("GetQualityQueue").Produces<QualityQueueView>();
         var steps = quality.MapGroup("/steps/{stepId:guid}");
         steps.MapGet(string.Empty, async (Guid stepId, QualityService service, CancellationToken ct) => (await service.GetAsync(stepId, ct)).ToHttpResult())
-            .RequirePermission("production.approve_quality").WithName("GetQualityStep").Produces<QualityStepDetail>();
+            .RequirePermission("production.approve_quality").AllowPinSession().WithName("GetQualityStep").Produces<QualityStepDetail>();
         steps.MapPut("/checklist/{itemId:guid}", async (Guid stepId, Guid itemId, QualityChecklistInput input, QualityService service, CancellationToken ct) =>
                 (await service.MarkAsync(stepId, itemId, input, ct)).ToHttpResult())
-            .RequirePermission("production.approve_quality").WithName("MarkQualityChecklist").Produces<QualityStepDetail>();
+            .RequirePermission("production.approve_quality").AllowPinSession().WithName("MarkQualityChecklist").Produces<QualityStepDetail>();
         steps.MapPost("/start", async (Guid stepId, QualityService service, CancellationToken ct) => (await service.StartAsync(stepId, ct)).ToHttpResult())
-            .RequirePermission("production.approve_quality").RequireIdempotencyKey().WithName("StartQualityInspection").Produces<QualityStepDetail>();
+            .RequirePermission("production.approve_quality").RequireIdempotencyKey().AllowPinSession().WithName("StartQualityInspection").Produces<QualityStepDetail>();
         steps.MapPost("/approve", async (Guid stepId, QualityApproveInput input, QualityService service, CancellationToken ct) => (await service.ApproveAsync(stepId, input, ct)).ToHttpResult())
-            .RequirePermission("production.approve_quality").RequireIdempotencyKey().WithName("ApproveQuality").Produces<QualityDecisionResult>();
+            .RequirePermission("production.approve_quality").RequireIdempotencyKey().AllowPinSession().WithName("ApproveQuality").Produces<QualityDecisionResult>();
         steps.MapPost("/reject", async (Guid stepId, QualityRejectInput input, QualityService service, CancellationToken ct) => (await service.RejectAsync(stepId, input, ct)).ToHttpResult())
-            .RequirePermission("production.approve_quality").RequireIdempotencyKey().WithName("RejectQuality").Produces<QualityDecisionResult>();
+            .RequirePermission("production.approve_quality").RequireIdempotencyKey().AllowPinSession().WithName("RejectQuality").Produces<QualityDecisionResult>();
 
         // Aba Qualidade da OS (CA 7) e a NC pela OS (IDOR, CA 12), com production.view.
         production.MapGet("/production-orders/{id:guid}/quality", async (Guid id, QualityService service, NonConformityService nonConformities, CancellationToken ct) =>
@@ -79,7 +79,7 @@ internal static partial class ProductionEndpoints
                 return (await files.UploadAsync(NonConformityService.AttachmentOwner, id, file.FileName, content, ct)).ToHttpResult(dto => Results.Created($"/api/v1/attachments/{dto.Id}", dto));
             })
             .DisableAntiforgery() // CSRF por Origin + header (FND-04), como o upload genérico
-            .RequirePermission("production.view").WithName("UploadNonConformityAttachment").Produces<AttachmentDto>(StatusCodes.Status201Created);
+            .RequirePermission("production.view").AllowPinSession().WithName("UploadNonConformityAttachment").Produces<AttachmentDto>(StatusCodes.Status201Created);
         attachments.MapGet("/{attachmentId:guid}", async (Guid id, Guid attachmentId, AttachmentService files, HttpContext http, CancellationToken ct) =>
             {
                 var result = await files.DownloadCheckedAsync(NonConformityService.AttachmentOwner, id, attachmentId, ct);

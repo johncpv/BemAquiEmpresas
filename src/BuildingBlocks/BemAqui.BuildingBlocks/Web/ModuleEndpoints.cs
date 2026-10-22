@@ -53,6 +53,23 @@ public static class ModuleEndpoints
     }
 
     /// <summary>
+    /// Exige uma das ações, que podem ser de módulos diferentes (policy <c>perm:a.x|b.y</c>), ex.: revogar aparelho da fábrica com
+    /// <c>settings.edit</c> ou <c>production.approve</c> (PRD-03b CA 9). O módulo conta como liberado se o de alguma ação estiver.
+    /// </summary>
+    public static TBuilder RequireAnyPermissionOf<TBuilder>(this TBuilder builder, params string[] permissions)
+        where TBuilder : IEndpointConventionBuilder
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(permissions);
+        if (permissions.Length < 2 || permissions.Any(p => !ModuleCatalog.IsKnownPermission(p)))
+        {
+            throw new ArgumentException("Permissões fora do ModuleCatalog: " + string.Join(", ", permissions), nameof(permissions));
+        }
+
+        return builder.RequireAuthorization(PermissionPolicyPrefix + string.Join('|', permissions));
+    }
+
+    /// <summary>
     /// Camada 1 do controle de acesso (CLAUDE.md): módulo não liberado para o tenant responde 403
     /// <c>module_not_released</c>, antes da checagem de grupo e ação (FND-06 CA 4). Use no grupo de rotas do módulo.
     /// </summary>

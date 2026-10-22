@@ -1,8 +1,10 @@
+using System.Globalization;
 using System.Text.Json;
 using BemAqui.BuildingBlocks.Email;
 using BemAqui.BuildingBlocks.Persistence.Auditing;
 using BemAqui.BuildingBlocks.Security;
 using BemAqui.BuildingBlocks.Tenancy;
+using BemAqui.Identity.Application.Shopfloor;
 using BemAqui.Identity.Domain;
 using BemAqui.SharedKernel;
 using Microsoft.AspNetCore.Identity;
@@ -10,7 +12,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BemAqui.Identity.Application;
 
-public sealed record LoginSession(string AccessToken, DateTimeOffset AccessTokenExpiresAt, string RefreshToken, DateTimeOffset RefreshTokenExpiresAt);
+/// <summary>
+/// Sessão emitida. <see cref="RefreshToken"/> é null na sessão sem persistência (login completo feito no tablet da fábrica, ADR 0026
+/// §2): só o access token de 15 min, em memória. <see cref="SessionExpiresAt"/> é o prazo absoluto da família (12 h no PIN).
+/// </summary>
+public sealed record LoginSession(string AccessToken, DateTimeOffset AccessTokenExpiresAt, string? RefreshToken, DateTimeOffset? RefreshTokenExpiresAt, DateTimeOffset? SessionExpiresAt = null);
 
 /// <summary>Senha certa, falta o 2FA: o desafio é um token opaco de 5 min, só aceito pelas rotas de 2FA.</summary>
 public sealed record TwoFactorPending(string Challenge, TwoFactorChallengePurpose Purpose, DateTimeOffset ExpiresAt);
@@ -31,15 +37,20 @@ public sealed partial class AuthService(
     IEmailSender mail,
     TenantLinks links,
     TwoFactorRequirement requirement,
+    ShopfloorDeviceGate devices,
     TimeProvider clock)
 {
     public const string InvalidCredentials = "E-mail ou senha inválidos.";
     public const string SessionExpired = "Sua sessão expirou. Entre de novo.";
 
     // Hash de uma senha qualquer: usado quando o usuário não existe, para o tempo de resposta não denunciar.
-    private static readonly string DummyHash = new PasswordHasher<User>().HashPassword(User.Invite("ninguem@exemplo.com"), "senha-que-nao-existe-123");
+    internal static readonly string DummyHash = new PasswordHasher<User>().HashPassword(User.Invite("ninguem@exemplo.com"), "senha-que-nao-existe-123");
 
-    public async Task<Result<LoginOutcome>> LoginAsync(string email, string password, string host, string? ip, CancellationToken cancellationToken = default)
+    public Task<Result<LoginOutcome>> LoginAsync(string email, string password, string host, string? ip, CancellationToken cancellationToken = default) =>
+        LoginAsync(email, password, host, ip, persistent: true, cancellationToken);
+
+    /// <param name="persistent">false no login completo feito no tablet (registrar aparelho, criar PIN): sem refresh (ADR 0026 §2).</param>
+    public async Task<Result<LoginOutcome>> LoginAsync(string email, string password, string host, string? ip, bool persistent, CancellationToken cancellationToken = default)
     {
         var now = clock.GetUtcNow();
         var normalized = User.Normalize(email ?? string.Empty);
@@ -91,18 +102,52 @@ public sealed partial class AuthService(
             return new LoginOutcome(null, pending);
         }
 
-        return new LoginOutcome(await StartSessionAsync(user, host, ip, cancellationToken), null);
+        return new LoginOutcome(await StartSessionAsync(user, host, ip, [AuthMethods.Password], persistent, cancellationToken), null);
     }
 
     /// <summary>Sessão completa (access + refresh numa família nova), depois da senha e, se houver, do 2FA.</summary>
-    public async Task<LoginSession> StartSessionAsync(User user, string host, string? ip, CancellationToken cancellationToken = default)
+    public Task<LoginSession> StartSessionAsync(User user, string host, string? ip, CancellationToken cancellationToken = default) =>
+        StartSessionAsync(user, host, ip, user?.TotpEnabled == true ? [AuthMethods.Password, AuthMethods.Otp] : [AuthMethods.Password], persistent: true, cancellationToken);
+
+    /// <summary>
+    /// Sessão completa. Persistente: família nova de refresh, com prazo absoluto de <c>security.session_absolute_days</c> (D17 d).
+    /// Sem persistência (tablet da fábrica, ADR 0026 §2): só o access token, nenhum refresh emitido.
+    /// </summary>
+    public async Task<LoginSession> StartSessionAsync(User user, string host, string? ip, IReadOnlyList<string> amr, bool persistent, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(user);
         var now = clock.GetUtcNow();
         user.RegisterSuccessfulLogin(now);
-        var session = CreateSession(user, host, Guid.CreateVersion7(), ip, now);
-        await AuditAsync("LoginSucceeded", user.Id, ip, null, cancellationToken);
+        LoginSession session;
+        if (persistent)
+        {
+            var absolute = SessionLifetimes.FullAbsolute(now, await AbsoluteDaysAsync(cancellationToken));
+            session = CreateSession(user, host, Guid.CreateVersion7(), ip, now, new SessionSpec(SessionKind.Full, null, absolute, amr));
+        }
+        else
+        {
+            var access = issuer.Issue(user, TenantId(), host, amr);
+            session = new LoginSession(access.Token, access.ExpiresAt, null, null, access.ExpiresAt);
+        }
+
+        await AuditAsync("LoginSucceeded", user.Id, ip, persistent ? null : new { persistent = false }, cancellationToken);
         return session;
+    }
+
+    /// <summary>
+    /// Sessão por PIN (ADR 0026 §3): <c>amr = ["pin"]</c>, refresh preso ao aparelho, 12 h absolutas e não renováveis além disso. As
+    /// sessões por PIN anteriores do mesmo usuário no mesmo aparelho são revogadas. Quem chama grava (SaveChanges).
+    /// </summary>
+    public async Task<LoginSession> StartPinSessionAsync(User user, Guid deviceId, string host, string? ip, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(user);
+        var now = clock.GetUtcNow();
+        foreach (var old in await db.RefreshTokens.Where(t => t.UserId == user.Id && t.DeviceId == deviceId && t.RevokedAt == null).ToListAsync(cancellationToken))
+        {
+            old.Revoke(now);
+        }
+
+        return CreateSession(user, host, Guid.CreateVersion7(), ip, now, new SessionSpec(SessionKind.Pin, deviceId, SessionLifetimes.PinAbsolute(now), [AuthMethods.Pin]));
     }
 
     private TwoFactorPending NewChallenge(Guid userId, TwoFactorChallengePurpose purpose, string? ip, DateTimeOffset now)
@@ -136,10 +181,10 @@ public sealed partial class AuthService(
         }
 
         await RevokeFamilyAsync(token.FamilyId, clock.GetUtcNow(), cancellationToken);
-        await AuditAsync("Logout", token.UserId, ip, null, cancellationToken);
+        await AuditAsync("Logout", token.UserId, ip, token.DeviceId is { } device ? new { device } : null, cancellationToken);
     }
 
-    /// <summary>Revoga todas as sessões do usuário (redefinição de senha, desativação).</summary>
+    /// <summary>Revoga todas as sessões do usuário, completas e por PIN (redefinição de senha, desativação).</summary>
     public async Task RevokeAllAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var now = clock.GetUtcNow();
@@ -151,10 +196,12 @@ public sealed partial class AuthService(
         await db.SaveChangesAsync(cancellationToken);
     }
 
-    private LoginSession CreateSession(User user, string host, Guid familyId, string? ip, DateTimeOffset now)
+    /// <summary>Tipo, aparelho, prazo absoluto e <c>amr</c> da família (ADR 0026 §3).</summary>
+    private sealed record SessionSpec(SessionKind Kind, Guid? DeviceId, DateTimeOffset Absolute, IReadOnlyList<string> Amr);
+
+    private LoginSession CreateSession(User user, string host, Guid familyId, string? ip, DateTimeOffset now, SessionSpec spec)
     {
-        var tenantId = tenant.Tenant?.Id ?? throw new InvalidOperationException("Login fora de escopo de tenant.");
-        var access = issuer.Issue(user, tenantId, host);
+        var access = issuer.Issue(user, TenantId(), host, spec.Amr);
         var raw = OpaqueToken.New();
         var refresh = new RefreshToken
         {
@@ -162,11 +209,15 @@ public sealed partial class AuthService(
             TokenHash = OpaqueToken.Hash(raw),
             FamilyId = familyId,
             CreatedAt = now,
-            ExpiresAt = now + signing.Options.RefreshTokenLifetime,
+            ExpiresAt = spec.Kind == SessionKind.Pin ? spec.Absolute : SessionLifetimes.RefreshExpiry(now, signing.Options.RefreshTokenLifetime, spec.Absolute),
             CreatedByIp = ip,
+            SessionKind = spec.Kind,
+            DeviceId = spec.DeviceId,
+            AbsoluteExpiresAt = spec.Absolute,
+            Host = NormalizeHost(host),
         };
         db.RefreshTokens.Add(refresh);
-        return new LoginSession(access.Token, access.ExpiresAt, raw, refresh.ExpiresAt);
+        return new LoginSession(access.Token, access.ExpiresAt, raw, refresh.ExpiresAt, spec.Absolute);
     }
 
     private async Task RevokeFamilyAsync(Guid familyId, DateTimeOffset now, CancellationToken cancellationToken)
@@ -177,6 +228,13 @@ public sealed partial class AuthService(
         }
 
         await db.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>Prazo absoluto da sessão completa em dias (parâmetro do tenant; padrão 30).</summary>
+    internal async Task<int> AbsoluteDaysAsync(CancellationToken cancellationToken)
+    {
+        var value = await db.TenantSettings.AsNoTracking().Where(s => s.Key == TenantSetting.SessionAbsoluteDays).Select(s => s.Value).FirstOrDefaultAsync(cancellationToken);
+        return int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var days) && days is > 0 and <= 365 ? days : RefreshToken.DefaultAbsoluteDays;
     }
 
     internal async Task AuditAsync(string action, Guid? userId, string? ip, object? details, CancellationToken cancellationToken)
@@ -193,6 +251,10 @@ public sealed partial class AuthService(
         });
         await db.SaveChangesAsync(cancellationToken);
     }
+
+    private Guid TenantId() => tenant.Tenant?.Id ?? throw new InvalidOperationException("Login fora de escopo de tenant.");
+
+    internal static string NormalizeHost(string host) => (host ?? string.Empty).Trim().TrimEnd('.').ToLowerInvariant();
 
     private static Error Invalid() => Error.Validation("auth.invalid_credentials", InvalidCredentials);
 }

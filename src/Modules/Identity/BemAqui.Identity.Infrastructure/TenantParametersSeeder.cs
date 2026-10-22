@@ -20,7 +20,12 @@ public sealed class TenantParametersSeeder : ITenantSeeder
         var db = tenantScope.GetRequiredService<IIdentityDb>();
         var clock = tenantScope.GetRequiredService<TimeProvider>();
         var existing = await db.TenantSettings.Select(s => s.Key).ToListAsync(cancellationToken);
-        foreach (var (key, value) in new[] { (TenantParametersService.ChargesKey, "80.00"), (TenantParametersService.PricingKey, "markup") })
+        foreach (var (key, value) in new[]
+        {
+            (TenantParametersService.ChargesKey, "80.00"), (TenantParametersService.PricingKey, "markup"),
+            // PRD-03b (ADR 0026 §1 e §3): teto de aparelhos da fábrica e prazo absoluto da sessão completa.
+            (TenantSetting.MaxShopfloorDevices, "10"), (TenantSetting.SessionAbsoluteDays, "30"),
+        })
         {
             if (!existing.Contains(key))
             {

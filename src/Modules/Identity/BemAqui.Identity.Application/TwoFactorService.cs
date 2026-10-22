@@ -54,7 +54,11 @@ public sealed partial class TwoFactorService(
         return new TotpSetup(Totp.ManualKey(secret), Totp.OtpAuthUri(Issuer, user.Email, secret));
     }
 
-    public async Task<Result<TwoFactorActivated>> ConfirmSetupAsync(Guid userId, string code, string host, string? ip, CancellationToken cancellationToken = default)
+    public Task<Result<TwoFactorActivated>> ConfirmSetupAsync(Guid userId, string code, string host, string? ip, CancellationToken cancellationToken = default) =>
+        ConfirmSetupAsync(userId, code, host, ip, persistent: true, cancellationToken);
+
+    /// <param name="persistent">false quando a ativação obrigatória acontece no login feito no tablet da fábrica (ADR 0026 §2).</param>
+    public async Task<Result<TwoFactorActivated>> ConfirmSetupAsync(Guid userId, string code, string host, string? ip, bool persistent, CancellationToken cancellationToken = default)
     {
         var user = await ActiveUserAsync(userId, cancellationToken);
         if (user is null)
@@ -83,7 +87,7 @@ public sealed partial class TwoFactorService(
         var codes = Enumerable.Range(0, RecoveryCode.CountPerUser).Select(_ => NewRecoveryCode()).ToList();
         db.RecoveryCodes.AddRange(codes.Select(c => new RecoveryCode { UserId = user.Id, CodeHash = HashRecoveryCode(c), CreatedAt = now }));
         await auth.AuditAsync("TwoFactorEnabled", user.Id, ip, null, cancellationToken);
-        return new TwoFactorActivated(codes, await NewSessionAsync(user, host, ip, cancellationToken));
+        return new TwoFactorActivated(codes, await NewSessionAsync(user, host, ip, persistent, cancellationToken));
     }
 
     public async Task<Result<LoginSession>> DisableAsync(Guid userId, string password, string code, string host, string? ip, CancellationToken cancellationToken = default)
@@ -109,6 +113,6 @@ public sealed partial class TwoFactorService(
         user.DisableTotp();
         await db.RecoveryCodes.Where(r => r.UserId == user.Id).ExecuteDeleteAsync(cancellationToken);
         await auth.AuditAsync("TwoFactorDisabled", user.Id, ip, null, cancellationToken);
-        return await NewSessionAsync(user, host, ip, cancellationToken);
+        return await NewSessionAsync(user, host, ip, persistent: true, cancellationToken);
     }
 }

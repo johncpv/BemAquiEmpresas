@@ -9,7 +9,11 @@ namespace BemAqui.Identity.Application;
 public sealed partial class TwoFactorService
 {
     /// <summary>Desafio do login (CA 4 a 7): código do app ou de recuperação. Cinco erros derrubam o desafio.</summary>
-    public async Task<Result<LoginSession>> VerifyAsync(string challenge, string? code, string? recoveryCode, string host, string? ip, CancellationToken cancellationToken = default)
+    public Task<Result<LoginSession>> VerifyAsync(string challenge, string? code, string? recoveryCode, string host, string? ip, CancellationToken cancellationToken = default) =>
+        VerifyAsync(challenge, code, recoveryCode, host, ip, persistent: true, cancellationToken);
+
+    /// <param name="persistent">false no login completo feito no tablet da fábrica: sem refresh (ADR 0026 §2).</param>
+    public async Task<Result<LoginSession>> VerifyAsync(string challenge, string? code, string? recoveryCode, string host, string? ip, bool persistent, CancellationToken cancellationToken = default)
     {
         var (open, user) = await OpenChallengeAsync(challenge, TwoFactorChallengePurpose.Verify, cancellationToken);
         if (open is null || user is null || !user.TotpEnabled)
@@ -28,7 +32,7 @@ public sealed partial class TwoFactorService
 
         open.Complete(clock.GetUtcNow());
         await auth.AuditAsync(usedRecovery ? "RecoveryCodeUsed" : "TwoFactorVerified", user.Id, ip, null, cancellationToken);
-        return await auth.StartSessionAsync(user, host, ip, cancellationToken);
+        return await auth.StartSessionAsync(user, host, ip, [AuthMethods.Password, AuthMethods.Otp], persistent, cancellationToken);
     }
 
     /// <summary>2FA obrigatório e ainda não configurado (CA 8): o desafio de configuração só libera estas duas etapas.</summary>
@@ -40,7 +44,10 @@ public sealed partial class TwoFactorService
             : await BeginSetupAsync(user.Id, cancellationToken);
     }
 
-    public async Task<Result<TwoFactorActivated>> ConfirmSetupWithChallengeAsync(string challenge, string code, string host, string? ip, CancellationToken cancellationToken = default)
+    public Task<Result<TwoFactorActivated>> ConfirmSetupWithChallengeAsync(string challenge, string code, string host, string? ip, CancellationToken cancellationToken = default) =>
+        ConfirmSetupWithChallengeAsync(challenge, code, host, ip, persistent: true, cancellationToken);
+
+    public async Task<Result<TwoFactorActivated>> ConfirmSetupWithChallengeAsync(string challenge, string code, string host, string? ip, bool persistent, CancellationToken cancellationToken = default)
     {
         var (open, user) = await OpenChallengeAsync(challenge, TwoFactorChallengePurpose.Setup, cancellationToken);
         if (open is null || user is null)
@@ -48,7 +55,7 @@ public sealed partial class TwoFactorService
             return Error.Validation("auth.2fa_challenge_expired", ChallengeExpired);
         }
 
-        var result = await ConfirmSetupAsync(user.Id, code, host, ip, cancellationToken);
+        var result = await ConfirmSetupAsync(user.Id, code, host, ip, persistent, cancellationToken);
         if (result.IsFailure && result.Error!.Code == "auth.2fa_invalid_code")
         {
             return (await RejectAsync(open, user.Id, ip, cancellationToken)).Error!;
@@ -114,11 +121,12 @@ public sealed partial class TwoFactorService
         return updated == 1;
     }
 
-    private async Task<LoginSession> NewSessionAsync(User user, string host, string? ip, CancellationToken cancellationToken)
+    private async Task<LoginSession> NewSessionAsync(User user, string host, string? ip, bool persistent, CancellationToken cancellationToken)
     {
         await auth.RevokeAllAsync(user.Id, cancellationToken);
         stamps.Invalidate(tenant.Tenant!.Id, user.Id);
-        return await auth.StartSessionAsync(user, host, ip, cancellationToken);
+        var amr = user.TotpEnabled ? new[] { AuthMethods.Password, AuthMethods.Otp } : [AuthMethods.Password];
+        return await auth.StartSessionAsync(user, host, ip, amr, persistent, cancellationToken);
     }
 
     private Task<User?> ActiveUserAsync(Guid userId, CancellationToken cancellationToken) =>

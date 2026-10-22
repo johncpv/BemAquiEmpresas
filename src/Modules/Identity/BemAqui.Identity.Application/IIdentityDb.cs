@@ -11,6 +11,10 @@ public interface IIdentityDb
 
     DbSet<RefreshToken> RefreshTokens { get; }
 
+    DbSet<ShopfloorDevice> ShopfloorDevices { get; }
+
+    DbSet<UserPin> UserPins { get; }
+
     DbSet<UserInvite> UserInvites { get; }
 
     DbSet<PasswordReset> PasswordResets { get; }

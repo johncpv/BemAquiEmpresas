@@ -18,9 +18,10 @@ public sealed record LoginResponse(string? AccessToken, DateTimeOffset? ExpiresA
 
 public sealed record ChallengeRequest(string Challenge);
 
-public sealed record VerifyTwoFactorRequest(string Challenge, string? Code, string? RecoveryCode);
+/// <param name="Ephemeral">Login feito no tablet da fábrica: sem refresh (ADR 0026 §2).</param>
+public sealed record VerifyTwoFactorRequest(string Challenge, string? Code, string? RecoveryCode, bool Ephemeral = false);
 
-public sealed record ConfirmWithChallengeRequest(string Challenge, string Code);
+public sealed record ConfirmWithChallengeRequest(string Challenge, string Code, bool Ephemeral = false);
 
 public sealed record ConfirmTwoFactorRequest(string Code);
 
@@ -39,7 +40,7 @@ internal static class TwoFactorEndpoints
         var twoFactor = auth.MapGroup("/2fa");
 
         twoFactor.MapPost("/verify", async (VerifyTwoFactorRequest request, HttpContext http, TwoFactorService service, CancellationToken ct) =>
-                (await service.VerifyAsync(request.Challenge, request.Code, request.RecoveryCode, http.Request.Host.Host, AuthEndpoints.Ip(http), ct))
+                (await service.VerifyAsync(request.Challenge, request.Code, request.RecoveryCode, http.Request.Host.Host, AuthEndpoints.Ip(http), !AuthEndpoints.Ephemeral(http, request.Ephemeral), ct))
                     .ToHttpResult(session => AuthEndpoints.Issue(http, session)))
             .WithName("VerifyTwoFactor").Produces<AccessTokenResponse>();
 
@@ -48,7 +49,7 @@ internal static class TwoFactorEndpoints
             .WithName("BeginRequiredTwoFactorSetup").Produces<TotpSetup>();
 
         twoFactor.MapPost("/confirm", async (ConfirmWithChallengeRequest request, HttpContext http, TwoFactorService service, CancellationToken ct) =>
-                (await service.ConfirmSetupWithChallengeAsync(request.Challenge, request.Code, http.Request.Host.Host, AuthEndpoints.Ip(http), ct))
+                (await service.ConfirmSetupWithChallengeAsync(request.Challenge, request.Code, http.Request.Host.Host, AuthEndpoints.Ip(http), !AuthEndpoints.Ephemeral(http, request.Ephemeral), ct))
                     .ToHttpResult(activated => Activated(http, activated)))
             .WithName("ConfirmRequiredTwoFactorSetup").Produces<TwoFactorActivatedResponse>();
 

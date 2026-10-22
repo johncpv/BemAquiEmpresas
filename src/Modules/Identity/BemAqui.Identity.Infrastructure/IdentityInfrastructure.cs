@@ -65,6 +65,14 @@ public static class IdentityInfrastructure
             async (sp, id, ct) => await sp.GetRequiredService<IIdentityDb>().CompanyProfiles.AnyAsync(p => p.Id == id, ct)));
         services.AddAuditableEntity<AiSettings>("settings");
         services.TryAddScoped<BemAqui.Platform.Contracts.ITenantOwnerOnboarding, IdentityOwnerOnboarding>();
+        // Chão de fábrica (PRD-03b, ADR 0026): aparelho registrado, PIN e sessão por PIN conferida a cada request.
+        services.TryAddScoped<Application.Shopfloor.ShopfloorRevocations>();
+        services.TryAddScoped<Application.Shopfloor.ShopfloorDeviceGate>();
+        services.TryAddScoped<Application.Shopfloor.ShopfloorDeviceService>();
+        services.TryAddScoped<Application.Shopfloor.PinService>();
+        services.TryAddScoped<BemAqui.BuildingBlocks.Identity.IPinSessionValidator, Application.Shopfloor.PinSessionValidator>();
+        services.AddAuditableEntity<ShopfloorDevice>("settings");
+        services.AddAuditableEntity<UserPin>("identity");
         return services;
     }
 
