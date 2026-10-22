@@ -17817,7 +17817,8 @@
           "Maternity",
           "Paternity",
           "Military",
-          "Other"
+          "Other",
+          null
         ]
       },
       "EmployeePersonalInput": {

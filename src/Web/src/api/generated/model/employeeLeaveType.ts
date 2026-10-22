@@ -5,7 +5,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type EmployeeLeaveType = typeof EmployeeLeaveType[keyof typeof EmployeeLeaveType];
+export type EmployeeLeaveType = typeof EmployeeLeaveType[keyof typeof EmployeeLeaveType] | null;
 
 
 export const EmployeeLeaveType = {
