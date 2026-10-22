@@ -36,7 +36,7 @@ export function FloorButton({ tone = 'primary', className, children, ...props }:
 export function FloorHeader({ title, subtitle, onHelp, children }: { title: ReactNode; subtitle?: ReactNode; onHelp: () => void; children?: ReactNode }) {
   return (
     <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
-      <div className="mx-auto flex max-w-3xl items-center gap-2 px-4 py-2">
+      <div className="mx-auto flex max-w-3xl items-center gap-[8px] px-4 py-2">
         <div className="min-w-0 flex-1">
           {subtitle ? <p className="truncate text-sm text-muted-foreground">{subtitle}</p> : null}
           <p className="truncate font-display text-[22px] font-bold font-wider">{title}</p>
@@ -135,7 +135,7 @@ export function FloorConfirm({ open, onOpenChange, title, verb, impact, onConfir
   return (
     <FloorSheet role="alertdialog" open={open} onOpenChange={(o) => { setError(null); onOpenChange(o) }} title={title}
       actions={(
-        <div className="flex gap-4">
+        <div className="flex gap-[16px]">
           <FloorButton tone="secondary" className="flex-1" onClick={() => onOpenChange(false)} disabled={busy}>Voltar</FloorButton>
           <FloorButton tone={tone} className="flex-1" onClick={() => void run()} disabled={busy}>{busy ? 'Gravando…' : verb}</FloorButton>
         </div>
@@ -168,7 +168,7 @@ export function NumericKeypad({ value, onChange, max = 10, label }: { value: str
       <output aria-label={label} aria-live="polite" className="block min-h-[64px] rounded-md border-2 border-input bg-card px-4 py-3 text-center font-display text-[30px] font-bold tabular-nums tracking-widest">
         {value || <span className="text-muted-foreground">—</span>}
       </output>
-      <div role="group" aria-label="Teclado numérico" className="grid grid-cols-3 gap-2">
+      <div role="group" aria-label="Teclado numérico" className="grid grid-cols-3 gap-[8px]">
         {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((d) => <FloorButton key={d} tone="secondary" className={key} onClick={() => press(d)}>{d}</FloorButton>)}
         <FloorButton tone="secondary" className="min-h-[64px] text-[18px]" onClick={() => onChange('')}>Limpar</FloorButton>
         <FloorButton tone="secondary" className={key} onClick={() => press('0')}>0</FloorButton>

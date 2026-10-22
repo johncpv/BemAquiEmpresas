@@ -71,7 +71,7 @@ export function FabQueuePage() {
             <QueueCard step={current} highlight />
           </section>
         ) : <h1 className="sr-only">Fila de etapas</h1>}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-[8px]">
           <FloorButton tone={onlyMine ? 'primary' : 'secondary'} aria-pressed={onlyMine} onClick={toggle}>Só meu centro</FloorButton>
           <FloorDica nome="Só meu centro" texto={FAB_DICAS.meuCentro} />
           <FloorButton tone="secondary" className="ml-auto" onClick={() => setSearching(true)}><Search aria-hidden="true" className="size-6" />Buscar OS pelo número</FloorButton>
@@ -83,7 +83,7 @@ export function FabQueuePage() {
               ? <FloorState title="Nada pronto no seu centro. Desligue o filtro para ver os outros centros." action={<FloorButton tone="secondary" onClick={toggle}>Ver todos os centros</FloorButton>} />
               : <FloorState title="Nada pronto para apontar agora. Fale com o supervisor se estiver esperando uma etapa." action={<FloorButton tone="secondary" onClick={() => void queue.refetch()}>Atualizar a fila</FloorButton>} />
           ) : (
-            <ul className="space-y-3">{steps.map((s) => <li key={s.stepId}><QueueCard step={s} /></li>)}</ul>
+            <ul className="space-y-[12px]">{steps.map((s) => <li key={s.stepId}><QueueCard step={s} /></li>)}</ul>
           )}
         </section>
       </div>
@@ -114,7 +114,7 @@ function SearchSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (ope
     <FloorSheet open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) { setNumber(''); setFound(null); setError(null) } }} title="Buscar OS pelo número"
       description="Digite o número da OS (por exemplo, 41 para a OS-2026-00041)."
       actions={(
-        <div className="flex gap-4">
+        <div className="flex gap-[16px]">
           <FloorButton tone="secondary" className="flex-1" onClick={() => onOpenChange(false)}>Voltar</FloorButton>
           <FloorButton className="flex-1" disabled={!number || busy} onClick={() => void search()}>{busy ? 'Buscando…' : 'Buscar'}</FloorButton>
         </div>

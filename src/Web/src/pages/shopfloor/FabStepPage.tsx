@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import {
-  finishShopfloorStep, getDownloadShopfloorAttachmentUrl, getGetShopfloorStepQueryKey, leaveShopfloorStep, markShopfloorChecklist, pauseShopfloorStep, resumeShopfloorStep,
+  finishShopfloorStep, getDownloadShopfloorAttachmentUrl, getGetShopfloorQueueQueryKey, getGetShopfloorStepQueryKey, leaveShopfloorStep, markShopfloorChecklist, pauseShopfloorStep, resumeShopfloorStep,
   startShopfloorStep, useGetShopfloorStep,
 } from '@/api/generated/bemaqui'
 import type { PauseReason, ShopfloorActionResult, ShopfloorAttachment, ShopfloorQueueStep, ShopfloorStepDetail } from '@/api/generated/model'
@@ -60,9 +60,14 @@ export function FabStepPage() {
   }
 
   const d = query.data
+  // Com a etapa devolvida pela ação, grava direto (sem nova leitura) e recarrega só a fila; sem ela, recarrega tudo do app.
   const refresh = async (next?: ShopfloorStepDetail | null) => {
-    if (next) client.setQueryData(getGetShopfloorStepQueryKey(stepId), next)
-    refreshShopfloor(client)
+    if (next) {
+      client.setQueryData(getGetShopfloorStepQueryKey(stepId), next)
+      await client.invalidateQueries({ queryKey: getGetShopfloorQueueQueryKey() })
+    } else {
+      refreshShopfloor(client)
+    }
   }
   return (
     <>
@@ -144,11 +149,15 @@ function StepBody({ detail: d, fetchedAt, onChanged, onFinished }: {
       <section aria-labelledby="checklist" className="space-y-2">
         <h2 id="checklist" className="text-[20px] font-bold">Checklist</h2>
         {d.checklist.length === 0 ? <p className="text-[18px] text-muted-foreground">Esta etapa não tem checklist.</p> : (
-          <div className="space-y-2">
+          <div className="space-y-[8px]">
             {d.checklist.map((item) => (
               <FloorCheck key={item.id} checked={item.done} label={item.text} disabled={!mine || busy}
                 detail={item.done && item.markedByName ? `Marcado por ${item.markedByName}` : undefined}
-                onChange={(done) => void act(() => markShopfloorChecklist(d.step.stepId, item.id, { done }), '')} />
+                onChange={(done) => {
+                  // Marca na hora (toque com luva precisa de resposta imediata); o servidor confirma e grava quem marcou.
+                  void onChanged({ ...d, checklist: d.checklist.map((c) => (c.id === item.id ? { ...c, done } : c)) })
+                  void act(() => markShopfloorChecklist(d.step.stepId, item.id, { done }), '')
+                }} />
             ))}
           </div>
         )}
@@ -162,7 +171,7 @@ function StepBody({ detail: d, fetchedAt, onChanged, onFinished }: {
         ) : paused ? (
           <FloorButton tone="ok" className="w-full" disabled={busy} onClick={() => void act(() => resumeShopfloorStep(d.step.stepId, tap()), 'Etapa retomada')}>Retomar</FloorButton>
         ) : (
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-wrap gap-[16px]">
             <FloorButton tone="secondary" className="flex-1" disabled={busy} onClick={() => setSheet('pause')}>Pausar</FloorButton>
             {others.length === 0 ? (
               <FloorButton className="flex-1" disabled={busy || missing > 0} aria-describedby={missing > 0 ? 'faltam' : undefined} onClick={() => setSheet('finish')}>Finalizar etapa</FloorButton>
@@ -204,12 +213,12 @@ function PauseSheet({ onOpenChange, suggested, onConfirm }: { onOpenChange: (ope
   return (
     <FloorSheet open onOpenChange={onOpenChange} title="Pausar a etapa" description="Escolha o motivo. O cronômetro para até você tocar em Retomar."
       actions={(
-        <div className="flex gap-4">
+        <div className="flex gap-[16px]">
           <FloorButton tone="secondary" className="flex-1" onClick={() => onOpenChange(false)}>Voltar</FloorButton>
           <FloorButton className="flex-1" disabled={busy} onClick={() => { setBusy(true); void onConfirm(reason, notes.trim() || null).finally(() => { setBusy(false); onOpenChange(false) }) }}>Pausar</FloorButton>
         </div>
       )}>
-      <fieldset className="space-y-2">
+      <fieldset className="space-y-[8px]">
         <legend className="mb-2 font-semibold">Motivo</legend>
         {orderedReasons(suggested).map((r) => (
           <label key={r.value} data-floor-target="" className="flex min-h-[56px] cursor-pointer items-center gap-4 rounded-md border-2 border-input bg-card px-4 has-[:checked]:border-primary has-[:checked]:bg-primary-soft">
@@ -244,9 +253,9 @@ function Attachments({ stepId, items }: { stepId: string; items: readonly Shopfl
   return (
     <section aria-labelledby="desenhos" className="space-y-2">
       <h2 id="desenhos" className="text-[20px] font-bold">Desenhos e documentos</h2>
-      <ul className="space-y-2">
+      <ul className="space-y-[8px]">
         {items.map((a) => (
-          <li key={a.id} className="flex flex-wrap items-center gap-2 rounded-md border border-border bg-card p-2">
+          <li key={a.id} className="flex flex-wrap items-center gap-[8px] rounded-md border border-border bg-card p-2">
             <span className="min-w-0 flex-1 truncate px-2">{a.fileName}</span>
             {a.viewable ? <FloorButton tone="secondary" onClick={() => void open(a)}>Abrir</FloorButton> : null}
             <FloorButton tone="secondary" onClick={() => void apiDownload(url(a), a.fileName).catch(() => notifyError('Não foi possível baixar o arquivo.'))}>Baixar</FloorButton>

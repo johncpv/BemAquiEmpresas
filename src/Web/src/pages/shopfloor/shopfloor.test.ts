@@ -26,8 +26,8 @@ describe('app do operador (PRD-03a)', () => {
     const start = Date.parse('2026-10-22T14:28:00Z')
     const mine = { startedAt: '2026-10-22T14:28:00Z', closedPauseSeconds: 600, pauseStartedAt: null }
     expect(workedSeconds(mine, start + 3_600_000)).toBe(3000)
-    expect(workedSeconds({ ...mine, pauseStartedAt: '2026-10-22T15:18:00Z' }, start + 3_600_000)).toBe(2400, 'a pausa aberta para o cronômetro')
-    expect(workedSeconds(mine, start + 3_600_000 - 5000, 5000)).toBe(3000, 'diferença do relógio do aparelho')
+    expect(workedSeconds({ ...mine, pauseStartedAt: '2026-10-22T15:18:00Z' }, start + 3_600_000)).toBe(2400)
+    expect(workedSeconds(mine, start + 3_600_000 - 5000, 5000)).toBe(3000)
     expect(formatTimer(2 * 3600 + 14 * 60 + 36)).toBe('02:14:36')
     expect(formatTimer(-3)).toBe('00:00:00')
     expect(floorHours(2.25)).toBe('2,3')
