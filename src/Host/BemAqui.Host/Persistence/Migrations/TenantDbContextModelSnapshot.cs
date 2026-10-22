@@ -5879,6 +5879,130 @@ namespace BemAqui.Host.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("BemAqui.Production.Domain.NonConformity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Action")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("action");
+
+                    b.Property<DateTimeOffset?>("ActionStartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("action_started_at");
+
+                    b.Property<Guid?>("ActionStartedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("action_started_by");
+
+                    b.Property<int>("Attempt")
+                        .HasColumnType("integer")
+                        .HasColumnName("attempt");
+
+                    b.Property<string>("Cause")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("cause");
+
+                    b.Property<DateTimeOffset?>("ClosedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("closed_at");
+
+                    b.Property<Guid?>("ClosedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("closed_by");
+
+                    b.Property<decimal?>("Cost")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("cost");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("description");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("number");
+
+                    b.Property<DateTimeOffset>("OpenedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("opened_at");
+
+                    b.Property<Guid?>("OpenedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("opened_by");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("order_id");
+
+                    b.Property<Guid>("OrderStepId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("order_step_id");
+
+                    b.Property<Guid>("ResponsibleUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("responsible_user_id");
+
+                    b.Property<string>("Result")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("result");
+
+                    b.Property<Guid>("ReturnToStepId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("return_to_step_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_non_conformities");
+
+                    b.HasIndex("Number")
+                        .IsUnique()
+                        .HasDatabaseName("ix_non_conformities_number");
+
+                    b.HasIndex("OrderId")
+                        .HasDatabaseName("ix_non_conformities_order_id");
+
+                    b.HasIndex("ReturnToStepId")
+                        .HasDatabaseName("ix_non_conformities_return_to_step_id");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_non_conformities_status");
+
+                    b.HasIndex("OrderStepId", "Attempt")
+                        .IsUnique()
+                        .HasDatabaseName("ix_non_conformities_order_step_id_attempt");
+
+                    b.HasIndex("ResponsibleUserId", "Status")
+                        .HasDatabaseName("ix_non_conformities_responsible_user_id_status");
+
+                    b.ToTable("non_conformities", "production", t =>
+                        {
+                            t.HasCheckConstraint("ck_non_conformities_attempt", "attempt >= 1");
+                        });
+                });
+
             modelBuilder.Entity("BemAqui.Production.Domain.ProductionOrder", b =>
                 {
                     b.Property<Guid>("Id")
@@ -5967,6 +6091,14 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("project_item_id");
 
+                    b.Property<int>("QualityAttempt")
+                        .HasColumnType("integer")
+                        .HasColumnName("quality_attempt");
+
+                    b.Property<DateTimeOffset?>("QualityAttemptStartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("quality_attempt_started_at");
+
                     b.Property<decimal?>("Quantity")
                         .HasPrecision(18, 4)
                         .HasColumnType("numeric(18,4)")
@@ -5975,6 +6107,10 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<Guid?>("RoutingTemplateId")
                         .HasColumnType("uuid")
                         .HasColumnName("routing_template_id");
+
+                    b.Property<bool>("SelfInspection")
+                        .HasColumnType("boolean")
+                        .HasColumnName("self_inspection");
 
                     b.Property<DateOnly?>("StartedOn")
                         .HasColumnType("date")
@@ -6039,6 +6175,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
+
+                    b.Property<int>("Attempt")
+                        .HasColumnType("integer")
+                        .HasColumnName("attempt");
 
                     b.Property<DateTimeOffset?>("MarkedAt")
                         .HasColumnType("timestamp with time zone")
@@ -6126,6 +6266,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("actual_start");
 
+                    b.Property<int>("Attempt")
+                        .HasColumnType("integer")
+                        .HasColumnName("attempt");
+
                     b.Property<DateTimeOffset?>("AwaitingApprovalSince")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("awaiting_approval_since");
@@ -6151,6 +6295,14 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
                         .HasColumnName("completion_reason");
+
+                    b.Property<DateTimeOffset?>("DecidedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("decided_at");
+
+                    b.Property<Guid?>("DecidedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("decided_by");
 
                     b.Property<bool>("IsQualityStep")
                         .HasColumnType("boolean")
@@ -6181,6 +6333,10 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<bool>("SelfApproved")
                         .HasColumnType("boolean")
                         .HasColumnName("self_approved");
+
+                    b.Property<bool>("SelfInspection")
+                        .HasColumnType("boolean")
+                        .HasColumnName("self_inspection");
 
                     b.Property<int>("Sequence")
                         .HasColumnType("integer")
@@ -6242,6 +6398,63 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDatabaseName("ix_production_parameters_key");
 
                     b.ToTable("parameters", "production");
+                });
+
+            modelBuilder.Entity("BemAqui.Production.Domain.QualityDecision", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Attempt")
+                        .HasColumnType("integer")
+                        .HasColumnName("attempt");
+
+                    b.Property<DateTimeOffset>("DecidedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("decided_at");
+
+                    b.Property<Guid?>("DecidedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("decided_by");
+
+                    b.Property<Guid?>("NonConformityId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("non_conformity_id");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("order_id");
+
+                    b.Property<string>("Result")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("result");
+
+                    b.Property<bool>("SelfInspection")
+                        .HasColumnType("boolean")
+                        .HasColumnName("self_inspection");
+
+                    b.Property<Guid>("StepId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("step_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_quality_decisions");
+
+                    b.HasIndex("NonConformityId")
+                        .HasDatabaseName("ix_quality_decisions_non_conformity_id");
+
+                    b.HasIndex("OrderId")
+                        .HasDatabaseName("ix_quality_decisions_order_id");
+
+                    b.HasIndex("StepId", "Attempt")
+                        .IsUnique()
+                        .HasDatabaseName("ix_quality_decisions_step_id_attempt");
+
+                    b.ToTable("quality_decisions", "production");
                 });
 
             modelBuilder.Entity("BemAqui.Production.Domain.StepPause", b =>
@@ -6831,6 +7044,30 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasConstraintName("fk_labor_entries_production_order_steps_order_step_id");
                 });
 
+            modelBuilder.Entity("BemAqui.Production.Domain.NonConformity", b =>
+                {
+                    b.HasOne("BemAqui.Production.Domain.ProductionOrder", null)
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_non_conformities_production_orders_order_id");
+
+                    b.HasOne("BemAqui.Production.Domain.ProductionOrderStep", null)
+                        .WithMany()
+                        .HasForeignKey("OrderStepId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_non_conformities_production_order_steps_order_step_id");
+
+                    b.HasOne("BemAqui.Production.Domain.ProductionOrderStep", null)
+                        .WithMany()
+                        .HasForeignKey("ReturnToStepId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_non_conformities_production_order_steps_return_to_step_id");
+                });
+
             modelBuilder.Entity("BemAqui.Production.Domain.ProductionOrderChecklistItem", b =>
                 {
                     b.HasOne("BemAqui.Production.Domain.ProductionOrder", null)
@@ -6865,6 +7102,29 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_production_order_steps_production_orders_order_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Production.Domain.QualityDecision", b =>
+                {
+                    b.HasOne("BemAqui.Production.Domain.NonConformity", null)
+                        .WithMany()
+                        .HasForeignKey("NonConformityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_quality_decisions_non_conformities_non_conformity_id");
+
+                    b.HasOne("BemAqui.Production.Domain.ProductionOrder", null)
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_quality_decisions_production_orders_order_id");
+
+                    b.HasOne("BemAqui.Production.Domain.ProductionOrderStep", null)
+                        .WithMany()
+                        .HasForeignKey("StepId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_quality_decisions_production_order_steps_step_id");
                 });
 
             modelBuilder.Entity("BemAqui.Production.Domain.StepPause", b =>
