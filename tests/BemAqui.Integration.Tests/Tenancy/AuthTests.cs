@@ -48,7 +48,8 @@ public partial class AuthTests(TenancyFixture tenancy) : IClassFixture<TenancyFi
 
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
         var jwt = new JsonWebToken(body.GetProperty("accessToken").GetString());
-        jwt.Claims.Select(c => c.Type).Should().BeSubsetOf(["sub", "tid", "aud", "sstamp", "iat", "exp", "jti", "iss", "nbf"]);
+        jwt.Claims.Select(c => c.Type).Should().BeSubsetOf(["sub", "tid", "aud", "sstamp", "iat", "exp", "jti", "iss", "nbf", "amr"]);
+        jwt.Claims.Where(c => c.Type == "amr").Select(c => c.Value).Should().Equal(["pwd"], "como a sessão foi aberta (ADR 0008, adendo de 21/10/2026)");
         jwt.Subject.Should().Be(userId.ToString());
         jwt.GetClaim("tid").Value.Should().Be(tenancy.TenantA.Id.ToString());
         jwt.Audiences.Should().Equal(Host);
