@@ -57,6 +57,10 @@ import { KanbanPage } from '@/pages/production/kanban/KanbanPage'
 import { OpenLaborPage } from '@/pages/production/labor/OpenLaborPage'
 import { FabQueuePage } from '@/pages/shopfloor/FabQueuePage'
 import { FabStepPage } from '@/pages/shopfloor/FabStepPage'
+import { FabQualityQueuePage, FabQualityStepPage } from '@/pages/shopfloor/FabQuality'
+import { QualityQueuePage, QualityStepPage } from '@/pages/production/quality/QualityPages'
+import { NonConformitiesPage } from '@/pages/production/quality/NonConformitiesPage'
+import { NonConformityPage } from '@/pages/production/quality/NonConformityPage'
 import { InstallationsPage } from '@/pages/production/installations/InstallationsPage'
 import { InstallationTemplatePage } from '@/pages/production/installations/InstallationTemplatePage'
 import { QuotesPage } from '@/pages/quotes/QuotesPage'
@@ -169,6 +173,11 @@ const fabricationOrderRoute = createRoute({ getParentRoute: () => appRoute, path
 const kanbanRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/kanban', component: gated('production', KanbanPage) })
 // Apontamentos abertos há muito tempo (PRD-03a CA 22).
 const openLaborRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/apontamentos-abertos', component: gated('production', OpenLaborPage) })
+// Qualidade e não conformidade (PRD-05): fila e inspeção, lista e detalhe da NC (filtros na URL).
+const qualityRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/qualidade', component: gated('production', QualityQueuePage) })
+const qualityStepRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/qualidade/$stepId', component: gated('production', QualityStepPage) })
+const nonConformitiesRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/nao-conformidades', component: gated('production', NonConformitiesPage) })
+const nonConformityRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/nao-conformidades/$id', component: gated('production', NonConformityPage) })
 // "Operador" no dock leva ao app do operador (PRD-03a CA 27).
 const operatorRoute = createRoute({ getParentRoute: () => appRoute, path: 'operador', beforeLoad: () => { throw redirect({ to: '/fab' }) } })
 const workCentersRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/centros-de-trabalho', component: gated('production', WorkCentersPage) })
@@ -267,6 +276,9 @@ const fabRoute = createRoute({
 })
 const fabQueueRoute = createRoute({ getParentRoute: () => fabRoute, path: '/', component: FabQueuePage })
 const fabStepRoute = createRoute({ getParentRoute: () => fabRoute, path: 'etapa/$stepId', component: FabStepPage })
+// Qualidade no tablet (PRD-05): fila e inspeção com production.approve_quality (o layout confere o módulo production).
+const fabQualityRoute = createRoute({ getParentRoute: () => fabRoute, path: 'qualidade', component: FabQualityQueuePage })
+const fabQualityStepRoute = createRoute({ getParentRoute: () => fabRoute, path: 'qualidade/$stepId', component: FabQualityStepPage })
 const tvRoute = createRoute({ getParentRoute: () => rootRoute, path: '/tv/$token', component: TvLayout })
 const galleryRoute = createRoute({ getParentRoute: () => rootRoute, path: '/dev/galeria', component: Gallery ?? NotFound })
 
@@ -280,12 +292,12 @@ export const routeTree = rootRoute.addChildren([
   inviteRoute,
   appRoute.addChildren([appIndexRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute,
     aiSettingsRoute, importRunsRoute, importRunRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute,
-    inventoryRootRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, productionRootRoute, fabricationOrdersRoute, fabricationOrderRoute, kanbanRoute, openLaborRoute, operatorRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute,
+    inventoryRootRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, productionRootRoute, fabricationOrdersRoute, fabricationOrderRoute, kanbanRoute, openLaborRoute, qualityRoute, qualityStepRoute, nonConformitiesRoute, nonConformityRoute, operatorRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute,
     financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, payablesRoute, newPayableRoute, payableRoute, recurringRoute, approvalRulesRoute, openingRoute, cashFlowRoute, agingRoute, paymentOrdersRoute, newPaymentOrderRoute, paymentOrderRoute, statementRoute, quotesRoute, quoteFunnelRoute, quoteRoute, quoteCompareRoute, contractsRoute, contractRoute, amendmentRoute, projectsRoute, projectRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
   platformLoginRoute,
   platformPasswordRoute,
   platformRoute.addChildren([platformIndexRoute, tenantsRoute, tenantRoute]),
-  fabRoute.addChildren([fabQueueRoute, fabStepRoute]),
+  fabRoute.addChildren([fabQueueRoute, fabStepRoute, fabQualityRoute, fabQualityStepRoute]),
   tvRoute,
   galleryRoute,
 ])

@@ -14,6 +14,7 @@ Ver todas as OS de fabricação abertas por etapa, num quadro que se atualiza so
 - No topo da coluna: quantas OS estão nela e as **horas restantes** (horas padrão das etapas atuais menos as apontadas, nunca abaixo de zero).
 - **Sem roteiro** junta as OS que nasceram sem etapas: abra a OS e escolha o roteiro.
 - **Pronta para concluir** junta as OS com todas as etapas concluídas: abra a OS para concluir.
+- A coluna da etapa de qualidade (Q) mostra as OS **Aguardando qualidade**; quem tem a ação de qualidade decide em **Produção → Qualidade**. O chip **NC aberta** avisa que a OS tem não conformidade ainda não encerrada, e **Autoinspeção** que a qualidade foi aprovada por quem fez parte do trabalho.
 - O cartão mostra a OS, o produto, o projeto e o cliente, a etapa atual, as horas apontadas contra o padrão (vermelho acima do padrão) e a data prometida.
 - Faixa vermelha com **Atrasada {n} d**: a data prometida já passou. Faixa âmbar com **Em risco, previsto {data}**: a data prometida está a até 7 dias e a OS ainda não chegou à última etapa.
 

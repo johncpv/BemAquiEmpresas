@@ -1,7 +1,8 @@
-import { useNavigate } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { searchShopfloorOrder, useGetShopfloorQueue } from '@/api/generated/bemaqui'
+import { searchShopfloorOrder, useGetQualityQueue, useGetShopfloorQueue } from '@/api/generated/bemaqui'
+import { useCan } from '@/pages/use-can'
 import type { ShopfloorQueueStep } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { FloorButton, FloorDica, FloorHeader, FloorSheet, FloorSkeleton, FloorState, NumericKeypad } from '@/components/shopfloor/kit'
@@ -49,7 +50,8 @@ export function FabQueuePage() {
   if (queue.isError) {
     const notActive = queue.error instanceof ApiError && queue.error.code === 'employee_not_active'
     return (
-      <>{header}<div className="mx-auto max-w-3xl p-4">
+      <>{header}<div className="mx-auto max-w-3xl space-y-4 p-4">
+        <QualityEntry />
         {notActive ? <FloorState title={NO_EMPLOYEE} message="Sem funcionário ativo ligado ao seu usuário, o apontamento fica bloqueado." />
           : <FloorState tone="error" title="Não foi possível carregar a fila." message="Verifique a conexão do tablet e tente de novo."
             action={<FloorButton onClick={() => void queue.refetch()}>Tentar de novo</FloorButton>} />}
@@ -68,6 +70,7 @@ export function FabQueuePage() {
             <QueueCard step={current} highlight />
           </section>
         ) : <h1 className="sr-only">Fila de etapas</h1>}
+        <QualityEntry />
         <div className="flex flex-wrap items-center gap-[8px]">
           <FloorButton tone={onlyMine ? 'primary' : 'secondary'} aria-pressed={onlyMine} onClick={toggle}>Só meu centro</FloorButton>
           <FloorDica nome="Só meu centro" texto={FAB_DICAS.meuCentro} />
@@ -86,6 +89,20 @@ export function FabQueuePage() {
       </div>
       <SearchSheet open={searching} onOpenChange={setSearching} />
     </>
+  )
+}
+
+/** Entrada da fila de qualidade (PRD-05 CA 2) para quem tem production.approve_quality: quantas OS aguardam você. */
+function QualityEntry() {
+  const canDecide = useCan('production.approve_quality')
+  const queue = useGetQualityQueue(undefined, { query: { enabled: canDecide, retry: false } })
+  if (!canDecide) return null
+  const mine = queue.data?.mineCount ?? 0
+  return (
+    <Link to="/fab/qualidade" data-floor-target="" className="flex min-h-[56px] items-center justify-between gap-2 rounded-md border-2 border-primary bg-card px-4 text-[18px] font-semibold">
+      <span>Qualidade</span>
+      <span className="tabular-nums text-muted-foreground">{queue.isPending ? 'Carregando…' : mine === 1 ? '1 OS aguardando você' : `${mine} OS aguardando você`}</span>
+    </Link>
   )
 }
 

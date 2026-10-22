@@ -5,7 +5,10 @@ import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { formatDateTime } from '@/lib/format'
 
 const ACTIONS: Record<string, string> = { Created: 'Criou', Updated: 'Alterou', Deleted: 'Excluiu' }
-const ENTITY: Record<string, string> = { ProductionOrder: 'OS', ProductionOrderStep: 'Etapa', ProductionOrderChecklistItem: 'Item do checklist' }
+const ENTITY: Record<string, string> = {
+  ProductionOrder: 'OS', ProductionOrderStep: 'Etapa', ProductionOrderChecklistItem: 'Item do checklist', LaborEntry: 'Apontamento', StepPause: 'Pausa',
+  QualityDecision: 'Decisão de qualidade', NonConformity: 'Não conformidade',
+}
 
 /** Histórico da OS com as etapas e o checklist (CA 25): antes e depois, usuário e data. */
 export function FabricationHistory({ id }: { id: string }) {

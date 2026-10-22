@@ -1,17 +1,19 @@
-import { Outlet } from '@tanstack/react-router'
+import { Outlet, useRouterState } from '@tanstack/react-router'
 import { FloorMessages } from '@/components/shopfloor/kit'
 import { FloorHelp } from '@/help/FloorHelp'
 import { ModuleGate } from './ModuleGate'
 
 /**
  * App do operador (/fab, PRD-03a): layout próprio, sem dock nem topbar do backoffice, com o kit "chão de fábrica". As três
- * camadas valem como no backoffice (módulo shopfloor liberado e no grupo); o cabeçalho de cada tela traz o botão "Ajuda".
+ * camadas valem como no backoffice (módulo shopfloor liberado e no grupo); o cabeçalho de cada tela traz o botão "Ajuda". A
+ * qualidade no tablet (/fab/qualidade, PRD-05) é do módulo production: o inspetor não precisa do app do operador.
  */
 export function ShopfloorLayout() {
+  const quality = useRouterState({ select: (s) => s.location.pathname.startsWith('/fab/qualidade') })
   return (
     <FloorHelp>
       <main id="conteudo" className="min-h-dvh bg-background pb-8 text-[18px] text-foreground">
-        <ModuleGate code="shopfloor">
+        <ModuleGate code={quality ? 'production' : 'shopfloor'}>
           <FloorMessages />
           <Outlet />
         </ModuleGate>
