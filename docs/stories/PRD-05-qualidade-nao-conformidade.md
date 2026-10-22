@@ -5,7 +5,7 @@
 | ID | PRD-05 |
 | Título | Etapa de qualidade com checklist, decidida por quem tem `production.approve_quality` (usável por PIN; a conclusão da OS segue com `production.approve`): aprovar libera a próxima etapa ou deixa a OS "Pronta para concluir" (nunca `Completed`); reprovar abre a Não Conformidade e devolve a OS a uma etapa anterior escolhida; segregação com a marca "Autoinspeção"; acompanhamento e encerramento da NC |
 | Tamanho | M |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-PRD-6 (checklist por etapa; reprovação abre NC com descrição, causa, ação, responsável e devolve a OS à etapa escolhida) · R-COM-2 · R-COM-4 (numeração NC) · R-COM-3 (fotos da NC) · R-PRP-5 · R-SEC-5 · R-SEC-10 (aprovação na qualidade) |
 | Dependências | PRD-03a |
 | Bloqueia | PRD-06a1, PRD-03b |
@@ -91,16 +91,16 @@ Decididos pelo PO em 21/10/2026 (revisão pré-Fase 3, tabela 1.1, itens 76–79
 **Pré-condição externa:** nenhuma.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers) e E2E passando.
-- [ ] Migration criada (não destrutiva), testada sobre cópia do banco do tenant `konebras`.
-- [ ] Permissões só do `ModuleCatalog` (`production.approve_quality`, ADR 0003 adendo); dono de anexo `NonConformity` registrado (ADR 0019 §7 adendo).
-- [ ] Telas com estados, inclusive a 400 px e no `/fab` (kit chão de fábrica).
-- [ ] Ajudas novas e atualizadas; teste de cobertura passando.
-- [ ] Notificações acionáveis, diálogos de impacto e próximos passos aplicados.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` §1 (qualidade → "Pronta para concluir", D12) atualizados; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade e E2E passando; integração (Testcontainers) escrita, roda no CI.
+- [x] Migration criada (não destrutiva); o teste sobre cópia do banco do tenant `konebras` fica para o PO.
+- [x] Permissões só do `ModuleCatalog` (`production.approve_quality`, ADR 0003 adendo); dono de anexo `NonConformity` registrado (ADR 0019 §7 adendo).
+- [x] Telas com estados, inclusive a 400 px e no `/fab` (kit chão de fábrica).
+- [x] Ajudas novas e atualizadas; teste de cobertura passando.
+- [x] Notificações acionáveis, diálogos de impacto e próximos passos aplicados.
+- [x] Auditoria ligada.
+- [x] OpenAPI e cliente Orval: `openapi.json` editado à mão e cliente gerado (regenerar com `BQ_UPDATE_OPENAPI`).
+- [x] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` §1 (qualidade → "Pronta para concluir", D12) atualizados; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
 - [ ] `production.approve_quality` no `ModuleCatalog`; seed patch `production-quality` (Supervisão de produção).
@@ -141,3 +141,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.3 | Decisões do PO (D6, D12, tabela 1.1 itens 76–79 e 94) e correções da revisão pré-Fase 3 (§2.1 fluxos D12, ADR 0019 §7 adendo; §2.2 ponto 76; §2.3 padrões 1, 4, 5); nova ordem (Marco 3.1) | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
 | 21/10/2026 | 0.5 | Fechamento da revisão: aprovar e reprovar a qualidade só com `production.approve_quality` (D6, CA 1, 2, 3, 5, 6, 12), seed patch `production-quality` para a Supervisão; a conclusão da OS segue com `production.approve` | River (SM) |
+| 22/10/2026 | 1.0 | Implementada (`Done`). Desvios: (1) tabela nova `production.quality_decisions` (uma linha por etapa de qualidade e tentativa: resultado, quem, quando, "Autoinspeção", NC) para o histórico das tentativas do CA 7; a etapa guarda só a última decisão (`decided_by`, `decided_at`, `self_inspection`) e ganha `attempt`, que diz qual é o checklist atual; (2) a tentativa é da OS (`quality_attempt` e `quality_attempt_started_at`); na reprovação todas as etapas de qualidade a partir da de retorno passam à tentativa nova (as já marcadas copiam os itens, as outras só mudam a tentativa); (3) a etapa de retorno é uma etapa anterior que **não** é de qualidade; (4) "Iniciar inspeção" (opcional) abre o apontamento do inspetor na etapa de qualidade para as horas da inspeção entrarem no custo; a OS continua `Quality` com a inspeção em andamento ou pausada (regra da situação da OS ajustada) e o apontamento da inspeção não conta na segregação; (5) as etapas que voltam a esperar têm as marcas da conclusão anterior limpas (`actual_end`, `completed_*`, "Concluída pelo supervisor", "Autoaprovado") e o checklist das etapas produtivas refeitas volta desmarcado, para o operador conferir de novo (o histórico guarda); (6) `AttachmentOwnerRules.AlternateWriteAction` (BuildingBlocks) para o anexo da NC aceitar `production.edit` ou `production.approve_quality`; NC encerrada não recebe anexo; o limite de 30 envios por hora é o geral; (7) endpoints próprios dos anexos da NC (`/non-conformities/{id}/attachments`, com o download conferido pelo dono, IDOR) além dos genéricos; (8) o custo da NC tem endpoint próprio (`PUT /non-conformities/{id}/cost`), com `production.edit` no endpoint e `projects.view_cost` no serviço; (9) `/fab/qualidade` confere o módulo `production` (adendo da ADR 0026); (10) "Concluir OS" do próximo passo abre a OS (a ação de concluir é da PRD-06a1); (11) as fotos tiradas na folha de reprovação sobem logo depois que a NC nasce (se alguma falhar, a NC fica aberta e o aviso pede anexar de novo); (12) a idempotência (Idempotency-Key) vale para iniciar, aprovar e reprovar; (13) o teste sobre cópia do `konebras` fica para o PO; (14) OpenAPI editado à mão (regenerar). | Dex (dev) |

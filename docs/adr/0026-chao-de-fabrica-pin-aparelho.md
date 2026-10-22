@@ -61,3 +61,7 @@
 - A marcação pela sessão por PIN grava `source = Pin` e o `device_id` do aparelho registrado; o aparelho registrado nunca pede geolocalização.
 - Sem mudança na regra de perfil sensível: ganhar `hr.view_sensitive` apaga o PIN (§2).
 - O teste de arquitetura do `[PinSessionAllowed]` passa a conter os dois endpoints, com a revisão registrada.
+
+## Adendo 22/10/2026 (PRD-05): qualidade no tablet
+- A fila e a decisão de qualidade ficam em `/api/v1/production/quality/*` (`GetQualityQueue`, `GetQualityStep`, `MarkQualityChecklist`, `StartQualityInspection`, `ApproveQuality`, `RejectQuality`), num arquivo próprio (`ProductionEndpoints.Quality.cs`), todos com `production.approve_quality` e nada mais; um teste de arquitetura garante que a ação só abre esses endpoints. A PRD-03b põe só eles (e o upload de anexo da NC, `UploadNonConformityAttachment`) na lista permitida da sessão por PIN.
+- No front, `/fab/qualidade` e `/fab/qualidade/$stepId` usam o layout do `/fab`, mas conferem o módulo `production` (não o `shopfloor`): o inspetor não precisa do app do operador. Quem tem a ação vê a entrada "Qualidade" no topo da fila do operador.

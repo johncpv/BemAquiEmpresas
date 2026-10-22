@@ -298,7 +298,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-3--engenharia-est
 - Requisitos: R-PRD-4, R-RH-2, R-PRJ-5, R-SEC-5, PRD §6 (LGPD).
 - CA: snapshot do custo-hora no fechamento; nenhuma pausa entra no custo; cria `commercial.project_costs` como razão de diferenças; troca o cálculo da COM-05 (realizado, "Comprometido" e projetado, D2) com teste de regressão sobre cópia do `konebras` (D17 a); recompõe os apontamentos já fechados com "Calculado na implantação" (D3); aba Custos da OS.
 
-**PRD-05 [ ] Qualidade e não conformidade (M)** — 3.1, ordem 7 — [story](stories/PRD-05-qualidade-nao-conformidade.md)
+**PRD-05 [x] Qualidade e não conformidade (M)** — 3.1, ordem 7 — [story](stories/PRD-05-qualidade-nao-conformidade.md)
 - Requisitos: R-PRD-6, R-COM-2, R-COM-3, R-COM-4, R-PRP-5, R-SEC-5, R-SEC-10.
 - CA: ação `production.approve_quality`, usável por PIN, que só aprova ou reprova a qualidade (D6), com seed patch `production-quality` para a Supervisão; quem fez etapa da tentativa não aprova ("Autoinspeção" sem outro aprovador); NC com responsável padrão = quem reprovou; última etapa deixa a OS "Pronta para concluir", nunca `Completed`.
 
