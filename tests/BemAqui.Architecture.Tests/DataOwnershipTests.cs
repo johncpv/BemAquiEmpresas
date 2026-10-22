@@ -22,6 +22,7 @@ public partial class DataOwnershipTests
         ["Parties/BemAqui.Parties.Application/CnpjLookupService.cs"] = "expurgo do cache de consultas de CNPJ",
         ["Migrations/BemAqui.Migrations.Application/StagingService.cs"] = "expurgo da staging da importação (ADR 0017)",
         ["Migrations/BemAqui.Migrations.Application/ImportSession.cs"] = "xmin gravado na staging da importação",
+        ["Inventory/BemAqui.Inventory.Application/StockLedger.cs"] = "trava do motor de estoque: INSERT … ON CONFLICT DO NOTHING da posição, do lote e do saldo por lote antes do SELECT … FOR UPDATE (ADR 0023 §2); o movimento é a trilha",
     };
 
     [GeneratedRegex(@"\.(ExecuteUpdate|ExecuteDelete|ExecuteSql)\w*\(")]

@@ -21,6 +21,21 @@ public interface IInventoryDb
 
     DbSet<ItemSupplierCode> ItemSupplierCodes { get; }
 
+    /// <summary>Posição (item, local), lote e movimentos (EST-01a): só o <see cref="StockLedger"/> escreve nas três.</summary>
+    DbSet<StockPosition> StockPositions { get; }
+
+    DbSet<StockBalance> StockBalances { get; }
+
+    DbSet<StockMovement> StockMovements { get; }
+
+    DbSet<Lot> Lots { get; }
+
+    DbSet<ManualPosting> ManualPostings { get; }
+
+    DbSet<ManualPostingLine> ManualPostingLines { get; }
+
+    DbSet<InventoryParameters> InventoryParameters { get; }
+
     /// <summary>Para trocar o local padrão em dois passos numa transação (o índice único parcial é checado a cada comando).</summary>
     DatabaseFacade Database { get; }
 
