@@ -8,4 +8,5 @@
 export interface ConfirmWithChallengeRequest {
   challenge: string;
   code: string;
+  ephemeral?: boolean;
 }

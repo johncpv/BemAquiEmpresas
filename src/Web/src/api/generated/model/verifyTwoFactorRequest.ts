@@ -11,4 +11,5 @@ export interface VerifyTwoFactorRequest {
   code: string | null;
   /** @nullable */
   recoveryCode: string | null;
+  ephemeral?: boolean;
 }
