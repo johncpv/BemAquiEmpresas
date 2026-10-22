@@ -11,6 +11,7 @@ import type { StepLaborCostView } from './stepLaborCostView';
 export interface OrderLaborCostView {
   orderId: string;
   orderNumber: string;
+  showsEntryCost: boolean;
   entries: LaborEntryCostView[];
   steps: StepLaborCostView[];
   totalHours: number;

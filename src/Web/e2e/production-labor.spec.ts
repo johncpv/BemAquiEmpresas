@@ -62,7 +62,7 @@ test.describe('Apontamentos no backoffice (PRD-03a)', () => {
     const mobile = info.project.name === 'celular'
     const labor = { orderId: 'of1', orderNumber: 'OS-2026-00041', entries: [entry(), entry({ id: 'le2', employeeName: 'Rafael Alves', onBehalf: false })], totalHours: 3, awaitingApprovalStepId: null, awaitingApprovalStepName: null, version: 4 }
     let costs = {
-      orderId: 'of1', orderNumber: 'OS-2026-00041', totalHours: 3, laborCost: 72, missingCount: 1, includesBackfill: true,
+      orderId: 'of1', orderNumber: 'OS-2026-00041', showsEntryCost: true, totalHours: 3, laborCost: 72, missingCount: 1, includesBackfill: true,
       entries: [
         { entryId: 'le1', hourlyCostSnapshot: 48, cost: 72, costMissing: false, costBackfilled: true, costVersion: 1, pending: false },
         { entryId: 'le2', hourlyCostSnapshot: null, cost: 0, costMissing: true, costBackfilled: false, costVersion: 1, pending: false },
@@ -113,6 +113,26 @@ test.describe('Apontamentos no backoffice (PRD-03a)', () => {
     expect(sent.recalc).toEqual({ positionId: null, orderId: 'of1' })
     expect(sent.missing).toBe('of1')
     await expect(page.getByText(/R\$\s132,00/)).toBeVisible()
+  })
+
+  test('parâmetro desligado: aba Custos com o total por etapa, sem custo-hora nem custo por apontamento (decisão do PO)', async ({ page }) => {
+    await mockApi(page, {
+      'GET /api/v1/me/permissions': (r: Route) => json(r, { permissions: [], isOwner: true, version: '1', modules: allModules({ production: { actions: ALL } as never, projects: { actions: [...ALL, 'view_cost'] } as never }) }),
+      'GET /api/v1/production/production-orders/of1': (r: Route) => json(r, order),
+      'GET /api/v1/production/production-orders/of1/labor-entries': (r: Route) => json(r, { orderId: 'of1', orderNumber: 'OS-2026-00041', entries: [entry()], totalHours: 1.5, awaitingApprovalStepId: null, awaitingApprovalStepName: null, version: 4 }),
+      'GET /api/v1/production/production-orders/of1/labor-costs': (r: Route) => json(r, {
+        orderId: 'of1', orderNumber: 'OS-2026-00041', showsEntryCost: false, entries: [], totalHours: 1.5, laborCost: 72, missingCount: 0, includesBackfill: false, missingPositions: [],
+        steps: [{ stepId: 's1', stepCode: 'C', stepName: 'Corte', minutes: 90, hours: 1.5, cost: 72, missingCount: 0, includesBackfill: false }],
+      }),
+      'GET /api/v1/attachments/ProductionOrder/of1': (r: Route) => json(r, []),
+    })
+    await page.goto('/app/producao/os/of1?aba=apontamentos')
+    await expect(page.getByText(/R\$\s72,00 de mão de obra/)).toBeVisible()
+    await expect(page.getByRole('columnheader', { name: /Custo/ })).toHaveCount(0)
+    await expect(page.getByText(/\/h$/)).toHaveCount(0)
+    await page.goto('/app/producao/os/of1?aba=custos')
+    await expect(page.getByText('C · Corte').first()).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Histórico do custo' })).toHaveCount(0)
   })
 
   test('sem projects.view_cost: só horas, sem coluna Custo nem aba Custos (PRD-04 CA 14)', async ({ page }) => {

@@ -14262,6 +14262,54 @@
           }
         }
       }
+    },
+    "/api/v1/production/parameters": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "GetProductionParameters",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductionParametersView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "UpdateProductionParameters",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductionParametersInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductionParametersView"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -31888,6 +31936,7 @@
         "required": [
           "orderId",
           "orderNumber",
+          "showsEntryCost",
           "entries",
           "steps",
           "totalHours",
@@ -31904,6 +31953,9 @@
           },
           "orderNumber": {
             "type": "string"
+          },
+          "showsEntryCost": {
+            "type": "boolean"
           },
           "entries": {
             "type": "array",
@@ -32072,6 +32124,54 @@
               "number"
             ],
             "format": "double"
+          }
+        }
+      },
+      "ProductionParametersView": {
+        "required": [
+          "showLaborEntryCost",
+          "openLaborAlertHours",
+          "showLaborEntryCostId",
+          "openLaborAlertHoursId"
+        ],
+        "type": "object",
+        "properties": {
+          "showLaborEntryCost": {
+            "type": "boolean"
+          },
+          "openLaborAlertHours": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "showLaborEntryCostId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "openLaborAlertHoursId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "ProductionParametersInput": {
+        "required": [
+          "showLaborEntryCost",
+          "openLaborAlertHours"
+        ],
+        "type": "object",
+        "properties": {
+          "showLaborEntryCost": {
+            "type": "boolean"
+          },
+          "openLaborAlertHours": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       }

@@ -128,6 +128,34 @@ test.describe('configurações da empresa (CAD-06)', () => {
     await noSeriousViolations(page)
   })
 
+  test('Parâmetros da produção: custo-hora por apontamento (padrão desligado) e limite do apontamento aberto (PRD-04)', async ({ page }) => {
+    const { api, calls } = settingsApi()
+    let production = { showLaborEntryCost: false, openLaborAlertHours: 12, showLaborEntryCostId: null as string | null, openLaborAlertHoursId: null as string | null }
+    await mockApi(page, {
+      ...api,
+      'GET /api/v1/production/parameters': (r: Route) => json(r, production),
+      'PUT /api/v1/production/parameters': (r: Route) => {
+        calls.push({ path: '/api/v1/production/parameters', body: r.request().postDataJSON() })
+        production = { ...production, ...(r.request().postDataJSON() as object), showLaborEntryCostId: 'pp1', openLaborAlertHoursId: 'pp2' }
+        return json(r, production)
+      },
+    })
+    await page.goto('/app/configuracoes/parametros')
+    const show = page.getByRole('checkbox', { name: 'Exibir custo-hora em cada apontamento' })
+    await expect(show).not.toBeChecked()
+    const hours = page.getByRole('textbox', { name: /Apontamento aberto vira alerta/ })
+    await expect(hours).toHaveValue('12')
+    await hours.fill('80')
+    await expect(page.getByText('Informe de 1 a 72 horas.')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Salvar parâmetros da produção' })).toBeDisabled()
+    await hours.fill('8')
+    await show.check()
+    await page.getByRole('button', { name: 'Salvar parâmetros da produção' }).click()
+    await expect(page.getByText('Parâmetros da produção salvos')).toBeVisible()
+    expect(calls.find((c) => c.path === '/api/v1/production/parameters')?.body).toEqual({ showLaborEntryCost: true, openLaborAlertHours: 8 })
+    await expect(page.getByText('Histórico de alterações').last()).toBeVisible()
+  })
+
   test('com settings.view e sem settings.edit, as abas abrem só para leitura (CA 20)', async ({ page }) => {
     const { api } = settingsApi()
     const modules = allModules().map((m) => (m.code === 'settings' ? { ...m, actions: ['view'] } : m))
@@ -139,5 +167,6 @@ test.describe('configurações da empresa (CAD-06)', () => {
     await page.goto('/app/configuracoes/parametros')
     await expect(page.getByRole('textbox', { name: /% de encargos estimados/ })).toBeDisabled()
     await expect(page.getByRole('button', { name: 'Salvar % de encargos' })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Salvar parâmetros da produção' })).toHaveCount(0)
   })
 })

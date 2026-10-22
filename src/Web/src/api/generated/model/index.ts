@@ -405,6 +405,8 @@ export * from './pricingMode';
 export * from './pricingModeInput';
 export * from './productionBoard';
 export * from './productionOrderStatus';
+export * from './productionParametersInput';
+export * from './productionParametersView';
 export * from './productionStepStatus';
 export * from './projectBudgetLine';
 export * from './projectCostLine';

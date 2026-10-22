@@ -13,6 +13,7 @@ import { useCan } from '@/pages/use-can'
 import { SettingsTabs } from '../SettingsTabs'
 import { CommercialPricingSection } from './CommercialPricingSection'
 import { FinanceLimitsSection } from './FinanceLimitsSection'
+import { ProductionParametersSection } from './ProductionParametersSection'
 import { useCanSettings } from '../use-can-settings'
 
 const CHARGES_DICA = 'Custo-hora do cargo = salário × (1 + % de encargos) ÷ horas do mês. Valor sugerido. Confirme com a contadora.'
@@ -21,7 +22,7 @@ const MODES = [
   { value: PricingMode.Margin, label: 'Margem sobre o preço' },
 ]
 
-/** Configurações → Parâmetros (CAD-06 CA 15 a 18, FIN-01): % de encargos, modo de precificação e limites do financeiro. */
+/** Configurações → Parâmetros (CAD-06 CA 15 a 18, FIN-01, PRD-04): % de encargos, precificação, limites do financeiro e a produção. */
 export function ParametersPage() {
   const query = useGetTenantParameters()
   const canEdit = useCanSettings('edit')
@@ -35,6 +36,7 @@ export function ParametersPage() {
           <PricingSection key={`p${query.data.pricingMode}`} params={query.data} canEdit={canEdit} />
           <CommercialPricingSection canEdit={canEdit} />
           <FinanceLimitsSection canEdit={canEdit} />
+          <ProductionParametersSection canEdit={canEdit} />
         </div>
       )}
     </>

@@ -39,6 +39,8 @@ export function LaborEntriesTab({ order, onChanged }: { order: FabricationOrderD
   // PRD-04 CA 14: custo só com projects.view_cost, num DTO separado; sem a permissão a aba mostra só as horas.
   const { canSee: canSeeCost, query: costs } = useOrderLaborCosts(order.id)
   const costOf = new Map((costs.data?.entries ?? []).map((c) => [c.entryId, c]))
+  // Decisão do PO (22/10/2026): custo-hora e custo por apontamento só com o parâmetro "Exibir custo-hora em cada apontamento".
+  const showEntryCost = canSeeCost && !!costs.data?.showsEntryCost
   const canEdit = useCan('production.edit')
   const canPoint = useCan('shopfloor.create')
   const canRecord = canEdit && canPoint
@@ -86,7 +88,7 @@ export function LaborEntriesTab({ order, onChanged }: { order: FabricationOrderD
           <table className="w-full text-sm">
             <caption className="sr-only">Apontamentos da {data.orderNumber}</caption>
             <thead className="border-b border-border text-left text-xs uppercase text-muted-foreground">
-              <tr><th className="p-2">Funcionário</th><th className="p-2">Etapa</th><th className="p-2">Início</th><th className="p-2">Fim</th><th className="p-2 max-sm:hidden">Pausas</th><th className="p-2 text-right">Horas</th>{canSeeCost ? <th className="p-2 text-right"><span className="inline-flex items-center">Custo<Dica nome="Custo-hora" texto={LABOR_COST_DICAS.custoHora} /></span></th> : null}<th className="p-2 max-sm:hidden">Registrado por</th><th className="p-2"><span className="sr-only">Ações</span></th></tr>
+              <tr><th className="p-2">Funcionário</th><th className="p-2">Etapa</th><th className="p-2">Início</th><th className="p-2">Fim</th><th className="p-2 max-sm:hidden">Pausas</th><th className="p-2 text-right">Horas</th>{showEntryCost ? <th className="p-2 text-right"><span className="inline-flex items-center">Custo<Dica nome="Custo-hora" texto={LABOR_COST_DICAS.custoHora} /></span></th> : null}<th className="p-2 max-sm:hidden">Registrado por</th><th className="p-2"><span className="sr-only">Ações</span></th></tr>
             </thead>
             <tbody className="divide-y divide-border">
               {data.entries.map((e) => (
@@ -97,7 +99,7 @@ export function LaborEntriesTab({ order, onChanged }: { order: FabricationOrderD
                   <td className="p-2 tabular-nums">{e.endedAt ? formatDateTime(e.endedAt) : '—'}</td>
                   <td className="p-2 max-sm:hidden">{e.pauses.length === 0 ? '—' : e.pauses.map((p) => <span key={p.id} className="block">{pauseLabel(p.reason)}{p.notes ? ` (${p.notes})` : ''}{p.endedAt ? '' : ', em aberto'}</span>)}</td>
                   <td className="p-2 text-right tabular-nums">{hours(e.hours)}</td>
-                  {canSeeCost ? <td className="p-2 text-right">{costs.isError ? '—' : <LaborCostCell orderId={order.id} cost={costOf.get(e.id)} />}</td> : null}
+                  {showEntryCost ? <td className="p-2 text-right">{costs.isError ? '—' : <LaborCostCell orderId={order.id} cost={costOf.get(e.id)} />}</td> : null}
                   <td className="p-2 max-sm:hidden">{e.recordedByName ?? '—'}{e.correctionReason ? <span className="block text-xs text-muted-foreground">Correção: {e.correctionReason}{e.correctedByName ? `, por ${e.correctedByName}` : ''}</span> : null}</td>
                   <td className="p-2">{canApprove ? <button type="button" className={button} onClick={() => setCorrecting(e)}>Corrigir apontamento</button> : null}</td>
                 </tr>
