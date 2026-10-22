@@ -20,11 +20,13 @@ Monolito modular em um único processo. Escala da Konebras (10–15 funcionário
 ## 2. Multi-tenant: banco por tenant
 
 ### 2.1 Decisão
-- **Banco de catálogo** (`catalog`): tenants, domínios (`tenant_domains`), connection string criptografada, plano, status, super admins, tokens de quiosque (índice), log de provisionamento.
+- **Banco de catálogo** (`catalog`): tenants, domínios (`tenant_domains`, inclusive o host próprio do portal, ADR 0040), connection string criptografada, plano, status, super admins, log de provisionamento. **Sem índice de quiosque no catálogo** (ADR 0030): a TV abre no host do tenant, que resolve o tenant como qualquer requisição, e o token de tela fica só no banco do tenant (`kiosk_tokens`, como hash).
 - **Um banco por tenant**: todos os dados de negócio, inclusive usuários do tenant.
 - Resolução: middleware lê o host da requisição → busca em `tenant_domains` no catálogo (cache em memória, 5 min) → registra `ITenantContext` no escopo → `TenantDbContext` usa a connection string do tenant.
-- Webhooks e jobs não têm subdomínio: webhooks levam o tenant na URL (`/webhooks/inter/{tenantKey}`) + validação de assinatura; jobs Hangfire recebem `tenantId` como parâmetro e abrem o escopo do tenant.
-- SignalR: grupos nomeados `{tenantId}:{painel}`.
+- Webhooks e jobs não têm subdomínio:
+  - **webhooks** (ADR 0031, FND-16) chegam no host da plataforma, em `/webhooks/{provedor}/{tenantKey}?t={token}`: `tenantKey` opaco (nunca o nome do tenant), token de 256 bits guardado só como hash (o log `bqe_masked` não grava a query), `/webhooks/*` fora da allowlist de IP da plataforma e fora do middleware de tenant por host (o tenant vem do `tenantKey`). O webhook nunca é verdade: o efeito vem da reconsulta à fonte (o Inter por mTLS, ADR 0032). O EmissorFiscal avisa pela rede interna `bqe-fiscal` (ADR 0027);
+  - **jobs** Hangfire recebem `tenantId` como parâmetro, abrem o escopo do tenant e conferem o módulo liberado antes de rodar.
+- SignalR: grupos nomeados `{tenantId}:{painel}` (ex.: `{tenantId}:production`, `{tenantId}:kiosk:{id}`), derivados das claims no servidor, sem método de entrada em grupo; a conexão fecha quando a permissão ou o security stamp mudam.
 - Migrations: `TenantMigrator` aplica a mesma migration em todos os bancos no deploy (com lock e log por tenant); falha em um tenant não bloqueia os demais, mas gera alerta.
 - Provisionamento: cria banco → migra → seeds → cria usuário proprietário → envia convite.
 
@@ -53,14 +55,15 @@ Limite prático: com dezenas de tenants no mesmo PostgreSQL funciona bem; acima 
 - Módulos: cada um com seu `DbContext` parcial? **Não.** Um único `TenantDbContext` com configurações por módulo em assemblies separados (`modelBuilder.ApplyConfigurationsFromAssembly`), e schemas PostgreSQL por módulo (`commercial.contracts`, `finance.receivables`...) — mantém transação única entre módulos quando necessário, com fronteira lógica.
 - Comunicação entre módulos: chamada síncrona via interface em `*.Contracts` (ex.: `IInventoryReservations.Reserve(...)`) quando precisa de resposta; evento de domínio via outbox quando é reação (ex.: `ContractSigned` → Finance cria recebíveis, Commercial cria projeto).
 - Casos de uso: uma classe por comando/consulta (`CreateQuoteHandler`), validação com FluentValidation, retorno `Result`.
-- Consultas pesadas de dashboard: SQL direto (Dapper) sobre views/materialized views, atualizadas por evento ou a cada 5 min.
+- Consultas de painel e relatório (ADR 0028, que revoga o módulo `Reporting` da ADR 0006): cada agregado é calculado no módulo dono, atrás de um contrato (`ICashForecast`, `IRevenueSummary`, `IProjectMargins`, `IFactoryLoad` …), com SQL parametrizado e ordenação por allowlist; o módulo `Dashboard` só compõe (Application e Endpoints, referenciando apenas `*.Contracts`, sem schema). Cache de 60 s com chave `{tenant}:{usuário}:{versão de permissão}` e contador de geração por tenant; materialized view só se a medição pedir.
+- Planejamento finito (ADR 0029): um único escritor (`ScheduleService`) grava as datas previstas em tabelas do plano (`production.schedule_*`, `commercial.project_forecasts`), fora dos documentos e da auditoria.
 
 ## 4. Frontend
 - Um app React com quatro "superfícies" e layouts próprios:
   1. **Backoffice** (`/app`) — dock inferior agrupado por área (conforme protótipo), tabelas com filtro/ordenação/paginação server-side (TanStack Table), formulários RHF+Zod.
-  2. **Chão de fábrica PWA** (`/fab`) — telas grandes, fila do operador, apontamento, leitura de QR code (câmera), modo offline tolerante (fila de apontamentos guardada localmente e sincronizada).
-  3. **Painel TV** (`/tv/{token}`) — sem login, SignalR, rotação de visões.
-  4. **Portal do cliente** (`/portal`) — fase 8.
+  2. **Chão de fábrica PWA** (`/fab`) — telas grandes, fila do operador, apontamento, leitura de QR code (câmera), PIN em aparelho registrado (ADR 0026) e "Meu ponto" (ADR 0035). O funcionamento sem rede foi adiado (P-23).
+  3. **Painel TV** (`/tv#token`, ADR 0030) — sem login de usuário: o token vai no fragmento (não chega ao servidor nem ao log), é trocado uma vez por um cookie `__Host-bq_kiosk` e apagado da barra (`replaceState`, `Referrer-Policy: no-referrer`); sessão de 30 dias sem uso e 180 dias absolutos; o principal de quiosque só faz GET do painel; SignalR e rotação de visões; o service worker não guarda `/tv` nem `/api/v1/kiosk`.
+  4. **Portal do cliente** — Fase 8, em **host próprio** (ADR 0040), com identidade, chave de assinatura, `aud` e cookies próprios; um token do backoffice dá 401 no portal e vice-versa.
 - Estado do servidor só em TanStack Query; estado local mínimo (Zustand se necessário).
 - Cliente da API gerado por Orval a partir do OpenAPI.
 - Permissões: o backend envia a lista de permissões do usuário; componente `<Can perm="...">` esconde ações; a autorização real é sempre no backend.
@@ -71,28 +74,38 @@ Limite prático: com dezenas de tenants no mesmo PostgreSQL funciona bem; acima 
 - Access token JWT 15 min; refresh token 7 dias, rotativo, em cookie httpOnly/Secure/SameSite=Strict; detecção de reuso revoga a família.
 - Proprietário pode exigir 2FA para todos ou por perfil.
 - Segredos por tenant (certificado A1, credenciais Inter, senha SMTP) criptografados com Data Protection + chave mestra fora do banco.
-- Token de quiosque: aleatório (256 bits), guardado com hash, escopo somente leitura do painel, revogável, IP opcional.
+- Token de quiosque (ADR 0030): aleatório (256 bits), guardado com hash, mostrado uma vez, nunca no caminho nem na query; escopo somente leitura do painel; revogável em menos de 1 minuto (`kiosk.delete`); IP opcional.
+- 2FA de novo (TOTP recente) nas ações críticas (ADR 0008, adendo de 21/10/2026, que decide a P-19): pagar, estornar, cancelar ou inutilizar NF-e, trocar conta de salário, fechar a folha, anonimizar titular, salvar credenciais do Inter e enviar o certificado A1.
 - Auditoria: tabela `audit.audit_log` (entidade, id, ação, usuário, data, diff JSONB, ip). Login/logout/falhas também auditados.
 - Rate limit por IP e por usuário no login e endpoints públicos.
+- Rate limit por **políticas nomeadas** (não só em `/auth`): webhooks por provedor e tenant (FND-16), simulação de prazo (PLN-05), convite, recuperação e aceite do portal (POR-01a, POR-02), segunda via pelo portal (POR-01c), envio do certificado e teste de conexão (FIS-02a, BNK-01a).
+- **Autoatendimento do funcionário** (ADR 0035): rotas `/api/v1/me/hr/*` ("Meu ponto", "Meu espelho", "Meus holerites") liberadas pela camada 1 e pelo vínculo com funcionário ativo, sem ação no grupo, numa lista versionada no teste de arquitetura; no tablet, só os endpoints `[PinSessionAllowed]` (ADR 0026, adendo).
+- **Dado sensível por contrato:** `IEmployeeBankAccounts` (HR) é lido só no pagamento da OP, com `SensitiveRead` (ADR 0036); anexos autorizados por registro, não só por módulo, com prefixo de tenant no storage.
+- **Rotas anônimas** (ADR 0009, adendo de 21/10/2026): além das da Fase 0, `/tv` (troca do token do fragmento por cookie), `/webhooks/*` (com o GET de verificação só para o provedor que o declara) e as do portal (login, convite, recuperação); teste de arquitetura reprova endpoint sem `RequirePermission`/`RequireModule` fora da lista (D19).
 
 ## 6. Integrações
 
 ### 6.1 EmissorFiscal
-Projeto existente do PO em `D:\GIT\EmissorFiscal`. **Story FIS-01 é uma análise** (Claude Code roda localmente e tem acesso ao diretório): identificar linguagem, se é biblioteca ou serviço, operações suportadas (NF-e, NFC-e, NFS-e, cancelamento, CC-e, Distribuição DF-e, manifestação), forma de configurar certificado, e suporte aos campos da Reforma Tributária. Resultado vira ADR com a forma de integração:
-- (a) referência como biblioteca .NET no módulo Fiscal, ou
-- (b) serviço separado no Docker Compose chamado por HTTP.
-Em ambos os casos o módulo Fiscal só conhece a interface `IFiscalEmitter` (Emitir, Consultar, Cancelar, CartaCorrecao, BaixarPorChave).
+Projeto existente do PO em `D:\GIT\EmissorFiscal`. **Decidido na ADR 0027:** serviço HTTP separado, chamado pela rede interna dedicada `bqe-fiscal` (fora da `stack_stack`), com um tenant do Emissor por tenant do BemAqui e chave de API sem escopo `admin` (`SecretKind.FiscalApiKey`).
+- O certificado A1 fica **só no cofre do EmissorFiscal**; o BemAqui guarda só validade, titular e thumbprint (Configurações → Fiscal → Certificado digital, FIS-02a).
+- Parâmetros fiscais pré-configurados e editáveis em Configurações → Fiscal, marcados "A confirmar com a contadora" até a conferência (ADR 0042).
+- Homologação SEFAZ no tenant `demo`; produção só na GOL-01b.
+- As lacunas do Emissor (reconciliação com a SEFAZ, DANFE em PDF, `transp`, IBS/CBS, escopo `nfe:eventos`, NFS-e de Caçapava) são pré-condição externa das stories fiscais.
+- O módulo Fiscal só conhece a interface `IFiscalEmitter` (FIS-01).
 
 ### 6.2 Banco Inter
 - API de Cobrança (boleto com QR Code Pix), consulta, cancelamento, PDF; webhook de pagamento; API de extrato para conciliação; Pix cobrança se necessário.
-- Autenticação OAuth2 client credentials + certificado mTLS do correntista, por tenant.
+- Autenticação OAuth2 client credentials + certificado mTLS do correntista, **por conta bancária** (ADR 0032), configurada em Configurações → Integrações → Banco Inter (BNK-01a); credencial só com escopos de cobrança, extrato e webhook.
+- Um `SocketsHttpHandler` por conta, em cache pelo thumbprint, com o certificado só em memória; URL base fixa; saída de rede liberada só para os hosts do Inter.
+- Multa, juros, desconto e régua de cobrança pré-configurados em Configurações → Cobrança (BNK-01b, FIN-09).
 - Abstração `IBankBillingProvider` / `IBankStatementProvider` para outros bancos no futuro.
 - Ambiente sandbox para desenvolvimento.
 
 ### 6.3 Outras
 - Consulta de CNPJ (API pública, ex.: BrasilAPI) com cache.
 - E-mail: SMTP/SES; registros de envio e falha.
-- Leitura de PDF de NF de entrada: extração de texto (PdfPig); se não houver texto, OCR; parser da chave de 44 dígitos e campos do DANFE; conferência manual obrigatória antes de dar entrada.
+- Leitura de PDF de NF de entrada (FIS-05): extração de texto (PdfPig) num worker isolado (`network_mode: none`, memória limitada, sistema de arquivos só leitura, kill no tempo limite); **sem OCR no MVP** (PDF sem texto: "Digitar a nota"); parser da chave de 44 dígitos e campos do DANFE; conferência manual obrigatória antes de dar entrada.
+- WhatsApp (ADR 0041): API oficial da Meta por um parceiro (BSP), atrás do `IWhatsAppSender`, credenciais por tenant (`SecretKind.WhatsAppCredentials`) em Configurações → Integrações → WhatsApp (WPP-01).
 
 ## 7. Infra e deploy
 - **Compose:** compose próprio por ambiente: `/opt/projetos/bemaqui-empresas-homolog/` (projeto `bqe-homolog`, containers `bqe-homolog-*`) e, na GOL-01, `/opt/projetos/bemaqui-empresas/`.
@@ -108,7 +121,7 @@ Em ambos os casos o módulo Fiscal só conhece a interface `IFiscalEmitter` (Emi
 - **Ambientes:**
   - `dev`: local;
   - `homolog`: `homolog.konebras.com.br` e `plataforma-homolog.bemaquiapp.com.br` (ADR 0015; DNS pelo PO);
-  - `prod`: `app.konebras.com.br`. O pipeline está pronto e desligado até a GOL-01.
+  - `prod`: `app.konebras.com.br`. O pipeline está pronto e desligado até a GOL-01b. **Ambiente de produção novo** (ADR 0034): catálogo novo só com o `konebras`, key ring e certificado do Data Protection novos, segredos novos; a homologação ganha key ring novo e o `konebras` é apagado dela depois do fechamento do go-live. O go-live vem depois das Fases 0 a 8 concluídas (marco final "Go-live").
 - **Segredos:** arquivos em `./secrets`, montados como Docker secrets. O Host lê `/run/secrets/*__*` como configuração. Nada vai em variável de ambiente.
 - **Backup (RPO 24 h):** `pg_dump` por banco e os papéis, cifrados com `age` em stream e enviados por `rclone` a um bucket S3 compatível (recomendação: Backblaze B2).
   - A credencial não tem delete; a retenção de 30 dias é regra de ciclo de vida do bucket.

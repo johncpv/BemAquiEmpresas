@@ -1,6 +1,6 @@
-# Stories — Fase 0 (Fundação), Fase 1 (Cadastros e migração), Fase 2 (Comercial, Projetos e Financeiro núcleo) e Fase 3 (Engenharia, Estoque, Compras e Produção)
+# Stories — Fases 0 a 8
 
-A Fase 1 está na [segunda parte deste arquivo](#fase-1--cadastros-e-migração), a Fase 2 na [terceira](#fase-2--comercial-projetos-e-financeiro-núcleo) e a Fase 3 na [quarta](#fase-3--engenharia-estoque-compras-e-produção).
+A Fase 1 está na [segunda parte deste arquivo](#fase-1--cadastros-e-migração), a Fase 2 na [terceira](#fase-2--comercial-projetos-e-financeiro-núcleo), a Fase 3 na [quarta](#fase-3--engenharia-estoque-compras-e-produção) e as Fases 4 a 8 nas seguintes (revistas em 21/10/2026 depois das decisões do PO sobre a revisão pré-Fases 4 a 8), seguidas do [marco final "Go-live"](#marco-final--go-live).
 
 Stories detalhadas da Fase 0 do BemAqui Empresas, uma por arquivo. Fonte: `docs/01` a `06`, ADRs 0001–0005 e a revisão `docs/revisoes/2026-10-16-revisao-pre-fase0.md` (correções, ADRs técnicas propostas 0006–0008 e CAs de segurança da §2.3).
 
@@ -594,3 +594,384 @@ Primeira validação (21/10/2026, antes da revisão): as 23 stories originais co
 
 ## Pontos em aberto da Fase 3
 Nenhum ponto bloqueante nas stories. Os 95 pontos da tabela 1.1 da revisão foram decididos pelo PO em 21/10/2026 e estão registrados em cada story como "decididos". Ficam com o PO só as pré-condições externas e as pendências acima.
+3. Backup diário do tenant `konebras` no ar antes da primeira carga real da FIN-00; teste de restauração recomendado, sem bloquear.
+4. **P-01** (regime tributário) continua aberta, sem bloquear a fase.
+
+---
+
+# Fase 4 — Planejamento, painéis e visão do dono
+
+Stories detalhadas das Fases 4 a 8, uma por arquivo, escritas pelo @sm (River) e validadas pelo @po (Pax) em 21/10/2026, e revistas no mesmo dia depois das decisões do PO sobre a revisão consolidada `docs/revisoes/2026-10-21-revisao-pre-fases4-8.md` (architect, po + pm, design-squad e cybersecurity). Fonte: `docs/01` a `06`, ADRs 0001–0042, as decisões da Fase 3 (`docs/revisoes/2026-10-21-revisao-pre-fase3.md`, ADRs 0023–0026), o código das Fases 0 a 2 e o projeto `D:\GIT\EmissorFiscal` (somente leitura). A Definition of Ready, a legenda e a escala de tamanho são as mesmas das fases anteriores. **As 60 stories das Fases 4 a 8 e as 2 do marco final "Go-live" estão `Ready`** (35 com pré-condição externa explícita, que não bloqueia o desenvolvimento).
+
+## Decisões do PO (21/10/2026, John)
+Valem para as Fases 4 a 8 e o marco final "Go-live".
+- **Aprovadas como recomendado:** D2 a D13, D15, D17, D18 e D19; as tabelas 3.1 a 3.5 inteiras (pontos em aberto de cada fase); as seções 4 (correções sem decisão) e 5 (ADRs). Valores aprovados: R$ 1.000,00 e 20% no estoque; R$ 5.000,00 no anexo da cotação; multa de 2% e juros de 1% a.m.; régua −3, 0, +3, +10 dias; demais valores das tabelas.
+- **D1 mudada: tudo antes do go-live.** As Fases 4 a 8 inteiras vêm antes do go-live; GOL-01a e GOL-01b saem da Fase 5 e formam o **marco final "Go-live"**, depois da Fase 8. A GOL-01a exige "Fases 0 a 8 concluídas". O ponto 78 da Fase 5 fica decidido assim. SEFAZ e Inter em produção continuam só na GOL-01b; até lá, homologação SEFAZ e sandbox no tenant `demo` (ADR 0034).
+- **D14 (folha no financeiro): opção do arquiteto.** O título a pagar ganha `payee_type` (`Party` ou `Employee`) e `payee_id`, com `CHECK` (`party_id` aceitando nulo é expansão); os dados bancários do funcionário saem de um contrato sensível do HR (`IEmployeeBankAccounts`), lidos só no pagamento da OP e registrados como `SensitiveRead`; encargos com os órgãos como terceiros; previsão com a origem `PayrollForecast`; fechamento síncrono. Mantêm-se as proteções da conta de salário (2FA de novo, segunda confirmação, aviso ao funcionário e ao Proprietário, quarentena de 30 dias, quem fecha não paga). ADR 0036. O ponto 23 da Fase 6 fica decidido assim.
+- **D16 (portal): opção da segurança.** Host próprio para o portal; 2FA opcional para ver; código por e-mail obrigatório no aceite. ADR 0040.
+- **Ponto (D15, ponto 5 da Fase 6):** o ponto do app entra **sem ser registro oficial** (controle interno, com aviso na tela e na ajuda de que não substitui o registro legal) e deixa de ser pré-condição do Marco 6.1. Story futura pós-MVP "Ponto como registro oficial (REP-P / Portaria 671)" no backlog (Fase 9) e P-26 no `06`.
+- **P-02:** o CNAE de fabricação está em providência pela Konebras; continua pré-condição externa da emissão de NF-e de produção.
+- **P-19 e P-20:** decididas pela D6: 2FA de novo (TOTP recente) em pagar, estornar, cancelar ou inutilizar NF-e, trocar conta de salário, fechar a folha, anonimizar titular, salvar credenciais do Inter e enviar o certificado A1 (filtro comum `RequireRecentTwoFactor`, criado na BNK-01a e aplicado também à FIN-03a); estorno de pagamento e de baixa bancária com `finance.approve` (BNK-02).
+- **Novo requisito: tudo configurável em Configurações** (ADR 0042). Parâmetros fiscais e de integração pré-configurados com os valores propostos e editáveis; o que ainda não foi conferido leva o chip **"A confirmar com a contadora"** (`ToConfirmChip`, BNK-01b) com "Marcar como conferido", auditado; a produção exige os campos críticos conferidos. Telas:
+
+  | Tela | Rota | Story | Quem edita | Ajuda prevista |
+  |---|---|---|---|---|
+  | Configurações → Cobrança (multa, juros, desconto, envio automático, limite de e-mails, vencido e dia não útil) | `/app/configuracoes/cobranca` | BNK-01b; a FIN-09 acrescenta "Régua de cobrança" e a POR-01c "Segunda via pelo portal" | `settings.edit` | `Ajuda/configuracoes-cobranca.md` |
+  | Configurações → Integrações → Banco Inter (credenciais, mTLS, conta, ambiente, webhook, teste de conexão; segredos só de escrita) | `/app/configuracoes/integracoes/inter` | BNK-01a | `settings.edit` + 2FA de novo | `Ajuda/configuracoes-integracoes-inter.md` |
+  | Configurações → Fiscal (regime, CRT, série, ambiente, CFOP/CST e alíquotas por cenário, tributos no custo do projeto, NFS-e, IBS/CBS, prazos) | `/app/configuracoes/fiscal` | FIS-02a (as regras detalhadas nascem do mesmo seed na FIS-02b) | `settings.edit` | `Ajuda/configuracoes-fiscal.md` |
+  | Configurações → Fiscal → Certificado digital (A1 direto ao cofre do EmissorFiscal; o BemAqui guarda validade, titular e thumbprint; alerta de vencimento) | `/app/configuracoes/fiscal/certificado` | FIS-02a | `settings.edit` + 2FA de novo | `Ajuda/configuracoes-fiscal-certificado.md` |
+  | Configurações → Integrações → WhatsApp (parceiro, credenciais, número, modelos, teste de envio) | `/app/configuracoes/integracoes/whatsapp` | WPP-01 | `settings.edit` + 2FA de novo | `Ajuda/configuracoes-integracoes-whatsapp.md` |
+  | Configurações → Parâmetros → RH, Produção e Patrimônio; Configurações → Privacidade (retenção) | `/app/configuracoes/parametros`, `/app/configuracoes/privacidade` | RH-02a, RH-01c, PLN-01b, PAT-01b, PAT-03b, LGPD-01a, LGPD-01b | `settings.edit` (Privacidade: só o Proprietário) | `Ajuda/configuracoes-parametros.md`, `Ajuda/configuracoes-privacidade.md` |
+
+  `settings.edit` é reservada ao Proprietário para conceder (ADR 0008). Nenhuma story `CFG-*` foi necessária: cada tela entrou na story que já tratava do assunto.
+- **ADRs novas:** 0027 (EmissorFiscal), 0028 (composição do painel e dos relatórios; revoga o `Reporting` da 0006), 0029 (planejamento finito), 0030 (quiosque e TV), 0031 (recepção de webhooks), 0032 (Banco Inter), 0033 (Gantt próprio), 0034 (promoção a produção e go-live depois da Fase 8), 0035 (autoatendimento do funcionário), 0036 (folha no financeiro), 0037 (execução da LGPD), 0038 (patrimônio, manutenção e capacidade), 0039 (motor da folha calculada), 0040 (identidade do portal), 0041 (WhatsApp), 0042 (Configurações pré-configuradas). **Adendos de 21/10/2026:** 0025 (comprometido por saldo; fontes `InvoiceTax`/`InvoiceTaxReversal`), 0003 (`fiscal.approve`, `fiscal.import_incoming`, `kiosk.delete`, `hr.view_health`, módulo `portal`, ações do `assets`), 0007 (`WebhookSecret`, `FiscalApiKey`, `WhatsAppCredentials`; Inter por conta; A1 fora do BemAqui), 0008 (`fiscal.approve` reservado; D6), 0009 (rotas anônimas da TV, dos webhooks e do portal) e 0026 (PIN no "Meu ponto"); nota de revogação na 0006.
+- **Docs atualizados:** `02-arquitetura` (rota `/tv#token`, sem índice de quiosque no catálogo, webhook no host da plataforma com `tenantKey` opaco, Dashboard, plano finito, EmissorFiscal, Inter por conta, portal em host próprio, ambiente de produção novo), `03-modelo-dados`, `04-fluxos-estados` e `06-pendencias-riscos` (P-01, P-02, P-03, P-08, P-13, P-17, P-19, P-20 atualizadas; P-26 a P-29 novas).
+
+## Ordem de execução até o go-live
+```
+Agora (fora das stories): trilha externa da D2 · lacunas do EmissorFiscal (D3, P-27) · PR de reforço do código no ar (D19)
+Fase 4:  4.1 FIN-07 → DSH-02 → FIN-08 · 4.2 DSH-04 → DSH-01a · 4.3 PLN-01a → PLN-01b → PLN-02 → PLN-04 → PLN-03
+         · 4.4 PNL-01a → PNL-01b → DSH-03 · 4.5 DSH-01b → PLN-05
+Fase 5:  5.1 FND-16 → trilha do banco: 5.2 BNK-01a → BNK-01b → BNK-02 · 5.3 BNK-03a → BNK-03b
+                  → trilha fiscal (FIS-01 pode correr em paralelo à do banco): 5.1 FIS-01 · 5.4 FIS-02a → FIS-02b → FIS-03a → FIS-03b
+         · 5.5 FIS-04a → FIS-04b → FIS-05 · 5.6 FIS-06 → FIN-09
+Fase 6:  6.2 Folha lançada: CAD-04c2 → RH-02a → RH-02c → RH-02b → RH-03 · 6.1 Ponto: RH-01a → RH-01b → RH-01c
+         · 6.3 LGPD-01a → LGPD-01b · 6.4 Patrimônio em paralelo: PAT-01a → PAT-01b → PAT-02 → PAT-03a → PAT-03b
+Fase 7:  7.1 FLH-01 → FLH-02a → FLH-02b · 7.2 FLH-03 → FLH-04 → FLH-05 · 7.3 FLH-06 (em paralelo ao 7.2)
+Fase 8:  8.1 POR-01a · 8.2 POR-01b → POR-01c · 8.3 POR-02 · 8.4 WPP-01
+Go-live: GOL-01a → GOL-01b (início de um mês, fora do horário comercial)
+```
+Por que esta ordem: a Fase 4 entrega primeiro a visibilidade financeira (FIN-07 e DSH-02 não dependem de ninguém de fora); a Fase 5 começa pela recepção de webhooks e corre em duas trilhas, porque o banco não depende da contadora nem do A1; a Fase 6 começa pela folha, que leva o maior custo da empresa ao caixa, e o ponto (controle interno) vem depois; a Fase 7 pode rodar em simulação, e a virada da folha calculada (FLH-06) é operação, que não segura o go-live; a Fase 8 fecha o relacionamento com o cliente; o go-live só vem com tudo pronto, com ensaio e rollback numa cópia.
+
+## Padrões comuns das Fases 4 a 8 (design, revisão §4.4)
+As stories citam estes números na seção "Telas e estados" ("Padrões comuns das Fases 4 a 8: 1, 2") e só detalham o específico.
+1. **Família de gráficos sobre `ChartFrame`** (`Chart`, `ColumnChart`, `Gantt`): série nunca só por cor (traço e rótulo direto), referências em x e em y (zero, meta, capacidade), resumo textual acima e tabela equivalente. `ChartFrame` e a troca do `--chart-3` (hoje âmbar) na FIN-07; `ColumnChart`, `Kpi` e `DashboardCard` na DSH-02; `Gantt` próprio em SVG na PLN-03 (ADR 0033).
+2. **`Kpi` e `DashboardCard`:** todo número clicável até a origem, "Como calculamos", "Atualizado às", estados por card; faixa "Atenção" com até 3 alertas.
+3. **Tabelas analíticas** (DRE, ocupação, espelho, conciliação): coluna fixa, navegação por célula, drill-down em painel lateral com total igual ao da célula (`TreeTable`, FIN-08). No DRE, sinal no rótulo ("(−) Custos"), crítico só em resultado negativo e coluna "Δ mês anterior".
+4. **Kit TV** (D11, ADR 0030): tema escuro, 32/28/48 px, até 4 linhas por cartão e 3 cartões por coluna com "+{n} OS", "Ao vivo / Reconectando… / Atualizado às", prévia no backoffice (`/app/painel-tv/$id/previa`); `StageIndicator` com `size="tv"` e `size="portal"` (PNL-01a/01b).
+5. **Kit Portal** (POR-01a): celular primeiro, 16 px, alvos de 44 px, vocabulário leigo com teste de texto (sem OS, marco, romaneio, letras de etapa), etapa com nome e frase do que acontece e do que vem depois, bloco "Fale com a {empresa}" em todo erro e boleto vencido, "Preferências de aviso", mensagem própria de indisponibilidade.
+6. **Integração externa assíncrona** (SEFAZ, Inter, WhatsApp): "Enviado / Aguardando / Demorando (30 s) / Confirmado / Recusado com motivo e ação", sem reenvio enquanto processa; `EnvironmentBanner` único (BNK-01a).
+7. **Ações irreversíveis:** `ConfirmDialog` com confirmação digitada quando apaga dado (LGPD), contagem do prazo legal (cancelamento de NF-e) e impacto em lista nas ações em lote; criado na BNK-01b e reutilizado (FIS-03a, FIS-03b, LGPD-01b, CAD-04c2, RH-02c).
+8. **Dado sensível do RH:** bloco "Dados protegidos" padrão; autoatendimento ("Meu ponto", "Meu espelho", "Meus holerites") com o mesmo layout no `/fab` e no celular.
+
+Achados pontuais da §4.4 aplicados nas stories: conciliação com uma linha por par e as seções "Sem par no banco" e "No sistema, não no banco" (BNK-03b); fila "A emitir" em Notas de saída e na pauta (FIS-03a, DSH-04); "Pagamentos a conferir" e "Números a inutilizar" como filtros (BNK-02, FIS-03b); campos incertos com texto e foco no primeiro (FIS-05); prévia da mensagem e falhas reenviáveis (WPP-01); botões de `ErrorState`/`EmptyState` com 44 px a 400 px; "Ver conteúdo" com JSON mascarado (FND-16); "Simular" em painel lateral (FIS-02b); diferença em R$ e % por rubrica (FLH-06).
+
+## Índice
+| Ordem | ID | Título | Tam. | Status | Requisitos | Depende de | Arquivo |
+|---|---|---|---|---|---|---|---|
+| 1 (4.1) | FIN-07 | Projeção de caixa ajustada pelo histórico do cliente | M | Ready | R-FIN-11, R-FIN-10, R-TER-4, R-PRP-5, PRD §5.14, PRD §6 | FIN-05, FIN-06b, FIN-00, FND-09e | [FIN-07](FIN-07-projecao-ajustada.md) |
+| 2 (4.1) | DSH-02 | Orçado × realizado e margem, por projeto e consolidado | G (re-estimada de M) | Ready | R-PRJ-5, PRD §5.14, PRD §1.1, PRD §1.2, R-PRP-5, PRD §6 | FIN-07, COM-05, COM-07, PRD-04, ADR 0025, EST-03, COM-06 | [DSH-02](DSH-02-orcado-realizado-margem.md) |
+| 3 (4.1) | FIN-08 | DRE gerencial mensal | G (re-estimada de M) | Ready (pré-condição externa) | R-FIN-13, R-FIN-1, PRD §5.14, R-PRP-5, PRD §6 | CAD-05a, FIN-01, FIN-02, FIN-04, FIN-00, COM-01b, PRD-06b | [FIN-08](FIN-08-dre-gerencial.md) |
+| 4 (4.2) | DSH-04 | Minha pauta | M | Ready | R-PRP-4, R-PRP-5, R-COM-2, PRD §5.14, PRD §6 | FIN-03a, FIN-03b, FIN-01, FIN-02, FIN-05, FIN-07, COM-02 | [DSH-04](DSH-04-minha-pauta.md) |
+| 5 (4.2) | DSH-01a | Painel do proprietário: módulo Dashboard e cards de caixa, faturamento, inadimplência, comercial e decisões | G | Ready | PRD §5.14, R-FIN-10, R-FIN-11, R-FIN-12, R-FIN-13, R-COML-9 | FIN-05, FIN-07, FIN-08, FIN-06a, COM-08, DSH-04, DSH-02 | [DSH-01a](DSH-01a-painel-dono-financeiro-comercial.md) |
+| 6 (4.3) | PLN-01a | Motor de agendamento finito | G | Ready | R-PLN-3, R-PLN-1, PRD §6, R-SEC-5 | PRD-01, PRD-03a, PRD-05, PRD-06a1, CAD-03 | [PLN-01a](PLN-01a-motor-agendamento.md) |
+| 7 (4.3) | PLN-01b | Recálculo por evento, data prevista do projeto e risco de atraso | M | Ready (pré-condição externa) | R-PLN-3, R-PLN-4, R-COM-2, R-PRP-5, PRD §1.2, PRD §6 | PLN-01a, COM-05, COM-07, PRD-02, PRD-03a, PRD-05, PRD-06a1 | [PLN-01b](PLN-01b-recalculo-previsao-risco.md) |
+| 8 (4.3) | PLN-02 | Fila de prioridade dos projetos | M | Ready | R-PLN-2, R-PLN-3, R-PLN-4, R-PRP-2, R-SEC-5 | PLN-01a, PLN-01b, COM-05, FND-09e | [PLN-02](PLN-02-fila-prioridade.md) |
+| 9 (4.3) | PLN-04 | Ocupação da fábrica por semana e centro | M | Ready | R-PLN-6, R-PLN-1, PRD §5.14, PRD §6 | PLN-01a, CAD-03, DSH-02, FIN-08 | [PLN-04](PLN-04-ocupacao-fabrica.md) |
+| 10 (4.3) | PLN-03 | Cronograma (Gantt) por projeto e por centro de trabalho | G | Ready | R-PLN-4, R-PLN-3, PRD §5.14, R-PRP-5, PRD §6 | PLN-01a, PLN-01b, PLN-02, FIN-07, COM-05, COM-06 | [PLN-03](PLN-03-gantt.md) |
+| 11 (4.4) | PNL-01a | Tokens de tela, sessão de quiosque e tempo real da TV | G | Ready | R-SEC-6, PRD §5.14, PRD §2, PRD §6, R-SEC-5 | PRD-02, PLN-01b, FND-02, FND-04, FND-09b, FND-12, ADR 0015 | [PNL-01a](PNL-01a-tokens-tela-sessao-quiosque.md) |
+| 12 (4.4) | PNL-01b | Visões do painel da TV | M | Ready | PRD §5.14, R-PRD-2, R-PLN-4, PRD §6 | PNL-01a, PRD-02, PRD-03a, PLN-01a, PLN-01b, PLN-02 | [PNL-01b](PNL-01b-visoes-painel-tv.md) |
+| 13 (4.4) | DSH-03 | Painel do supervisor | M | Ready | PRD §5.14, R-PRD-2, R-PRD-6, R-PLN-6, R-EST-4, R-CMP-1 | PRD-02, PLN-04, PLN-01b, PRD-05, EST-02, CMP-01, PRD-03a | [DSH-03](DSH-03-painel-supervisor.md) |
+| 14 (4.5) | DSH-01b | Painel do proprietário: margem, carteira, produção, entregas e resultado gerencial por projeto | G (re-estimada de M) | Ready | PRD §5.14, R-FIN-13, R-PRJ-5, R-PLN-4, R-PLN-6, R-PRP-5 | DSH-01a, DSH-02, FIN-08, PLN-01b, PLN-04, PRD-02, COM-05 | [DSH-01b](DSH-01b-painel-dono-margem-producao.md) |
+| 15 (4.5) | PLN-05 | Simulação de prazo do orçamento | M | Ready | R-PLN-5, R-COML-1, R-PRP-1, R-PRP-2 | PLN-01a, PLN-01b, PLN-02, COM-01a, PRD-01, ENG-01 | [PLN-05](PLN-05-simulacao-prazo-orcamento.md) |
+
+Total da Fase 4: 15 stories (M: 8 · G: 7), todas `Ready`; 2 com pré-condição externa explícita, que não bloqueia.
+
+| Marco | Stories |
+|---|---|
+| 4.1 "O dinheiro do jeito que ele vai acontecer" | FIN-07, DSH-02, FIN-08 |
+| 4.2 "O painel do dono, parte do dinheiro" | DSH-04, DSH-01a |
+| 4.3 "Datas que a fábrica cumpre" | PLN-01a, PLN-01b, PLN-02, PLN-04, PLN-03 |
+| 4.4 "A fábrica na parede" | PNL-01a, PNL-01b, DSH-03 |
+| 4.5 "A visão completa do dono" | DSH-01b, PLN-05 |
+
+## Quebras e re-estimativas
+- **Quebras (primeira validação):** PLN-01 → 01a/01b; PNL-01 → 01a/01b; DSH-01 → 01a/01b.
+- **"Resultado gerencial por projeto"** saiu da FIN-08 (agora "DRE gerencial mensal") e foi para a DSH-01b, no módulo `Dashboard` (D9, ADR 0028), com a nota de que não fecha com o DRE mensal.
+- **Re-estimadas (M → G):** FIN-08 (já na primeira validação), DSH-02 (componentes da D18, comprometido por saldo e imposto pela nota da D8) e DSH-01b (recebe o resultado por projeto).
+
+## Padrões comuns da Fase 4 (domínio)
+1. **Cada número tem regra e origem:** todo indicador mostra a regra em `<Dica>` ("Como calculamos") e leva ao documento de origem; o painel nunca recalcula: chama o mesmo contrato do relatório, com teste que compara os dois.
+2. **Um cálculo, um lugar:** `ICashForecast` (FIN-07), `IRevenueSummary` (FIN-08), `IProjectMargins` (DSH-02), `IProductionSchedule` (PLN-01a), `IFactoryLoad` (PLN-04), `IPlanningQueue` (PLN-02), `IAgendaService` (DSH-04), `IBusinessCalendar` (DSH-01a, no `Production.Contracts`).
+3. **Composição no módulo `Dashboard`** (ADR 0028): só Application e Endpoints, referenciando `*.Contracts`, sem schema; cada card com o `RequireModule` e a permissão do módulo dono e DTO por forma de permissão; cache de 60 s com chave `{tenant}:{usuário}:{versão de permissão}`, contador de geração por tenant e botão "Atualizar". Início com a Minha pauta é a página inicial de todos; o Proprietário com `dashboard.view` cai em `/app/painel`.
+4. **Sigilo de custo:** custo, orçado e margem só com `projects.view_cost`; drill-down de salário e custo-hora com nome só com `hr.view_sensitive`; a TV e a simulação do orçamento nunca levam valores.
+5. **Custo do projeto (ADR 0025, adendo D8):** comprometido de material = max(0, Σ títulos de compra de item estocável do projeto − Σ baixas líquidas para a OS), fonte única nos títulos do Finance; imposto realizado só pela nota autorizada (`InvoiceTax`/`InvoiceTaxReversal`); até lá, o projetado usa o orçado.
+6. **Receita (D4):** pela data da nota; antes de existirem notas reais (go-live), a `issue_date` do título com o rótulo "provisório"; sinal como adiantamento até a nota.
+7. **Plano finito, um escritor (ADR 0029):** datas previstas só em `production.schedule_*` e `commercial.project_forecasts`, fora dos documentos e da auditoria; fila de projetos no Production (`production.planning_queue`), reordenada com `production.edit`, auditada; `commercial.projects.priority` sem uso, sem apagar; ordem pela data prometida e depois a assinatura; horas restantes com mínimo de 10% do padrão na etapa em andamento.
+8. **Quiosque (ADR 0030):** `/tv#token` trocado por cookie `__Host-bq_kiosk`, sessão de 30 dias sem uso e 180 absolutos, `kiosk.delete`, criar exige `production.view`, cliente nunca aparece, operador pelo primeiro nome e inicial.
+9. **Tempo real:** grupos do SignalR derivados das claims, conexão fechada quando a permissão ou o security stamp mudam, mensagem só com id ou sinal, polling de 60 s como reserva.
+10. **Parâmetros novos** no schema do módulo dono, editados em Configurações com `settings.edit` (ADR 0016 M6 e ADR 0042): `finance.adjusted_default_threshold_pct` (20%), contas do DRE, `finance.revenue_targets`, `planning.installation_days` (5 dias úteis).
+
+## Validação do PO (21/10/2026)
+Primeira validação (21/10/2026, antes da revisão): as 15 stories com 10/10, 2 GO e 13 GO condicional, todas `Draft`. Depois das decisões do PO e da revisão pré-Fases 4 a 8, o @po (Pax) revalidou cada story com a mesma checklist de 10 itens, lendo o item 10 como "pontos em aberto decididos e registrados":
+- **10/10 e `Ready`:** as 15 stories. Os ajustes da revisão foram resolvidos pelas ADRs 0025 (adendo, DSH-02), 0028 (DSH-01a/01b, DSH-03, DSH-04), 0029 (PLN-01a, PLN-01b, PLN-02), 0030 (PNL-01a/01b) e 0033 (PLN-03).
+- **Pré-condições externas explícitas** (não bloqueiam): FIN-08 (contas de juros, multa e desconto e a conta 2.1 conferidas pela contadora; valores pré-configurados); PLN-01b (prazo padrão de instalação de 5 dias úteis confirmado pela Konebras).
+- **Revalidação por amostragem do PO no fechamento (21/10/2026):** DSH-02 conferida de novo contra a ADR 0025 (adendo) e o padrão 1; FIN-08 contra o padrão 3.
+
+## Pontos em aberto da Fase 4
+Nenhum. Os 56 pontos da tabela 3.1 da revisão foram decididos pelo PO em 21/10/2026 e estão em cada story como "decididos", com o CA onde entraram. Ficam só as pré-condições externas acima.
+
+---
+
+# Fase 5 — Integrações fiscais e bancárias
+
+Stories da Fase 5 sem o go-live (as GOL foram para o [marco final](#marco-final--go-live)). Ver as [decisões do PO](#decisões-do-po-21102026-john-1) na Fase 4. O EmissorFiscal foi analisado na [FIS-01](FIS-01-emissorfiscal-adr-adaptador.md) e a forma de integração está na ADR 0027: serviço HTTP na rede interna `bqe-fiscal`, um tenant do Emissor por tenant do BemAqui, A1 só no cofre do Emissor, lacunas com dono (P-27).
+
+## Índice
+| Ordem | ID | Título | Tam. | Status | Requisitos | Depende de | Arquivo |
+|---|---|---|---|---|---|---|---|
+| 1 (5.1) | FND-16 | Recepção de webhooks: rota pública, validação, idempotência e processamento por fila | M | Ready | R-FIN-7, R-FIS-3, PRD §6, R-SEC-5 | FND-02, FND-07, FND-11, FND-12, FND-10b | [FND-16](FND-16-webhooks-de-entrada.md) |
+| 2 (5.2) | BNK-01a | Banco Inter: Configurações → Integrações → Banco Inter, credenciais por conta, mTLS em memória, token OAuth2 e rotação | G (re-estimada de M) | Ready (pré-condição externa) | R-FIN-7, R-FIN-8, R-FIN-2, PRD §6, R-SEC-5, R-PRP-5 | FND-16, CAD-05b, FND-11, FND-12, FND-07, FIN-03a | [BNK-01a](BNK-01a-inter-configuracao-mtls.md) |
+| 3 (5.2) | BNK-01b | Bolepix a partir do título a receber: Configurações → Cobrança, emissão, PDF, linha digitável, Pix copia-e-cola, e-mail e cancelamento | G | Ready (pré-condição externa) | R-FIN-7, R-FIN-3, R-COM-1, R-COM-3, R-PRP-1, R-PRP-2 | BNK-01a, FIN-01, COM-03, CAD-01a, FND-09e | [BNK-01b](BNK-01b-bolepix-emissao-cancelamento.md) |
+| 4 (5.2) | BNK-02 | Webhook de pagamento do Inter: reconsulta, baixa automática do título, transação e conferência diária | G (re-estimada de M) | Ready (pré-condição externa) | R-FIN-7, R-FIN-3, R-FIN-2, R-FIN-5, R-TER-4, R-COM-2 | FND-16, BNK-01a, BNK-01b, FIN-01, FIN-03a, FIN-06b | [BNK-02](BNK-02-webhook-pagamento-baixa.md) |
+| 5 (5.3) | BNK-03a | Extrato do banco: importação pela API do Inter e por arquivo OFX | M | Ready | R-FIN-8, R-FIN-2, R-FIN-10, R-PRP-3, R-PRP-5, R-SEC-5 | BNK-01a, FIN-04, FND-07 | [BNK-03a](BNK-03a-extrato-api-ofx.md) |
+| 6 (5.3) | BNK-03b | Conciliação bancária: sugestão de par, conciliação manual, lançamento a partir do extrato e fechamento do período | G | Ready (pré-condição externa) | R-FIN-8, R-FIN-2, R-FIN-3, R-FIN-5, R-FIN-10, R-PRP-1 | BNK-03a, FIN-04, FIN-01, FIN-03a, BNK-02, BNK-01b, BNK-01a | [BNK-03b](BNK-03b-conciliacao-bancaria.md) |
+| 7 (5.1) | FIS-01 | Integração com o EmissorFiscal (ADR 0027) e adaptador `IFiscalEmitter` | G (re-estimada de M) | Ready (pré-condição externa) | R-FIS-1, R-FIS-8, R-FIS-6, R-FIS-7, PRD §6, R-SEC-5 | FND-16, FND-11, FND-07, FND-12, BNK-01a, ADR 0027 | [FIS-01](FIS-01-emissorfiscal-adr-adaptador.md) |
+| 8 (5.4) | FIS-02a | Configurações → Fiscal e Certificado digital: parâmetros pré-configurados "a confirmar", A1 direto ao Emissor, permissões do módulo `fiscal` | G (re-estimada de M) | Ready (pré-condição externa) | R-FIS-2, R-FIS-4, R-FIS-7, R-FIS-8, R-COM-2, R-PRP-1 | FIS-01, CAD-06, CAD-01b, FND-06, CAD-01a, FND-09e, BNK-01a | [FIS-02a](FIS-02a-configuracao-fiscal-tenant.md) |
+| 9 (5.4) | FIS-02b | Regras fiscais por operação e cálculo dos tributos da nota | G | Ready (pré-condição externa) | R-FIS-4, R-FIS-3, R-FIS-7, R-FIS-8, R-PRJ-5, R-PRP-1 | FIS-02a, CAD-02a, CAD-01a, FIS-01 | [FIS-02b](FIS-02b-regras-fiscais-calculo.md) |
+| 10 (5.4) | FIS-03a | NF-e de saída: rascunho a partir do romaneio, emissão, autorização, rejeição, DANFE e XML ao cliente, impostos e receita pela nota | G | Ready (pré-condição externa) | R-FIS-3, R-PRD-8, R-PRJ-5, R-FIS-4, R-COM-1, R-COM-3 | FIS-01, FIS-02a, FIS-02b, PRD-06b, PRD-04, COM-04a, COM-05 | [FIS-03a](FIS-03a-nfe-saida-emissao.md) |
+| 11 (5.4) | FIS-03b | NF-e de saída: cancelamento em uma etapa com `fiscal.approve`, carta de correção e inutilização de numeração | M | Ready (pré-condição externa) | R-FIS-3, R-SEC-10, R-PRJ-5, R-COM-2, R-PRP-2, R-PRP-7 | FIS-03a, FIS-01, FIS-02a, PRD-06b, DSH-04 | [FIS-03b](FIS-03b-nfe-cancelamento-cce-inutilizacao.md) |
+| 12 (5.5) | FIS-04a | NF-e de entrada por XML: importação segura, de-para dos itens e conferência contra o pedido | M | Ready | R-FIS-5, R-CMP-5, R-PRP-3, R-EST-3, R-COM-3, R-SEC-5 | FIS-02a, CAD-02b, CAD-01a, CMP-03a, FND-07 | [FIS-04a](FIS-04a-nfe-entrada-xml-importacao.md) |
+| 13 (5.5) | FIS-04b | Recebimento pela NF-e de entrada: estoque pelo custo da nota e títulos a pagar pelas duplicatas, na mesma transação | M | Ready (pré-condição externa) | R-CMP-5, R-EST-7, R-FIN-4, R-FIN-10, R-PRP-2, R-PRP-3 | FIS-04a, CMP-04, CMP-03a, EST-01a, FIS-02a | [FIS-04b](FIS-04b-recebimento-pela-nota.md) |
+| 14 (5.5) | FIS-05 | NF-e de entrada por PDF (DANFE): chave, leitura assistida em worker isolado, "Digitar a nota" e conferência obrigatória | M | Ready | R-FIS-6, R-PRP-3, R-SEC-5 | FIS-04a, FIS-04b, FIS-01, FND-07 | [FIS-05](FIS-05-nfe-entrada-pdf.md) |
+| 15 (5.6) | FIS-06 | NFS-e da instalação no aceite técnico, com o processo provisório pelo portal da prefeitura | M | Ready (pré-condição externa) | R-FIS-7, R-FIS-8, R-PRJ-3, R-PRJ-5, R-COM-1, R-PRP-2 | FIS-01, FIS-02a, FIS-02b, FIS-03a, COM-06, PRD-04 | [FIS-06](FIS-06-nfse-instalacao.md) |
+| 16 (5.6) | FIN-09 | Régua de cobrança por e-mail (D) | M | Ready | R-FIN-9, R-COM-1, R-FIN-12, R-PRP-5, R-SEC-5 | BNK-01b, BNK-02, FIN-01, FND-08, COM-03, FIN-06a | [FIN-09](FIN-09-regua-de-cobranca.md) |
+
+Total da Fase 5: 16 stories (M: 8 · G: 8), todas `Ready`; 11 com pré-condição externa explícita, que não bloqueia.
+
+| Marco | Stories |
+|---|---|
+| 5.1 Base das integrações | FND-16, FIS-01 |
+| 5.2 Cobrança pelo Inter | BNK-01a, BNK-01b, BNK-02 |
+| 5.3 Conciliação | BNK-03a, BNK-03b |
+| 5.4 Nota de saída | FIS-02a, FIS-02b, FIS-03a, FIS-03b |
+| 5.5 Nota de entrada | FIS-04a, FIS-04b, FIS-05 |
+| 5.6 NFS-e e cobrança | FIS-06, FIN-09 |
+
+## Quebras, stories novas e re-estimativas
+- **Quebras (primeira validação):** FIS-02, FIS-03, FIS-04, BNK-01, BNK-03 em a/b; **nova:** FND-16. A GOL-01 (01a/01b) foi para o marco final.
+- **Re-estimadas (M → G):** FIS-01 (adaptador, fake, webhook, conferência de pendentes e testes de contrato), BNK-02 (primeiro consumidor de webhook com efeito financeiro), **BNK-01a** (tela Configurações → Integrações → Banco Inter, filtro comum de 2FA de novo, `EnvironmentBanner`, handler mTLS por conta) e **FIS-02a** (telas Configurações → Fiscal e Certificado digital com os parâmetros pré-configurados e o envio do A1 ao Emissor). A BNK-01b cresceu com a tela de Cobrança, o `ToConfirmChip` e o `ConfirmDialog`, sem passar de G.
+
+## Padrões comuns da Fase 5
+1. **Integração atrás de contrato:** o Fiscal só conhece `IFiscalEmitter`; o Finance, `IBankBillingProvider`/`IBankStatementProvider`; nenhum código do EmissorFiscal ou do banco é copiado.
+2. **Segredos por tenant, só de escrita** (ADR 0007, adendo): `InterCredentials` e `InterCertificate` por conta, `FiscalApiKey`, `WebhookSecret`, `WhatsAppCredentials`; o A1 não é segredo do BemAqui (vai ao cofre do Emissor). Nunca em log, auditoria, resposta ou `IFileStorage`; canário em cada story; rotação testa o novo antes de trocar.
+3. **Webhook nunca é verdade (ADR 0031):** rota única `/webhooks/{provedor}/{tenantKey}` no host da plataforma, fora da allowlist de IP e do middleware de tenant por host; evento e outbox na mesma transação; deduplicação pelo id e pelo SHA-256 do corpo; corpo guardado 90 dias; o efeito vem da reconsulta à fonte (o Inter por mTLS, ADR 0032); GET de verificação só para o provedor que o declara (Meta).
+4. **Efeito fiscal e financeiro com confirmação:** automático só o que o banco ou a SEFAZ confirmaram; pagamento com diferença e divergência vão para conferência humana.
+5. **Segregação:** configurar integrações com `settings.edit` e 2FA de novo; cancelar e inutilizar nota com `fiscal.approve` (reservada ao Proprietário, uma etapa, "Pedir cancelamento" para os demais); importar nota de entrada com `fiscal.import_incoming`; regra fiscal ativada por outra pessoa; quem importou o extrato não confirma a conciliação; fechamento da conciliação com `finance.approve`; estorno de baixa e de pagamento com `finance.approve`.
+6. **Documento fiscal nunca é apagado:** só cancelado ou inutilizado; XML e eventos guardados 5 anos; a NF-e só referencia o romaneio (D4 da Fase 3) e cancelar não mexe no estoque.
+7. **Venda mista (D4):** o equipamento sai em NF-e na expedição; a instalação, em NFS-e no aceite técnico; a parcela do contrato é só cobrança; a divisão vem do tipo do item do orçamento.
+8. **Produção só no go-live:** SEFAZ e Inter em produção só na GOL-01b no tenant `konebras`; homologação SEFAZ e sandbox no `demo`; a produção exige Configurações → Fiscal conferida.
+
+## Validação do PO (21/10/2026)
+Primeira validação (21/10/2026): as 18 stories (com as GOL) com 10/10, GO condicional, todas `Draft`. Na revalidação depois das decisões do PO, as 16 stories da fase tiveram **10/10 e `Ready`**; os NO-GOs da revisão foram resolvidos: **FIS-01** pela ADR 0027 e pelas lacunas do Emissor como pré-condição externa (P-27), com o fake do `IFiscalEmitter` para o desenvolvimento; **FIS-03a** pela reconciliação no Emissor, pela D4 e pela remoção dos dois caminhos de baixa; **FIS-04b** pelas duplicatas no `CreateOpenInstallmentsAsync` na transação do recebimento (ADR 0024) com `purchasing.receive`; **FIS-06** pelo processo provisório da prefeitura até o provider de Caçapava (D5).
+- **Pré-condições externas explícitas** (não bloqueiam): BNK-01a, BNK-01b, BNK-02 e BNK-03b (conta Inter com API, P-08, e conferências no sandbox; extratos reais para as regras); FIS-01, FIS-03a, FIS-03b e FIS-06 (lacunas do EmissorFiscal, P-27; e-CNPJ A1; P-02 para a NF-e de produção em produção); FIS-02a, FIS-02b e FIS-04b (conteúdo da contadora pré-configurado em Configurações → Fiscal, P-28).
+- **Revalidação por amostragem do PO no fechamento (21/10/2026):** FIS-02a (valores pré-configurados, `ToConfirmChip` reutilizado da BNK-01b), FIS-03a (`ConfirmDialog` reutilizado, D4) e BNK-01a (filtro de 2FA de novo aplicado à FIN-03a) conferidas de novo; FND-16 ganhou o GET de verificação da Meta para a WPP-01.
+
+## Pontos em aberto da Fase 5
+Nenhum. Os pontos 1 a 73 da tabela 3.2 foram decididos em 21/10/2026 e estão nas stories; os pontos 74 a 81 estão nas GOL-01a/01b (marco final). Ficam as pré-condições externas acima.
+
+---
+
+# Fase 6 — RH e Patrimônio (fim do MVP)
+
+Ver as [decisões do PO](#decisões-do-po-21102026-john-1) na Fase 4. A fase **começa pela folha** (Marco 6.2), que leva o maior custo da empresa ao caixa, e o ponto (Marco 6.1) vem depois, como **controle interno, sem ser registro oficial** (D15 e decisão do PO; ADR 0035). Os marcos mantêm a numeração da primeira validação; a execução é 6.2 → 6.1 → 6.3, com o 6.4 em paralelo.
+
+## Índice
+| Ordem | ID | Título | Tam. | Status | Requisitos | Depende de | Arquivo |
+|---|---|---|---|---|---|---|---|
+| 1 (6.2) | CAD-04c2 | Funcionários: dependentes, banco/Pix, adicionais, vale-transporte e documentos | M | Ready | R-RH-1, PRD §6, R-SEC-5, R-SEC-10 | CAD-04c1 | [CAD-04c2](CAD-04c2-funcionarios-complemento.md) |
+| 2 (6.2) | RH-02a | Folha lançada: competência, rubricas, lançamento e importação dos valores da contadora | G | Ready (pré-condição externa) | R-RH-5, R-RH-1, PRD §6, R-SEC-5, R-SEC-10, R-PRP-1 | CAD-04b, CAD-04c1, CAD-04c2, FND-09e, FND-07 | [RH-02a](RH-02a-folha-lancada-rubricas.md) |
+| 3 (6.2) | RH-02c | Folha lançada: fechamento, títulos a pagar de salários e encargos e folha prevista no fluxo de caixa | G (re-estimada de M) | Ready (pré-condição externa) | R-RH-5, R-FIN-4, R-FIN-10, R-FIN-13, R-PRP-2, R-PRP-7 | RH-02a, CAD-04c2, FIN-02, FIN-03a, FIN-05, CAD-05a, CMP-03a | [RH-02c](RH-02c-fechamento-folha-cp-caixa.md) |
+| 4 (6.2) | RH-02b | Folha lançada: holerite em PDF, "Meus holerites" e aviso ao funcionário | M | Ready (pré-condição externa) | R-RH-5, R-COM-1, R-COM-3, PRD §6, R-SEC-5, R-PRP-2 | RH-02a, RH-02c, CAD-04b, COM-03, ADR 0019, CAD-06, FND-08 | [RH-02b](RH-02b-holerite-pdf-envio.md) |
+| 5 (6.2) | RH-03 | Exportação do RH para a contadora (layout padrão) | M | Ready (pré-condição externa) | R-RH-8, PRD §6, R-SEC-5, R-PRP-3 | RH-02a, RH-02c, CAD-04b, CAD-04c1 | [RH-03](RH-03-exportacao-contadora.md) |
+| 6 (6.1) | RH-01a | Ponto: marcação pelo app (Meu ponto), geolocalização opcional e consulta das marcações | M | Ready (pré-condição externa) | R-RH-4, PRD §6, R-SEC-5, R-PRP-1, R-PRP-2 | CAD-04a, CAD-04b, CAD-04c1, PRD-03a, PRD-03b, RH-02b, ADR 0035 | [RH-01a](RH-01a-marcacao-ponto.md) |
+| 7 (6.1) | RH-01b | Ponto: lançamento manual, pedido de ajuste, abono de ausência e aprovação | M | Ready | R-RH-4, PRD §6, R-SEC-5, R-COM-2, R-COM-3, R-PRP-2 | RH-01a, CAD-04c1, DSH-04, FND-09e, FND-06c, FND-07 | [RH-01b](RH-01b-ajustes-ponto-aprovacao.md) |
+| 8 (6.1) | RH-01c | Ponto: espelho mensal, banco de horas simples e fechamento do período | G | Ready (pré-condição externa) | R-RH-4, R-RH-5, R-RH-8, R-COM-3, PRD §6, R-SEC-5 | RH-01a, RH-01b, CAD-04a, CAD-04c1, CAD-03, COM-03, ADR 0022 | [RH-01c](RH-01c-espelho-banco-horas-fechamento.md) |
+| 9 (6.3) | LGPD-01a | Direitos do titular: registro do pedido, inventário do dado pessoal e exportação dos dados (JSON e PDF) | M | Ready (pré-condição externa) | PRD §6, R-SEC-5, R-COM-3 | CAD-01a, CAD-04b, CAD-04c1, CAD-04c2, RH-01c, RH-02b, RH-02c | [LGPD-01a](LGPD-01a-pedido-titular-exportacao.md) |
+| 10 (6.3) | LGPD-01b | Direitos do titular: anonimização e eliminação que preservam os documentos com movimento | M | Ready (pré-condição externa) | PRD §6, R-SEC-5, R-PRP-7 | LGPD-01a | [LGPD-01b](LGPD-01b-anonimizacao.md) |
+| 11 (6.4) | PAT-01a | Patrimônio: cadastro de bens | M | Ready | R-PAT-1, R-COM-3, R-COM-4, R-SEC-5, R-PRP-1, R-PRP-3 | CAD-04b, CAD-03, CAD-01a, CAD-06, FIS-04a, FND-09d | [PAT-01a](PAT-01a-cadastro-bens.md) |
+| 12 (6.4) | PAT-01b | Patrimônio: etiquetas com QR code em lote e leitura pelo app | M | Ready (pré-condição externa) | R-PAT-2, R-PRP-6, R-COM-3, R-SEC-5 | PAT-01a, COM-03, ADR 0022, PRD-03a | [PAT-01b](PAT-01b-etiqueta-qr-leitura.md) |
+| 13 (6.4) | PAT-02 | Patrimônio: movimentação de bens e baixa | P | Ready | R-PAT-3, R-PRP-1, R-PRP-2, R-PRP-6, R-SEC-5 | PAT-01a, PAT-01b, FIN-01 | [PAT-02](PAT-02-movimentacao-bens.md) |
+| 14 (6.4) | PAT-03a | Patrimônio: planos de manutenção preventiva e OS de manutenção | M | Ready (pré-condição externa) | R-PAT-4, R-COM-2, R-COM-3, R-COM-4, R-PRP-2, R-PRP-5 | PAT-01a, PAT-01b, PAT-02, DSH-04, FND-07, FND-09e | [PAT-03a](PAT-03a-planos-os-manutencao.md) |
+| 15 (6.4) | PAT-03b | Patrimônio: custo da manutenção, CP do prestador e redução da capacidade | M | Ready (pré-condição externa) | R-PAT-4, R-PAT-5, R-FIN-4, R-FIN-10, R-PRD-9, R-PRP-7 | PAT-03a, FIN-02, FIN-03a, FIN-05, CAD-03, CAD-04a, PLN-01a | [PAT-03b](PAT-03b-custo-cp-capacidade.md) |
+
+Total da Fase 6: 15 stories (P: 1 · M: 11 · G: 3), todas `Ready`; 11 com pré-condição externa explícita, que não bloqueia (inclui a CAD-04c2, vinda da Fase 3).
+
+| Marco (ordem de execução) | Stories |
+|---|---|
+| 6.2 "Folha lançada" (primeiro) | CAD-04c2, RH-02a, RH-02c, RH-02b, RH-03 |
+| 6.1 "Ponto" (controle interno) | RH-01a, RH-01b, RH-01c |
+| 6.3 "LGPD" | LGPD-01a, LGPD-01b |
+| 6.4 "Patrimônio" (em paralelo) | PAT-01a, PAT-01b, PAT-02, PAT-03a, PAT-03b |
+
+## Quebras e re-estimativas
+- **Quebras (primeira validação):** RH-01 → 01a/01b/01c; RH-02 → 02a/02b/02c; LGPD-01 → 01a/01b; PAT-01 → 01a/01b; PAT-03 → 03a/03b. Depreciação (R-PAT-6) continua na Fase 9.
+- **Re-estimada (M → G):** RH-02c (favorecido funcionário no `finance.payables` e na OP da FIN-03a, leitura sensível da conta no pagamento, 2FA de novo e previsão por funcionário, ADR 0036).
+- **Dependência retirada:** a RH-02a não depende mais da RH-01c (horas lançadas ou importadas; quando o ponto existir, "Usar horas do espelho", RH-01c CA 16).
+
+## Padrões comuns da Fase 6
+1. **Dado do RH é sensível por padrão:** salário, valores de folha, localização do ponto, dados bancários, dependentes e atestados só por rota `/sensitive` ou comando próprio com `hr.view_sensitive` (atestado com `hr.view_health`), com `SensitiveRead`, `no-store`, `[PersonalData]`, allowlist e canário (ADR 0016).
+2. **Nada é apagado:** marcação de ponto é desconsiderada por ajuste aprovado; folha e período fechados só reabrem com motivo; movimento de bem é imutável; o bem é baixado, não excluído.
+3. **Autoatendimento do funcionário (ADR 0035):** "Meu ponto", "Meu espelho" e "Meus holerites" em `/api/v1/me/hr/*`, liberadas pela camada 1 e pelo vínculo com funcionário ativo, sem ação no grupo; o funcionário vem sempre da sessão; no tablet, só os endpoints da lista `[PinSessionAllowed]` (ADR 0026, adendo) e marcar encerra a sessão por PIN; quem ganha `hr.view_sensitive` perde o PIN.
+4. **Ponto como controle interno:** faixa "Controle interno de jornada…" na tela, no comprovante, no espelho e na ajuda; o registro oficial (REP-P / Portaria 671) é story futura (P-26).
+5. **Folha no caixa (ADR 0036):** o fechamento chama o `IPayables` na mesma transação; um título por funcionário (`payee_type = Employee`) e um por guia (órgão como `Party`); conta de salário lida só no "Pagar" da OP; previsão `PayrollForecast` de 3 meses com 13º e férias; quem fecha (`hr.approve`) não paga (`finance.pay`); conta em quarentena fora do pagamento automático.
+6. **Segregação:** quem pede ajuste não aprova; quem troca a conta de salário não a revisa; exceção do Proprietário único pelo `SoleOwnerRule`, com marca e notificação.
+7. **Regra legal é parâmetro:** tolerâncias, banco de horas, rubricas, guias, vencimentos, layouts e retenção pré-configurados em Configurações (Parâmetros → RH, Privacidade) com o chip "A confirmar com a contadora".
+8. **PDF pelo `IPdfRenderer`** sem CPF completo (máscara 3+2), salário ou dado que o documento não precisa; holerite só em "Meus holerites", e o e-mail só avisa, sem anexo.
+9. **LGPD (ADR 0037):** inventário de onde há dado pessoal, cada lugar com `IPersonalDataProvider` ou expurgo; `PersonalDataTests` cobre as entidades novas; anonimização com confirmação digitada e 2FA de novo, uma transação por módulo, retomável.
+10. **Patrimônio (ADR 0038):** `assets.sites`, OS de manutenção no Assets, custo com `assets.edit`, parada na capacidade pelo `IWorkCenterCapacity`; QR só com a URL da etiqueta (`/b/{etiqueta}`), leitura com login, foto sem EXIF/GPS.
+
+## Validação do PO (21/10/2026)
+Primeira validação: as 14 stories com 10/10 (PAT-02 com GO; as demais com GO condicional), todas `Draft`; a CAD-04c2 já era `Ready`. Na revalidação, as 15 stories tiveram **10/10 e `Ready`**; os NO-GOs foram resolvidos pela ADR 0036 (RH-02c, favorecido) e pela D15 (RH-02b, "Meus holerites" como canal).
+- **Pré-condições externas explícitas** (não bloqueiam): RH-02a, RH-02c, RH-03, RH-01c, LGPD-01b e PAT-03b (conferência da contadora e do jurídico sobre os valores pré-configurados); RH-01a e RH-02b (usuário para cada funcionário, com e-mail de apelido quando preciso); LGPD-01a (prazo de 15 dias e dado de terceiros, jurídico); PAT-01b (impressora e etiqueta, P-13); PAT-03a (máquinas com plano e horímetro).
+- **Revalidação por amostragem do PO no fechamento (21/10/2026):** RH-02c conferida de novo contra a ADR 0036 e a D6; `IBusinessCalendar` passou a ser criado na DSH-01a (Fase 4), com os métodos da folha acrescentados na RH-02a.
+
+## Pontos em aberto da Fase 6
+Nenhum. Os 58 pontos da tabela 3.3 foram decididos em 21/10/2026; o ponto 5 (uso legal do ponto) foi decidido pelo PO como controle interno, e o 23 (favorecido) pela opção do arquiteto.
+
+---
+
+# Fase 7 — Folha calculada
+
+Ver as [decisões do PO](#decisões-do-po-21102026-john-1) na Fase 4. A Fase 7 entra no planejamento antes do go-live (D1 mudada). **Regra da fase:** as regras legais mudam todo ano; tabelas de INSS, IRRF, salário-família, salário mínimo, FGTS e encargos ficam **por vigência no banco**, pré-cadastradas com a legislação vigente e marcadas "A confirmar com a contadora" até a conferência. A calculada roda como simulação e só substitui a lançada depois de 3 competências seguidas aceitas na conferência paralela (FLH-06); essa virada é operação e **não segura o go-live**. eSocial, DCTFWeb e FGTS Digital ficam fora do produto (PRD §3.3).
+
+## Índice
+| Ordem | ID | Título | Tam. | Status | Requisitos | Depende de | Arquivo |
+|---|---|---|---|---|---|---|---|
+| 1 (7.1) | FLH-01 | Folha calculada: tabelas legais por vigência (INSS, IRRF, salário-família e parâmetros) | M | Ready (pré-condição externa) | R-RH-6, R-SEC-5, PRD §6 | RH-02a, RH-02c, CAD-06, ADR 0016, FND-09e | [FLH-01](FLH-01-tabelas-legais-vigencia.md) |
+| 2 (7.1) | FLH-02a | Folha calculada: cálculo mensal (salário, adicionais, faltas, INSS, IRRF, FGTS, salário-família, VT) | G | Ready (pré-condição externa) | R-RH-6, R-RH-5, R-FIN-10, PRD §6, R-SEC-5, R-PRP-7 | FLH-01, RH-02a, RH-02b, RH-02c, ADR 0036, RH-01c, CAD-04c2 | [FLH-02a](FLH-02a-calculo-mensal.md) |
+| 3 (7.1) | FLH-02b | Folha calculada: horas extras, adicional noturno e DSR a partir do ponto | M | Ready (pré-condição externa) | R-RH-6, R-RH-4, R-SEC-5 | FLH-02a, RH-01c, FLH-01, CAD-03 | [FLH-02b](FLH-02b-horas-extras-dsr.md) |
+| 4 (7.2) | FLH-03 | Folha calculada: férias (períodos aquisitivos, programação, cálculo e recibo) | G | Ready (pré-condição externa) | R-RH-6, R-RH-4, R-RH-5, R-FIN-10, R-PRP-5, R-SEC-5 | FLH-02a, FLH-02b, FLH-01, RH-01c, RH-02b, ADR 0036, CAD-04b | [FLH-03](FLH-03-ferias.md) |
+| 5 (7.2) | FLH-04 | Folha calculada: 13º salário (1ª e 2ª parcelas) | M | Ready (pré-condição externa) | R-RH-6, R-RH-5, R-FIN-10, R-SEC-5 | FLH-02a, FLH-01, FLH-03, RH-02b, ADR 0036 | [FLH-04](FLH-04-decimo-terceiro.md) |
+| 6 (7.2) | FLH-05 | Folha calculada: rescisão | G | Ready (pré-condição externa) | R-RH-6, R-RH-3, R-RH-5, R-FIN-10, R-PRP-2, R-PRP-7 | FLH-02a, FLH-03, FLH-04, FLH-01, CAD-04b, RH-01c, RH-02b | [FLH-05](FLH-05-rescisao.md) |
+| 7 (7.3) | FLH-06 | Folha calculada: conferência paralela com a contadora e virada | M | Ready (pré-condição externa) | R-RH-6, R-SEC-5, R-PRP-2 | FLH-02a, FLH-02b, RH-02a, RH-03, FLH-03, FLH-05 | [FLH-06](FLH-06-conferencia-paralela.md) |
+
+Total da Fase 7: 7 stories (M: 4 · G: 3), todas `Ready`; 7 com pré-condição externa explícita, que não bloqueia.
+
+## Ordem de execução
+```
+7.1 Tabelas e cálculo mensal:  FLH-01 → FLH-02a → FLH-02b
+7.2 Férias, 13º e rescisão:    FLH-03 → FLH-04 → FLH-05
+7.3 Virada:                    FLH-06 (começa depois da FLH-02b e corre em paralelo ao 7.2; a virada exige 3 competências seguidas aceitas)
+```
+
+## Quebras
+- **FLH-02** → **02a** (cálculo mensal, G) e **02b** (horas extras e DSR do ponto, M). Holerite e fechamento reaproveitam a RH-02b e a RH-02c.
+
+## Padrões comuns da Fase 7
+1. **Motor puro** (`PayrollCalculator`, Domain, sem banco nem log de valores), cada regra legal uma função testada por tabela de casos. **O CI roda com dataset sintético** tirado da legislação vigente (nunca holerite real no Git, ADR 0039); **a conferência da contadora com o dataset de referência dela é pré-condição da virada (FLH-06)**, não do `Ready`.
+2. **Determinismo (ADR 0039):** `calculator_version`, ids das tabelas e dos parâmetros e retrato das entradas por holerite; folha fechada nunca é recalculada; retificação nasce `Draft` e passa por nova conferência.
+3. **Memória de cálculo** em toda linha (tabela, vigência e entradas usadas).
+4. **Simulação até a virada:** a calculada não fecha como oficial antes da FLH-06; parâmetro mudado com `settings.edit` aparece como aviso no fechamento.
+5. **Valores só com `hr.view_sensitive`**, canário em log e em argumentos de job; `parallel_differences` com `[PersonalData]`.
+
+## Validação do PO (21/10/2026)
+Primeira validação: as 7 stories com 10/10, GO condicional, `Draft` (dependiam dos datasets da contadora). Na revalidação, com o dataset sintético no CI e a conferência da contadora como pré-condição da virada, as 7 tiveram **10/10 e `Ready (pré-condição externa)`**.
+- **Pré-condição externa** de todas: a contadora confere as tabelas e os parâmetros pré-cadastrados e entrega o dataset de referência antes da virada (FLH-06), que ela assina.
+
+## Pontos em aberto da Fase 7
+Nenhum. Os 28 pontos da tabela 3.4 e a linha "Determinismo" foram decididos em 21/10/2026.
+
+---
+
+# Fase 8 — Cliente e comunicação
+
+Ver as [decisões do PO](#decisões-do-po-21102026-john-1) na Fase 4. O portal do cliente é a quarta superfície do front, em **host próprio** (ADR 0040; no `konebras`, `portal.konebras.com.br`), com identidade separada do backoffice e isolamento estrito por cliente: o cliente vê etapas, documentos compartilhados, parcelas e boletos, nunca custo, margem ou dado interno.
+
+## Índice
+| Ordem | ID | Título | Tam. | Status | Requisitos | Depende de | Arquivo |
+|---|---|---|---|---|---|---|---|
+| 1 (8.1) | POR-01a | Portal do cliente: acesso separado do backoffice e isolamento por cliente | G | Ready (pré-condição externa) | PRD §5.15, PRD §2, R-SEC-1, R-SEC-2, R-SEC-3, R-SEC-5 | FND-02, FND-03b, FND-04, FND-05, FND-06, FND-08, FND-11 | [POR-01a](POR-01a-acesso-portal-cliente.md) |
+| 2 (8.2) | POR-01b | Portal do cliente: projetos, etapa, previsão de entrega e documentos | M | Ready | PRD §5.15, R-PRJ-4, R-COM-3, R-SEC-5, PRD §6 | POR-01a, COM-04a, COM-05, COM-06, FND-07, FND-08, PLN-01a | [POR-01b](POR-01b-portal-projetos-documentos.md) |
+| 3 (8.2) | POR-01c | Portal do cliente: parcelas e boletos | M | Ready | PRD §5.15, R-FIN-3, R-FIN-7, R-SEC-5, PRD §6 | POR-01a, POR-01b, FIN-01, COM-04b, BNK-01b, BNK-02 | [POR-01c](POR-01c-portal-parcelas-boletos.md) |
+| 4 (8.3) | POR-02 | Portal do cliente: aceite online do orçamento | M | Ready | R-COML-10, R-COML-4, R-COML-3, R-COM-2, R-PRP-2, R-PRP-7 | POR-01a, POR-01b, COM-02, COM-03, COM-04a, FND-08 | [POR-02](POR-02-aprovacao-online-orcamento.md) |
+| 5 (8.4) | WPP-01 | Notificações por WhatsApp (cobrança e status do projeto) | G | Ready (pré-condição externa) | R-FIN-9, PRD §3.2, PRD §6, R-SEC-5 | FIN-09, POR-01a, POR-01b, POR-01c, CAD-01a, CAD-03, FND-16 | [WPP-01](WPP-01-notificacoes-whatsapp.md) |
+
+Total da Fase 8: 5 stories (M: 3 · G: 2), todas `Ready`; 2 com pré-condição externa explícita, que não bloqueia.
+
+## Ordem de execução
+```
+8.1 Acesso do cliente:   POR-01a
+8.2 Acompanhamento:      POR-01b → POR-01c
+8.3 Aceite online:       POR-02
+8.4 Comunicação:         WPP-01 (bloqueia a GOL-01a)
+```
+
+## Quebras
+- **POR-01** → **01a** (identidade e isolamento, G), **01b** (projetos e documentos, M) e **01c** (parcelas e boletos, M).
+
+## Padrões comuns da Fase 8
+1. **Identidade do portal separada (ADR 0040):** chave de assinatura própria, claim de tipo de token, validação estrita de `aud` nos dois esquemas; token de um lado dá 401 no outro (teste sobre todos os endpoints); refresh com detecção de reuso; trocar o e-mail do contato invalida o acesso.
+2. **`party_id` sempre da sessão;** um contato vê um cliente só; rota com id de outro cliente responde 404 uniforme (teste com dois clientes e dois tenants).
+3. **DTOs do portal por allowlist** e contratos `ForPortal*` nos módulos donos; teste de arquitetura sem custo, margem, orçado, observação interna ou dado de funcionário.
+4. **Compartilhar é explícito:** documento só aparece marcado em `portal.shared_documents` (NF-e do próprio cliente compartilhada por padrão).
+5. **O sistema sugere, não decide:** o aceite do cliente só avisa o Comercial e pré-preenche a aprovação interna (ADR 0005 D5); código por e-mail obrigatório no aceite, com versão, hash do PDF congelado no envio, IP, user-agent e recibo.
+6. **Mensagens externas (ADR 0041):** WhatsApp pela API oficial da Meta por um parceiro, opt-in pelo próprio contato (trocar o número derruba o opt-in), mensagem só com o aviso e o link do portal, dias úteis das 8 h às 18 h.
+7. **Kit Portal** (padrão 5 das Fases 4 a 8).
+
+## Validação do PO (21/10/2026)
+Primeira validação: as 5 stories com 10/10 (POR-01c GO; as demais GO condicional), `Draft`. Na revalidação, as 5 tiveram **10/10 e `Ready`**; os NO-GOs foram resolvidos pela ADR 0040 (POR-01a) e pela ADR 0041 (WPP-01).
+- **Pré-condições externas explícitas:** POR-01a (DNS do host do portal pela Konebras); WPP-01 (contrato com o parceiro, número verificado e modelos aprovados na Meta, P-29).
+- **Ajustes em stories já entregues, feitos dentro das stories da fase:** POR-02 grava `pdf_sha256` no envio da COM-03; POR-01c acrescenta "Segunda via pelo portal" em Configurações → Cobrança (BNK-01b).
+- **Revalidação por amostragem do PO no fechamento (21/10/2026):** POR-01a conferida de novo contra a ADR 0040 (host próprio).
+
+## Pontos em aberto da Fase 8
+Nenhum. Os 21 pontos da tabela 3.5 foram decididos em 21/10/2026 (D16 pela opção da segurança).
+
+---
+
+# Marco final — Go-live
+
+As GOL-01a e GOL-01b são as últimas stories do planejamento (D1 mudada pelo PO em 21/10/2026; ADR 0034). A GOL-01a exige **Fases 0 a 8 concluídas** e o PR de reforço da D19.
+
+## Índice
+| Ordem | ID | Título | Tam. | Status | Requisitos | Depende de | Arquivo |
+|---|---|---|---|---|---|---|---|
+| 1 (Go-live) | GOL-01a | Go-live Konebras: critérios de entrada, ambiente de produção novo, runbook e ensaio completo da virada | G (re-estimada de M) | Ready (pré-condição externa) | PRD §7, PRD §1.2, PRD §6, R-PLT-2, R-TER-5, R-SEC-3 | Fases 0 a 8 concluídas | [GOL-01a](GOL-01a-preparacao-ensaio-virada.md) |
+| 2 (Go-live) | GOL-01b | Go-live Konebras: a virada, o corte do Dolibarr e a primeira semana | M | Ready (pré-condição externa) | PRD §7, PRD §1.2, R-PLT-2, R-TER-5, R-FIS-2, R-FIN-7 | GOL-01a | [GOL-01b](GOL-01b-virada-primeira-semana.md) |
+
+Total: 2 stories (M: 1 · G: 1), todas `Ready`; 2 com pré-condição externa explícita, que não bloqueia.
+
+## Checklist de go-live (resumo; detalhe na GOL-01a e na GOL-01b)
+Critérios de entrada com evidência e "Go" do PO (Fases 0 a 8 concluídas; P-02; P-19 e P-20 aplicadas; contagem física do estoque com saldo inicial; usuários do chão de fábrica, P-24; folha do mês anterior pela RH-02c; Configurações → Fiscal sem campo crítico "A confirmar com a contadora"; certificado A1 válido no cofre do EmissorFiscal; lacunas do Emissor e provider de Caçapava entregues; Inter de produção testado no D−1; linha de base da métrica "desvio da data prevista ≤ 15%") → **ambiente de produção novo** (catálogo novo só com o `konebras`, key ring, certificado do Data Protection e segredos novos) → **restauração e rollback ensaiados numa cópia, obrigatórios** → D−1 backups extras → congelamento do Dolibarr, carga final só dos cadastros alterados → `DROP USER` com revogação na rede, `DOLAPIKEY` regenerada, Dolibarr em `adm.` só leitura com allowlist → **todas as famílias de refresh revogadas e security stamp de todos subido**; convites, redefinições, PINs, aparelhos e quiosques expirados → webhooks e Inter de sandbox para produção → primeira nota e primeiro boleto reais com o PO; envio de WhatsApp aos clientes ligado → rollback possível até o fim do primeiro dia útil → primeira semana acompanhada → Dolibarr desligado depois do primeiro fechamento ou em até 3 meses, backup por 5 anos. A virada da folha calculada (FLH-06) é operação e não segura o go-live.
+
+## Validação do PO (21/10/2026)
+As 2 stories tiveram **10/10 e `Ready (pré-condição externa)`**: a trilha externa da D2 com dono e data (contadora, Konebras, Inter, EmissorFiscal) e a janela da virada no início de um mês. Os pontos 74 a 81 da tabela 3.2 foram decididos (D1 mudada, D7). **Revalidação por amostragem do PO no fechamento:** GOL-01a conferida de novo (FLH-06 fora do go-live; WhatsApp ligado na GOL-01b).
+
+## Pré-condições do planejamento (fora das stories)
+1. **Trilha externa da D2**, aberta já, com dono e data para cada item: P-01, P-02 e P-03 com a contadora; certificado A1 e conta Inter com API (P-08) com a Konebras; EmissorFiscal implantado em homologação (`demo`).
+2. **Lacunas do EmissorFiscal** (D3, P-27), no repositório dele: reconciliação com a SEFAZ, DANFE em PDF, `transp`, IBS/CBS, escopo `nfe:eventos`, timestamp no HMAC, rede `bqe-fiscal` e as demais da ADR 0027; provider da NFS-e de Caçapava antes da FIS-06.
+3. **PR de reforço do código no ar (D19):** `KnownProxies` só com o IP do `stack-nginx`; apagar o modelo do e-mail de convite e de redefinição depois do envio; teste de arquitetura da lista versionada de rotas anônimas; idempotência com o usuário no escopo (D17 c da Fase 3) e expurgo de 30 dias da `idempotency_records`.
+4. **Protótipos antes dos marcos (D18):** nota de saída (rascunho, emissão, rejeitada) e conciliação antes do Marco 5.4; kit Portal antes da Fase 8.
+5. **Riscos de migração (§4.2):** `payables.party_id` anulável é expansão (código N-1 tolerante); conferir linhas em `kiosk_tokens` antes de trocar a rota da TV; `commercial.projects.priority` e `planned_*` das OS de fabricação só são apagados com ADR, na contração; expurgos e anonimização apagam dado de propósito (ADRs 0031 e 0037).
+
+## Rastreabilidade da revisão pré-Fases 4 a 8
+| Item da revisão | Onde entra |
+|---|---|
+| D1 (mudada: tudo antes do go-live) | Ordem acima; marco final "Go-live"; ADR 0034; GOL-01a (Fases 0 a 8 concluídas) |
+| D2 (trilha externa) | Pré-condições do planejamento; GOL-01a |
+| D3 (lacunas do EmissorFiscal) | ADR 0027; P-27; FIS-01, FIS-03a, FIS-03b, FIS-06 |
+| D4 (venda mista e receita) | FIS-03a, FIS-06, FIN-08, DSH-01a, DSH-01b; P-17 |
+| D5 (NFS-e) | FIS-06 (processo provisório até o provider de Caçapava) |
+| D6 (P-19 e P-20) | ADR 0008 adendo; BNK-01a (filtro e FIN-03a), BNK-02, FIS-02a, FIS-03b, CAD-04c2, RH-02c, LGPD-01b, WPP-01 |
+| D7 (critérios da GOL) | GOL-01a, GOL-01b; ADR 0034 |
+| D8 (custo e imposto no projeto) | ADR 0025 adendo; DSH-02, FIS-03a, FIS-03b |
+| D9 (painel do dono) | ADR 0028; DSH-01a, DSH-01b, DSH-03, DSH-04, FIN-08 |
+| D10 (planejamento) | ADR 0029; PLN-01a, PLN-01b, PLN-02, PLN-04, PAT-03b |
+| D11 (TV) | ADR 0030; PNL-01a, PNL-01b; `02-arquitetura` §2.1 e §4 |
+| D12 (fiscal) | ADRs 0027, 0003 e 0008 adendos; FIS-02a, FIS-03a, FIS-03b, FIS-04a, FIS-04b, FIS-05 |
+| D13 (Inter) | ADRs 0031 e 0032; FND-16, BNK-01a, BNK-01b, BNK-02, BNK-03a, BNK-03b |
+| D14 (folha, opção do arquiteto) | ADR 0036; CAD-04c2, RH-02a, RH-02c |
+| D15 (ponto como controle interno) | ADR 0035, ADR 0026 adendo; RH-01a, RH-01b, RH-01c, RH-02b; P-26 |
+| D16 (portal, opção da segurança) | ADR 0040, ADR 0009 adendo; POR-01a, POR-01b, POR-01c, POR-02 |
+| D17 (WhatsApp) | ADR 0041; WPP-01; FND-16 (GET de verificação) |
+| D18 (componentes e protótipos) | Padrões comuns das Fases 4 a 8 (1 a 7); FIN-07, DSH-02, FIN-08, PLN-03, PNL-01a, BNK-01a, BNK-01b |
+| D19 (reforço do código) | Pré-condições do planejamento, item 3 |
+| Novo requisito (Configurações) | ADR 0042; BNK-01a, BNK-01b, FIN-09, FIS-02a, FIS-02b, WPP-01, POR-01c; P-28 |
+| Tabelas 3.1 a 3.5 | "Pontos em aberto" de cada story, como decididos |
+| §4.1 (decisões da Fase 3) | CAD-04c1/CAD-04c2 e PRD-06a1/PRD-06a2 nas dependências; FIS-03a e FIS-03b sem os dois caminhos de baixa; FIS-04b; DSH-02; DSH-03 e DSH-04 com `production.approve_quality`; PNL-01b, PLN-05, PLN-02; FND-16 |
+| §4.2 (arquitetura) | ADRs 0029, 0031, 0032, 0035, 0037, 0038; FND-16, BNK-01a, RH-01a, RH-01c, LGPD-01a, PAT-03b |
+| §4.3 (segurança) | CAs **[Segurança]** em todas as stories das Fases 4 a 8 |
+| §4.4 (design) | Padrões comuns das Fases 4 a 8 e achados pontuais |
+| §5 (ADRs) | ADRs 0027 a 0042 e adendos às 0003, 0006, 0007, 0008, 0009, 0025 e 0026 |
+| §6 (ordem) | Substituída pela ordem da D1 mudada |

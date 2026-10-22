@@ -34,3 +34,26 @@
 - **CMP-03a e CMP-04:** previstos e títulos de compra de item estocável aparecem como comprometido.
 - **PRD-06a2:** custo da OS pelas fontes síncronas.
 - O `docs/03-modelo-dados.md` passa a descrever a `project_costs` como tabela (não view).
+
+## Adendo 21/10/2026 (revisão pré-Fases 4 a 8, decisão D8 do PO): comprometido por saldo e imposto pela nota
+- Origem: `docs/revisoes/2026-10-21-revisao-pre-fases4-8.md`, D8 e tabela 3.1 pontos 5 a 9. A DSH-02 somava o comprometido duas vezes (títulos previstos **e** pedidos de compra pelo `IPurchaseOrders`) e realizava imposto pela guia, que é da empresa e não do projeto.
+- **Fonte única nos títulos do Finance.** O comprometido do projeto é lido só pelo `IPayables.ByProjectAsync`; o `IPurchaseOrders` não entra no cálculo de custo (continua servindo para mostrar a situação da compra, só leitura).
+- **Comprometido de material por saldo**, por projeto e natureza:
+  - comprometido de material = **max(0, Σ títulos de compra de item estocável do projeto (origens `Purchase` e `GoodsReceipt`, fora de `Cancelled`) − Σ baixas líquidas de material para as OS do projeto (requisição menos devolução, EST-03))**;
+  - o título previsto (`Planned`) de serviço (instalador, frete, outros) continua no comprometido até ser confirmado, e então passa ao realizado (§1, sem mudança);
+  - o max(0, …) evita comprometido negativo quando a baixa usa material comprado para outro projeto ou de estoque anterior; a diferença não vira crédito do projeto.
+- **Imposto realizado só pela nota autorizada.**
+  - Duas fontes novas na razão `commercial.project_costs`: **`InvoiceTax`** (tributos da NF-e ou NFS-e autorizada que entram no custo do projeto) e **`InvoiceTaxReversal`** (estorno, no cancelamento da nota), com o mesmo padrão de razão de diferenças (§2: `source_id` = id da nota, `seq`, valor anterior e novo).
+  - Tributos que entram no custo: os marcados em Configurações → Fiscal (ADR 0042; padrão ICMS, PIS, COFINS, ISS e IBS/CBS; IPI fora), todos "A confirmar com a contadora".
+  - **Data de corte:** só notas autorizadas a partir da data de corte do tenant (parâmetro `fiscal.project_tax_cutover_on`, preenchido na primeira nota real em produção, GOL-01b) geram linha; nota anterior ou de homologação nunca gera (sem recomposição, §3 não se aplica a imposto).
+  - **Guia de imposto** (DARF, GARE, DAS) é custo da empresa: nunca entra no custo do projeto, nem como comprometido nem como realizado.
+  - **Até existir nota real** do projeto, o projetado usa o imposto **orçado** (composição do orçamento aprovado), com a marca "Imposto orçado"; com a primeira nota, a parcela faturada passa a usar o imposto da nota e o resto continua pelo orçado.
+- **Margem do consolidado** (vários projetos) é ponderada pela receita, nunca a média simples das margens.
+- **Custo da não conformidade** (PRD-05) continua informativo, fora do realizado (item 78 da Fase 3).
+- **[Segurança]** Drill-down de horas com nome de funcionário e custo-hora individual exige `hr.view_sensitive`, além de `projects.view_cost`; sem ela, as horas aparecem agregadas por centro de trabalho.
+
+### Consequências do adendo
+- **DSH-02** implementa o comprometido por saldo e o projetado com o imposto orçado, e troca o cálculo do Projeto 360 sem mudar o total projetado de projeto sem compra (teste de regressão sobre cópia do `konebras`).
+- **FIS-03a** (NF-e) e **FIS-06** (NFS-e) publicam os eventos de nota autorizada e cancelada com os tributos por natureza; o consumidor do Commercial grava `InvoiceTax`/`InvoiceTaxReversal`. **FIS-03b** cobre o estorno no cancelamento.
+- **FIS-02a** cria o parâmetro `fiscal.project_tax_cutover_on` e a lista de tributos no custo (ADR 0042).
+- `docs/03-modelo-dados.md`: `project_costs.source` ganha `InvoiceTax` e `InvoiceTaxReversal`.

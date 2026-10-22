@@ -67,10 +67,25 @@ Regra dura: **nenhum pagamento é baixado sem OP aprovada**. Exceção: tarifas,
 - Título de origem `Contract`: valor só pelo contrato ou pelo aditivo; vencimento editável no título em aberto, com motivo (D14); com o contrato `Cancelled`, o cancelamento do título é liberado com `finance.edit` (ADR 0019 §4).
 
 ### Boleto (Inter)
-`Issued → Paid (webhook ou conciliação) | Cancelled | Expired`.
+`Requested → Issued → Paid (webhook com reconsulta por mTLS, ou conferência diária) | PaidPendingReview (pagamento com diferença: conferência humana) | Cancelled | Expired` (BNK-01b, BNK-02, ADR 0032). O webhook nunca baixa pelo corpo; estorno de baixa feita pelo banco e estorno de pagamento da OP exigem `finance.approve` (D6, P-20). Multa, juros e desconto vêm de Configurações → Cobrança; acima do limite da D8, `finance.approve`.
+
+### Conciliação bancária (BNK-03a/03b)
+Linha do extrato (API do Inter ou OFX; OFX bloqueado em conta com API, salvo contingência com `finance.approve`) `Imported → Matched | Ignored` (imutável; "Ignorada" com motivo). Quem importou não confirma a conciliação; o período `Open → Closed` com `finance.approve`.
 
 ### NF-e de saída
-`Draft → Processing → Authorized | Rejected (corrigir e reenviar)`; `Authorized → Cancelled` (dentro do prazo legal).
+`Draft → Processing → Authorized | Rejected (corrigir e reenviar, nova tentativa) | Denied`; `Processing` é reconciliado com a SEFAZ pelo EmissorFiscal (ADR 0027); `Authorized → Cancelled` em uma etapa, com `fiscal.approve` e 2FA de novo, dentro de 24 h (os demais usam "Pedir cancelamento"); números sem nota vão para "A inutilizar" (FIS-03b). A NF-e só referencia o romaneio, e cancelar não mexe no estoque (D12). Venda mista (D4): o equipamento sai em NF-e na expedição e a instalação em NFS-e no aceite técnico (FIS-06); a parcela do contrato é só cobrança.
+
+### Folha lançada (RH-02a/02c, ADR 0036)
+`Draft → Closed → Paid`; `Paid → Closed` pelo estorno da OP; reabrir `Closed → Draft` só com motivo e sem pagamento em andamento. O fechamento (com `hr.approve` e 2FA de novo) chama o `IPayables` na mesma transação: um título por funcionário (`payee_type = Employee`) e um por guia; a previsão `PayrollForecast` dos próximos 3 meses é substituída pela folha real. Quem fecha não paga.
+
+### Ponto (RH-01a/01b/01c, ADR 0035)
+Marcação imutável (controle interno, não registro oficial); ajuste `Pending → Approved | Rejected` (quem pede não aprova); período `Open → Closed` com `hr.edit`, reabertura com motivo.
+
+### OS de manutenção (PAT-03a, ADR 0038)
+`Open → InProgress → Done | Cancelled`; o bem fica "Em manutenção" enquanto parado e não é baixado com OS aberta; a parada reduz a capacidade do centro pelo `IWorkCenterCapacity`.
+
+### Pedido do titular (LGPD-01a/01b, ADR 0037)
+`Received → IdentityChecked → Exported | Anonymized | Rejected`, com prazo de 15 dias corridos; anonimizar exige confirmação digitada e 2FA de novo, uma transação por módulo, retomável.
 
 ## 2. Eventos de domínio (outbox) e reações
 
@@ -100,9 +115,17 @@ Regra dura: **nenhum pagamento é baixado sem OP aprovada**. Exceção: tarifas,
 | PaymentOrderApproved | Finance | Notifica financeiro para pagar |
 | BillingSlipPaid | Finance (webhook) | Baixa receivable, cria transação, atualiza estatística de pontualidade |
 | ShipmentDispatched | Production | Só aviso e projeção: a baixa do produto acabado (`Shipment`) e as séries expedidas são síncronas na confirmação do romaneio, com 409 `insufficient_stock` (PRD-06b, D4 de 21/10/2026); o `Shipment` não entra no custo do projeto |
-| InvoiceAuthorized | Fiscal | A NF-e de saída **referencia o romaneio** e nunca baixa o estoque de novo (D4 de 21/10/2026); anexa XML/PDF ao projeto; e-mail ao cliente |
-| PayrollClosed | HR | Finance cria payables de salários e encargos |
-| MaintenanceScheduled | Assets | Planning reduz capacidade do centro de trabalho no período |
+| InvoiceAuthorized | Fiscal | A NF-e de saída **referencia o romaneio** e nunca baixa o estoque de novo (D4 de 21/10/2026); Commercial grava o imposto como `InvoiceTax` na razão `project_costs` (imposto realizado só pela nota, ADR 0025 adendo); anexa XML/PDF ao projeto; e-mail ao cliente |
+| PayrollClosed | HR | **Só aviso** (ADR 0036): os títulos de salários e guias nascem na transação do fechamento, pelo `IPayables` (RH-02c) |
+| PaymentOrderPaid / PaymentOrderReversed | Finance | HR passa a folha a Paid ou de volta a Closed (RH-02c; o `PaymentOrderReversed` é novo) |
+| ProjectForecastChanged | Production | Commercial grava `commercial.project_forecasts` só se o `computedAt` for o mais novo; aviso de risco ao responsável e a `production.approve` (PLN-01b, ADR 0029) |
+| InvoiceCancelled | Fiscal | Commercial grava `InvoiceTaxReversal` na razão `project_costs` (FIS-03b, ADR 0025 adendo); nada no estoque |
+| BillingSlipIssued / BillingSlipCancelled | Finance | Régua de cobrança (FIN-09) e portal (POR-01c), lendo a fonte no envio |
+| WebhookReceived | Host (FND-16) | Consumidor do provedor (inbox) reconsulta a fonte; gravado na mesma transação do `webhook_events` (ADR 0031) |
+| PartyContactChanged | Parties | Portal invalida o acesso quando o e-mail muda; WhatsApp derruba o opt-in quando o número muda (POR-01a, WPP-01) |
+| QuoteAcceptedByCustomer / QuoteRejectedByCustomer | Commercial | Só aviso ao Comercial e pré-preenchimento da aprovação interna (POR-02, ADR 0005 D5) |
+| SubjectAnonymized | Settings | Cada módulo confirma a anonimização da sua parte (LGPD-01b) |
+| MaintenanceScheduled / MaintenanceUnscheduled / MaintenanceCompleted | Assets | Production grava ou retira a parada em `production.downtimes` (horas por dia), que o `IWorkCenterCapacity` desconta; o plano é recalculado (PAT-03b, PLN-01b, ADR 0038) |
 
 - O outbox não garante ordem: o consumidor que depende de outro evento grava o que recebeu e aplica quando o documento existir (registro de gatilhos, ADR 0019 §1).
 - **Efeito síncrono, projeção por evento (ADR 0023 §1, revisão pré-Fase 3, 21/10/2026):** o efeito de estoque e de título de um documento é chamada síncrona ao contrato do dono, na transação do documento; o evento fica para custo do projeto, notificação e painéis. Consumidores de reserva e falta reconciliam a partir da fonte, nunca pelo delta do evento. Avisos de tempo real saem depois do commit, também nos consumidores do outbox.
@@ -122,20 +145,22 @@ Regra dura: **nenhum pagamento é baixado sem OP aprovada**. Exceção: tarifas,
 
 ### 3.3 Orçado × realizado por projeto
 - Orçado: `project_budget` por tipo de custo, copiado do contrato (e ajustado por aditivo).
-- Realizado: material (movimentos de saída para OS do projeto + compras diretas ao projeto), mão de obra (apontamentos), instalação (payables do instalador vinculados), frete/outros (payables com projeto), impostos (NF autorizadas).
+- Realizado: material (movimentos de saída para OS do projeto + compras diretas ao projeto), mão de obra (apontamentos), instalação (payables do instalador vinculados), frete/outros (payables com projeto), impostos (só pela NF autorizada: `InvoiceTax`/`InvoiceTaxReversal`; até lá, o projetado usa o imposto orçado).
+- Comprometido de material (ADR 0025 adendo, D8): max(0, Σ títulos de compra de item estocável do projeto − Σ baixas líquidas para a OS), fonte única nos títulos do Finance.
 - Margem realizada = receita contratada − realizado; margem projetada = receita − (realizado + custo restante estimado), onde restante = orçado − realizado por tipo, nunca negativo.
 
 ### 3.4 Planejamento (agendamento finito simples)
-1. Ordena projetos pela prioridade manual; dentro do projeto, OS por item; dentro da OS, etapas pela sequência.
+1. Ordena projetos pela fila do Production (`production.planning_queue`, reordenada com `production.edit`; padrão: data prometida, depois a assinatura; ADR 0029); dentro do projeto, OS por item; dentro da OS, etapas pela sequência, com a etapa em andamento primeiro e a seguinte no dia útil seguinte.
 2. Para cada etapa não concluída: horas restantes = padrão − apontadas (mínimo 10% do padrão se em andamento).
 3. Aloca a partir do primeiro dia livre do centro de trabalho, respeitando calendário, horas/dia e o fim da etapa anterior.
-4. Data prevista do projeto = maior fim de etapa entre suas OS (+ prazo padrão de instalação configurável).
-5. Recalcula a cada mudança de prioridade, apontamento finalizado, mudança de calendário/manutenção, e de hora em hora.
-6. Risco: prevista > prometida → alerta no dashboard e no painel.
+4. Data prevista do projeto = maior fim de etapa entre suas OS + prazo padrão de instalação (`planning.installation_days`, 5 dias úteis). As datas previstas ficam só nas tabelas do plano (`production.schedule_*`, `commercial.project_forecasts`), com um escritor e fora da auditoria; as OS de instalação mantêm as datas digitadas.
+5. Recalcula a cada mudança da fila, apontamento finalizado, mudança de calendário/manutenção, e de hora em hora; pedidos agrupados (1 rodando, 1 pendente), data nova em até 10 s. Capacidade por centro: férias não reduzem; manutenção vira parada.
+6. Risco: prevista > prometida → alerta no dashboard e no painel e aviso ao responsável e a `production.approve`, sem tolerância.
 
 ### 3.5 Fluxo de caixa projetado
 - **Base:** saldo atual + receivables em aberto/planejados (vencimento original) − payables em aberto/planejados − recorrentes futuros − folha prevista.
-- **Ajustado:** cada receivable deslocado pela média de atraso do cliente (últimos 12 meses; sem histórico → média geral do tenant); clientes com % de inadimplência acima de limite configurável têm o valor ponderado por (1 − %inadimplência).
+- **Ajustado:** cada receivable deslocado pela média de atraso do cliente (últimos 12 meses; sem histórico → média geral do tenant); clientes com % de inadimplência acima de limite configurável têm o valor ponderado por (1 − %inadimplência). Decidido em 21/10/2026 (FIN-07): deslocamento em dias corridos; % de inadimplência = vencido há mais de 30 dias ÷ faturado em 12 meses; limite padrão de 20%; vencido em aberto entra em max(hoje, vencimento + atraso médio).
+- **Folha prevista** (RH-02c): títulos `Planned` de origem `PayrollForecast` por funcionário para os próximos 3 meses, com 13º e férias, substituídos pela folha real no fechamento.
 - Mostra os dois cenários lado a lado e o ponto de menor saldo de cada um.
 
 ### 3.6 Alçadas
@@ -157,3 +182,5 @@ pode(usuário, módulo, ação) = liberado ∧ habilitado ∧ ∃ grupo do usuá
 ORC-AAAA-0001 · CTR-AAAA-0001 · PRJ-AAAA-0001 · OS-AAAA-00001 · NC-AAAA-0001 · SC-AAAA-0001 (solicitação) · COT-AAAA-0001 · PC-AAAA-0001 · REC-AAAA-0001 (recebimento) · CR-AAAA-00001 · CP-AAAA-00001 · OP-AAAA-0001 · MAN-AAAA-0001 · PAT-00001 (etiqueta)
 
 Fase 3 (D15, decisão do PO de 21/10/2026, revisão pré-Fase 3): MOV-AAAA-000001 (movimento de estoque, EST-01a; as pernas de uma transferência e as linhas de um lote de saldo inicial dividem o número) · AJ-AAAA-0001 (ajuste, EST-01b) · REQ-AAAA-0001 (requisição de material, EST-03) · ROM-AAAA-0001 (romaneio, PRD-06b) · INV-AAAA-0001 (inventário, EST-05) · série do produto acabado `{código do item}-{AAAA}-{seq}` (PRD-06a2; antes de implementar, conferir a numeração que a Konebras já usa nos elevadores, campos `elev_*` do Dolibarr, só leitura). Os prefixos são únicos no tenant (teste); a entrada e a saída manual pendentes (D7) usam o número do movimento quando aprovadas.
+
+Fases 4 a 8 (decisões do PO de 21/10/2026): nenhum prefixo novo além dos já previstos (MAN-AAAA-0001 na PAT-03a, PAT-00001 na PAT-01a); "seu número" do boleto é uma sequência opaca por conta em base 36 (BNK-01b), fora desta tabela; o número da NF-e e da NFS-e é do EmissorFiscal, na série exclusiva de Configurações → Fiscal (FIS-02a).
