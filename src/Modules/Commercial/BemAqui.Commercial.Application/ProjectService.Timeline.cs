@@ -35,7 +35,25 @@ public sealed partial class ProjectService
 
         if (project.FabricatedOn is { } fabricated)
         {
-            entries.Add(new(At(fabricated), "fabricated", "Fabricação concluída registrada", null, null));
+            // PRD-06a1 CA 12: o projeto fabricado pelas OS mostra a origem; o registro manual continua como na COM-04b.
+            entries.Add(project.FabricatedByOrders
+                ? new(At(fabricated), "fabricated", "Fabricação concluída pelas OS", "Sistema", "/app/producao/os?projeto=" + id)
+                : new(At(fabricated), "fabricated", "Fabricação concluída registrada", null, null));
+        }
+
+        // PRD-06a1 CA 15: conclusão e último estorno da conclusão de cada OS de fabricação, com quem e o motivo (o histórico da OS tem todos).
+        foreach (var order in await productionOrders.ByProjectAsync(id, cancellationToken))
+        {
+            if (order.CompletedAt is { } completed)
+            {
+                entries.Add(new(completed, "production_order_completed", $"{order.Number} concluída", await WhoAsync(order.CompletedBy, cancellationToken), "/app/producao/os/" + order.Id));
+            }
+
+            if (order.CompletionReversedAt is { } reversed)
+            {
+                entries.Add(new(reversed, "production_order_completion_reversed", $"Conclusão da {order.Number} estornada: {order.CompletionReversalReason}",
+                    await WhoAsync(order.CompletionReversedBy, cancellationToken), "/app/producao/os/" + order.Id + "?aba=historico"));
+            }
         }
 
         if (project.DeliveredOn is { } delivered)

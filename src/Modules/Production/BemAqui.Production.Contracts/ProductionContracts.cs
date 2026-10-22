@@ -105,15 +105,20 @@ public enum ProductionOrderState
     Quality,
     Completed,
     Cancelled,
+
+    /// <summary>"Pronta para concluir" (PRD-06a1 CA 1).</summary>
+    ReadyToComplete,
 }
 
 /// <summary>
 /// OS de fabricação vista pelos outros módulos (PRD-01 CA 21): número, tipo, projeto, item do projeto, produto, quantidade,
-/// situação e etapa atual (nome e letra), sem dado de custo.
+/// situação e etapa atual (nome e letra), sem dado de custo. PRD-06a1 CA 15: a conclusão (quando e quem) e o último estorno da
+/// conclusão (quando, quem e o motivo), para a linha do tempo do projeto.
 /// </summary>
 public sealed record ProductionOrderInfo(
     Guid Id, string Number, ProductionOrderKind Type, Guid ProjectId, Guid ProjectItemId, Guid? ProductId, decimal Quantity, ProductionOrderState Status,
-    string? CurrentStepName, string? CurrentStepCode);
+    string? CurrentStepName, string? CurrentStepCode, DateTimeOffset? CompletedAt = null, Guid? CompletedBy = null, DateTimeOffset? CompletionReversedAt = null,
+    Guid? CompletionReversedBy = null, string? CompletionReversalReason = null);
 
 /// <summary>
 /// OS de fabricação para Engineering, Inventory, Purchasing e Commercial (PRD-01 CA 21, ADR 0006): só o tipo Fabrication, sobre a
@@ -146,6 +151,19 @@ public sealed record QualityApproved(Guid ProductionOrderId, Guid StepId, int At
 
 /// <summary>Qualidade reprovada (PRD-05 CA 6): nasceu a NC e a OS voltou à etapa de retorno.</summary>
 public sealed record QualityRejected(Guid NonConformityId, Guid ProductionOrderId, Guid ProjectId, Guid ReturnToStepId) : BemAqui.SharedKernel.IIntegrationEvent;
+
+/// <summary>
+/// OS de fabricação concluída (PRD-06a1 CA 3), com a quantidade inteira (sem conclusão parcial, ponto 82) e a data da conclusão. O
+/// Commercial confere se todas as OS de fabricação não canceladas do projeto concluíram e publica <c>ProjectFabricated</c> (CA 7). A
+/// entrada do produto acabado no estoque é da PRD-06a2.
+/// </summary>
+public sealed record ProductionOrderCompleted(Guid ProductionOrderId, Guid ProjectId, decimal Quantity, DateOnly CompletedOn) : BemAqui.SharedKernel.IIntegrationEvent;
+
+/// <summary>
+/// Conclusão da OS de fabricação estornada (PRD-06a1 CA 10): a OS voltou a <c>InProgress</c>. O Commercial volta o projeto de
+/// <c>Fabricated</c> a <c>InProgress</c> quando ele foi fabricado pelas OS e avisa o Financeiro; o título a receber não é estornado.
+/// </summary>
+public sealed record ProductionOrderCompletionReversed(Guid ProductionOrderId, Guid ProjectId, DateOnly ReversedOn) : BemAqui.SharedKernel.IIntegrationEvent;
 
 /// <summary>OS de fabricação cancelada (PRD-01 CA 16): a EST-02 reconcilia as reservas pela fonte (ADR 0023 §6).</summary>
 public sealed record ProductionOrderCancelled(Guid ProductionOrderId, Guid ProjectId) : BemAqui.SharedKernel.IIntegrationEvent;

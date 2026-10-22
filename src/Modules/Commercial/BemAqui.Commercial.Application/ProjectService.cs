@@ -16,7 +16,7 @@ namespace BemAqui.Commercial.Application;
 /// </summary>
 public sealed partial class ProjectService(
     ICommercialDb db, IParties parties, IUserDirectory users, IPermissionChecker permissions, IEventPublisher events, IReceivables receivables, IPayables payables,
-    BemAqui.Production.Contracts.IInstallationOrders installations, TimeProvider clock)
+    BemAqui.Production.Contracts.IInstallationOrders installations, BemAqui.Production.Contracts.IProductionOrders productionOrders, TimeProvider clock)
     : IProjects, IContracts
 {
     public const string AttachmentOwner = "Project";
@@ -37,11 +37,12 @@ public sealed partial class ProjectService(
         var party = await parties.FindAsync(project.PartyId, cancellationToken);
         var site = project.SiteAddressId is { } siteId ? (await parties.AddressesAsync(project.PartyId, cancellationToken)).FirstOrDefault(a => a.Id == siteId) : null;
         var manager = project.ManagerUserId is { } userId ? await users.DisplayNameAsync(userId, cancellationToken) : null;
+        var (fabricationOrders, openFabricationOrders) = await FabricationOrdersAsync(project.Id, cancellationToken);
         return new ProjectDetail(
             project.Id, project.Number, project.Name, project.Status, project.PartyId, party is null ? string.Empty : party.TradeName ?? party.LegalName, project.ContractId, contractNumber,
             project.SiteAddressId, site is null ? null : $"{site.Street}, {site.Number} — {site.City}/{site.State}", project.PromisedDate, project.ForecastDate, project.Priority,
             project.ManagerUserId, manager, project.CreatedAt, items, project.Version, project.FabricatedOn, project.DeliveredOn, project.DeliveredManually, hasFabrication,
-            contract.Status.ToString(), contract.IsOnboarding);
+            contract.Status.ToString(), contract.IsOnboarding, project.FabricatedByOrders, fabricationOrders, openFabricationOrders);
     }
 
     public async Task<Result<IReadOnlyList<ProjectBudgetLine>>> BudgetAsync(Guid id, CancellationToken cancellationToken = default)

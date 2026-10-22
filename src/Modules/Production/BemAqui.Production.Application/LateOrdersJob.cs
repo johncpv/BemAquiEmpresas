@@ -23,7 +23,7 @@ public sealed class LateOrdersNotifier(
     public const string Type = "production.order_late";
 
     private static readonly ProductionOrderStatus[] OpenStatuses =
-        [ProductionOrderStatus.Open, ProductionOrderStatus.InProgress, ProductionOrderStatus.Paused, ProductionOrderStatus.Quality];
+        [ProductionOrderStatus.Open, ProductionOrderStatus.InProgress, ProductionOrderStatus.Paused, ProductionOrderStatus.Quality, ProductionOrderStatus.ReadyToComplete];
 
     /// <summary>Quantas OS atrasadas foram avaliadas (0 com o módulo não liberado).</summary>
     public async Task<int> NotifyAsync(CancellationToken cancellationToken = default)

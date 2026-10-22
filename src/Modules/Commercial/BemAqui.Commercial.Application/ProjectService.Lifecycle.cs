@@ -10,7 +10,10 @@ public sealed record ProjectEventInput(DateOnly Date, uint Version);
 
 public sealed partial class ProjectService
 {
-    /// <summary>Registrar fabricação concluída (COM-04b CA 9): projeto planejado ou em produção, data até hoje.</summary>
+    /// <summary>
+    /// Registrar fabricação concluída (COM-04b CA 9): projeto planejado ou em produção, data até hoje. PRD-06a1 CA 9 (ponto 81): com OS de
+    /// fabricação não cancelada, 409 — a fabricação é concluída pelas OS; o registro manual fica para projeto sem OS.
+    /// </summary>
     public async Task<Result<ProjectDetail>> RegisterFabricationAsync(Guid id, ProjectEventInput input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -26,8 +29,15 @@ public sealed partial class ProjectService
             return Error.Conflict("project_not_in_production", "A fabricação só é registrada em projeto planejado ou em produção.");
         }
 
+        var (orders, open) = await FabricationOrdersAsync(project.Id, cancellationToken);
+        if (orders > 0)
+        {
+            return Error.Conflict("fabrication_by_orders", ByOrdersMessage(open));
+        }
+
         project.Status = ProjectStatus.Fabricated;
         project.FabricatedOn = input.Date;
+        project.FabricatedByOrders = false;
         events.Publish(new ProjectFabricated(project.Id, project.ContractId, input.Date));
         await db.SaveChangesAsync(cancellationToken);
         return await GetAsync(id, cancellationToken);
@@ -62,7 +72,9 @@ public sealed partial class ProjectService
             && await db.ContractMilestones.AnyAsync(m => m.ContractId == project.ContractId && m.TriggerEvent == TriggerEvent.FabricationDone, cancellationToken);
         if (needsFabrication)
         {
-            return Error.Conflict("fabrication_pending", "Registre a fabricação concluída antes da entrega.");
+            return Error.Conflict("fabrication_pending", (await FabricationOrdersAsync(project.Id, cancellationToken)).Total > 0
+                ? "Conclua as OS de fabricação antes da entrega."
+                : "Registre a fabricação concluída antes da entrega.");
         }
 
         if (project.FabricatedOn is { } fabricated && input.Date < fabricated)

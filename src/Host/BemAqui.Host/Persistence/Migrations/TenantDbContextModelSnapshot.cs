@@ -892,6 +892,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("date")
                         .HasColumnName("delivered_on");
 
+                    b.Property<bool>("FabricatedByOrders")
+                        .HasColumnType("boolean")
+                        .HasColumnName("fabricated_by_orders");
+
                     b.Property<DateOnly?>("FabricatedOn")
                         .HasColumnType("date")
                         .HasColumnName("fabricated_on");
@@ -6039,6 +6043,23 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<Guid?>("CancelledBy")
                         .HasColumnType("uuid")
                         .HasColumnName("cancelled_by");
+
+                    b.Property<Guid?>("CompletedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("completed_by");
+
+                    b.Property<string>("CompletionReversalReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("completion_reversal_reason");
+
+                    b.Property<DateTimeOffset?>("CompletionReversedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("completion_reversed_at");
+
+                    b.Property<Guid?>("CompletionReversedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("completion_reversed_by");
 
                     b.Property<Guid>("ContractId")
                         .HasColumnType("uuid")

@@ -37,6 +37,8 @@ public sealed partial class FabricationOrderService(
         {
             "aberta" => orders.Where(o => o.Status == ProductionOrderStatus.Open),
             "andamento" => orders.Where(o => o.Status == ProductionOrderStatus.InProgress || o.Status == ProductionOrderStatus.Paused || o.Status == ProductionOrderStatus.Quality),
+            // PRD-06a1 CA 1: "Aguardando você" de quem conclui a OS.
+            "pronta" => orders.Where(o => o.Status == ProductionOrderStatus.ReadyToComplete),
             "concluida" => orders.Where(o => o.Status == ProductionOrderStatus.Completed),
             "cancelada" => orders.Where(o => o.Status == ProductionOrderStatus.Cancelled),
             _ => orders,
@@ -109,6 +111,10 @@ public sealed partial class FabricationOrderService(
         var product = order.ProductId is { } productId ? context.Products.GetValueOrDefault(productId) : null;
         var routing = order.RoutingTemplateId is { } routingId && await routings.FindAsync([routingId], cancellationToken) is [var template, ..] ? template : null;
         var applied = await LaborReader.AppliedMinutesAsync(db, stepIds, clock.GetUtcNow(), cancellationToken);
+        // PRD-06a1 CA 4 e 12: o motivo do botão "Concluir OS" desabilitado, quem concluiu e o último estorno.
+        var blocker = order.Status is ProductionOrderStatus.Completed or ProductionOrderStatus.Cancelled ? null : await CompletionBlockerAsync(order, cancellationToken);
+        var completedBy = order.Status == ProductionOrderStatus.Completed && order.CompletedBy is { } completer ? await users.DisplayNameAsync(completer, cancellationToken) : null;
+        var reversedBy = order.CompletionReversedBy is { } reverser ? await users.DisplayNameAsync(reverser, cancellationToken) : null;
         var views = steps.Select(s => new FabricationStepView(
             s.Id, s.Sequence, s.Code ?? string.Empty, s.Name, s.WorkCenterId, s.WorkCenterId is { } c ? centers.GetValueOrDefault(c)?.Name : null,
             s.WorkCenterId is { } l ? centers.GetValueOrDefault(l)?.Line : null, s.StandardHours.GetValueOrDefault(), s.Status ?? ProductionStepStatus.Waiting, s.IsQualityStep,
@@ -120,7 +126,8 @@ public sealed partial class FabricationOrderService(
             item?.Description ?? string.Empty, order.ProductId, product?.Code, product?.Name, order.Quantity.GetValueOrDefault(), order.Priority, order.RoutingTemplateId, routing?.Name,
             views, views.Sum(s => s.StandardHours), FabricationRules.CurrentIndex(steps.Select(s => s.Status).ToList()), FabricationRules.HasStarted(order.Status, steps.Select(s => s.Status)),
             DelayDays(order.Status, project?.PromisedDate), order.CancelReason, order.CancelledAt, order.CreatedAt, order.Version, order.QualityAttempt, order.SelfInspection,
-            QualityRules.ReadyToComplete(steps.Select(s => s.Status)) && order.Status is not (ProductionOrderStatus.Completed or ProductionOrderStatus.Cancelled), openNc);
+            QualityRules.ReadyToComplete(steps.Select(s => s.Status)) && order.Status is not (ProductionOrderStatus.Completed or ProductionOrderStatus.Cancelled), openNc,
+            order.Status == ProductionOrderStatus.Completed ? order.ActualEnd : null, completedBy, blocker, order.CompletionReversedAt, reversedBy, order.CompletionReversalReason);
     }
 
     /// <summary>Projetos, clientes, itens do projeto e produtos das OS, de uma vez por contrato.</summary>

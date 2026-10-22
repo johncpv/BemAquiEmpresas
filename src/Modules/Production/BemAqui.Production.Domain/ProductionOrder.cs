@@ -12,7 +12,7 @@ public enum ProductionOrderType
 
 /// <summary>
 /// Situação da OS (04-fluxos §1). A instalação usa Open → InProgress → Completed e Cancelled; a fabricação também Paused
-/// (PRD-03a) e Quality (PRD-05).
+/// (PRD-03a), Quality (PRD-05) e ReadyToComplete (PRD-06a1, D12).
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter<ProductionOrderStatus>))]
 public enum ProductionOrderStatus
@@ -23,6 +23,9 @@ public enum ProductionOrderStatus
     Cancelled,
     Paused,
     Quality,
+
+    /// <summary>"Pronta para concluir" (PRD-06a1 CA 1, D12): todas as etapas <c>Done</c>; falta o supervisor concluir a OS.</summary>
+    ReadyToComplete,
 }
 
 /// <summary>Situação da etapa da OS de fabricação (04-fluxos §1), em sequência: a primeira nasce Ready e as demais Waiting.</summary>
@@ -101,7 +104,18 @@ public sealed class ProductionOrder : Entity, IAuditable, IConcurrencyVersioned
 
     public DateTimeOffset? ActualStart { get; set; }
 
+    /// <summary>Fim real: a conclusão da OS (PRD-06a1 CA 3); o estorno da conclusão limpa.</summary>
     public DateTimeOffset? ActualEnd { get; set; }
+
+    /// <summary>Quem concluiu a OS de fabricação (PRD-06a1 CA 3); o estorno limpa.</summary>
+    public Guid? CompletedBy { get; set; }
+
+    /// <summary>Último estorno da conclusão (PRD-06a1 CA 10): quando, quem e o motivo (até 500). O histórico da OS tem todos.</summary>
+    public DateTimeOffset? CompletionReversedAt { get; set; }
+
+    public Guid? CompletionReversedBy { get; set; }
+
+    public string? CompletionReversalReason { get; set; }
 
     public string? CancelReason { get; set; }
 

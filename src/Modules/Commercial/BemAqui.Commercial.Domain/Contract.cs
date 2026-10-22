@@ -120,6 +120,12 @@ public sealed class Project : Entity, IAuditable, IConcurrencyVersioned
     /// <summary>Fabricação concluída (COM-04b CA 9; PRD-06 automático).</summary>
     public DateOnly? FabricatedOn { get; set; }
 
+    /// <summary>
+    /// "Fabricado" pelas OS (PRD-06a1 CA 7): o projeto passou a fabricado quando a última OS de fabricação não cancelada concluiu. O
+    /// estorno da conclusão só volta o projeto a <c>InProgress</c> quando é true (o registro manual da COM-04b fica false).
+    /// </summary>
+    public bool FabricatedByOrders { get; set; }
+
     public DateOnly? DeliveredOn { get; set; }
 
     /// <summary>Entrega registrada à mão, venda sem instalação (COM-04b CA 10, D15).</summary>
