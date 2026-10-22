@@ -53,6 +53,8 @@ public sealed class ProductionBoardService(
             var boardSteps = mine.Select(s => new BoardStep(s.Code, s.Name, s.Sequence, s.Status)).ToList();
             var currentIndex = BoardRules.CurrentIndex(boardSteps);
             var current = currentIndex >= 0 ? mine[currentIndex] : null;
+            // Linha: centro da etapa atual; na "Pronta para concluir", o da última etapa (a OS continua na linha dela).
+            var lineStep = current ?? (mine.Count > 0 ? mine[^1] : null);
             var project = byProject.GetValueOrDefault(o.ProjectId);
             var statuses = mine.Select(s => s.Status).ToList();
             var risk = ProductionOrderRisk.Evaluate(project?.PromisedDate, today, o.Status, ProductionOrderRisk.IsAtLastStep(statuses));
@@ -62,7 +64,7 @@ public sealed class ProductionBoardService(
                 o.ProjectId, project?.Number ?? string.Empty, project?.Name ?? string.Empty, project?.PartyId ?? Guid.Empty,
                 project is null ? string.Empty : partyNames.GetValueOrDefault(project.PartyId, string.Empty), BoardRules.ColumnKey(boardSteps),
                 current?.Id, current?.Code, current?.Name, current?.Status, current?.IsQualityStep == true, current?.StandardHours ?? 0m, 0m,
-                current?.WorkCenterId is { } center ? centers.GetValueOrDefault(center)?.Line : null, mine.Select(s => s.Code ?? string.Empty).ToList(),
+                lineStep?.WorkCenterId is { } center ? centers.GetValueOrDefault(center)?.Line : null, mine.Select(s => s.Code ?? string.Empty).ToList(),
                 mine.Select(s => s.Name).ToList(), mine.Count == 0 ? -1 : currentIndex < 0 ? mine.Count - 1 : currentIndex, project?.PromisedDate, risk.Risk,
                 risk.DelayDays, mine.Count > 0 && currentIndex < 0, mine.Count == 0, current?.Status == ProductionStepStatus.InProgress, null, null,
                 o.RoutingTemplateId, o.Version);

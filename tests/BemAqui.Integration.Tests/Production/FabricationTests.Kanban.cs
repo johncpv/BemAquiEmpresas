@@ -174,8 +174,7 @@ public partial class FabricationTests
         step.CompletionReason.Should().Be("Projeto entregue por e-mail, sem apontamento.");
         step.CompletedBy.Should().Be(supervisorId);
         (await WithDbAsync(db => db.ProductionOrders.AsNoTracking().SingleAsync(o => o.Id == orders[0]))).ActualStart.Should().NotBeNull();
-        (await WithDbAsync(db => db.OutboxMessages.CountAsync(m => m.Type == typeof(ProductionStepStarted).FullName && m.Payload.Contains(orders[0].ToString()))))
-            .Should().Be(1);
+        (await StepStartedCountAsync(orders[0])).Should().Be(1);
 
         await DrainAsync();
         (await WithDbAsync(db => db.Projects.AsNoTracking().SingleAsync(p => p.Id == project))).Status.ToString().Should().Be("InProgress");
@@ -185,8 +184,7 @@ public partial class FabricationTests
         order = await GetOrderAsync(supervisor, orders[0]);
         var second = order.GetProperty("steps")[1].GetProperty("id").GetGuid();
         (await supervisor.PostAsJsonAsync($"{Base}/{orders[0]}/steps/{second}/complete", new { reason = "Corte terceirizado.", version = Version(order) })).StatusCode.Should().Be(HttpStatusCode.OK);
-        (await WithDbAsync(db => db.OutboxMessages.CountAsync(m => m.Type == typeof(ProductionStepStarted).FullName && m.Payload.Contains(orders[0].ToString()))))
-            .Should().Be(1);
+        (await StepStartedCountAsync(orders[0])).Should().Be(1);
     }
 
     [Fact]
@@ -201,8 +199,8 @@ public partial class FabricationTests
         object Body(JsonElement o, string reason = "Motivo") => new { reason, version = Version(o) };
 
         (await editor.PostAsJsonAsync($"{Base}/{orders[0]}/steps/{steps[0]}/complete", Body(order))).StatusCode.Should().Be(HttpStatusCode.Forbidden);
-        (await supervisor.PostAsJsonAsync($"{Base}/{orders[0]}/steps/{steps[0]}/complete", Body(order, " "))).StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        (await supervisor.PostAsJsonAsync($"{Base}/{orders[0]}/steps/{steps[0]}/complete", Body(order, new string('x', 201)))).StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        (await supervisor.PostAsJsonAsync($"{Base}/{orders[0]}/steps/{steps[0]}/complete", Body(order, " "))).StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
+        (await supervisor.PostAsJsonAsync($"{Base}/{orders[0]}/steps/{steps[0]}/complete", Body(order, new string('x', 201)))).StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
 
         var notCurrent = await supervisor.PostAsJsonAsync($"{Base}/{orders[0]}/steps/{steps[1]}/complete", Body(order));
         notCurrent.StatusCode.Should().Be(HttpStatusCode.Conflict);
@@ -241,9 +239,13 @@ public partial class FabricationTests
             supervisor.PostAsJsonAsync($"{Base}/{orders[0]}/steps/{first}/complete", body));
 
         results.Select(r => r.StatusCode).Should().BeEquivalentTo([HttpStatusCode.OK, HttpStatusCode.Conflict]);
-        (await WithDbAsync(db => db.OutboxMessages.CountAsync(m => m.Type == typeof(ProductionStepStarted).FullName && m.Payload.Contains(orders[0].ToString()))))
-            .Should().Be(1);
+        (await StepStartedCountAsync(orders[0])).Should().Be(1);
     }
+
+    /// <summary>ProductionStepStarted da OS no outbox (o payload é jsonb: filtra pelo campo, não por LIKE).</summary>
+    private Task<int> StepStartedCountAsync(Guid orderId) =>
+        WithDbAsync(db => db.Database.SqlQuery<int>(
+            $"SELECT count(*)::int AS \"Value\" FROM shared.outbox_messages WHERE type = {typeof(ProductionStepStarted).FullName} AND payload ->> 'ProductionOrderId' = {orderId.ToString()}").SingleAsync());
 
     [Fact]
     public async Task Quadro_e_concluir_etapa_respeitam_as_tres_camadas()

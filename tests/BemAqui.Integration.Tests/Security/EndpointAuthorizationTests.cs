@@ -94,6 +94,18 @@ public class EndpointAuthorizationTests(TenancyFixture tenancy) : IClassFixture<
     private static bool HasPermission(RouteEndpoint e) =>
         e.Metadata.GetOrderedMetadata<IAuthorizeData>().Any(a => a.Policy?.StartsWith(ModuleEndpoints.PermissionPolicyPrefix, StringComparison.Ordinal) == true);
 
+    /// <summary>
+    /// Hub de negócio (PRD-02): <c>RequireHubAccess</c> põe o módulo no metadado e a policy <c>hub:{modulo}:{acao}|{acao}</c>, com
+    /// módulo e ações do catálogo (filtro de endpoint não roda em hub).
+    /// </summary>
+    private static bool HasHubAccess(RouteEndpoint e)
+    {
+        var module = e.Metadata.GetMetadata<RequiresModuleMetadata>()?.ModuleCode;
+        return module is not null && e.Metadata.GetOrderedMetadata<IAuthorizeData>().Any(a =>
+            a.Policy?.StartsWith(BemAqui.Host.Realtime.HubAccess.PolicyPrefix + module + ":", StringComparison.Ordinal) == true
+            && a.Policy[(BemAqui.Host.Realtime.HubAccess.PolicyPrefix.Length + module.Length + 1)..].Split('|').All(BemAqui.BuildingBlocks.Modules.ModuleCatalog.IsKnownPermission));
+    }
+
     /// <summary>Super admin: sessão própria da plataforma (esquema e policy <c>platform</c>), fora do tenant (FND-13).</summary>
     private static bool IsPlatform(RouteEndpoint e) =>
         e.Metadata.GetOrderedMetadata<IAuthorizeData>().Any(a => a.Policy == PlatformSessionAuthenticationHandler.Policy);
@@ -114,7 +126,7 @@ public class EndpointAuthorizationTests(TenancyFixture tenancy) : IClassFixture<
                     problems.Add("anônima fora da lista: " + key + " (" + endpoint.DisplayName + ")");
                 }
             }
-            else if (!HasPermission(endpoint) && !IsPlatform(endpoint) && !AuthenticatedOnly.ContainsKey(key))
+            else if (!HasPermission(endpoint) && !HasHubAccess(endpoint) && !IsPlatform(endpoint) && !AuthenticatedOnly.ContainsKey(key))
             {
                 problems.Add("só autenticado, sem RequirePermission: " + key + " (" + endpoint.DisplayName + ")");
             }

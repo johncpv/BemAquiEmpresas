@@ -214,7 +214,14 @@ public partial class FabricationTests
             return Task.CompletedTask;
         };
         await hub.StartAsync();
-        Factory.Services.GetRequiredService<HubConnectionRegistry>().CountFor(tenancy.TenantA.Id, userId).Should().Be(1);
+        // O OnConnectedAsync roda depois da resposta do handshake: espera o registro da conexão.
+        var registry = Factory.Services.GetRequiredService<HubConnectionRegistry>();
+        for (var i = 0; i < 40 && registry.CountFor(tenancy.TenantA.Id, userId) == 0; i++)
+        {
+            await Task.Delay(50);
+        }
+
+        registry.CountFor(tenancy.TenantA.Id, userId).Should().Be(1);
 
         await using (var scope = await HubScopeAsync())
         {
