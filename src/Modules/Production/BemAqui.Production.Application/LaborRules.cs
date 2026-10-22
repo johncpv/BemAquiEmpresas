@@ -53,9 +53,9 @@ public static class LaborRules
         anyoneWorking || awaitingApproval ? ProductionStepStatus.InProgress : ProductionStepStatus.Paused;
 
     /// <summary>
-    /// Situação da OS pelas etapas (04-fluxos §1, CA 11, 12, 16 e 17): a etapa atual em andamento, <c>InProgress</c>; pausada,
-    /// <c>Paused</c>; de qualidade pronta, <c>Quality</c> ("Aguardando qualidade" até a PRD-05); todas concluídas, <c>InProgress</c>
-    /// ("Pronta para concluir", conclusão explícita na PRD-06a1). Concluída e cancelada não mudam.
+    /// Situação da OS pelas etapas (04-fluxos §1, CA 11, 12, 16 e 17): a etapa atual de qualidade pronta, em inspeção ou pausada,
+    /// <c>Quality</c> (PRD-05 CA 2); em andamento, <c>InProgress</c>; pausada, <c>Paused</c>; todas concluídas, <c>InProgress</c>
+    /// ("Pronta para concluir", conclusão explícita na PRD-06a1, D12). Concluída e cancelada não mudam.
     /// </summary>
     public static ProductionOrderStatus OrderStatus(ProductionOrderStatus current, IReadOnlyList<StepState> steps)
     {
@@ -82,9 +82,10 @@ public static class LaborRules
 
         return steps[index] switch
         {
+            { IsQualityStep: true, Status: ProductionStepStatus.Ready or ProductionStepStatus.InProgress or ProductionStepStatus.Paused } => ProductionOrderStatus.Quality,
             { Status: ProductionStepStatus.InProgress } => ProductionOrderStatus.InProgress,
             { Status: ProductionStepStatus.Paused } => ProductionOrderStatus.Paused,
-            { Status: ProductionStepStatus.Ready, IsQualityStep: true } => ProductionOrderStatus.Quality,
+
             _ => index == 0 && current == ProductionOrderStatus.Open ? ProductionOrderStatus.Open : ProductionOrderStatus.InProgress,
         };
     }

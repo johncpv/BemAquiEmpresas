@@ -50,4 +50,6 @@ export interface BoardCard {
   /** @nullable */
   routingTemplateId: string | null;
   version: number;
+  openNonConformities?: number;
+  selfInspection?: boolean;
 }

@@ -44,4 +44,8 @@ export interface FabricationOrderDetail {
   cancelledAt: string | null;
   createdAt: string;
   version: number;
+  qualityAttempt?: number;
+  selfInspection?: boolean;
+  readyToComplete?: boolean;
+  openNonConformities?: number;
 }

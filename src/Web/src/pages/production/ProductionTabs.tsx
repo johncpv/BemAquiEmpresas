@@ -3,6 +3,8 @@ import { Link } from '@tanstack/react-router'
 const TABS = [
   { to: '/app/producao/os', label: 'OS de fabricação' },
   { to: '/app/producao/kanban', label: 'Kanban' },
+  { to: '/app/producao/qualidade', label: 'Qualidade' },
+  { to: '/app/producao/nao-conformidades', label: 'Não conformidades' },
   { to: '/app/producao/apontamentos-abertos', label: 'Apontamentos abertos' },
   { to: '/app/producao/instalacoes', label: 'Instalações' },
   { to: '/app/producao/centros-de-trabalho', label: 'Centros de trabalho' },

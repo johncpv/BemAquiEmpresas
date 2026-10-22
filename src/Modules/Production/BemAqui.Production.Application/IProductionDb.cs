@@ -32,6 +32,10 @@ public interface IProductionDb
 
     DbSet<ProductionParameter> ProductionParameters { get; }
 
+    DbSet<NonConformity> NonConformities { get; }
+
+    DbSet<QualityDecision> QualityDecisions { get; }
+
     DatabaseFacade Database { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);

@@ -34,4 +34,6 @@ Apontar o seu trabalho numa etapa da OS: iniciar, pausar, retomar, sair e finali
 
 **Esqueci de finalizar ontem. E agora?** Fale com o supervisor: ele corrige o apontamento ou conclui a etapa pela tela da OS.
 
-**Por que não consigo iniciar a etapa de qualidade?** A inspeção de qualidade é feita por quem aprova a qualidade, numa tela própria.
+**Por que não consigo iniciar a etapa de qualidade?** A inspeção de qualidade é feita por quem tem a ação **Aprovar ou reprovar a qualidade**, na tela **Qualidade** do app (/fab/qualidade). Na fila do operador, a OS aparece como "Aguardando qualidade".
+
+**A OS voltou para uma etapa que eu já tinha feito. Por quê?** A qualidade reprovou e abriu uma não conformidade. A etapa de retorno fica pronta de novo: refaça e finalize normalmente. As horas do retrabalho entram como um apontamento novo.

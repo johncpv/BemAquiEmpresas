@@ -69,6 +69,8 @@ export function BoardCard({ card, canApprove, onChanged }: { card: Card; canAppr
         {card.pausedReason ? <StatusChip tone="warn">Pausada: {card.pausedReason}</StatusChip> : null}
         {card.readyToComplete ? <StatusChip tone="ok">Pronta para concluir</StatusChip> : null}
         {card.noRouting ? <StatusChip tone="warn">Sem roteiro</StatusChip> : null}
+        {card.openNonConformities ? <StatusChip tone="crit">NC aberta</StatusChip> : null}
+        {card.selfInspection ? <StatusChip tone="warn">Autoinspeção</StatusChip> : null}
         {card.operatorInitials ? <span title="Operador em execução" className="grid size-6 place-items-center rounded-full bg-primary-soft text-[10px] font-bold text-primary">{card.operatorInitials}</span> : null}
       </div>
       {card.noRouting ? <Link to={'/app/producao/os/$id' as never} params={{ id: card.id } as never} className="mt-1 inline-block text-xs font-semibold text-primary hover:underline">Escolher o roteiro da {card.number}</Link> : null}

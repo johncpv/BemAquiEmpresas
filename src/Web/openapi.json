@@ -8766,6 +8766,722 @@
         }
       }
     },
+    "/api/v1/production/production-orders/{id}/quality": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "GetOrderQuality",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderQualityView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/production-orders/{id}/non-conformities/{ncId}": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "GetOrderNonConformity",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "ncId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NonConformityDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/quality/queue": {
+      "get": {
+        "tags": [
+          "Qualidade"
+        ],
+        "operationId": "GetQualityQueue",
+        "parameters": [
+          {
+            "name": "filter",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QualityQueueView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/quality/steps/{stepId}": {
+      "get": {
+        "tags": [
+          "Qualidade"
+        ],
+        "operationId": "GetQualityStep",
+        "parameters": [
+          {
+            "name": "stepId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QualityStepDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/quality/steps/{stepId}/checklist/{itemId}": {
+      "put": {
+        "tags": [
+          "Qualidade"
+        ],
+        "operationId": "MarkQualityChecklist",
+        "parameters": [
+          {
+            "name": "stepId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QualityChecklistInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QualityStepDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/quality/steps/{stepId}/start": {
+      "post": {
+        "tags": [
+          "Qualidade"
+        ],
+        "operationId": "StartQualityInspection",
+        "parameters": [
+          {
+            "name": "stepId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QualityStepDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/quality/steps/{stepId}/approve": {
+      "post": {
+        "tags": [
+          "Qualidade"
+        ],
+        "operationId": "ApproveQuality",
+        "parameters": [
+          {
+            "name": "stepId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QualityApproveInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QualityDecisionResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/quality/steps/{stepId}/reject": {
+      "post": {
+        "tags": [
+          "Qualidade"
+        ],
+        "operationId": "RejectQuality",
+        "parameters": [
+          {
+            "name": "stepId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QualityRejectInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QualityDecisionResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/non-conformities": {
+      "get": {
+        "tags": [
+          "Qualidade"
+        ],
+        "operationId": "ListNonConformities",
+        "parameters": [
+          {
+            "name": "filter",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "situation",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "projectId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NonConformityPage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/non-conformities/{id}": {
+      "get": {
+        "tags": [
+          "Qualidade"
+        ],
+        "operationId": "GetNonConformity",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NonConformityDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Qualidade"
+        ],
+        "operationId": "UpdateNonConformity",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NonConformityUpdateInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NonConformityDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/non-conformities/{id}/start-action": {
+      "post": {
+        "tags": [
+          "Qualidade"
+        ],
+        "operationId": "StartNonConformityAction",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NonConformityActionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NonConformityDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/non-conformities/{id}/close": {
+      "post": {
+        "tags": [
+          "Qualidade"
+        ],
+        "operationId": "CloseNonConformity",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NonConformityCloseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NonConformityDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/non-conformities/{id}/cost": {
+      "put": {
+        "tags": [
+          "Qualidade"
+        ],
+        "operationId": "SetNonConformityCost",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NonConformityCostInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NonConformityDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/non-conformities/{id}/history": {
+      "get": {
+        "tags": [
+          "Qualidade"
+        ],
+        "operationId": "GetNonConformityHistory",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfAuditEntryDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/non-conformities/{id}/attachments": {
+      "get": {
+        "tags": [
+          "Qualidade"
+        ],
+        "operationId": "ListNonConformityAttachments",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AttachmentDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Qualidade"
+        ],
+        "operationId": "UploadNonConformityAttachment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "$ref": "#/components/schemas/IFormFile"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttachmentDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/non-conformities/{id}/attachments/{attachmentId}": {
+      "get": {
+        "tags": [
+          "Qualidade"
+        ],
+        "operationId": "DownloadNonConformityAttachment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "attachmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/production/installations": {
       "get": {
         "tags": [
@@ -16618,6 +17334,15 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          },
+          "openNonConformities": {
+            "type": "integer",
+            "format": "int32",
+            "default": 0
+          },
+          "selfInspection": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -17156,6 +17881,7 @@
         "enum": [
           "Done",
           "NotApplicable",
+          "NonConforming",
           null
         ]
       },
@@ -19573,6 +20299,24 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          },
+          "qualityAttempt": {
+            "type": "integer",
+            "format": "int32",
+            "default": 1
+          },
+          "selfInspection": {
+            "type": "boolean",
+            "default": false
+          },
+          "readyToComplete": {
+            "type": "boolean",
+            "default": false
+          },
+          "openNonConformities": {
+            "type": "integer",
+            "format": "int32",
+            "default": 0
           }
         }
       },
@@ -19916,6 +20660,10 @@
             "default": false
           },
           "selfApproved": {
+            "type": "boolean",
+            "default": false
+          },
+          "selfInspection": {
             "type": "boolean",
             "default": false
           }
@@ -22983,6 +23731,406 @@
           }
         }
       },
+      "NonConformityActionInput": {
+        "required": [
+          "cause",
+          "action",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "cause": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "action": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NonConformityCloseInput": {
+        "required": [
+          "result",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NonConformityCostInput": {
+        "required": [
+          "cost",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "cost": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NonConformityDetail": {
+        "required": [
+          "id",
+          "number",
+          "status",
+          "orderId",
+          "orderNumber",
+          "projectId",
+          "projectNumber",
+          "projectName",
+          "partyName",
+          "stepId",
+          "stepCode",
+          "stepName",
+          "returnToStepId",
+          "returnToStepName",
+          "attempt",
+          "description",
+          "cause",
+          "action",
+          "responsibleUserId",
+          "responsibleName",
+          "cost",
+          "costVisible",
+          "result",
+          "openedByName",
+          "openedAt",
+          "actionStartedByName",
+          "actionStartedAt",
+          "closedByName",
+          "closedAt",
+          "ageDays",
+          "responsibles",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/NonConformityStatus"
+          },
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": "string"
+          },
+          "projectName": {
+            "type": "string"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "stepId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "stepCode": {
+            "type": "string"
+          },
+          "stepName": {
+            "type": "string"
+          },
+          "returnToStepId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "returnToStepName": {
+            "type": "string"
+          },
+          "attempt": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": {
+            "type": "string"
+          },
+          "cause": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "action": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "responsibleUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "responsibleName": {
+            "type": "string"
+          },
+          "cost": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "costVisible": {
+            "type": "boolean"
+          },
+          "result": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "openedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "openedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "actionStartedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "actionStartedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "closedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "closedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "ageDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "responsibles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QualityUserOption"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "NonConformityPage": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total",
+          "mineOpen"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NonConformitySummary"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mineOpen": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "NonConformityStatus": {
+        "enum": [
+          "Open",
+          "InAction",
+          "Closed"
+        ]
+      },
+      "NonConformitySummary": {
+        "required": [
+          "id",
+          "number",
+          "orderId",
+          "orderNumber",
+          "projectId",
+          "projectNumber",
+          "stepCode",
+          "stepName",
+          "responsibleUserId",
+          "responsibleName",
+          "status",
+          "ageDays",
+          "openedAt",
+          "description",
+          "attempt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": "string"
+          },
+          "stepCode": {
+            "type": "string"
+          },
+          "stepName": {
+            "type": "string"
+          },
+          "responsibleUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "responsibleName": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/NonConformityStatus"
+          },
+          "ageDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "openedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "description": {
+            "type": "string"
+          },
+          "attempt": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "NonConformityUpdateInput": {
+        "required": [
+          "description",
+          "cause",
+          "action",
+          "responsibleUserId",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cause": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "action": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "responsibleUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
       "NotificationDto": {
         "required": [
           "id",
@@ -23667,6 +24815,49 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          }
+        }
+      },
+      "OrderQualityView": {
+        "required": [
+          "orderId",
+          "orderNumber",
+          "currentAttempt",
+          "selfInspection",
+          "readyToComplete",
+          "attempts",
+          "nonConformities"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "currentAttempt": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "selfInspection": {
+            "type": "boolean"
+          },
+          "readyToComplete": {
+            "type": "boolean"
+          },
+          "attempts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QualityAttemptView"
+            }
+          },
+          "nonConformities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NonConformitySummary"
+            }
           }
         }
       },
@@ -27310,6 +28501,598 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "QualityApproveInput": {
+        "required": [
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "QualityAttemptItem": {
+        "required": [
+          "text",
+          "result",
+          "markedByName",
+          "markedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "result": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ChecklistResult"
+              }
+            ]
+          },
+          "markedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "markedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "QualityAttemptView": {
+        "required": [
+          "attempt",
+          "stepId",
+          "stepCode",
+          "stepName",
+          "result",
+          "decidedAt",
+          "decidedByName",
+          "selfInspection",
+          "nonConformityId",
+          "nonConformityNumber",
+          "returnToStepName",
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "attempt": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "stepId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "stepCode": {
+            "type": "string"
+          },
+          "stepName": {
+            "type": "string"
+          },
+          "result": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/QualityResult"
+              }
+            ]
+          },
+          "decidedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "decidedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "selfInspection": {
+            "type": "boolean"
+          },
+          "nonConformityId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "nonConformityNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "returnToStepName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QualityAttemptItem"
+            }
+          }
+        }
+      },
+      "QualityChecklistInput": {
+        "required": [
+          "result"
+        ],
+        "type": "object",
+        "properties": {
+          "result": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ChecklistResult"
+              }
+            ]
+          }
+        }
+      },
+      "QualityChecklistItem": {
+        "required": [
+          "id",
+          "text",
+          "result",
+          "markedAt",
+          "markedByName"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "text": {
+            "type": "string"
+          },
+          "result": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ChecklistResult"
+              }
+            ]
+          },
+          "markedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "markedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "QualityDecisionResult": {
+        "required": [
+          "orderId",
+          "orderNumber",
+          "result",
+          "attempt",
+          "selfInspection",
+          "nextStepName",
+          "nextStepId",
+          "readyToComplete",
+          "canCompleteOrder",
+          "nonConformityId",
+          "nonConformityNumber",
+          "returnToStepName",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "result": {
+            "$ref": "#/components/schemas/QualityResult"
+          },
+          "attempt": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "selfInspection": {
+            "type": "boolean"
+          },
+          "nextStepName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "nextStepId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "readyToComplete": {
+            "type": "boolean"
+          },
+          "canCompleteOrder": {
+            "type": "boolean"
+          },
+          "nonConformityId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "nonConformityNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "returnToStepName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "QualityQueueItem": {
+        "required": [
+          "stepId",
+          "orderId",
+          "orderNumber",
+          "stepCode",
+          "stepName",
+          "stepIndex",
+          "codes",
+          "stepNames",
+          "status",
+          "productName",
+          "projectNumber",
+          "projectName",
+          "partyName",
+          "promisedDate",
+          "attempt",
+          "waitingSince",
+          "canDecide",
+          "selfInspection",
+          "openNonConformities"
+        ],
+        "type": "object",
+        "properties": {
+          "stepId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "stepCode": {
+            "type": "string"
+          },
+          "stepName": {
+            "type": "string"
+          },
+          "stepIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "codes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "stepNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProductionStepStatus"
+          },
+          "productName": {
+            "type": "string"
+          },
+          "projectNumber": {
+            "type": "string"
+          },
+          "projectName": {
+            "type": "string"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "promisedDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "attempt": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "waitingSince": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "canDecide": {
+            "type": "boolean"
+          },
+          "selfInspection": {
+            "type": "boolean"
+          },
+          "openNonConformities": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "QualityQueueView": {
+        "required": [
+          "items",
+          "mineCount",
+          "totalCount"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QualityQueueItem"
+            }
+          },
+          "mineCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "QualityRejectInput": {
+        "required": [
+          "description",
+          "cause",
+          "action",
+          "responsibleUserId",
+          "returnToStepId",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cause": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "action": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "responsibleUserId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "returnToStepId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "QualityResult": {
+        "enum": [
+          "Approved",
+          "Rejected",
+          null
+        ]
+      },
+      "QualityReturnOption": {
+        "required": [
+          "stepId",
+          "code",
+          "name",
+          "suggested",
+          "waiting",
+          "impact"
+        ],
+        "type": "object",
+        "properties": {
+          "stepId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "suggested": {
+            "type": "boolean"
+          },
+          "waiting": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "impact": {
+            "type": "string"
+          }
+        }
+      },
+      "QualityStepDetail": {
+        "required": [
+          "step",
+          "productCode",
+          "quantity",
+          "checklist",
+          "returnOptions",
+          "responsibles",
+          "defaultResponsibleId",
+          "nextStepName",
+          "approvalImpact",
+          "blockedReason",
+          "inspectionStarted",
+          "canStartInspection",
+          "version",
+          "serverNow"
+        ],
+        "type": "object",
+        "properties": {
+          "step": {
+            "$ref": "#/components/schemas/QualityQueueItem"
+          },
+          "productCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "checklist": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QualityChecklistItem"
+            }
+          },
+          "returnOptions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QualityReturnOption"
+            }
+          },
+          "responsibles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QualityUserOption"
+            }
+          },
+          "defaultResponsibleId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "nextStepName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "approvalImpact": {
+            "type": "string"
+          },
+          "blockedReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "inspectionStarted": {
+            "type": "boolean"
+          },
+          "canStartInspection": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "serverNow": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "QualityUserOption": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
           }
         }
       },
@@ -32233,6 +34016,9 @@
     },
     {
       "name": "Produ\u00E7\u00E3o"
+    },
+    {
+      "name": "Qualidade"
     },
     {
       "name": "App do operador"

@@ -12,7 +12,9 @@ namespace BemAqui.Production.Endpoints;
 internal static partial class ProductionEndpoints
 {
     // PRD-03a CA 31: apontamento, pausa e correção também entram no histórico da OS (antes e depois).
-    private static readonly string[] OrderHistoryChildren = [nameof(ProductionOrderStep), nameof(ProductionOrderChecklistItem), nameof(LaborEntry), nameof(StepPause)];
+    // PRD-05 CA 15: decisões de qualidade (tentativa e "Autoinspeção") e NC também entram no histórico da OS.
+    private static readonly string[] OrderHistoryChildren =
+        [nameof(ProductionOrderStep), nameof(ProductionOrderChecklistItem), nameof(LaborEntry), nameof(StepPause), nameof(QualityDecision), nameof(NonConformity)];
 
     /// <summary>
     /// OS de fabricação (PRD-01): ver com production.view, gerar com production.create, etapas, troca de roteiro e cancelamento

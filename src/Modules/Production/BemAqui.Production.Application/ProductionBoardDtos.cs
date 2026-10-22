@@ -27,7 +27,7 @@ public sealed record BoardCard(
     Guid PartyId, string PartyName, string ColumnKey, Guid? CurrentStepId, string? CurrentStepCode, string? CurrentStepName, ProductionStepStatus? CurrentStepStatus,
     bool CurrentStepIsQuality, decimal StandardHours, decimal AppliedHours, string? Line, IReadOnlyList<string> Codes, IReadOnlyList<string> StepNames,
     int CurrentStepIndex, DateOnly? PromisedDate, DeliveryRisk Risk, int? DelayDays, bool ReadyToComplete, bool NoRouting, bool InExecution, string? PausedReason,
-    string? OperatorInitials, Guid? RoutingTemplateId, uint Version);
+    string? OperatorInitials, Guid? RoutingTemplateId, uint Version, int OpenNonConformities = 0, bool SelfInspection = false);
 
 public sealed record BoardOption(Guid Id, string Label);
 

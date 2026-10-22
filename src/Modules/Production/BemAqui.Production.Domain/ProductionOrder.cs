@@ -42,6 +42,9 @@ public enum ChecklistResult
 {
     Done,
     NotApplicable,
+
+    /// <summary>"Não conforme" (só na etapa de qualidade, PRD-05 CA 6).</summary>
+    NonConforming,
 }
 
 /// <summary>
@@ -106,6 +109,15 @@ public sealed class ProductionOrder : Entity, IAuditable, IConcurrencyVersioned
 
     public Guid? CancelledBy { get; set; }
 
+    /// <summary>Tentativa atual da qualidade (PRD-05): 1 no início da OS, + 1 a cada reprovação.</summary>
+    public int QualityAttempt { get; set; } = 1;
+
+    /// <summary>Início da tentativa atual (a última reprovação); nulo na tentativa 1, que começa com a OS (segregação, CA 5).</summary>
+    public DateTimeOffset? QualityAttemptStartedAt { get; set; }
+
+    /// <summary>"Autoinspeção" (CA 5): alguma qualidade da OS foi aprovada por quem fez parte do trabalho, sem outro aprovador.</summary>
+    public bool SelfInspection { get; set; }
+
     public DateTimeOffset CreatedAt { get; init; }
 
     public Guid? CreatedBy { get; init; }
@@ -164,6 +176,20 @@ public sealed class ProductionOrderStep : Entity, IAuditable
 
     /// <summary>Aprovada ou concluída por quem apontou, sem outro aprovador elegível (CA 21, "Autoaprovado").</summary>
     public bool SelfApproved { get; set; }
+
+    /// <summary>
+    /// Tentativa do checklist da etapa (PRD-05 CA 7): 1 ao nascer; a etapa de qualidade devolvida ganha a tentativa nova da OS e um
+    /// checklist zerado, e os itens das tentativas anteriores ficam guardados.
+    /// </summary>
+    public int Attempt { get; set; } = 1;
+
+    /// <summary>Última decisão da etapa de qualidade (o histórico de cada tentativa está em <see cref="QualityDecision"/>).</summary>
+    public Guid? DecidedBy { get; set; }
+
+    public DateTimeOffset? DecidedAt { get; set; }
+
+    /// <summary>"Autoinspeção" na última aprovação da etapa de qualidade (CA 5).</summary>
+    public bool SelfInspection { get; set; }
 }
 
 /// <summary>
@@ -186,6 +212,9 @@ public sealed class ProductionOrderChecklistItem : Entity, IAuditable
     public DateTimeOffset? MarkedAt { get; set; }
 
     public Guid? MarkedBy { get; set; }
+
+    /// <summary>Tentativa do item (PRD-05 CA 7): o checklist atual da etapa é o da tentativa da etapa (<see cref="ProductionOrderStep.Attempt"/>).</summary>
+    public int Attempt { get; set; } = 1;
 }
 
 /// <summary>Item do projeto coberto pela OS de instalação (<c>production.production_order_project_items</c>).</summary>

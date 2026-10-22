@@ -17,6 +17,8 @@ import { FabricationHistory } from './FabricationHistory'
 import { FabricationSteps } from './FabricationSteps'
 import { FabricationCostsTab } from './labor-costs'
 import { LaborEntriesTab } from './LaborEntriesTab'
+import { OrderQualityTab } from '../quality/OrderQualityTab'
+import { QUALITY_DICAS } from '../quality/quality'
 import { canChangeSteps, delayLabel, FABRICATION_DICAS, FABRICATION_STATUS, hours, quantity } from './fabrication'
 
 /**
@@ -55,6 +57,8 @@ export function FabricationOrderPage() {
             <span className="tabular-nums">Qtd. {quantity(o.quantity)}</span>
             {noRouting && o.status !== 'Cancelled' ? <span className="inline-flex items-center"><StatusChip tone="warn">Sem roteiro</StatusChip><Dica nome="Sem roteiro" texto={FABRICATION_DICAS.semRoteiro} /></span> : null}
             {!noRouting && o.status !== 'Cancelled' && o.status !== 'Completed' && o.steps.every((s) => s.status === 'Done') ? <StatusChip tone="ok">Pronta para concluir</StatusChip> : null}
+            {o.openNonConformities ? <StatusChip tone="crit">NC aberta</StatusChip> : null}
+            {o.selfInspection ? <span className="inline-flex items-center"><StatusChip tone="warn">Autoinspeção</StatusChip><Dica nome="Autoinspeção" texto={QUALITY_DICAS.autoinspecao} /></span> : null}
           </span>
         )}
         actions={(
@@ -88,6 +92,8 @@ export function FabricationOrderPage() {
       <UrlTabs label="Seções da OS" fallback="etapas" tabs={[
         { id: 'etapas', label: 'Etapas', content: <FabricationSteps key={o.version} order={o} onSaved={refresh} /> },
         { id: 'apontamentos', label: 'Apontamentos', content: <LaborEntriesTab order={o} onChanged={refresh} /> },
+        // PRD-05 CA 7: tentativas da qualidade, com o resultado, quem decidiu, "Autoinspeção" e as NC.
+        ...(o.steps.some((s) => s.isQualityStep) ? [{ id: 'qualidade', label: 'Qualidade', content: <OrderQualityTab orderId={id} /> }] : []),
         // PRD-04 CA 14: a aba Custos só existe com projects.view_cost (linha Mão de obra; a EST-03 acrescenta Material).
         ...(canSeeCost ? [{ id: 'custos', label: 'Custos', content: <FabricationCostsTab orderId={id} /> }] : []),
         { id: 'documentos', label: 'Documentos', content: <OrderDocuments orderId={id} inputId="desenho-os" accept=".pdf,.png,.jpg,.jpeg,.dwg,.dxf"
