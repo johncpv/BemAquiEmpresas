@@ -55,7 +55,7 @@ public sealed class SupervisorLaborService(
                 e.EndedAt is null ? LaborRules.PausedMinutes(spans, now) : e.PausedMinutes, net, LaborRules.Hours(net),
                 pauses[e.Id].Select(p => new LaborPauseView(p.Id, p.Reason, p.Notes, p.StartedAt, p.EndedAt)).ToList(), Name(userNames, e.RecordedBy), e.OnBehalf, e.CloseKind,
                 Name(userNames, e.ClosedBy), e.CorrectedAt, Name(userNames, e.CorrectedBy), e.CorrectionReason, e.SelfApproved, e.Notes,
-                (myEmployee is { } mine && e.EmployeeId == mine) || (currentUser.UserId is { } u && e.RecordedBy == u), e.Version);
+                myEmployee is { } mine && e.EmployeeId == mine, e.Version);
         }).ToList();
         var awaiting = steps.FirstOrDefault(s => s.AwaitingApprovalSince is not null);
         return new OrderLaborView(order.Id, order.Number, views, views.Sum(v => v.Hours), awaiting?.Id, awaiting?.Name, order.Version);
@@ -144,7 +144,7 @@ public sealed class SupervisorLaborService(
         }
 
         var scope = (await workflow.LoadAsync(entry.OrderStepId, orderId, cancellationToken))!;
-        var involved = await workflow.UsersOfAsync([entry.EmployeeId], entry.RecordedBy is { } r ? [r] : [], cancellationToken);
+        var involved = await workflow.UsersOfAsync([entry.EmployeeId], cancellationToken);
         var segregation = await workflow.SegregationAsync(involved, scope, cancellationToken);
         if (segregation.IsFailure)
         {

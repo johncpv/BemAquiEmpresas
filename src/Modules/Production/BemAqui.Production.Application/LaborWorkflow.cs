@@ -214,18 +214,17 @@ public sealed class LaborWorkflow(
         await db.StepPauses.Where(p => p.LaborEntryId == entryId).OrderBy(p => p.StartedAt).ToListAsync(ct);
 
     /// <summary>
-    /// Usuários envolvidos na etapa (CA 21): quem apontou (<c>recorded_by</c>) e o usuário de cada funcionário com apontamento nela.
+    /// Donos dos apontamentos da etapa (CA 21): o usuário ligado a cada funcionário com apontamento nela. O supervisor que só apontou
+    /// por outro funcionário ("Apontado por") não é dono.
     /// </summary>
-    public async Task<HashSet<Guid>> InvolvedUsersAsync(Guid stepId, CancellationToken ct)
-    {
-        var entries = await db.LaborEntries.AsNoTracking().Where(e => e.OrderStepId == stepId).Select(e => new { e.EmployeeId, e.RecordedBy }).ToListAsync(ct);
-        return await UsersOfAsync(entries.Select(e => e.EmployeeId).Distinct().ToList(), entries.Where(e => e.RecordedBy is not null).Select(e => e.RecordedBy!.Value), ct);
-    }
+    public async Task<HashSet<Guid>> InvolvedUsersAsync(Guid stepId, CancellationToken ct) =>
+        await UsersOfAsync(await db.LaborEntries.AsNoTracking().Where(e => e.OrderStepId == stepId).Select(e => e.EmployeeId).Distinct().ToListAsync(ct), ct);
 
-    public async Task<HashSet<Guid>> UsersOfAsync(IReadOnlyCollection<Guid> employeeIds, IEnumerable<Guid> recorders, CancellationToken ct)
+    /// <summary>Usuários ligados aos funcionários (<see cref="IUserEmployeeLink.UserOfEmployeeAsync"/>).</summary>
+    public async Task<HashSet<Guid>> UsersOfAsync(IReadOnlyCollection<Guid> employeeIds, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(employeeIds);
-        var involved = recorders.ToHashSet();
+        var involved = new HashSet<Guid>();
         foreach (var employee in employeeIds)
         {
             if (await links.UserOfEmployeeAsync(employee, ct) is { } user)
