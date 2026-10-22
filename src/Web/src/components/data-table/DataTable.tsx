@@ -41,6 +41,8 @@ interface DataTableProps<T> {
   columns: ColumnDef<T, any>[]
   query: TableQuery<T>
   empty: { title: string; description?: string; action?: ReactNode }
+  /** Vazio de um filtro que a tela abre sozinha (ex.: "Aguardando você"), no lugar do "Nenhum resultado para os filtros". */
+  filteredEmpty?: { title: string; description?: string; action?: ReactNode }
   label: string
   searchPlaceholder?: string
   getRowId?: (row: T) => string
@@ -76,7 +78,7 @@ const cellClass = (secondary?: boolean, numeric?: boolean) =>
  * Tabela padrão (FND-09c CA 4 a 7): paginação, ordenação e busca no servidor, refletidas na URL; estados de carregando,
  * vazio, vazio por filtro e erro; colunas secundárias somem a 400px.
  */
-export function DataTable<T>({ columns, query, empty, label, searchPlaceholder = 'Buscar', getRowId, filters = [], inactiveFilter, rowHref, searchable = true, selectable, totals, expandable, rowClassName }: DataTableProps<T>) {
+export function DataTable<T>({ columns, query, empty, filteredEmpty, label, searchPlaceholder = 'Buscar', getRowId, filters = [], inactiveFilter, rowHref, searchable = true, selectable, totals, expandable, rowClassName }: DataTableProps<T>) {
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set())
   const [search, setSearch] = useTableSearch()
   const navigate = useNavigate()
@@ -117,7 +119,7 @@ export function DataTable<T>({ columns, query, empty, label, searchPlaceholder =
   } else if (query.isError) {
     body = <ErrorState message={query.error instanceof ApiError ? query.error.message : undefined} onRetry={() => query.refetch()} className="m-3" />
   } else if (!data || data.items.length === 0) {
-    body = filtered ? (
+    body = filtered && filteredEmpty ? <EmptyState {...filteredEmpty} className="m-3" /> : filtered ? (
       <EmptyState title="Nenhum resultado para os filtros." className="m-3" action={<button type="button" onClick={clearFilters} className="text-sm font-semibold text-primary">Limpar filtros</button>} />
     ) : (
       <EmptyState {...empty} className="m-3" />
