@@ -169,6 +169,10 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BemAqui.Production.Domain.InstallationTemplateLine> InstallationTemplate => Set<BemAqui.Production.Domain.InstallationTemplateLine>();
 
+    public DbSet<BemAqui.Production.Domain.LaborEntry> LaborEntries => Set<BemAqui.Production.Domain.LaborEntry>();
+
+    public DbSet<BemAqui.Production.Domain.StepPause> StepPauses => Set<BemAqui.Production.Domain.StepPause>();
+
     public DbSet<BemAqui.Engineering.Domain.RoutingTemplate> RoutingTemplates => Set<BemAqui.Engineering.Domain.RoutingTemplate>();
 
     public DbSet<BemAqui.Engineering.Domain.RoutingTemplateStep> RoutingTemplateSteps => Set<BemAqui.Engineering.Domain.RoutingTemplateStep>();

@@ -12,10 +12,12 @@ public sealed partial class FabricationOrderService
     public static Error NotCurrentStep() => Error.Conflict("step_not_current", "Esta etapa não é a etapa atual da OS.");
 
     /// <summary>
-    /// "Concluir etapa" do supervisor (PRD-02 CA 8 e 9, D10): só a etapa atual de OS aberta ou em andamento, fora a de qualidade
-    /// (PRD-05), com motivo. Na mesma transação: a etapa vai a <c>Done</c> com a marca "Concluída pelo supervisor", a próxima fica
-    /// <c>Ready</c> e, se a OS estava <c>Open</c>, ela vai a <c>InProgress</c> e publica <see cref="ProductionStepStarted"/>. A OS é
-    /// conferida pela versão (xmin): duas conclusões juntas, só uma grava. O aviso do quadro sai depois do commit.
+    /// "Concluir etapa" do supervisor (PRD-02 CA 8 e 9, D10; PRD-03a CA 20 e 21): só a etapa atual de OS não concluída nem cancelada,
+    /// fora a de qualidade (PRD-05), com motivo. Na mesma transação: os apontamentos abertos da etapa fecham com "Encerrado pelo
+    /// supervisor" (<see cref="LaborEntryClosed"/> para cada um), a etapa vai a <c>Done</c> com a marca "Concluída pelo supervisor",
+    /// a próxima fica <c>Ready</c> e, se a OS estava <c>Open</c>, ela sai de Aberta e publica <see cref="ProductionStepStarted"/>. Quem
+    /// apontou na etapa não conclui, salvo sem outro aprovador elegível ("Autoaprovado"). A OS é conferida pela versão (xmin): duas
+    /// conclusões juntas, só uma grava. O aviso do quadro sai depois do commit.
     /// </summary>
     public async Task<Result<FabricationOrderDetail>> CompleteStepAsync(Guid id, Guid stepId, CompleteStepInput input, CancellationToken cancellationToken = default)
     {
@@ -37,15 +39,14 @@ public sealed partial class FabricationOrderService
             return NotCurrentStep();
         }
 
-        var steps = await db.ProductionOrderSteps.Where(s => s.OrderId == id).OrderBy(s => s.Sequence).ToListAsync(cancellationToken);
-        var currentIndex = steps.FindIndex(s => s.Status != ProductionStepStatus.Done);
-        if (currentIndex < 0 || steps[currentIndex].Id != stepId)
+        var scope = await labor.LoadAsync(stepId, id, cancellationToken);
+        var currentIndex = scope?.Steps.FindIndex(s => s.Status != ProductionStepStatus.Done) ?? -1;
+        if (scope is null || currentIndex < 0 || scope.Steps[currentIndex].Id != stepId)
         {
             return NotCurrentStep();
         }
 
-        var step = steps[currentIndex];
-        if (step.IsQualityStep)
+        if (scope.Step.IsQualityStep)
         {
             return Error.Conflict("quality_step", "A etapa de qualidade é decidida na inspeção, não no quadro.");
         }
@@ -56,29 +57,22 @@ public sealed partial class FabricationOrderService
         }
 
         db.Entry(order).Property(o => o.Version).OriginalValue = input.Version;
-        var now = clock.GetUtcNow();
-        step.ActualStart ??= now;
-        step.ActualEnd = now;
-        step.Status = ProductionStepStatus.Done;
-        step.CompletedAt = now;
-        step.CompletedBy = currentUser.UserId;
-        step.CompletedBySupervisor = true;
-        step.CompletionReason = reason;
-        if (currentIndex + 1 < steps.Count && steps[currentIndex + 1].Status == ProductionStepStatus.Waiting)
+        var segregation = await labor.SegregationAsync(await labor.InvolvedUsersAsync(stepId, cancellationToken), scope, cancellationToken);
+        if (segregation.IsFailure)
         {
-            steps[currentIndex + 1].Status = ProductionStepStatus.Ready;
+            return segregation.Error!;
         }
 
-        if (order.Status == ProductionOrderStatus.Open)
+        var now = clock.GetUtcNow();
+        foreach (var open in await db.LaborEntries.Where(e => e.OrderStepId == stepId && e.EndedAt == null).ToListAsync(cancellationToken))
         {
-            order.Status = ProductionOrderStatus.InProgress;
-            order.ActualStart ??= now;
-            events.Publish(new ProductionStepStarted(order.Id, order.ProjectId, step.Id, now));
+            await labor.CloseAsync(scope, open, now, LaborCloseKind.Supervisor, cancellationToken);
         }
+
+        labor.Complete(scope, now, bySupervisor: true, reason, segregation.Value);
 
         // A OS muda de versão mesmo quando só a etapa mudou: a outra conclusão com a versão antiga recebe 409.
-        db.Entry(order).Property(o => o.Priority).IsModified = true;
-        await board.ChangedAsync(order.Id, cancellationToken);
+        await labor.SettleAsync(scope, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         return await GetAsync(id, cancellationToken);
     }

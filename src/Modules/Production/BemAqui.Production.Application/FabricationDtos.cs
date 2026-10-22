@@ -39,7 +39,7 @@ public sealed record FabricationCancelInput(string? Reason, uint Version);
 
 public sealed record FabricationStepView(
     Guid Id, int Sequence, string Code, string Name, Guid? WorkCenterId, string? WorkCenterName, string? Line, decimal StandardHours, ProductionStepStatus Status, bool IsQualityStep,
-    bool RequiresApproval, IReadOnlyList<string> Checklist);
+    bool RequiresApproval, IReadOnlyList<string> Checklist, decimal AppliedHours = 0m, bool AwaitingApproval = false, bool SelfApproved = false);
 
 /// <summary>
 /// OS de fabricação (CA 10): cabeçalho (número, situação, projeto, cliente, produto, quantidade), fatos (prometido, horas padrão,

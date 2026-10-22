@@ -15,7 +15,8 @@ namespace BemAqui.Production.Application;
 /// Colunas pelo código da etapa (D10); atraso e risco pela função única <see cref="ProductionOrderRisk"/>.
 /// </summary>
 public sealed class ProductionBoardService(
-    IProductionDb db, IProjects projects, IParties parties, IItems items, IWorkCenters workCenters, IRoutingTemplates routings, TimeProvider clock)
+    IProductionDb db, IProjects projects, IParties parties, IItems items, IWorkCenters workCenters, IRoutingTemplates routings, BemAqui.HR.Contracts.IEmployees employees,
+    TimeProvider clock)
 {
     private static readonly ProductionOrderStatus[] OpenStatuses =
         [ProductionOrderStatus.Open, ProductionOrderStatus.InProgress, ProductionOrderStatus.Paused, ProductionOrderStatus.Quality];
@@ -47,6 +48,12 @@ public sealed class ProductionBoardService(
             .ToDictionary(r => r.Id, r => r.Name);
         var today = BusinessTime.Today(clock);
 
+        // Apontamento (PRD-03a): horas apontadas da etapa atual, quem está nela (iniciais) e a pausa.
+        var currentIds = steps.Select(g => g.ToList()).Select(m => m.FirstOrDefault(s => s.Status != ProductionStepStatus.Done)?.Id).Where(id => id is not null).Select(id => id!.Value).ToList();
+        var applied = await LaborReader.AppliedMinutesAsync(db, currentIds, clock.GetUtcNow(), cancellationToken);
+        var open = await LaborReader.OpenByStepAsync(db, currentIds, cancellationToken);
+        var people = (await employees.FindAsync(open.SelectMany(g => g).Select(e => e.EmployeeId).Distinct().ToList(), cancellationToken)).ToDictionary(e => e.Id, e => e.Name);
+
         var cards = orders.Select(o =>
         {
             var mine = steps[o.Id].ToList();
@@ -59,14 +66,19 @@ public sealed class ProductionBoardService(
             var statuses = mine.Select(s => s.Status).ToList();
             var risk = ProductionOrderRisk.Evaluate(project?.PromisedDate, today, o.Status, ProductionOrderRisk.IsAtLastStep(statuses));
             var product = o.ProductId is { } p ? products.GetValueOrDefault(p) : null;
+            var onStep = current is null ? [] : open[current.Id].ToList();
+            var working = onStep.Any(e => e.Paused is null);
+            var pausedReason = onStep.Count > 0 && !working ? ShopfloorService.PauseLabel(onStep[0].Paused!.Value) : null;
+            var initials = onStep.Count == 0 ? null : string.Join(" ", onStep.Select(e => Initials(people.GetValueOrDefault(e.EmployeeId, "?"))).Distinct());
             return new BoardCard(
                 o.Id, o.Number, o.Status, product ?? (o.ProjectItemId is { } item ? projectItems.GetValueOrDefault(item, string.Empty) : string.Empty), o.Quantity.GetValueOrDefault(),
                 o.ProjectId, project?.Number ?? string.Empty, project?.Name ?? string.Empty, project?.PartyId ?? Guid.Empty,
                 project is null ? string.Empty : partyNames.GetValueOrDefault(project.PartyId, string.Empty), BoardRules.ColumnKey(boardSteps),
-                current?.Id, current?.Code, current?.Name, current?.Status, current?.IsQualityStep == true, current?.StandardHours ?? 0m, 0m,
+                current?.Id, current?.Code, current?.Name, current?.Status, current?.IsQualityStep == true, current?.StandardHours ?? 0m,
+                current is null ? 0m : LaborRules.Hours(applied.GetValueOrDefault(current.Id)),
                 lineStep?.WorkCenterId is { } center ? centers.GetValueOrDefault(center)?.Line : null, mine.Select(s => s.Code ?? string.Empty).ToList(),
                 mine.Select(s => s.Name).ToList(), mine.Count == 0 ? -1 : currentIndex < 0 ? mine.Count - 1 : currentIndex, project?.PromisedDate, risk.Risk,
-                risk.DelayDays, mine.Count > 0 && currentIndex < 0, mine.Count == 0, current?.Status == ProductionStepStatus.InProgress, null, null,
+                risk.DelayDays, mine.Count > 0 && currentIndex < 0, mine.Count == 0, current?.Status == ProductionStepStatus.InProgress && working, pausedReason, initials,
                 o.RoutingTemplateId, o.Version);
         }).ToList();
 
@@ -105,6 +117,18 @@ public sealed class ProductionBoardService(
         columns.AddRange(BoardRules.StepColumns(columnSource).Select(c => Column(c.Code, BoardColumnKind.Step, c.Code, c.Name, filtered)));
         columns.Add(Column(BoardRules.ReadyKey, BoardColumnKind.ReadyToComplete, null, BoardRules.ReadyName, filtered));
         return new ProductionBoard(columns, filtered, lateCount, riskCount, cards.Count, projectOptions, partyOptions, routingOptions, lines);
+    }
+
+    /// <summary>Iniciais do funcionário no cartão (CA 3 da PRD-02): primeira letra do primeiro e do último nome.</summary>
+    public static string Initials(string name)
+    {
+        var parts = (name ?? string.Empty).Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        return parts.Length switch
+        {
+            0 => "?",
+            1 => parts[0][..1].ToUpperInvariant(),
+            _ => (parts[0][..1] + parts[^1][..1]).ToUpperInvariant(),
+        };
     }
 
     private static BoardColumn Column(string key, BoardColumnKind kind, string? code, string name, IReadOnlyList<BoardCard> cards)

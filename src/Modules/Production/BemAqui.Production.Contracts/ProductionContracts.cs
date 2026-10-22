@@ -140,3 +140,11 @@ public sealed record ProductionStepStarted(Guid ProductionOrderId, Guid ProjectI
 
 /// <summary>OS de fabricação cancelada (PRD-01 CA 16): a EST-02 reconcilia as reservas pela fonte (ADR 0023 §6).</summary>
 public sealed record ProductionOrderCancelled(Guid ProductionOrderId, Guid ProjectId) : BemAqui.SharedKernel.IIntegrationEvent;
+/// <summary>
+/// Apontamento fechado (PRD-03a CA 13, 14 e 20): minutos líquidos = (fim − início) − pausas. A PRD-04 calcula o custo pelo cargo
+/// do funcionário; aqui não vai valor nenhum.
+/// </summary>
+public sealed record LaborEntryClosed(Guid LaborEntryId, Guid ProductionOrderId, Guid ProjectId, Guid StepId, Guid EmployeeId, int Minutes) : BemAqui.SharedKernel.IIntegrationEvent;
+
+/// <summary>Apontamento corrigido pelo supervisor (PRD-03a CA 20): a PRD-04 relê o apontamento e refaz o custo.</summary>
+public sealed record LaborEntryCorrected(Guid LaborEntryId) : BemAqui.SharedKernel.IIntegrationEvent;

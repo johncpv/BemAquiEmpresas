@@ -11,6 +11,9 @@ public sealed class UserEmployeeLink(IIdentityDb db) : IUserEmployeeLink
     public async Task<LinkableUser?> UserOfEmployeeAsync(Guid employeeId, CancellationToken cancellationToken = default) =>
         await db.Users.AsNoTracking().Where(u => u.EmployeeId == employeeId).Select(u => new LinkableUser(u.Id, u.Name, u.Email)).FirstOrDefaultAsync(cancellationToken);
 
+    public Task<Guid?> EmployeeOfUserAsync(Guid userId, CancellationToken cancellationToken = default) =>
+        db.Users.AsNoTracking().Where(u => u.Id == userId && u.Status == UserStatus.Active).Select(u => u.EmployeeId).FirstOrDefaultAsync(cancellationToken);
+
     public async Task<IReadOnlyList<LinkableUser>> LinkableAsync(CancellationToken cancellationToken = default) =>
         await db.Users.AsNoTracking().Where(u => u.Status == UserStatus.Active && u.EmployeeId == null).OrderBy(u => u.Name)
             .Select(u => new LinkableUser(u.Id, u.Name, u.Email)).ToListAsync(cancellationToken);

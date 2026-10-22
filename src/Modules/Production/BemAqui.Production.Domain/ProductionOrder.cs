@@ -155,6 +155,15 @@ public sealed class ProductionOrderStep : Entity, IAuditable
 
     /// <summary>Motivo da conclusão pelo supervisor (até 200).</summary>
     public string? CompletionReason { get; set; }
+
+    /// <summary>
+    /// "Aguardando aprovação" (PRD-03a CA 15): a etapa que exige aprovação foi finalizada pelo operador e espera quem tem
+    /// <c>production.approve</c>; continua <c>InProgress</c>, sem apontamento aberto.
+    /// </summary>
+    public DateTimeOffset? AwaitingApprovalSince { get; set; }
+
+    /// <summary>Aprovada ou concluída por quem apontou, sem outro aprovador elegível (CA 21, "Autoaprovado").</summary>
+    public bool SelfApproved { get; set; }
 }
 
 /// <summary>

@@ -24,7 +24,7 @@ namespace BemAqui.Production.Application;
 public sealed partial class FabricationOrderService(
     IProductionDb db, IProjects projects, IParties parties, IItems items, IWorkCenters workCenters, IRoutingTemplates routings, INumberSequence numbers,
     IPermissionChecker permissions, ICurrentUser currentUser, IUserDirectory users, INotificationService notifications, IEventPublisher events, TimeProvider clock,
-    ProductionBoardNotifier board)
+    ProductionBoardNotifier board, LaborWorkflow labor)
 {
     public const string Link = "/app/producao/os/";
 
@@ -105,10 +105,12 @@ public sealed partial class FabricationOrderService(
         var item = context.Items.GetValueOrDefault(order.ProjectItemId.GetValueOrDefault());
         var product = order.ProductId is { } productId ? context.Products.GetValueOrDefault(productId) : null;
         var routing = order.RoutingTemplateId is { } routingId && await routings.FindAsync([routingId], cancellationToken) is [var template, ..] ? template : null;
+        var applied = await LaborReader.AppliedMinutesAsync(db, stepIds, clock.GetUtcNow(), cancellationToken);
         var views = steps.Select(s => new FabricationStepView(
             s.Id, s.Sequence, s.Code ?? string.Empty, s.Name, s.WorkCenterId, s.WorkCenterId is { } c ? centers.GetValueOrDefault(c)?.Name : null,
             s.WorkCenterId is { } l ? centers.GetValueOrDefault(l)?.Line : null, s.StandardHours.GetValueOrDefault(), s.Status ?? ProductionStepStatus.Waiting, s.IsQualityStep,
-            s.RequiresApproval, checklist[s.Id].Select(x => x.Text).ToList())).ToList();
+            s.RequiresApproval, checklist[s.Id].Select(x => x.Text).ToList(), LaborRules.Hours(applied.GetValueOrDefault(s.Id)), s.AwaitingApprovalSince is not null,
+            s.SelfApproved)).ToList();
         return new FabricationOrderDetail(
             order.Id, order.Number, order.Status, order.ProjectId, project?.Number ?? string.Empty, project?.Name ?? string.Empty, project?.PartyId ?? Guid.Empty,
             project is null ? string.Empty : context.Parties.GetValueOrDefault(project.PartyId, string.Empty), project?.PromisedDate, order.ProjectItemId.GetValueOrDefault(),

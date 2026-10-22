@@ -5604,6 +5604,111 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("installation_template", "production");
                 });
 
+            modelBuilder.Entity("BemAqui.Production.Domain.LaborEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("CloseKind")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("close_kind");
+
+                    b.Property<Guid?>("ClosedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("closed_by");
+
+                    b.Property<DateTimeOffset?>("CorrectedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("corrected_at");
+
+                    b.Property<Guid?>("CorrectedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("corrected_by");
+
+                    b.Property<string>("CorrectionReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("correction_reason");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("employee_id");
+
+                    b.Property<DateTimeOffset?>("EndedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ended_at");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("notes");
+
+                    b.Property<bool>("OnBehalf")
+                        .HasColumnType("boolean")
+                        .HasColumnName("on_behalf");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("order_id");
+
+                    b.Property<Guid>("OrderStepId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("order_step_id");
+
+                    b.Property<int>("PausedMinutes")
+                        .HasColumnType("integer")
+                        .HasColumnName("paused_minutes");
+
+                    b.Property<Guid?>("RecordedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recorded_by");
+
+                    b.Property<bool>("SelfApproved")
+                        .HasColumnType("boolean")
+                        .HasColumnName("self_approved");
+
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_labor_entries");
+
+                    b.HasIndex("EmployeeId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_labor_entries_open_employee")
+                        .HasFilter("ended_at IS NULL");
+
+                    b.HasIndex("OrderId")
+                        .HasDatabaseName("ix_labor_entries_order_id");
+
+                    b.HasIndex("OrderStepId")
+                        .HasDatabaseName("ix_labor_entries_order_step_id");
+
+                    b.HasIndex("EmployeeId", "StartedAt")
+                        .HasDatabaseName("ix_labor_entries_employee_id_started_at");
+
+                    b.ToTable("labor_entries", "production", t =>
+                        {
+                            t.HasCheckConstraint("ck_labor_entries_interval", "ended_at IS NULL OR ended_at >= started_at");
+
+                            t.HasCheckConstraint("ck_labor_entries_paused", "paused_minutes >= 0");
+                        });
+                });
+
             modelBuilder.Entity("BemAqui.Production.Domain.ProductionOrder", b =>
                 {
                     b.Property<Guid>("Id")
@@ -5851,6 +5956,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("actual_start");
 
+                    b.Property<DateTimeOffset?>("AwaitingApprovalSince")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("awaiting_approval_since");
+
                     b.Property<string>("Code")
                         .HasMaxLength(1)
                         .HasColumnType("character varying(1)")
@@ -5899,6 +6008,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("requires_approval");
 
+                    b.Property<bool>("SelfApproved")
+                        .HasColumnType("boolean")
+                        .HasColumnName("self_approved");
+
                     b.Property<int>("Sequence")
                         .HasColumnType("integer")
                         .HasColumnName("sequence");
@@ -5927,6 +6040,57 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDatabaseName("ix_production_order_steps_work_center_id");
 
                     b.ToTable("production_order_steps", "production");
+                });
+
+            modelBuilder.Entity("BemAqui.Production.Domain.StepPause", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("EndedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ended_at");
+
+                    b.Property<Guid>("LaborEntryId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("labor_entry_id");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("order_id");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("reason");
+
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_step_pauses");
+
+                    b.HasIndex("LaborEntryId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_step_pauses_open_entry")
+                        .HasFilter("ended_at IS NULL");
+
+                    b.HasIndex("OrderId")
+                        .HasDatabaseName("ix_step_pauses_order_id");
+
+                    b.ToTable("step_pauses", "production", t =>
+                        {
+                            t.HasCheckConstraint("ck_step_pauses_interval", "ended_at IS NULL OR ended_at >= started_at");
+                        });
                 });
 
             modelBuilder.Entity("BemAqui.Production.Domain.WorkCenter", b =>
@@ -6428,6 +6592,23 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasConstraintName("fk_calendar_exceptions_calendars_calendar_id");
                 });
 
+            modelBuilder.Entity("BemAqui.Production.Domain.LaborEntry", b =>
+                {
+                    b.HasOne("BemAqui.Production.Domain.ProductionOrder", null)
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_labor_entries_production_orders_order_id");
+
+                    b.HasOne("BemAqui.Production.Domain.ProductionOrderStep", null)
+                        .WithMany()
+                        .HasForeignKey("OrderStepId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_labor_entries_production_order_steps_order_step_id");
+                });
+
             modelBuilder.Entity("BemAqui.Production.Domain.ProductionOrderChecklistItem", b =>
                 {
                     b.HasOne("BemAqui.Production.Domain.ProductionOrder", null)
@@ -6462,6 +6643,16 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_production_order_steps_production_orders_order_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Production.Domain.StepPause", b =>
+                {
+                    b.HasOne("BemAqui.Production.Domain.LaborEntry", null)
+                        .WithMany()
+                        .HasForeignKey("LaborEntryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_step_pauses_labor_entries_labor_entry_id");
                 });
 
             modelBuilder.Entity("BemAqui.Production.Domain.WorkCenter", b =>

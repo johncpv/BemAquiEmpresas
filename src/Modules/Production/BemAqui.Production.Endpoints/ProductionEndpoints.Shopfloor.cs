@@ -1,0 +1,81 @@
+using BemAqui.BuildingBlocks.Attachments;
+using BemAqui.BuildingBlocks.Web;
+using BemAqui.Production.Application;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+
+namespace BemAqui.Production.Endpoints;
+
+internal static partial class ProductionEndpoints
+{
+    /// <summary>
+    /// App do operador (PRD-03a CA 28): módulo <c>shopfloor</c> (sem projeto próprio), ver com <c>shopfloor.view</c> e apontar com
+    /// <c>shopfloor.create</c>. O funcionário é sempre o do usuário logado (CA 29); toque repetido não duplica (Idempotency-Key, CA 30).
+    /// </summary>
+    public static IEndpointRouteBuilder MapShopfloorEndpoints(this IEndpointRouteBuilder api)
+    {
+        var shopfloor = api.MapGroup("/shopfloor").WithTags("App do operador").RequireModule("shopfloor");
+        shopfloor.MapGet("/queue", async (ShopfloorService service, CancellationToken ct) => (await service.QueueAsync(ct)).ToHttpResult())
+            .RequirePermission("shopfloor.view").WithName("GetShopfloorQueue").Produces<ShopfloorQueueView>();
+        shopfloor.MapGet("/orders", async (string? number, ShopfloorService service, CancellationToken ct) => (await service.SearchAsync(number, ct)).ToHttpResult())
+            .RequirePermission("shopfloor.view").WithName("SearchShopfloorOrder").Produces<IReadOnlyList<ShopfloorQueueStep>>();
+
+        var steps = shopfloor.MapGroup("/steps/{stepId:guid}");
+        steps.MapGet(string.Empty, async (Guid stepId, ShopfloorService service, CancellationToken ct) => (await service.GetStepAsync(stepId, ct)).ToHttpResult())
+            .RequirePermission("shopfloor.view").WithName("GetShopfloorStep").Produces<ShopfloorStepDetail>();
+        steps.MapPost("/start", async (Guid stepId, ShopfloorService service, CancellationToken ct) => (await service.StartAsync(stepId, ct)).ToHttpResult())
+            .RequirePermission("shopfloor.create").RequireIdempotencyKey().WithName("StartShopfloorStep").Produces<ShopfloorActionResult>();
+        steps.MapPost("/pause", async (Guid stepId, ShopfloorPauseInput input, ShopfloorService service, CancellationToken ct) => (await service.PauseAsync(stepId, input, ct)).ToHttpResult())
+            .RequirePermission("shopfloor.create").RequireIdempotencyKey().WithName("PauseShopfloorStep").Produces<ShopfloorActionResult>();
+        steps.MapPost("/resume", async (Guid stepId, ShopfloorService service, CancellationToken ct) => (await service.ResumeAsync(stepId, ct)).ToHttpResult())
+            .RequirePermission("shopfloor.create").RequireIdempotencyKey().WithName("ResumeShopfloorStep").Produces<ShopfloorActionResult>();
+        steps.MapPost("/leave", async (Guid stepId, ShopfloorService service, CancellationToken ct) => (await service.LeaveAsync(stepId, ct)).ToHttpResult())
+            .RequirePermission("shopfloor.create").RequireIdempotencyKey().WithName("LeaveShopfloorStep").Produces<ShopfloorActionResult>();
+        steps.MapPost("/finish", async (Guid stepId, ShopfloorFinishInput input, ShopfloorService service, CancellationToken ct) => (await service.FinishAsync(stepId, input, ct)).ToHttpResult())
+            .RequirePermission("shopfloor.create").RequireIdempotencyKey().WithName("FinishShopfloorStep").Produces<ShopfloorActionResult>();
+        steps.MapPut("/checklist/{itemId:guid}", async (Guid stepId, Guid itemId, ShopfloorChecklistInput input, ShopfloorService service, CancellationToken ct) =>
+                (await service.MarkChecklistAsync(stepId, itemId, input, ct)).ToHttpResult())
+            .RequirePermission("shopfloor.create").WithName("MarkShopfloorChecklist").Produces<ShopfloorStepDetail>();
+
+        // CA 6 (CA 14 da PRD-01): anexos técnicos da OS pela fila do operador, só leitura; fora da fila, 404.
+        steps.MapGet("/attachments", async (Guid stepId, ShopfloorService service, CancellationToken ct) => (await service.AttachmentsAsync(stepId, ct)).ToHttpResult())
+            .RequirePermission("shopfloor.view").WithName("ListShopfloorAttachments").Produces<IReadOnlyList<ShopfloorAttachment>>();
+        steps.MapGet("/attachments/{attachmentId:guid}", async (Guid stepId, Guid attachmentId, ShopfloorService service, HttpContext http, CancellationToken ct) =>
+            {
+                var result = await service.DownloadAsync(stepId, attachmentId, ct);
+                if (result.IsFailure)
+                {
+                    return result.Error!.ToProblem();
+                }
+
+                AttachmentEndpoints.ApplyDownloadHeaders(http.Response);
+                return Results.File(result.Value.Content, result.Value.ContentType, result.Value.FileName);
+            })
+            .RequirePermission("shopfloor.view").WithName("DownloadShopfloorAttachment");
+        return api;
+    }
+
+    /// <summary>
+    /// Supervisor (PRD-03a CA 15, 18 a 22, 31): aba Apontamentos com production.view; "Apontar por funcionário" com production.edit
+    /// (o serviço confere shopfloor.create); corrigir e aprovar etapa com production.approve; abertos há muito tempo com production.view.
+    /// </summary>
+    private static void MapLabor(RouteGroupBuilder production)
+    {
+        var entries = production.MapGroup("/production-orders/{id:guid}/labor-entries");
+        entries.MapGet(string.Empty, async (Guid id, SupervisorLaborService service, CancellationToken ct) => (await service.ListAsync(id, ct)).ToHttpResult())
+            .RequirePermission("production.view").WithName("ListOrderLaborEntries").Produces<OrderLaborView>();
+        entries.MapPost(string.Empty, async (Guid id, LaborEntryInput input, SupervisorLaborService service, CancellationToken ct) => (await service.RecordAsync(id, input, ct)).ToHttpResult())
+            .RequirePermission("production.edit").RequireIdempotencyKey().WithName("RecordLaborEntry").Produces<OrderLaborView>();
+        entries.MapPost("/{entryId:guid}/correct", async (Guid id, Guid entryId, LaborCorrectionInput input, SupervisorLaborService service, CancellationToken ct) =>
+                (await service.CorrectAsync(id, entryId, input, ct)).ToHttpResult())
+            .RequirePermission("production.approve").WithName("CorrectLaborEntry").Produces<OrderLaborView>();
+        production.MapPost("/production-orders/{id:guid}/steps/{stepId:guid}/approve", async (Guid id, Guid stepId, ApproveStepInput input, SupervisorLaborService service, CancellationToken ct) =>
+                (await service.ApproveStepAsync(id, stepId, input, ct)).ToHttpResult())
+            .RequirePermission("production.approve").WithName("ApproveFabricationStep").Produces<OrderLaborView>();
+        production.MapGet("/labor-entries/open", async (SupervisorLaborService service, CancellationToken ct) => Results.Ok(await service.OpenAsync(ct)))
+            .RequirePermission("production.view").WithName("ListOpenLaborEntries").Produces<OpenLaborList>();
+        production.MapGet("/labor-entries/employees", async (SupervisorLaborService service, CancellationToken ct) => Results.Ok(await service.EmployeesAsync(ct)))
+            .RequirePermission("production.edit").WithName("ListLaborEmployees").Produces<IReadOnlyList<LaborEmployeeOption>>();
+    }
+}
