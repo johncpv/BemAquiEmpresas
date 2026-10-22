@@ -8,6 +8,9 @@ public enum ScanVerdict
     Clean,
     Infected,
     Unavailable,
+
+    /// <summary>O clamd recusou pelo tamanho (<c>StreamMaxLength</c>): o arquivo é recusado, nunca liberado sem varredura (ADR 0019 §7 adendo).</summary>
+    TooLarge,
 }
 
 public sealed record ScanResult(ScanVerdict Verdict, string? Signature = null);
@@ -27,6 +30,9 @@ public sealed class ClamAvOptions
     public int Port { get; set; } = 3310;
 
     public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(30);
+
+    /// <summary>Maior arquivo enviado ao clamd (ADR 0019 §7 adendo: 30 MB, acima dos 25 MB do maior anexo); acima, recusado.</summary>
+    public long StreamMaxLength { get; set; } = 30L * 1024 * 1024;
 }
 
 /// <summary>clamd pelo protocolo INSTREAM (TCP). Falha de conexão vira <see cref="ScanVerdict.Unavailable"/> (falha fechada).</summary>
@@ -37,6 +43,11 @@ public sealed class ClamAvScanner(Microsoft.Extensions.Options.IOptions<ClamAvOp
     public async Task<ScanResult> ScanAsync(Stream content, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(content);
+        if (content.CanSeek && content.Length - content.Position > options.Value.StreamMaxLength)
+        {
+            return new ScanResult(ScanVerdict.TooLarge);
+        }
+
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeout.CancelAfter(options.Value.Timeout);
         try
@@ -66,10 +77,18 @@ public sealed class ClamAvScanner(Microsoft.Extensions.Options.IOptions<ClamAvOp
         }
     }
 
-    /// <summary>"stream: OK" → limpo; "stream: Eicar-Signature FOUND" → infectado; qualquer outra resposta → indisponível.</summary>
+    /// <summary>
+    /// "stream: OK" → limpo; "stream: Eicar-Signature FOUND" → infectado; "INSTREAM size limit exceeded" → grande demais;
+    /// qualquer outra resposta → indisponível.
+    /// </summary>
     public static ScanResult Parse(string reply)
     {
         ArgumentNullException.ThrowIfNull(reply);
+        if (reply.Contains("size limit exceeded", StringComparison.OrdinalIgnoreCase))
+        {
+            return new ScanResult(ScanVerdict.TooLarge);
+        }
+
         if (reply.EndsWith(" OK", StringComparison.Ordinal))
         {
             return new ScanResult(ScanVerdict.Clean);

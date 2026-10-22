@@ -88,6 +88,7 @@ try
     builder.Services.Configure<PlatformHostOptions>(builder.Configuration.GetSection(PlatformHostOptions.Section));
     builder.Services.Configure<FileStorageOptions>(builder.Configuration.GetSection(FileStorageOptions.Section));
     builder.Services.Configure<ClamAvOptions>(builder.Configuration.GetSection(ClamAvOptions.Section));
+    builder.Services.Configure<AttachmentOptions>(builder.Configuration.GetSection(AttachmentOptions.Section));
     builder.Services.AddScoped<ICurrentUser, HttpCurrentUser>();
     builder.Services.AddTenantPersistence();
     builder.Services.AddSingleton<BemAqui.Platform.Application.Provisioning.ITenantDatabaseMigrator, TenantDatabaseMigrator>();

@@ -278,7 +278,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-3--engenharia-est
 - Requisitos: R-ENG-1, R-ENG-2, R-PRP-1, R-PLN-1, R-SEC-5.
 - CA: roteiros com etapas (centro, horas padrão, qualidade, exige aprovação, checklist) e campo "Letra" (D10); primeira etapa marcada "Começa sem BOM" (D12); produto único por roteiro (`routing_template_items`); seed do exemplo com a Expedição "Preparar e embalar para o romaneio" (D4); `engineering.delete` e seed patch `engineering-permissions` (D13); `StageIndicator` corrigido (D17 b).
 
-**PRD-01 [ ] Geração da OS de fabricação (G)** — 3.1, ordem 2 — re-estimada de M — [story](stories/PRD-01-geracao-os-fabricacao.md)
+**PRD-01 [x] Geração da OS de fabricação (G)** — 3.1, ordem 2 — re-estimada de M — [story](stories/PRD-01-geracao-os-fabricacao.md)
 - Requisitos: R-PRD-1, R-PRJ-2, R-ENG-1, R-ENG-6, R-PRP-1, R-PRP-2, R-COM-3, R-COM-4, R-SEC-5.
 - CA: `Equipment` gera OS sozinho, `Product` pelo botão, `Service` e contrato de implantação nunca (D14); "Gerar OS" em lote; mesma `ProductionOrder` da COM-06 com `CHECK` por tipo e deploy em duas etapas; cancelar OS iniciada com `production.approve`; dwg/dxf de 25 MB e leitura pelo operador por endpoint que confere a fila (D16); `OrderHeader`/`FactsBar` e ordem das abas.
 

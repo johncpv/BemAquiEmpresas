@@ -24,7 +24,20 @@ public sealed record AttachmentOwnerRules(
     Func<IServiceProvider, Guid, CancellationToken, Task<bool>>? OwnerExists = null,
     string ReadAction = StandardActions.View,
     string WriteAction = StandardActions.Edit,
-    Func<IServiceProvider, Guid, CancellationToken, Task<Error?>>? CanAttach = null);
+    Func<IServiceProvider, Guid, CancellationToken, Task<Error?>>? CanAttach = null,
+    Func<IServiceProvider, Guid, AttachmentFile, CancellationToken, Task<Error?>>? CheckFile = null);
+
+/// <summary>Arquivo já aceito pela allowlist, para a regra do dono que depende do documento (ex.: tipo da OS, PRD-01 CA 12).</summary>
+public sealed record AttachmentFile(string ContentType, long Size);
+
+/// <summary>Seção <c>Attachments</c> (ADR 0019 §7 adendo): limite de envios por usuário (<c>attachments.max_uploads_per_hour</c>).</summary>
+public sealed class AttachmentOptions
+{
+    public const string Section = "Attachments";
+
+    /// <summary>Envios por usuário numa hora; acima, 429. Zero desliga o limite.</summary>
+    public int MaxUploadsPerHour { get; set; } = 30;
+}
 
 /// <summary>Inscrição de um dono de anexo por um módulo, no <c>AddServices</c>.</summary>
 public sealed record AttachmentOwnerRegistration(string OwnerType, AttachmentOwnerRules Rules);
@@ -84,6 +97,11 @@ public sealed partial class AttachmentService(
             return Forbidden();
         }
 
+        if (await TooManyUploadsAsync(cancellationToken))
+        {
+            return Error.TooManyRequests("attachment.too_many_uploads", "Muitos envios em pouco tempo. Tente de novo em alguns minutos.");
+        }
+
         await using var buffer = new MemoryStream();
         await content.CopyToAsync(buffer, cancellationToken);
         if (buffer.Length == 0 || buffer.Length > AttachmentPolicy.MaxSize)
@@ -114,6 +132,13 @@ public sealed partial class AttachmentService(
         {
             await storage.DeleteAsync(path, cancellationToken);
             return Error.Validation("attachment.infected", "O arquivo foi recusado: o antivírus encontrou uma ameaça.");
+        }
+
+        // Acima do limite do antivírus: recusado, nunca liberado sem varredura (ADR 0019 §7 adendo).
+        if (scan.Verdict == ScanVerdict.TooLarge)
+        {
+            await storage.DeleteAsync(path, cancellationToken);
+            return Error.Validation("attachment.too_large_to_scan", "O arquivo é grande demais para o antivírus e foi recusado.");
         }
 
         var attachment = new Attachment
@@ -204,7 +229,25 @@ public sealed partial class AttachmentService(
             return Error.NotFound(Error.Codes.NotFound, "O documento deste anexo não existe.");
         }
 
+        if (rules.CheckFile is { } check && await check(services, ownerId, new AttachmentFile(type.ContentType, buffer.Length), ct) is { } refused)
+        {
+            return refused;
+        }
+
         return rules.CanAttach is { } can ? await can(services, ownerId, ct) : null;
+    }
+
+    /// <summary>Limite de envios por usuário numa hora (ADR 0019 §7 adendo); só os enviados pelo usuário contam.</summary>
+    private async Task<bool> TooManyUploadsAsync(CancellationToken ct)
+    {
+        var limit = (services.GetService(typeof(Microsoft.Extensions.Options.IOptions<AttachmentOptions>)) as Microsoft.Extensions.Options.IOptions<AttachmentOptions>)?.Value.MaxUploadsPerHour ?? 30;
+        if (limit <= 0 || currentUser.UserId is not { } user)
+        {
+            return false;
+        }
+
+        var since = clock.GetUtcNow().AddHours(-1);
+        return await db.Attachments.CountAsync(a => a.UploadedBy == user && a.Origin == AttachmentOrigin.User && a.CreatedAt > since, ct) >= limit;
     }
 
     private static Error Forbidden() => Error.Forbidden(Error.Codes.Forbidden, "Você não tem acesso a esta funcionalidade. Fale com o administrador.");

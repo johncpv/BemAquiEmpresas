@@ -41,6 +41,7 @@ public sealed partial class QuoteApprovalService
         var projectItems = items.Select(i => new ProjectItem
         {
             ProjectId = project.Id, QuoteItemId = i.Id, Sequence = i.Sequence, Description = i.Description, Quantity = i.Quantity, ItemId = i.ItemId,
+            RoutingTemplateId = i.RoutingTemplateId,
         }).ToList();
         db.ProjectItems.AddRange(projectItems);
         db.ProjectBudgets.AddRange(Budget(quote.TotalCost, items, costs).Select(b => new ProjectBudget { ProjectId = project.Id, CostType = b.Type, BudgetedAmount = b.Amount }));
@@ -49,9 +50,11 @@ public sealed partial class QuoteApprovalService
         events.Publish(new ContractSigned(contract.Id, project.Id, contract.PartyId, contract.SignedAt, contract.TotalValue, contract.RevenueAccountId,
             contractMilestones.Select(m => new ContractMilestoneInfo(m.Id, m.Sequence, m.Description, m.Amount, m.Trigger, m.TriggerEvent, m.DueDate, m.DaysAfterEvent, m.Percent, m.ReceivedBeforeOnboarding)).ToList(),
             contract.IsOnboarding));
+        // PRD-01 CA 1 a 3: o tipo e a implantação vão no evento; a Produção gera a OS de fabricação do equipamento.
+        var kinds = items.ToDictionary(i => i.Id, i => Enum.Parse<ProjectItemKind>(i.Kind.ToString()));
         foreach (var item in projectItems)
         {
-            events.Publish(new ProjectItemCreated(project.Id, item.Id, item.QuoteItemId, item.ItemId, item.Quantity));
+            events.Publish(new ProjectItemCreated(project.Id, item.Id, item.QuoteItemId, item.ItemId, item.Quantity, kinds[item.QuoteItemId], contract.IsOnboarding, item.RoutingTemplateId));
         }
 
         return (contract, project);

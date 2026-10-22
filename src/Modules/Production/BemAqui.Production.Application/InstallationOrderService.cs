@@ -46,10 +46,11 @@ public sealed partial class InstallationOrderService(
             .Select(o => new { Order = o, Done = db.ProductionOrderSteps.Count(s => s.OrderId == o.Id && s.CompletedAt != null), Total = db.ProductionOrderSteps.Count(s => s.OrderId == o.Id) })
             .ToListAsync(cancellationToken);
         var byId = (await projects.FindManyAsync(rows.Select(r => r.Order.ProjectId).Distinct().ToList(), cancellationToken)).ToDictionary(p => p.Id);
-        var names = await NamesAsync(rows.Select(r => r.Order.InstallerId), cancellationToken);
+        var names = await NamesAsync(rows.Select(r => r.Order.InstallerId.GetValueOrDefault()), cancellationToken);
         return new InstallationPage(rows.Select(r => new InstallationSummary(
             r.Order.Id, r.Order.Number, r.Order.ProjectId, byId.GetValueOrDefault(r.Order.ProjectId)?.Number ?? string.Empty, byId.GetValueOrDefault(r.Order.ProjectId)?.Name ?? string.Empty,
-            r.Order.InstallerId, names.GetValueOrDefault(r.Order.InstallerId, string.Empty), r.Order.PlannedStart, r.Order.PlannedEnd, r.Order.Status, r.Done, r.Total)).ToList(),
+            r.Order.InstallerId.GetValueOrDefault(), names.GetValueOrDefault(r.Order.InstallerId.GetValueOrDefault(), string.Empty), r.Order.PlannedStart.GetValueOrDefault(),
+            r.Order.PlannedEnd.GetValueOrDefault(), r.Order.Status, r.Done, r.Total)).ToList(),
             page.Page, page.PageSize, total);
     }
 
@@ -73,10 +74,11 @@ public sealed partial class InstallationOrderService(
             who[userId] = await users.DisplayNameAsync(userId, cancellationToken);
         }
 
-        var installer = (await NamesAsync([order.InstallerId], cancellationToken)).GetValueOrDefault(order.InstallerId, string.Empty);
+        var installerId = order.InstallerId.GetValueOrDefault();
+        var installer = (await NamesAsync([installerId], cancellationToken)).GetValueOrDefault(installerId, string.Empty);
         return new InstallationDetail(
-            order.Id, order.Number, order.ProjectId, project?.Number ?? string.Empty, project?.Name ?? string.Empty, order.ContractId, order.InstallerId, installer, order.ContractValue,
-            order.PlannedStart, order.PlannedEnd, order.Status, order.StartedOn, order.AcceptedOn, order.AcceptedByName, order.CancelReason,
+            order.Id, order.Number, order.ProjectId, project?.Number ?? string.Empty, project?.Name ?? string.Empty, order.ContractId, installerId, installer, order.ContractValue.GetValueOrDefault(),
+            order.PlannedStart.GetValueOrDefault(), order.PlannedEnd.GetValueOrDefault(), order.Status, order.StartedOn, order.AcceptedOn, order.AcceptedByName, order.CancelReason,
             steps.Select(s => new InstallationStepView(s.Id, s.Sequence, s.Name, s.CompletedAt, s.CompletedBy is { } u ? who.GetValueOrDefault(u) : null)).ToList(),
             checklist.Select(c => new InstallationChecklistView(c.Id, c.Sequence, c.Text, c.Result, c.MarkedAt, c.MarkedBy is { } u ? who.GetValueOrDefault(u) : null)).ToList(),
             items, order.Version, await payables.FindByOriginAsync(DocumentOrigin.Installer, order.Id, cancellationToken));

@@ -34,10 +34,10 @@ public sealed partial class InstallationOrderService
             return Invalid("plannedEnd", "O fim previsto não pode ser antes do início.");
         }
 
-        var before = order.ContractValue;
+        var before = order.ContractValue.GetValueOrDefault();
         if (before != input.ContractValue || order.PlannedEnd != input.PlannedEnd)
         {
-            var installer = await parties.FindAsync(order.InstallerId, cancellationToken);
+            var installer = await parties.FindAsync(order.InstallerId.GetValueOrDefault(), cancellationToken);
             var due = installer is null ? input.PlannedEnd : await InstallerDueAsync(installer, input.ContractValue, input.PlannedEnd, cancellationToken);
             var updated = await payables.UpdatePlannedAsync(DocumentOrigin.Installer, order.Id, input.ContractValue, due, cancellationToken);
             if (updated.IsFailure)

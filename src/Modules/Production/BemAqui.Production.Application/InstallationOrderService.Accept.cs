@@ -53,9 +53,10 @@ public sealed partial class InstallationOrderService
         order.Status = ProductionOrderStatus.Completed;
         order.AcceptedOn = input.Date;
         order.AcceptedByName = name;
-        var installer = await parties.FindAsync(order.InstallerId, cancellationToken);
-        var due = installer is null ? input.Date : await InstallerDueAsync(installer, order.ContractValue, input.Date, cancellationToken);
-        var confirmed = await payables.ConfirmAsync(DocumentOrigin.Installer, order.Id, order.ContractValue, due, cancellationToken);
+        var installer = await parties.FindAsync(order.InstallerId.GetValueOrDefault(), cancellationToken);
+        var value = order.ContractValue.GetValueOrDefault();
+        var due = installer is null ? input.Date : await InstallerDueAsync(installer, value, input.Date, cancellationToken);
+        var confirmed = await payables.ConfirmAsync(DocumentOrigin.Installer, order.Id, value, due, cancellationToken);
         if (confirmed.IsFailure)
         {
             return confirmed.Error!;
