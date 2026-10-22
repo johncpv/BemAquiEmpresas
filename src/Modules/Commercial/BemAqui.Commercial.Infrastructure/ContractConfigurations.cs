@@ -64,6 +64,7 @@ internal sealed class ProjectItemConfiguration : IEntityTypeConfiguration<Projec
         b.HasOne<QuoteItem>().WithMany().HasForeignKey(e => e.QuoteItemId).OnDelete(DeleteBehavior.Restrict);
         b.HasIndex(e => e.ProjectId);
         b.HasIndex(e => e.QuoteItemId);
+        b.HasIndex(e => e.RoutingTemplateId);
         b.HasIndex(e => e.ItemId);
     }
 }

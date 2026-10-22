@@ -59,6 +59,7 @@ public sealed partial class SendEmailJob(ITenantDirectory directory, ITenantScop
         {
             log.Status = EmailStatus.Failed;
             log.Error = refused;
+            log.RedactSecrets();
             await db.SaveChangesAsync(cancellationToken);
             return;
         }
@@ -67,7 +68,12 @@ public sealed partial class SendEmailJob(ITenantDirectory directory, ITenantScop
         try
         {
             var model = ToModel(log.Model);
-            model["tenant_name"] ??= services.GetRequiredService<TenantContextHolder>().Resolved?.TradeName ?? services.GetRequiredService<TenantContextHolder>().Resolved?.LegalName;
+            // O modelo de quem não informou a empresa ganha o nome do tenant (o indexador lança sem a chave: usar TryGetValue).
+            if (!model.TryGetValue("tenant_name", out var tenantName) || tenantName is null)
+            {
+                var resolved = services.GetRequiredService<TenantContextHolder>().Resolved;
+                model["tenant_name"] = resolved?.TradeName ?? resolved?.LegalName;
+            }
             var content = services.GetRequiredService<EmailTemplateRenderer>().Render(log.Template, model);
             log.Subject = content.Subject;
             var outgoing = new OutgoingEmail(log.To, content)
@@ -78,6 +84,7 @@ public sealed partial class SendEmailJob(ITenantDirectory directory, ITenantScop
             log.Status = EmailStatus.Sent;
             log.SentAt = clock.GetUtcNow();
             log.Error = null;
+            log.RedactSecrets();
             await db.SaveChangesAsync(cancellationToken);
             services.GetService<IntegrationHealthTracker>()?.RecordSuccess("smtp");
         }
@@ -92,6 +99,7 @@ public sealed partial class SendEmailJob(ITenantDirectory directory, ITenantScop
             if (log.Attempts >= MaxAttempts)
             {
                 log.Status = EmailStatus.Failed;
+                log.RedactSecrets();
                 await db.SaveChangesAsync(cancellationToken);
                 LogFailed(logger, ex, log.Id, tenant.Key, log.Attempts);
                 await services.GetRequiredService<IAlertSink>().RaiseAsync(new Alert(AlertKinds.EmailFailed, tenant.Key, "E-mail " + log.Template + " não foi enviado após " + log.Attempts + " tentativas", log.Error), cancellationToken);
@@ -111,6 +119,7 @@ public sealed partial class SendEmailJob(ITenantDirectory directory, ITenantScop
         {
             log.Status = EmailStatus.Skipped;
             log.Error = "Tenant não ativo (" + tenant.Status + "): e-mail não enviado.";
+            log.RedactSecrets();
             await db.SaveChangesAsync(cancellationToken);
         }
     }

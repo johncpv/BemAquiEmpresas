@@ -18,10 +18,13 @@ namespace BemAqui.Integration.Tests.Email;
 [Collection(PostgresTestGroup.Name)]
 public class EmailTests(PostgresFixture postgres, MailpitFixture mailpit) : IClassFixture<MailpitFixture>
 {
+    /// <summary>Token de uso único do link: depois do envio terminar, não pode ficar no email_logs (D19).</summary>
+    private const string Token = "tok3n-de-uso-unico";
+
     private static readonly Dictionary<string, object?> InviteModel = new()
     {
         ["tenant_name"] = "Konebras Elevadores",
-        ["link"] = "https://app.konebras.com.br/convite/abc",
+        ["link"] = "https://app.konebras.com.br/convite?token=" + Token,
         ["expires_at"] = DateTimeOffset.UtcNow.AddDays(3),
     };
 
@@ -78,6 +81,9 @@ public class EmailTests(PostgresFixture postgres, MailpitFixture mailpit) : ICla
         var log = await LogAsync(provider, id);
         log.Status.Should().Be(EmailStatus.Sent);
         log.SentAt.Should().NotBeNull();
+        log.Model.Should().NotContain(Token, "o token não fica guardado depois do envio (D19)");
+        JsonDocument.Parse(log.Model).RootElement.GetProperty("link").GetString().Should().Be(EmailSecrets.Redacted);
+        JsonDocument.Parse(log.Model).RootElement.GetProperty("tenant_name").GetString().Should().Be("Konebras Elevadores", "o resto do modelo fica para o suporte");
         using var http = new HttpClient { BaseAddress = mailpit.Api };
         var search = await http.GetFromJsonAsync<JsonElement>("search?query=to:" + to);
         search.GetProperty("messages")[0].GetProperty("Subject").GetString().Should().StartWith("Convite para acessar Konebras Elevadores");
@@ -96,6 +102,7 @@ public class EmailTests(PostgresFixture postgres, MailpitFixture mailpit) : ICla
             var tentar = () => job.ExecuteAsync(EmailHarness.Tenant.Id, new SendEmailArgs(id), CancellationToken.None);
             await tentar.Should().ThrowAsync<Exception>("o Hangfire tenta de novo (tentativa {0})", attempt);
             (await LogAsync(provider, id)).Status.Should().Be(EmailStatus.Queued);
+            (await LogAsync(provider, id)).Model.Should().Contain(Token, "a nova tentativa precisa do link");
         }
 
         await job.ExecuteAsync(EmailHarness.Tenant.Id, new SendEmailArgs(id), CancellationToken.None);
@@ -104,6 +111,29 @@ public class EmailTests(PostgresFixture postgres, MailpitFixture mailpit) : ICla
         log.Status.Should().Be(EmailStatus.Failed);
         log.Attempts.Should().Be(3);
         log.Error.Should().NotBeNullOrWhiteSpace();
+        log.Model.Should().NotContain(Token, "falha definitiva também apaga o token");
+    }
+
+    [Fact]
+    public async Task Link_com_token_de_template_sem_campo_declarado_tambem_e_apagado_depois_do_envio()
+    {
+        var (provider, _, _) = await EmailHarness.CreateAsync(await postgres.CreateDatabaseAsync("mail_redact"), mailpit.Container.Hostname, mailpit.SmtpPort);
+        await using var disposeProvider = provider;
+        Guid id;
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            id = scope.ServiceProvider.GetRequiredService<IEmailSender>().Enqueue("payment-order-pending", "aprovador@konebras.com.br", new Dictionary<string, object?>
+            {
+                ["number"] = "OP-2026-0001", ["total"] = "R$ 10,00", ["link"] = "https://app.konebras.com.br/financeiro/ordens/1?acao=aprovar&token=" + Token,
+            });
+            await scope.ServiceProvider.GetRequiredService<BemAquiDbContext>().SaveChangesAsync();
+        }
+
+        await Job(provider).ExecuteAsync(EmailHarness.Tenant.Id, new SendEmailArgs(id), CancellationToken.None);
+
+        var log = await LogAsync(provider, id);
+        log.Status.Should().Be(EmailStatus.Sent);
+        log.Model.Should().NotContain(Token).And.Contain("OP-2026-0001");
     }
 
     [Fact]
@@ -128,5 +158,6 @@ public class EmailTests(PostgresFixture postgres, MailpitFixture mailpit) : ICla
         var log = await LogAsync(provider, id);
         log.Status.Should().Be(EmailStatus.Skipped);
         log.Error.Should().Contain("Suspended");
+        log.Model.Should().NotContain(Token, "Skipped também encerra o envio");
     }
 }

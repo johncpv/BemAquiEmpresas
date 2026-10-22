@@ -111,7 +111,7 @@ public sealed partial class QuoteService
             var item = new QuoteItem
             {
                 QuoteId = target.Id, Sequence = next++, Kind = s.Kind, ItemId = s.ItemId, Description = s.Description, Quantity = s.Quantity, UnitCost = s.UnitCost, Pct = s.Pct,
-                UnitPrice = s.UnitPrice, PriceOverridden = s.PriceOverridden,
+                UnitPrice = s.UnitPrice, PriceOverridden = s.PriceOverridden, RoutingTemplateId = s.RoutingTemplateId,
             };
             db.QuoteItems.Add(item);
             db.QuoteItemCosts.AddRange(costs.Where(c => c.QuoteItemId == s.Id).Select(c => new QuoteItemCost

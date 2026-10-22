@@ -146,6 +146,9 @@ public sealed class ProjectItem : Entity, IAuditable
     public decimal Quantity { get; init; }
 
     public Guid? ItemId { get; init; }
+
+    /// <summary>Roteiro herdado do item do orçamento (PRD-01 CA 4 e 22): primeira opção da sugestão da OS de fabricação.</summary>
+    public Guid? RoutingTemplateId { get; init; }
 }
 
 /// <summary>Orçado por natureza (<c>commercial.project_budget</c>): base do orçado × realizado; só com <c>projects.view_cost</c>.</summary>

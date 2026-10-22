@@ -144,6 +144,9 @@ public sealed class QuoteItem : Entity, IAuditable
     public decimal UnitPrice { get; set; }
 
     public bool PriceOverridden { get; set; }
+
+    /// <summary>Roteiro de fabricação do item (PRD-01 CA 22): só a coluna nesta fase, sem tela; o item do projeto herda.</summary>
+    public Guid? RoutingTemplateId { get; set; }
 }
 
 /// <summary>

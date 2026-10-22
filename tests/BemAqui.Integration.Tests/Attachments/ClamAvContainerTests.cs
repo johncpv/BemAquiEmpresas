@@ -50,6 +50,18 @@ public class ClamAvContainerTests(ClamAvFixture clamav) : IClassFixture<ClamAvFi
         result.Verdict.Should().Be(ScanVerdict.Clean);
     }
 
+    /// <summary>ADR 0019 §7 adendo (PRD-01 CA 12): o desenho de 25 MB é varrido; acima de 30 MB é recusado sem ir ao clamd.</summary>
+    [Fact]
+    public async Task Arquivo_de_25_MB_e_varrido_e_acima_de_30_MB_e_recusado()
+    {
+        var big = new byte[25 * 1024 * 1024];
+        "AC1032"u8.CopyTo(big);
+        (await clamav.Scanner.ScanAsync(new MemoryStream(big))).Verdict.Should().Be(ScanVerdict.Clean);
+
+        var tooBig = new MemoryStream(new byte[(30 * 1024 * 1024) + 1]);
+        (await clamav.Scanner.ScanAsync(tooBig)).Verdict.Should().Be(ScanVerdict.TooLarge);
+    }
+
     [Fact]
     public async Task Sem_clamd_a_varredura_fica_indisponivel()
     {

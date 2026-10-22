@@ -102,9 +102,9 @@ export function totalHours(steps: readonly StepDraft[]): string {
  * As mesmas regras do servidor antes de enviar (CA 5), com o caminho do ProblemDetails ("steps[2].code"): sem etapa,
  * letra fora de A a Z ou repetida, sem centro, primeira de qualidade e duas de qualidade seguidas.
  */
-export function draftProblems(draft: RoutingDraft): Record<string, string> {
+export function draftProblems(draft: RoutingDraft, requireName = true): Record<string, string> {
   const problems: Record<string, string> = {}
-  if (!draft.name.trim()) problems.name = 'Informe o nome do roteiro, com até 100 caracteres.'
+  if (requireName && !draft.name.trim()) problems.name = 'Informe o nome do roteiro, com até 100 caracteres.'
   if (draft.steps.length === 0) problems.steps = 'Inclua ao menos uma etapa.'
   if (draft.steps.length > MAX_STEPS) problems.steps = `Inclua no máximo ${MAX_STEPS} etapas.`
   const seen = new Map<string, number>()

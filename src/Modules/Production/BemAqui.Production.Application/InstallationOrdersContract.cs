@@ -7,7 +7,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BemAqui.Production.Application;
 
-/// <summary><see cref="IInstallationOrders"/>: OS de instalação por projeto e situação, para o Commercial e o Finance.</summary>
+/// <summary>
+/// <see cref="IInstallationOrders"/>: OS de instalação por projeto e situação, para o Commercial e o Finance. Só o tipo
+/// Installation (PRD-01 CA 19): a OS de fabricação da mesma tabela devolve null e nunca é carregada aqui.
+/// </summary>
 public sealed class InstallationOrdersContract(IProductionDb db) : IInstallationOrders
 {
     public async Task<IReadOnlyList<InstallationOrderInfo>> ByProjectAsync(Guid projectId, CancellationToken cancellationToken = default)
@@ -15,13 +18,22 @@ public sealed class InstallationOrdersContract(IProductionDb db) : IInstallation
         var orders = await db.ProductionOrders.AsNoTracking().Where(o => o.ProjectId == projectId && o.Type == ProductionOrderType.Installation).OrderBy(o => o.Number).ToListAsync(cancellationToken);
         var ids = orders.Select(o => o.Id).ToList();
         var items = await db.ProductionOrderProjectItems.AsNoTracking().Where(i => ids.Contains(i.OrderId)).ToListAsync(cancellationToken);
-        return orders.Select(o => new InstallationOrderInfo(o.Id, o.Number, State(o.Status), o.PlannedStart, o.PlannedEnd, items.Where(i => i.OrderId == o.Id).Select(i => i.ProjectItemId).ToList())).ToList();
+        return orders.Select(o => new InstallationOrderInfo(o.Id, o.Number, State(o.Status), o.PlannedStart.GetValueOrDefault(), o.PlannedEnd.GetValueOrDefault(),
+            items.Where(i => i.OrderId == o.Id).Select(i => i.ProjectItemId).ToList())).ToList();
     }
 
     public async Task<InstallationState?> StatusAsync(Guid orderId, CancellationToken cancellationToken = default) =>
-        await db.ProductionOrders.AsNoTracking().Where(o => o.Id == orderId).Select(o => (ProductionOrderStatus?)o.Status).FirstOrDefaultAsync(cancellationToken) is { } status ? State(status) : null;
+        await db.ProductionOrders.AsNoTracking().Where(o => o.Id == orderId && o.Type == ProductionOrderType.Installation).Select(o => (ProductionOrderStatus?)o.Status)
+            .FirstOrDefaultAsync(cancellationToken) is { } status ? State(status) : null;
 
-    private static InstallationState State(ProductionOrderStatus status) => Enum.Parse<InstallationState>(status.ToString());
+    /// <summary>Mapeamento explícito (PRD-01 CA 19): as situações da fabricação nunca lançam exceção aqui.</summary>
+    internal static InstallationState State(ProductionOrderStatus status) => status switch
+    {
+        ProductionOrderStatus.Open => InstallationState.Open,
+        ProductionOrderStatus.Completed => InstallationState.Completed,
+        ProductionOrderStatus.Cancelled => InstallationState.Cancelled,
+        _ => InstallationState.InProgress,
+    };
 }
 
 /// <summary>

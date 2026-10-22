@@ -40,6 +40,7 @@ public static class CommercialInfrastructure
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IPartyUsageProvider, CommercialUsage>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IItemUsageProvider, CommercialUsage>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IWorkCenterUsageProvider, CommercialUsage>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.Engineering.Contracts.IRoutingTemplateUsageProvider, CommercialUsage>());
         services.AddAuditableEntity<Quote>("quotes");
         services.AddAuditableEntity<QuoteItem>("quotes");
         services.AddAuditableEntity<QuoteItemCost>("quotes", "view_cost");

@@ -107,6 +107,15 @@ import type {
   EmployeePersonalInput,
   EmployeeSensitiveDetail,
   ExtendValidityInput,
+  FabricationBatchInput,
+  FabricationBatchResult,
+  FabricationCancelInput,
+  FabricationGenerateInput,
+  FabricationOrderDetail,
+  FabricationOrderPage,
+  FabricationRoutingInput,
+  FabricationRoutingOption,
+  FabricationStepsInput,
   FinanceDeadLetter,
   FinanceLimits,
   FinanceLimitsInput,
@@ -119,6 +128,7 @@ import type {
   GetCashFlowDayParams,
   GetCashFlowParams,
   GetDiscountsAndCancellationsParams,
+  GetFabricationOrderHistoryParams,
   GetInstallationDefaultsParams,
   GetQuoteFunnelParams,
   GetRoutingTemplateHistoryParams,
@@ -163,6 +173,7 @@ import type {
   ListCalendarExceptionsParams,
   ListContractsParams,
   ListEmployeesParams,
+  ListFabricationOrdersParams,
   ListFinanceCustomersParams,
   ListFinanceProjectsParams,
   ListFinanceSuppliersParams,
@@ -177,6 +188,7 @@ import type {
   ListPayablesParams,
   ListPaymentOrdersParams,
   ListPaymentTermsParams,
+  ListPendingFabricationItemsParams,
   ListPositionsParams,
   ListProjectMarginsParams,
   ListProjectReceivedParams,
@@ -248,6 +260,7 @@ import type {
   PaymentTermInput,
   PaymentTermOption,
   PayrollChargesInput,
+  PendingFabricationPage,
   PlatformChallengeRequest,
   PlatformChallengeResponse,
   PlatformConfirmRequest,
@@ -20986,6 +20999,923 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getDeleteCalendarExceptionMutationOptions(options), queryClient);
     }
+
+export const getListFabricationOrdersUrl = (params?: ListFabricationOrdersParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/production/production-orders?${stringifiedParams}` : `/api/v1/production/production-orders`
+}
+
+export const listFabricationOrders = async (params?: ListFabricationOrdersParams, options?: Parameters<typeof apiFetch>[1]): Promise<FabricationOrderPage> => {
+
+  return apiFetch<FabricationOrderPage>(getListFabricationOrdersUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListFabricationOrdersQueryKey = (params?: ListFabricationOrdersParams,) => {
+    return [
+    `/api/v1/production/production-orders`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListFabricationOrdersQueryOptions = <TData = Awaited<ReturnType<typeof listFabricationOrders>>, TError = unknown>(params?: ListFabricationOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFabricationOrders>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListFabricationOrdersQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listFabricationOrders>>> = ({ signal }) => listFabricationOrders(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listFabricationOrders>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListFabricationOrdersQueryResult = NonNullable<Awaited<ReturnType<typeof listFabricationOrders>>>
+export type ListFabricationOrdersQueryError = unknown
+
+
+export function useListFabricationOrders<TData = Awaited<ReturnType<typeof listFabricationOrders>>, TError = unknown>(
+ params: undefined |  ListFabricationOrdersParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFabricationOrders>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listFabricationOrders>>,
+          TError,
+          Awaited<ReturnType<typeof listFabricationOrders>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListFabricationOrders<TData = Awaited<ReturnType<typeof listFabricationOrders>>, TError = unknown>(
+ params?: ListFabricationOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFabricationOrders>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listFabricationOrders>>,
+          TError,
+          Awaited<ReturnType<typeof listFabricationOrders>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListFabricationOrders<TData = Awaited<ReturnType<typeof listFabricationOrders>>, TError = unknown>(
+ params?: ListFabricationOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFabricationOrders>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListFabricationOrders<TData = Awaited<ReturnType<typeof listFabricationOrders>>, TError = unknown>(
+ params?: ListFabricationOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFabricationOrders>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListFabricationOrdersQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGenerateFabricationOrderUrl = () => {
+
+
+
+
+  return `/api/v1/production/production-orders`
+}
+
+export const generateFabricationOrder = async (fabricationGenerateInput: FabricationGenerateInput, options?: Parameters<typeof apiFetch>[1]): Promise<FabricationOrderDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<FabricationOrderDetail>(getGenerateFabricationOrderUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(fabricationGenerateInput)
+  }
+);}
+
+
+
+
+
+export const getGenerateFabricationOrderMutationKey = () => ['generateFabricationOrder'] as const;
+
+export const getGenerateFabricationOrderMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateFabricationOrder>>, TError,GenerateFabricationOrderMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof generateFabricationOrder>>, TError,GenerateFabricationOrderMutationVariables, TContext> => {
+
+const mutationKey = getGenerateFabricationOrderMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generateFabricationOrder>>, GenerateFabricationOrderMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  generateFabricationOrder(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GenerateFabricationOrderMutationResult = NonNullable<Awaited<ReturnType<typeof generateFabricationOrder>>>
+    export type GenerateFabricationOrderMutationBody = FabricationGenerateInput
+    export type GenerateFabricationOrderMutationError = unknown
+    export type GenerateFabricationOrderMutationVariables = {data: FabricationGenerateInput}
+
+    export const useGenerateFabricationOrder = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateFabricationOrder>>, TError,GenerateFabricationOrderMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof generateFabricationOrder>>,
+        TError,
+        GenerateFabricationOrderMutationVariables,
+        TContext
+      > => {
+      return useMutation(getGenerateFabricationOrderMutationOptions(options), queryClient);
+    }
+
+export const getListPendingFabricationItemsUrl = (params?: ListPendingFabricationItemsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/production/production-orders/pending-items?${stringifiedParams}` : `/api/v1/production/production-orders/pending-items`
+}
+
+export const listPendingFabricationItems = async (params?: ListPendingFabricationItemsParams, options?: Parameters<typeof apiFetch>[1]): Promise<PendingFabricationPage> => {
+
+  return apiFetch<PendingFabricationPage>(getListPendingFabricationItemsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListPendingFabricationItemsQueryKey = (params?: ListPendingFabricationItemsParams,) => {
+    return [
+    `/api/v1/production/production-orders/pending-items`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListPendingFabricationItemsQueryOptions = <TData = Awaited<ReturnType<typeof listPendingFabricationItems>>, TError = unknown>(params?: ListPendingFabricationItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPendingFabricationItems>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListPendingFabricationItemsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPendingFabricationItems>>> = ({ signal }) => listPendingFabricationItems(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPendingFabricationItems>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListPendingFabricationItemsQueryResult = NonNullable<Awaited<ReturnType<typeof listPendingFabricationItems>>>
+export type ListPendingFabricationItemsQueryError = unknown
+
+
+export function useListPendingFabricationItems<TData = Awaited<ReturnType<typeof listPendingFabricationItems>>, TError = unknown>(
+ params: undefined |  ListPendingFabricationItemsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPendingFabricationItems>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPendingFabricationItems>>,
+          TError,
+          Awaited<ReturnType<typeof listPendingFabricationItems>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPendingFabricationItems<TData = Awaited<ReturnType<typeof listPendingFabricationItems>>, TError = unknown>(
+ params?: ListPendingFabricationItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPendingFabricationItems>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPendingFabricationItems>>,
+          TError,
+          Awaited<ReturnType<typeof listPendingFabricationItems>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPendingFabricationItems<TData = Awaited<ReturnType<typeof listPendingFabricationItems>>, TError = unknown>(
+ params?: ListPendingFabricationItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPendingFabricationItems>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListPendingFabricationItems<TData = Awaited<ReturnType<typeof listPendingFabricationItems>>, TError = unknown>(
+ params?: ListPendingFabricationItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPendingFabricationItems>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListPendingFabricationItemsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGenerateFabricationOrdersUrl = () => {
+
+
+
+
+  return `/api/v1/production/production-orders/batch`
+}
+
+export const generateFabricationOrders = async (fabricationBatchInput: FabricationBatchInput, options?: Parameters<typeof apiFetch>[1]): Promise<FabricationBatchResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<FabricationBatchResult>(getGenerateFabricationOrdersUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(fabricationBatchInput)
+  }
+);}
+
+
+
+
+
+export const getGenerateFabricationOrdersMutationKey = () => ['generateFabricationOrders'] as const;
+
+export const getGenerateFabricationOrdersMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateFabricationOrders>>, TError,GenerateFabricationOrdersMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof generateFabricationOrders>>, TError,GenerateFabricationOrdersMutationVariables, TContext> => {
+
+const mutationKey = getGenerateFabricationOrdersMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generateFabricationOrders>>, GenerateFabricationOrdersMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  generateFabricationOrders(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GenerateFabricationOrdersMutationResult = NonNullable<Awaited<ReturnType<typeof generateFabricationOrders>>>
+    export type GenerateFabricationOrdersMutationBody = FabricationBatchInput
+    export type GenerateFabricationOrdersMutationError = unknown
+    export type GenerateFabricationOrdersMutationVariables = {data: FabricationBatchInput}
+
+    export const useGenerateFabricationOrders = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateFabricationOrders>>, TError,GenerateFabricationOrdersMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof generateFabricationOrders>>,
+        TError,
+        GenerateFabricationOrdersMutationVariables,
+        TContext
+      > => {
+      return useMutation(getGenerateFabricationOrdersMutationOptions(options), queryClient);
+    }
+
+export const getGetFabricationOrderUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/production-orders/${id}`
+}
+
+export const getFabricationOrder = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<FabricationOrderDetail> => {
+
+  return apiFetch<FabricationOrderDetail>(getGetFabricationOrderUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetFabricationOrderQueryKey = (id: string,) => {
+    return [
+    `/api/v1/production/production-orders/${id}`
+    ] as const;
+    }
+
+
+export const getGetFabricationOrderQueryOptions = <TData = Awaited<ReturnType<typeof getFabricationOrder>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFabricationOrder>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetFabricationOrderQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFabricationOrder>>> = ({ signal }) => getFabricationOrder(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFabricationOrder>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetFabricationOrderQueryResult = NonNullable<Awaited<ReturnType<typeof getFabricationOrder>>>
+export type GetFabricationOrderQueryError = unknown
+
+
+export function useGetFabricationOrder<TData = Awaited<ReturnType<typeof getFabricationOrder>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFabricationOrder>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getFabricationOrder>>,
+          TError,
+          Awaited<ReturnType<typeof getFabricationOrder>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetFabricationOrder<TData = Awaited<ReturnType<typeof getFabricationOrder>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFabricationOrder>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getFabricationOrder>>,
+          TError,
+          Awaited<ReturnType<typeof getFabricationOrder>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetFabricationOrder<TData = Awaited<ReturnType<typeof getFabricationOrder>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFabricationOrder>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetFabricationOrder<TData = Awaited<ReturnType<typeof getFabricationOrder>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFabricationOrder>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetFabricationOrderQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSaveFabricationOrderStepsUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/production-orders/${id}/steps`
+}
+
+export const saveFabricationOrderSteps = async (id: string,
+    fabricationStepsInput: FabricationStepsInput, options?: Parameters<typeof apiFetch>[1]): Promise<FabricationOrderDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<FabricationOrderDetail>(getSaveFabricationOrderStepsUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(fabricationStepsInput)
+  }
+);}
+
+
+
+
+
+export const getSaveFabricationOrderStepsMutationKey = () => ['saveFabricationOrderSteps'] as const;
+
+export const getSaveFabricationOrderStepsMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveFabricationOrderSteps>>, TError,SaveFabricationOrderStepsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveFabricationOrderSteps>>, TError,SaveFabricationOrderStepsMutationVariables, TContext> => {
+
+const mutationKey = getSaveFabricationOrderStepsMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveFabricationOrderSteps>>, SaveFabricationOrderStepsMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  saveFabricationOrderSteps(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveFabricationOrderStepsMutationResult = NonNullable<Awaited<ReturnType<typeof saveFabricationOrderSteps>>>
+    export type SaveFabricationOrderStepsMutationBody = FabricationStepsInput
+    export type SaveFabricationOrderStepsMutationError = unknown
+    export type SaveFabricationOrderStepsMutationVariables = {id: string;data: FabricationStepsInput}
+
+    export const useSaveFabricationOrderSteps = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveFabricationOrderSteps>>, TError,SaveFabricationOrderStepsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof saveFabricationOrderSteps>>,
+        TError,
+        SaveFabricationOrderStepsMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSaveFabricationOrderStepsMutationOptions(options), queryClient);
+    }
+
+export const getListFabricationRoutingOptionsUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/production-orders/${id}/routings`
+}
+
+export const listFabricationRoutingOptions = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<FabricationRoutingOption[]> => {
+
+  return apiFetch<FabricationRoutingOption[]>(getListFabricationRoutingOptionsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListFabricationRoutingOptionsQueryKey = (id: string,) => {
+    return [
+    `/api/v1/production/production-orders/${id}/routings`
+    ] as const;
+    }
+
+
+export const getListFabricationRoutingOptionsQueryOptions = <TData = Awaited<ReturnType<typeof listFabricationRoutingOptions>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFabricationRoutingOptions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListFabricationRoutingOptionsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listFabricationRoutingOptions>>> = ({ signal }) => listFabricationRoutingOptions(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listFabricationRoutingOptions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListFabricationRoutingOptionsQueryResult = NonNullable<Awaited<ReturnType<typeof listFabricationRoutingOptions>>>
+export type ListFabricationRoutingOptionsQueryError = unknown
+
+
+export function useListFabricationRoutingOptions<TData = Awaited<ReturnType<typeof listFabricationRoutingOptions>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFabricationRoutingOptions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listFabricationRoutingOptions>>,
+          TError,
+          Awaited<ReturnType<typeof listFabricationRoutingOptions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListFabricationRoutingOptions<TData = Awaited<ReturnType<typeof listFabricationRoutingOptions>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFabricationRoutingOptions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listFabricationRoutingOptions>>,
+          TError,
+          Awaited<ReturnType<typeof listFabricationRoutingOptions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListFabricationRoutingOptions<TData = Awaited<ReturnType<typeof listFabricationRoutingOptions>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFabricationRoutingOptions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListFabricationRoutingOptions<TData = Awaited<ReturnType<typeof listFabricationRoutingOptions>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFabricationRoutingOptions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListFabricationRoutingOptionsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getChangeFabricationRoutingUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/production-orders/${id}/routing`
+}
+
+export const changeFabricationRouting = async (id: string,
+    fabricationRoutingInput: FabricationRoutingInput, options?: Parameters<typeof apiFetch>[1]): Promise<FabricationOrderDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<FabricationOrderDetail>(getChangeFabricationRoutingUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(fabricationRoutingInput)
+  }
+);}
+
+
+
+
+
+export const getChangeFabricationRoutingMutationKey = () => ['changeFabricationRouting'] as const;
+
+export const getChangeFabricationRoutingMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changeFabricationRouting>>, TError,ChangeFabricationRoutingMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof changeFabricationRouting>>, TError,ChangeFabricationRoutingMutationVariables, TContext> => {
+
+const mutationKey = getChangeFabricationRoutingMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof changeFabricationRouting>>, ChangeFabricationRoutingMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  changeFabricationRouting(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ChangeFabricationRoutingMutationResult = NonNullable<Awaited<ReturnType<typeof changeFabricationRouting>>>
+    export type ChangeFabricationRoutingMutationBody = FabricationRoutingInput
+    export type ChangeFabricationRoutingMutationError = unknown
+    export type ChangeFabricationRoutingMutationVariables = {id: string;data: FabricationRoutingInput}
+
+    export const useChangeFabricationRouting = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changeFabricationRouting>>, TError,ChangeFabricationRoutingMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof changeFabricationRouting>>,
+        TError,
+        ChangeFabricationRoutingMutationVariables,
+        TContext
+      > => {
+      return useMutation(getChangeFabricationRoutingMutationOptions(options), queryClient);
+    }
+
+export const getCancelFabricationOrderUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/production-orders/${id}/cancel`
+}
+
+export const cancelFabricationOrder = async (id: string,
+    fabricationCancelInput: FabricationCancelInput, options?: Parameters<typeof apiFetch>[1]): Promise<FabricationOrderDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<FabricationOrderDetail>(getCancelFabricationOrderUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(fabricationCancelInput)
+  }
+);}
+
+
+
+
+
+export const getCancelFabricationOrderMutationKey = () => ['cancelFabricationOrder'] as const;
+
+export const getCancelFabricationOrderMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelFabricationOrder>>, TError,CancelFabricationOrderMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelFabricationOrder>>, TError,CancelFabricationOrderMutationVariables, TContext> => {
+
+const mutationKey = getCancelFabricationOrderMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelFabricationOrder>>, CancelFabricationOrderMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  cancelFabricationOrder(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelFabricationOrderMutationResult = NonNullable<Awaited<ReturnType<typeof cancelFabricationOrder>>>
+    export type CancelFabricationOrderMutationBody = FabricationCancelInput
+    export type CancelFabricationOrderMutationError = unknown
+    export type CancelFabricationOrderMutationVariables = {id: string;data: FabricationCancelInput}
+
+    export const useCancelFabricationOrder = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelFabricationOrder>>, TError,CancelFabricationOrderMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof cancelFabricationOrder>>,
+        TError,
+        CancelFabricationOrderMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCancelFabricationOrderMutationOptions(options), queryClient);
+    }
+
+export const getGetFabricationOrderHistoryUrl = (id: string,
+    params?: GetFabricationOrderHistoryParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/production/production-orders/${id}/history?${stringifiedParams}` : `/api/v1/production/production-orders/${id}/history`
+}
+
+export const getFabricationOrderHistory = async (id: string,
+    params?: GetFabricationOrderHistoryParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfRelatedAuditEntryDto> => {
+
+  return apiFetch<PagedListOfRelatedAuditEntryDto>(getGetFabricationOrderHistoryUrl(id,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetFabricationOrderHistoryQueryKey = (id: string,
+    params?: GetFabricationOrderHistoryParams,) => {
+    return [
+    `/api/v1/production/production-orders/${id}/history`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetFabricationOrderHistoryQueryOptions = <TData = Awaited<ReturnType<typeof getFabricationOrderHistory>>, TError = unknown>(id: string,
+    params?: GetFabricationOrderHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFabricationOrderHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetFabricationOrderHistoryQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFabricationOrderHistory>>> = ({ signal }) => getFabricationOrderHistory(id,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFabricationOrderHistory>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetFabricationOrderHistoryQueryResult = NonNullable<Awaited<ReturnType<typeof getFabricationOrderHistory>>>
+export type GetFabricationOrderHistoryQueryError = unknown
+
+
+export function useGetFabricationOrderHistory<TData = Awaited<ReturnType<typeof getFabricationOrderHistory>>, TError = unknown>(
+ id: string,
+    params: undefined |  GetFabricationOrderHistoryParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFabricationOrderHistory>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getFabricationOrderHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getFabricationOrderHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetFabricationOrderHistory<TData = Awaited<ReturnType<typeof getFabricationOrderHistory>>, TError = unknown>(
+ id: string,
+    params?: GetFabricationOrderHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFabricationOrderHistory>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getFabricationOrderHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getFabricationOrderHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetFabricationOrderHistory<TData = Awaited<ReturnType<typeof getFabricationOrderHistory>>, TError = unknown>(
+ id: string,
+    params?: GetFabricationOrderHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFabricationOrderHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetFabricationOrderHistory<TData = Awaited<ReturnType<typeof getFabricationOrderHistory>>, TError = unknown>(
+ id: string,
+    params?: GetFabricationOrderHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFabricationOrderHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetFabricationOrderHistoryQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getListInstallationsUrl = (params?: ListInstallationsParams,) => {
   const normalizedParams = new URLSearchParams();

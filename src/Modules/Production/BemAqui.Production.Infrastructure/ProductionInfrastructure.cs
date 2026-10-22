@@ -35,9 +35,39 @@ public static class ProductionInfrastructure
         services.AddAuditableEntity<ProductionOrderStep>("production");
         services.AddAuditableEntity<ProductionOrderChecklistItem>("production");
         services.AddAuditableEntity<InstallationTemplateLine>("production");
-        services.AddAttachmentOwner(InstallationOrderService.AttachmentOwner, new AttachmentOwnerRules("production", ["application/pdf", "image/png", "image/jpeg"], 10 * 1024 * 1024,
+
+        // OS de fabricação (PRD-01): serviço, contrato IProductionOrders e uso de roteiro e de centro.
+        services.TryAddScoped<FabricationOrderService>();
+        services.TryAddScoped<IProductionOrders, ProductionOrdersContract>();
+        services.TryAddScoped<FabricationUsage>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.Engineering.Contracts.IRoutingTemplateUsageProvider, FabricationUsage>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IWorkCenterUsageProvider, FabricationUsage>());
+
+        // Dono ProductionOrder (ADR 0019 §7 e adendo de 21/10/2026, D16): fabricação com pdf, png, jpg, dwg e dxf até 25 MB;
+        // instalação continua com png, jpg e pdf até 10 MB (CA 12).
+        services.AddAttachmentOwner(InstallationOrderService.AttachmentOwner, new AttachmentOwnerRules(
+            "production", [.. InstallationTypes, "application/acad", "application/dxf"], 25 * 1024 * 1024,
             OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IProductionDb>().ProductionOrders.AnyAsync(o => o.Id == id, ct),
-            ReadAction: "view", WriteAction: "edit"));
+            ReadAction: "view", WriteAction: "edit", CheckFile: CheckOrderFileAsync));
         return services;
+    }
+
+    private static readonly string[] InstallationTypes = ["application/pdf", "image/png", "image/jpeg"];
+
+    /// <summary>Regra do anexo pelo tipo da OS (CA 12): a de instalação só aceita png, jpg e pdf até 10 MB.</summary>
+    private static async Task<BemAqui.SharedKernel.Error?> CheckOrderFileAsync(IServiceProvider sp, Guid id, AttachmentFile file, CancellationToken ct)
+    {
+        var type = await sp.GetRequiredService<IProductionDb>().ProductionOrders.AsNoTracking().Where(o => o.Id == id).Select(o => o.Type).FirstAsync(ct);
+        if (type != ProductionOrderType.Installation)
+        {
+            return null;
+        }
+
+        if (!InstallationTypes.Contains(file.ContentType))
+        {
+            return BemAqui.SharedKernel.Error.Validation("attachment.type_not_allowed", "Tipo de arquivo não permitido aqui. Envie PDF, PNG, JPEG.");
+        }
+
+        return file.Size > 10 * 1024 * 1024 ? BemAqui.SharedKernel.Error.Validation("attachment.size", "O arquivo precisa ter até 10 MB.") : null;
     }
 }

@@ -41,6 +41,7 @@ internal sealed class QuoteItemConfiguration : IEntityTypeConfiguration<QuoteIte
         b.Property(e => e.UnitCost).HasPrecision(18, 6);
         b.Property(e => e.Pct).HasPrecision(7, 4);
         b.Property(e => e.UnitPrice).HasPrecision(18, 2);
+        b.HasIndex(e => e.RoutingTemplateId);
         b.HasOne<Quote>().WithMany().HasForeignKey(e => e.QuoteId).OnDelete(DeleteBehavior.Restrict);
         b.HasIndex(e => e.QuoteId);
         b.HasIndex(e => e.ItemId);

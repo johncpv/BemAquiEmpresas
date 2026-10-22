@@ -28,6 +28,8 @@ interface RoutingEditorProps {
   onReload?: () => Promise<unknown>
   /** Ações extras no rodapé fixo (ex.: "Cancelar"). */
   footerExtra?: ReactNode
+  /** Só as etapas, sem nome e tipo (etapas da OS de fabricação, PRD-01 CA 7), com o verbo do salvar. */
+  stepsOnly?: { saveLabel: string }
 }
 
 const box = 'size-4 accent-primary'
@@ -37,7 +39,7 @@ const box = 'size-4 accent-primary'
  * vira cartão). Letra sugerida pela inicial, centro sugerido com a tag "Sugerido", "Começa sem BOM" na primeira etapa, total
  * de horas ao vivo no rodapé fixo e os erros do servidor no campo da linha (steps[n].campo).
  */
-export function RoutingEditor({ initial, centers, suggestions, productTypes, canEdit, confirmEdit, onSubmit, onReload, footerExtra }: RoutingEditorProps) {
+export function RoutingEditor({ initial, centers, suggestions, productTypes, canEdit, confirmEdit, onSubmit, onReload, footerExtra, stepsOnly }: RoutingEditorProps) {
   const [draft, setDraft] = useState<RoutingDraft>(initial)
   const [baseline, setBaseline] = useState<RoutingDraft>(initial)
   const [fields, setFields] = useState<Record<string, string>>({})
@@ -60,14 +62,14 @@ export function RoutingEditor({ initial, centers, suggestions, productTypes, can
       setMessage(Object.keys(flat).length === 0 || Object.keys(flat).every((k) => k === 'steps') ? e.message : undefined)
       if (Object.keys(flat).length > 0) focusFirstError()
     } else {
-      setMessage('Não foi possível salvar o roteiro. Tente de novo.')
+      setMessage(stepsOnly ? 'Não foi possível salvar as etapas. Tente de novo.' : 'Não foi possível salvar o roteiro. Tente de novo.')
     }
   }
 
   const focusFirstError = () => requestAnimationFrame(() => document.querySelector<HTMLElement>('#roteiro [aria-invalid="true"]')?.focus())
 
   const validate = () => {
-    const problems = draftProblems(draft)
+    const problems = draftProblems(draft, !stepsOnly)
     setFields(problems)
     setMessage(problems.steps)
     if (Object.keys(problems).length > 0) focusFirstError()
@@ -112,7 +114,7 @@ export function RoutingEditor({ initial, centers, suggestions, productTypes, can
       <UnsavedChangesGuard when={dirty && canEdit} onSave={requestSave} />
       <FormError message={message} />
       <fieldset disabled={!canEdit} className="space-y-5">
-        <div className="grid gap-3 sm:grid-cols-2">
+        {stepsOnly ? null : <div className="grid gap-3 sm:grid-cols-2">
           <Field label="Nome" required error={field('name')} hint="Ex.: Cabine padrão, Porta de pavimento.">
             {(p) => <input {...p} value={draft.name} maxLength={100} onChange={(e) => setDraft({ ...draft, name: e.target.value })} className={inputClass} />}
           </Field>
@@ -124,7 +126,7 @@ export function RoutingEditor({ initial, centers, suggestions, productTypes, can
               </>
             )}
           </Field>
-        </div>
+        </div>}
 
         <section aria-labelledby="etapas-titulo" className="space-y-2">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
@@ -221,7 +223,7 @@ export function RoutingEditor({ initial, centers, suggestions, productTypes, can
         </p>
         <div className="flex flex-wrap gap-2">
           {footerExtra}
-          {canEdit ? <button type="submit" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Salvar roteiro</button> : null}
+          {canEdit ? <button type="submit" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">{stepsOnly?.saveLabel ?? 'Salvar roteiro'}</button> : null}
         </div>
       </div>
 

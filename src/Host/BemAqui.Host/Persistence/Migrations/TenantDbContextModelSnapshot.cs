@@ -1022,6 +1022,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("quote_item_id");
 
+                    b.Property<Guid?>("RoutingTemplateId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("routing_template_id");
+
                     b.Property<int>("Sequence")
                         .HasColumnType("integer")
                         .HasColumnName("sequence");
@@ -1037,6 +1041,9 @@ namespace BemAqui.Host.Persistence.Migrations
 
                     b.HasIndex("QuoteItemId")
                         .HasDatabaseName("ix_project_items_quote_item_id");
+
+                    b.HasIndex("RoutingTemplateId")
+                        .HasDatabaseName("ix_project_items_routing_template_id");
 
                     b.ToTable("project_items", "commercial");
                 });
@@ -1287,6 +1294,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("quote_id");
 
+                    b.Property<Guid?>("RoutingTemplateId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("routing_template_id");
+
                     b.Property<int>("Sequence")
                         .HasColumnType("integer")
                         .HasColumnName("sequence");
@@ -1309,6 +1320,9 @@ namespace BemAqui.Host.Persistence.Migrations
 
                     b.HasIndex("QuoteId")
                         .HasDatabaseName("ix_quote_items_quote_id");
+
+                    b.HasIndex("RoutingTemplateId")
+                        .HasDatabaseName("ix_quote_items_routing_template_id");
 
                     b.ToTable("quote_items", "commercial");
                 });
@@ -5606,6 +5620,14 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("date")
                         .HasColumnName("accepted_on");
 
+                    b.Property<DateTimeOffset?>("ActualEnd")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actual_end");
+
+                    b.Property<DateTimeOffset?>("ActualStart")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actual_start");
+
                     b.Property<string>("CancelReason")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)")
@@ -5623,7 +5645,7 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("contract_id");
 
-                    b.Property<decimal>("ContractValue")
+                    b.Property<decimal?>("ContractValue")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("contract_value");
@@ -5636,7 +5658,7 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("created_by");
 
-                    b.Property<Guid>("InstallerId")
+                    b.Property<Guid?>("InstallerId")
                         .HasColumnType("uuid")
                         .HasColumnName("installer_id");
 
@@ -5646,17 +5668,38 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("number");
 
-                    b.Property<DateOnly>("PlannedEnd")
+                    b.Property<DateOnly?>("PlannedEnd")
                         .HasColumnType("date")
                         .HasColumnName("planned_end");
 
-                    b.Property<DateOnly>("PlannedStart")
+                    b.Property<DateOnly?>("PlannedStart")
                         .HasColumnType("date")
                         .HasColumnName("planned_start");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("integer")
+                        .HasColumnName("priority");
+
+                    b.Property<Guid?>("ProductId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("product_id");
 
                     b.Property<Guid>("ProjectId")
                         .HasColumnType("uuid")
                         .HasColumnName("project_id");
+
+                    b.Property<Guid?>("ProjectItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_item_id");
+
+                    b.Property<decimal?>("Quantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("quantity");
+
+                    b.Property<Guid?>("RoutingTemplateId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("routing_template_id");
 
                     b.Property<DateOnly?>("StartedOn")
                         .HasColumnType("date")
@@ -5690,10 +5733,29 @@ namespace BemAqui.Host.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_production_orders_number");
 
+                    b.HasIndex("ProductId")
+                        .HasDatabaseName("ix_production_orders_product_id");
+
+                    b.HasIndex("ProjectItemId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_production_orders_fabrication_item")
+                        .HasFilter("type = 'Fabrication' AND status <> 'Cancelled'");
+
+                    b.HasIndex("RoutingTemplateId")
+                        .HasDatabaseName("ix_production_orders_routing_template_id");
+
                     b.HasIndex("ProjectId", "Type")
                         .HasDatabaseName("ix_production_orders_project_id_type");
 
-                    b.ToTable("production_orders", "production");
+                    b.HasIndex("Type", "Status")
+                        .HasDatabaseName("ix_production_orders_type_status");
+
+                    b.ToTable("production_orders", "production", t =>
+                        {
+                            t.HasCheckConstraint("ck_production_orders_fabrication", "type <> 'Fabrication' OR (installer_id IS NULL AND contract_value IS NULL AND project_item_id IS NOT NULL AND quantity IS NOT NULL AND quantity > 0)");
+
+                            t.HasCheckConstraint("ck_production_orders_installation", "type <> 'Installation' OR (installer_id IS NOT NULL AND contract_value IS NOT NULL AND planned_start IS NOT NULL AND planned_end IS NOT NULL)");
+                        });
                 });
 
             modelBuilder.Entity("BemAqui.Production.Domain.ProductionOrderChecklistItem", b =>
@@ -5724,6 +5786,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("sequence");
 
+                    b.Property<Guid?>("StepId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("step_id");
+
                     b.Property<string>("Text")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -5735,6 +5801,9 @@ namespace BemAqui.Host.Persistence.Migrations
 
                     b.HasIndex("OrderId")
                         .HasDatabaseName("ix_production_order_checklist_order_id");
+
+                    b.HasIndex("StepId")
+                        .HasDatabaseName("ix_production_order_checklist_step_id");
 
                     b.ToTable("production_order_checklist", "production");
                 });
@@ -5774,6 +5843,19 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<DateTimeOffset?>("ActualEnd")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actual_end");
+
+                    b.Property<DateTimeOffset?>("ActualStart")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actual_start");
+
+                    b.Property<string>("Code")
+                        .HasMaxLength(1)
+                        .HasColumnType("character varying(1)")
+                        .HasColumnName("code");
+
                     b.Property<DateTimeOffset?>("CompletedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("completed_at");
@@ -5781,6 +5863,10 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<Guid?>("CompletedBy")
                         .HasColumnType("uuid")
                         .HasColumnName("completed_by");
+
+                    b.Property<bool>("IsQualityStep")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_quality_step");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -5792,9 +5878,31 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("order_id");
 
+                    b.Property<DateOnly?>("PlannedEnd")
+                        .HasColumnType("date")
+                        .HasColumnName("planned_end");
+
+                    b.Property<DateOnly?>("PlannedStart")
+                        .HasColumnType("date")
+                        .HasColumnName("planned_start");
+
+                    b.Property<bool>("RequiresApproval")
+                        .HasColumnType("boolean")
+                        .HasColumnName("requires_approval");
+
                     b.Property<int>("Sequence")
                         .HasColumnType("integer")
                         .HasColumnName("sequence");
+
+                    b.Property<decimal?>("StandardHours")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("standard_hours");
+
+                    b.Property<string>("Status")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
 
                     b.Property<Guid?>("WorkCenterId")
                         .HasColumnType("uuid")
@@ -5805,6 +5913,9 @@ namespace BemAqui.Host.Persistence.Migrations
 
                     b.HasIndex("OrderId")
                         .HasDatabaseName("ix_production_order_steps_order_id");
+
+                    b.HasIndex("WorkCenterId")
+                        .HasDatabaseName("ix_production_order_steps_work_center_id");
 
                     b.ToTable("production_order_steps", "production");
                 });
@@ -6316,6 +6427,12 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_production_order_checklist_production_orders_order_id");
+
+                    b.HasOne("BemAqui.Production.Domain.ProductionOrderStep", null)
+                        .WithMany()
+                        .HasForeignKey("StepId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_production_order_checklist_production_order_steps_step_id");
                 });
 
             modelBuilder.Entity("BemAqui.Production.Domain.ProductionOrderProjectItem", b =>

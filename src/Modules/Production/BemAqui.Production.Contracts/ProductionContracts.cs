@@ -86,3 +86,51 @@ public interface IInstallationOrders
     /// <summary>Situação da OS; null se não existe.</summary>
     Task<InstallationState?> StatusAsync(Guid orderId, CancellationToken cancellationToken = default);
 }
+
+/// <summary>Tipo da OS para os outros módulos (PRD-01 CA 21).</summary>
+[JsonConverter(typeof(JsonStringEnumConverter<ProductionOrderKind>))]
+public enum ProductionOrderKind
+{
+    Installation,
+    Fabrication,
+}
+
+/// <summary>Situação da OS de fabricação para os outros módulos (04-fluxos §1).</summary>
+[JsonConverter(typeof(JsonStringEnumConverter<ProductionOrderState>))]
+public enum ProductionOrderState
+{
+    Open,
+    InProgress,
+    Paused,
+    Quality,
+    Completed,
+    Cancelled,
+}
+
+/// <summary>
+/// OS de fabricação vista pelos outros módulos (PRD-01 CA 21): número, tipo, projeto, item do projeto, produto, quantidade,
+/// situação e etapa atual (nome e letra), sem dado de custo.
+/// </summary>
+public sealed record ProductionOrderInfo(
+    Guid Id, string Number, ProductionOrderKind Type, Guid ProjectId, Guid ProjectItemId, Guid? ProductId, decimal Quantity, ProductionOrderState Status,
+    string? CurrentStepName, string? CurrentStepCode);
+
+/// <summary>
+/// OS de fabricação para Engineering, Inventory, Purchasing e Commercial (PRD-01 CA 21, ADR 0006): só o tipo Fabrication, sobre a
+/// mesma tabela da instalação (que tem o próprio <see cref="IInstallationOrders"/>).
+/// </summary>
+public interface IProductionOrders
+{
+    /// <summary>Por id; null se não existe ou não é de fabricação.</summary>
+    Task<ProductionOrderInfo?> FindAsync(Guid id, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<ProductionOrderInfo>> FindManyAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<ProductionOrderInfo>> ByProjectAsync(Guid projectId, CancellationToken cancellationToken = default);
+
+    /// <summary>Situação da OS de fabricação; null se não existe ou não é de fabricação.</summary>
+    Task<ProductionOrderState?> StatusAsync(Guid id, CancellationToken cancellationToken = default);
+}
+
+/// <summary>OS de fabricação cancelada (PRD-01 CA 16): a EST-02 reconcilia as reservas pela fonte (ADR 0023 §6).</summary>
+public sealed record ProductionOrderCancelled(Guid ProductionOrderId, Guid ProjectId) : BemAqui.SharedKernel.IIntegrationEvent;

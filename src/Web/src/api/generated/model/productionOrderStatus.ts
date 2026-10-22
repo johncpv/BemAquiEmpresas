@@ -13,4 +13,6 @@ export const ProductionOrderStatus = {
   InProgress: 'InProgress',
   Completed: 'Completed',
   Cancelled: 'Cancelled',
+  Paused: 'Paused',
+  Quality: 'Quality',
 } as const;

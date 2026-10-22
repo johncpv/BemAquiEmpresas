@@ -22,13 +22,13 @@ public sealed partial class InstallationOrderService
         if (await permissions.HasPermissionAsync("projects", "view_cost", cancellationToken) && await projects.BudgetedAsync(projectId, CostType.Installation, cancellationToken) is { } budget)
         {
             var used = await db.ProductionOrders.Where(o => o.ProjectId == projectId && o.Type == ProductionOrderType.Installation && o.Status != ProductionOrderStatus.Cancelled)
-                .SumAsync(o => o.ContractValue, cancellationToken);
+                .SumAsync(o => o.ContractValue, cancellationToken) ?? 0m;
             suggested = Math.Max(budget - used, 0);
         }
 
         var sameCustomer = (await projects.SearchAsync(null, 50, cancellationToken)).Where(p => p.PartyId == project.PartyId).Select(p => p.Id).ToList();
         var last = await db.ProductionOrders.AsNoTracking().Where(o => o.Type == ProductionOrderType.Installation && sameCustomer.Contains(o.ProjectId))
-            .OrderByDescending(o => o.CreatedAt).Select(o => (Guid?)o.InstallerId).FirstOrDefaultAsync(cancellationToken);
+            .OrderByDescending(o => o.CreatedAt).Select(o => o.InstallerId).FirstOrDefaultAsync(cancellationToken);
         var lastName = last is { } installer ? (await NamesAsync([installer], cancellationToken)).GetValueOrDefault(installer) : null;
         return new InstallationDefaults(items, suggested == 0 ? null : suggested, last, lastName);
     }

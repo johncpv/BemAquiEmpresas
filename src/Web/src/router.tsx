@@ -51,6 +51,8 @@ import { AmendmentPage } from '@/pages/contracts/amendments/AmendmentPage'
 import { ProjectPage } from '@/pages/projects/ProjectPage'
 import { ProjectsPage } from '@/pages/projects/ProjectsPage'
 import { InstallationPage } from '@/pages/production/installations/InstallationPage'
+import { FabricationOrderPage } from '@/pages/production/orders/FabricationOrderPage'
+import { FabricationOrdersPage } from '@/pages/production/orders/FabricationOrdersPage'
 import { InstallationsPage } from '@/pages/production/installations/InstallationsPage'
 import { InstallationTemplatePage } from '@/pages/production/installations/InstallationTemplatePage'
 import { QuotesPage } from '@/pages/quotes/QuotesPage'
@@ -155,7 +157,10 @@ const engineeringRootRoute = createRoute({ getParentRoute: () => appRoute, path:
 const routingsRoute = createRoute({ getParentRoute: () => appRoute, path: 'engenharia/roteiros', component: gated('engineering', RoutingsPage) })
 const newRoutingRoute = createRoute({ getParentRoute: () => appRoute, path: 'engenharia/roteiros/novo', component: gated('engineering', NewRoutingPage), validateSearch: (s: Record<string, unknown>): { de?: string } => ({ de: text(s.de) }) })
 const routingRoute = createRoute({ getParentRoute: () => appRoute, path: 'engenharia/roteiros/$id', component: gated('engineering', RoutingPage) })
-const productionRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao', beforeLoad: () => { throw redirect({ to: '/app/producao/instalacoes' }) } })
+const productionRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao', beforeLoad: () => { throw redirect({ to: '/app/producao/os' }) } })
+// OS de fabricação (PRD-01): primeira aba da Produção.
+const fabricationOrdersRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/os', component: gated('production', FabricationOrdersPage) })
+const fabricationOrderRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/os/$id', component: gated('production', FabricationOrderPage) })
 const workCentersRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/centros-de-trabalho', component: gated('production', WorkCentersPage) })
 const installationsRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/instalacoes', component: gated('production', InstallationsPage) })
 const installationRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/instalacoes/$id', component: gated('production', InstallationPage) })
@@ -255,7 +260,7 @@ export const routeTree = rootRoute.addChildren([
   inviteRoute,
   appRoute.addChildren([appIndexRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute,
     aiSettingsRoute, importRunsRoute, importRunRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute,
-    inventoryRootRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, productionRootRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute,
+    inventoryRootRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, productionRootRoute, fabricationOrdersRoute, fabricationOrderRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute,
     financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, payablesRoute, newPayableRoute, payableRoute, recurringRoute, approvalRulesRoute, openingRoute, cashFlowRoute, agingRoute, paymentOrdersRoute, newPaymentOrderRoute, paymentOrderRoute, statementRoute, quotesRoute, quoteFunnelRoute, quoteRoute, quoteCompareRoute, contractsRoute, contractRoute, amendmentRoute, projectsRoute, projectRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
   platformLoginRoute,
   platformPasswordRoute,

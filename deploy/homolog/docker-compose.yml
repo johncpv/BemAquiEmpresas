@@ -23,7 +23,8 @@ x-api-env: &api-env
   Platform__Host: ${PLATFORM_HOST}
   Alerts__PlatformBaseUrl: https://${PLATFORM_HOST}
   Alerts__Recipients__0: ${ALERT_RECIPIENT}
-  ReverseProxy__KnownNetworks__0: ${STACK_SUBNET}
+  # Só o container stack-nginx é proxy confiável (D19): o nome é resolvido na subida, não a sub-rede inteira da stack_stack.
+  ReverseProxy__KnownProxyHosts__0: stack-nginx
   ReverseProxy__RequireTrustedProxy: "true"
   Email__SmtpHost: ${SMTP_HOST}
   Email__SmtpUsername: ${SMTP_USERNAME}
