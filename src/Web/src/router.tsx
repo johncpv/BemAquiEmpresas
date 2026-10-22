@@ -53,6 +53,7 @@ import { ProjectsPage } from '@/pages/projects/ProjectsPage'
 import { InstallationPage } from '@/pages/production/installations/InstallationPage'
 import { FabricationOrderPage } from '@/pages/production/orders/FabricationOrderPage'
 import { FabricationOrdersPage } from '@/pages/production/orders/FabricationOrdersPage'
+import { KanbanPage } from '@/pages/production/kanban/KanbanPage'
 import { InstallationsPage } from '@/pages/production/installations/InstallationsPage'
 import { InstallationTemplatePage } from '@/pages/production/installations/InstallationTemplatePage'
 import { QuotesPage } from '@/pages/quotes/QuotesPage'
@@ -161,6 +162,8 @@ const productionRootRoute = createRoute({ getParentRoute: () => appRoute, path: 
 // OS de fabricação (PRD-01): primeira aba da Produção.
 const fabricationOrdersRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/os', component: gated('production', FabricationOrdersPage) })
 const fabricationOrderRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/os/$id', component: gated('production', FabricationOrderPage) })
+// Kanban (PRD-02): colunas pelo código da etapa, filtros na URL e tempo real.
+const kanbanRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/kanban', component: gated('production', KanbanPage) })
 const workCentersRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/centros-de-trabalho', component: gated('production', WorkCentersPage) })
 const installationsRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/instalacoes', component: gated('production', InstallationsPage) })
 const installationRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/instalacoes/$id', component: gated('production', InstallationPage) })
@@ -260,7 +263,7 @@ export const routeTree = rootRoute.addChildren([
   inviteRoute,
   appRoute.addChildren([appIndexRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute,
     aiSettingsRoute, importRunsRoute, importRunRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute,
-    inventoryRootRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, productionRootRoute, fabricationOrdersRoute, fabricationOrderRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute,
+    inventoryRootRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, productionRootRoute, fabricationOrdersRoute, fabricationOrderRoute, kanbanRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute,
     financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, payablesRoute, newPayableRoute, payableRoute, recurringRoute, approvalRulesRoute, openingRoute, cashFlowRoute, agingRoute, paymentOrdersRoute, newPaymentOrderRoute, paymentOrderRoute, statementRoute, quotesRoute, quoteFunnelRoute, quoteRoute, quoteCompareRoute, contractsRoute, contractRoute, amendmentRoute, projectsRoute, projectRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
   platformLoginRoute,
   platformPasswordRoute,

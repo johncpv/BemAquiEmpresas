@@ -9,7 +9,7 @@ export default defineConfig({
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
   server: {
     port: 5173,
-    proxy: { '/api': 'http://localhost:5080', '/health': 'http://localhost:5080' },
+    proxy: { '/api': 'http://localhost:5080', '/health': 'http://localhost:5080', '/hubs': { target: 'http://localhost:5080', ws: true } },
   },
   test: {
     environment: 'jsdom',
