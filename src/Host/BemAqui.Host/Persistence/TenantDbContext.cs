@@ -177,6 +177,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BemAqui.Production.Domain.LaborCostRecord> LaborCostHistory => Set<BemAqui.Production.Domain.LaborCostRecord>();
 
+    public DbSet<BemAqui.Production.Domain.ProductionParameter> ProductionParameters => Set<BemAqui.Production.Domain.ProductionParameter>();
+
     public DbSet<BemAqui.Engineering.Domain.RoutingTemplate> RoutingTemplates => Set<BemAqui.Engineering.Domain.RoutingTemplate>();
 
     public DbSet<BemAqui.Engineering.Domain.RoutingTemplateStep> RoutingTemplateSteps => Set<BemAqui.Engineering.Domain.RoutingTemplateStep>();

@@ -55,6 +55,9 @@ public static class ProductionInfrastructure
         services.TryAddScoped<LaborCosting>();
         services.TryAddScoped<LaborCostService>();
         services.TryAddScoped<LaborCostBackfill>();
+        // Parâmetros da Produção (decisões do PO de 22/10/2026): custo-hora por apontamento e limite do apontamento aberto.
+        services.TryAddScoped<ProductionParametersService>();
+        services.AddAuditableEntity<ProductionParameter>("settings");
         services.TryAddScoped<ShopfloorService>();
         services.TryAddScoped<SupervisorLaborService>();
         services.TryAddScoped<IBomGate, NoBomGate>();

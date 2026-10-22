@@ -32,6 +32,19 @@ internal sealed class LaborEntryConfiguration : IEntityTypeConfiguration<LaborEn
     }
 }
 
+/// <summary>Parâmetros da Produção (PRD-04, decisão do PO): chave única; nomes próprios, como os do Commercial e do Finance.</summary>
+internal sealed class ProductionParameterConfiguration : IEntityTypeConfiguration<ProductionParameter>
+{
+    public void Configure(EntityTypeBuilder<ProductionParameter> b)
+    {
+        b.ToTable("parameters", ProductionSchema.Name);
+        b.HasKey(e => e.Id).HasName("pk_production_parameters");
+        b.Property(e => e.Key).HasMaxLength(64);
+        b.HasIndex(e => e.Key).IsUnique().HasDatabaseName("ix_production_parameters_key");
+        b.Property(e => e.Value).HasPrecision(9, 2);
+    }
+}
+
 /// <summary>Histórico do custo do apontamento (PRD-04 CA 17): uma linha por versão (único por apontamento e versão).</summary>
 internal sealed class LaborCostRecordConfiguration : IEntityTypeConfiguration<LaborCostRecord>
 {

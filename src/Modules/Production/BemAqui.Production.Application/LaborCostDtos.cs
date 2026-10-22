@@ -14,9 +14,13 @@ public sealed record StepLaborCostView(Guid StepId, string StepCode, string Step
 /// <summary>Cargo com apontamentos "Sem custo-hora" (CA 5 e 6): nome, quantos e se o cargo já tem custo-hora (dá para recalcular).</summary>
 public sealed record MissingCostPosition(Guid? PositionId, string PositionName, int Count, bool HasHourlyCost);
 
-/// <summary>Aba Custos da OS e coluna Custo da aba Apontamentos (CA 14), só com <c>projects.view_cost</c>.</summary>
+/// <summary>
+/// Aba Custos da OS e coluna Custo da aba Apontamentos (CA 14), só com <c>projects.view_cost</c>. <c>ShowsEntryCost</c> segue o
+/// parâmetro "Exibir custo-hora em cada apontamento" (padrão desligado): desligado, <c>Entries</c> vem vazio e só há o total por etapa e
+/// por OS (o custo-hora e o custo de cada apontamento nem saem do servidor).
+/// </summary>
 public sealed record OrderLaborCostView(
-    Guid OrderId, string OrderNumber, IReadOnlyList<LaborEntryCostView> Entries, IReadOnlyList<StepLaborCostView> Steps, decimal TotalHours, decimal LaborCost, int MissingCount,
+    Guid OrderId, string OrderNumber, bool ShowsEntryCost, IReadOnlyList<LaborEntryCostView> Entries, IReadOnlyList<StepLaborCostView> Steps, decimal TotalHours, decimal LaborCost, int MissingCount,
     bool IncludesBackfill, IReadOnlyList<MissingCostPosition> MissingPositions);
 
 /// <summary>Uma versão do custo do apontamento (CA 17): snapshot, horas, valor, versão, origem e quem fez.</summary>

@@ -14,7 +14,8 @@ namespace BemAqui.Production.Application;
 /// conferidos pelo id da OS (IDOR).
 /// </summary>
 public sealed class LaborCostService(
-    IProductionDb db, LaborCosting costing, IEventPublisher events, IPositions positions, IUserDirectory users, IPermissionChecker permissions, TimeProvider clock)
+    IProductionDb db, LaborCosting costing, IEventPublisher events, IPositions positions, IUserDirectory users, IPermissionChecker permissions, ProductionParametersService parameters,
+    TimeProvider clock)
 {
     /// <summary>Custo por apontamento e por etapa, total de mão de obra e os cargos sem custo-hora (CA 14).</summary>
     public async Task<Result<OrderLaborCostView>> OrderAsync(Guid orderId, CancellationToken cancellationToken = default)
@@ -32,7 +33,9 @@ public sealed class LaborCostService(
             .ToLookup(p => p.LaborEntryId, p => new PauseSpan(p.StartedAt, p.EndedAt));
         var now = clock.GetUtcNow();
         var minutes = entries.ToDictionary(e => e.Id, e => LaborRules.NetMinutes(e.StartedAt, e.EndedAt, pauses[e.Id], now));
-        var views = entries.OrderByDescending(e => e.StartedAt)
+        // Decisão do PO (22/10/2026): custo-hora e custo por apontamento só com o parâmetro ligado; desligado, só os totais.
+        var showEntries = await parameters.ShowLaborEntryCostAsync(cancellationToken);
+        var views = !showEntries ? [] : entries.OrderByDescending(e => e.StartedAt)
             .Select(e => new LaborEntryCostView(e.Id, e.HourlyCostSnapshot, e.Cost, e.CostMissing, e.CostBackfilled, e.CostVersion, e.EndedAt is null || e.CostVersion == 0)).ToList();
         var byStep = entries.ToLookup(e => e.OrderStepId);
         var stepViews = steps.Where(s => byStep[s.Id].Any()).Select(s =>
@@ -43,7 +46,7 @@ public sealed class LaborCostService(
         }).ToList();
         var total = entries.Sum(e => minutes[e.Id]);
         return new OrderLaborCostView(
-            order.Id, order.Number, views, stepViews, LaborRules.Hours(total), entries.Sum(e => e.Cost), entries.Count(e => e.CostMissing), entries.Any(e => e.CostBackfilled),
+            order.Id, order.Number, showEntries, views, stepViews, LaborRules.Hours(total), entries.Sum(e => e.Cost), entries.Count(e => e.CostMissing), entries.Any(e => e.CostBackfilled),
             await MissingPositionsAsync(entries.Where(e => e.CostMissing).ToList(), cancellationToken));
     }
 
@@ -53,6 +56,11 @@ public sealed class LaborCostService(
         if (!await db.LaborEntries.AnyAsync(e => e.Id == entryId && e.OrderId == orderId, cancellationToken))
         {
             return Error.NotFound("labor_entry_not_found", "Apontamento não encontrado nesta OS.");
+        }
+
+        if (!await parameters.ShowLaborEntryCostAsync(cancellationToken))
+        {
+            return Error.Forbidden("entry_cost_hidden", "O custo de cada apontamento não é exibido. Ligue \"Exibir custo-hora em cada apontamento\" em Configurações → Parâmetros.");
         }
 
         var rows = await db.LaborCostHistory.AsNoTracking().Where(h => h.LaborEntryId == entryId).OrderByDescending(h => h.CostVersion).ToListAsync(cancellationToken);

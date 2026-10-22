@@ -7,7 +7,6 @@ using BemAqui.Production.Contracts;
 using BemAqui.Production.Domain;
 using BemAqui.SharedKernel;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 
 namespace BemAqui.Production.Application;
 
@@ -18,10 +17,8 @@ namespace BemAqui.Production.Application;
 /// </summary>
 public sealed class SupervisorLaborService(
     IProductionDb db, LaborWorkflow workflow, IBomGate bom, IEmployees employees, IUserEmployeeLink links, IUserDirectory users, IPermissionChecker permissions,
-    ICurrentUser currentUser, IConfiguration configuration)
+    ICurrentUser currentUser, ProductionParametersService parameters)
 {
-    public const string AlertHoursSetting = "Production:OpenLaborAlertHours";
-
     /// <summary>Aba Apontamentos (CA 31): funcionário, início, fim, pausas com motivo, minutos líquidos, quem registrou e as correções.</summary>
     public async Task<Result<OrderLaborView>> ListAsync(Guid orderId, CancellationToken cancellationToken = default)
     {
@@ -228,12 +225,13 @@ public sealed class SupervisorLaborService(
     }
 
     /// <summary>
-    /// "Apontamentos abertos há mais de {x} h" (CA 22): {x} = 12 h (parâmetro <c>Production:OpenLaborAlertHours</c>), com funcionário,
+    /// "Apontamentos abertos há mais de {x} h" (CA 22): {x} = parâmetro da Produção em Configurações → Parâmetros (padrão 12 h, de 1 a
+    /// 72; decisão do PO de 22/10/2026, antes <c>Production:OpenLaborAlertHours</c> do servidor), com funcionário,
     /// OS, etapa, início e a última pausa, do mais antigo para o mais novo.
     /// </summary>
     public async Task<OpenLaborList> OpenAsync(CancellationToken cancellationToken = default)
     {
-        var hours = configuration.GetValue<int?>(AlertHoursSetting) is int h && h > 0 ? h : LaborRules.DefaultOpenAlertHours;
+        var hours = await parameters.OpenLaborAlertHoursAsync(cancellationToken);
         var now = workflow.Now;
         var limit = now.AddHours(-hours);
         var rows = await (from e in db.LaborEntries.AsNoTracking()

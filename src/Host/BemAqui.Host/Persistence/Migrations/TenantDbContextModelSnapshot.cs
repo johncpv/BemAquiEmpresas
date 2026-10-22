@@ -6212,6 +6212,38 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("production_order_steps", "production");
                 });
 
+            modelBuilder.Entity("BemAqui.Production.Domain.ProductionParameter", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("key");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<decimal?>("Value")
+                        .HasPrecision(9, 2)
+                        .HasColumnType("numeric(9,2)")
+                        .HasColumnName("value");
+
+                    b.HasKey("Id")
+                        .HasName("pk_production_parameters");
+
+                    b.HasIndex("Key")
+                        .IsUnique()
+                        .HasDatabaseName("ix_production_parameters_key");
+
+                    b.ToTable("parameters", "production");
+                });
+
             modelBuilder.Entity("BemAqui.Production.Domain.StepPause", b =>
                 {
                     b.Property<Guid>("Id")

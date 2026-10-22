@@ -30,6 +30,8 @@ public interface IProductionDb
 
     DbSet<LaborCostRecord> LaborCostHistory { get; }
 
+    DbSet<ProductionParameter> ProductionParameters { get; }
+
     DatabaseFacade Database { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);

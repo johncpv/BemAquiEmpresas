@@ -51,6 +51,22 @@ public partial class FabricationTests
         return payloads.Select(p => JsonSerializer.Deserialize<T>(p)!).Single(e => (int)typeof(T).GetProperty("Version")!.GetValue(e)! == version);
     });
 
+    /// <summary>Liga ou desliga "Exibir custo-hora em cada apontamento" direto no banco (padrão desligado).</summary>
+    private async Task ShowEntryCostAsync(bool show) => await WithDbAsync(async db =>
+    {
+        var row = await db.ProductionParameters.FirstOrDefaultAsync(p => p.Key == ProductionParametersService.ShowLaborEntryCost);
+        if (row is null)
+        {
+            db.ProductionParameters.Add(new ProductionParameter { Key = ProductionParametersService.ShowLaborEntryCost, Value = show ? 1m : 0m, UpdatedAt = DateTimeOffset.UtcNow });
+        }
+        else
+        {
+            row.Value = show ? 1m : 0m;
+        }
+
+        return await db.SaveChangesAsync();
+    });
+
     private async Task<List<ProjectCost>> LedgerAsync(Guid entryId) =>
         await WithDbAsync(db => db.ProjectCosts.AsNoTracking().Where(c => c.SourceId == entryId).OrderBy(c => c.Seq).ToListAsync());
 
@@ -199,7 +215,17 @@ public partial class FabricationTests
         await RecordAsync(supervisor, orders[0], employee, step, 150);
         await DrainAsync();
 
+        // Decisão do PO (22/10/2026): desligado (padrão), só os totais; nem custo-hora nem custo por apontamento saem do servidor.
+        await ShowEntryCostAsync(false);
+        var hidden = await OkAsync(await supervisor.GetAsync($"{Base}/{orders[0]}/labor-costs"));
+        (hidden.GetProperty("showsEntryCost").GetBoolean(), hidden.GetProperty("entries").GetArrayLength(), hidden.GetProperty("laborCost").GetDecimal()).Should().Be((false, 0, 120m));
+        hidden.GetRawText().Should().NotContain("hourlyCostSnapshot");
+        var hiddenEntry = (await EntriesAsync(step)).Single().Id;
+        (await supervisor.GetAsync($"{Base}/{orders[0]}/labor-entries/{hiddenEntry}/cost-history")).StatusCode.Should().Be(HttpStatusCode.Forbidden);
+
+        await ShowEntryCostAsync(true);
         var costs = await OkAsync(await supervisor.GetAsync($"{Base}/{orders[0]}/labor-costs"));
+        costs.GetProperty("showsEntryCost").GetBoolean().Should().BeTrue();
         costs.GetProperty("laborCost").GetDecimal().Should().Be(120m);
         costs.GetProperty("steps").EnumerateArray().Single().GetProperty("cost").GetDecimal().Should().Be(120m);
         var entryCost = costs.GetProperty("entries").EnumerateArray().Single();
@@ -233,6 +259,39 @@ public partial class FabricationTests
     }
 
     [Fact]
+    public async Task Parametros_da_producao_com_settings_edit_validacao_auditoria_e_limite_do_apontamento_aberto()
+    {
+        const string Url = "/api/v1/production/parameters";
+        var (_, owner) = await ActorAsync(BemAqui.Identity.Domain.Group.OwnerSeedKey);
+        var (_, viewer) = await ActorAsync("settings:view");
+        await ShowEntryCostAsync(false);
+
+        var initial = await OkAsync(await viewer.GetAsync(Url));
+        initial.GetProperty("showLaborEntryCost").GetBoolean().Should().BeFalse("padrão desligado");
+        (await viewer.PutAsJsonAsync(Url, new { showLaborEntryCost = true, openLaborAlertHours = 12 })).StatusCode.Should().Be(HttpStatusCode.Forbidden, "salvar exige settings.edit");
+        (await owner.PutAsJsonAsync(Url, new { showLaborEntryCost = true, openLaborAlertHours = 0 })).StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
+        (await owner.PutAsJsonAsync(Url, new { showLaborEntryCost = true, openLaborAlertHours = 73 })).StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
+
+        var saved = await OkAsync(await owner.PutAsJsonAsync(Url, new { showLaborEntryCost = true, openLaborAlertHours = 2 }));
+        (saved.GetProperty("showLaborEntryCost").GetBoolean(), saved.GetProperty("openLaborAlertHours").GetInt32()).Should().Be((true, 2));
+        var id = saved.GetProperty("openLaborAlertHoursId").GetGuid();
+        (await WithDbAsync(db => db.AuditEntries.CountAsync(a => a.Entity == nameof(ProductionParameter) && a.EntityId == id.ToString()))).Should().BeGreaterThan(0, "auditado");
+
+        // O limite vale para a tela "Apontamentos abertos": aberto há 3 h aparece com 2 h e some com 12 h.
+        var (_, mine, _, _, orders) = await ShopfloorDatasetAsync();
+        var (_, _, client, _) = await OperatorAsync(mine);
+        var step = await StepIdAsync(orders[0], 1);
+        await OkAsync(await client.SendAsync(Tap($"{Shopfloor}/steps/{step}/start")));
+        var entryId = (await EntriesAsync(step)).Single().Id;
+        await WithDbAsync(db => db.LaborEntries.Where(e => e.Id == entryId).ExecuteUpdateAsync(s => s.SetProperty(e => e.StartedAt, DateTimeOffset.UtcNow.AddHours(-3))));
+        var open = await OkAsync(await owner.GetAsync("/api/v1/production/labor-entries/open"));
+        open.GetProperty("hours").GetInt32().Should().Be(2);
+        open.GetProperty("items").EnumerateArray().Select(i => i.GetProperty("id").GetGuid()).Should().Contain(entryId);
+        await OkAsync(await owner.PutAsJsonAsync(Url, new { showLaborEntryCost = false, openLaborAlertHours = 12 }));
+        (await OkAsync(await owner.GetAsync("/api/v1/production/labor-entries/open"))).GetProperty("items").EnumerateArray().Select(i => i.GetProperty("id").GetGuid()).Should().NotContain(entryId);
+    }
+
+    [Fact]
     public async Task Recomposicao_roda_duas_vezes_e_com_o_consumidor_ao_vivo_e_grava_uma_vez()
     {
         var (_, mine, _, _, orders) = await ShopfloorDatasetAsync();
@@ -254,6 +313,7 @@ public partial class FabricationTests
             return await scope.ServiceProvider.GetRequiredService<LaborCostBackfill>().RunAsync();
         }
 
+        await ShowEntryCostAsync(true);
         (await RunAsync()).Should().BeGreaterThanOrEqualTo(1);
         (await RunAsync()).Should().Be(0, "a marca é a versão do custo: a segunda execução não acha nada");
         await DrainAsync();
