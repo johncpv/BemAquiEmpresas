@@ -194,7 +194,10 @@ public partial class EmployeesTests
         (await rh.PostAsJsonAsync(Emp(id, "/leaves"), Leave(Today.AddDays(50), Today.AddDays(51), await VersionAsync(rh, id), "WorkAccident"))).StatusCode.Should().Be(HttpStatusCode.Forbidden, "registrar tipo de saúde exige hr.view_health");
         (await rh.PutAsJsonAsync(LeaveUrl(id, illnessId), Leave(Today.AddDays(-1), Today.AddDays(6), await VersionAsync(rh, id), "Other"))).StatusCode.Should().Be(HttpStatusCode.Forbidden, "alterar o de saúde exige hr.view_health");
         (await rh.PutAsJsonAsync(LeaveUrl(id, maternityId), Leave(Today.AddDays(30), Today.AddDays(35), await VersionAsync(rh, id), "Illness"))).StatusCode.Should().Be(HttpStatusCode.Forbidden, "passar a saúde exige hr.view_health");
-        (await rh.PutAsJsonAsync(LeaveUrl(id, maternityId), Leave(Today.AddDays(31), Today.AddDays(36), await VersionAsync(rh, id), "Maternity", "Licença"))).StatusCode.Should().Be(HttpStatusCode.OK, "os demais tipos seguem com hr.view_sensitive");
+        var blind = await rh.PutAsJsonAsync(LeaveUrl(id, maternityId), Leave(Today.AddDays(31), Today.AddDays(36), await VersionAsync(rh, id), "Maternity", "Licença"));
+        blind.StatusCode.Should().Be(HttpStatusCode.Forbidden, "editar exige hr.view_health para qualquer tipo: quem não vê o tipo não o altera (PO 22/10/2026)");
+        (await CodeAsync(blind)).Should().Be("forbidden");
+        (await LeavesOfAsync(owner, id)).Single(l => l.GetProperty("id").GetGuid() == maternityId).GetProperty("startDate").GetString().Should().Be(Iso(Today.AddDays(30)), "nada gravado");
         (await rh.PostAsJsonAsync(LeaveUrl(id, illnessId, "/end"), new { returnDate = Iso(Today), version = await VersionAsync(rh, id) })).StatusCode.Should().Be(HttpStatusCode.OK, "encerrar só mexe nas datas, que ele vê");
         (await rh.GetStringAsync(Emp(id, "/leaves/sensitive"))).Should().NotContain("\"oldType\":\"").And.NotContain("\"newType\":\"", "o rastro também não leva tipo");
         (await rh.PostAsJsonAsync(LeaveUrl(id, maternityId, "/cancel"), new { reason = "Lançado errado", version = await VersionAsync(rh, id) })).StatusCode.Should().Be(HttpStatusCode.OK, "cancelar não exige hr.view_health");

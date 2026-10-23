@@ -23,7 +23,7 @@ Ver os afastamentos, as trocas de cargo e os reajustes de salário do funcionár
 - Cada afastamento mostra a situação dele: **Previsto** (ainda não começou), **Vigente**, **Encerrado** ou **Cancelado**.
 
 ## Corrigir, encerrar antes ou cancelar
-- **Editar** corrige o tipo, as datas e o motivo de um afastamento previsto ou vigente. No vigente, o início fica hoje ou antes e o fim previsto, hoje ou depois. Confirme em **Salvar afastamento**: o diálogo mostra o antes e o depois.
+- **Editar** corrige o tipo, as datas e o motivo de um afastamento previsto ou vigente. Pede a permissão **Ver dados de saúde**, porque mexe no tipo. No vigente, o início fica hoje ou antes e o fim previsto, hoje ou depois. Confirme em **Salvar afastamento**: o diálogo mostra o antes e o depois.
 - **Encerrar afastamento** serve para quando o funcionário voltou antes do fim previsto. Informe a data da volta, que já vem com hoje: ela fica depois do início, até o fim previsto e nunca depois de hoje. O último dia afastado passa a ser a véspera da volta e a situação volta a **Ativo** na hora.
 - **Cancelar afastamento** vale só para o afastamento que ainda não começou, como um lançamento em duplicidade. Informe o motivo. O afastamento continua na linha do tempo como **Cancelado** e deixa de contar na situação. Afastamento que já começou não se cancela: encerre.
 - Afastamento encerrado ou cancelado não muda mais.
@@ -32,7 +32,7 @@ Ver os afastamentos, as trocas de cargo e os reajustes de salário do funcionár
 
 ## Tipo, motivo e dados de saúde
 - O tipo e o motivo dos afastamentos podem revelar dado de saúde. Por isso, **de todos os afastamentos**, eles só aparecem para quem tem a permissão **Ver dados de saúde** do RH.
-- Quem não tem a permissão vê só **Afastado** e as datas, em qualquer afastamento. Pode encerrar e cancelar, mas não edita, e não registra Doença nem Acidente de trabalho: esses tipos não aparecem na lista.
+- Quem não tem a permissão vê só **Afastado** e as datas, em qualquer afastamento. Pode encerrar e cancelar, mas não edita nenhum afastamento (quem não vê o tipo não o altera) e não registra Doença nem Acidente de trabalho: esses tipos não aparecem na lista.
 
 ## Perguntas frequentes
 **Por que não vejo os reajustes nem os afastamentos?** Reajustes mostram o salário e afastamentos mostram o tipo e as datas. Os dois só aparecem para quem tem a permissão Ver dados sensíveis do RH; os demais veem só a situação Afastado. O tipo e o motivo do afastamento pedem também a permissão Ver dados de saúde. As trocas de cargo aparecem para todos que veem o RH.

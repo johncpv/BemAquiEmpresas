@@ -70,7 +70,7 @@ public sealed partial class EmployeeService
 
     /// <summary>
     /// Editar afastamento previsto ou em curso (CAD-04c1b CA 1 e 2): mesmas validações do registro (datas, admissão, motivo,
-    /// sobreposição sem ele mesmo, desligado e versão); tipo de saúde, antes ou depois, exige <c>hr.view_health</c>. O que já
+    /// sobreposição sem ele mesmo, desligado e versão); exige <c>hr.view_health</c> para qualquer tipo (PO 22/10/2026). O que já
     /// venceu na nova data sai na mesma transação, uma vez só.
     /// </summary>
     public async Task<Result<EmployeeDetail>> UpdateLeaveAsync(Guid id, Guid leaveId, LeaveInput input, CancellationToken cancellationToken = default)
@@ -87,13 +87,15 @@ public sealed partial class EmployeeService
             return missing;
         }
 
-        if ((EmployeeLeaveRules.IsHealth(leave!.LeaveType) || EmployeeLeaveRules.IsHealth(input.Type)) && !await CanHealthAsync(cancellationToken))
+        // PO 22/10/2026 (CAD-04c1b 1.1): quem não vê o tipo de nenhum afastamento não altera o tipo de nenhum; editar exige
+        // hr.view_health para qualquer tipo. Encerrar e cancelar mexem só nas datas e não exigem.
+        if (!await CanHealthAsync(cancellationToken))
         {
-            return HealthForbidden();
+            return EditForbidden();
         }
 
         var today = BusinessTime.Today(clock);
-        var oldStart = leave.EffectiveDate;
+        var oldStart = leave!.EffectiveDate;
         var oldEnd = leave.LeaveEndDate ?? leave.EffectiveDate;
         var state = EmployeeLeaveRules.State(oldStart, oldEnd, leave.CancelledAt is not null, today);
         if (state is EmployeeLeaveState.Cancelled or EmployeeLeaveState.Ended)
@@ -295,6 +297,9 @@ public sealed partial class EmployeeService
 
     private static Error HealthForbidden() =>
         Error.Forbidden(Error.Codes.Forbidden, "Afastamento por doença ou acidente de trabalho é dado de saúde: só quem tem a permissão Ver dados de saúde registra ou altera. Fale com o administrador.");
+
+    private static Error EditForbidden() =>
+        Error.Forbidden(Error.Codes.Forbidden, "Só quem tem a permissão Ver dados de saúde edita afastamento, porque o tipo e o motivo podem revelar dado de saúde. Para o funcionário que voltou antes, use \"Encerrar afastamento\"; para o que não começou, \"Cancelar afastamento\".");
 
     private static Error Terminated() => Error.Conflict("employee_terminated", "Funcionário desligado não recebe nem altera afastamento.");
 
