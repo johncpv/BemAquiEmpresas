@@ -31,6 +31,11 @@ internal sealed class RecurringJobsRegistrar(IRecurringJobManager recurring, ICo
         recurring.AddOrUpdate<BemAqui.Inventory.Application.ReservationBackfillRecurringJob>(BemAqui.Inventory.Application.ReservationBackfillRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             BemAqui.Inventory.Application.ReservationBackfillRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         recurring.Trigger(BemAqui.Inventory.Application.ReservationBackfillRecurringJob.Id);
+        // Recomposição do custo de material das saídas com projeto publicadas antes do consumidor (EST-03 CA 11, D3): dispara na subida e
+        // repete de madrugada; sem nada faltando na razão, não grava.
+        recurring.AddOrUpdate<BemAqui.Commercial.Application.MaterialCostBackfillRecurringJob>(BemAqui.Commercial.Application.MaterialCostBackfillRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
+            BemAqui.Commercial.Application.MaterialCostBackfillRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
+        recurring.Trigger(BemAqui.Commercial.Application.MaterialCostBackfillRecurringJob.Id);
         // Afastamentos com data futura (CAD-04c1 CA 7): 00:15 de São Paulo, ou o horário do parâmetro.
         recurring.AddOrUpdate<BemAqui.HR.Application.EmployeeLeaveEventsRecurringJob>(BemAqui.HR.Application.EmployeeLeaveEventsRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             configuration[BemAqui.HR.Application.EmployeeLeaveEventsRecurringJob.CronSetting] ?? BemAqui.HR.Application.EmployeeLeaveEventsRecurringJob.Cron,

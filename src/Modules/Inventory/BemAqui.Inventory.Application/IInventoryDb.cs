@@ -41,6 +41,11 @@ public interface IInventoryDb
 
     DbSet<ReservationChange> ReservationChanges { get; }
 
+    /// <summary>Requisições de material da OS, devoluções e perdas (EST-03).</summary>
+    DbSet<MaterialRequisition> MaterialRequisitions { get; }
+
+    DbSet<MaterialRequisitionLine> MaterialRequisitionLines { get; }
+
     /// <summary>Para trocar o local padrão em dois passos numa transação (o índice único parcial é checado a cada comando).</summary>
     DatabaseFacade Database { get; }
 

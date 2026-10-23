@@ -38,6 +38,14 @@ internal static partial class ProductionEndpoints
                 (await service.MarkChecklistAsync(stepId, itemId, input, ct)).ToHttpResult())
             .RequirePermission("shopfloor.create").AllowPinSession().WithName("MarkShopfloorChecklist").Produces<ShopfloorStepDetail>();
 
+        // EST-03 CA 5 e 6 (ADR 0026 §4): material da etapa e "Pedir material", na lista permitida da sessão por PIN. O pedido só cria a
+        // requisição Requested no Inventory (IMaterialRequisitions); nunca baixa estoque.
+        steps.MapGet("/material", async (Guid stepId, ShopfloorService service, CancellationToken ct) => (await service.MaterialAsync(stepId, ct)).ToHttpResult())
+            .RequirePermission("shopfloor.view").AllowPinSession().WithName("GetShopfloorStepMaterial").Produces<ShopfloorMaterialView>();
+        steps.MapPost("/material-requests", async (Guid stepId, ShopfloorMaterialInput input, ShopfloorService service, CancellationToken ct) =>
+                (await service.RequestMaterialAsync(stepId, input, ct)).ToHttpResult())
+            .RequirePermission("shopfloor.create").RequireIdempotencyKey().AllowPinSession().WithName("RequestShopfloorMaterial").Produces<ShopfloorMaterialRequest>();
+
         // CA 6 (CA 14 da PRD-01): anexos técnicos da OS pela fila do operador, só leitura; fora da fila, 404.
         steps.MapGet("/attachments", async (Guid stepId, ShopfloorService service, CancellationToken ct) => (await service.AttachmentsAsync(stepId, ct)).ToHttpResult())
             .RequirePermission("shopfloor.view").AllowPinSession().WithName("ListShopfloorAttachments").Produces<IReadOnlyList<ShopfloorAttachment>>();

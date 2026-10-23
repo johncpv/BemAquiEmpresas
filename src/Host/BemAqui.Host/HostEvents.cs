@@ -53,9 +53,10 @@ public static class HostEvents
             // o que foi fechado antes da PRD-04 entra pela recomposição (D3, LaborCostBackfillJob).
             .AddHandler<BemAqui.Production.Contracts.LaborEntryClosed, BemAqui.Commercial.Application.LaborCostConsumer>()
             .AddHandler<BemAqui.Production.Contracts.LaborEntryCorrected, BemAqui.Commercial.Application.LaborCostConsumer>()
-            // EST-01a: saída e devolução de material com projeto (ADR 0025 §2); o Commercial consome a partir da EST-03.
-            .AddEvent<BemAqui.Inventory.Contracts.StockIssued>()
-            .AddEvent<BemAqui.Inventory.Contracts.StockReturned>()
+            // EST-01a e EST-03: saída e devolução de material com projeto viram custo de material na razão commercial.project_costs
+            // (ADR 0025 §2); o que foi publicado antes do consumidor entra pela recomposição (D3, MaterialCostBackfillJob).
+            .AddHandler<BemAqui.Inventory.Contracts.StockIssued, BemAqui.Commercial.Application.MaterialCostConsumer>()
+            .AddHandler<BemAqui.Inventory.Contracts.StockReturned, BemAqui.Commercial.Application.MaterialCostConsumer>()
             // OS de instalação (COM-06).
             .AddHandler<BemAqui.Production.Contracts.InstallationStarted, BemAqui.Commercial.Application.InstallationConsumers>()
             .AddHandler<BemAqui.Production.Contracts.InstallationAccepted, BemAqui.Commercial.Application.InstallationConsumers>()

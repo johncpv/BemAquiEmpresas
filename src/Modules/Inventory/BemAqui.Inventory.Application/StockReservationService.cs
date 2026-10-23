@@ -251,7 +251,7 @@ public sealed class StockReservationService(
     }
 
     /// <summary>Uma reconciliação por OS de cada vez (fonte lida e gravada sob a mesma trava).</summary>
-    private async Task LockOrderAsync(Guid productionOrderId, CancellationToken ct)
+    internal async Task LockOrderAsync(Guid productionOrderId, CancellationToken ct)
     {
         var key = "inventory.reservations:" + productionOrderId.ToString("N");
         await db.Database.SqlQuery<int>($"SELECT 1 AS \"Value\" FROM (SELECT pg_advisory_xact_lock(hashtextextended({key}, 0))) AS l").ToListAsync(ct);

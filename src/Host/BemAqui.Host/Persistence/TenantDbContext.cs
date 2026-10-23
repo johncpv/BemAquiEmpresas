@@ -177,6 +177,10 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<ReservationChange> ReservationChanges => Set<ReservationChange>();
 
+    public DbSet<MaterialRequisition> MaterialRequisitions => Set<MaterialRequisition>();
+
+    public DbSet<MaterialRequisitionLine> MaterialRequisitionLines => Set<MaterialRequisitionLine>();
+
     public DbSet<WorkCenter> WorkCenters => Set<WorkCenter>();
 
     public DbSet<Calendar> Calendars => Set<Calendar>();

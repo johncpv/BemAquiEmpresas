@@ -48,6 +48,26 @@ public sealed record ShopfloorChecklistInput(bool Done);
 /// <summary>Resultado de uma ação no app: a etapa como ficou, as horas apontadas pelo operador e a próxima da fila (propositivo).</summary>
 public sealed record ShopfloorActionResult(ShopfloorStepDetail? Step, decimal MyHours, ShopfloorQueueStep? NextInQueue, IReadOnlyList<string> ClosedFor);
 
+/// <summary>Item da BOM liberada que o operador pode pedir (EST-03 CA 5): necessidade, reservado e já baixado, sem custo.</summary>
+public sealed record ShopfloorMaterialItem(Guid ItemId, string ItemCode, string ItemName, string UnitCode, decimal Required, decimal Reserved, decimal Issued);
+
+public sealed record ShopfloorMaterialRequestLine(Guid ItemId, string ItemCode, string ItemName, string UnitCode, decimal Quantity);
+
+/// <summary>Pedido de material do operador (EST-03 CA 7): situação, motivo da recusa e as linhas. Sem custo, valor nem lote (CA 6).</summary>
+public sealed record ShopfloorMaterialRequest(
+    Guid Id, string Number, BemAqui.Inventory.Contracts.MaterialRequestState State, string? DeclineReason, DateTimeOffset RequestedAt, DateTimeOffset? DecidedAt,
+    IReadOnlyList<ShopfloorMaterialRequestLine> Lines);
+
+/// <summary>Material da etapa no app (EST-03 CA 5): sem BOM liberada, "Esta OS ainda não tem BOM liberada. Avise o supervisor.".</summary>
+public sealed record ShopfloorMaterialView(Guid StepId, string OrderNumber, bool BomReleased, IReadOnlyList<ShopfloorMaterialItem> Items, IReadOnlyList<ShopfloorMaterialRequest> Requests);
+
+/// <summary>"Pedir material" (EST-03 CA 5): só item e quantidade; qualquer outro campo (lote, custo, local) é recusado com 400.</summary>
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record ShopfloorMaterialLineInput(Guid ItemId, decimal Quantity);
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record ShopfloorMaterialInput(IReadOnlyList<ShopfloorMaterialLineInput>? Lines);
+
 /// <summary>Pausa no "Apontar por funcionário" e na correção (CA 18, 20).</summary>
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record LaborPauseInput(PauseReason Reason, string? Notes, DateTimeOffset StartedAt, DateTimeOffset EndedAt);

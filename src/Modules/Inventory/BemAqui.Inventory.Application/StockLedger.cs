@@ -161,6 +161,28 @@ public sealed class StockLedger(
         return new OrderMaterialCost(productionOrderId, lines, lines.Sum(l => l.Amount));
     }
 
+    public async Task<IReadOnlyList<ProjectStockMovement>> ProjectMovementsAsync(long afterPostedSeq, int take, CancellationToken cancellationToken = default)
+    {
+        var originals = await db.StockMovements.AsNoTracking()
+            .Where(m => m.PostedSeq > afterPostedSeq && m.ProjectId != null && m.ReversesMovementId == null && (m.Type == StockMovementType.Issue || m.Type == StockMovementType.Return))
+            .OrderBy(m => m.PostedSeq).Take(Math.Clamp(take, 1, 1000)).ToListAsync(cancellationToken);
+        var ids = originals.Select(m => m.Id).ToList();
+        var reversals = await db.StockMovements.AsNoTracking().Where(m => m.ReversesMovementId != null && ids.Contains(m.ReversesMovementId.Value))
+            .ToDictionaryAsync(m => m.ReversesMovementId!.Value, cancellationToken);
+        var facts = new List<ProjectStockMovement>();
+        foreach (var m in originals)
+        {
+            var total = Math.Abs(m.TotalCost);
+            facts.Add(new ProjectStockMovement(m.Id, m.PostedSeq, m.Type, 1, m.ProjectId!.Value, m.ProductionOrderId, m.ItemId, Math.Abs(m.Quantity), 0m, total, m.PostedAt));
+            if (reversals.TryGetValue(m.Id, out var reversal))
+            {
+                facts.Add(new ProjectStockMovement(m.Id, m.PostedSeq, m.Type, 2, m.ProjectId.Value, m.ProductionOrderId, m.ItemId, Math.Abs(m.Quantity), total, 0m, reversal.PostedAt));
+            }
+        }
+
+        return facts;
+    }
+
     public async Task<IReadOnlyList<StockAvailability>> GetAsync(IReadOnlyCollection<Guid> itemIds, Guid? locationId = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(itemIds);
