@@ -153,7 +153,8 @@ public class EmployeeLeaveChangeRulesTests
         var grant = patch.Grants.Should().ContainSingle("o grupo RH do seed recebe a ação; o Proprietário já tem tudo").Which;
         (grant.SeedKey, grant.Module).Should().Be(("hr", "hr"));
         grant.Actions.Should().Equal("view_health");
-        SeedPatchSeeder.Patches[^1].Key.Should().Be("hr-view-health", "patch novo entra no fim");
+        var keys = SeedPatchSeeder.Patches.Select(p => p.Key).ToList();
+        keys.IndexOf("hr-view-health").Should().BeGreaterThan(keys.IndexOf("production-quality"), "patch novo entra depois dos que já foram aplicados");
     }
 
     private static string? Field(Error? error) => error?.Fields?.Keys.Single();
