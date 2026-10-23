@@ -95,6 +95,9 @@ Linha do extrato (API do Inter ou OFX; OFX bloqueado em conta com API, salvo con
 ### Folha lançada (RH-02a/02c, ADR 0036)
 `Draft → Closed → Paid`; `Paid → Closed` pelo estorno da OP; reabrir `Closed → Draft` só com motivo e sem pagamento em andamento. O fechamento (com `hr.approve` e 2FA de novo) chama o `IPayables` na mesma transação: um título por funcionário (`payee_type = Employee`) e um por guia; a previsão `PayrollForecast` dos próximos 3 meses é substituída pela folha real. Quem fecha não paga.
 
+### Afastamento (CAD-04c1/04c1b)
+Estado calculado na leitura por `BusinessTime.Today`, nunca gravado: `Scheduled` (antes do início) → `Current` (do início ao fim previsto; a situação do funcionário fica `OnLeave`) → `Ended` (depois do fim); `Cancelled` pela marca `cancelled_at`, que prevalece. **Editar** vale no `Scheduled` e no `Current` (no `Current`, início ≤ hoje ≤ fim previsto); **encerrar antes** só no `Current`, com a volta entre o início e o fim previsto e até hoje (o fim previsto vira a véspera da volta, `Current → Ended` na hora); **cancelar** só no `Scheduled`, com motivo (`Scheduled → Cancelled`). `Ended` e `Cancelled` não mudam mais. Cada mudança grava o rastro `LeaveChange`. Doença e Acidente de trabalho exigem `hr.view_health` para registrar e editar.
+
 ### Ponto (RH-01a/01b/01c, ADR 0035)
 Marcação imutável (controle interno, não registro oficial); ajuste `Pending → Approved | Rejected` (quem pede não aprova); período `Open → Closed` com `hr.edit`, reabertura com motivo.
 
@@ -135,6 +138,7 @@ Marcação imutável (controle interno, não registro oficial); ajuste `Pending 
 | BillingSlipPaid | Finance (webhook) | Baixa receivable, cria transação, atualiza estatística de pontualidade |
 | ShipmentDispatched | Production | Só aviso e projeção: a baixa do produto acabado (`Shipment`) e as séries expedidas são síncronas na confirmação do romaneio, com 409 `insufficient_stock` (PRD-06b, D4 de 21/10/2026); o `Shipment` não entra no custo do projeto |
 | InvoiceAuthorized | Fiscal | A NF-e de saída **referencia o romaneio** e nunca baixa o estoque de novo (D4 de 21/10/2026); Commercial grava o imposto como `InvoiceTax` na razão `project_costs` (imposto realizado só pela nota, ADR 0025 adendo); anexa XML/PDF ao projeto; e-mail ao cliente |
+| EmployeeLeaveStarted / EmployeeLeaveEnded | HR | Só id do funcionário e datas, nunca tipo nem motivo; cada um sai uma vez (marcas `start_published_at`/`end_published_at`): no registro, na edição ou no encerramento antes do previsto, quando já venceu, ou pelo job diário `hr-leave-events`; afastamento cancelado nunca publica (CAD-04c1, CAD-04c1b). Sem consumidor nesta fase; a situação "Afastado" e o `IEmployees.Status` são calculados na leitura |
 | PayrollClosed | HR | **Só aviso** (ADR 0036): os títulos de salários e guias nascem na transação do fechamento, pelo `IPayables` (RH-02c) |
 | PaymentOrderPaid / PaymentOrderReversed | Finance | HR passa a folha a Paid ou de volta a Closed (RH-02c; o `PaymentOrderReversed` é novo) |
 | ProjectForecastChanged | Production | Commercial grava `commercial.project_forecasts` só se o `computedAt` for o mais novo; aviso de risco ao responsável e a `production.approve` (PLN-01b, ADR 0029) |
