@@ -324,7 +324,7 @@ _MIG-01d (saldos iniciais de estoque) não entra aqui: cancelada pelo PO em 18/1
 - Requisitos: R-ENG-3, R-ENG-4, R-ENG-5, R-EST-3, R-PRP-2, R-PRP-3, R-SEC-5.
 - CA: BOM por unidade com a necessidade da OS; liberar com `engineering.approve` (seed patch `engineering-release-bom`, D13); revisão com `Superseded`; liga o bloqueio da D12 no início de etapa (PRD-03a) e na "Concluir etapa" (PRD-02) com 409 `bom_not_released`; filtro "OS que vão parar sem BOM"; `IBoms.ReleasedForOrderAsync`.
 
-**EST-02 [ ] Reservas e disponível (M)** — 3.2, ordem 12 — [story](stories/EST-02-reservas-disponivel.md)
+**EST-02 [x] Reservas e disponível (M)** — 3.2, ordem 12 — [story](stories/EST-02-reservas-disponivel.md)
 - Requisitos: R-EST-4, R-ENG-4, R-ENG-5, R-EST-5, R-CMP-1, R-PRP-5, R-SEC-5.
 - CA: reserva na posição agregada, reconciliada a partir da fonte (BOM vigente e situação da OS; alvo 0 para OS cancelada ou concluída); `StockShortageChanged` só como aviso; material que chega completa as faltas; recomposição das BOMs já liberadas (D3); `ReleaseForOrderAsync` síncrono para a conclusão.
 
@@ -370,7 +370,7 @@ _MIG-01d (saldos iniciais de estoque) não entra aqui: cancelada pelo PO em 18/1
 
 **EST-05 [ ] Inventário (contagem por local) (M)** — 3.4, ordem 23 — [story](stories/EST-05-inventario.md)
 - Requisitos: R-EST-9, R-EST-6, R-EST-5, R-PRP-7, R-SEC-5.
-- CA: numeração `INV`; contagem cega também no celular (kit chão de fábrica), sem custo no DTO do contador; recontador diferente do primeiro, conferido no servidor; ajuste Delta pela EST-01b sobre o saldo da aprovação; ajuste e estorno manual bloqueados no local durante a contagem (liga o bloqueio da EST-01b).
+- CA: numeração `INV`; contagem cega também no celular (kit chão de fábrica), sem custo no DTO do contador; recontador diferente do primeiro, conferido no servidor; ajuste Delta pela EST-01b sobre o saldo da aprovação; ajuste e estorno manual bloqueados no local durante a contagem (liga o bloqueio da EST-01b); contagem abaixo do reservado reduz primeiro as reservas das OS com a BOM liberada mais recentemente, gera a falta e avisa quem tem `inventory.approve` (PO, 23/10/2026).
 
 **EST-06 [ ] Capacidade de produzir (P)** — D, desejável; pode ir à Fase 4 — 3.4, ordem 24 — [story](stories/EST-06-capacidade-de-produzir.md)
 - Requisitos: R-EST-10, R-PRP-2, R-CMP-1.

@@ -4955,6 +4955,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("opening_completed_by");
 
+                    b.Property<DateTimeOffset?>("ReservationsBackfilledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reservations_backfilled_at");
+
                     b.Property<uint>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
@@ -5629,6 +5633,180 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasFilter("seed_key IS NOT NULL");
 
                     b.ToTable("units", "inventory");
+                });
+
+            modelBuilder.Entity("BemAqui.Inventory.Domain.Reservation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("BomLineId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("bom_line_id");
+
+                    b.Property<DateTimeOffset?>("BomReleasedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("bom_released_at");
+
+                    b.Property<int>("BomRevision")
+                        .HasColumnType("integer")
+                        .HasColumnName("bom_revision");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("IsBackfill")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_backfill");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_id");
+
+                    b.Property<Guid>("LocationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("location_id");
+
+                    b.Property<string>("Origin")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("origin");
+
+                    b.Property<Guid>("ProductionOrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("production_order_id");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("quantity");
+
+                    b.Property<decimal>("QuantityIssued")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("quantity_issued");
+
+                    b.Property<decimal>("RequestedQuantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("requested_quantity");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_reservations");
+
+                    b.HasIndex("LocationId")
+                        .HasDatabaseName("ix_reservations_location_id");
+
+                    b.HasIndex("ItemId", "Status")
+                        .HasDatabaseName("ix_reservations_item_status");
+
+                    b.HasIndex("ProductionOrderId", "ItemId", "LocationId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_reservations_order_item_location");
+
+                    b.ToTable("reservations", "inventory");
+                });
+
+            modelBuilder.Entity("BemAqui.Inventory.Domain.ReservationChange", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("At")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("at");
+
+                    b.Property<bool>("IsBackfill")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_backfill");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_id");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("kind");
+
+                    b.Property<Guid>("LocationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("location_id");
+
+                    b.Property<string>("Origin")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("origin");
+
+                    b.Property<Guid>("ProductionOrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("production_order_id");
+
+                    b.Property<decimal>("QuantityAfter")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("quantity_after");
+
+                    b.Property<decimal>("QuantityDelta")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("quantity_delta");
+
+                    b.Property<decimal>("RequestedAfter")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("requested_after");
+
+                    b.Property<Guid>("ReservationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reservation_id");
+
+                    b.Property<decimal>("ShortageAfter")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("shortage_after");
+
+                    b.HasKey("Id")
+                        .HasName("pk_reservation_changes");
+
+                    b.HasIndex("ReservationId")
+                        .HasDatabaseName("ix_reservation_changes_reservation_id");
+
+                    b.HasIndex("ItemId", "At")
+                        .HasDatabaseName("ix_reservation_changes_item_at");
+
+                    b.HasIndex("ProductionOrderId", "At")
+                        .HasDatabaseName("ix_reservation_changes_order_at");
+
+                    b.ToTable("reservation_changes", "inventory");
                 });
 
             modelBuilder.Entity("BemAqui.Inventory.Domain.StockBalance", b =>
@@ -7916,6 +8094,33 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasForeignKey("ToLocationId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_manual_posting_lines_locations_to_location_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Inventory.Domain.Reservation", b =>
+                {
+                    b.HasOne("BemAqui.Inventory.Domain.Item", null)
+                        .WithMany()
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_reservations_items_item_id");
+
+                    b.HasOne("BemAqui.Inventory.Domain.Location", null)
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_reservations_locations_location_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Inventory.Domain.ReservationChange", b =>
+                {
+                    b.HasOne("BemAqui.Inventory.Domain.Reservation", null)
+                        .WithMany()
+                        .HasForeignKey("ReservationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_reservation_changes_reservations_reservation_id");
                 });
 
             modelBuilder.Entity("BemAqui.Inventory.Domain.StockBalance", b =>

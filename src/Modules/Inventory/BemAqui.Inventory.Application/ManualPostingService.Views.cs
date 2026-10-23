@@ -82,7 +82,11 @@ public sealed partial class ManualPostingService
 
     private async Task<ManualPostingImpact> ImpactAsync(ManualPosting posting, ManualPostingLineView line, CancellationToken ct)
     {
-        var onHand = await db.StockPositions.AsNoTracking().Where(p => p.ItemId == line.ItemId && p.LocationId == line.LocationId).Select(p => p.QuantityOnHand).FirstOrDefaultAsync(ct);
+        var here = await db.StockPositions.AsNoTracking().Where(p => p.ItemId == line.ItemId && p.LocationId == line.LocationId)
+            .Select(p => new { p.QuantityOnHand, p.QuantityReserved }).FirstOrDefaultAsync(ct);
+        var onHand = here?.QuantityOnHand ?? 0m;
+        // EST-02 CA 13: a saída e a transferência respeitam o disponível (físico − reservado).
+        var available = onHand - (here?.QuantityReserved ?? 0m);
         var total = await db.StockPositions.AsNoTracking().Where(p => p.ItemId == line.ItemId).SumAsync(p => p.QuantityOnHand, ct);
         var average = await db.Items.IgnoreQueryFilters().AsNoTracking().Where(i => i.Id == line.ItemId).Select(i => i.AverageCost).FirstOrDefaultAsync(ct);
         return posting.Kind switch
@@ -90,7 +94,7 @@ public sealed partial class ManualPostingService
             ManualPostingKind.Receipt or ManualPostingKind.OpeningBalance => new ManualPostingImpact(
                 onHand, onHand + line.Quantity, average, AverageCostCalculator.RoundCost(AverageCostCalculator.AfterEntry(total, average, line.Quantity, line.UnitCost ?? average)),
                 AverageCostCalculator.LineTotal(line.Quantity, line.UnitCost ?? average), false),
-            _ => new ManualPostingImpact(onHand, onHand - line.Quantity, average, average, AverageCostCalculator.LineTotal(line.Quantity, average), onHand < line.Quantity),
+            _ => new ManualPostingImpact(onHand, onHand - line.Quantity, average, average, AverageCostCalculator.LineTotal(line.Quantity, average), available < line.Quantity),
         };
     }
 

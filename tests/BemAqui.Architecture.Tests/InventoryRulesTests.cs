@@ -12,6 +12,7 @@ namespace BemAqui.Architecture.Tests;
 public class InventoryRulesTests
 {
     private const string Ledger = "Inventory/BemAqui.Inventory.Application/StockLedger.cs";
+    private const string Allocator = "Inventory/BemAqui.Inventory.Application/ReservationAllocator.cs";
 
     private static string Modules => Path.Combine(Solution.RootDirectory, "src", "Modules");
 
@@ -33,6 +34,18 @@ public class InventoryRulesTests
             "UPDATE inventory.stock_positions", "UPDATE inventory.stock_balances", "SET average_cost");
         writers.Should().Contain(Ledger, "a regra precisa enxergar o motor");
         writers.Should().BeSubsetOf([Ledger], "posição, lote e custo médio mudam só pelo IStockMovements (CA 32)");
+    }
+
+    /// <summary>
+    /// EST-02 (ADR 0023 §2 e §6): o reservado da posição e a reserva mudam só no <c>ReservationAllocator</c>, sob a trava do item; o
+    /// motor e o resto do módulo pedem a ele.
+    /// </summary>
+    [Fact]
+    public void So_o_alocador_escreve_reserva_e_reservado_da_posicao()
+    {
+        var writers = FilesContaining(".ApplyReserved(", "Reservations.Add", "ReservationChanges.Add", "INSERT INTO inventory.reservations", "UPDATE inventory.reservations", "quantity_reserved =");
+        writers.Should().Contain(Allocator, "a regra precisa enxergar o alocador");
+        writers.Should().BeSubsetOf([Allocator], "a reserva e o reservado da posição mudam só pelo ReservationAllocator (EST-02)");
     }
 
     [Fact]

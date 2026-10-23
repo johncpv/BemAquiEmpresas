@@ -17,7 +17,8 @@ namespace BemAqui.Inventory.Application;
 /// grava o movimento imutável com o físico e o custo médio depois dele. Nenhuma outra classe escreve em
 /// <c>stock_positions</c>, <c>stock_balances</c> nem <c>items.average_cost</c> (teste de arquitetura).
 /// </summary>
-public sealed class StockLedger(IInventoryDb db, INumberSequence numbers, IEventPublisher events, ICurrentUser currentUser, TimeProvider clock)
+public sealed class StockLedger(
+    IInventoryDb db, INumberSequence numbers, IEventPublisher events, ICurrentUser currentUser, TimeProvider clock, ReservationAllocator reservations)
     : IStockMovements, IStockBalances
 {
     public const string DocType = "MOV";
@@ -111,9 +112,9 @@ public sealed class StockLedger(IInventoryDb db, INumberSequence numbers, IEvent
 
         var quantity = -original.Quantity;
         var (position, balance) = await LockPositionAsync(original.ItemId, original.LocationId, original.LotId, cancellationToken);
-        if (quantity < 0 && (position.QuantityOnHand + quantity < 0 || balance.QuantityOnHand + quantity < 0))
+        if (quantity < 0 && (Allowance(position, original.SourceType) + quantity < 0 || balance.QuantityOnHand + quantity < 0))
         {
-            return await InsufficientAsync(item, original.LocationId, Math.Min(position.QuantityOnHand, balance.QuantityOnHand), cancellationToken);
+            return await InsufficientAsync(item, original.LocationId, position, balance, original.SourceType, cancellationToken);
         }
 
         var onHand = await OnHandAsync(item.Id, cancellationToken);
@@ -129,7 +130,7 @@ public sealed class StockLedger(IInventoryDb db, INumberSequence numbers, IEvent
             original.ProjectId, original.ProductionOrderId, now, now, currentUser.UserId, original.SourceNumber);
         db.StockMovements.Add(movement);
         PublishProjectEvent(original, seq: 2, previous: Math.Abs(original.TotalCost), next: 0m, now);
-        return await SaveAsync(item, movement, cancellationToken);
+        return await SaveAndCompleteAsync(item, movement, null, cancellationToken);
     }
 
     public async Task<Guid> EnsureLotAsync(Guid itemId, string lotNumber, Guid? supplierPartyId = null, DateOnly? expiry = null, CancellationToken cancellationToken = default)
@@ -187,6 +188,18 @@ public sealed class StockLedger(IInventoryDb db, INumberSequence numbers, IEvent
     {
         ArgumentNullException.ThrowIfNull(postings);
         return Enumerable.Range(0, postings.Count).OrderBy(i => postings[i].ItemId).ThenBy(i => i).ToList();
+    }
+
+    /// <summary>
+    /// Mensagem do 409 quando parte do físico está reservada (EST-02 CA 13): "Há 6,0000 UN disponível; 4,0000 UN está reservado para OS."
+    /// </summary>
+    public static Error Reserved(decimal available, decimal reserved, string unit)
+    {
+        var suffix = string.IsNullOrEmpty(unit) ? string.Empty : " " + unit;
+        return Error.Conflict(InsufficientStockCode, $"Há {available.ToString("N4", PtBr)}{suffix} disponível; {reserved.ToString("N4", PtBr)}{suffix} está reservado para OS.") with
+        {
+            Data = new Dictionary<string, object?> { ["available"] = available, ["reserved"] = reserved },
+        };
     }
 
     /// <summary>Mensagem do 409 de saldo (CA 13): "Saldo insuficiente: há 5,0000 UN de Chapa em Almoxarifado."</summary>
@@ -251,9 +264,9 @@ public sealed class StockLedger(IInventoryDb db, INumberSequence numbers, IEvent
         }
 
         var (position, balance) = await LockPositionAsync(item.Id, posting.LocationId, posting.LotId, ct);
-        if (posting.Quantity < 0 && (position.QuantityOnHand + posting.Quantity < 0 || balance.QuantityOnHand + posting.Quantity < 0))
+        if (posting.Quantity < 0 && (Allowance(position, posting.SourceType) + posting.Quantity < 0 || balance.QuantityOnHand + posting.Quantity < 0))
         {
-            return await InsufficientAsync(item, posting.LocationId, Math.Min(position.QuantityOnHand, balance.QuantityOnHand), ct);
+            return await InsufficientAsync(item, posting.LocationId, position, balance, posting.SourceType, ct);
         }
 
         var onHand = await OnHandAsync(item.Id, ct);
@@ -270,7 +283,34 @@ public sealed class StockLedger(IInventoryDb db, INumberSequence numbers, IEvent
             posting.At ?? now, now, currentUser.UserId, posting.SourceNumber);
         db.StockMovements.Add(movement);
         PublishProjectEvent(movement, seq: 1, previous: 0m, next: Math.Abs(movement.TotalCost), now);
-        return await SaveAsync(item, movement, ct);
+        return await SaveAndCompleteAsync(item, movement, posting.ProductionOrderId, ct);
+    }
+
+    /// <summary>
+    /// O que a saída pode tirar da posição (EST-02 CA 13): o disponível (físico − reservado); só a requisição da OS (EST-03) consome o
+    /// reservado, baixando a própria reserva na mesma transação (o <c>CHECK</c> do banco segura o resto).
+    /// </summary>
+    public static decimal Allowance(StockPosition position, string sourceType)
+    {
+        ArgumentNullException.ThrowIfNull(position);
+        return sourceType == StockSources.Requisition ? position.QuantityOnHand : position.QuantityOnHand - position.QuantityReserved;
+    }
+
+    /// <summary>
+    /// Grava o movimento e, se ele trouxe material (entrada, devolução, transferência de entrada, estorno de saída), completa as faltas
+    /// do item no local na mesma transação (EST-02 CA 11, pontos 28 e 29), com a OS de origem do lançamento primeiro.
+    /// </summary>
+    private async Task<Result<StockMovementResult>> SaveAndCompleteAsync(Item item, StockMovement movement, Guid? originOrderId, CancellationToken ct)
+    {
+        var saved = await SaveAsync(item, movement, ct);
+        if (saved.IsFailure || movement.Quantity <= 0)
+        {
+            return saved;
+        }
+
+        await reservations.CompleteAsync(item.Id, movement.LocationId, originOrderId ?? movement.ProductionOrderId, ReservationOrigins.Entry(movement.Number), ct);
+        await db.SaveChangesAsync(ct);
+        return saved;
     }
 
     /// <summary>Trava a linha do item; se ela já estava no contexto sem mudança, relê o custo médio de depois da trava.</summary>
@@ -353,11 +393,13 @@ public sealed class StockLedger(IInventoryDb db, INumberSequence numbers, IEvent
     private Task<decimal> OnHandAsync(Guid itemId, CancellationToken ct) =>
         db.StockPositions.Where(p => p.ItemId == itemId).SumAsync(p => p.QuantityOnHand, ct);
 
-    private async Task<Error> InsufficientAsync(Item item, Guid locationId, decimal available, CancellationToken ct)
+    private async Task<Error> InsufficientAsync(Item item, Guid locationId, StockPosition position, StockBalance balance, string sourceType, CancellationToken ct)
     {
         var unit = await db.Units.IgnoreQueryFilters().Where(u => u.Id == item.UnitId).Select(u => u.Code).FirstOrDefaultAsync(ct) ?? string.Empty;
         var location = await db.Locations.IgnoreQueryFilters().Where(l => l.Id == locationId).Select(l => l.Name).FirstOrDefaultAsync(ct) ?? "o local";
-        return Insufficient(Math.Max(available, 0), unit, item.Name, location);
+        var available = Math.Max(Math.Min(Allowance(position, sourceType), balance.QuantityOnHand), 0);
+        var reserved = sourceType == StockSources.Requisition ? 0m : position.QuantityReserved;
+        return reserved > 0 ? Reserved(available, reserved, unit) : Insufficient(available, unit, item.Name, location);
     }
 
     /// <summary>Saída ou devolução com projeto (CA 25, ADR 0025 §2): valor anterior e novo da fonte, no outbox da transação.</summary>

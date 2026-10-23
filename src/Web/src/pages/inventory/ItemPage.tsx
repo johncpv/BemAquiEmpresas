@@ -22,6 +22,7 @@ import { ItemConversions } from './ItemConversions'
 import { ItemDataForm } from './ItemDataForm'
 import { ItemSupplierCodes } from './ItemSupplierCodes'
 import { ItemKardex } from './stock/ItemKardex'
+import { ItemReservations } from './stock/ReservationHistory'
 
 /** Item (CAD-02a, molde "detalhe com abas"): Dados, Conversões e Fornecedores (CAD-02b), Movimentos (kardex, EST-01a) e Histórico de alterações. */
 export function ItemPage() {
@@ -94,6 +95,8 @@ export function ItemPage() {
         { id: 'conversoes', label: 'Conversões', content: <ItemConversions item={item} canEdit={canEdit} adding={addingConversion} onAddingChange={setAddingConversion} /> },
         { id: 'fornecedores', label: 'Fornecedores', content: <ItemSupplierCodes item={item} canEdit={canEdit} adding={addingCode} onAddingChange={setAddingCode} /> },
         { id: 'movimentos', label: 'Movimentos', content: <ItemKardex itemId={item.id} /> },
+        // EST-02 CA 13 e 18: físico, reservado e disponível e o histórico da reserva em todas as OS.
+        { id: 'reservas', label: 'Reservas', content: <ItemReservations itemId={item.id} /> },
         { id: 'historico', label: 'Histórico de alterações', content: <RecordHistory entity="Item" id={item.id} /> },
       ]} />
     </>

@@ -93,6 +93,9 @@ export interface Impact {
   averageAfter: number
   value: number
   insufficient: boolean
+  /** Disponível (físico − reservado) e reservado para OS no local de origem (EST-02 CA 13). */
+  available: number
+  reserved: number
   approval: string | null
   /** Destino da transferência. */
   target?: { before: number; after: number }
@@ -102,6 +105,9 @@ export interface Impact {
 export function previewImpact(kind: ManualPostingKind, context: StockItemContext, locationId: string, quantity: number, unitCost: number | null, targetId?: string): Impact {
   const at = (id?: string) => context.positions.find((p) => p.locationId === id)?.onHand ?? 0
   const before = at(locationId)
+  const here = context.positions.find((p) => p.locationId === locationId)
+  const reserved = here?.reserved ?? 0
+  const available = here ? here.available : 0
   const average = context.averageCost
   const entry = kind === 'Receipt' || kind === 'OpeningBalance'
   const cost = entry ? (unitCost ?? average) : average
@@ -112,7 +118,10 @@ export function previewImpact(kind: ManualPostingKind, context: StockItemContext
     averageBefore: average,
     averageAfter: entry && quantity > 0 ? averageAfterEntry(context.totalOnHand, average, quantity, cost) : average,
     value,
-    insufficient: !entry && quantity > before,
+    // A saída e a transferência respeitam o disponível: o reservado para OS só sai pela requisição (EST-02 CA 13).
+    insufficient: !entry && quantity > available,
+    available,
+    reserved,
     approval: approvalReason(kind, value, entry ? cost : null, average, context.manualApprovalAmount, context.manualCostDeviationPct),
     target: kind === 'Transfer' ? { before: at(targetId), after: at(targetId) + quantity } : undefined,
   }

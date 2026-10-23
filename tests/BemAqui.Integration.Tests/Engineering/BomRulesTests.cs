@@ -152,6 +152,17 @@ public class BomRulesTests
             Task.FromResult<IReadOnlyList<StockAvailability>>(rows.Where(r => itemIds.Contains(r.ItemId)).ToList());
     }
 
+    /// <summary>Reservas da OS como o <see cref="IStockReservations"/> da EST-02 devolveria.</summary>
+    private sealed class FakeReservations(params StockReservationInfo[] rows) : IStockReservations
+    {
+        public Task<IReadOnlyList<StockReservationInfo>> ForOrderAsync(Guid productionOrderId, CancellationToken cancellationToken = default) =>
+            Task.FromResult<IReadOnlyList<StockReservationInfo>>(rows.Where(r => r.ProductionOrderId == productionOrderId).ToList());
+
+        public Task<IReadOnlyList<StockShortageInfo>> OpenShortagesAsync(CancellationToken cancellationToken = default) => Task.FromResult<IReadOnlyList<StockShortageInfo>>([]);
+
+        public Task ReleaseForOrderAsync(Guid productionOrderId, CancellationToken cancellationToken = default) => Task.CompletedTask;
+    }
+
     private sealed class FakeCosts : IItemCosts
     {
         public Task<IReadOnlyDictionary<Guid, decimal>> AverageCostsAsync(IReadOnlyCollection<Guid> itemIds, CancellationToken cancellationToken = default) =>
@@ -159,20 +170,26 @@ public class BomRulesTests
     }
 
     [Fact]
-    public async Task Saldo_da_BOM_soma_os_locais_do_IStockBalances_e_as_reservas_esperam_a_EST02()
+    public async Task Saldo_da_BOM_soma_os_locais_do_IStockBalances_e_o_baixado_vem_das_reservas_da_EST02()
     {
-        var (a, b) = (Guid.CreateVersion7(), Guid.CreateVersion7());
+        var (a, b, order) = (Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7());
+        var reservations = new FakeReservations(
+            new StockReservationInfo(Guid.CreateVersion7(), order, a, Guid.CreateVersion7(), null, 1, 5m, 2m, 3m, 0m, ReservationState.Active, false),
+            new StockReservationInfo(Guid.CreateVersion7(), order, a, Guid.CreateVersion7(), null, 1, 1m, 0m, 1m, 0m, ReservationState.Consumed, false),
+            new StockReservationInfo(Guid.CreateVersion7(), Guid.CreateVersion7(), b, Guid.CreateVersion7(), null, 1, 9m, 0m, 9m, 0m, ReservationState.Consumed, false));
         var stock = new StockBalancesBomStock(new FakeBalances(
-            new StockAvailability(a, Guid.CreateVersion7(), 10m, 2m, 8m), new StockAvailability(a, Guid.CreateVersion7(), 3m, 0m, 3m), new StockAvailability(b, Guid.CreateVersion7(), 1m, 1m, 0m)), new FakeCosts());
+            new StockAvailability(a, Guid.CreateVersion7(), 10m, 2m, 8m), new StockAvailability(a, Guid.CreateVersion7(), 3m, 0m, 3m), new StockAvailability(b, Guid.CreateVersion7(), 1m, 1m, 0m)), new FakeCosts(), reservations);
         stock.Connected.Should().BeTrue();
-        stock.ReservationsConnected.Should().BeFalse();
+        stock.ReservationsConnected.Should().BeTrue("a EST-02 liga o \"vai reservar\" e o baixado");
         var positions = await stock.PositionsAsync([a, b, Guid.CreateVersion7()]);
         positions[a].Should().Be(new BomStockPosition(13m, 2m, 11m));
         positions[b].Should().Be(new BomStockPosition(1m, 1m, 0m));
         positions.Should().HaveCount(2, "item sem posição fica fora (vale zero)");
         (await stock.PositionsAsync([])).Should().BeEmpty();
         (await stock.AverageCostsAsync([a]))[a].Should().Be(12.5m);
-        (await stock.IssuedForOrderAsync(Guid.CreateVersion7())).Should().BeNull("o baixado por OS vem da EST-02");
+        (await stock.IssuedForOrderAsync(order)).Should().BeEquivalentTo(new Dictionary<Guid, decimal> { [a] = 4m }, "baixado da OS somado nos locais, só desta OS");
+        (await stock.IssuedForOrderAsync(Guid.CreateVersion7())).Should().BeEmpty();
+        (await new DisconnectedBomStock().IssuedForOrderAsync(order)).Should().BeNull();
     }
 
     [Fact]

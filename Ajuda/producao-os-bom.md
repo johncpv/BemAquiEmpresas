@@ -24,7 +24,7 @@ Montar a lista de materiais (BOM) desta OS e liberá-la para o estoque reservar 
 
 **O que quer dizer "Sem item de estoque"?** A OS veio de um item do orçamento que não tem o produto cadastrado no estoque. A BOM pode ser montada e liberada normalmente; para concluir a OS, cadastre o item e ligue à OS.
 
-**Por que não aparece quanto vai ser reservado?** O físico, o reservado, o disponível e a falta já vêm do estoque. A reserva do material para a OS e o que já foi baixado aparecem numa próxima versão.
+**O que acontece com o estoque ao liberar?** O diálogo mostra, por item, o disponível, quanto **vai reservar** e a falta. Ao liberar, o estoque reserva o material para a OS e o que faltar vira falta para compras; acompanhe na aba **Material**. Quem libera BOM recebe o aviso "Material reservado: {n} itens, {f} em falta.". Numa revisão, o diálogo mostra também o que já foi baixado.
 
 **Quem pode liberar?** Quem tem a ação "Aprovar" da Engenharia. Quem libera a BOM precisa da verificação em duas etapas no login.
 

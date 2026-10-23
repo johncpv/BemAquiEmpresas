@@ -7,8 +7,8 @@ public sealed record BomStockPosition(decimal OnHand, decimal Reserved, decimal 
 
 /// <summary>
 /// O que a BOM lê do estoque (ENG-02 CA 3, 8, 14; custo previsto). <see cref="StockBalancesBomStock"/> liga o saldo ao motor de estoque
-/// (EST-01a: <c>IStockBalances</c> e o custo médio do item); o que depende das reservas (EST-02: "vai reservar" e o já baixado por OS)
-/// continua desligado (<see cref="ReservationsConnected"/> false e <see cref="IssuedForOrderAsync"/> null).
+/// (EST-01a: <c>IStockBalances</c> e o custo médio do item) e às reservas (EST-02: "vai reservar" e o já baixado por OS); o
+/// <see cref="DisconnectedBomStock"/> deixa tudo desligado.
 /// </summary>
 public interface IBomStock
 {
@@ -30,13 +30,13 @@ public interface IBomStock
 
 /// <summary>
 /// Saldo da BOM pelo motor de estoque (EST-01a): <see cref="IStockBalances"/> somado nos locais e o custo médio pelo <see cref="IItemCosts"/>.
-/// As reservas da OS (EST-02) ainda não existem: "vai reservar" e o baixado ficam desligados.
+/// Reservas ligadas (EST-02): "vai reservar" na prévia e o baixado por OS pelo <see cref="IStockReservations.ForOrderAsync"/>.
 /// </summary>
-public sealed class StockBalancesBomStock(IStockBalances balances, IItemCosts costs) : IBomStock
+public sealed class StockBalancesBomStock(IStockBalances balances, IItemCosts costs, IStockReservations reservations) : IBomStock
 {
     public bool Connected => true;
 
-    public bool ReservationsConnected => false;
+    public bool ReservationsConnected => true;
 
     public async Task<IReadOnlyDictionary<Guid, BomStockPosition>> PositionsAsync(IReadOnlyCollection<Guid> itemIds, CancellationToken cancellationToken = default)
     {
@@ -52,8 +52,9 @@ public sealed class StockBalancesBomStock(IStockBalances balances, IItemCosts co
     public Task<IReadOnlyDictionary<Guid, decimal>> AverageCostsAsync(IReadOnlyCollection<Guid> itemIds, CancellationToken cancellationToken = default) =>
         costs.AverageCostsAsync(itemIds, cancellationToken);
 
-    public Task<IReadOnlyDictionary<Guid, decimal>?> IssuedForOrderAsync(Guid productionOrderId, CancellationToken cancellationToken = default) =>
-        Task.FromResult<IReadOnlyDictionary<Guid, decimal>?>(null);
+    /// <summary>Baixado para a OS por item (EST-03 grava, a EST-02 expõe), somado nos locais; item sem reserva fica fora (vale zero).</summary>
+    public async Task<IReadOnlyDictionary<Guid, decimal>?> IssuedForOrderAsync(Guid productionOrderId, CancellationToken cancellationToken = default) =>
+        (await reservations.ForOrderAsync(productionOrderId, cancellationToken)).GroupBy(r => r.ItemId).ToDictionary(g => g.Key, g => g.Sum(r => r.Issued));
 
     /// <summary>Soma das posições do item em todos os locais.</summary>
     public static IReadOnlyDictionary<Guid, BomStockPosition> Sum(IEnumerable<StockAvailability> rows) =>

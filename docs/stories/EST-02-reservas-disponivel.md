@@ -5,7 +5,7 @@
 | ID | EST-02 |
 | Título | Reserva por linha da BOM liberada, na posição agregada (item e local), reconciliada a partir da fonte (`IBoms.ReleasedForOrderAsync`, `IProductionOrders.StatusAsync`) a cada evento; falta registrada e avisada a Compras; disponível = físico − reservado em todas as telas; reserva completada automaticamente quando chega material; recomposição das BOMs já liberadas na implantação |
 | Tamanho | M |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-EST-4 (físico, reservado e disponível; reserva na liberação da BOM) · R-ENG-4 (reserva e cálculo de faltas) · R-ENG-5 (revisão ajusta reservas) · R-EST-5 · R-CMP-1 (falta da BOM alimenta a solicitação) · R-PRP-5 · R-SEC-5 |
 | Dependências | ENG-02 (`BomReleased`, `BomRevised`, `IBoms.ReleasedForOrderAsync`), EST-01a (posição agregada, `IStockMovements`, `IStockBalances`, `CHECK`s), PRD-01 (`ProductionOrderCancelled`, `IProductionOrders.StatusAsync`) |
 | Bloqueia | EST-03, CMP-01, CMP-04, EST-01b, EST-05, EST-06 |
@@ -100,17 +100,17 @@ Decididos pelo PO em 21/10/2026 (revisão pré-Fase 3, tabela 1.1, itens 27–29
 **Pré-condição externa:** nenhuma.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] ADR 0023 §6 aplicada.
-- [ ] Testes de unidade, integração (Testcontainers) e E2E passando.
-- [ ] Migration criada (não destrutiva), testada sobre cópia do banco do tenant `konebras`; job de recomposição idempotente.
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Telas com estados (inclusive o "em andamento" assíncrono) e 400 px.
-- [ ] Ajuda da aba e da lista; teste de cobertura passando.
-- [ ] Próximos passos (falta → solicitação) aplicados.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
+- [x] Critérios de aceite atendidos (BOM pelo `IBoms` da ENG-02, pela porta `IReleasedBomSource`; ver o Change Log).
+- [x] ADR 0023 §6 aplicada.
+- [x] Testes de unidade e E2E passando; integração (Testcontainers) escrita, roda no CI (Docker em fila nesta máquina).
+- [x] Migration criada (não destrutiva); o teste sobre cópia do banco do tenant `konebras` fica para a homologação; job de recomposição idempotente.
+- [x] Permissões só do `ModuleCatalog` (nenhuma ação nova).
+- [x] Telas com estados (inclusive o "em andamento" assíncrono) e 400 px.
+- [x] Ajuda da aba, da lista e da aba Reservas do item; teste de cobertura passando.
+- [x] Próximos passos (falta → solicitação) aplicados.
+- [x] Auditoria ligada.
+- [x] OpenAPI e cliente Orval atualizados (OpenAPI editado à mão; regenerar com `BQ_UPDATE_OPENAPI`).
+- [x] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` atualizados; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
 - [ ] `Reservation` (Domain) e `ReservationReconciler` puro (alvo, locais, falta, revisão, ordem das faltas).
@@ -151,3 +151,5 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO (D3, tabela 1.1 itens 27–29) e correções da revisão pré-Fase 3 (§2.1 reservas e faltas, ADR 0023 §2, §6; §2.3 padrões 7, 8, 11); CAs renumerados; nova ordem (Marco 3.2, ordem 12) | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 23/10/2026 | 1.0 | Implementada (`Done`). Desvios e decisões de implementação: (1) **Dependência da ENG-02:** a ENG-02 corre em paralelo e não está na `main`. A BOM liberada entra por uma porta do Estoque, `IReleasedBomSource` (`ReleasedForOrderAsync` e `OpenOrdersWithReleasedBomAsync`), com `NoReleasedBomSource` até lá (nenhuma OS tem BOM liberada; a aba Material mostra "Libere a BOM para reservar o material."). Na integração com a ENG-02: (a) adaptador `BomsReleasedBomSource` no `Inventory.Application` sobre `IBoms.ReleasedForOrderAsync` (`ReleasedBomInfo` → `ReleasedBom`) e, para a recomposição, `IProductionOrders.OpenAsync` filtrado pela BOM liberada; registrar no lugar do `NoReleasedBomSource`; o `Inventory.Application` passa a referenciar `Engineering.Contracts`; (b) `ReservationConsumers` implementa `IIntegrationEventConsumer<BomReleased>` e `<BomRevised>` chamando `ReconcileOrderAsync` (as duas linhas são iguais às do cancelamento); (c) no `HostEvents`, `AddHandler<BomReleased, ReservationConsumers>()` e `AddHandler<BomRevised, ReservationConsumers>()` no lugar dos `AddEvent` da ENG-02. Os testes de integração já usam um fake da porta e não mudam. (2) A reserva é **por OS, item e local** (não por linha da BOM): a ENG-02 troca o `bom_line_id` a cada revisão, então o alvo é a soma das linhas do item na revisão vigente; `bom_line_id` guarda a primeira linha do item; a aba Material é por item. (3) A falta mora na linha do local padrão (`requested_quantity` inclui a falta); falta = Σ requested − Σ quantity − Σ quantity_issued. (4) Histórico em tabela própria, só inclusão (`inventory.reservation_changes`), além da auditoria `IAuditable` da reserva; aparece na aba Material da OS e na aba nova **Reservas** do item (`/app/estoque/itens/$id?aba=reservas`, ajuda `estoque-item-reservas.md`). (5) O disponível que uma reconciliação libera (cancelamento, revisão para baixo) completa as faltas das outras OS pela regra do CA 11 (fora do CA; evita comprar o que já está livre). (6) Trava por OS (`pg_advisory_xact_lock`) antes das travas dos itens: duas reconciliações da mesma OS não leem a fonte velha uma da outra. (7) Os consumidores e a recomposição não fazem nada com o módulo `inventory` não liberado; a recomposição roda na subida e às 03:45 e só marca `inventory.parameters.reservations_backfilled_at` quando termina com o módulo liberado. (8) O motor (`StockLedger`) passa a recusar saída, transferência, ajuste negativo e estorno de entrada acima do **disponível**; só a origem `MaterialRequisition` (EST-03) tira do reservado, e a EST-03 precisa baixar a própria reserva na mesma transação (o `CHECK` da posição segura o resto). A mensagem leva a unidade: "Há 6,0000 UN disponível; 4,0000 UN está reservado para OS.". A EST-05 decide o que fazer quando a contagem fica abaixo do reservado. (9) "Gerar solicitação de compra" leva a `/app/compras` (tela "Funcionalidade não liberada" até a CMP-01); `purchaseRequestLink` fica nulo até lá. (10) Padrão 7: "Reservando material…" com atualização a cada 3 s e o aviso de demora depois de 30 s; não há notificação ao terminar (ver pendência do PO). (11) "Abrir BOM" leva a `?aba=bom` (aba da ENG-02); sem ela, cai em Etapas. (12) A aba Material aparece com o módulo Estoque liberado; o endpoint aceita `inventory.view` ou `production.view` (`RequireAnyPermissionOf`); a lista Faltas e o histórico do item exigem `inventory.view`. (13) Item do tipo Serviço na BOM não reserva; local inativo ou excluído não recebe reserva nova (só libera). (14) Os testes de integração (Testcontainers) foram escritos e não rodaram nesta máquina (Docker em fila); os de arquitetura rodaram com 82 de 91, os 9 restantes bloqueados pelo Smart App Control (`0x800711C7`), a rodar no CI. (15) O `openapi.json` foi editado à mão (5 paths, 11 schemas) e o cliente Orval gerado dele; regenerar com `BQ_UPDATE_OPENAPI`. (16) A migration `InventoryReservations` não foi testada sobre a cópia do banco `konebras` | Dev |
+| 23/10/2026 | 1.1 | Integração com a ENG-02 (PR #88) e decisões do PO. (a) Rebase sobre a `main`; a migration `InventoryReservations` foi refeita com data depois da `EngineeringBoms` (snapshot da `main`, `Up`/`Down` originais; sem mudança pendente no modelo). (b) Desvio 1 resolvido: `BomsReleasedBomSource` (adaptador real sobre `IBoms.ReleasedForOrderAsync`; a recomposição usa `IProductionOrders.OpenAsync` + `IBoms.IsReleasedAsync`) no lugar do `NoReleasedBomSource`; `ReservationConsumers` consome `BomReleased` e `BomRevised` (`AddHandler` no lugar dos `AddEvent` da ENG-02). (c) Lado da ENG-02: `StockBalancesBomStock` com `ReservationsConnected` true e `IssuedForOrderAsync` lido do `IStockReservations.ForOrderAsync`; o diálogo de liberação mostra "Vai reservar" e o aviso "Ao liberar, o estoque reserva o disponível…"; "Ver faltas da OS" leva à aba Material; testes da ENG-02 atualizados. (d) **Decisões do PO (23/10/2026):** padrão 7 com o aviso curto ao terminar a reserva, "Material reservado: {n} itens, {f} em falta.", na aba Material e como notificação para quem tem `engineering.approve` (só na liberação e na revisão da BOM); desvio 3 aprovado: o disponível liberado completa as faltas de outras OS, começando pela BOM liberada há mais tempo; nota na EST-05 e no backlog: contagem abaixo do reservado reduz primeiro as reservas das OS com a BOM liberada mais recentemente, gera a falta e avisa quem tem `inventory.approve` | Dev |

@@ -79,7 +79,7 @@ export function BomTab({ orderId }: { orderId: string }) {
       {released ? (
         <NextSteps onDismiss={() => setReleased(null)} steps={[
           ...(released.shortageCount > 0 ? [{ label: 'Ver solicitações de compra geradas', onSelect: () => void navigate({ to: '/app/compras' } as never) }] : []),
-          ...(released.shortageCount > 0 ? [{ label: 'Ver faltas da OS', onSelect: () => { setReleased(null); setView('bom') } }] : []),
+          ...(released.shortageCount > 0 ? [{ label: 'Ver faltas da OS', onSelect: () => { setReleased(null); void navigate({ to: '.', search: { aba: 'material' } } as never) } }] : []),
           { label: 'Ver etapas da OS', onSelect: () => void navigate({ to: '.', search: { aba: 'etapas' } } as never) },
           { label: 'Ver BOMs da Engenharia', onSelect: () => void navigate({ to: '/app/engenharia/boms' } as never) },
         ].slice(0, 3)} />

@@ -32,10 +32,14 @@ public static class HostEvents
             .AddHandler<BemAqui.Commercial.Contracts.ContractCancelled, BemAqui.Production.Application.InstallationContractCancelledConsumer>()
             // PRD-01 CA 18: handler próprio da fabricação; CA 16: a EST-02 consome o cancelamento da OS.
             .AddHandler<BemAqui.Commercial.Contracts.ContractCancelled, BemAqui.Production.Application.FabricationContractCancelledConsumer>()
-            .AddEvent<BemAqui.Production.Contracts.ProductionOrderCancelled>()
-            // ENG-02 CA 8 e 13: BOM liberada e revisada; a EST-02 reconcilia as reservas a partir do IBoms (ADR 0023 §6).
-            .AddEvent<BemAqui.Engineering.Contracts.BomReleased>()
-            .AddEvent<BemAqui.Engineering.Contracts.BomRevised>()
+            // ENG-02 CA 8 e 13 e EST-02 CA 1 e 2: BOM liberada e revisada; o Inventory reconcilia as reservas a partir do IBoms (ADR 0023 §6).
+            .AddHandler<BemAqui.Engineering.Contracts.BomReleased, BemAqui.Inventory.Application.ReservationConsumers>()
+            .AddHandler<BemAqui.Engineering.Contracts.BomRevised, BemAqui.Inventory.Application.ReservationConsumers>()
+            // EST-02 CA 9 e 10 (ADR 0023 §6): o cancelamento e a conclusão da OS reconciliam as reservas pela fonte (alvo 0).
+            // StockShortageChanged é só aviso para a CMP-01.
+            .AddHandler<BemAqui.Production.Contracts.ProductionOrderCancelled, BemAqui.Inventory.Application.ReservationConsumers>()
+            .AddHandler<BemAqui.Production.Contracts.ProductionOrderCompleted, BemAqui.Inventory.Application.ReservationConsumers>()
+            .AddEvent<BemAqui.Inventory.Contracts.StockShortageChanged>()
             // PRD-05: decisões de qualidade no outbox para a DSH-03 e o PNL-01.
             .AddEvent<BemAqui.Production.Contracts.QualityApproved>()
             .AddEvent<BemAqui.Production.Contracts.QualityRejected>()

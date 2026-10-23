@@ -36,6 +36,11 @@ public interface IInventoryDb
 
     DbSet<InventoryParameters> InventoryParameters { get; }
 
+    /// <summary>Reservas e o histórico delas (EST-02): só o <see cref="ReservationAllocator"/> escreve.</summary>
+    DbSet<Reservation> Reservations { get; }
+
+    DbSet<ReservationChange> ReservationChanges { get; }
+
     /// <summary>Para trocar o local padrão em dois passos numa transação (o índice único parcial é checado a cada comando).</summary>
     DatabaseFacade Database { get; }
 

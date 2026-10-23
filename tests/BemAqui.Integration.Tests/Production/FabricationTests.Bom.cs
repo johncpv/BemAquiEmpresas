@@ -204,7 +204,7 @@ public partial class FabricationTests
     }
 
     [Fact]
-    public async Task Saldo_e_custo_previsto_vem_do_motor_de_estoque_e_a_reserva_espera_a_EST02()
+    public async Task Saldo_e_custo_previsto_vem_do_motor_de_estoque_e_a_previa_diz_quanto_vai_reservar()
     {
         var (owner, order, _, _) = await BomOrderAsync(quantity: 2m);
         var (_, engineer) = await ActorAsync("engineering");
@@ -228,13 +228,60 @@ public partial class FabricationTests
 
         var preview = await OkAsync(await engineer.GetAsync($"{Boms}/{bom.GetProperty("id").GetGuid()}/release-preview"));
         preview.GetProperty("stockConnected").GetBoolean().Should().BeTrue();
-        preview.GetProperty("reservationsConnected").GetBoolean().Should().BeFalse("as reservas são da EST-02");
+        preview.GetProperty("reservationsConnected").GetBoolean().Should().BeTrue("as reservas da EST-02 estão ligadas");
         preview.GetProperty("shortageCount").GetInt32().Should().Be(1);
         var first = preview.GetProperty("lines")[0];
         first.GetProperty("available").GetDecimal().Should().Be(3m);
         first.GetProperty("shortage").GetDecimal().Should().Be(2m);
-        first.GetProperty("toReserve").ValueKind.Should().Be(JsonValueKind.Null);
-        first.GetProperty("issued").ValueKind.Should().Be(JsonValueKind.Null);
+        first.GetProperty("toReserve").GetDecimal().Should().Be(3m, "vai reservar o disponível (3) da necessidade 5");
+        first.GetProperty("issued").ValueKind.Should().Be(JsonValueKind.Null, "na primeira liberação não há baixado");
+    }
+
+    /// <summary>
+    /// EST-02 integrada à ENG-02: liberar e revisar a BOM reconcilia as reservas pelo IBoms real (consumidores de BomReleased e
+    /// BomRevised pela inbox) e quem libera BOM recebe "Material reservado: {n} itens, {f} em falta." (padrão 7).
+    /// </summary>
+    [Fact]
+    public async Task Liberar_e_revisar_a_BOM_reserva_pelo_IBoms_e_avisa_o_fim_da_reserva()
+    {
+        var (_, order, _, _) = await BomOrderAsync(quantity: 2m);
+        var (engineerId, engineer) = await ActorAsync("engineering");
+        var steel = await MaterialAsync("Chapa 9 mm");
+        await ReceiveStockAsync(steel, 3m, 10m);
+
+        var draft = await CreatedBomAsync(engineer, order);
+        draft = await OkAsync(await SaveBomAsync(engineer, draft, BomLine(steel, 2.5m)));
+        await ReleaseAsync(engineer, draft);
+        await DrainOutboxAsync();
+
+        await using (var scope = await ScopeAsync())
+        {
+            var rows = await scope.ServiceProvider.GetRequiredService<IStockReservations>().ForOrderAsync(order);
+            (rows.Sum(r => r.Requested), rows.Sum(r => r.Reserved), rows.Sum(r => r.Shortage)).Should().Be((5m, 3m, 2m), "necessidade 5, disponível 3");
+        }
+
+        var notices = await WithDbAsync(db => db.Notifications.AsNoTracking().Where(n => n.UserId == engineerId && n.Type == BemAqui.Inventory.Application.ReservationConsumers.NoticeType).ToListAsync());
+        notices.Should().Contain(n => n.Title == "Material reservado: 1 item, 1 em falta." && n.Link.Contains(order.ToString(), StringComparison.Ordinal));
+    }
+
+    /// <summary>Processa o outbox do tenant até não sobrar mensagem pendente.</summary>
+    private async Task DrainOutboxAsync()
+    {
+        var info = (await Factory.Services.GetRequiredService<BemAqui.BuildingBlocks.Tenancy.ITenantDirectory>().FindAsync(tenancy.TenantA.Id))!;
+        for (var round = 0; round < 40; round++)
+        {
+            await using (var scope = await ScopeAsync())
+            {
+                await scope.ServiceProvider.GetRequiredService<BemAqui.BuildingBlocks.Messaging.OutboxProcessor>().ProcessBatchAsync(info);
+            }
+
+            if (await WithDbAsync(db => db.OutboxMessages.CountAsync(m => m.ProcessedAt == null && m.DeadLetteredAt == null && m.NextAttemptAt <= DateTimeOffset.UtcNow.AddSeconds(1))) == 0)
+            {
+                return;
+            }
+
+            await Task.Delay(250);
+        }
     }
 
     [Fact]

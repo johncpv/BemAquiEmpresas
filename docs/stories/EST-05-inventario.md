@@ -53,6 +53,7 @@ Como **almoxarife**, quero **contar o estoque de um local sem ver o que o sistem
 ## Regras de negócio e técnicas
 - **Tabelas** (03 + colunas desta story): `inventory_counts` (`number`, `location_id`, `scope` (jsonb), `status` Counting/Closed/Cancelled, `snapshot_at`, `opened_by`, `closed_by`, `closed_at`, `uncounted_policy`, `adjustment_id`, `xmin`); `inventory_count_lines` (`count_id`, `item_id`, `lot_id`, `system_qty`, `counted_qty`, `counted_by`, `counted_at`, `recount_of_line_id`, `movement_delta`).
 - **Sem efeito direto no saldo:** todo efeito passa pelo ajuste da EST-01b, que chama o `IStockMovements` de forma síncrona na aprovação.
+- **Contagem abaixo do reservado (decisão do PO de 23/10/2026, na EST-02):** contagem abaixo do reservado reduz primeiro as reservas das OS com a BOM liberada mais recentemente, gera a falta e avisa quem tem `inventory.approve`. (Desde a EST-02 o motor recusa ajuste negativo acima do disponível; o ajuste do inventário passa pelo `ReservationAllocator` para liberar essas reservas antes, na mesma transação.)
 - **Ajuste em modo Delta:** a diferença é calculada no fechamento, com os movimentos do período (CA 5), e enviada como delta; a aprovação soma o delta ao saldo atual (nunca grava a quantidade contada por cima).
 - **Bloqueio do local:** enquanto houver inventário `Counting` no local, a EST-01b e o estorno manual da EST-01a consultam o inventário e recusam (CA 6); os demais movimentos seguem.
 - **Recontagem:** `counted_by` da recontagem ≠ `counted_by` da linha original, conferido no servidor (CA 8).

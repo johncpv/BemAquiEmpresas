@@ -26,6 +26,9 @@ public sealed class StockPosition : Entity
     public decimal Available => QuantityOnHand - QuantityReserved;
 
     public void ApplyOnHand(decimal delta) => QuantityOnHand += delta;
+
+    /// <summary>Reservado da posição (EST-02): só o <c>ReservationAllocator</c>, sob a trava do item, na mesma transação da reserva.</summary>
+    public void ApplyReserved(decimal delta) => QuantityReserved += delta;
 }
 
 /// <summary>
@@ -297,6 +300,9 @@ public sealed class InventoryParameters : Entity, IAuditable, IConcurrencyVersio
     public DateTimeOffset? OpeningCompletedAt { get; set; }
 
     public Guid? OpeningCompletedBy { get; set; }
+
+    /// <summary>Quando a recomposição das reservas da implantação terminou (EST-02 CA 12, D3); depois disso o job não faz nada.</summary>
+    public DateTimeOffset? ReservationsBackfilledAt { get; set; }
 
     public uint Version { get; set; }
 }

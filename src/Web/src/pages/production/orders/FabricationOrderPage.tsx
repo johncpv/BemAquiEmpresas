@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
-import { getGetFabricationOrderCompletionQueryKey, getGetFabricationOrderQueryKey, getListFabricationOrdersQueryKey, useGetFabricationOrder } from '@/api/generated/bemaqui'
+import { getGetFabricationOrderCompletionQueryKey, getGetFabricationOrderQueryKey, getListFabricationOrdersQueryKey, getGetOrderMaterialQueryKey, useGetFabricationOrder, useGetOrderMaterial } from '@/api/generated/bemaqui'
 import type { OrderCompletionPreview } from '@/api/generated/model'
 import { FactsBar } from '@/components/ui/facts-bar'
 import { NextSteps } from '@/components/ui/next-steps'
@@ -11,8 +11,11 @@ import { StatusChip } from '@/components/ui/status-chip'
 import { UrlTabs } from '@/components/ui/url-tabs'
 import { Dica } from '@/help/Dica'
 import { formatDate, formatDateTime } from '@/lib/format'
+import { useNavigation } from '@/navigation/navigation-context'
 import { BomTab } from '@/pages/engineering/boms/BomTab'
+import { orderShortageSummary, RESERVATION_DICAS } from '@/pages/inventory/stock/reservations'
 import { useCan } from '@/pages/use-can'
+import { MaterialTab } from './MaterialTab'
 import { OrderDocuments } from '../OrderDocuments'
 import { CompleteOrderDialog, ReverseCompletionDialog } from './CompletionDialogs'
 import { CancelFabricationDialog, ChangeRoutingDialog } from './FabricationActions'
@@ -26,7 +29,7 @@ import { canChangeSteps, delayLabel, FABRICATION_DICAS, FABRICATION_STATUS, hour
 
 /**
  * OS de fabricação (PRD-01 CA 10): OrderHeader e FactsBar comuns com a OS de instalação; abas na ordem do padrão 10 (as das
- * stories seguintes entram nelas): Etapas, BOM (ENG-02, com engineering.view), Apontamentos, Custos (só com projects.view_cost, PRD-04), Documentos e Histórico de alterações.
+ * stories seguintes entram nelas): Etapas, BOM (ENG-02, com engineering.view), Material (EST-02, com o Estoque liberado), Apontamentos, Custos (só com projects.view_cost, PRD-04), Documentos e Histórico de alterações.
  */
 export function FabricationOrderPage() {
   const { id } = useParams({ strict: false }) as { id: string }
@@ -38,6 +41,11 @@ export function FabricationOrderPage() {
   const canFinance = useCan('finance.view')
   const canSeeBom = useCan('engineering.view')
   const query = useGetFabricationOrder(id)
+  // EST-02 CA 14: aba Material e o total de faltas no cabeçalho, com o módulo Estoque liberado (a aba aceita production.view).
+  const { all } = useNavigation()
+  const stockReleased = all.some((m) => m.code === 'inventory' && !m.locked)
+  const material = useGetOrderMaterial(id, { query: { enabled: stockReleased } })
+  const shortage = orderShortageSummary(material.data)
   const [justCreated, setJustCreated] = useState(String(gerada) === '1')
   // PRD-06a1: depois de concluir, os próximos passos (parcela liberada e projeto).
   const [completed, setCompleted] = useState<OrderCompletionPreview | null>(null)
@@ -48,6 +56,7 @@ export function FabricationOrderPage() {
     await client.invalidateQueries({ queryKey: getGetFabricationOrderQueryKey(id) })
     await client.invalidateQueries({ queryKey: getListFabricationOrdersQueryKey() })
     await client.invalidateQueries({ queryKey: getGetFabricationOrderCompletionQueryKey(id) })
+    await client.invalidateQueries({ queryKey: getGetOrderMaterialQueryKey(id) })
   }
   const released = completed?.lastFabricationOrder && canFinance ? completed.milestones.find((m) => !m.released && m.receivableId) : undefined
   const current = o.currentStepIndex >= 0 ? o.steps[o.currentStepIndex] : undefined
@@ -68,6 +77,12 @@ export function FabricationOrderPage() {
             {o.status === 'ReadyToComplete' ? <span className="inline-flex items-center">Todas as etapas concluídas<Dica nome="Pronta para concluir" texto={FABRICATION_DICAS.pronta} /></span> : null}
             {o.status === 'Completed' && o.completedAt ? <span>Concluída em {formatDateTime(o.completedAt)}{o.completedByName ? ` por ${o.completedByName}` : ''}</span> : null}
             {o.openNonConformities ? <StatusChip tone="crit">NC aberta</StatusChip> : null}
+            {shortage ? (
+              <span className="inline-flex items-center">
+                <button type="button" onClick={() => void navigate({ to: '.', search: { aba: 'material' } } as never)}><StatusChip tone="crit">{shortage}</StatusChip></button>
+                <Dica nome="Falta" texto={RESERVATION_DICAS.falta} />
+              </span>
+            ) : null}
             {o.selfInspection ? <span className="inline-flex items-center"><StatusChip tone="warn">Autoinspeção</StatusChip><Dica nome="Autoinspeção" texto={QUALITY_DICAS.autoinspecao} /></span> : null}
           </span>
         )}
@@ -118,6 +133,8 @@ export function FabricationOrderPage() {
         { id: 'etapas', label: 'Etapas', content: <FabricationSteps key={o.version} order={o} onSaved={refresh} /> },
         // ENG-02 (padrão 10): a aba BOM vem depois de Etapas, só com engineering.view.
         ...(canSeeBom ? [{ id: 'bom', label: 'BOM', content: <BomTab orderId={id} /> }] : []),
+        // EST-02 CA 14: necessidade, reservado, baixado e falta por linha da BOM.
+        ...(stockReleased ? [{ id: 'material', label: 'Material', content: <MaterialTab orderId={id} /> }] : []),
         { id: 'apontamentos', label: 'Apontamentos', content: <LaborEntriesTab order={o} onChanged={refresh} /> },
         // PRD-05 CA 7: tentativas da qualidade, com o resultado, quem decidiu, "Autoinspeção" e as NC.
         ...(o.steps.some((s) => s.isQualityStep) ? [{ id: 'qualidade', label: 'Qualidade', content: <OrderQualityTab orderId={id} /> }] : []),
