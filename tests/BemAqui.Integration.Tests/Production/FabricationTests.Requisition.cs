@@ -407,10 +407,18 @@ public partial class FabricationTests
         var (owner, order, project, steel, line) = await ReservedOrderAsync(stock: 12m);
         var (_, warehouse) = await ActorAsync("warehouse");
 
-        // Com o motivo nas duas, a segunda passa da validação em qualquer ordem e para na trava: sem reservado nem disponível, 409.
+        // Com o motivo nas duas, a segunda passa da validação em qualquer ordem e para na trava, com a reserva já baixada: os 12 viram
+        // excedente. Sem disponível, 409; ou, como o excedente (R$ 1.200,00) passa do limite, fica PendingApproval sem baixar (CA 4).
         var responses = await Task.WhenAll(IssueAsync(owner, order, null, ReqLine(line, 12m, "Corrida")), IssueAsync(warehouse, order, null, ReqLine(line, 12m, "Corrida")));
 
-        responses.Select(r => r.StatusCode).Should().BeEquivalentTo([HttpStatusCode.Created, HttpStatusCode.Conflict], "a segunda espera a trava e acha a reserva já baixada");
+        var outcomes = new List<string>();
+        foreach (var response in responses)
+        {
+            outcomes.Add(response.StatusCode == HttpStatusCode.Created ? (await JsonAsync(response)).GetProperty("status").GetString()! : response.StatusCode.ToString());
+        }
+
+        outcomes.Should().ContainSingle(o => o == "Completed", "só uma baixa acontece");
+        outcomes.Should().Contain(o => o == nameof(HttpStatusCode.Conflict) || o == "PendingApproval", "a outra não baixa nada");
         (await MovementsOfAsync(order)).Sum(m => m.Quantity).Should().Be(-12m);
         var position = await WithDbAsync(db => db.StockPositions.AsNoTracking().SingleAsync(p => p.ItemId == steel));
         (position.QuantityOnHand, position.QuantityReserved).Should().Be((0m, 0m));
