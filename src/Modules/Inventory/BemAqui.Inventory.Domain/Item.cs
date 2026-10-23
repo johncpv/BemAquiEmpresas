@@ -52,7 +52,11 @@ public sealed class Item : Entity, IAuditable, ISoftDeletable
     /// <summary>Meses de garantia; null = sem garantia (CA 12).</summary>
     public int? WarrantyMonths { get; set; }
 
-    /// <summary>Custo médio (<c>numeric(18,6)</c>), mantido pelo EST-01 (CA 13).</summary>
+    /// <summary>
+    /// Custo médio ponderado móvel global (<c>numeric(18,6)</c>), mantido só pelo motor de estoque (EST-01a, ADR 0023 §3) e fora do
+    /// diff da auditoria: o movimento é a trilha.
+    /// </summary>
+    [NotAudited]
     public decimal AverageCost { get; private set; }
 
     public bool IsActive { get; set; } = true;
@@ -68,6 +72,9 @@ public sealed class Item : Entity, IAuditable, ISoftDeletable
 
     /// <summary>Tipos que exigem NCM quando o item está ativo (CA 7).</summary>
     public static bool RequiresNcm(ItemType type) => type is ItemType.RawMaterial or ItemType.Component or ItemType.Finished;
+
+    /// <summary>Só o <c>StockLedger</c> chama (teste de arquitetura), com a linha do item travada (ADR 0023 §3).</summary>
+    public void ApplyAverageCost(decimal averageCost) => AverageCost = averageCost;
 
     public void MarkDeleted(DateTimeOffset at)
     {

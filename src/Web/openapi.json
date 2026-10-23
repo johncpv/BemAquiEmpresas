@@ -12056,6 +12056,963 @@
         }
       }
     },
+    "/api/v1/inventory/balances": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "ListStockBalances",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "locationId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "categoryId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/ItemType"
+            }
+          },
+          {
+            "name": "situation",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/StockSituation"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfBalanceRow"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/opening": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetStockOpening",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockOpeningStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/opening/complete": {
+      "post": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "CompleteStockOpening",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompleteStockOpeningInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockOpeningStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/opening-balances": {
+      "post": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "CreateOpeningBalance",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpeningBalanceInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManualPostingDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/opening-balances/batch": {
+      "post": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "CreateOpeningBalanceBatch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpeningBatchInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManualPostingDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/items/{itemId}/stock": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetItemStockContext",
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockItemContext"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/projects": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "SearchStockProjects",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StockProjectOption"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/items/{itemId}/lots": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "ListItemLots",
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LotDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/items/{itemId}/lots/{lotId}": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetItemLot",
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "lotId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LotDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/movements": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "ListStockMovements",
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "locationId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/StockMovementType"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "projectId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "productionOrderId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "sourceType",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sourceId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "origin",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "number",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfMovementRow"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/movements/{id}": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetStockMovement",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MovementDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "UpdateStockMovement",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "405": {
+            "description": "Method Not Allowed",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "DeleteStockMovement",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "405": {
+            "description": "Method Not Allowed",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/movements/{id}/reverse": {
+      "post": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "ReverseStockMovement",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReverseMovementInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MovementDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/items/{itemId}/movements": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetItemKardex",
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "locationId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfMovementRow"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/manual-postings": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "ListManualPostings",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/ManualPostingStatus"
+            }
+          },
+          {
+            "name": "awaitingMe",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/ManualPostingKind"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfManualPostingSummary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "CreateManualPosting",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManualPostingInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManualPostingDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/manual-postings/{id}": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetManualPosting",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManualPostingDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/manual-postings/{id}/lines/{lineId}": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetManualPostingLine",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "lineId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManualPostingLineView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/manual-postings/{id}/history": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetManualPostingHistory",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfRelatedAuditEntryDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/manual-postings/{id}/approve": {
+      "post": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "ApproveManualPosting",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManualDecisionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManualPostingDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/manual-postings/{id}/reject": {
+      "post": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "RejectManualPosting",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManualDecisionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManualPostingDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/manual-postings/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "CancelManualPosting",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManualCancelInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManualPostingDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/banks": {
       "get": {
         "tags": [
@@ -17190,6 +18147,76 @@
           }
         }
       },
+      "BalanceRow": {
+        "required": [
+          "itemId",
+          "itemCode",
+          "itemName",
+          "unitCode",
+          "itemType",
+          "locationId",
+          "locationCode",
+          "locationName",
+          "onHand",
+          "reserved",
+          "available",
+          "minStock",
+          "averageCost",
+          "situation"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "itemType": {
+            "$ref": "#/components/schemas/ItemType"
+          },
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "locationCode": {
+            "type": "string"
+          },
+          "locationName": {
+            "type": "string"
+          },
+          "onHand": {
+            "type": "number",
+            "format": "double"
+          },
+          "reserved": {
+            "type": "number",
+            "format": "double"
+          },
+          "available": {
+            "type": "number",
+            "format": "double"
+          },
+          "minStock": {
+            "type": "number",
+            "format": "double"
+          },
+          "averageCost": {
+            "type": "number",
+            "format": "double"
+          },
+          "situation": {
+            "$ref": "#/components/schemas/StockSituation"
+          }
+        }
+      },
       "BankAccountDetail": {
         "required": [
           "id",
@@ -18749,6 +19776,19 @@
             "format": "uint32"
           }
         }
+      },
+      "CompleteStockOpeningInput": {
+        "required": [
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
       },
       "CompletionMilestoneView": {
         "required": [
@@ -23971,6 +25011,571 @@
           "Clean"
         ]
       },
+      "LotDetail": {
+        "required": [
+          "id",
+          "itemId",
+          "lotNumber",
+          "supplierPartyId",
+          "receivedAt",
+          "expiry",
+          "onHand"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lotNumber": {
+            "type": "string"
+          },
+          "supplierPartyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "receivedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "expiry": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "onHand": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "ManualCancelInput": {
+        "required": [
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ManualDecisionInput": {
+        "required": [
+          "comment",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "comment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "ManualPostingDetail": {
+        "required": [
+          "id",
+          "number",
+          "kind",
+          "status",
+          "approvalReason",
+          "estimatedValue",
+          "reason",
+          "projectId",
+          "projectNumber",
+          "cutoffDate",
+          "requestedBy",
+          "requestedByName",
+          "requestedAt",
+          "decidedByName",
+          "decidedAt",
+          "decisionComment",
+          "selfApproved",
+          "postedAt",
+          "lines",
+          "impact",
+          "canDecide",
+          "canCancel",
+          "decideBlockedReason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ManualPostingKind"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ManualPostingStatus"
+          },
+          "approvalReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "estimatedValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "projectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cutoffDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "requestedBy": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "requestedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "requestedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "decidedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "decidedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "decisionComment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "selfApproved": {
+            "type": "boolean"
+          },
+          "postedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ManualPostingLineView"
+            }
+          },
+          "impact": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ManualPostingImpact"
+              }
+            ]
+          },
+          "canDecide": {
+            "type": "boolean"
+          },
+          "canCancel": {
+            "type": "boolean"
+          },
+          "decideBlockedReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "ManualPostingImpact": {
+        "required": [
+          "onHandBefore",
+          "onHandAfter",
+          "averageBefore",
+          "averageAfter",
+          "value",
+          "insufficient"
+        ],
+        "type": "object",
+        "properties": {
+          "onHandBefore": {
+            "type": "number",
+            "format": "double"
+          },
+          "onHandAfter": {
+            "type": "number",
+            "format": "double"
+          },
+          "averageBefore": {
+            "type": "number",
+            "format": "double"
+          },
+          "averageAfter": {
+            "type": "number",
+            "format": "double"
+          },
+          "value": {
+            "type": "number",
+            "format": "double"
+          },
+          "insufficient": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ManualPostingInput": {
+        "required": [
+          "kind",
+          "itemId",
+          "locationId",
+          "toLocationId",
+          "quantity",
+          "unitId",
+          "unitCost",
+          "lotId",
+          "lotNumber",
+          "reason",
+          "projectId"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/ManualPostingKind"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "toLocationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "unitCost": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "lotId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "lotNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "projectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ManualPostingKind": {
+        "enum": [
+          "OpeningBalance",
+          "Receipt",
+          "Issue",
+          "Transfer"
+        ]
+      },
+      "ManualPostingLineView": {
+        "required": [
+          "id",
+          "sequence",
+          "itemId",
+          "itemCode",
+          "itemName",
+          "unitCode",
+          "locationId",
+          "locationName",
+          "toLocationId",
+          "toLocationName",
+          "lotNumber",
+          "quantity",
+          "enteredQuantity",
+          "enteredUnitCode",
+          "unitCost",
+          "movementId",
+          "inMovementId",
+          "reversedAt",
+          "reversedByName"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "locationName": {
+            "type": "string"
+          },
+          "toLocationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "toLocationName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lotNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "enteredQuantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "enteredUnitCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "unitCost": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "movementId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "inMovementId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "reversedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "reversedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ManualPostingStatus": {
+        "enum": [
+          "Pending",
+          "Posted",
+          "Rejected",
+          "Cancelled"
+        ]
+      },
+      "ManualPostingSummary": {
+        "required": [
+          "id",
+          "number",
+          "kind",
+          "status",
+          "approvalReason",
+          "estimatedValue",
+          "itemSummary",
+          "locationName",
+          "lineCount",
+          "requestedByName",
+          "requestedAt",
+          "awaitingMe"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ManualPostingKind"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ManualPostingStatus"
+          },
+          "approvalReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "estimatedValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "itemSummary": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "locationName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lineCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "requestedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "requestedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "awaitingMe": {
+            "type": "boolean"
+          }
+        }
+      },
       "MaterialCost": {
         "required": [
           "unitCost"
@@ -24170,6 +25775,271 @@
           },
           "released": {
             "type": "boolean"
+          }
+        }
+      },
+      "MovementDetail": {
+        "required": [
+          "movement",
+          "reason",
+          "projectNumber",
+          "reversedByName",
+          "reversalReason",
+          "reversalSelfApproved",
+          "reversesNumber",
+          "manualPostingId",
+          "authorName",
+          "reverseRule",
+          "reverseMessage",
+          "onHandNow",
+          "averageCostNow"
+        ],
+        "type": "object",
+        "properties": {
+          "movement": {
+            "$ref": "#/components/schemas/MovementRow"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "projectNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reversedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reversalReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reversalSelfApproved": {
+            "type": "boolean"
+          },
+          "reversesNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "manualPostingId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "authorName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reverseRule": {
+            "$ref": "#/components/schemas/ReverseRule"
+          },
+          "reverseMessage": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "onHandNow": {
+            "type": "number",
+            "format": "double"
+          },
+          "averageCostNow": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "MovementRow": {
+        "required": [
+          "id",
+          "number",
+          "type",
+          "at",
+          "postedAt",
+          "postedSeq",
+          "itemId",
+          "itemCode",
+          "itemName",
+          "unitCode",
+          "locationId",
+          "locationCode",
+          "locationName",
+          "lotId",
+          "lotNumber",
+          "quantity",
+          "unitCost",
+          "totalCost",
+          "balanceAfter",
+          "averageCostAfter",
+          "origin",
+          "sourceType",
+          "sourceId",
+          "sourceNumber",
+          "sourceLink",
+          "projectId",
+          "productionOrderId",
+          "reversesMovementId",
+          "reversedByMovementId",
+          "reversedAt",
+          "userName"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/StockMovementType"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "postedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "postedSeq": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "locationCode": {
+            "type": "string"
+          },
+          "locationName": {
+            "type": "string"
+          },
+          "lotId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "lotNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitCost": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalCost": {
+            "type": "number",
+            "format": "double"
+          },
+          "balanceAfter": {
+            "type": "number",
+            "format": "double"
+          },
+          "averageCostAfter": {
+            "type": "number",
+            "format": "double"
+          },
+          "origin": {
+            "type": "string"
+          },
+          "sourceType": {
+            "type": "string"
+          },
+          "sourceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sourceNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "sourceLink": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "projectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "productionOrderId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "reversesMovementId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "reversedByMovementId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "reversedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "userName": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -24864,6 +26734,54 @@
           }
         }
       },
+      "OpeningBalanceInput": {
+        "required": [
+          "cutoffDate",
+          "itemId",
+          "locationId",
+          "quantity",
+          "unitId",
+          "unitCost",
+          "lotNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "cutoffDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "unitCost": {
+            "type": "number",
+            "format": "double"
+          },
+          "lotNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
       "OpeningBalanceLine": {
         "required": [
           "bankAccountId",
@@ -24885,6 +26803,49 @@
         },
         "additionalProperties": false
       },
+      "OpeningBalanceLineInput": {
+        "required": [
+          "itemId",
+          "locationId",
+          "quantity",
+          "unitId",
+          "unitCost",
+          "lotNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "unitCost": {
+            "type": "number",
+            "format": "double"
+          },
+          "lotNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
       "OpeningBalancesInput": {
         "required": [
           "lines"
@@ -24895,6 +26856,26 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/OpeningBalanceLine"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "OpeningBatchInput": {
+        "required": [
+          "cutoffDate",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "cutoffDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpeningBalanceLineInput"
             }
           }
         },
@@ -25521,6 +27502,35 @@
           }
         }
       },
+      "PagedListOfBalanceRow": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BalanceRow"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "PagedListOfBankAccountDetail": {
         "required": [
           "items",
@@ -25679,6 +27689,64 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/LocationDetail"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PagedListOfManualPostingSummary": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ManualPostingSummary"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PagedListOfMovementRow": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MovementRow"
             }
           },
           "page": {
@@ -28330,6 +30398,42 @@
         "properties": {
           "mode": {
             "$ref": "#/components/schemas/PricingMode"
+          }
+        }
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "title": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "instance": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -32013,6 +34117,32 @@
           }
         }
       },
+      "ReverseMovementInput": {
+        "required": [
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "ReverseRule": {
+        "enum": [
+          "Author",
+          "Approver",
+          "SoleOwner",
+          "Denied",
+          "NotManual",
+          "AlreadyReversed",
+          "IsReversal"
+        ]
+      },
       "RoutingChecklistItem": {
         "required": [
           "sequence",
@@ -33939,6 +36069,265 @@
             "type": "boolean"
           }
         }
+      },
+      "StockItemContext": {
+        "required": [
+          "itemId",
+          "code",
+          "name",
+          "unitId",
+          "unitCode",
+          "tracksLot",
+          "isActive",
+          "type",
+          "averageCost",
+          "totalOnHand",
+          "positions",
+          "lots",
+          "suggestedLotNumber",
+          "defaultLocationId",
+          "manualApprovalAmount",
+          "manualCostDeviationPct",
+          "openingOpen"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "unitId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "tracksLot": {
+            "type": "boolean"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ItemType"
+          },
+          "averageCost": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalOnHand": {
+            "type": "number",
+            "format": "double"
+          },
+          "positions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockLocationPosition"
+            }
+          },
+          "lots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockLotBalance"
+            }
+          },
+          "suggestedLotNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "defaultLocationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "manualApprovalAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "manualCostDeviationPct": {
+            "type": "number",
+            "format": "double"
+          },
+          "openingOpen": {
+            "type": "boolean"
+          }
+        }
+      },
+      "StockLocationPosition": {
+        "required": [
+          "locationId",
+          "locationCode",
+          "locationName",
+          "onHand",
+          "reserved",
+          "available",
+          "hasMovement"
+        ],
+        "type": "object",
+        "properties": {
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "locationCode": {
+            "type": "string"
+          },
+          "locationName": {
+            "type": "string"
+          },
+          "onHand": {
+            "type": "number",
+            "format": "double"
+          },
+          "reserved": {
+            "type": "number",
+            "format": "double"
+          },
+          "available": {
+            "type": "number",
+            "format": "double"
+          },
+          "hasMovement": {
+            "type": "boolean"
+          }
+        }
+      },
+      "StockLotBalance": {
+        "required": [
+          "lotId",
+          "lotNumber",
+          "locationId",
+          "onHand"
+        ],
+        "type": "object",
+        "properties": {
+          "lotId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lotNumber": {
+            "type": "string"
+          },
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "onHand": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "StockMovementType": {
+        "enum": [
+          "Receipt",
+          "Issue",
+          "Transfer",
+          "Adjustment",
+          "Return",
+          "Production",
+          "Shipment",
+          "OpeningBalance"
+        ]
+      },
+      "StockOpeningStatus": {
+        "required": [
+          "completed",
+          "completedAt",
+          "completedByName",
+          "itemCount",
+          "locationCount",
+          "lineCount",
+          "totalValue",
+          "manualApprovalAmount",
+          "manualCostDeviationPct",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "completed": {
+            "type": "boolean"
+          },
+          "completedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "completedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "itemCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "locationCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lineCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "manualApprovalAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "manualCostDeviationPct": {
+            "type": "number",
+            "format": "double"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "StockProjectOption": {
+        "required": [
+          "id",
+          "number",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "StockSituation": {
+        "enum": [
+          "Normal",
+          "Low",
+          "Out"
+        ]
       },
       "SuggestedWorkCenter": {
         "required": [

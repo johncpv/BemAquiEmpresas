@@ -1,0 +1,111 @@
+import AxeBuilder from '@axe-core/playwright'
+import { expect, type Page, test } from '@playwright/test'
+import { mockApi } from './mock-api'
+import { stockApi } from './stock-api'
+
+async function chooseItem(page: Page) {
+  const dialog = page.getByRole('alertdialog')
+  await dialog.getByRole('combobox', { name: /Item/ }).click()
+  await page.getByRole('option', { name: /MP-001/ }).click()
+}
+
+test.describe('Estoque: saldos, lançamentos e estorno (EST-01a)', () => {
+  test('saldo inicial pelo estado vazio, com o impacto e o próximo passo (CA 1)', async ({ page }) => {
+    const { api, calls } = stockApi({ balances: false })
+    await mockApi(page, api)
+    await page.goto('/app/estoque/saldos')
+    await expect(page.getByText('Nenhum saldo ainda. Comece lançando o saldo inicial de cada local.')).toBeVisible()
+    await page.getByRole('button', { name: 'Lançar saldo inicial' }).last().click()
+    await chooseItem(page)
+    const dialog = page.getByRole('alertdialog')
+    await dialog.getByRole('textbox', { name: /Quantidade/ }).fill('12')
+    await dialog.getByRole('textbox', { name: /Custo unitário/ }).fill('8,50')
+    await expect(dialog.getByRole('group', { name: 'Impacto' })).toContainText('Saldo no local 0 → 12 UN')
+    await expect(dialog.getByRole('group', { name: 'Impacto' })).toContainText('R$ 102,00')
+    await dialog.getByRole('button', { name: 'Lançar saldo inicial' }).click()
+    await expect(page.getByRole('status').filter({ hasText: 'Saldo inicial lançado' }).first()).toBeVisible()
+    expect(calls[0].body).toMatchObject({ itemId: 'i1', locationId: 'alm', quantity: 12, unitCost: 8.5, unitId: null })
+    await expect(page.getByRole('region', { name: 'Próximos passos' })).toContainText('Lançar o próximo item')
+  })
+
+  test('entrada com o local e o custo sugeridos (CA 6 e padrão 6)', async ({ page }) => {
+    const { api, calls } = stockApi()
+    await mockApi(page, api)
+    await page.goto('/app/estoque/saldos')
+    await expect(page.getByRole('cell', { name: 'MP-001 Chapa de aço 3 mm' })).toBeVisible()
+    await page.getByRole('button', { name: 'Lançar entrada' }).first().click()
+    await chooseItem(page)
+    const dialog = page.getByRole('alertdialog')
+    await expect(dialog.getByText('Sugerido')).toHaveCount(2)
+    await dialog.getByRole('textbox', { name: /Quantidade/ }).fill('2')
+    await dialog.getByRole('textbox', { name: /Motivo/ }).fill('Doação do cliente')
+    await expect(dialog.getByRole('group', { name: 'Impacto' })).toContainText('Saldo no local 25 → 27 UN')
+    await dialog.getByRole('button', { name: 'Lançar entrada' }).click()
+    await expect(page.getByRole('status').filter({ hasText: 'Entrada lançada' }).first()).toBeVisible()
+    expect(calls[0].body).toMatchObject({ kind: 'Receipt', itemId: 'i1', locationId: 'alm', quantity: 2, unitCost: 50, reason: 'Doação do cliente' })
+  })
+
+  test('saída acima de R$ 1.000,00 vai para aprovação e outra pessoa aprova (CA 9 e 10)', async ({ page }) => {
+    const { api, calls } = stockApi()
+    await mockApi(page, api)
+    await page.goto('/app/estoque/saldos')
+    await page.getByRole('button', { name: 'Lançar saída' }).click()
+    await chooseItem(page)
+    const dialog = page.getByRole('alertdialog')
+    await dialog.getByRole('textbox', { name: /Quantidade/ }).fill('21')
+    await dialog.getByRole('textbox', { name: /Motivo/ }).fill('Perda na obra')
+    await expect(dialog.getByText(/Este lançamento precisa da aprovação de outra pessoa/)).toBeVisible()
+    await dialog.getByRole('button', { name: 'Enviar para aprovação' }).click()
+    await expect(page.getByRole('status').filter({ hasText: 'Lançamento enviado para aprovação' }).first()).toBeVisible()
+    expect(calls[0].body).toMatchObject({ kind: 'Issue', quantity: 21 })
+
+    await page.goto('/app/estoque/lancamentos/p1')
+    await expect(page.getByText('Acima de R$ 1.000,00')).toBeVisible()
+    await page.getByRole('button', { name: 'Aprovar lançamento' }).click()
+    const approve = page.getByRole('alertdialog')
+    await expect(approve.getByRole('group', { name: 'Impacto' })).toContainText('Saldo no local 25 → 4')
+    const results = await new AxeBuilder({ page }).analyze()
+    expect(results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical').map((v) => v.id)).toEqual([])
+    await approve.getByRole('button', { name: 'Aprovar lançamento' }).click()
+    await expect(page.getByRole('status').filter({ hasText: 'Lançamento aprovado' }).first()).toBeVisible()
+    expect(calls[1].url).toContain('/approve')
+    expect(calls[1].body).toEqual({ comment: null, version: 1 })
+  })
+
+  test('estorno com o impacto no diálogo destrutivo (CA 20)', async ({ page }) => {
+    const { api, calls } = stockApi()
+    await mockApi(page, api)
+    await page.goto('/app/estoque/movimentos/m1')
+    await page.getByRole('button', { name: 'Estornar movimento' }).click()
+    const dialog = page.getByRole('alertdialog')
+    await expect(dialog.getByRole('group', { name: 'Impacto' })).toContainText('Saldo no local 10 → 0 UN')
+    await expect(dialog.getByRole('button', { name: 'Estornar movimento' })).toBeDisabled()
+    await dialog.getByRole('textbox', { name: /Motivo/ }).fill('Lançado em dobro')
+    await dialog.getByRole('button', { name: 'Estornar movimento' }).click()
+    await expect(page.getByRole('status').filter({ hasText: 'Movimento estornado' }).first()).toBeVisible()
+    expect(calls[0].body).toEqual({ reason: 'Lançado em dobro' })
+    await expect(page.getByText(/Estornado em .* por Bruno Almoxarife/)).toBeVisible()
+  })
+
+  test('movimento de outra pessoa acima do limite explica quem estorna', async ({ page }) => {
+    const { api } = stockApi({ reverseRule: 'Denied' })
+    await mockApi(page, api)
+    await page.goto('/app/estoque/movimentos/m1')
+    await expect(page.getByText('Este estorno precisa de outra pessoa com permissão de aprovar no Estoque.')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Estornar movimento' })).toHaveCount(0)
+  })
+
+  test('a 400 px Saldos mostra item, local, disponível e situação, e o resto na linha expansível', async ({ page }, info) => {
+    test.skip(info.project.name !== 'celular')
+    const { api } = stockApi()
+    await mockApi(page, api)
+    await page.goto('/app/estoque/saldos')
+    await expect(page.getByRole('cell', { name: 'MP-001 Chapa de aço 3 mm' })).toBeVisible()
+    await expect(page.getByRole('columnheader', { name: 'Físico', exact: true })).toBeHidden()
+    await expect(page.getByRole('columnheader', { name: /Disponível/ })).toBeVisible()
+    await page.getByRole('button', { name: /saldo de MP-001 em ALM/ }).click()
+    await expect(page.getByText(/Físico 25 UN · Reservado 0 · Mínimo 10/)).toBeVisible()
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
+    expect(overflow).toBeLessThanOrEqual(0)
+  })
+})

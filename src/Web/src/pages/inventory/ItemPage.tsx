@@ -21,8 +21,9 @@ import { TYPE_LABELS } from './item-labels'
 import { ItemConversions } from './ItemConversions'
 import { ItemDataForm } from './ItemDataForm'
 import { ItemSupplierCodes } from './ItemSupplierCodes'
+import { ItemKardex } from './stock/ItemKardex'
 
-/** Item (CAD-02a, molde "detalhe com abas"): Dados, Conversões e Fornecedores (CAD-02b) e Histórico de alterações. */
+/** Item (CAD-02a, molde "detalhe com abas"): Dados, Conversões e Fornecedores (CAD-02b), Movimentos (kardex, EST-01a) e Histórico de alterações. */
 export function ItemPage() {
   const { id } = useParams({ strict: false }) as { id: string }
   const search = useSearch({ strict: false }) as Record<string, unknown>
@@ -92,6 +93,7 @@ export function ItemPage() {
         { id: 'dados', label: 'Dados', keepMounted: true, content: <ItemDataForm key={item.id} item={item} canEdit={canEdit} onSaved={setItem} /> },
         { id: 'conversoes', label: 'Conversões', content: <ItemConversions item={item} canEdit={canEdit} adding={addingConversion} onAddingChange={setAddingConversion} /> },
         { id: 'fornecedores', label: 'Fornecedores', content: <ItemSupplierCodes item={item} canEdit={canEdit} adding={addingCode} onAddingChange={setAddingCode} /> },
+        { id: 'movimentos', label: 'Movimentos', content: <ItemKardex itemId={item.id} /> },
         { id: 'historico', label: 'Histórico de alterações', content: <RecordHistory entity="Item" id={item.id} /> },
       ]} />
     </>

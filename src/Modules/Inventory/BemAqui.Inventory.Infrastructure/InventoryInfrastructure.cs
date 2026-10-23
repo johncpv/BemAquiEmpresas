@@ -42,6 +42,21 @@ public static class InventoryInfrastructure
         services.AddAuditableEntity<Item>("inventory");
         services.AddAuditableEntity<ItemUnitConversion>("inventory");
         services.AddAuditableEntity<ItemSupplierCode>("inventory");
+        // Motor de estoque (EST-01a, ADR 0023): um só StockLedger atrás de IStockMovements e IStockBalances.
+        services.TryAddScoped<StockLedger>();
+        services.TryAddScoped<IStockMovements>(sp => sp.GetRequiredService<StockLedger>());
+        services.TryAddScoped<IStockBalances>(sp => sp.GetRequiredService<StockLedger>());
+        services.TryAddScoped<ReversePolicy>();
+        services.TryAddScoped<StockQueryService>();
+        services.TryAddScoped<ManualPostingService>();
+        services.TryAddScoped<ManualDigestNotifier>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IItemUsageProvider, StockUsage>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<ILocationUsageProvider, StockUsage>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<ITenantSeeder, InventoryParametersSeeder>());
+        services.AddAuditableEntity<Lot>("inventory");
+        services.AddAuditableEntity<ManualPosting>("inventory");
+        services.AddAuditableEntity<ManualPostingLine>("inventory");
+        services.AddAuditableEntity<InventoryParameters>("inventory");
         return services;
     }
 }

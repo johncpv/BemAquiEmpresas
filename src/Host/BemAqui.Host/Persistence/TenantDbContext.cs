@@ -159,6 +159,20 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<ItemSupplierCode> ItemSupplierCodes => Set<ItemSupplierCode>();
 
+    public DbSet<StockPosition> StockPositions => Set<StockPosition>();
+
+    public DbSet<StockBalance> StockBalances => Set<StockBalance>();
+
+    public DbSet<StockMovement> StockMovements => Set<StockMovement>();
+
+    public DbSet<Lot> Lots => Set<Lot>();
+
+    public DbSet<ManualPosting> ManualPostings => Set<ManualPosting>();
+
+    public DbSet<ManualPostingLine> ManualPostingLines => Set<ManualPostingLine>();
+
+    public DbSet<InventoryParameters> InventoryParameters => Set<InventoryParameters>();
+
     public DbSet<WorkCenter> WorkCenters => Set<WorkCenter>();
 
     public DbSet<Calendar> Calendars => Set<Calendar>();

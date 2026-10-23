@@ -5,7 +5,7 @@
 | ID | EST-01a |
 | Título | Motor de estoque (ADR 0023): posição agregada por item e local, físico por lote, movimentos imutáveis de saldo inicial, entrada manual, saída avulsa e transferência, estorno por movimento inverso, custo médio ponderado móvel global por item, segregação das manuais (D7) e contratos `IStockMovements`/`IStockBalances` para requisição, recebimento, produção e expedição |
 | Tamanho | G (quebra da EST-01: o ajuste com aprovação foi para a EST-01b) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-EST-4 (saldo físico; o reservado entra na EST-02) · R-EST-5 (negativo bloqueado) · R-EST-6 (entrada, saída, transferência, devolução: o motor) · R-EST-7 (custo médio ponderado móvel) · R-EST-2 · R-EST-3 (quantidade na unidade de estoque) · R-EST-8 (lote no saldo) · R-COM-4 · R-PRP-5 · R-PRP-7 · R-SEC-5 |
 | Dependências | CAD-02a (itens, `average_cost` só leitura, `tracks_lot`/`tracks_serial`), CAD-02b (`IUnitConversion`), CAD-03 (locais), CAD-06 (numeração), FND-09e (idempotência, `xmin`, diálogo com impacto); **ADR 0023** (pré-condição, aceita) |
 | Bloqueia | ENG-02, EST-02, EST-03, CMP-04, PRD-06a2, PRD-06b, EST-01b, EST-05 |
@@ -132,25 +132,26 @@ Decididos pelo PO em 21/10/2026 (revisão pré-Fase 3, tabela 1.1, itens 8–12)
 **Pré-condição externa:** P-01 (crédito de ICMS/IPI no custo médio, contadora) continua aberta e não bloqueia: o custo da entrada manual é o digitado; o recebimento (CMP-04) aplica a P-16 e não desconta crédito.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] ADR 0023 §1 a §5 aplicada.
-- [ ] Testes de unidade, integração (Testcontainers), arquitetura, desempenho e E2E passando.
-- [ ] Migration criada (não destrutiva, com a posição, os `CHECK`s, os índices únicos e o trigger de imutabilidade), testada sobre cópia do banco do tenant `konebras`.
-- [ ] Permissões só do `ModuleCatalog`; `SoleOwnerRule` no BuildingBlocks com teste.
-- [ ] Telas com estados de carregando, vazio e erro, inclusive a 400 px.
-- [ ] Ajuda de cada tela e aba escrita no mesmo commit; teste de cobertura passando.
-- [ ] Padrões preenchidos, confirmação com impacto e próximos passos avaliados.
-- [ ] Auditoria ligada (lançamentos; saldos e custo médio fora do diff).
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` (`stock_positions`, `stock_balances` só com o físico, colunas novas de `stock_movements`, `manual_postings`, `OpeningBalance`) atualizado; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] ADR 0023 §1 a §5 aplicada.
+- [x] Testes de unidade, arquitetura e E2E passando; integração e desempenho (Testcontainers) escritos, rodam no CI (Docker em fila nesta máquina).
+- [x] Migration criada (não destrutiva, com a posição, os `CHECK`s, os índices únicos e o trigger de imutabilidade).
+- [ ] Migration testada sobre cópia do banco do tenant `konebras` (CI/homologação, antes do deploy).
+- [x] Permissões só do `ModuleCatalog`; `SoleOwnerRule` no BuildingBlocks com teste.
+- [x] Telas com estados de carregando, vazio e erro, inclusive a 400 px.
+- [x] Ajuda de cada tela e aba escrita no mesmo commit; teste de cobertura passando.
+- [x] Padrões preenchidos, confirmação com impacto e próximos passos avaliados.
+- [x] Auditoria ligada (lançamentos; saldos e custo médio fora do diff).
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` (`stock_positions`, `stock_balances` só com o físico, colunas novas de `stock_movements`, `manual_postings`, `OpeningBalance`) atualizado; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `StockMovement`, `StockPosition`, `StockBalance`, `Lot`, `ManualPosting` no Domain; `AverageCostCalculator` puro (com a proteção do estorno).
-- [ ] `StockLedger` (motor único, trava item → posição → lote, exige transação) atrás de `IStockMovements`; `IStockBalances`; `CostByOrderAsync`.
-- [ ] Migration com `stock_positions`, `CHECK`s, `UNIQUE NULLS NOT DISTINCT`, sequência `posted_seq`, trigger de imutabilidade e índice `(item_id, posted_seq)` para o kardex.
-- [ ] `SoleOwnerRule` no BuildingBlocks (Proprietário único, marca e notificação).
-- [ ] `NumberFormats` + `MOV`; job do resumo diário no `RecurringJobsRegistrar`.
-- [ ] Endpoints `/api/v1/inventory/balances`, `/movements`, `/opening-balances`, `/manual-postings`, `/opening/complete`; páginas, abas "Operação"/"Cadastros" no `modules.ts`, ajudas.
+- [x] `StockMovement`, `StockPosition`, `StockBalance`, `Lot`, `ManualPosting` no Domain; `AverageCostCalculator` puro (com a proteção do estorno).
+- [x] `StockLedger` (motor único, trava item → posição → lote, exige transação) atrás de `IStockMovements`; `IStockBalances`; `CostByOrderAsync`.
+- [x] Migration com `stock_positions`, `CHECK`s, `UNIQUE NULLS NOT DISTINCT`, sequência `posted_seq`, trigger de imutabilidade e índice `(item_id, posted_seq)` para o kardex.
+- [x] `SoleOwnerRule` no BuildingBlocks (Proprietário único, marca e notificação).
+- [x] `NumberFormats` + `MOV`; job do resumo diário no `RecurringJobsRegistrar`.
+- [x] Endpoints `/api/v1/inventory/balances`, `/movements`, `/opening-balances`, `/manual-postings`, `/opening/complete`; páginas, abas "Operação"/"Cadastros" no `modules.ts`, ajudas.
 
 ## Quality gates
 - Agentes previstos: @dev, @architect (motor único, trava e transação), @data-engineer (`CHECK`s, `UNIQUE NULLS NOT DISTINCT`, trigger, índices), cybersecurity (segregação das manuais, imutabilidade e concorrência), @qa.
@@ -184,3 +185,5 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO (D7, D15, tabela 1.1 itens 8–12) e correções da revisão pré-Fase 3 (§2.1 motor de estoque e ADR 0023 §1–§5, ADR 0025 §2; §2.2 EST-01a; §2.3 padrões 4, 5, 6, 8, 9 e "Lançar entrada"); CAs renumerados; nova ordem (Marco 3.2, ordem 10) | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 22/10/2026 | 1.0 | Implementada (`Done`). Desvios e decisões de implementação: (1) `stock_movements` sem `transfer_group` (as pernas da transferência dividem `source_id` e o número `MOV`) e com `source_number` (número legível da origem, para "Estorne pelo documento de origem ({tipo} {número})"), `origin` (`Manual`/`Document`), `production_order_id` e `posted_at`; `posted_seq` é coluna identity. (2) O documento pendente é `manual_postings` + `manual_posting_lines` (o 03 dizia `manual_movements`; atualizado); `inventory.parameters` é uma linha única com colunas (limite, desvio, `opening_completed_at/by`), não chave e valor. (3) O estorno manual é imediato por quem pode (autor no limite e em 24 h; senão outra pessoa com `inventory.approve`), com número `MOV` novo, registrado na linha do lançamento (`reversed_*`, auditada); o da transferência desfaz as duas pernas. O valor do limite é o `total_cost` absoluto da perna clicada. (4) O contrato `IStockMovements` ganhou `PostManyAsync` (trava por `item_id` crescente), `ReverseAsync` (só pela origem) e `EnsureLotAsync`; `StockPosting` ganhou `SourceNumber`. (5) A regra do saldo contra o reservado fica para a EST-02 (os `CHECK`s já estão no banco). (6) A PRD-04 (`commercial.project_costs`) não está na `main`: `StockIssued`/`StockReturned` são publicados e registrados sem consumidor; a EST-03 entrega o consumidor e recompõe o que veio antes (D3). (7) Endpoint novo `GET /inventory/projects` (`inventory.view`) para escolher o projeto da saída avulsa sem exigir permissão do Commercial. (8) "Abaixo do mínimo" compara o disponível do item em todos os locais com o mínimo do item; "Sem saldo" é por linha (disponível ≤ 0). (9) Resumo diário às 06:30 de São Paulo, do dia anterior (`Jobs:Cron:inventory-manual-digest`). (10) Saldo inicial em lote: até 500 linhas; colar do Excel resolve o item pelo código; local por linha. (11) CA 2: o 409 traz `recovery: "Lançar entrada"` (vira "Lançar ajuste" na EST-01b). (12) Os testes de integração (Testcontainers) foram escritos e não rodaram nesta máquina (Docker em fila); o teste do trigger e dos `CHECK`s sobre a cópia do banco `konebras` fica para o CI/homologação. (13) O OpenAPI foi gerado do Host real em memória, sem banco; o `OpenApiDocumentTests` do CI confirma | Dev |
+| 22/10/2026 | 1.1 | Validação do PO: confirmados "Abaixo do mínimo" (disponível do item somado em todos os locais contra o mínimo do item) e o resumo diário das manuais às 06:30, sobre o dia anterior | Pax (PO) |

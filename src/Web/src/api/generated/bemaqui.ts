@@ -81,6 +81,7 @@ import type {
   CompleteOpeningInput,
   CompleteOrderInput,
   CompleteStepInput,
+  CompleteStockOpeningInput,
   ConfirmTwoFactorRequest,
   ConfirmWithChallengeRequest,
   ContactInput,
@@ -135,6 +136,8 @@ import type {
   GetDiscountsAndCancellationsParams,
   GetFabricationOrderHistoryParams,
   GetInstallationDefaultsParams,
+  GetItemKardexParams,
+  GetManualPostingHistoryParams,
   GetMissingLaborCostsParams,
   GetNonConformityHistoryParams,
   GetProductionBoardParams,
@@ -199,6 +202,7 @@ import type {
   ListInstallersParams,
   ListItemsParams,
   ListLocationsParams,
+  ListManualPostingsParams,
   ListMyNotificationsParams,
   ListNonConformitiesParams,
   ListPartiesParams,
@@ -219,6 +223,8 @@ import type {
   ListReceivablesParams,
   ListRoutingProductOptionsParams,
   ListRoutingTemplatesParams,
+  ListStockBalancesParams,
+  ListStockMovementsParams,
   ListSupplierOptionsParams,
   ListTenantsParams,
   ListUnitsParams,
@@ -228,10 +234,17 @@ import type {
   LoginRequest,
   LoginResponse,
   LookupCnpjParams,
+  LotDetail,
+  ManualCancelInput,
+  ManualDecisionInput,
+  ManualPostingDetail,
+  ManualPostingInput,
+  ManualPostingLineView,
   MaterialCost,
   MessageResponse,
   ModuleRelease,
   ModuleSummary,
+  MovementDetail,
   MyPermissionsResponse,
   MyPin,
   NonConformityActionInput,
@@ -244,7 +257,9 @@ import type {
   NumberFormatInput,
   NumberFormatRow,
   OpenLaborList,
+  OpeningBalanceInput,
   OpeningBalancesInput,
+  OpeningBatchInput,
   OpeningBatchResult,
   OpeningPayablesInput,
   OpeningReceivablesInput,
@@ -254,12 +269,15 @@ import type {
   OrderLaborView,
   OrderQualityView,
   PagedListOfAuditEntryDto,
+  PagedListOfBalanceRow,
   PagedListOfBankAccountDetail,
   PagedListOfEmployeeDetail,
   PagedListOfImportPendingItem,
   PagedListOfImportRunRow,
   PagedListOfItemListItem,
   PagedListOfLocationDetail,
+  PagedListOfManualPostingSummary,
+  PagedListOfMovementRow,
   PagedListOfPartyListItem,
   PagedListOfPaymentTermDetail,
   PagedListOfPositionDetail,
@@ -310,6 +328,7 @@ import type {
   PositionSummary,
   PreferencesDto,
   PricingModeInput,
+  ProblemDetails,
   ProductionBoard,
   ProductionParametersInput,
   ProductionParametersView,
@@ -369,6 +388,7 @@ import type {
   ResetPasswordRequest,
   ResubmitInput,
   ReverseCompletionInput,
+  ReverseMovementInput,
   RoutingItemLinkInput,
   RoutingItemView,
   RoutingProductOption,
@@ -385,6 +405,7 @@ import type {
   SearchItemsParams,
   SearchPartiesParams,
   SearchShopfloorOrderParams,
+  SearchStockProjectsParams,
   SecuritySettingsDto,
   SetGroupMembersRequest,
   SetUserGroupsRequest,
@@ -405,6 +426,9 @@ import type {
   SplitPreviewInput,
   SplitPreviewRequest,
   StatementResult,
+  StockItemContext,
+  StockOpeningStatus,
+  StockProjectOption,
   SuggestAccountParams,
   SuggestCostCenterParams,
   SuggestedWorkCenter,
@@ -31271,6 +31295,2111 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getDeleteItemSupplierCodeMutationOptions(options), queryClient);
+    }
+
+export const getListStockBalancesUrl = (params?: ListStockBalancesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/inventory/balances?${stringifiedParams}` : `/api/v1/inventory/balances`
+}
+
+export const listStockBalances = async (params?: ListStockBalancesParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfBalanceRow> => {
+
+  return apiFetch<PagedListOfBalanceRow>(getListStockBalancesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListStockBalancesQueryKey = (params?: ListStockBalancesParams,) => {
+    return [
+    `/api/v1/inventory/balances`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListStockBalancesQueryOptions = <TData = Awaited<ReturnType<typeof listStockBalances>>, TError = unknown>(params?: ListStockBalancesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStockBalances>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListStockBalancesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listStockBalances>>> = ({ signal }) => listStockBalances(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listStockBalances>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListStockBalancesQueryResult = NonNullable<Awaited<ReturnType<typeof listStockBalances>>>
+export type ListStockBalancesQueryError = unknown
+
+
+export function useListStockBalances<TData = Awaited<ReturnType<typeof listStockBalances>>, TError = unknown>(
+ params: undefined |  ListStockBalancesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStockBalances>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStockBalances>>,
+          TError,
+          Awaited<ReturnType<typeof listStockBalances>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStockBalances<TData = Awaited<ReturnType<typeof listStockBalances>>, TError = unknown>(
+ params?: ListStockBalancesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStockBalances>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStockBalances>>,
+          TError,
+          Awaited<ReturnType<typeof listStockBalances>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStockBalances<TData = Awaited<ReturnType<typeof listStockBalances>>, TError = unknown>(
+ params?: ListStockBalancesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStockBalances>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListStockBalances<TData = Awaited<ReturnType<typeof listStockBalances>>, TError = unknown>(
+ params?: ListStockBalancesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStockBalances>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListStockBalancesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetStockOpeningUrl = () => {
+
+
+
+
+  return `/api/v1/inventory/opening`
+}
+
+export const getStockOpening = async ( options?: Parameters<typeof apiFetch>[1]): Promise<StockOpeningStatus> => {
+
+  return apiFetch<StockOpeningStatus>(getGetStockOpeningUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetStockOpeningQueryKey = () => {
+    return [
+    `/api/v1/inventory/opening`
+    ] as const;
+    }
+
+
+export const getGetStockOpeningQueryOptions = <TData = Awaited<ReturnType<typeof getStockOpening>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStockOpening>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetStockOpeningQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStockOpening>>> = ({ signal }) => getStockOpening({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getStockOpening>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetStockOpeningQueryResult = NonNullable<Awaited<ReturnType<typeof getStockOpening>>>
+export type GetStockOpeningQueryError = unknown
+
+
+export function useGetStockOpening<TData = Awaited<ReturnType<typeof getStockOpening>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStockOpening>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStockOpening>>,
+          TError,
+          Awaited<ReturnType<typeof getStockOpening>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStockOpening<TData = Awaited<ReturnType<typeof getStockOpening>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStockOpening>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStockOpening>>,
+          TError,
+          Awaited<ReturnType<typeof getStockOpening>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStockOpening<TData = Awaited<ReturnType<typeof getStockOpening>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStockOpening>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetStockOpening<TData = Awaited<ReturnType<typeof getStockOpening>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStockOpening>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetStockOpeningQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCompleteStockOpeningUrl = () => {
+
+
+
+
+  return `/api/v1/inventory/opening/complete`
+}
+
+export const completeStockOpening = async (completeStockOpeningInput: CompleteStockOpeningInput, options?: Parameters<typeof apiFetch>[1]): Promise<StockOpeningStatus> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<StockOpeningStatus>(getCompleteStockOpeningUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(completeStockOpeningInput)
+  }
+);}
+
+
+
+
+
+export const getCompleteStockOpeningMutationKey = () => ['completeStockOpening'] as const;
+
+export const getCompleteStockOpeningMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeStockOpening>>, TError,CompleteStockOpeningMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof completeStockOpening>>, TError,CompleteStockOpeningMutationVariables, TContext> => {
+
+const mutationKey = getCompleteStockOpeningMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof completeStockOpening>>, CompleteStockOpeningMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  completeStockOpening(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CompleteStockOpeningMutationResult = NonNullable<Awaited<ReturnType<typeof completeStockOpening>>>
+    export type CompleteStockOpeningMutationBody = CompleteStockOpeningInput
+    export type CompleteStockOpeningMutationError = unknown
+    export type CompleteStockOpeningMutationVariables = {data: CompleteStockOpeningInput}
+
+    export const useCompleteStockOpening = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeStockOpening>>, TError,CompleteStockOpeningMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof completeStockOpening>>,
+        TError,
+        CompleteStockOpeningMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCompleteStockOpeningMutationOptions(options), queryClient);
+    }
+
+export const getCreateOpeningBalanceUrl = () => {
+
+
+
+
+  return `/api/v1/inventory/opening-balances`
+}
+
+export const createOpeningBalance = async (openingBalanceInput: OpeningBalanceInput, options?: Parameters<typeof apiFetch>[1]): Promise<ManualPostingDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ManualPostingDetail>(getCreateOpeningBalanceUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(openingBalanceInput)
+  }
+);}
+
+
+
+
+
+export const getCreateOpeningBalanceMutationKey = () => ['createOpeningBalance'] as const;
+
+export const getCreateOpeningBalanceMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createOpeningBalance>>, TError,CreateOpeningBalanceMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createOpeningBalance>>, TError,CreateOpeningBalanceMutationVariables, TContext> => {
+
+const mutationKey = getCreateOpeningBalanceMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createOpeningBalance>>, CreateOpeningBalanceMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createOpeningBalance(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateOpeningBalanceMutationResult = NonNullable<Awaited<ReturnType<typeof createOpeningBalance>>>
+    export type CreateOpeningBalanceMutationBody = OpeningBalanceInput
+    export type CreateOpeningBalanceMutationError = unknown
+    export type CreateOpeningBalanceMutationVariables = {data: OpeningBalanceInput}
+
+    export const useCreateOpeningBalance = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createOpeningBalance>>, TError,CreateOpeningBalanceMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createOpeningBalance>>,
+        TError,
+        CreateOpeningBalanceMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateOpeningBalanceMutationOptions(options), queryClient);
+    }
+
+export const getCreateOpeningBalanceBatchUrl = () => {
+
+
+
+
+  return `/api/v1/inventory/opening-balances/batch`
+}
+
+export const createOpeningBalanceBatch = async (openingBatchInput: OpeningBatchInput, options?: Parameters<typeof apiFetch>[1]): Promise<ManualPostingDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ManualPostingDetail>(getCreateOpeningBalanceBatchUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(openingBatchInput)
+  }
+);}
+
+
+
+
+
+export const getCreateOpeningBalanceBatchMutationKey = () => ['createOpeningBalanceBatch'] as const;
+
+export const getCreateOpeningBalanceBatchMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createOpeningBalanceBatch>>, TError,CreateOpeningBalanceBatchMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createOpeningBalanceBatch>>, TError,CreateOpeningBalanceBatchMutationVariables, TContext> => {
+
+const mutationKey = getCreateOpeningBalanceBatchMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createOpeningBalanceBatch>>, CreateOpeningBalanceBatchMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createOpeningBalanceBatch(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateOpeningBalanceBatchMutationResult = NonNullable<Awaited<ReturnType<typeof createOpeningBalanceBatch>>>
+    export type CreateOpeningBalanceBatchMutationBody = OpeningBatchInput
+    export type CreateOpeningBalanceBatchMutationError = unknown
+    export type CreateOpeningBalanceBatchMutationVariables = {data: OpeningBatchInput}
+
+    export const useCreateOpeningBalanceBatch = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createOpeningBalanceBatch>>, TError,CreateOpeningBalanceBatchMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createOpeningBalanceBatch>>,
+        TError,
+        CreateOpeningBalanceBatchMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateOpeningBalanceBatchMutationOptions(options), queryClient);
+    }
+
+export const getGetItemStockContextUrl = (itemId: string,) => {
+
+
+
+
+  return `/api/v1/inventory/items/${itemId}/stock`
+}
+
+export const getItemStockContext = async (itemId: string, options?: Parameters<typeof apiFetch>[1]): Promise<StockItemContext> => {
+
+  return apiFetch<StockItemContext>(getGetItemStockContextUrl(itemId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetItemStockContextQueryKey = (itemId: string,) => {
+    return [
+    `/api/v1/inventory/items/${itemId}/stock`
+    ] as const;
+    }
+
+
+export const getGetItemStockContextQueryOptions = <TData = Awaited<ReturnType<typeof getItemStockContext>>, TError = unknown>(itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemStockContext>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetItemStockContextQueryKey(itemId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getItemStockContext>>> = ({ signal }) => getItemStockContext(itemId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: itemId !== null && itemId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getItemStockContext>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetItemStockContextQueryResult = NonNullable<Awaited<ReturnType<typeof getItemStockContext>>>
+export type GetItemStockContextQueryError = unknown
+
+
+export function useGetItemStockContext<TData = Awaited<ReturnType<typeof getItemStockContext>>, TError = unknown>(
+ itemId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemStockContext>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getItemStockContext>>,
+          TError,
+          Awaited<ReturnType<typeof getItemStockContext>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetItemStockContext<TData = Awaited<ReturnType<typeof getItemStockContext>>, TError = unknown>(
+ itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemStockContext>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getItemStockContext>>,
+          TError,
+          Awaited<ReturnType<typeof getItemStockContext>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetItemStockContext<TData = Awaited<ReturnType<typeof getItemStockContext>>, TError = unknown>(
+ itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemStockContext>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetItemStockContext<TData = Awaited<ReturnType<typeof getItemStockContext>>, TError = unknown>(
+ itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemStockContext>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetItemStockContextQueryOptions(itemId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSearchStockProjectsUrl = (params?: SearchStockProjectsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/inventory/projects?${stringifiedParams}` : `/api/v1/inventory/projects`
+}
+
+export const searchStockProjects = async (params?: SearchStockProjectsParams, options?: Parameters<typeof apiFetch>[1]): Promise<StockProjectOption[]> => {
+
+  return apiFetch<StockProjectOption[]>(getSearchStockProjectsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getSearchStockProjectsQueryKey = (params?: SearchStockProjectsParams,) => {
+    return [
+    `/api/v1/inventory/projects`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getSearchStockProjectsQueryOptions = <TData = Awaited<ReturnType<typeof searchStockProjects>>, TError = unknown>(params?: SearchStockProjectsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchStockProjects>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSearchStockProjectsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchStockProjects>>> = ({ signal }) => searchStockProjects(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof searchStockProjects>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type SearchStockProjectsQueryResult = NonNullable<Awaited<ReturnType<typeof searchStockProjects>>>
+export type SearchStockProjectsQueryError = unknown
+
+
+export function useSearchStockProjects<TData = Awaited<ReturnType<typeof searchStockProjects>>, TError = unknown>(
+ params: undefined |  SearchStockProjectsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchStockProjects>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof searchStockProjects>>,
+          TError,
+          Awaited<ReturnType<typeof searchStockProjects>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSearchStockProjects<TData = Awaited<ReturnType<typeof searchStockProjects>>, TError = unknown>(
+ params?: SearchStockProjectsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchStockProjects>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof searchStockProjects>>,
+          TError,
+          Awaited<ReturnType<typeof searchStockProjects>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSearchStockProjects<TData = Awaited<ReturnType<typeof searchStockProjects>>, TError = unknown>(
+ params?: SearchStockProjectsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchStockProjects>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useSearchStockProjects<TData = Awaited<ReturnType<typeof searchStockProjects>>, TError = unknown>(
+ params?: SearchStockProjectsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchStockProjects>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getSearchStockProjectsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListItemLotsUrl = (itemId: string,) => {
+
+
+
+
+  return `/api/v1/inventory/items/${itemId}/lots`
+}
+
+export const listItemLots = async (itemId: string, options?: Parameters<typeof apiFetch>[1]): Promise<LotDetail[]> => {
+
+  return apiFetch<LotDetail[]>(getListItemLotsUrl(itemId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListItemLotsQueryKey = (itemId: string,) => {
+    return [
+    `/api/v1/inventory/items/${itemId}/lots`
+    ] as const;
+    }
+
+
+export const getListItemLotsQueryOptions = <TData = Awaited<ReturnType<typeof listItemLots>>, TError = unknown>(itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listItemLots>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListItemLotsQueryKey(itemId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listItemLots>>> = ({ signal }) => listItemLots(itemId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: itemId !== null && itemId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listItemLots>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListItemLotsQueryResult = NonNullable<Awaited<ReturnType<typeof listItemLots>>>
+export type ListItemLotsQueryError = unknown
+
+
+export function useListItemLots<TData = Awaited<ReturnType<typeof listItemLots>>, TError = unknown>(
+ itemId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listItemLots>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listItemLots>>,
+          TError,
+          Awaited<ReturnType<typeof listItemLots>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListItemLots<TData = Awaited<ReturnType<typeof listItemLots>>, TError = unknown>(
+ itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listItemLots>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listItemLots>>,
+          TError,
+          Awaited<ReturnType<typeof listItemLots>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListItemLots<TData = Awaited<ReturnType<typeof listItemLots>>, TError = unknown>(
+ itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listItemLots>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListItemLots<TData = Awaited<ReturnType<typeof listItemLots>>, TError = unknown>(
+ itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listItemLots>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListItemLotsQueryOptions(itemId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetItemLotUrl = (itemId: string,
+    lotId: string,) => {
+
+
+
+
+  return `/api/v1/inventory/items/${itemId}/lots/${lotId}`
+}
+
+export const getItemLot = async (itemId: string,
+    lotId: string, options?: Parameters<typeof apiFetch>[1]): Promise<LotDetail> => {
+
+  return apiFetch<LotDetail>(getGetItemLotUrl(itemId,lotId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetItemLotQueryKey = (itemId: string,
+    lotId: string,) => {
+    return [
+    `/api/v1/inventory/items/${itemId}/lots/${lotId}`
+    ] as const;
+    }
+
+
+export const getGetItemLotQueryOptions = <TData = Awaited<ReturnType<typeof getItemLot>>, TError = unknown>(itemId: string,
+    lotId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemLot>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetItemLotQueryKey(itemId,lotId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getItemLot>>> = ({ signal }) => getItemLot(itemId,lotId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: itemId !== null && itemId !== undefined && lotId !== null && lotId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getItemLot>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetItemLotQueryResult = NonNullable<Awaited<ReturnType<typeof getItemLot>>>
+export type GetItemLotQueryError = unknown
+
+
+export function useGetItemLot<TData = Awaited<ReturnType<typeof getItemLot>>, TError = unknown>(
+ itemId: string,
+    lotId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemLot>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getItemLot>>,
+          TError,
+          Awaited<ReturnType<typeof getItemLot>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetItemLot<TData = Awaited<ReturnType<typeof getItemLot>>, TError = unknown>(
+ itemId: string,
+    lotId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemLot>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getItemLot>>,
+          TError,
+          Awaited<ReturnType<typeof getItemLot>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetItemLot<TData = Awaited<ReturnType<typeof getItemLot>>, TError = unknown>(
+ itemId: string,
+    lotId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemLot>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetItemLot<TData = Awaited<ReturnType<typeof getItemLot>>, TError = unknown>(
+ itemId: string,
+    lotId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemLot>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetItemLotQueryOptions(itemId,lotId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListStockMovementsUrl = (params?: ListStockMovementsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/inventory/movements?${stringifiedParams}` : `/api/v1/inventory/movements`
+}
+
+export const listStockMovements = async (params?: ListStockMovementsParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfMovementRow> => {
+
+  return apiFetch<PagedListOfMovementRow>(getListStockMovementsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListStockMovementsQueryKey = (params?: ListStockMovementsParams,) => {
+    return [
+    `/api/v1/inventory/movements`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListStockMovementsQueryOptions = <TData = Awaited<ReturnType<typeof listStockMovements>>, TError = unknown>(params?: ListStockMovementsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStockMovements>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListStockMovementsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listStockMovements>>> = ({ signal }) => listStockMovements(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listStockMovements>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListStockMovementsQueryResult = NonNullable<Awaited<ReturnType<typeof listStockMovements>>>
+export type ListStockMovementsQueryError = unknown
+
+
+export function useListStockMovements<TData = Awaited<ReturnType<typeof listStockMovements>>, TError = unknown>(
+ params: undefined |  ListStockMovementsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStockMovements>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStockMovements>>,
+          TError,
+          Awaited<ReturnType<typeof listStockMovements>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStockMovements<TData = Awaited<ReturnType<typeof listStockMovements>>, TError = unknown>(
+ params?: ListStockMovementsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStockMovements>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStockMovements>>,
+          TError,
+          Awaited<ReturnType<typeof listStockMovements>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStockMovements<TData = Awaited<ReturnType<typeof listStockMovements>>, TError = unknown>(
+ params?: ListStockMovementsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStockMovements>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListStockMovements<TData = Awaited<ReturnType<typeof listStockMovements>>, TError = unknown>(
+ params?: ListStockMovementsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStockMovements>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListStockMovementsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetStockMovementUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/movements/${id}`
+}
+
+export const getStockMovement = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<MovementDetail> => {
+
+  return apiFetch<MovementDetail>(getGetStockMovementUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetStockMovementQueryKey = (id: string,) => {
+    return [
+    `/api/v1/inventory/movements/${id}`
+    ] as const;
+    }
+
+
+export const getGetStockMovementQueryOptions = <TData = Awaited<ReturnType<typeof getStockMovement>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStockMovement>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetStockMovementQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStockMovement>>> = ({ signal }) => getStockMovement(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getStockMovement>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetStockMovementQueryResult = NonNullable<Awaited<ReturnType<typeof getStockMovement>>>
+export type GetStockMovementQueryError = unknown
+
+
+export function useGetStockMovement<TData = Awaited<ReturnType<typeof getStockMovement>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStockMovement>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStockMovement>>,
+          TError,
+          Awaited<ReturnType<typeof getStockMovement>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStockMovement<TData = Awaited<ReturnType<typeof getStockMovement>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStockMovement>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStockMovement>>,
+          TError,
+          Awaited<ReturnType<typeof getStockMovement>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStockMovement<TData = Awaited<ReturnType<typeof getStockMovement>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStockMovement>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetStockMovement<TData = Awaited<ReturnType<typeof getStockMovement>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStockMovement>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetStockMovementQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateStockMovementUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/movements/${id}`
+}
+
+export const updateStockMovement = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<unknown> => {
+
+  return apiFetch<unknown>(getUpdateStockMovementUrl(id),
+  {
+    ...options,
+    method: 'PUT'
+
+
+  }
+);}
+
+
+
+
+
+export const getUpdateStockMovementMutationKey = () => ['updateStockMovement'] as const;
+
+export const getUpdateStockMovementMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateStockMovement>>, TError,UpdateStockMovementMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateStockMovement>>, TError,UpdateStockMovementMutationVariables, TContext> => {
+
+const mutationKey = getUpdateStockMovementMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateStockMovement>>, UpdateStockMovementMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  updateStockMovement(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateStockMovementMutationResult = NonNullable<Awaited<ReturnType<typeof updateStockMovement>>>
+
+    export type UpdateStockMovementMutationError = ProblemDetails
+    export type UpdateStockMovementMutationVariables = {id: string}
+
+    export const useUpdateStockMovement = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateStockMovement>>, TError,UpdateStockMovementMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateStockMovement>>,
+        TError,
+        UpdateStockMovementMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateStockMovementMutationOptions(options), queryClient);
+    }
+
+export const getDeleteStockMovementUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/movements/${id}`
+}
+
+export const deleteStockMovement = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<unknown> => {
+
+  return apiFetch<unknown>(getDeleteStockMovementUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteStockMovementMutationKey = () => ['deleteStockMovement'] as const;
+
+export const getDeleteStockMovementMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteStockMovement>>, TError,DeleteStockMovementMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteStockMovement>>, TError,DeleteStockMovementMutationVariables, TContext> => {
+
+const mutationKey = getDeleteStockMovementMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteStockMovement>>, DeleteStockMovementMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteStockMovement(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteStockMovementMutationResult = NonNullable<Awaited<ReturnType<typeof deleteStockMovement>>>
+
+    export type DeleteStockMovementMutationError = ProblemDetails
+    export type DeleteStockMovementMutationVariables = {id: string}
+
+    export const useDeleteStockMovement = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteStockMovement>>, TError,DeleteStockMovementMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteStockMovement>>,
+        TError,
+        DeleteStockMovementMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeleteStockMovementMutationOptions(options), queryClient);
+    }
+
+export const getReverseStockMovementUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/movements/${id}/reverse`
+}
+
+export const reverseStockMovement = async (id: string,
+    reverseMovementInput: ReverseMovementInput, options?: Parameters<typeof apiFetch>[1]): Promise<MovementDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<MovementDetail>(getReverseStockMovementUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(reverseMovementInput)
+  }
+);}
+
+
+
+
+
+export const getReverseStockMovementMutationKey = () => ['reverseStockMovement'] as const;
+
+export const getReverseStockMovementMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reverseStockMovement>>, TError,ReverseStockMovementMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reverseStockMovement>>, TError,ReverseStockMovementMutationVariables, TContext> => {
+
+const mutationKey = getReverseStockMovementMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reverseStockMovement>>, ReverseStockMovementMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  reverseStockMovement(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReverseStockMovementMutationResult = NonNullable<Awaited<ReturnType<typeof reverseStockMovement>>>
+    export type ReverseStockMovementMutationBody = ReverseMovementInput
+    export type ReverseStockMovementMutationError = unknown
+    export type ReverseStockMovementMutationVariables = {id: string;data: ReverseMovementInput}
+
+    export const useReverseStockMovement = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reverseStockMovement>>, TError,ReverseStockMovementMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reverseStockMovement>>,
+        TError,
+        ReverseStockMovementMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReverseStockMovementMutationOptions(options), queryClient);
+    }
+
+export const getGetItemKardexUrl = (itemId: string,
+    params?: GetItemKardexParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/inventory/items/${itemId}/movements?${stringifiedParams}` : `/api/v1/inventory/items/${itemId}/movements`
+}
+
+export const getItemKardex = async (itemId: string,
+    params?: GetItemKardexParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfMovementRow> => {
+
+  return apiFetch<PagedListOfMovementRow>(getGetItemKardexUrl(itemId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetItemKardexQueryKey = (itemId: string,
+    params?: GetItemKardexParams,) => {
+    return [
+    `/api/v1/inventory/items/${itemId}/movements`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetItemKardexQueryOptions = <TData = Awaited<ReturnType<typeof getItemKardex>>, TError = unknown>(itemId: string,
+    params?: GetItemKardexParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemKardex>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetItemKardexQueryKey(itemId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getItemKardex>>> = ({ signal }) => getItemKardex(itemId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: itemId !== null && itemId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getItemKardex>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetItemKardexQueryResult = NonNullable<Awaited<ReturnType<typeof getItemKardex>>>
+export type GetItemKardexQueryError = unknown
+
+
+export function useGetItemKardex<TData = Awaited<ReturnType<typeof getItemKardex>>, TError = unknown>(
+ itemId: string,
+    params: undefined |  GetItemKardexParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemKardex>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getItemKardex>>,
+          TError,
+          Awaited<ReturnType<typeof getItemKardex>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetItemKardex<TData = Awaited<ReturnType<typeof getItemKardex>>, TError = unknown>(
+ itemId: string,
+    params?: GetItemKardexParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemKardex>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getItemKardex>>,
+          TError,
+          Awaited<ReturnType<typeof getItemKardex>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetItemKardex<TData = Awaited<ReturnType<typeof getItemKardex>>, TError = unknown>(
+ itemId: string,
+    params?: GetItemKardexParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemKardex>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetItemKardex<TData = Awaited<ReturnType<typeof getItemKardex>>, TError = unknown>(
+ itemId: string,
+    params?: GetItemKardexParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemKardex>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetItemKardexQueryOptions(itemId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListManualPostingsUrl = (params?: ListManualPostingsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/inventory/manual-postings?${stringifiedParams}` : `/api/v1/inventory/manual-postings`
+}
+
+export const listManualPostings = async (params?: ListManualPostingsParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfManualPostingSummary> => {
+
+  return apiFetch<PagedListOfManualPostingSummary>(getListManualPostingsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListManualPostingsQueryKey = (params?: ListManualPostingsParams,) => {
+    return [
+    `/api/v1/inventory/manual-postings`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListManualPostingsQueryOptions = <TData = Awaited<ReturnType<typeof listManualPostings>>, TError = unknown>(params?: ListManualPostingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listManualPostings>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListManualPostingsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listManualPostings>>> = ({ signal }) => listManualPostings(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listManualPostings>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListManualPostingsQueryResult = NonNullable<Awaited<ReturnType<typeof listManualPostings>>>
+export type ListManualPostingsQueryError = unknown
+
+
+export function useListManualPostings<TData = Awaited<ReturnType<typeof listManualPostings>>, TError = unknown>(
+ params: undefined |  ListManualPostingsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listManualPostings>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listManualPostings>>,
+          TError,
+          Awaited<ReturnType<typeof listManualPostings>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListManualPostings<TData = Awaited<ReturnType<typeof listManualPostings>>, TError = unknown>(
+ params?: ListManualPostingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listManualPostings>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listManualPostings>>,
+          TError,
+          Awaited<ReturnType<typeof listManualPostings>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListManualPostings<TData = Awaited<ReturnType<typeof listManualPostings>>, TError = unknown>(
+ params?: ListManualPostingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listManualPostings>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListManualPostings<TData = Awaited<ReturnType<typeof listManualPostings>>, TError = unknown>(
+ params?: ListManualPostingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listManualPostings>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListManualPostingsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateManualPostingUrl = () => {
+
+
+
+
+  return `/api/v1/inventory/manual-postings`
+}
+
+export const createManualPosting = async (manualPostingInput: ManualPostingInput, options?: Parameters<typeof apiFetch>[1]): Promise<ManualPostingDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ManualPostingDetail>(getCreateManualPostingUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(manualPostingInput)
+  }
+);}
+
+
+
+
+
+export const getCreateManualPostingMutationKey = () => ['createManualPosting'] as const;
+
+export const getCreateManualPostingMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createManualPosting>>, TError,CreateManualPostingMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createManualPosting>>, TError,CreateManualPostingMutationVariables, TContext> => {
+
+const mutationKey = getCreateManualPostingMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createManualPosting>>, CreateManualPostingMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createManualPosting(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateManualPostingMutationResult = NonNullable<Awaited<ReturnType<typeof createManualPosting>>>
+    export type CreateManualPostingMutationBody = ManualPostingInput
+    export type CreateManualPostingMutationError = unknown
+    export type CreateManualPostingMutationVariables = {data: ManualPostingInput}
+
+    export const useCreateManualPosting = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createManualPosting>>, TError,CreateManualPostingMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createManualPosting>>,
+        TError,
+        CreateManualPostingMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateManualPostingMutationOptions(options), queryClient);
+    }
+
+export const getGetManualPostingUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/manual-postings/${id}`
+}
+
+export const getManualPosting = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<ManualPostingDetail> => {
+
+  return apiFetch<ManualPostingDetail>(getGetManualPostingUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetManualPostingQueryKey = (id: string,) => {
+    return [
+    `/api/v1/inventory/manual-postings/${id}`
+    ] as const;
+    }
+
+
+export const getGetManualPostingQueryOptions = <TData = Awaited<ReturnType<typeof getManualPosting>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getManualPosting>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetManualPostingQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getManualPosting>>> = ({ signal }) => getManualPosting(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getManualPosting>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetManualPostingQueryResult = NonNullable<Awaited<ReturnType<typeof getManualPosting>>>
+export type GetManualPostingQueryError = unknown
+
+
+export function useGetManualPosting<TData = Awaited<ReturnType<typeof getManualPosting>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getManualPosting>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getManualPosting>>,
+          TError,
+          Awaited<ReturnType<typeof getManualPosting>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetManualPosting<TData = Awaited<ReturnType<typeof getManualPosting>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getManualPosting>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getManualPosting>>,
+          TError,
+          Awaited<ReturnType<typeof getManualPosting>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetManualPosting<TData = Awaited<ReturnType<typeof getManualPosting>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getManualPosting>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetManualPosting<TData = Awaited<ReturnType<typeof getManualPosting>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getManualPosting>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetManualPostingQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetManualPostingLineUrl = (id: string,
+    lineId: string,) => {
+
+
+
+
+  return `/api/v1/inventory/manual-postings/${id}/lines/${lineId}`
+}
+
+export const getManualPostingLine = async (id: string,
+    lineId: string, options?: Parameters<typeof apiFetch>[1]): Promise<ManualPostingLineView> => {
+
+  return apiFetch<ManualPostingLineView>(getGetManualPostingLineUrl(id,lineId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetManualPostingLineQueryKey = (id: string,
+    lineId: string,) => {
+    return [
+    `/api/v1/inventory/manual-postings/${id}/lines/${lineId}`
+    ] as const;
+    }
+
+
+export const getGetManualPostingLineQueryOptions = <TData = Awaited<ReturnType<typeof getManualPostingLine>>, TError = unknown>(id: string,
+    lineId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getManualPostingLine>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetManualPostingLineQueryKey(id,lineId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getManualPostingLine>>> = ({ signal }) => getManualPostingLine(id,lineId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && lineId !== null && lineId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getManualPostingLine>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetManualPostingLineQueryResult = NonNullable<Awaited<ReturnType<typeof getManualPostingLine>>>
+export type GetManualPostingLineQueryError = unknown
+
+
+export function useGetManualPostingLine<TData = Awaited<ReturnType<typeof getManualPostingLine>>, TError = unknown>(
+ id: string,
+    lineId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getManualPostingLine>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getManualPostingLine>>,
+          TError,
+          Awaited<ReturnType<typeof getManualPostingLine>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetManualPostingLine<TData = Awaited<ReturnType<typeof getManualPostingLine>>, TError = unknown>(
+ id: string,
+    lineId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getManualPostingLine>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getManualPostingLine>>,
+          TError,
+          Awaited<ReturnType<typeof getManualPostingLine>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetManualPostingLine<TData = Awaited<ReturnType<typeof getManualPostingLine>>, TError = unknown>(
+ id: string,
+    lineId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getManualPostingLine>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetManualPostingLine<TData = Awaited<ReturnType<typeof getManualPostingLine>>, TError = unknown>(
+ id: string,
+    lineId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getManualPostingLine>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetManualPostingLineQueryOptions(id,lineId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetManualPostingHistoryUrl = (id: string,
+    params?: GetManualPostingHistoryParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/inventory/manual-postings/${id}/history?${stringifiedParams}` : `/api/v1/inventory/manual-postings/${id}/history`
+}
+
+export const getManualPostingHistory = async (id: string,
+    params?: GetManualPostingHistoryParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfRelatedAuditEntryDto> => {
+
+  return apiFetch<PagedListOfRelatedAuditEntryDto>(getGetManualPostingHistoryUrl(id,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetManualPostingHistoryQueryKey = (id: string,
+    params?: GetManualPostingHistoryParams,) => {
+    return [
+    `/api/v1/inventory/manual-postings/${id}/history`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetManualPostingHistoryQueryOptions = <TData = Awaited<ReturnType<typeof getManualPostingHistory>>, TError = unknown>(id: string,
+    params?: GetManualPostingHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getManualPostingHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetManualPostingHistoryQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getManualPostingHistory>>> = ({ signal }) => getManualPostingHistory(id,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getManualPostingHistory>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetManualPostingHistoryQueryResult = NonNullable<Awaited<ReturnType<typeof getManualPostingHistory>>>
+export type GetManualPostingHistoryQueryError = unknown
+
+
+export function useGetManualPostingHistory<TData = Awaited<ReturnType<typeof getManualPostingHistory>>, TError = unknown>(
+ id: string,
+    params: undefined |  GetManualPostingHistoryParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getManualPostingHistory>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getManualPostingHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getManualPostingHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetManualPostingHistory<TData = Awaited<ReturnType<typeof getManualPostingHistory>>, TError = unknown>(
+ id: string,
+    params?: GetManualPostingHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getManualPostingHistory>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getManualPostingHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getManualPostingHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetManualPostingHistory<TData = Awaited<ReturnType<typeof getManualPostingHistory>>, TError = unknown>(
+ id: string,
+    params?: GetManualPostingHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getManualPostingHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetManualPostingHistory<TData = Awaited<ReturnType<typeof getManualPostingHistory>>, TError = unknown>(
+ id: string,
+    params?: GetManualPostingHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getManualPostingHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetManualPostingHistoryQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getApproveManualPostingUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/manual-postings/${id}/approve`
+}
+
+export const approveManualPosting = async (id: string,
+    manualDecisionInput: ManualDecisionInput, options?: Parameters<typeof apiFetch>[1]): Promise<ManualPostingDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ManualPostingDetail>(getApproveManualPostingUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(manualDecisionInput)
+  }
+);}
+
+
+
+
+
+export const getApproveManualPostingMutationKey = () => ['approveManualPosting'] as const;
+
+export const getApproveManualPostingMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof approveManualPosting>>, TError,ApproveManualPostingMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof approveManualPosting>>, TError,ApproveManualPostingMutationVariables, TContext> => {
+
+const mutationKey = getApproveManualPostingMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof approveManualPosting>>, ApproveManualPostingMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  approveManualPosting(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ApproveManualPostingMutationResult = NonNullable<Awaited<ReturnType<typeof approveManualPosting>>>
+    export type ApproveManualPostingMutationBody = ManualDecisionInput
+    export type ApproveManualPostingMutationError = unknown
+    export type ApproveManualPostingMutationVariables = {id: string;data: ManualDecisionInput}
+
+    export const useApproveManualPosting = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof approveManualPosting>>, TError,ApproveManualPostingMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof approveManualPosting>>,
+        TError,
+        ApproveManualPostingMutationVariables,
+        TContext
+      > => {
+      return useMutation(getApproveManualPostingMutationOptions(options), queryClient);
+    }
+
+export const getRejectManualPostingUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/manual-postings/${id}/reject`
+}
+
+export const rejectManualPosting = async (id: string,
+    manualDecisionInput: ManualDecisionInput, options?: Parameters<typeof apiFetch>[1]): Promise<ManualPostingDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ManualPostingDetail>(getRejectManualPostingUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(manualDecisionInput)
+  }
+);}
+
+
+
+
+
+export const getRejectManualPostingMutationKey = () => ['rejectManualPosting'] as const;
+
+export const getRejectManualPostingMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rejectManualPosting>>, TError,RejectManualPostingMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof rejectManualPosting>>, TError,RejectManualPostingMutationVariables, TContext> => {
+
+const mutationKey = getRejectManualPostingMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof rejectManualPosting>>, RejectManualPostingMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  rejectManualPosting(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RejectManualPostingMutationResult = NonNullable<Awaited<ReturnType<typeof rejectManualPosting>>>
+    export type RejectManualPostingMutationBody = ManualDecisionInput
+    export type RejectManualPostingMutationError = unknown
+    export type RejectManualPostingMutationVariables = {id: string;data: ManualDecisionInput}
+
+    export const useRejectManualPosting = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rejectManualPosting>>, TError,RejectManualPostingMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof rejectManualPosting>>,
+        TError,
+        RejectManualPostingMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRejectManualPostingMutationOptions(options), queryClient);
+    }
+
+export const getCancelManualPostingUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/manual-postings/${id}/cancel`
+}
+
+export const cancelManualPosting = async (id: string,
+    manualCancelInput: ManualCancelInput, options?: Parameters<typeof apiFetch>[1]): Promise<ManualPostingDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ManualPostingDetail>(getCancelManualPostingUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(manualCancelInput)
+  }
+);}
+
+
+
+
+
+export const getCancelManualPostingMutationKey = () => ['cancelManualPosting'] as const;
+
+export const getCancelManualPostingMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelManualPosting>>, TError,CancelManualPostingMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelManualPosting>>, TError,CancelManualPostingMutationVariables, TContext> => {
+
+const mutationKey = getCancelManualPostingMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelManualPosting>>, CancelManualPostingMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  cancelManualPosting(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelManualPostingMutationResult = NonNullable<Awaited<ReturnType<typeof cancelManualPosting>>>
+    export type CancelManualPostingMutationBody = ManualCancelInput
+    export type CancelManualPostingMutationError = unknown
+    export type CancelManualPostingMutationVariables = {id: string;data: ManualCancelInput}
+
+    export const useCancelManualPosting = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelManualPosting>>, TError,CancelManualPostingMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof cancelManualPosting>>,
+        TError,
+        CancelManualPostingMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCancelManualPostingMutationOptions(options), queryClient);
     }
 
 export const getListBanksUrl = () => {

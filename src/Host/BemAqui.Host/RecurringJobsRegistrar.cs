@@ -39,6 +39,10 @@ internal sealed class RecurringJobsRegistrar(IRecurringJobManager recurring, ICo
         // Aparelhos da fábrica sem uso há 30 dias ou vencidos (PRD-03b CA 8): 00:30 de São Paulo.
         recurring.AddOrUpdate<BemAqui.Identity.Application.Shopfloor.ShopfloorDevicesRecurringJob>(BemAqui.Identity.Application.Shopfloor.ShopfloorDevicesRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             BemAqui.Identity.Application.Shopfloor.ShopfloorDevicesRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
+        // Resumo diário dos lançamentos manuais do estoque ao Proprietário (EST-01a CA 12, D7): 06:30 de São Paulo, valor inicial.
+        recurring.AddOrUpdate<BemAqui.Inventory.Application.ManualDigestRecurringJob>(BemAqui.Inventory.Application.ManualDigestRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
+            configuration["Jobs:Cron:" + BemAqui.Inventory.Application.ManualDigestRecurringJob.Id] is { Length: > 0 } digest ? digest : BemAqui.Inventory.Application.ManualDigestRecurringJob.Cron,
+            new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         return Task.CompletedTask;
     }
 

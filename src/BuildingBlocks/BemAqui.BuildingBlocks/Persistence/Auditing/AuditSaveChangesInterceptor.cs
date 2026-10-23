@@ -101,12 +101,12 @@ public sealed class AuditSaveChangesInterceptor(ICurrentUser currentUser, TimePr
                 _ => property.IsModified && !Equals(property.OriginalValue, property.CurrentValue),
             };
 
-            if (!changed)
+            var member = property.Metadata.PropertyInfo;
+            if (!changed || member?.GetCustomAttribute<NotAuditedAttribute>() is not null)
             {
                 continue;
             }
 
-            var member = property.Metadata.PropertyInfo;
             var name = JsonNamingPolicy.CamelCase.ConvertName(property.Metadata.Name);
             changes[name] = member?.GetCustomAttribute<ProtectedSecretAttribute>() is not null || member?.GetCustomAttribute<AuditOnCreateOnlyAttribute>() is not null
                 ? new() { ["changed"] = true }

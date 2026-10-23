@@ -4,5 +4,6 @@
     <ProjectReference Include="..\BemAqui.Inventory.Domain\BemAqui.Inventory.Domain.csproj" />
     <ProjectReference Include="..\BemAqui.Inventory.Contracts\BemAqui.Inventory.Contracts.csproj" />
     <ProjectReference Include="..\..\Parties\BemAqui.Parties.Contracts\BemAqui.Parties.Contracts.csproj" />
+    <ProjectReference Include="..\..\Commercial\BemAqui.Commercial.Contracts\BemAqui.Commercial.Contracts.csproj" />
   </ItemGroup>
 </Project>

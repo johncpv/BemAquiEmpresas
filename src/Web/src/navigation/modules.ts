@@ -42,6 +42,8 @@ export interface ModuleUi {
 
 const CASH = 'Caixa e pagamentos'
 const SETUP = 'Configuração financeira'
+const STOCK_OPERATION = 'Operação'
+const STOCK_SETUP = 'Cadastros'
 
 export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
   dashboard: { slug: 'painel', icon: LayoutDashboard },
@@ -50,7 +52,16 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
   parties: { slug: 'cadastros', icon: Contact, tabs: [{ slug: 'terceiros', label: 'Terceiros' }] },
   engineering: { slug: 'engenharia', icon: DraftingCompass, tabs: [{ slug: 'roteiros', label: 'Roteiros' }] },
   production: { slug: 'producao', icon: Factory, tabs: [{ slug: 'os', label: 'OS de fabricação' }, { slug: 'kanban', label: 'Kanban' }, { slug: 'apontamentos-abertos', label: 'Apontamentos abertos' }, { slug: 'instalacoes', label: 'Instalações' }, { slug: 'centros-de-trabalho', label: 'Centros de trabalho' }, { slug: 'calendario', label: 'Calendário' }, { slug: 'modelo-instalacao', label: 'Modelo da OS de instalação' }] },
-  inventory: { slug: 'estoque', icon: Boxes, tabs: [{ slug: 'itens', label: 'Itens' }, { slug: 'locais', label: 'Locais' }, { slug: 'unidades', label: 'Unidades' }, { slug: 'categorias', label: 'Categorias' }, { slug: 'garantia', label: 'Garantia padrão' }] },
+  inventory: { slug: 'estoque', icon: Boxes, tabs: [
+    { slug: 'saldos', label: 'Saldos', group: STOCK_OPERATION },
+    { slug: 'movimentos', label: 'Movimentos', group: STOCK_OPERATION },
+    { slug: 'lancamentos', label: 'Lançamentos pendentes', group: STOCK_OPERATION },
+    { slug: 'itens', label: 'Itens', group: STOCK_SETUP },
+    { slug: 'locais', label: 'Locais', group: STOCK_SETUP },
+    { slug: 'unidades', label: 'Unidades', group: STOCK_SETUP },
+    { slug: 'categorias', label: 'Categorias', group: STOCK_SETUP },
+    { slug: 'garantia', label: 'Garantia padrão', group: STOCK_SETUP },
+  ] },
   purchasing: { slug: 'compras', icon: ShoppingCart },
   assets: { slug: 'patrimonio', icon: Tag },
   finance: { slug: 'financeiro', icon: Wallet, tabs: [
@@ -136,3 +147,6 @@ export function areaOf(areas: readonly NavArea[], module: NavModule): NavArea | 
 
 /** Grupos das abas do Financeiro, na ordem: operação primeiro, configuração depois (D12). */
 export const FINANCE_GROUPS = [CASH, SETUP].map((label) => ({ label, tabs: (MODULE_UI.finance.tabs ?? []).filter((t) => t.group === label) }))
+
+/** Grupos das abas do Estoque (padrão 9 da Fase 3): operação primeiro, cadastros depois; Saldos é a aba padrão. */
+export const INVENTORY_GROUPS = [STOCK_OPERATION, STOCK_SETUP].map((label) => ({ label, tabs: (MODULE_UI.inventory.tabs ?? []).filter((t) => t.group === label) }))

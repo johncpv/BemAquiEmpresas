@@ -45,8 +45,9 @@ test.describe('itens (CAD-02a)', () => {
   test('cadastra matéria-prima só pelo teclado: o tipo sugere o lote e o NCM é exigido (CA 6, 7 e 10)', async ({ page }) => {
     const { api, posted } = itemsApi()
     await mockApi(page, api)
-    await page.goto('/app/estoque')
-    await expect(page).toHaveURL(/\/app\/estoque\/itens$/)
+    // Desde a EST-01a, /app/estoque abre em Saldos (aba padrão); Itens fica em "Cadastros".
+    await page.goto('/app/estoque/itens')
+    await expect(page.getByRole('group', { name: 'Cadastros' }).getByRole('link', { name: 'Itens' })).toHaveAttribute('aria-current', 'page')
     await expect(page.getByText('Cadastre o primeiro item: matéria-prima, componente ou produto acabado.')).toBeVisible()
     await page.getByRole('link', { name: 'Novo item' }).first().focus()
     await page.keyboard.press('Enter')

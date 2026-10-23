@@ -87,6 +87,11 @@ import { LocationsPage } from '@/pages/inventory/LocationsPage'
 import { NewItemPage } from '@/pages/inventory/NewItemPage'
 import { UnitsPage } from '@/pages/inventory/UnitsPage'
 import { WarrantyPage } from '@/pages/inventory/WarrantyPage'
+import { BalancesPage } from '@/pages/inventory/stock/BalancesPage'
+import { ManualPostingPage } from '@/pages/inventory/stock/ManualPostingPage'
+import { ManualPostingsPage } from '@/pages/inventory/stock/ManualPostingsPage'
+import { MovementPage } from '@/pages/inventory/stock/MovementPage'
+import { MovementsPage } from '@/pages/inventory/stock/MovementsPage'
 import { CalendarPage } from '@/pages/production/CalendarPage'
 import { WorkCentersPage } from '@/pages/production/WorkCentersPage'
 import { NewPartyPage } from '@/pages/parties/NewPartyPage'
@@ -153,7 +158,13 @@ const newPartyRoute = createRoute({ getParentRoute: () => appRoute, path: 'cadas
 const partyRoute = createRoute({ getParentRoute: () => appRoute, path: 'cadastros/terceiros/$id', component: gated('parties', PartyPage) })
 // Financeiro (CAD-05b): contas e caixas e condições de pagamento.
 // Estoque e Produção (CAD-03): locais, centros de trabalho e calendário.
-const inventoryRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque', beforeLoad: () => { throw redirect({ to: '/app/estoque/itens' }) } })
+// Saldos é a aba padrão do Estoque (EST-01a); Movimentos e Lançamentos pendentes completam a "Operação".
+const inventoryRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque', beforeLoad: () => { throw redirect({ to: '/app/estoque/saldos' }) } })
+const balancesRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/saldos', component: gated('inventory', BalancesPage) })
+const movementsRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/movimentos', component: gated('inventory', MovementsPage) })
+const movementRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/movimentos/$id', component: gated('inventory', MovementPage) })
+const manualPostingsRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/lancamentos', component: gated('inventory', ManualPostingsPage) })
+const manualPostingRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/lancamentos/$id', component: gated('inventory', ManualPostingPage) })
 const locationsRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/locais', component: gated('inventory', LocationsPage) })
 // Itens, unidades, categorias e garantia padrão (CAD-02a).
 const itemsRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/itens', component: gated('inventory', ItemsPage) })
@@ -296,7 +307,7 @@ export const routeTree = rootRoute.addChildren([
   inviteRoute,
   appRoute.addChildren([appIndexRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute,
     aiSettingsRoute, importRunsRoute, importRunRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute,
-    inventoryRootRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, productionRootRoute, fabricationOrdersRoute, fabricationOrderRoute, kanbanRoute, openLaborRoute, qualityRoute, qualityStepRoute, nonConformitiesRoute, nonConformityRoute, operatorRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute,
+    inventoryRootRoute, balancesRoute, movementsRoute, movementRoute, manualPostingsRoute, manualPostingRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, productionRootRoute, fabricationOrdersRoute, fabricationOrderRoute, kanbanRoute, openLaborRoute, operatorRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute, qualityRoute, qualityStepRoute, nonConformitiesRoute, nonConformityRoute,
     financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, payablesRoute, newPayableRoute, payableRoute, recurringRoute, approvalRulesRoute, openingRoute, cashFlowRoute, agingRoute, paymentOrdersRoute, newPaymentOrderRoute, paymentOrderRoute, statementRoute, quotesRoute, quoteFunnelRoute, quoteRoute, quoteCompareRoute, contractsRoute, contractRoute, amendmentRoute, projectsRoute, projectRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
   platformLoginRoute,
   platformPasswordRoute,
