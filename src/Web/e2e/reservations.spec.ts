@@ -53,6 +53,7 @@ async function reservationsApi(page: Page, overrides: Record<string, (r: Route) 
     'GET /api/v1/production/production-orders/of1/labor-entries': (r: Route) => json(r, []),
     'GET /api/v1/attachments/ProductionOrder/of1': (r: Route) => json(r, []),
     'GET /api/v1/inventory/production-orders/of1/reservations/history': (r: Route) => json(r, history),
+    'GET /api/v1/inventory/production-orders/of1/reservations': (r: Route) => json(r, material(false)),
     'GET /api/v1/inventory/shortages': (r: Route) => json(r, page1([shortageRow])),
     'GET /api/v1/inventory/projects': (r: Route) => json(r, [{ id: 'p1', number: 'PRJ-2026-0007', name: 'Aurora — Elevador' }]),
     ...overrides,
@@ -63,7 +64,8 @@ test.describe('Reservas e faltas (EST-02)', () => {
   test('BOM liberada com falta: "Reservando material…", aba Material, chip no cabeçalho e histórico', async ({ page }, info) => {
     let calls = 0
     await reservationsApi(page, {
-      'GET /api/v1/inventory/production-orders/of1/reservations': (r: Route) => json(r, material(calls++ === 0)),
+      // O cabeçalho e a aba leem a mesma consulta: as duas primeiras respostas ainda estão "reservando".
+      'GET /api/v1/inventory/production-orders/of1/reservations': (r: Route) => json(r, material(calls++ < 2)),
     })
     await page.goto('/app/producao/os/of1?aba=material')
     await expect(page.getByRole('heading', { name: 'OS-2026-00041 — Aurora — Elevador' })).toBeVisible()
@@ -71,6 +73,7 @@ test.describe('Reservas e faltas (EST-02)', () => {
     // A aba se atualiza sozinha até as reservas chegarem à revisão da BOM (padrão 7).
     await expect(page.getByText('Falta 4', { exact: true })).toBeVisible({ timeout: 15_000 })
     await expect(page.getByText('Reservando material…')).toHaveCount(0)
+    await expect(page.getByText('Material reservado: 2 itens, 1 em falta.')).toBeVisible()
     await expect(page.getByRole('button', { name: /Falta material: 1 item/ })).toBeVisible()
     const table = page.getByRole('table', { name: 'Material da OS' })
     await expect(table.getByRole('link', { name: 'Gerar solicitação de compra' })).toBeVisible()

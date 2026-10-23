@@ -54,6 +54,7 @@ function ReleaseImpact({ preview }: { preview: BomReleasePreview }) {
     <div className="space-y-2">
       {!preview.stockConnected ? <p className="text-xs text-muted-foreground">O saldo do estoque ainda não aparece. A falta é calculada quando o estoque estiver ligado.</p> : null}
       {preview.stockConnected && !preview.reservationsConnected ? <p className="text-xs text-muted-foreground">Quanto vai ser reservado e o que já foi baixado ainda não aparecem nesta versão.</p> : null}
+      {preview.reservationsConnected ? <p className="text-xs text-muted-foreground">Ao liberar, o estoque reserva o disponível de cada item para esta OS e o que faltar vira falta para compras. Acompanhe na aba Material.</p> : null}
       {preview.inactiveCount > 0 ? <p className="rounded-md border border-warn-soft bg-warn-soft px-2 py-1 text-xs text-warn-ink">{preview.inactiveCount} {preview.inactiveCount === 1 ? 'item inativo' : 'itens inativos'} na BOM. Confira antes de liberar.</p> : null}
       <div className="overflow-x-auto">
         <table className="w-full text-xs">

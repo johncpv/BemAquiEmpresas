@@ -10,7 +10,7 @@ import { Tag } from '@/components/ui/tag'
 import { Dica } from '@/help/Dica'
 import { formatDateTime } from '@/lib/format'
 import { ReservationHistory } from '@/pages/inventory/stock/ReservationHistory'
-import { locationsText, RESERVATION_DICAS, shortageLabel, SLOW_AFTER_MS } from '@/pages/inventory/stock/reservations'
+import { locationsText, RESERVATION_DICAS, reservedNotice, shortageLabel, SLOW_AFTER_MS } from '@/pages/inventory/stock/reservations'
 import { formatQuantity } from '@/pages/inventory/stock/stock'
 import { useCan } from '@/pages/use-can'
 
@@ -27,6 +27,9 @@ export function MaterialTab({ orderId }: { orderId: string }) {
   const query = useGetOrderMaterial(orderId, { query: { refetchInterval: (q) => (q.state.data?.reconciling ? 3000 : false) } })
   const reconciling = query.data?.reconciling === true
   const [slow, setSlow] = useState(false)
+  // Padrão 7 (decisão do PO de 23/10/2026): ao terminar a reserva, o aviso curto "Material reservado: {n} itens, {f} em falta.".
+  const [waited, setWaited] = useState(false)
+  if (reconciling && !waited) setWaited(true)
   useEffect(() => {
     if (!reconciling) return
     const timer = setTimeout(() => setSlow(true), SLOW_AFTER_MS)
@@ -85,6 +88,7 @@ export function MaterialTab({ orderId }: { orderId: string }) {
           <p>{slow ? 'Está demorando mais que o normal. A reserva continua sozinha: você pode sair desta tela e voltar depois.' : 'O estoque está separando o material da BOM liberada. Esta tela se atualiza sozinha.'}</p>
         </div>
       ) : null}
+      {waited && !reconciling ? <p role="status" className="rounded-md border border-ok-soft bg-ok-soft px-3 py-2 text-sm font-semibold text-ok-ink">{reservedNotice(view)}</p> : null}
       {view.orderClosed ? <p role="note" className="rounded-md border border-border bg-muted px-3 py-2 text-sm">A OS foi concluída ou cancelada: as reservas foram liberadas.</p> : null}
       <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
         <p className="tabular-nums">

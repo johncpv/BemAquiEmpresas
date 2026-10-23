@@ -43,6 +43,12 @@ export function orderShortageSummary(view: OrderMaterialView | undefined): strin
   return `Falta material: ${count} ${count === 1 ? 'item' : 'itens'}`
 }
 
+/** Aviso do fim da reserva (padrão 7, decisão do PO): "Material reservado: 3 itens, 1 em falta." (o mesmo texto da notificação). */
+export function reservedNotice(view: OrderMaterialView): string {
+  const items = view.lines.length
+  return `Material reservado: ${items} ${items === 1 ? 'item' : 'itens'}, ${shortageLines(view).length} em falta.`
+}
+
 /** Locais da linha em texto curto ("ALM 6 · EXP 2"), para a linha expansível a 400 px. */
 export const locationsText = (line: OrderMaterialLine) =>
   line.locations.filter((l) => l.reserved > 0 || l.requested > 0).map((l) => `${l.locationCode} ${formatQuantity(l.reserved)}`).join(' · ') || '—'

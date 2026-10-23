@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { OrderMaterialLine, OrderMaterialView, StockItemContext } from '@/api/generated/model'
-import { deltaText, locationsText, orderShortageSummary, shortageLabel } from './reservations'
+import { deltaText, locationsText, orderShortageSummary, reservedNotice, shortageLabel } from './reservations'
 import { previewImpact } from './stock'
 
 const line = (over: Partial<OrderMaterialLine> = {}): OrderMaterialLine => ({
@@ -26,6 +26,11 @@ describe('reservas e faltas (EST-02)', () => {
     expect(orderShortageSummary(view([line(), line({ itemId: 'i2' })]))).toBe('Falta material: 2 itens')
     expect(orderShortageSummary(view([line({ shortage: 0 })]))).toBeNull()
     expect(orderShortageSummary(undefined)).toBeNull()
+  })
+
+  it('aviso do fim da reserva com o texto do PO (padrão 7)', () => {
+    expect(reservedNotice(view([line(), line({ itemId: 'i2', shortage: 0 }), line({ itemId: 'i3', shortage: 0 })]))).toBe('Material reservado: 3 itens, 1 em falta.')
+    expect(reservedNotice(view([line({ shortage: 0 })]))).toBe('Material reservado: 1 item, 0 em falta.')
   })
 
   it('locais e variação em texto curto', () => {
