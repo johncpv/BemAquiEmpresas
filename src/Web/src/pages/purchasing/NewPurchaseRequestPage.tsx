@@ -113,6 +113,7 @@ function PurchaseRequestForm({ defaults }: { defaults: PurchaseRequestDefaults }
   return (
     <div className="max-w-4xl space-y-6">
       <FormSection title="Itens" description="Quantidade na unidade de estoque ou noutra com conversão cadastrada. Serviço não entra: lance um título a pagar.">
+        <div className="sm:col-span-2">
         <RowsEditor<Line> noun="item" rows={lines} onChange={setLines} min={1} max={50} disabled={!canCreate}
           newRow={() => ({ item: null, quantity: null, unitId: '', neededBy: defaults.neededBy, suggested: true })}
           rowError={(i) => errors[`lines[${i}]`]}
@@ -168,7 +169,8 @@ function PurchaseRequestForm({ defaults }: { defaults: PurchaseRequestDefaults }
               },
             },
           ]} />
-        <p className="inline-flex items-center text-xs text-muted-foreground">Necessidade<Dica nome="Necessidade" texto={PURCHASE_DICAS.necessidade} /> é quando o material precisa estar na fábrica.</p>
+        </div>
+        <p className="inline-flex items-center text-xs text-muted-foreground sm:col-span-2">Necessidade<Dica nome="Necessidade" texto={PURCHASE_DICAS.necessidade} /> é quando o material precisa estar na fábrica.</p>
       </FormSection>
 
       <FormSection title="Destino" description="Para um projeto em andamento ou para o estoque geral.">
