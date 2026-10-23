@@ -332,7 +332,7 @@ _MIG-01d (saldos iniciais de estoque) não entra aqui: cancelada pelo PO em 18/1
 - Requisitos: R-PRD-5, R-EST-4, R-EST-6, R-EST-8, R-PRJ-5, R-PRJ-4, R-PRP-7, R-SEC-5.
 - CA: baixa síncrona pelo motor com lote sugerido; numeração `REQ`; consumo acima da BOM acima de R$ 1.000,00 aprovado por outra pessoa; "Pedir material" no `/fab` (API e botão desta story), que nunca baixa; custo na razão `project_costs`; devolução pelo custo da baixa original; recomposição das saídas com projeto (D3).
 
-**CMP-01 [ ] Solicitação de compra (M)** — 3.3, ordem 14 — [story](stories/CMP-01-solicitacao-compra.md)
+**CMP-01 [x] Solicitação de compra (M)** — 3.3, ordem 14 — [story](stories/CMP-01-solicitacao-compra.md)
 - Requisitos: R-CMP-1, R-CMP-6, R-COM-2, R-COM-4, R-PRP-2, R-PRP-4, R-PRP-5, R-SEC-5.
 - CA: manual ou pela falta da BOM, recomposta a partir de `OpenShortagesAsync` (ADR 0023 §6); job do mínimo descontando o que já está em compra (saldo a receber pelo `OpenQuantityByItemAsync` da CMP-03a); prazo de 15 dias; Serviço recusado; `purchasing.receive` e seed patch `purchasing-permissions` (Almoxarifado só `view` + `receive`, D8); job e consumidores conferem o módulo liberado.
 
