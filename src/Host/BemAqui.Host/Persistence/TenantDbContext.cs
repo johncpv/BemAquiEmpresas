@@ -173,6 +173,10 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<InventoryParameters> InventoryParameters => Set<InventoryParameters>();
 
+    public DbSet<Reservation> Reservations => Set<Reservation>();
+
+    public DbSet<ReservationChange> ReservationChanges => Set<ReservationChange>();
+
     public DbSet<WorkCenter> WorkCenters => Set<WorkCenter>();
 
     public DbSet<Calendar> Calendars => Set<Calendar>();
