@@ -36,15 +36,24 @@ public partial class FabricationTests(TenancyFixture tenancy) : IClassFixture<Te
     private readonly string _storage = Path.Combine(Path.GetTempPath(), "bqe-prd01-" + Guid.NewGuid().ToString("N"));
     private WebApplicationFactory<Program>? _factory;
 
+    /// <summary>
+    /// Os testes da PRD-01 a PRD-06a1 andam as etapas sem BOM (Marco 3.1): aqui vale o <see cref="NoBomGate"/>. O bloqueio real da ENG-02
+    /// (<see cref="EngineeringBomGate"/>) é testado em <c>FabricationTests.Bom</c>, com <see cref="BomFactory"/>.
+    /// </summary>
     private WebApplicationFactory<Program> Factory => _factory ??= tenancy.Factory.WithWebHostBuilder(b => b
         .UseSetting("Storage:Root", _storage)
         .UseSetting("Attachments:MaxUploadsPerHour", "30")
-        .ConfigureTestServices(s => s.AddSingleton<BemAqui.BuildingBlocks.Attachments.IVirusScanner>(_scanner)));
+        .ConfigureTestServices(s =>
+        {
+            s.AddSingleton<BemAqui.BuildingBlocks.Attachments.IVirusScanner>(_scanner);
+            s.AddScoped<IBomGate, NoBomGate>();
+        }));
 
     private static DateOnly Today => BusinessTime.Today(TimeProvider.System);
 
     public void Dispose()
     {
+        _bomFactory?.Dispose();
         _factory?.Dispose();
         if (Directory.Exists(_storage))
         {
