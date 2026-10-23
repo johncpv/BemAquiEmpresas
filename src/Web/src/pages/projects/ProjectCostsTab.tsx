@@ -32,7 +32,7 @@ export function ProjectCostsTab({ projectId }: { projectId: string }) {
   const rows = [...c.lines.map((l) => ({ name: label(l), line: l })), { name: 'Total', line: c.total }]
   return (
     <div className="space-y-3 text-sm">
-      {c.lines.every((l) => l.realized === 0 && l.committed === 0) ? <p className="text-muted-foreground">Nenhum custo lançado ainda. As horas apontadas na produção e os títulos a pagar com o projeto aparecem aqui.</p> : null}
+      {c.lines.every((l) => l.realized === 0 && l.committed === 0) ? <p className="text-muted-foreground">Nenhum custo lançado ainda. O material baixado para as OS, as horas apontadas na produção e os títulos a pagar com o projeto aparecem aqui.</p> : null}
       <table className="hidden w-full sm:table" aria-label="Custos por natureza">
         <thead className="text-xs text-muted-foreground">
           <tr>

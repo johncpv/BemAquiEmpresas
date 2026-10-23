@@ -2,8 +2,9 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import {
-  getGetOrderLaborCostsQueryKey, getMissingLaborCosts, recalculateMissingLaborCosts, useGetLaborEntryCostHistory,
+  getGetOrderLaborCostsQueryKey, getMissingLaborCosts, recalculateMissingLaborCosts, useGetLaborEntryCostHistory, useGetOrderMaterialCost,
 } from '@/api/generated/bemaqui'
+import { formatQuantity } from '@/pages/inventory/stock/stock'
 import type { LaborCostMissingView, LaborEntryCostView, MissingCostPosition } from '@/api/generated/model'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Money } from '@/components/ui/money'
@@ -125,10 +126,39 @@ export function MissingCostNotice({ orderId, positions, onDone }: { orderId: str
 }
 
 /**
- * Aba Custos da OS (PRD-04 CA 14): linha Mão de obra (a EST-03 acrescenta Material), horas e custo por etapa (cartões a 400 px) e
- * o aviso dos apontamentos sem custo-hora. Só com projects.view_cost (a aba nem aparece sem a permissão).
+ * Linha Material da aba Custos da OS (EST-03 CA 10): o custo baixado por item (baixas menos devoluções e estornos) e o total, lidos do
+ * motor de estoque (CostByOrderAsync). A 400 px, cartões.
  */
-export function FabricationCostsTab({ orderId }: { orderId: string }) {
+function MaterialCostLine({ orderId }: { orderId: string }) {
+  const query = useGetOrderMaterialCost(orderId)
+  if (query.isPending) return <Skeleton className="h-16" />
+  if (query.isError) return <ErrorState title="Não foi possível carregar o custo do material." onRetry={() => query.refetch()} />
+  const c = { items: query.data.items ?? [], total: query.data.total ?? 0 }
+  return (
+    <div className="rounded-md border border-border bg-card p-3">
+      <p className="flex flex-wrap items-center justify-between gap-2">
+        <b className="inline-flex items-center">Material<Dica nome="Custo do material" texto={LABOR_COST_DICAS.material} /></b>
+        <Money value={c.total} className="font-semibold" />
+      </p>
+      {c.items.length === 0 ? <p className="mt-1 text-xs text-muted-foreground">Nenhum material baixado ainda. O custo entra quando o almoxarifado baixa a requisição da OS.</p> : (
+        <ul className="mt-2 space-y-1" aria-label="Material por item">
+          {c.items.map((i) => (
+            <li key={i.itemId} className="flex flex-wrap justify-between gap-2 tabular-nums">
+              <span><span className="font-mono">{i.itemCode}</span> {i.itemName} <span className="text-muted-foreground">· {formatQuantity(i.quantity)} {i.unitCode}</span></span>
+              <Money value={i.amount} />
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
+/**
+ * Aba Custos da OS (PRD-04 CA 14, EST-03 CA 10): linha Material (com o Estoque liberado) e linha Mão de obra, horas e custo por etapa
+ * (cartões a 400 px) e o aviso dos apontamentos sem custo-hora. Só com projects.view_cost (a aba nem aparece sem a permissão).
+ */
+export function FabricationCostsTab({ orderId, withMaterial = false }: { orderId: string; withMaterial?: boolean }) {
   const client = useQueryClient()
   const { query } = useOrderLaborCosts(orderId)
   if (query.isPending) return <Skeleton className="h-48" />
@@ -138,6 +168,7 @@ export function FabricationCostsTab({ orderId }: { orderId: string }) {
   return (
     <div className="space-y-3 text-sm">
       <MissingCostNotice orderId={orderId} positions={c.missingPositions} onDone={refresh} />
+      {withMaterial ? <MaterialCostLine orderId={orderId} /> : null}
       <div className="rounded-md border border-border bg-card p-3">
         <p className="flex flex-wrap items-center justify-between gap-2">
           <b className="inline-flex items-center">Mão de obra{c.includesBackfill ? <span className="ml-1 inline-flex items-center"><Tag>Calculado na implantação</Tag><Dica nome="Calculado na implantação" texto={LABOR_COST_DICAS.implantacao} /></span> : null}</b>

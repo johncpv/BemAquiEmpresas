@@ -134,12 +134,12 @@ export function FabricationOrderPage() {
         // ENG-02 (padrão 10): a aba BOM vem depois de Etapas, só com engineering.view.
         ...(canSeeBom ? [{ id: 'bom', label: 'BOM', content: <BomTab orderId={id} /> }] : []),
         // EST-02 CA 14: necessidade, reservado, baixado e falta por linha da BOM.
-        ...(stockReleased ? [{ id: 'material', label: 'Material', content: <MaterialTab orderId={id} /> }] : []),
+        ...(stockReleased ? [{ id: 'material', label: 'Material', content: <MaterialTab orderId={id} projectId={o.projectId} projectNumber={o.projectNumber} /> }] : []),
         { id: 'apontamentos', label: 'Apontamentos', content: <LaborEntriesTab order={o} onChanged={refresh} /> },
         // PRD-05 CA 7: tentativas da qualidade, com o resultado, quem decidiu, "Autoinspeção" e as NC.
         ...(o.steps.some((s) => s.isQualityStep) ? [{ id: 'qualidade', label: 'Qualidade', content: <OrderQualityTab orderId={id} /> }] : []),
-        // PRD-04 CA 14: a aba Custos só existe com projects.view_cost (linha Mão de obra; a EST-03 acrescenta Material).
-        ...(canSeeCost ? [{ id: 'custos', label: 'Custos', content: <FabricationCostsTab orderId={id} /> }] : []),
+        // PRD-04 CA 14: a aba Custos só existe com projects.view_cost (linhas Mão de obra e, com o Estoque, Material da EST-03).
+        ...(canSeeCost ? [{ id: 'custos', label: 'Custos', content: <FabricationCostsTab orderId={id} withMaterial={stockReleased} /> }] : []),
         { id: 'documentos', label: 'Documentos', content: <OrderDocuments orderId={id} inputId="desenho-os" accept=".pdf,.png,.jpg,.jpeg,.dwg,.dxf"
           empty={{ title: 'Nenhum desenho ou documento anexado.', description: 'Anexe os desenhos técnicos (DWG, DXF ou PDF até 25 MB) e as fotos de referência da OS.' }} /> },
         { id: 'historico', label: 'Histórico de alterações', content: <FabricationHistory id={id} /> },

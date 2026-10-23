@@ -9,6 +9,7 @@ import { StatusChip } from '@/components/ui/status-chip'
 import { Tag } from '@/components/ui/tag'
 import { Dica } from '@/help/Dica'
 import { formatDateTime } from '@/lib/format'
+import { OrderRequisitions } from '@/pages/inventory/stock/OrderRequisitions'
 import { ReservationHistory } from '@/pages/inventory/stock/ReservationHistory'
 import { locationsText, RESERVATION_DICAS, reservedNotice, shortageLabel, SLOW_AFTER_MS } from '@/pages/inventory/stock/reservations'
 import { formatQuantity } from '@/pages/inventory/stock/stock'
@@ -21,7 +22,7 @@ const header = (label: string, dica: string) => () => <span className="inline-fl
  * ficam item, reservado e falta; necessidade, baixado e locais vão para a linha expansível (padrão 8). Cada falta leva à solicitação
  * de compra (CMP-01). Depois da liberação, "Reservando material…" até as reservas chegarem à revisão da BOM (padrão 7).
  */
-export function MaterialTab({ orderId }: { orderId: string }) {
+export function MaterialTab({ orderId, projectId, projectNumber }: { orderId: string; projectId?: string; projectNumber?: string | null }) {
   const navigate = useNavigate()
   const canSeeStock = useCan('inventory.view')
   const query = useGetOrderMaterial(orderId, { query: { refetchInterval: (q) => (q.state.data?.reconciling ? 3000 : false) } })
@@ -39,15 +40,20 @@ export function MaterialTab({ orderId }: { orderId: string }) {
   if (query.isPending) return <div className="space-y-2">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-10" />)}</div>
   if (query.isError) return <ErrorState title="Não foi possível carregar o material da OS." message="Verifique a conexão e tente de novo. Se a OS foi removida, volte à lista." onRetry={() => query.refetch()} />
   const view = query.data
+  // EST-03: requisições, devoluções e perda da OS, em toda situação da aba (inclusive sem BOM: material extra e devolução).
+  const requisitions = <OrderRequisitions orderId={orderId} projectId={projectId} projectNumber={projectNumber} />
   if (!view.bomReleased && view.lines.length === 0) {
     return (
-      <EmptyState title="Libere a BOM para reservar o material." description="Quando a BOM da OS é liberada, o estoque reserva cada item e mostra aqui o que falta comprar."
-        action={<button type="button" onClick={() => void navigate({ to: '.', search: { aba: 'bom' } } as never)} className="text-sm font-semibold text-primary">Abrir BOM</button>} />
+      <div className="space-y-4">
+        <EmptyState title="Libere a BOM para reservar o material." description="Quando a BOM da OS é liberada, o estoque reserva cada item e mostra aqui o que falta comprar."
+          action={<button type="button" onClick={() => void navigate({ to: '.', search: { aba: 'bom' } } as never)} className="text-sm font-semibold text-primary">Abrir BOM</button>} />
+        {requisitions}
+      </div>
     )
   }
 
   if (view.lines.length === 0) {
-    return <EmptyState title="Esta OS não usa material de estoque." description="A BOM liberada só tem mão de obra ou serviços. Nada a reservar." />
+    return <div className="space-y-4"><EmptyState title="Esta OS não usa material de estoque." description="A BOM liberada só tem mão de obra ou serviços. Nada a reservar." />{requisitions}</div>
   }
 
   const columns: ColumnDef<OrderMaterialLine>[] = [
@@ -105,6 +111,7 @@ export function MaterialTab({ orderId }: { orderId: string }) {
           render: (l) => <p className="text-sm tabular-nums">Necessidade {formatQuantity(l.required)} {l.unitCode} · Baixado {formatQuantity(l.issued)} · Local {locationsText(l)}</p>,
         }}
         empty={{ title: 'Nenhum material nesta OS.' }} />
+      {requisitions}
       <section aria-labelledby="historico-reserva" className="space-y-2">
         <h2 id="historico-reserva" className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Histórico da reserva</h2>
         <ReservationHistory orderId={orderId} />

@@ -15,6 +15,7 @@ import { StatusChip } from '@/components/ui/status-chip'
 import { useHelp } from '@/help/help-context'
 import { refreshShopfloor, useProductionLive } from '@/pages/production/kanban/useBoardLive'
 import { cn } from '@/lib/utils'
+import { FabMaterial } from './FabMaterial'
 import {
   markStepSeen, NO_EMPLOYEE, FAB_DICAS, finishImpact, floorHours, formatTimer, hoursFromSeconds, MAX_PAUSE_NOTES, missingCount, missingLabel, orderedReasons, pauseLabel, viewableKind, workedSeconds,
 } from './shopfloor'
@@ -189,6 +190,9 @@ function StepBody({ detail: d, fetchedAt, onChanged, onFinished }: {
         {mine && paused ? <p className="text-base text-muted-foreground">Para finalizar, retome a etapa.</p> : null}
         {mine && !paused ? <p className="flex items-center text-base text-muted-foreground">Pausa com motivo; a falta de material avisa o almoxarifado.<FloorDica nome="Pausa" texto={FAB_DICAS.pausa} /></p> : null}
       </section>
+
+      {/* EST-03 CA 5: "Pedir material"; depois de pausar por falta de material, em destaque como próximo passo. */}
+      <FabMaterial stepId={d.step.stepId} highlight={paused && mine?.pauseReason === 'Material'} />
 
       <Attachments stepId={d.step.stepId} items={d.attachments} />
 
