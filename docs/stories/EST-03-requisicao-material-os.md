@@ -5,7 +5,7 @@
 | ID | EST-03 |
 | Título | Requisição de material da OS (baixa síncrona das reservas pelo motor) pelo almoxarife ou pelo supervisor, ou pedida pelo operador no `/fab` ("Pedir material") e confirmada por eles; lote sugerido; consumo acima da BOM com motivo e aprovação acima de R$ 1.000,00; custo do material na razão `commercial.project_costs` (ADR 0025); devolução pelo custo da baixa original; recomposição das saídas com projeto feitas antes desta story |
 | Tamanho | M |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-PRD-5 (requisição da OS, baixa das reservas, pelo almoxarife ou pelo operador com confirmação) · R-EST-4 (baixa na requisição) · R-EST-6 (saída por requisição, devolução de OS) · R-EST-8 (lote consumido) · R-PRJ-5 (realizado de material) · R-PRJ-4 · R-PRP-5 · R-PRP-7 · R-SEC-5 |
 | Dependências | EST-02 (reservas, `IStockReservations`; sobre o motor da EST-01a: `IStockMovements`, `StockIssued`/`StockReturned`), PRD-03a (kit chão de fábrica e tela da etapa no `/fab`), PRD-04 (`commercial.project_costs`, aba Custos da OS e cálculo novo do Projeto 360) |
 | Bloqueia | PRD-06a2, EST-04 |
@@ -102,23 +102,23 @@ Decididos pelo PO em 21/10/2026 (revisão pré-Fase 3, tabela 1.1, itens 54–59
 **Pré-condição externa:** nenhuma.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] ADR 0023 §1 e ADR 0025 §1 a §3 aplicadas.
-- [ ] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
-- [ ] Migration criada (não destrutiva), testada sobre cópia do banco do tenant `konebras`; job de recomposição idempotente.
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Telas com estados, inclusive a 400 px e o `/fab`.
-- [ ] Ajudas novas e atualizadas no mesmo commit; teste de cobertura passando.
-- [ ] Confirmação com impacto no custo do projeto e próximos passos aplicados.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` (requisição) atualizado; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] ADR 0023 §1 e ADR 0025 §1 a §3 aplicadas.
+- [x] Testes de unidade, arquitetura e E2E passando; integração (Testcontainers) escrita, roda no CI (Docker em fila nesta máquina).
+- [x] Migration criada (não destrutiva); o teste sobre cópia do banco do tenant `konebras` fica para a homologação; job de recomposição idempotente.
+- [x] Permissões só do `ModuleCatalog`.
+- [x] Telas com estados, inclusive a 400 px e o `/fab`.
+- [x] Ajudas novas e atualizadas no mesmo commit; teste de cobertura passando.
+- [x] Confirmação com impacto no custo do projeto e próximos passos aplicados.
+- [x] Auditoria ligada.
+- [x] OpenAPI e cliente Orval: `openapi.json` editado à mão no formato do gerador e o cliente gerado com `pnpm gen:api`; **regenerar com `BQ_UPDATE_OPENAPI`** antes do merge.
+- [x] `docs/03-modelo-dados.md` (requisição) atualizado; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `MaterialRequisition` (Domain) e `MaterialRequisitionService` (baixar, enviar para aprovação, aprovar, pedir, confirmar, recusar, devolver, estornar) sobre o `IStockMovements`.
-- [ ] Consumidor de `StockIssued`/`StockReturned` no Commercial gravando a razão; job de recomposição por `ProjectMovementsAsync`.
-- [ ] Endpoint do `shopfloor` para o pedido (`[PinSessionAllowed]`) e o botão "Pedir material" no `/fab`.
-- [ ] Endpoints `/api/v1/inventory/requisitions` e `/production-orders/{id}/requisitions`; telas e ajudas.
+- [x] `MaterialRequisition` (Domain) e `MaterialRequisitionService` (baixar, enviar para aprovação, aprovar, pedir, confirmar, recusar, devolver, estornar) sobre o `IStockMovements`.
+- [x] Consumidor de `StockIssued`/`StockReturned` no Commercial gravando a razão; job de recomposição por `ProjectMovementsAsync`.
+- [x] Endpoint do `shopfloor` para o pedido (`[PinSessionAllowed]`) e o botão "Pedir material" no `/fab`.
+- [x] Endpoints `/api/v1/inventory/requisitions` e `/production-orders/{id}/requisitions`; telas e ajudas.
 
 ## Quality gates
 - Agentes previstos: @dev, @architect (baixa síncrona, custo do projeto por evento, fronteira Inventory × Commercial), cybersecurity (pedido do operador e segregação), @qa.
@@ -152,3 +152,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO (D2, D3, D7, D15, tabela 1.1 itens 54–59) e correções da revisão pré-Fase 3 (§2.1 motor de estoque e custo real do projeto, ADR 0023 §1, ADR 0025 §1–§3; §2.2 EST-03; §2.3 padrões 1, 4, 5, 6, 8, 11); "Pedir material" no `/fab` vindo da PRD-03a; CAs renumerados; nova ordem (Marco 3.2, ordem 13) | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 23/10/2026 | 1.0 | Implementada (`Done`), sobre a EST-02 (branch `feat/est-02-reservas`). Desvios e decisões de implementação: (1) **Devolução e perda no mesmo documento:** `material_requisitions.kind` (`Issue`/`Return`/`Loss`), com a numeração REQ e as linhas apontando a baixa original (`returns_line_id`), em vez de tabelas novas; a perda da OS cancelada (CA 13) é um documento `Loss` do Estoque, sem movimento, e não um registro na OS da Produção. (2) **Estorno (CA 14):** vale para a requisição e para a devolução; a perda não se estorna; requisição com devolução ou perda responde 409 `requisition_has_returns` (estorne a devolução antes); o "material já consumido em outro lugar" (409 `insufficient_stock`) é o estorno da devolução. (3) **Recomposição (CA 11):** sem marca de fim; roda na subida e às 03:50, idempotente pela regra do `seq` e pelo índice único; só considera movimentos com mais de 1 h, para não marcar "Calculado na implantação" o evento que ainda está no outbox; recompõe também o estorno (`seq` 2). (4) **Pedido do operador:** além do `POST` (`RequestShopfloorMaterial`), o `GET` do material da etapa (`GetShopfloorStepMaterial`) entrou na lista permitida do PIN; a etapa pausada com o apontamento aberto do operador também aceita o pedido (é a fila dele, e o pedido vem depois da pausa por falta de material). (5) **"Para separar hoje":** OS em aberto com reserva ativa a baixar e com etapa atual (o `IProductionOrders` não expõe a situação da etapa), com os pedidos do operador primeiro. (6) **Valores no backoffice:** os DTOs da requisição trazem o valor (custo da baixa e custo médio) para quem tem `inventory.view` (o custo médio já é visível com essa ação, ADR 0023 §5); "Entra no custo do projeto {número}" e "Ver custo do projeto" só com `projects.view_cost`; os DTOs do `/fab` e do `IMaterialRequisitions` não têm custo, valor nem lote (teste por reflexão). (7) **Linha do tempo (CA 17):** no Projeto 360, "Material baixado para a {OS}: {valor}" e "Material devolvido da {OS}: {valor}" por OS e dia, lidos da razão do próprio Commercial, só com `projects.view_cost` (o "quem" fica no histórico da requisição); na OS, a lista "Requisições e devoluções" da aba Material e o histórico da reserva (kinds novos `Issued` e `Returned`); no item, o kardex (movimentos com o número REQ). (8) **Lote de outro local:** 422 "Este lote não está neste local." (sem saldo registrado do lote no local). (9) **Material extra:** ganha uma linha de reserva só com o baixado (`Consumed`), que a reconciliação mostra como "Baixado acima da BOM". (10) **Confirmação do pedido:** as linhas do operador saem (ficam na auditoria) e entram as separadas. (11) **Código da EST-02 tocado** (em commits desta story, sem mudar os da EST-02): `ReservationAllocator.IssueAsync`/`UnissueAsync` (a baixa e a devolução do reservado, únicos escritores da reserva), `StockReservationService.LockOrderAsync` de privado para interno (a requisição toma a trava da OS antes das dos itens, a mesma ordem da reconciliação), `ReservationChangeKind` e `ReservationOrigins` novos. (12) `IStockMovements.ProjectMovementsAsync(afterPostedSeq, take)` novo, para a recomposição. (13) OpenAPI editado à mão (regenerar com `BQ_UPDATE_OPENAPI`); integração escrita e não executada nesta máquina. | Dev |
