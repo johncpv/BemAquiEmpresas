@@ -1,7 +1,7 @@
 import { Link, useNavigate } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
 import { useEffect, useState } from 'react'
-import { useGetOrderMaterial, useGetOrderReservationHistory } from '@/api/generated/bemaqui'
+import { useGetOrderMaterial } from '@/api/generated/bemaqui'
 import type { OrderMaterialLine } from '@/api/generated/model'
 import { DataTable } from '@/components/data-table/DataTable'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
@@ -9,7 +9,8 @@ import { StatusChip } from '@/components/ui/status-chip'
 import { Tag } from '@/components/ui/tag'
 import { Dica } from '@/help/Dica'
 import { formatDateTime } from '@/lib/format'
-import { CHANGE_KIND, deltaText, locationsText, RESERVATION_DICAS, shortageLabel, SLOW_AFTER_MS } from '@/pages/inventory/stock/reservations'
+import { ReservationHistory } from '@/pages/inventory/stock/ReservationHistory'
+import { locationsText, RESERVATION_DICAS, shortageLabel, SLOW_AFTER_MS } from '@/pages/inventory/stock/reservations'
 import { formatQuantity } from '@/pages/inventory/stock/stock'
 import { useCan } from '@/pages/use-can'
 
@@ -100,42 +101,10 @@ export function MaterialTab({ orderId }: { orderId: string }) {
           render: (l) => <p className="text-sm tabular-nums">Necessidade {formatQuantity(l.required)} {l.unitCode} · Baixado {formatQuantity(l.issued)} · Local {locationsText(l)}</p>,
         }}
         empty={{ title: 'Nenhum material nesta OS.' }} />
-      <ReservationHistory orderId={orderId} />
+      <section aria-labelledby="historico-reserva" className="space-y-2">
+        <h2 id="historico-reserva" className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Histórico da reserva</h2>
+        <ReservationHistory orderId={orderId} />
+      </section>
     </div>
-  )
-}
-
-/** Histórico da reserva da OS (EST-02 CA 18): quanto foi reservado, liberado e completado, por qual origem e quando. */
-function ReservationHistory({ orderId }: { orderId: string }) {
-  const [page, setPage] = useState(1)
-  const query = useGetOrderReservationHistory(orderId, { page, pageSize: 10 })
-  return (
-    <section aria-labelledby="historico-reserva" className="space-y-2">
-      <h2 id="historico-reserva" className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Histórico da reserva</h2>
-      {query.isPending ? <Skeleton className="h-10" /> : query.isError ? <ErrorState title="Não foi possível carregar o histórico da reserva." onRetry={() => query.refetch()} /> : query.data.items.length === 0
-        ? <p className="text-sm text-muted-foreground">Nenhuma mudança na reserva ainda.</p>
-        : (
-          <>
-            <ol className="space-y-2">
-              {query.data.items.map((c) => (
-                <li key={c.id} className="rounded-md border border-border bg-card px-3 py-2 text-sm">
-                  <p>
-                    <b className="font-semibold">{CHANGE_KIND[c.kind]}</b> <span className="tabular-nums">{deltaText(c.quantityDelta)} {c.unitCode}</span> de <span className="font-mono">{c.itemCode}</span> em {c.locationCode}
-                    <span className="text-muted-foreground"> · reservado {formatQuantity(c.quantityAfter)}, falta {formatQuantity(c.shortageAfter)}</span>
-                  </p>
-                  <p className="text-muted-foreground">{c.origin}{c.isBackfill ? ' · Calculado na implantação' : ''} · <time className="tabular-nums" dateTime={c.at}>{formatDateTime(c.at)}</time></p>
-                </li>
-              ))}
-            </ol>
-            {query.data.total > query.data.pageSize ? (
-              <div className="flex items-center gap-2 text-sm">
-                <button type="button" disabled={page <= 1} onClick={() => setPage(page - 1)} className="rounded-md border border-border px-3 py-1.5 font-semibold disabled:opacity-50">Anterior</button>
-                <span className="tabular-nums">{page} de {Math.ceil(query.data.total / query.data.pageSize)}</span>
-                <button type="button" disabled={page * query.data.pageSize >= query.data.total} onClick={() => setPage(page + 1)} className="rounded-md border border-border px-3 py-1.5 font-semibold disabled:opacity-50">Próxima</button>
-              </div>
-            ) : null}
-          </>
-        )}
-    </section>
   )
 }
