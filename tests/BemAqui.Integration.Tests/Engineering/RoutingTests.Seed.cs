@@ -28,7 +28,7 @@ public partial class RoutingTests
         var engineering = await db.Groups.SingleAsync(g => g.SeedKey == "engineering");
         (await db.GroupModules.AnyAsync(m => m.GroupId == engineering.Id && m.ModuleCode == "engineering" && m.Enabled)).Should().BeTrue();
         (await db.GroupPermissions.Where(p => p.GroupId == engineering.Id && p.ModuleCode == "engineering").Select(p => p.Action).ToListAsync())
-            .Should().BeEquivalentTo(["view", "create", "edit", "delete"], "engineering.approve (liberar a BOM) é da ENG-02");
+            .Should().BeEquivalentTo(["view", "create", "edit", "delete", "approve"], "engineering.approve (liberar a BOM) entra pelo seed patch engineering-release-bom (ENG-02 CA 1)");
         var supervision = await db.Groups.SingleAsync(g => g.SeedKey == "production_supervision");
         (await db.GroupPermissions.Where(p => p.GroupId == supervision.Id && p.ModuleCode == "engineering").Select(p => p.Action).ToListAsync()).Should().Equal("view");
 

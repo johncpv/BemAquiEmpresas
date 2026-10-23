@@ -7732,6 +7732,584 @@
         }
       }
     },
+    "/api/v1/engineering/boms": {
+      "get": {
+        "tags": [
+          "Engenharia"
+        ],
+        "operationId": "ListBoms",
+        "parameters": [
+          {
+            "name": "situation",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfBomOrderSummary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Engenharia"
+        ],
+        "operationId": "CreateBom",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BomCreateInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BomDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/engineering/boms/orders/{orderId}": {
+      "get": {
+        "tags": [
+          "Engenharia"
+        ],
+        "operationId": "GetOrderBom",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BomOrderView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/engineering/boms/orders/{orderId}/history": {
+      "get": {
+        "tags": [
+          "Engenharia"
+        ],
+        "operationId": "GetOrderBomHistory",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfRelatedAuditEntryDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/engineering/boms/orders/{orderId}/item-options": {
+      "get": {
+        "tags": [
+          "Engenharia"
+        ],
+        "operationId": "ListBomItemOptions",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BomItemOption"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/engineering/boms/orders/{orderId}/copy-sources": {
+      "get": {
+        "tags": [
+          "Engenharia"
+        ],
+        "operationId": "ListBomCopySources",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BomCopySource"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/engineering/boms/compare": {
+      "get": {
+        "tags": [
+          "Engenharia"
+        ],
+        "operationId": "CompareBoms",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BomComparison"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/engineering/boms/{id}": {
+      "get": {
+        "tags": [
+          "Engenharia"
+        ],
+        "operationId": "GetBom",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BomDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Engenharia"
+        ],
+        "operationId": "SaveBom",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BomUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BomDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/engineering/boms/{id}/lines/{lineId}": {
+      "get": {
+        "tags": [
+          "Engenharia"
+        ],
+        "operationId": "GetBomLine",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "lineId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BomLineView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/engineering/boms/{id}/release-preview": {
+      "get": {
+        "tags": [
+          "Engenharia"
+        ],
+        "operationId": "GetBomReleasePreview",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BomReleasePreview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/engineering/boms/{id}/copy": {
+      "post": {
+        "tags": [
+          "Engenharia"
+        ],
+        "operationId": "CopyBom",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BomCopyInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BomDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/engineering/boms/{id}/revise": {
+      "post": {
+        "tags": [
+          "Engenharia"
+        ],
+        "operationId": "ReviseBom",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BomVersionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BomDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/engineering/boms/{id}/release": {
+      "post": {
+        "tags": [
+          "Engenharia"
+        ],
+        "operationId": "ReleaseBom",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BomVersionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BomDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/engineering/boms/{id}/discard": {
+      "post": {
+        "tags": [
+          "Engenharia"
+        ],
+        "operationId": "DiscardBom",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BomVersionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/production/work-centers": {
       "get": {
         "tags": [
@@ -18962,6 +19540,1035 @@
           }
         }
       },
+      "BomChange": {
+        "enum": [
+          "Unchanged",
+          "Added",
+          "Removed",
+          "Changed"
+        ]
+      },
+      "BomCompareLine": {
+        "required": [
+          "itemId",
+          "itemCode",
+          "itemName",
+          "stockUnitCode",
+          "change",
+          "fromQuantity",
+          "fromUnitCode",
+          "fromScrapPct",
+          "fromRequired",
+          "toQuantity",
+          "toUnitCode",
+          "toScrapPct",
+          "toRequired"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "stockUnitCode": {
+            "type": "string"
+          },
+          "change": {
+            "$ref": "#/components/schemas/BomChange"
+          },
+          "fromQuantity": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "fromUnitCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "fromScrapPct": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "fromRequired": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "toQuantity": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "toUnitCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "toScrapPct": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "toRequired": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "BomComparison": {
+        "required": [
+          "fromBomId",
+          "fromRevision",
+          "toBomId",
+          "toRevision",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "fromBomId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fromRevision": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "toBomId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "toRevision": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BomCompareLine"
+            }
+          }
+        }
+      },
+      "BomCopyInput": {
+        "required": [
+          "sourceBomId",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "sourceBomId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BomCopySource": {
+        "required": [
+          "bomId",
+          "productionOrderId",
+          "orderNumber",
+          "revision",
+          "productCode",
+          "productName",
+          "lineCount",
+          "releasedAt",
+          "suggested"
+        ],
+        "type": "object",
+        "properties": {
+          "bomId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "productionOrderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "productCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "productName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lineCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "releasedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "suggested": {
+            "type": "boolean"
+          }
+        }
+      },
+      "BomCreateInput": {
+        "required": [
+          "productionOrderId",
+          "copyFromBomId"
+        ],
+        "type": "object",
+        "properties": {
+          "productionOrderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "copyFromBomId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BomDetail": {
+        "required": [
+          "id",
+          "productionOrderId",
+          "revision",
+          "status",
+          "releasedAt",
+          "releasedBy",
+          "releasedByName",
+          "copiedFromBomId",
+          "copiedFromOrderNumber",
+          "copiedFromRevision",
+          "lines",
+          "shortageCount",
+          "stockConnected",
+          "estimatedCost",
+          "version",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "productionOrderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "$ref": "#/components/schemas/BomStatus"
+          },
+          "releasedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "releasedBy": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "releasedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "copiedFromBomId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "copiedFromOrderNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "copiedFromRevision": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BomLineView"
+            }
+          },
+          "shortageCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "stockConnected": {
+            "type": "boolean"
+          },
+          "estimatedCost": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "BomItemOption": {
+        "required": [
+          "id",
+          "code",
+          "name",
+          "type",
+          "stockUnitId",
+          "stockUnitCode",
+          "units",
+          "available"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ItemType"
+          },
+          "stockUnitId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "stockUnitCode": {
+            "type": "string"
+          },
+          "units": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ItemUnitOption"
+            }
+          },
+          "available": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "BomLineInput": {
+        "required": [
+          "id",
+          "itemId",
+          "quantity",
+          "unitId",
+          "scrapPct",
+          "notes"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "scrapPct": {
+            "type": "number",
+            "format": "double"
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "BomLineView": {
+        "required": [
+          "id",
+          "sequence",
+          "itemId",
+          "itemCode",
+          "itemName",
+          "itemType",
+          "itemActive",
+          "quantity",
+          "unitId",
+          "unitCode",
+          "scrapPct",
+          "notes",
+          "requiredQuantity",
+          "stockUnitId",
+          "stockUnitCode",
+          "onHand",
+          "reserved",
+          "available",
+          "shortage",
+          "estimatedCost",
+          "units"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "itemType": {
+            "$ref": "#/components/schemas/ItemType"
+          },
+          "itemActive": {
+            "type": "boolean"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "scrapPct": {
+            "type": "number",
+            "format": "double"
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "requiredQuantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "stockUnitId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "stockUnitCode": {
+            "type": "string"
+          },
+          "onHand": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "reserved": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "available": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "shortage": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "estimatedCost": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "units": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ItemUnitOption"
+            }
+          }
+        }
+      },
+      "BomOrderHeader": {
+        "required": [
+          "id",
+          "number",
+          "status",
+          "projectId",
+          "productId",
+          "productCode",
+          "productName",
+          "quantity",
+          "closed",
+          "currentStepCode",
+          "currentStepName",
+          "currentStepSequence"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProductionOrderState"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "productId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "productCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "productName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "closed": {
+            "type": "boolean"
+          },
+          "currentStepCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "currentStepName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "currentStepSequence": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "BomOrderSummary": {
+        "required": [
+          "productionOrderId",
+          "number",
+          "orderStatus",
+          "productCode",
+          "productName",
+          "quantity",
+          "currentStepCode",
+          "currentStepName",
+          "currentStepSequence",
+          "stepCount",
+          "situation",
+          "draftBomId",
+          "draftLineCount",
+          "draftVersion",
+          "releasedBomId",
+          "releasedRevision",
+          "releasedAt",
+          "willStop"
+        ],
+        "type": "object",
+        "properties": {
+          "productionOrderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "orderStatus": {
+            "$ref": "#/components/schemas/ProductionOrderState"
+          },
+          "productCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "productName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "currentStepCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "currentStepName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "currentStepSequence": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "stepCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "situation": {
+            "$ref": "#/components/schemas/BomSituation"
+          },
+          "draftBomId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "draftLineCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "draftVersion": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "uint32"
+          },
+          "releasedBomId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "releasedRevision": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "releasedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "willStop": {
+            "type": "boolean"
+          }
+        }
+      },
+      "BomOrderView": {
+        "required": [
+          "order",
+          "released",
+          "draft",
+          "revisions"
+        ],
+        "type": "object",
+        "properties": {
+          "order": {
+            "$ref": "#/components/schemas/BomOrderHeader"
+          },
+          "released": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/BomDetail"
+              }
+            ]
+          },
+          "draft": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/BomDetail"
+              }
+            ]
+          },
+          "revisions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BomRevisionSummary"
+            }
+          }
+        }
+      },
+      "BomReleasePreview": {
+        "required": [
+          "bomId",
+          "revision",
+          "isRevision",
+          "previousRevision",
+          "empty",
+          "stockConnected",
+          "reservationsConnected",
+          "shortageCount",
+          "inactiveCount",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "bomId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isRevision": {
+            "type": "boolean"
+          },
+          "previousRevision": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "empty": {
+            "type": "boolean"
+          },
+          "stockConnected": {
+            "type": "boolean"
+          },
+          "reservationsConnected": {
+            "type": "boolean"
+          },
+          "shortageCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "inactiveCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BomReleasePreviewLine"
+            }
+          }
+        }
+      },
+      "BomReleasePreviewLine": {
+        "required": [
+          "itemId",
+          "itemCode",
+          "itemName",
+          "stockUnitCode",
+          "itemActive",
+          "change",
+          "previousRequired",
+          "required",
+          "moreToReserve",
+          "toRelease",
+          "available",
+          "toReserve",
+          "shortage",
+          "issued",
+          "issuedWarning"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "stockUnitCode": {
+            "type": "string"
+          },
+          "itemActive": {
+            "type": "boolean"
+          },
+          "change": {
+            "$ref": "#/components/schemas/BomChange"
+          },
+          "previousRequired": {
+            "type": "number",
+            "format": "double"
+          },
+          "required": {
+            "type": "number",
+            "format": "double"
+          },
+          "moreToReserve": {
+            "type": "number",
+            "format": "double"
+          },
+          "toRelease": {
+            "type": "number",
+            "format": "double"
+          },
+          "available": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "toReserve": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "shortage": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "issued": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "issuedWarning": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "BomRevisionSummary": {
+        "required": [
+          "id",
+          "revision",
+          "status",
+          "lineCount",
+          "createdAt",
+          "releasedAt",
+          "releasedByName"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "$ref": "#/components/schemas/BomStatus"
+          },
+          "lineCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "releasedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "releasedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "BomSituation": {
+        "enum": [
+          "None",
+          "Draft",
+          "Released"
+        ]
+      },
+      "BomStatus": {
+        "enum": [
+          "Draft",
+          "Released",
+          "Superseded"
+        ]
+      },
+      "BomUpdate": {
+        "required": [
+          "lines",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BomLineInput"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BomVersionInput": {
+        "required": [
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
       "CalendarDetail": {
         "required": [
           "id",
@@ -24360,6 +25967,31 @@
           "Service"
         ]
       },
+      "ItemUnitOption": {
+        "required": [
+          "unitId",
+          "code",
+          "isStockUnit",
+          "toStock"
+        ],
+        "type": "object",
+        "properties": {
+          "unitId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "isStockUnit": {
+            "type": "boolean"
+          },
+          "toStock": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "LaborCloseKind": {
         "enum": [
           "Operator",
@@ -27878,6 +29510,35 @@
           }
         }
       },
+      "PagedListOfBomOrderSummary": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BomOrderSummary"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "PagedListOfEmployeeDetail": {
         "required": [
           "items",
@@ -30818,6 +32479,17 @@
             }
           }
         }
+      },
+      "ProductionOrderState": {
+        "enum": [
+          "Open",
+          "InProgress",
+          "Paused",
+          "Quality",
+          "Completed",
+          "Cancelled",
+          "ReadyToComplete"
+        ]
       },
       "ProductionOrderStatus": {
         "enum": [

@@ -51,6 +51,12 @@ public sealed partial class FabricationOrderService
             return Error.Conflict("quality_step", "A etapa de qualidade é decidida na inspeção, não no quadro.");
         }
 
+        // ENG-02 CA 16 (D12): concluir pelo supervisor uma etapa depois da primeira que ainda não começou exige a BOM liberada.
+        if (BomGateRules.Applies(currentIndex, scope.Step.Status != ProductionStepStatus.Ready) && !await bom.IsReleasedAsync(id, cancellationToken))
+        {
+            return BomGateRules.NotReleased();
+        }
+
         if (order.Version != input.Version)
         {
             return InstallationOrderService.Stale();

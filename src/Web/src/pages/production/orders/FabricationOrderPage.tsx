@@ -11,6 +11,7 @@ import { StatusChip } from '@/components/ui/status-chip'
 import { UrlTabs } from '@/components/ui/url-tabs'
 import { Dica } from '@/help/Dica'
 import { formatDate, formatDateTime } from '@/lib/format'
+import { BomTab } from '@/pages/engineering/boms/BomTab'
 import { useCan } from '@/pages/use-can'
 import { OrderDocuments } from '../OrderDocuments'
 import { CompleteOrderDialog, ReverseCompletionDialog } from './CompletionDialogs'
@@ -25,7 +26,7 @@ import { canChangeSteps, delayLabel, FABRICATION_DICAS, FABRICATION_STATUS, hour
 
 /**
  * OS de fabricação (PRD-01 CA 10): OrderHeader e FactsBar comuns com a OS de instalação; abas na ordem do padrão 10 (as das
- * stories seguintes entram nelas): Etapas, Apontamentos, Custos (só com projects.view_cost, PRD-04), Documentos e Histórico de alterações.
+ * stories seguintes entram nelas): Etapas, BOM (ENG-02, com engineering.view), Apontamentos, Custos (só com projects.view_cost, PRD-04), Documentos e Histórico de alterações.
  */
 export function FabricationOrderPage() {
   const { id } = useParams({ strict: false }) as { id: string }
@@ -35,6 +36,7 @@ export function FabricationOrderPage() {
   const canEdit = useCan('production.edit')
   const canSeeCost = useCan('projects.view_cost')
   const canFinance = useCan('finance.view')
+  const canSeeBom = useCan('engineering.view')
   const query = useGetFabricationOrder(id)
   const [justCreated, setJustCreated] = useState(String(gerada) === '1')
   // PRD-06a1: depois de concluir, os próximos passos (parcela liberada e projeto).
@@ -114,6 +116,8 @@ export function FabricationOrderPage() {
       ]} />
       <UrlTabs label="Seções da OS" fallback="etapas" tabs={[
         { id: 'etapas', label: 'Etapas', content: <FabricationSteps key={o.version} order={o} onSaved={refresh} /> },
+        // ENG-02 (padrão 10): a aba BOM vem depois de Etapas, só com engineering.view.
+        ...(canSeeBom ? [{ id: 'bom', label: 'BOM', content: <BomTab orderId={id} /> }] : []),
         { id: 'apontamentos', label: 'Apontamentos', content: <LaborEntriesTab order={o} onChanged={refresh} /> },
         // PRD-05 CA 7: tentativas da qualidade, com o resultado, quem decidiu, "Autoinspeção" e as NC.
         ...(o.steps.some((s) => s.isQualityStep) ? [{ id: 'qualidade', label: 'Qualidade', content: <OrderQualityTab orderId={id} /> }] : []),

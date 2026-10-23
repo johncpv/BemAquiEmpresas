@@ -320,7 +320,7 @@ _MIG-01d (saldos iniciais de estoque) não entra aqui: cancelada pelo PO em 18/1
 - Requisitos: R-EST-4, R-EST-5, R-EST-6, R-EST-7, R-EST-2, R-EST-3, R-EST-8, R-COM-4, R-PRP-7, R-SEC-5.
 - CA: posição agregada com `CHECK`s e trava item → local → lote; `PostAsync` exige transação; movimento imutável (trigger) e estorno por movimento inverso; numeração `MOV`; janela de implantação com "Concluir implantação do estoque"; entrada e saída manual acima de R$ 1.000,00 ou com desvio acima de 20% aprovadas por outra pessoa (D7); `SoleOwnerRule`; `CostByOrderAsync`.
 
-**ENG-02 [ ] BOM da OS (M)** — 3.2, ordem 11 — [story](stories/ENG-02-bom-da-os.md)
+**ENG-02 [x] BOM da OS (M)** — 3.2, ordem 11 — [story](stories/ENG-02-bom-da-os.md)
 - Requisitos: R-ENG-3, R-ENG-4, R-ENG-5, R-EST-3, R-PRP-2, R-PRP-3, R-SEC-5.
 - CA: BOM por unidade com a necessidade da OS; liberar com `engineering.approve` (seed patch `engineering-release-bom`, D13); revisão com `Superseded`; liga o bloqueio da D12 no início de etapa (PRD-03a) e na "Concluir etapa" (PRD-02) com 409 `bom_not_released`; filtro "OS que vão parar sem BOM"; `IBoms.ReleasedForOrderAsync`.
 

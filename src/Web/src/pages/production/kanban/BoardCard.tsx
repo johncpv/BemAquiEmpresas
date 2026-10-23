@@ -10,6 +10,7 @@ import { StageIndicator } from '@/components/ui/stage-indicator'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Dica } from '@/help/Dica'
 import { cn } from '@/lib/utils'
+import { useBomRecovery } from '@/pages/engineering/boms/bom-recovery'
 import { quantity } from '../orders/fabrication'
 import { canCompleteStep, completeLabel, hoursText, KANBAN_DICAS, MAX_REASON, meter, promisedText, stripe } from './kanban'
 
@@ -83,12 +84,14 @@ export function BoardCard({ card, canApprove, onChanged }: { card: Card; canAppr
 /** "Concluir etapa" (CA 8, padrão 4): motivo obrigatório (até 200) e confirmação com o mesmo verbo. */
 export function CompleteStepDialog({ card, open, onOpenChange, onDone }: { card: Card; open: boolean; onOpenChange: (open: boolean) => void; onDone: () => Promise<void> }) {
   const [reason, setReason] = useState('')
+  // ENG-02 CA 16: etapa depois da primeira sem BOM liberada → "Abrir BOM da OS".
+  const recovery = useBomRecovery(card.id)
   return (
     <ConfirmDialog verb="Concluir etapa" done="Etapa concluída" open={open} onOpenChange={onOpenChange} onOpen={() => setReason('')}
       title={`${completeLabel(card)} da ${card.number}?`}
       description={<span className="inline-flex items-center">A etapa fica concluída pelo supervisor, sem apontamento, e a próxima fica pronta.<Dica nome="Concluir etapa" texto={KANBAN_DICAS.concluirEtapa} /></span>}
       preconditions={[{ ok: reason.trim().length > 0, text: 'Informe o motivo.' }]}
-      onReload={onDone}
+      onReload={onDone} recovery={recovery}
       onConfirm={async () => {
         await completeFabricationStep(card.id, card.currentStepId!, { reason: reason.trim(), version: card.version })
         await onDone()

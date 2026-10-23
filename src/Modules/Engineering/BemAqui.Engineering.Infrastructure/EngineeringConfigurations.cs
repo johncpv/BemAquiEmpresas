@@ -49,6 +49,40 @@ internal sealed class RoutingTemplateStepConfiguration : IEntityTypeConfiguratio
     }
 }
 
+/// <summary>
+/// BOM da OS (ENG-02): revisão única por OS, uma liberada e um rascunho por vez (índices únicos parciais). Os <c>CHECK</c>s de situação,
+/// quantidade e perda entram por SQL na migration.
+/// </summary>
+internal sealed class BomConfiguration : IEntityTypeConfiguration<Bom>
+{
+    public void Configure(EntityTypeBuilder<Bom> b)
+    {
+        b.ToTable("boms", EngineeringSchema.Name);
+        b.Property(e => e.Status).HasConversion<string>().HasMaxLength(16);
+        b.HasIndex(e => new { e.ProductionOrderId, e.Revision }).IsUnique().HasDatabaseName(BomService.RevisionIndex);
+        // Dois índices sobre a mesma coluna: só com nome o EF os mantém separados.
+        b.HasIndex(e => e.ProductionOrderId, BomService.ReleasedIndex).IsUnique().HasFilter("status = 'Released'").HasDatabaseName(BomService.ReleasedIndex);
+        b.HasIndex(e => e.ProductionOrderId, BomService.DraftIndex).IsUnique().HasFilter("status = 'Draft'").HasDatabaseName(BomService.DraftIndex);
+        b.HasIndex(e => e.CopiedFromBomId);
+    }
+}
+
+internal sealed class BomLineConfiguration : IEntityTypeConfiguration<BomLine>
+{
+    public void Configure(EntityTypeBuilder<BomLine> b)
+    {
+        b.ToTable("bom_lines", EngineeringSchema.Name);
+        b.Property(e => e.Quantity).HasPrecision(18, 4);
+        b.Property(e => e.ScrapPct).HasPrecision(7, 4);
+        b.Property(e => e.RequiredQuantity).HasPrecision(18, 4);
+        b.Property(e => e.Notes).HasMaxLength(BomRules.MaxNotes);
+        b.HasOne<Bom>().WithMany().HasForeignKey(e => e.BomId).OnDelete(DeleteBehavior.Restrict);
+        // O mesmo item não se repete na BOM (CA 3); o serviço também valida, com a linha.
+        b.HasIndex(e => new { e.BomId, e.ItemId }).IsUnique().HasDatabaseName(BomService.LineItemIndex);
+        b.HasIndex(e => e.ItemId);
+    }
+}
+
 internal sealed class RoutingTemplateItemConfiguration : IEntityTypeConfiguration<RoutingTemplateItem>
 {
     public void Configure(EntityTypeBuilder<RoutingTemplateItem> b)

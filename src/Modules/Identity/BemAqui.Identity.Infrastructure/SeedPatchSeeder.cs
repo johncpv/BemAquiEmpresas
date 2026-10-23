@@ -65,6 +65,12 @@ public sealed class SeedPatchSeeder : ITenantSeeder
         [
             ("hr", "hr", ["view_health"]),
         ]),
+        // ENG-02 CA 1 (D13, ADR 0008 adendo de 21/10/2026): a Engenharia libera a BOM. Aplicado pelo sistema, fora da delegação; fora do
+        // seed, só um membro do Proprietário concede engineering.approve, e quem a tem passa a ter 2FA obrigatório no login.
+        new("engineering-release-bom",
+        [
+            ("engineering", "engineering", ["approve"]),
+        ]),
     ];
 
     public int Order => 25;
