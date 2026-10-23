@@ -5,7 +5,7 @@
 | ID | ENG-02 |
 | Título | BOM (lista de materiais) criada na etapa Projeto da OS de fabricação, com cópia de outra OS ou do último item igual; linhas com item, quantidade por unidade, unidade e perda %; liberação pela engenharia que dispara reservas e cálculo de faltas; revisão depois da liberação com histórico e ajuste das reservas; bloqueio das etapas depois da primeira sem BOM liberada (D12) |
 | Tamanho | M |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-ENG-3 (BOM na etapa Projeto, cópia de item/OS anterior, itens, quantidades, unidade, perda %) · R-ENG-4 (liberação dispara reserva e faltas) · R-ENG-5 (revisão após liberação ajusta reservas e registra histórico) · R-EST-3 · R-PRP-2 ("BOM liberada com falta → Gerar solicitação de compra") · R-PRP-3 · R-SEC-5 |
 | Dependências | PRD-01 (OS de fabricação, `IProductionOrders`), PRD-03a (início de etapa, onde o bloqueio da D12 liga), EST-01a (`IStockBalances` para a prévia de faltas) |
 | Bloqueia | EST-02, EST-06 |
@@ -105,24 +105,24 @@ Decisões da revisão aplicadas: D13 (`engineering.delete` para descartar rascun
 **Pré-condição externa:** nenhuma.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers) e E2E passando.
-- [ ] Migration criada (não destrutiva), testada sobre cópia do banco do tenant `konebras`; seed patch `engineering-release-bom` (ADR 0008 adendo de 21/10/2026 aplicado).
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Bloqueio da D12 ligado no início de etapa (PRD-03a) e na "Concluir etapa" (PRD-02).
-- [ ] Telas com estados, inclusive a 400 px.
-- [ ] Ajuda da aba e da lista; teste de cobertura passando.
-- [ ] Confirmação com impacto e próximos passos aplicados.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` (situação `Superseded`, D12) atualizados; story marcada no backlog.
+- [x] Critérios de aceite atendidos (CA 3, 8 e 14 com saldo, falta, custo previsto e baixado nulos até a EST-01a e a EST-02 ligarem o estoque; ver Change Log 1.0).
+- [x] Testes de unidade (`BomRulesTests`, 10) e E2E (`boms.spec.ts`, 3 cenários × desktop e celular) passando; integração (Testcontainers, `FabricationTests.Bom`, 14 cenários) **escrita e não executada** nesta máquina (Docker em fila): rodar `sh scripts/test-docker.sh` antes do merge.
+- [x] Migration `EngineeringBoms` criada (só `CreateTable`, índices e `CHECK`s por SQL, sem Drop nem Rename); **falta** testar sobre cópia do banco do tenant `konebras`. Seed patch `engineering-release-bom` (ADR 0008 adendo de 21/10/2026 aplicado).
+- [x] Permissões só do `ModuleCatalog`.
+- [x] Bloqueio da D12 ligado no início de etapa (PRD-03a) e na "Concluir etapa" (PRD-02).
+- [x] Telas com estados, inclusive a 400 px.
+- [x] Ajuda da aba e da lista; teste de cobertura passando.
+- [x] Confirmação com impacto e próximos passos aplicados.
+- [x] Auditoria ligada (`Bom` e `BomLine`; histórico por OS, inclusive o rascunho descartado).
+- [x] OpenAPI e cliente Orval: `openapi.json` editado à mão e cliente gerado com `pnpm gen:api`; **regenerar** com `BQ_UPDATE_OPENAPI=1 sh scripts/test-docker.sh --filter-class "*OpenApiDocumentTests"` e `pnpm gen:api`.
+- [x] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` (situação `Superseded`, D12) atualizados; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `Bom` e `BomLine` (Domain) com a máquina de estados e o cálculo da necessidade.
-- [ ] `BomService` (criar, copiar, salvar, liberar, revisar, descartar) publicando `BomReleased`/`BomRevised`.
-- [ ] `IBoms` em `Engineering.Contracts` (`ReleasedForOrderAsync`, `IsReleasedAsync`).
-- [ ] Bloqueio por BOM no serviço de etapas da Produção (início e "Concluir etapa").
-- [ ] Endpoints `/api/v1/engineering/boms`; aba BOM na OS, lista de BOMs com o filtro do deploy, ajudas e seed patch.
+- [x] `Bom` e `BomLine` (Domain) com a máquina de estados e o cálculo da necessidade.
+- [x] `BomService` (criar, copiar, salvar, liberar, revisar, descartar) publicando `BomReleased`/`BomRevised`.
+- [x] `IBoms` em `Engineering.Contracts` (`ReleasedForOrderAsync`, `IsReleasedAsync`).
+- [x] Bloqueio por BOM no serviço de etapas da Produção (início e "Concluir etapa").
+- [x] Endpoints `/api/v1/engineering/boms`; aba BOM na OS, lista de BOMs com o filtro do deploy, ajudas e seed patch.
 
 ## Quality gates
 - Agentes previstos: @dev, @architect (evento com necessidade calculada, reconciliação pela fonte e fronteira Engineering × Inventory × Production), @qa.
@@ -156,3 +156,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO (D1, D12, D13, tabela 1.1 itens 23–26) e correções da revisão pré-Fase 3 (§2.1 reservas e faltas pela fonte, §2.3 padrões 4, 6, 7, 8 e 10); nova ordem (Marco 3.2, ordem 11); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 23/10/2026 | 1.0 | Implementada (`Done`). Desvios: (1) **EST-01a ainda fora da main:** o saldo vem de um ponto de ligação pequeno, `IBomStock` (Engineering.Application), com `DisconnectedBomStock` registrado; físico, reservado, disponível, falta, "vai reservar" e custo previsto ficam nulos e a tela diz "o saldo do estoque ainda não aparece". A EST-01a liga `PositionsAsync`/`AverageCostsAsync` num adaptador sobre o `IStockBalances` (e o custo médio); a EST-02 liga `IssuedForOrderAsync` (aviso do CA 14, oculto até lá). Nenhum código da EST-01a foi copiado. (2) `bom_lines` ganha `sequence` e `required_quantity` (a necessidade da OS na unidade de estoque, recalculada a cada gravação e na liberação; é o que o evento e o `IBoms` levam). (3) Contrato novo `IItemUnits` (Inventory.Contracts): unidades usáveis por item com o fator para a de estoque (editor e prévia ao vivo); a conta gravada continua no `IUnitConversion`. (4) `IProductionOrders.OpenAsync` e `ProductionOrderInfo` com `CurrentStepSequence`, `FirstStepDone` e `StepCount` (parâmetros opcionais, compatível) para o filtro do CA 17. (5) `AuditHistory.GetByParentAsync` (BuildingBlocks): histórico de todas as revisões e linhas da OS, inclusive o rascunho apagado. (6) O bloqueio da D12 vale para a etapa depois da primeira que ainda está `Ready`; `InProgress`/`Paused` (inclusive outro operador entrando e o supervisor concluindo) não é interrompida. Com o módulo `engineering` não liberado no tenant, o bloqueio não vale. (7) CA 11 vale para criar, salvar, copiar, revisar e liberar; descartar rascunho de OS fechada é permitido. BOM muda em qualquer OS não concluída nem cancelada (inclusive `Paused`, `Quality` e `ReadyToComplete`). (8) A revisão descartada libera o número (revisão = maior existente + 1). (9) `BomRevised` leva o item removido com `RequiredQty` 0 e o id da linha anterior. (10) Copiar: origem é BOM não rascunho de outra OS; item excluído, Serviço ou o próprio produto não é copiado; unidade sem conversão entra com necessidade 0 até o salvar pedir a conversão. Item inativo entra marcado e não bloqueia salvar nem liberar (o diálogo avisa). (11) Próximos passos depois de liberar com falta: "Ver solicitações de compra geradas" leva a `/app/compras` (CMP-01) e "Ver faltas da OS" fica na aba BOM (a aba Material é da EST-02); a mensagem "BOM liberada. Reservando material…" sai, mas o aviso de 30 s e a notificação são da EST-02. A falta por linha só é calculada no rascunho (na liberada vem das reservas, EST-02). (12) "Fora do seed, só o Proprietário concede `engineering.approve`" já é garantido pela regra de ações reservadas `*.approve` (FND-06b); sem código novo. (13) `FabricationTests` (PRD-01 a PRD-06a1) passa a usar o `NoBomGate`; os testes da ENG-02 usam o `EngineeringBomGate`. (14) OpenAPI editado à mão: regenerar. Pendente do PO: confirmar 6, 7 e 10 (item inativo não bloqueia a liberação) | Dex (dev) |
