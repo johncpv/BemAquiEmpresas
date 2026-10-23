@@ -21,8 +21,8 @@ public interface IItemSupplierCodes
     Task<SupplierCodeMatch?> FindAsync(Guid partyId, string supplierCode, CancellationToken cancellationToken = default);
 }
 
-/// <summary>Unidade em que um item pode ser informado: a de estoque ou outra com conversão cadastrada (ENG-02 CA 2).</summary>
-public sealed record ItemUnitOption(Guid UnitId, string Code, bool IsStockUnit);
+/// <summary>Unidade em que um item pode ser informado: a de estoque ou outra com conversão cadastrada (ENG-02 CA 2); <c>ToStock</c> é quanto 1 desta unidade vale na de estoque (prévia ao vivo na tela; a conta gravada é do <see cref="IUnitConversion"/>).</summary>
+public sealed record ItemUnitOption(Guid UnitId, string Code, bool IsStockUnit, decimal ToStock);
 
 /// <summary>
 /// Unidades usáveis por item para os editores de outros módulos (BOM da ENG-02): a de estoque primeiro e depois as convertidas. A conta

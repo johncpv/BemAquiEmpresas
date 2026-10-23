@@ -129,7 +129,7 @@ public sealed partial class BomService(
         var ids = found.Select(i => i.Id).ToList();
         var options = await units.ForItemsAsync(ids, cancellationToken);
         var positions = await stock.PositionsAsync(ids, cancellationToken);
-        return found.Select(i => new BomItemOption(i.Id, i.Code, i.Name, i.Type, i.UnitId, i.UnitCode, options.GetValueOrDefault(i.Id) ?? [new ItemUnitOption(i.UnitId, i.UnitCode, true)],
+        return found.Select(i => new BomItemOption(i.Id, i.Code, i.Name, i.Type, i.UnitId, i.UnitCode, options.GetValueOrDefault(i.Id) ?? [new ItemUnitOption(i.UnitId, i.UnitCode, true, 1m)],
             stock.Connected ? positions.GetValueOrDefault(i.Id)?.Available ?? 0 : null)).ToList();
     }
 
