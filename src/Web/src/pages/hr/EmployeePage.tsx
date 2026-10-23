@@ -37,6 +37,7 @@ export function EmployeePage() {
   const linked = useGetEmployeeUser(id)
   const canEdit = useCan('hr.edit')
   const canSensitive = useCan('hr.view_sensitive')
+  const canHealth = useCan('hr.view_health')
   const canUsers = useCan('identity.edit')
   const [steps, setSteps] = useState<'created' | 'terminated' | 'leave' | null>(search.novo === '1' ? 'created' : null)
   const [, setTab] = useUrlTab('geral')
@@ -99,7 +100,7 @@ export function EmployeePage() {
         </div>
       </PageHeading>
       {canEdit && canSensitive && active ? (
-        <LeaveDialog employee={employee} open={leaving} onOpenChange={setLeaving} onReload={() => query.refetch()}
+        <LeaveDialog employee={employee} canHealth={canHealth} open={leaving} onOpenChange={setLeaving} onReload={() => query.refetch()}
           onDone={(e) => { setEmployee(e); void client.invalidateQueries({ queryKey: getListEmployeeLeavesSensitiveQueryKey(id) }); setSteps('leave') }} />
       ) : null}
       <TerminationDialog employee={employee} open={terminating} onOpenChange={setTerminating} onDone={(e) => { setEmployee(e); setSteps('terminated') }} />
@@ -108,7 +109,7 @@ export function EmployeePage() {
         { id: 'geral', label: 'Dados gerais', keepMounted: true, content: <EmployeeGeneral key={employee.id + employee.positionId} employee={employee} canEdit={canEdit} onSaved={setEmployee} linking={linking} onLinkingChange={setLinking} /> },
         { id: 'pessoais', label: 'Dados pessoais', content: <EmployeePersonal employee={employee} canEdit={canEdit} /> },
         { id: 'contrato', label: 'Contrato e salário', content: <EmployeeContract employee={employee} canEdit={canEdit} onChanged={setEmployee} /> },
-        { id: 'linha-do-tempo', label: 'Linha do tempo', content: <EmployeeTimeline id={employee.id} /> },
+        { id: 'linha-do-tempo', label: 'Linha do tempo', content: <EmployeeTimeline employee={employee} onReload={() => query.refetch()} onChanged={(e) => { setEmployee(e); void client.invalidateQueries({ queryKey: getListEmployeeLeavesSensitiveQueryKey(id) }) }} /> },
         { id: 'historico', label: 'Histórico de alterações', content: canSensitive ? <RecordHistory entity="Employee" id={employee.id} /> : <EmployeeProtected /> },
       ]} />
     </>
