@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BemAqui.Host.Persistence.Migrations
 {
     [DbContext(typeof(TenantDbContext))]
-    [Migration("20261023152030_InventoryReservations")]
+    [Migration("20261023185610_InventoryReservations")]
     partial class InventoryReservations
     {
         /// <inheritdoc />
@@ -1530,6 +1530,132 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDatabaseName("ix_quote_milestones_quote_id");
 
                     b.ToTable("quote_milestones", "commercial");
+                });
+
+            modelBuilder.Entity("BemAqui.Engineering.Domain.Bom", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("CopiedFromBomId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("copied_from_bom_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<Guid>("ProductionOrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("production_order_id");
+
+                    b.Property<DateTimeOffset?>("ReleasedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("released_at");
+
+                    b.Property<Guid?>("ReleasedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("released_by");
+
+                    b.Property<int>("Revision")
+                        .HasColumnType("integer")
+                        .HasColumnName("revision");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_boms");
+
+                    b.HasIndex("CopiedFromBomId")
+                        .HasDatabaseName("ix_boms_copied_from_bom_id");
+
+                    b.HasIndex("ProductionOrderId", "Revision")
+                        .IsUnique()
+                        .HasDatabaseName("ux_boms_order_revision");
+
+                    b.HasIndex(new[] { "ProductionOrderId" }, "ux_boms_draft")
+                        .IsUnique()
+                        .HasDatabaseName("ux_boms_draft")
+                        .HasFilter("status = 'Draft'");
+
+                    b.HasIndex(new[] { "ProductionOrderId" }, "ux_boms_released")
+                        .IsUnique()
+                        .HasDatabaseName("ux_boms_released")
+                        .HasFilter("status = 'Released'");
+
+                    b.ToTable("boms", "engineering");
+                });
+
+            modelBuilder.Entity("BemAqui.Engineering.Domain.BomLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("BomId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("bom_id");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_id");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("notes");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("quantity");
+
+                    b.Property<decimal>("RequiredQuantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("required_quantity");
+
+                    b.Property<decimal>("ScrapPct")
+                        .HasPrecision(7, 4)
+                        .HasColumnType("numeric(7,4)")
+                        .HasColumnName("scrap_pct");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.Property<Guid>("UnitId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("unit_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_bom_lines");
+
+                    b.HasIndex("ItemId")
+                        .HasDatabaseName("ix_bom_lines_item_id");
+
+                    b.HasIndex("BomId", "ItemId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_bom_lines_item");
+
+                    b.ToTable("bom_lines", "engineering");
                 });
 
             modelBuilder.Entity("BemAqui.Engineering.Domain.RoutingTemplate", b =>
@@ -3473,6 +3599,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<DateTimeOffset?>("CancelledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("cancelled_at");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -3495,9 +3625,18 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("kind");
 
+                    b.Property<string>("LeaveChange")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("leave_change");
+
                     b.Property<DateOnly?>("LeaveEndDate")
                         .HasColumnType("date")
                         .HasColumnName("leave_end_date");
+
+                    b.Property<Guid?>("LeaveId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("leave_id");
 
                     b.Property<string>("LeaveType")
                         .HasMaxLength(20)
@@ -3514,6 +3653,11 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
                         .HasColumnName("old_value");
+
+                    b.Property<string>("PreviousLeaveType")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("previous_leave_type");
 
                     b.Property<string>("Reason")
                         .IsRequired()
@@ -3535,6 +3679,10 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.HasIndex("EffectiveDate")
                         .HasDatabaseName("ix_employee_history_leave_pending")
                         .HasFilter("kind = 'Leave' AND (start_published_at IS NULL OR end_published_at IS NULL)");
+
+                    b.HasIndex("LeaveId")
+                        .HasDatabaseName("ix_employee_history_leave_changes")
+                        .HasFilter("leave_id IS NOT NULL");
 
                     b.HasIndex("EmployeeId", "EffectiveDate")
                         .HasDatabaseName("ix_employee_history_employee");
@@ -7605,6 +7753,16 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_quote_milestones_quotes_quote_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Engineering.Domain.BomLine", b =>
+                {
+                    b.HasOne("BemAqui.Engineering.Domain.Bom", null)
+                        .WithMany()
+                        .HasForeignKey("BomId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_bom_lines_boms_bom_id");
                 });
 
             modelBuilder.Entity("BemAqui.Engineering.Domain.RoutingTemplateItem", b =>
