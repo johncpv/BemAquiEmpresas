@@ -71,10 +71,30 @@ describe('telas de autenticação (FND-04, FND-05)', () => {
     fill('Código do app autenticador', '123456')
     fireEvent.click(screen.getByRole('button', { name: 'Confirmar' }))
     await waitFor(() => expect(router.state.location.pathname).toBe('/app/conta'))
-    expect(api.verifyTwoFactor).toHaveBeenCalledWith({ challenge: 'c1', code: '123456', recoveryCode: null })
+    expect(api.verifyTwoFactor).toHaveBeenCalledWith({ challenge: 'c1', code: '123456', recoveryCode: null, ephemeral: false })
+    expect(api.login).toHaveBeenCalledWith({ email: 'ana@konebras.com.br', password: 'uma frase longa de teste', ephemeral: false })
     expect(getAccessToken()).toBe('tok')
     expect(JSON.stringify(localStorage)).not.toContain('tok')
     expect(JSON.stringify(sessionStorage)).not.toContain('tok')
+  })
+
+  it('login vindo do tablet da fábrica (aparelho=1) pede sessão sem refresh e marca a sessão como do tablet (PRD-03b CA 6)', async () => {
+    vi.mocked(api.refreshSession).mockRejectedValue(new ApiError(422, {}))
+    vi.mocked(api.login).mockResolvedValue({ accessToken: 'tok-tablet', expiresAt: '2026-10-18T10:15:00Z', twoFactor: null })
+    renderAt('/entrar?volta=%2Fapp%2Fconta&aparelho=1')
+    expect(await screen.findByRole('heading', { name: 'Entrar no tablet da fábrica' })).toBeDefined()
+    fill('E-mail', 'ana@konebras.com.br')
+    fill('Senha', 'uma frase longa de teste')
+    fireEvent.click(screen.getByRole('button', { name: 'Entrar' }))
+    await waitFor(() => expect(getAccessToken()).toBe('tok-tablet'))
+    expect(api.login).toHaveBeenCalledWith({ email: 'ana@konebras.com.br', password: 'uma frase longa de teste', ephemeral: true })
+    expect((await import('@/api/session')).isEphemeralSession()).toBe(true)
+  })
+
+  it('sem sessão, o /fab vai para a entrada do tablet, não para o login do backoffice (PRD-03b)', async () => {
+    vi.mocked(api.refreshSession).mockRejectedValue(new ApiError(422, {}))
+    const router = renderAt('/fab')
+    await waitFor(() => expect(router.state.location.pathname).toBe('/fab/entrar'))
   })
 
   it('convite expirado explica e orienta (CA 18); válido cria o acesso e oferece o 2FA (CA 17)', async () => {

@@ -2,13 +2,35 @@ using BemAqui.SharedKernel;
 
 namespace BemAqui.Identity.Domain;
 
+/// <summary>Tipo da sessão (ADR 0026 §3): completa (e-mail e senha) ou por PIN, presa a um aparelho registrado.</summary>
+public enum SessionKind
+{
+    Full,
+    Pin,
+}
+
 /// <summary>
 /// Refresh token rotativo (<c>identity.refresh_tokens</c>), guardado só como hash. Cada renovação gera um filho
-/// na mesma família; reapresentar um já substituído fora da tolerância revoga a família inteira (ADR 0008).
+/// na mesma família; reapresentar um já substituído fora da tolerância revoga a família inteira (ADR 0008). A família tem prazo
+/// absoluto (ADR 0026 §3): 30 dias na sessão completa e 12 h, sem renovação além disso, na sessão por PIN.
 /// </summary>
 public sealed class RefreshToken : Entity
 {
+    public static readonly TimeSpan PinSessionLifetime = TimeSpan.FromHours(12);
+    public const int DefaultAbsoluteDays = 30;
+
     public Guid UserId { get; init; }
+
+    public SessionKind SessionKind { get; init; } = SessionKind.Full;
+
+    /// <summary>Aparelho da sessão por PIN; null na sessão completa.</summary>
+    public Guid? DeviceId { get; init; }
+
+    /// <summary>Fim da família: a renovação não passa daqui. Null nas famílias abertas antes da PRD-03b (conta do início delas).</summary>
+    public DateTimeOffset? AbsoluteExpiresAt { get; init; }
+
+    /// <summary>Host do tenant em que a sessão nasceu: renovar por outro host (outro domínio do tenant) responde 401.</summary>
+    public string? Host { get; init; }
 
     public required string TokenHash { get; init; }
 

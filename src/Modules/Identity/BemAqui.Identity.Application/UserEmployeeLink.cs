@@ -5,8 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BemAqui.Identity.Application;
 
-/// <summary><see cref="IUserEmployeeLink"/>: grava o <c>employee_id</c> do usuário (auditado no Identity) e recusa vínculo duplo (409).</summary>
-public sealed class UserEmployeeLink(IIdentityDb db) : IUserEmployeeLink
+/// <summary>
+/// <see cref="IUserEmployeeLink"/>: grava o <c>employee_id</c> do usuário (auditado no Identity) e recusa vínculo duplo (409). Trocar o
+/// vínculo apaga o PIN do usuário em todos os aparelhos e revoga as sessões por PIN dele (ADR 0026 §2, PRD-03b CA 19).
+/// </summary>
+public sealed class UserEmployeeLink(IIdentityDb db, Shopfloor.ShopfloorRevocations revocations) : IUserEmployeeLink
 {
     public async Task<LinkableUser?> UserOfEmployeeAsync(Guid employeeId, CancellationToken cancellationToken = default) =>
         await db.Users.AsNoTracking().Where(u => u.EmployeeId == employeeId).Select(u => new LinkableUser(u.Id, u.Name, u.Email)).FirstOrDefaultAsync(cancellationToken);
@@ -36,6 +39,7 @@ public sealed class UserEmployeeLink(IIdentityDb db) : IUserEmployeeLink
             return Error.Conflict("employee_already_linked", "Este funcionário já tem um usuário vinculado. Desvincule antes.");
         }
 
+        var changed = user.EmployeeId != employeeId;
         user.EmployeeId = employeeId;
         try
         {
@@ -44,6 +48,11 @@ public sealed class UserEmployeeLink(IIdentityDb db) : IUserEmployeeLink
         catch (DbUpdateException)
         {
             return Error.Conflict("employee_already_linked", "Este funcionário já tem um usuário vinculado. Desvincule antes.");
+        }
+
+        if (changed)
+        {
+            await revocations.EraseUserPinsAsync(user.Id, "employee_link_changed", cancellationToken);
         }
 
         return new LinkableUser(user.Id, user.Name, user.Email);
@@ -59,6 +68,7 @@ public sealed class UserEmployeeLink(IIdentityDb db) : IUserEmployeeLink
 
         user.EmployeeId = null;
         await db.SaveChangesAsync(cancellationToken);
+        await revocations.EraseUserPinsAsync(user.Id, "employee_link_changed", cancellationToken);
         return Result.Success();
     }
 }

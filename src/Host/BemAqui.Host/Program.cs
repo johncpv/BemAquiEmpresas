@@ -128,6 +128,7 @@ try
     app.UseMiddleware<TenantResolutionMiddleware>();
     app.UseRateLimiter();
     app.UseAuthentication();
+    app.UseMiddleware<PinSessionScopeMiddleware>(); // sessão por PIN: aparelho e sessão a cada request, só a lista permitida (ADR 0026)
     app.UseRequestLogContext();
     app.UseBemAquiRequestLogging();
     app.UsePlatformDashboard(); // antes da policy padrão: o painel tem a própria autorização (esquema Platform)
@@ -150,7 +151,7 @@ try
     app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = c => c.Tags.Contains("ready") }).AllowAnonymous();
     app.MapHealthChecks("/health", new HealthCheckOptions { Predicate = c => c.Tags.Contains("ready") }).AllowAnonymous();
     app.MapHub<PingHub>(PingHub.Path);
-    app.MapHub<BemAqui.Host.Realtime.ProductionHub>(BemAqui.Host.Realtime.ProductionHub.Path).RequireHubAccess("production", "production.view", "shopfloor.view");
+    app.MapHub<BemAqui.Host.Realtime.ProductionHub>(BemAqui.Host.Realtime.ProductionHub.Path).RequireHubAccess("production", "production.view", "shopfloor.view").AllowPinSession();
 
     var api = app.MapGroup("/api/v1");
     api.MapAuditEndpoints();

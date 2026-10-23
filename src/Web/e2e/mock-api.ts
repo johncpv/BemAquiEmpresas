@@ -23,6 +23,7 @@ export async function mockApi(page: Page, overrides: Record<string, Handler> = {
     'GET /api/v1/ajuda/vistas': (r) => json(r, []),
     'GET /api/v1/identity/users': (r) => json(r, []),
     'GET /api/v1/settings/security': (r) => json(r, { requireTwoFactor: false }),
+    'GET /api/v1/settings/security/shopfloor-devices': (r) => json(r, { devices: [], activeCount: 0, maxActive: 10 }),
     'GET /api/v1/settings/ia': (r) => json(r, aiSettings()),
     'GET /api/v1/audit/*/*': (r) => json(r, { items: [], page: 1, pageSize: 20, total: 0 }),
   }

@@ -14,6 +14,11 @@ export function formatDateTime(value: string | Date): string {
   return dateTime.format(typeof value === 'string' ? new Date(value) : value)
 }
 
+/** Só o dia de um instante UTC (timestamptz), no horário de Brasília. */
+export function formatInstantDate(value: string | Date): string {
+  return date.format(typeof value === 'string' ? new Date(value) : value)
+}
+
 /** Data de negócio (date, sem hora): não converte fuso, para não mudar o dia. */
 export function formatDate(value: string): string {
   const [y, m, d] = value.split('-').map(Number)

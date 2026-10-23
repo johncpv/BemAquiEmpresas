@@ -18,6 +18,7 @@ import { AiSettingsPage } from '@/pages/settings/AiSettingsPage'
 import { ImportRunPage } from '@/pages/settings/import/ImportRunPage'
 import { ImportRunsPage } from '@/pages/settings/import/ImportRunsPage'
 import { ShopfloorLayout, TvLayout } from '@/pages/DedicatedLayouts'
+import { FabEntryPage } from '@/pages/shopfloor/FabEntryPage'
 import { Inicio } from '@/pages/Inicio'
 import { ModulePage, NotFound } from '@/pages/ModulePage'
 import { getPlatformCurrentAdmin } from '@/api/generated/bemaqui'
@@ -110,7 +111,8 @@ const indexRoute = createRoute({
 })
 
 // Telas públicas (rotas anônimas do CLAUDE.md): sem dock, com a marca do tenant.
-const loginRoute = createRoute({ getParentRoute: () => rootRoute, path: '/entrar', component: LoginPage, validateSearch: (s: Record<string, unknown>): { volta?: string; email?: string } => ({ volta: text(s.volta), email: text(s.email) }) })
+// "aparelho=1": login completo feito no tablet da fábrica, sem sessão persistente (PRD-03b CA 6).
+const loginRoute = createRoute({ getParentRoute: () => rootRoute, path: '/entrar', component: LoginPage, validateSearch: (s: Record<string, unknown>): { volta?: string; email?: string; aparelho?: string } => ({ volta: text(s.volta), email: text(s.email), aparelho: s.aparelho === 1 || s.aparelho === '1' ? '1' : undefined }) })
 const verifyRoute = createRoute({ getParentRoute: () => rootRoute, path: '/entrar/verificacao', component: TwoFactorVerifyPage })
 const requiredSetupRoute = createRoute({ getParentRoute: () => rootRoute, path: '/entrar/configurar-2fa', component: RequiredTwoFactorSetupPage })
 const forgotRoute = createRoute({ getParentRoute: () => rootRoute, path: '/esqueci-senha', component: ForgotPasswordPage, validateSearch: (s: Record<string, unknown>): { email?: string } => ({ email: text(s.email) }) })
@@ -265,15 +267,17 @@ const tenantsRoute = createRoute({ getParentRoute: () => platformRoute, path: 't
 const tenantRoute = createRoute({ getParentRoute: () => platformRoute, path: 'tenants/$key', component: TenantDetailPage, validateSearch: (s: Record<string, unknown>): { aba?: string } => ({ aba: text(s.aba) }) })
 
 // Superfícies com layout próprio (02-arquitetura §4): /fab operador, /tv painel. /portal reservado.
-// App do operador (PRD-03a): login normal (o PIN é da PRD-03b), fila em /fab e a etapa em /fab/etapa/$stepId.
+// App do operador (PRD-03a): fila em /fab e a etapa em /fab/etapa/$stepId. Sem sessão, a entrada do tablet (/fab/entrar, PRD-03b):
+// nomes de quem tem PIN no aparelho registrado, ou "Entrar com e-mail e senha".
 const fabRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/fab',
   component: ShopfloorLayout,
-  beforeLoad: async ({ location }) => {
-    if (!(await ensureSession())) throw redirect({ to: '/entrar', search: { volta: location.href } })
+  beforeLoad: async () => {
+    if (!(await ensureSession())) throw redirect({ to: '/fab/entrar' })
   },
 })
+const fabEntryRoute = createRoute({ getParentRoute: () => rootRoute, path: '/fab/entrar', component: FabEntryPage })
 const fabQueueRoute = createRoute({ getParentRoute: () => fabRoute, path: '/', component: FabQueuePage })
 const fabStepRoute = createRoute({ getParentRoute: () => fabRoute, path: 'etapa/$stepId', component: FabStepPage })
 // Qualidade no tablet (PRD-05): fila e inspeção com production.approve_quality (o layout confere o módulo production).
@@ -297,6 +301,7 @@ export const routeTree = rootRoute.addChildren([
   platformLoginRoute,
   platformPasswordRoute,
   platformRoute.addChildren([platformIndexRoute, tenantsRoute, tenantRoute]),
+  fabEntryRoute,
   fabRoute.addChildren([fabQueueRoute, fabStepRoute, fabQualityRoute, fabQualityStepRoute]),
   tvRoute,
   galleryRoute,

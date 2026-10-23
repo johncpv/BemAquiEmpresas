@@ -68,7 +68,7 @@ internal static class UserEndpoints
                     .ToList();
                 return Results.Ok(new MyPermissionsResponse(effective.Permissions.Order(StringComparer.Ordinal).ToList(), effective.IsOwner, effective.Version, modules));
             })
-            .WithTags("Identidade").WithName("GetMyPermissions").Produces<MyPermissionsResponse>();
+            .WithTags("Identidade").AllowPinSession().WithName("GetMyPermissions").Produces<MyPermissionsResponse>();
 
         api.MapGet("/me/preferences", async (ICurrentUser user, Preferences preferences, CancellationToken ct) => Results.Ok(await preferences.GetAsync(user.UserId!.Value, ct)))
             .WithTags("Identidade").WithName("GetMyPreferences").Produces<PreferencesDto>();

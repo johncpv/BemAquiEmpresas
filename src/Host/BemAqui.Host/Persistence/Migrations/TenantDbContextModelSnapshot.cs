@@ -4209,6 +4209,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<DateTimeOffset?>("AbsoluteExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("absolute_expires_at");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -4218,6 +4222,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("character varying(64)")
                         .HasColumnName("created_by_ip");
 
+                    b.Property<Guid?>("DeviceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("device_id");
+
                     b.Property<DateTimeOffset>("ExpiresAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("expires_at");
@@ -4225,6 +4233,11 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<Guid>("FamilyId")
                         .HasColumnType("uuid")
                         .HasColumnName("family_id");
+
+                    b.Property<string>("Host")
+                        .HasMaxLength(253)
+                        .HasColumnType("character varying(253)")
+                        .HasColumnName("host");
 
                     b.Property<DateTimeOffset?>("ReplacedAt")
                         .HasColumnType("timestamp with time zone")
@@ -4237,6 +4250,14 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<DateTimeOffset?>("RevokedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("revoked_at");
+
+                    b.Property<string>("SessionKind")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)")
+                        .HasDefaultValue("Full")
+                        .HasColumnName("session_kind");
 
                     b.Property<string>("TokenHash")
                         .IsRequired()
@@ -4257,6 +4278,10 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.HasIndex("TokenHash")
                         .IsUnique()
                         .HasDatabaseName("ix_refresh_tokens_token_hash");
+
+                    b.HasIndex("DeviceId", "UserId")
+                        .HasDatabaseName("ix_refresh_tokens_pin_sessions")
+                        .HasFilter("device_id IS NOT NULL AND revoked_at IS NULL");
 
                     b.HasIndex("UserId", "RevokedAt")
                         .HasDatabaseName("ix_refresh_tokens_user_id_revoked_at");
@@ -4289,6 +4314,97 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDatabaseName("ix_seed_patches_key");
 
                     b.ToTable("seed_patches", "identity");
+                });
+
+            modelBuilder.Entity("BemAqui.Identity.Domain.ShopfloorDevice", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<DateTimeOffset>("LastSeenAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_seen_at");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("name");
+
+                    b.Property<int>("PinFailures")
+                        .HasColumnType("integer")
+                        .HasColumnName("pin_failures");
+
+                    b.Property<DateTimeOffset?>("PinFailuresSince")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("pin_failures_since");
+
+                    b.Property<DateTimeOffset?>("PinLockedUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("pin_locked_until");
+
+                    b.Property<string>("PreviousSecretHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("previous_secret_hash");
+
+                    b.Property<DateTimeOffset?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revoked_at");
+
+                    b.Property<Guid?>("RevokedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("revoked_by");
+
+                    b.Property<string>("RevokedReason")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("revoked_reason");
+
+                    b.Property<string>("SecretHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("secret_hash");
+
+                    b.Property<DateTimeOffset>("SecretRotatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("secret_rotated_at");
+
+                    b.Property<string>("Theme")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)")
+                        .HasColumnName("theme");
+
+                    b.HasKey("Id")
+                        .HasName("pk_shopfloor_devices");
+
+                    b.HasIndex("PreviousSecretHash")
+                        .HasDatabaseName("ix_shopfloor_devices_previous_secret_hash");
+
+                    b.HasIndex("RevokedAt")
+                        .HasDatabaseName("ix_shopfloor_devices_revoked_at");
+
+                    b.HasIndex("SecretHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_shopfloor_devices_secret_hash");
+
+                    b.ToTable("shopfloor_devices", "identity");
                 });
 
             modelBuilder.Entity("BemAqui.Identity.Domain.TenantSetting", b =>
@@ -4569,6 +4685,64 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDatabaseName("ix_user_invites_user_id");
 
                     b.ToTable("user_invites", "identity");
+                });
+
+            modelBuilder.Entity("BemAqui.Identity.Domain.UserPin", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("DeviceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("device_id");
+
+                    b.Property<int>("FailedCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("failed_count");
+
+                    b.Property<int>("FailuresInWindow")
+                        .HasColumnType("integer")
+                        .HasColumnName("failures_in_window");
+
+                    b.Property<DateTimeOffset?>("FailuresSince")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("failures_since");
+
+                    b.Property<DateTimeOffset?>("LastUsedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_used_at");
+
+                    b.Property<DateTimeOffset?>("LockedUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("locked_until");
+
+                    b.Property<string>("PinHash")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("pin_hash");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_user_pins");
+
+                    b.HasIndex("DeviceId")
+                        .HasDatabaseName("ix_user_pins_device_id");
+
+                    b.HasIndex("UserId", "DeviceId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_user_pins_user_id_device_id");
+
+                    b.ToTable("user_pins", "identity");
                 });
 
             modelBuilder.Entity("BemAqui.Identity.Domain.UserPreference", b =>
@@ -6874,6 +7048,12 @@ namespace BemAqui.Host.Persistence.Migrations
 
             modelBuilder.Entity("BemAqui.Identity.Domain.RefreshToken", b =>
                 {
+                    b.HasOne("BemAqui.Identity.Domain.ShopfloorDevice", null)
+                        .WithMany()
+                        .HasForeignKey("DeviceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_refresh_tokens_shopfloor_devices_device_id");
+
                     b.HasOne("BemAqui.Identity.Domain.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -6917,6 +7097,23 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_user_invites_users_user_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Identity.Domain.UserPin", b =>
+                {
+                    b.HasOne("BemAqui.Identity.Domain.ShopfloorDevice", null)
+                        .WithMany()
+                        .HasForeignKey("DeviceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_user_pins_shopfloor_devices_device_id");
+
+                    b.HasOne("BemAqui.Identity.Domain.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_user_pins_users_user_id");
                 });
 
             modelBuilder.Entity("BemAqui.Identity.Domain.UserPreference", b =>

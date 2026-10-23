@@ -20,6 +20,9 @@ public sealed class EmployeesContract(IHrDb db, TimeProvider clock) : IEmployees
         return await WithStatusAsync(db.Employees.IgnoreQueryFilters().AsNoTracking().Where(e => ids.Contains(e.Id)), cancellationToken);
     }
 
+    public async Task<DateOnly?> BirthDateAsync(Guid employeeId, CancellationToken cancellationToken = default) =>
+        await db.Employees.AsNoTracking().Where(e => e.Id == employeeId).Select(e => (DateOnly?)e.BirthDate).FirstOrDefaultAsync(cancellationToken);
+
     public Task<bool> HasEmployeesAsync(Guid positionId, CancellationToken cancellationToken = default) =>
         db.Employees.AnyAsync(e => e.PositionId == positionId && e.Status == EmployeeStatus.Active, cancellationToken);
 

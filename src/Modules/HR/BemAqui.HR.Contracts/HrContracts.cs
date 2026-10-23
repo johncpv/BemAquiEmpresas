@@ -54,6 +54,11 @@ public interface IEmployees
     Task<IReadOnlyList<EmployeeSummary>> ActiveAsync(CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<EmployeeSummary>> FindAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Data de nascimento, só para o Identity recusar PIN óbvio (PRD-03b CA 12); nunca exibida nem gravada fora do RH.
+    /// </summary>
+    Task<DateOnly?> BirthDateAsync(Guid employeeId, CancellationToken cancellationToken = default);
 }
 
 /// <summary>Desligamento registrado (CA 17), sem consumidor nesta fase.</summary>

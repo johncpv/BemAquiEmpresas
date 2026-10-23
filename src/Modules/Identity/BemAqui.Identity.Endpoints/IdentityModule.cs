@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Security.Claims;
 using BemAqui.BuildingBlocks.Modules;
+using BemAqui.BuildingBlocks.Web;
 using BemAqui.Identity.Application;
 using BemAqui.Identity.Infrastructure;
 using Microsoft.AspNetCore.Builder;
@@ -27,6 +28,7 @@ public sealed class IdentityModule : IModule
         endpoints.MapUserEndpoints();
         endpoints.MapHelpEndpoints();
         endpoints.MapCompanySettingsEndpoints();
+        endpoints.MapShopfloorDeviceEndpoints();
 
         // Sessão atual: identidade, nome e e-mail (permissões em /me/permissions).
         endpoints.MapGet("/me", async (ClaimsPrincipal user, Profile profile, CancellationToken ct) =>
@@ -35,7 +37,7 @@ public sealed class IdentityModule : IModule
                 var me = Guid.TryParse(id, out var userId) ? await profile.GetAsync(userId, ct) : null;
                 return Results.Ok(new CurrentSession(id, user.FindFirstValue("tid"), me?.Name ?? string.Empty, me?.Email ?? string.Empty));
             })
-            .WithName("GetCurrentSession").Produces<CurrentSession>()
+            .AllowPinSession().WithName("GetCurrentSession").Produces<CurrentSession>()
             .WithTags("Identidade");
     }
 }

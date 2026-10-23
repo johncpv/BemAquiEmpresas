@@ -27,6 +27,10 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
+    public DbSet<ShopfloorDevice> ShopfloorDevices => Set<ShopfloorDevice>();
+
+    public DbSet<UserPin> UserPins => Set<UserPin>();
+
     public DbSet<UserInvite> UserInvites => Set<UserInvite>();
 
     public DbSet<PasswordReset> PasswordResets => Set<PasswordReset>();

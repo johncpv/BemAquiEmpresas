@@ -77,6 +77,12 @@ public sealed class TenantSetting : Entity, IAuditable
 {
     public const string RequireTwoFactor = "security.require_2fa";
 
+    /// <summary>Teto de aparelhos da fábrica ativos (ADR 0026 §1), padrão 10.</summary>
+    public const string MaxShopfloorDevices = "security.max_shopfloor_devices";
+
+    /// <summary>Prazo absoluto da sessão completa em dias (ADR 0026 §3, D17 d), padrão 30.</summary>
+    public const string SessionAbsoluteDays = "security.session_absolute_days";
+
     public required string Key { get; init; }
 
     public string Value { get; set; } = string.Empty;

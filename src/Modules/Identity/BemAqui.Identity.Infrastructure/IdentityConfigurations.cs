@@ -38,6 +38,42 @@ internal sealed class RefreshTokenConfiguration : IEntityTypeConfiguration<Refre
         b.HasIndex(e => new { e.UserId, e.RevokedAt });
         b.Property(e => e.CreatedByIp).HasMaxLength(64);
         b.HasOne<User>().WithMany().HasForeignKey(e => e.UserId).OnDelete(DeleteBehavior.Restrict);
+        // PRD-03b (ADR 0026 §3): tipo da sessão, aparelho da sessão por PIN e prazo absoluto da família.
+        b.Property(e => e.SessionKind).HasConversion<string>().HasMaxLength(8).HasDefaultValue(SessionKind.Full).HasSentinel(SessionKind.Full);
+        b.Property(e => e.Host).HasMaxLength(253);
+        b.HasOne<ShopfloorDevice>().WithMany().HasForeignKey(e => e.DeviceId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => new { e.DeviceId, e.UserId }).HasFilter("device_id IS NOT NULL AND revoked_at IS NULL").HasDatabaseName("ix_refresh_tokens_pin_sessions");
+    }
+}
+
+/// <summary>Aparelho da fábrica (ADR 0026 §1): só o hash do segredo; o nome é o que aparece no tablet e na lista.</summary>
+internal sealed class ShopfloorDeviceConfiguration : IEntityTypeConfiguration<ShopfloorDevice>
+{
+    public void Configure(EntityTypeBuilder<ShopfloorDevice> b)
+    {
+        b.ToTable("shopfloor_devices", IdentitySchema.Name);
+        b.Property(e => e.Name).HasMaxLength(ShopfloorDevice.MaxNameLength);
+        b.Property(e => e.SecretHash).HasMaxLength(64);
+        b.HasIndex(e => e.SecretHash).IsUnique();
+        b.Property(e => e.PreviousSecretHash).HasMaxLength(64);
+        b.HasIndex(e => e.PreviousSecretHash);
+        b.Property(e => e.RevokedReason).HasMaxLength(32);
+        b.Property(e => e.Theme).HasConversion<string>().HasMaxLength(8);
+        b.HasIndex(e => e.RevokedAt);
+    }
+}
+
+/// <summary>PIN por usuário e aparelho (ADR 0026 §2): único por par, com o hash PBKDF2.</summary>
+internal sealed class UserPinConfiguration : IEntityTypeConfiguration<UserPin>
+{
+    public void Configure(EntityTypeBuilder<UserPin> b)
+    {
+        b.ToTable("user_pins", IdentitySchema.Name);
+        b.Property(e => e.PinHash).HasMaxLength(512);
+        b.HasIndex(e => new { e.UserId, e.DeviceId }).IsUnique();
+        b.HasIndex(e => e.DeviceId);
+        b.HasOne<User>().WithMany().HasForeignKey(e => e.UserId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne<ShopfloorDevice>().WithMany().HasForeignKey(e => e.DeviceId).OnDelete(DeleteBehavior.Restrict);
     }
 }
 

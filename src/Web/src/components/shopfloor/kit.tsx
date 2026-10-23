@@ -159,14 +159,17 @@ export function FloorCheck({ checked, label, onChange, disabled, detail }: { che
   )
 }
 
-/** Teclado numérico grande (CA 3): só toque, dígitos de 56 px com 8 px entre eles; sem teclado do sistema. */
-export function NumericKeypad({ value, onChange, max = 10, label }: { value: string; onChange: (value: string) => void; max?: number; label: string }) {
+/**
+ * Teclado numérico grande (CA 3): só toque, dígitos de 56 px com 8 px entre eles; sem teclado do sistema. Com <c>mask</c> (PIN da
+ * PRD-03b), o visor mostra só bolinhas, uma por dígito, e o leitor de tela ouve quantos já foram.
+ */
+export function NumericKeypad({ value, onChange, max = 10, label, mask = false }: { value: string; onChange: (value: string) => void; max?: number; label: string; mask?: boolean }) {
   const press = (digit: string) => { if (value.length < max) onChange(value + digit) }
   const key = 'min-h-[64px] text-[24px] tabular-nums'
   return (
     <div className="space-y-3">
-      <output aria-label={label} aria-live="polite" className="block min-h-[64px] rounded-md border-2 border-input bg-card px-4 py-3 text-center font-display text-[30px] font-bold tabular-nums tracking-widest">
-        {value || <span className="text-muted-foreground">—</span>}
+      <output aria-label={mask ? `${label}: ${value.length} de ${max} números` : label} aria-live="polite" className="block min-h-[64px] rounded-md border-2 border-input bg-card px-4 py-3 text-center font-display text-[30px] font-bold tabular-nums tracking-widest">
+        {mask ? (value ? '•'.repeat(value.length) : <span className="text-muted-foreground">{'○'.repeat(max)}</span>) : value || <span className="text-muted-foreground">—</span>}
       </output>
       <div role="group" aria-label="Teclado numérico" className="grid grid-cols-3 gap-[8px]">
         {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((d) => <FloorButton key={d} tone="secondary" className={key} onClick={() => press(d)}>{d}</FloorButton>)}

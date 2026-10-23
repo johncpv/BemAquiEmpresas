@@ -31,6 +31,17 @@ Tela do chão de fábrica, no tablet ou no celular, para ver as etapas prontas e
 ## Qualidade
 - Quem tem a ação **Aprovar ou reprovar a qualidade** vê no topo da fila a entrada **Qualidade**, com quantas OS aguardam você. Toque para abrir a fila de qualidade.
 
+## Aparelho, tema e PIN
+- Toque em **Aparelho** no topo para escolher o tema do app neste tablet (**Automático**, **Claro** ou **Escuro**). O tema vale para todos os operadores do tablet.
+- Entrou com e-mail e senha num tablet registrado? O app oferece **Criar PIN para entrar mais rápido**. Nas próximas vezes, você toca no seu nome e digita o PIN.
+- **Apagar meu PIN deste aparelho** tira o seu nome da lista do tablet; se você entrou por PIN, sai na hora.
+- Tablet ainda não registrado: quem edita a produção registra em **Aparelho** → **Registrar este aparelho**, com um nome como "Tablet Linha 1".
+- Entrou por PIN: depois de 15 minutos sem tocar na tela, o app avisa "Você vai sair em 60 s. Tocar para continuar." e, sem toque, volta para a lista de nomes.
+
+## Sem conexão
+- Sem rede, a tela mostra "Sem conexão. Esta ação precisa de rede." com o botão **Tentar de novo**.
+- Nada fica guardado para enviar depois: confira o Wi-Fi e aponte de novo quando a rede voltar.
+
 ## Perguntas frequentes
 **Posso apontar numa etapa de outro centro?** Pode. A fila mostra as do seu centro primeiro, mas o sistema registra quem apontou em qualquer centro.
 

@@ -7,10 +7,11 @@ import { Dica } from '@/help/Dica'
 import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
 import { SettingsTabs } from './SettingsTabs'
+import { ShopfloorDevicesSection } from './ShopfloorDevicesSection'
 
 /**
  * Configurações → Segurança (FND-06c CA 13): "Exigir verificação em duas etapas para todos", com confirmação no mesmo
- * verbo ("Exigir" → "Exigência ligada"). Vale no próximo login de cada usuário.
+ * verbo ("Exigir" → "Exigência ligada"). Vale no próximo login de cada usuário. PRD-03b: "Aparelhos da fábrica".
  */
 export function SecurityPage() {
   const client = useQueryClient()
@@ -42,6 +43,7 @@ export function SecurityPage() {
           </Can>
         </section>
       )}
+      <div className="mt-6"><ShopfloorDevicesSection /></div>
     </>
   )
 }

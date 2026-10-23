@@ -17,30 +17,30 @@ internal static partial class ProductionEndpoints
     {
         var shopfloor = api.MapGroup("/shopfloor").WithTags("App do operador").RequireModule("shopfloor");
         shopfloor.MapGet("/queue", async (ShopfloorService service, CancellationToken ct) => (await service.QueueAsync(ct)).ToHttpResult())
-            .RequirePermission("shopfloor.view").WithName("GetShopfloorQueue").Produces<ShopfloorQueueView>();
+            .RequirePermission("shopfloor.view").AllowPinSession().WithName("GetShopfloorQueue").Produces<ShopfloorQueueView>();
         shopfloor.MapGet("/orders", async (string? number, ShopfloorService service, CancellationToken ct) => (await service.SearchAsync(number, ct)).ToHttpResult())
-            .RequirePermission("shopfloor.view").WithName("SearchShopfloorOrder").Produces<IReadOnlyList<ShopfloorQueueStep>>();
+            .RequirePermission("shopfloor.view").AllowPinSession().WithName("SearchShopfloorOrder").Produces<IReadOnlyList<ShopfloorQueueStep>>();
 
         var steps = shopfloor.MapGroup("/steps/{stepId:guid}");
         steps.MapGet(string.Empty, async (Guid stepId, ShopfloorService service, CancellationToken ct) => (await service.GetStepAsync(stepId, ct)).ToHttpResult())
-            .RequirePermission("shopfloor.view").WithName("GetShopfloorStep").Produces<ShopfloorStepDetail>();
+            .RequirePermission("shopfloor.view").AllowPinSession().WithName("GetShopfloorStep").Produces<ShopfloorStepDetail>();
         steps.MapPost("/start", async (Guid stepId, ShopfloorService service, CancellationToken ct) => (await service.StartAsync(stepId, ct)).ToHttpResult())
-            .RequirePermission("shopfloor.create").RequireIdempotencyKey().WithName("StartShopfloorStep").Produces<ShopfloorActionResult>();
+            .RequirePermission("shopfloor.create").RequireIdempotencyKey().AllowPinSession().WithName("StartShopfloorStep").Produces<ShopfloorActionResult>();
         steps.MapPost("/pause", async (Guid stepId, ShopfloorPauseInput input, ShopfloorService service, CancellationToken ct) => (await service.PauseAsync(stepId, input, ct)).ToHttpResult())
-            .RequirePermission("shopfloor.create").RequireIdempotencyKey().WithName("PauseShopfloorStep").Produces<ShopfloorActionResult>();
+            .RequirePermission("shopfloor.create").RequireIdempotencyKey().AllowPinSession().WithName("PauseShopfloorStep").Produces<ShopfloorActionResult>();
         steps.MapPost("/resume", async (Guid stepId, ShopfloorService service, CancellationToken ct) => (await service.ResumeAsync(stepId, ct)).ToHttpResult())
-            .RequirePermission("shopfloor.create").RequireIdempotencyKey().WithName("ResumeShopfloorStep").Produces<ShopfloorActionResult>();
+            .RequirePermission("shopfloor.create").RequireIdempotencyKey().AllowPinSession().WithName("ResumeShopfloorStep").Produces<ShopfloorActionResult>();
         steps.MapPost("/leave", async (Guid stepId, ShopfloorService service, CancellationToken ct) => (await service.LeaveAsync(stepId, ct)).ToHttpResult())
-            .RequirePermission("shopfloor.create").RequireIdempotencyKey().WithName("LeaveShopfloorStep").Produces<ShopfloorActionResult>();
+            .RequirePermission("shopfloor.create").RequireIdempotencyKey().AllowPinSession().WithName("LeaveShopfloorStep").Produces<ShopfloorActionResult>();
         steps.MapPost("/finish", async (Guid stepId, ShopfloorFinishInput input, ShopfloorService service, CancellationToken ct) => (await service.FinishAsync(stepId, input, ct)).ToHttpResult())
-            .RequirePermission("shopfloor.create").RequireIdempotencyKey().WithName("FinishShopfloorStep").Produces<ShopfloorActionResult>();
+            .RequirePermission("shopfloor.create").RequireIdempotencyKey().AllowPinSession().WithName("FinishShopfloorStep").Produces<ShopfloorActionResult>();
         steps.MapPut("/checklist/{itemId:guid}", async (Guid stepId, Guid itemId, ShopfloorChecklistInput input, ShopfloorService service, CancellationToken ct) =>
                 (await service.MarkChecklistAsync(stepId, itemId, input, ct)).ToHttpResult())
-            .RequirePermission("shopfloor.create").WithName("MarkShopfloorChecklist").Produces<ShopfloorStepDetail>();
+            .RequirePermission("shopfloor.create").AllowPinSession().WithName("MarkShopfloorChecklist").Produces<ShopfloorStepDetail>();
 
         // CA 6 (CA 14 da PRD-01): anexos técnicos da OS pela fila do operador, só leitura; fora da fila, 404.
         steps.MapGet("/attachments", async (Guid stepId, ShopfloorService service, CancellationToken ct) => (await service.AttachmentsAsync(stepId, ct)).ToHttpResult())
-            .RequirePermission("shopfloor.view").WithName("ListShopfloorAttachments").Produces<IReadOnlyList<ShopfloorAttachment>>();
+            .RequirePermission("shopfloor.view").AllowPinSession().WithName("ListShopfloorAttachments").Produces<IReadOnlyList<ShopfloorAttachment>>();
         steps.MapGet("/attachments/{attachmentId:guid}", async (Guid stepId, Guid attachmentId, ShopfloorService service, HttpContext http, CancellationToken ct) =>
             {
                 var result = await service.DownloadAsync(stepId, attachmentId, ct);
@@ -52,7 +52,7 @@ internal static partial class ProductionEndpoints
                 AttachmentEndpoints.ApplyDownloadHeaders(http.Response);
                 return Results.File(result.Value.Content, result.Value.ContentType, result.Value.FileName);
             })
-            .RequirePermission("shopfloor.view").WithName("DownloadShopfloorAttachment");
+            .RequirePermission("shopfloor.view").AllowPinSession().WithName("DownloadShopfloorAttachment");
         return api;
     }
 

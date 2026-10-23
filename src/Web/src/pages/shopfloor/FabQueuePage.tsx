@@ -1,7 +1,10 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { searchShopfloorOrder, useGetQualityQueue, useGetShopfloorQueue } from '@/api/generated/bemaqui'
+import { getGetShopfloorDeviceQueryKey, searchShopfloorOrder, useGetQualityQueue, useGetShopfloorQueue } from '@/api/generated/bemaqui'
+import { CreatePinSheet, DeviceButton } from './DeviceSheet'
+import { useFloorDevice, useFloorSession } from './floor-session'
 import { useCan } from '@/pages/use-can'
 import type { ShopfloorQueueStep } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
@@ -43,7 +46,9 @@ export function FabQueuePage() {
   const operator = queue.data?.operator
   const header = (
     <FloorHeader onHelp={() => help.setOpen(true)} title={operator ? `Olá, ${operator.firstName}` : 'App do operador'}
-      subtitle={operator ? `${operator.line ?? operator.workCenterName ?? 'Sem centro definido'}, ${floorDate(operator.today)}` : undefined} />
+      subtitle={operator ? `${operator.line ?? operator.workCenterName ?? 'Sem centro definido'}, ${floorDate(operator.today)}` : undefined}>
+      <DeviceButton />
+    </FloorHeader>
   )
 
   if (queue.isPending) return <>{header}<div className="mx-auto max-w-3xl p-4"><FloorSkeleton /></div></>
@@ -70,6 +75,7 @@ export function FabQueuePage() {
             <QueueCard step={current} highlight />
           </section>
         ) : <h1 className="sr-only">Fila de etapas</h1>}
+        <CreatePinOffer />
         <QualityEntry />
         <div className="flex flex-wrap items-center gap-[8px]">
           <FloorButton tone={onlyMine ? 'primary' : 'secondary'} aria-pressed={onlyMine} onClick={toggle}>Só meu centro</FloorButton>
@@ -88,6 +94,29 @@ export function FabQueuePage() {
         </section>
       </div>
       <SearchSheet open={searching} onOpenChange={setSearching} />
+    </>
+  )
+}
+
+/** Propositivo (PRD-03b): depois do login completo num aparelho registrado, "Criar PIN para entrar mais rápido". */
+function CreatePinOffer() {
+  const device = useFloorDevice()
+  const { pin } = useFloorSession()
+  const client = useQueryClient()
+  const [open, setOpen] = useState(false)
+  const data = device.data
+  const offer = !pin && !!data?.registered && data.canCreatePin && !data.hasMyPin
+  const sheet = <CreatePinSheet open={open} onOpenChange={setOpen} onCreated={(next) => client.setQueryData(getGetShopfloorDeviceQueryKey(), next)} />
+  // A folha fica no mesmo lugar da árvore: continua aberta em "PIN criado" mesmo depois que a oferta some.
+  return (
+    <>
+      {offer ? (
+        <section aria-label="Criar PIN" className="flex flex-wrap items-center justify-between gap-[8px] rounded-md border-2 border-primary bg-card p-4">
+          <p className="text-[18px] font-semibold">Criar PIN para entrar mais rápido neste tablet</p>
+          <FloorButton onClick={() => setOpen(true)}>Criar PIN</FloorButton>
+        </section>
+      ) : null}
+      {sheet}
     </>
   )
 }
