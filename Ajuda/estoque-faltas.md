@@ -12,7 +12,7 @@ Ver, por item, o que as OS abertas precisam e o estoque ainda não tem livre. É
 ## Como usar
 - Cada linha é um item: a **Falta** somada das OS abertas, o **Disponível** agora, as OS e os projetos afetados e a data prometida mais próxima. A lista começa pela data prometida mais próxima.
 - Clique no número da OS para abrir a aba **Material** dela.
-- Clique em **Gerar solicitação de compra** para comprar o que falta. Quando a solicitação já existe, o chip mostra **Falta {x}, SC gerada** e o link leva a ela.
+- **Gerar solicitação de compra** abre a solicitação já preenchida com o item e, quando há uma OS só, com a OS, o destino e a necessidade. Quase sempre nem é preciso: com Compras liberado, a falta da BOM já abre a solicitação sozinha, e o chip mostra **Falta {x}, SC gerada** com o link **Ver solicitação**.
 - Busque pelo código ou nome do item e filtre por projeto. Os filtros ficam no endereço da página, para você guardar ou mandar o link.
 - No celular aparecem item, falta e OS. Toque na linha para ver o disponível, a data prometida e o caminho da compra.
 

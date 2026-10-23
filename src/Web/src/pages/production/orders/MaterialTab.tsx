@@ -78,7 +78,7 @@ export function MaterialTab({ orderId, projectId, projectNumber }: { orderId: st
             <StatusChip tone="crit">{label}</StatusChip>
             {l.purchaseRequestLink
               ? <a href={l.purchaseRequestLink} className="text-sm font-semibold text-primary">Ver solicitação</a>
-              : <Link to={'/app/compras' as never} className="text-sm font-semibold text-primary">Gerar solicitação de compra</Link>}
+              : <Link to={'/app/compras/solicitacoes/nova' as never} search={{ os: orderId, item: l.itemId } as never} className="text-sm font-semibold text-primary">Gerar solicitação de compra</Link>}
           </span>
         )
       },

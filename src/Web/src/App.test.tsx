@@ -52,9 +52,9 @@ describe('shell do backoffice (FND-09b)', () => {
   it('título da página e foco no h1 na troca de rota (CA 11)', async () => {
     const router = renderAt('/app')
     await screen.findByRole('heading', { level: 1, name: 'Início' })
-    await act(() => router.navigate({ to: '/app/$module', params: { module: 'compras' } }))
-    const heading = await screen.findByRole('heading', { level: 1, name: 'Compras' })
-    await waitFor(() => expect(document.title).toBe('Compras · Empresa · BemAqui Empresas'))
+    await act(() => router.navigate({ to: '/app/$module', params: { module: 'patrimonio' } }))
+    const heading = await screen.findByRole('heading', { level: 1, name: 'Patrimônio' })
+    await waitFor(() => expect(document.title).toBe('Patrimônio · Empresa · BemAqui Empresas'))
     expect(document.activeElement).toBe(heading)
   })
 

@@ -12,7 +12,7 @@ Ver o material que esta OS precisa e o que o estoque já separou para ela. Para 
 ## Como usar
 - A reserva nasce sozinha quando a BOM da OS é liberada. Enquanto o estoque separa o material, a aba mostra **Reservando material…** e se atualiza sozinha. Ao terminar, aparece o aviso **Material reservado: {n} itens, {f} em falta.**, que também chega como notificação para quem libera BOM.
 - O estoque reserva primeiro no local padrão (Almoxarifado) e depois nos outros locais, em ordem de código. Cada local aparece na linha do item.
-- **Falta** é o que a BOM pede e o estoque não tem livre. Clique em **Gerar solicitação de compra** para comprar só o que falta. Quando a solicitação já existe, o chip mostra **Falta {x}, SC gerada** e o link leva a ela.
+- **Falta** é o que a BOM pede e o estoque não tem livre. Com Compras liberado, a falta já abre a solicitação de compra sozinha e acompanha a falta: o chip mostra **Falta {x}, SC gerada** e **Ver solicitação** leva a ela. Sem solicitação, **Gerar solicitação de compra** abre uma já preenchida com o item, a quantidade que falta e a necessidade.
 - Quando o material chega (recebimento, entrada, devolução ou transferência), a falta se completa sozinha: primeiro a OS que originou a compra, depois a OS com a BOM liberada há mais tempo.
 - O cabeçalho da OS mostra **Falta material** com quantos itens faltam. Clique no chip para abrir esta aba.
 - Se a BOM for revisada, a reserva acompanha a revisão nova: reserva mais se a necessidade subiu e libera o que sobrou se ela desceu.

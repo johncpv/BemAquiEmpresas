@@ -31,11 +31,11 @@ test.describe('menu por permissão (FND-06d)', () => {
       'GET /api/v1/me/permissions': (r) => r.fulfill({ status: 200, contentType: 'application/json', headers: { 'X-Perm-Version': version }, body: JSON.stringify({ permissions: [], isOwner: false, version, modules }) }),
       'GET /api/v1/notifications/': (r) => r.fulfill({ status: 200, contentType: 'application/json', headers: { 'X-Perm-Version': version }, body: JSON.stringify({ page: { items: [], page: 1, pageSize: 10, total: 0 }, unread: 0 }) }),
     })
-    await page.goto('/app/compras')
+    await page.goto('/app/patrimonio')
     await expect(page.getByText('Esta tela está em construção.')).toBeVisible()
 
     version = '2'
-    modules = allModules({ purchasing: { enabled: false } })
+    modules = allModules({ assets: { enabled: false } })
     await page.getByRole('button', { name: 'Notificações' }).click() // qualquer request traz a versão nova
     await expect(page.getByRole('heading', { name: 'Sem acesso a esta tela' })).toBeVisible()
   })

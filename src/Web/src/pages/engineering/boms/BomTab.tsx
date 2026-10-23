@@ -78,7 +78,7 @@ export function BomTab({ orderId }: { orderId: string }) {
       {order.closed ? <p role="note" className="rounded-md border border-border bg-muted px-3 py-2 text-sm">A OS {order.number} está {order.status === 'Cancelled' ? 'cancelada' : 'concluída'}: a BOM não muda.</p> : null}
       {released ? (
         <NextSteps onDismiss={() => setReleased(null)} steps={[
-          ...(released.shortageCount > 0 ? [{ label: 'Ver solicitações de compra geradas', onSelect: () => void navigate({ to: '/app/compras' } as never) }] : []),
+          ...(released.shortageCount > 0 ? [{ label: 'Ver solicitações de compra geradas', onSelect: () => void navigate({ to: '/app/compras/solicitacoes', search: { os: orderId, filtro: 'todas' } } as never) }] : []),
           ...(released.shortageCount > 0 ? [{ label: 'Ver faltas da OS', onSelect: () => { setReleased(null); void navigate({ to: '.', search: { aba: 'material' } } as never) } }] : []),
           { label: 'Ver etapas da OS', onSelect: () => void navigate({ to: '.', search: { aba: 'etapas' } } as never) },
           { label: 'Ver BOMs da Engenharia', onSelect: () => void navigate({ to: '/app/engenharia/boms' } as never) },
