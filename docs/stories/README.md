@@ -450,7 +450,7 @@ Stories detalhadas da Fase 3, uma por arquivo, escritas pelo @sm (River) e valid
 | 9 (3.1) | PRD-03b | App do operador: aparelho registrado e PIN | M | Done | R-PRD-3, R-SEC-1, R-SEC-3, R-SEC-7 | PRD-03a, PRD-05; ADR 0026 | [PRD-03b](PRD-03b-pwa-pin-aparelho.md) |
 | 10 (3.2) | EST-01a | Saldos, movimentos e custo médio | G | Ready (pré-condição externa) | R-EST-4, R-EST-5, R-EST-6, R-EST-7, R-EST-8 | CAD-02a, CAD-02b, CAD-03, CAD-06, FND-09e; ADR 0023 | [EST-01a](EST-01a-saldos-movimentos-custo-medio.md) |
 | 11 (3.2) | ENG-02 | BOM da OS | M | Ready | R-ENG-3, R-ENG-4, R-ENG-5, R-PRP-2 | PRD-01, PRD-03a, EST-01a | [ENG-02](ENG-02-bom-da-os.md) |
-| 12 (3.2) | EST-02 | Reservas e disponível | M | Ready | R-EST-4, R-ENG-4, R-ENG-5, R-CMP-1 | ENG-02, EST-01a, PRD-01 | [EST-02](EST-02-reservas-disponivel.md) |
+| 12 (3.2) | EST-02 | Reservas e disponível | M | Done | R-EST-4, R-ENG-4, R-ENG-5, R-CMP-1 | ENG-02, EST-01a, PRD-01 | [EST-02](EST-02-reservas-disponivel.md) |
 | 13 (3.2) | EST-03 | Requisição de material para a OS e devolução | M | Ready | R-PRD-5, R-EST-4, R-EST-6, R-PRJ-5 | EST-02, PRD-03a, PRD-04 | [EST-03](EST-03-requisicao-material-os.md) |
 | 14 (3.3) | CMP-01 | Solicitação de compra | M | Ready | R-CMP-1, R-CMP-6, R-COM-2, R-COM-4 | EST-02 | [CMP-01](CMP-01-solicitacao-compra.md) |
 | 15 (3.3) | CMP-03a | Pedido de compra: criação, aprovação por alçada e CP previsto | G | Ready (pré-condição externa) | R-CMP-3, R-CMP-4, R-CMP-6, R-FIN-4, R-FIN-5, R-FIN-10 | CMP-01, FIN-03b, FIN-02, FIN-05; ADR 0024 | [CMP-03a](CMP-03a-pedido-compra-alcada-cp.md) |
