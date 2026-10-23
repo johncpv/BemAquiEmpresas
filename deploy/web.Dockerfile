@@ -8,6 +8,8 @@ RUN pnpm install --frozen-lockfile
 ARG VITE_GALERIA=false
 ENV VITE_GALERIA=$VITE_GALERIA
 COPY src/Web/ ./
+# A ajuda da /fab/entrar vem de Ajuda/fab-entrar.md, embutida no app (PRD-03b): mesmo caminho relativo do repositório (/web/../Ajuda).
+COPY Ajuda/ /Ajuda/
 RUN pnpm build
 
 # nginx-unprivileged: roda como uid 101, escuta na 8080 e grava o pid em /tmp.
