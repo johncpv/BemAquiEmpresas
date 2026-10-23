@@ -166,14 +166,14 @@ public partial class EmployeesTests
     }
 
     [Fact]
-    public async Task Doenca_e_acidente_so_com_view_health_e_os_demais_veem_afastado_e_as_datas()
+    public async Task Sem_view_health_nenhum_tipo_nem_motivo_so_afastado_e_as_datas()
     {
         var (id, owner) = await OnLeaveEmployeeAsync(Today.AddDays(-1), Today.AddDays(4), "Illness", Canary);
         (await owner.PostAsJsonAsync(Emp(id, "/leaves"), Leave(Today.AddDays(30), Today.AddDays(35), await VersionAsync(owner, id), "Maternity", "Licença"))).EnsureSuccessStatusCode();
         var (_, rh) = await ActorAsync("hr:view,edit,view_sensitive");
 
         var raw = await rh.GetStringAsync(Emp(id, "/leaves/sensitive"));
-        raw.Should().NotContain(Canary).And.NotContain("Illness", "sem hr.view_health, nem o tipo nem o motivo de saúde (CA 8)");
+        raw.Should().NotContain(Canary).And.NotContain("Illness").And.NotContain("Maternity").And.NotContain("Licença", "sem hr.view_health, nenhum tipo nem motivo (CA 8, PO 22/10/2026)");
         var leaves = await LeavesOfAsync(rh, id);
         var illness = leaves.Single(l => l.GetProperty("startDate").GetString() == Iso(Today.AddDays(-1)));
         illness.GetProperty("healthProtected").GetBoolean().Should().BeTrue();
@@ -181,9 +181,13 @@ public partial class EmployeesTests
         illness.GetProperty("reason").ValueKind.Should().Be(JsonValueKind.Null);
         illness.GetProperty("expectedEndDate").GetString().Should().Be(Iso(Today.AddDays(4)), "as datas aparecem");
         var maternity = leaves.Single(l => l.GetProperty("startDate").GetString() == Iso(Today.AddDays(30)));
-        maternity.GetProperty("type").GetString().Should().Be("Maternity", "os demais tipos continuam com hr.view_sensitive");
-        maternity.GetProperty("healthProtected").GetBoolean().Should().BeFalse();
-        (await LeavesOfAsync(owner, id)).Should().Contain(l => l.GetProperty("type").GetString() == "Illness", "o Proprietário tem a ação");
+        maternity.GetProperty("type").ValueKind.Should().Be(JsonValueKind.Null, "nenhum tipo sem hr.view_health, nem os que não são de saúde");
+        maternity.GetProperty("reason").ValueKind.Should().Be(JsonValueKind.Null);
+        maternity.GetProperty("healthProtected").GetBoolean().Should().BeTrue();
+        maternity.GetProperty("startDate").GetString().Should().Be(Iso(Today.AddDays(30)), "as datas aparecem");
+        var ownerView = await LeavesOfAsync(owner, id);
+        ownerView.Should().Contain(l => l.GetProperty("type").GetString() == "Illness", "o Proprietário tem a ação");
+        ownerView.Should().Contain(l => l.GetProperty("type").GetString() == "Maternity" && l.GetProperty("reason").GetString() == "Licença");
 
         var illnessId = illness.GetProperty("id").GetGuid();
         var maternityId = maternity.GetProperty("id").GetGuid();
@@ -192,6 +196,9 @@ public partial class EmployeesTests
         (await rh.PutAsJsonAsync(LeaveUrl(id, maternityId), Leave(Today.AddDays(30), Today.AddDays(35), await VersionAsync(rh, id), "Illness"))).StatusCode.Should().Be(HttpStatusCode.Forbidden, "passar a saúde exige hr.view_health");
         (await rh.PutAsJsonAsync(LeaveUrl(id, maternityId), Leave(Today.AddDays(31), Today.AddDays(36), await VersionAsync(rh, id), "Maternity", "Licença"))).StatusCode.Should().Be(HttpStatusCode.OK, "os demais tipos seguem com hr.view_sensitive");
         (await rh.PostAsJsonAsync(LeaveUrl(id, illnessId, "/end"), new { returnDate = Iso(Today), version = await VersionAsync(rh, id) })).StatusCode.Should().Be(HttpStatusCode.OK, "encerrar só mexe nas datas, que ele vê");
+        (await rh.GetStringAsync(Emp(id, "/leaves/sensitive"))).Should().NotContain("\"oldType\":\"").And.NotContain("\"newType\":\"", "o rastro também não leva tipo");
+        (await rh.PostAsJsonAsync(LeaveUrl(id, maternityId, "/cancel"), new { reason = "Lançado errado", version = await VersionAsync(rh, id) })).StatusCode.Should().Be(HttpStatusCode.OK, "cancelar não exige hr.view_health");
+        (await rh.GetStringAsync(Emp(id, "/leaves/sensitive"))).Should().NotContain("Lançado errado", "o motivo do cancelamento segue a mesma regra");
 
         // Sem hr.view_sensitive, nada dos afastamentos, como na CAD-04c1.
         var (_, viewer) = await ActorAsync("hr:view,edit");

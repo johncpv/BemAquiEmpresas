@@ -236,6 +236,12 @@ public static class EmployeeLeaveRules
     /// <summary>Doença e acidente de trabalho são dado de saúde: tipo e detalhes só com <c>hr.view_health</c> (CAD-04c1b, PO 22/10/2026).</summary>
     public static bool IsHealth(EmployeeLeaveType? type) => type is EmployeeLeaveType.Illness or EmployeeLeaveType.WorkAccident;
 
+    /// <summary>
+    /// Tipo e motivo de qualquer afastamento só com <c>hr.view_health</c> (PO 22/10/2026, CAD-04c1b 1.1): mostrar os demais tipos
+    /// deixaria inferir que o "Afastado" sem tipo é de saúde. Sem a ação, só "Afastado" e as datas.
+    /// </summary>
+    public static bool ShowsDetails(bool canViewHealth) => canViewHealth;
+
     /// <summary>Estado no dia (CAD-04c1b): cancelado prevalece; antes do início, previsto; até o fim, em curso; depois, encerrado.</summary>
     public static EmployeeLeaveState State(DateOnly start, DateOnly end, bool cancelled, DateOnly today) =>
         cancelled ? EmployeeLeaveState.Cancelled

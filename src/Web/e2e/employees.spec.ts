@@ -232,18 +232,22 @@ test.describe('Afastamentos: editar, encerrar e cancelar (CAD-04c1b)', () => {
     expect(results.violations.filter((v) => v.impact === 'critical' || v.impact === 'serious')).toEqual([])
   })
 
-  test('sem hr.view_health, o afastamento de saúde aparece só como "Afastado" e os tipos de saúde somem do diálogo (CA 8)', async ({ page }) => {
+  test('sem hr.view_health, nenhum afastamento mostra o tipo, só "Afastado" e as datas, e os tipos de saúde somem do diálogo (CA 8)', async ({ page }) => {
     const health = leaveRow({ id: 'l1', type: null, healthProtected: true })
-    const { api } = employeesApi([{ ...EMPLOYEE, status: 'OnLeave' }], [health])
+    const other = leaveRow({ id: 'l2', type: null, healthProtected: true, state: 'Scheduled', startDate: '2099-01-10', expectedEndDate: '2099-01-20', expectedReturnDate: '2099-01-21' })
+    const { api } = employeesApi([{ ...EMPLOYEE, status: 'OnLeave' }], [other, health])
     await mockApi(page, { ...api, 'GET /api/v1/me/permissions': (r: Route) => json(r, { permissions: [], isOwner: false, version: '10', modules: withHr(['view', 'edit', 'view_sensitive']) }) })
     await page.goto('/app/rh/funcionarios/e1?aba=linha-do-tempo')
     const timeline = page.getByRole('tabpanel', { name: 'Linha do tempo' })
     const row = timeline.getByRole('listitem').filter({ hasText: '01/01/2020' }).first()
     await expect(row.getByText('Afastado', { exact: true })).toBeVisible()
-    await expect(row.getByRole('button', { name: 'Dica: Dado de saúde' })).toBeVisible()
+    await expect(row.getByRole('button', { name: 'Dica: Dados de saúde' })).toBeVisible()
     await expect(row.getByRole('button', { name: 'Editar' })).toHaveCount(0)
     await expect(row.getByRole('button', { name: 'Encerrar afastamento' })).toBeVisible()
-    await expect(timeline.getByText('Afastamento: Doença')).toHaveCount(0)
+    const scheduled = timeline.getByRole('listitem').filter({ hasText: '10/01/2099' }).first()
+    await expect(scheduled.getByText('Afastado', { exact: true })).toBeVisible()
+    await expect(scheduled.getByRole('button', { name: 'Cancelar afastamento' })).toBeVisible()
+    await expect(timeline.getByText(/Afastamento: /)).toHaveCount(0)
 
     await press(page, 'Registrar afastamento', page.getByRole('main'))
     const dialog = page.getByRole('alertdialog', { name: /Registrar afastamento de Joana Lima/ })

@@ -36,6 +36,13 @@ export const LEAVE_STATE_LABELS: Record<EmployeeLeaveState, string> = { Schedule
 
 export const LEAVE_STATE_TONES: Record<EmployeeLeaveState, StatusTone> = { Scheduled: 'info', Current: 'warn', Ended: 'neutral', Cancelled: 'neutral' }
 
+/**
+ * Título do afastamento na linha do tempo: sem hr.view_health o servidor não manda o tipo de nenhum afastamento
+ * (healthProtected, PO 22/10/2026), e aparece só "Afastado".
+ */
+export const leaveTitle = (leave: Pick<LeaveDetail, 'type' | 'healthProtected'>) =>
+  leave.healthProtected || !leave.type ? 'Afastado' : `Afastamento: ${LEAVE_TYPE_LABELS[leave.type]}`
+
 /** O que cada estado permite (CAD-04c1b CA 1, 4 e 6): editar previsto ou em curso; encerrar em curso; cancelar previsto. */
 export function leaveActions(leave: Pick<LeaveDetail, 'state' | 'healthProtected'>, canHealth: boolean) {
   const open = leave.state === 'Scheduled' || leave.state === 'Current'
@@ -101,9 +108,9 @@ export const EMPLOYEE_DICAS = {
   pis: 'Número do PIS/PASEP/NIT, com 11 dígitos. O último é o dígito verificador.',
   ctps: 'Carteira de Trabalho: número e série. Na carteira digital, o número é o CPF.',
   matricula: 'Código do funcionário na empresa, se houver. É único e aparece nas listas e no ponto.',
-  afastado: 'Há um afastamento vigente hoje. A situação volta a Ativo sozinha no dia seguinte ao fim previsto. O tipo e o motivo só aparecem com a permissão Ver dados sensíveis; Doença e Acidente de trabalho, só com Ver dados de saúde.',
+  afastado: 'Há um afastamento vigente hoje. A situação volta a Ativo sozinha no dia seguinte ao fim previsto. As datas aparecem com a permissão Ver dados sensíveis; o tipo e o motivo, só com Ver dados de saúde.',
   motivoAfastamento: 'Texto curto para o RH se lembrar do caso. Não informe CID nem diagnóstico: dado de saúde é sensível pela LGPD.',
-  saude: 'Afastamento por doença ou acidente de trabalho é dado de saúde (LGPD). O tipo e o motivo só aparecem para quem tem a permissão Ver dados de saúde; os demais veem só as datas.',
+  saude: 'O tipo e o motivo dos afastamentos só aparecem para quem tem a permissão Ver dados de saúde, porque podem revelar dado de saúde (LGPD). Sem ela, você vê só as datas e não escolhe Doença nem Acidente de trabalho.',
   volta: 'Primeiro dia de trabalho depois do afastamento. O último dia afastado passa a ser a véspera da volta.',
 }
 

@@ -208,7 +208,7 @@ public sealed partial class EmployeeService
 
     /// <summary>
     /// Afastamentos com tipo, datas, motivo e rastro (CA 4, CAD-04c1b CA 7 e 8): a rota exige <c>hr.view_sensitive</c>; sem
-    /// <c>hr.view_health</c>, o de saúde (agora ou numa versão anterior) vem só com as datas. A leitura vai para a auditoria.
+    /// <c>hr.view_health</c>, todos vêm só com as datas, sem tipo nem motivo (PO 22/10/2026). A leitura vai para a auditoria.
     /// </summary>
     public async Task<Result<IReadOnlyList<LeaveDetail>>> LeavesAsync(Guid id, CancellationToken cancellationToken = default)
     {
@@ -229,7 +229,9 @@ public sealed partial class EmployeeService
             {
                 var end = h.LeaveEndDate ?? h.EffectiveDate;
                 var own = changes[h.Id].OrderByDescending(c => c.CreatedAt).ThenByDescending(c => c.Id).ToList();
-                var hidden = !health && (EmployeeLeaveRules.IsHealth(h.LeaveType) || own.Any(c => EmployeeLeaveRules.IsHealth(c.PreviousLeaveType) || EmployeeLeaveRules.IsHealth(c.LeaveType)));
+                // PO 22/10/2026 (CAD-04c1b 1.1): sem hr.view_health, nenhum tipo nem motivo sai, de nenhum tipo, para não deixar
+                // inferir qual é de saúde; só "Afastado" e as datas.
+                var hidden = !EmployeeLeaveRules.ShowsDetails(health);
                 return new LeaveDetail(h.Id, hidden ? null : h.LeaveType ?? EmployeeLeaveType.Other, hidden,
                     EmployeeLeaveRules.State(h.EffectiveDate, end, h.CancelledAt is not null, today), h.EffectiveDate, end, end.AddDays(1),
                     hidden ? null : h.Reason, h.UserId, h.CreatedAt, h.CancelledAt, own.Select(c => ChangeDetail(c, hidden)).ToList());

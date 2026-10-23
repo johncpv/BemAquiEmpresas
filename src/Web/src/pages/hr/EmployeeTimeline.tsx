@@ -6,7 +6,7 @@ import { StatusChip } from '@/components/ui/status-chip'
 import { Dica } from '@/help/Dica'
 import { formatDate, formatDateTime, formatMoney } from '@/lib/format'
 import { useCan } from '@/pages/use-can'
-import { EMPLOYEE_DICAS, LEAVE_STATE_LABELS, LEAVE_STATE_TONES, LEAVE_TYPE_LABELS, type LeaveType, leaveActions } from './employee'
+import { EMPLOYEE_DICAS, LEAVE_STATE_LABELS, LEAVE_STATE_TONES, LEAVE_TYPE_LABELS, type LeaveType, leaveActions, leaveTitle } from './employee'
 import { CancelLeaveDialog, EndLeaveDialog, LeaveDialog } from './EmployeeDialogs'
 import { EmployeeProtected } from './EmployeeProtected'
 
@@ -60,8 +60,8 @@ function EmployeeLeaves({ employee, onChanged, onReload }: { employee: EmployeeD
             <li key={l.id} className="rounded-md border border-border bg-card p-3 text-sm">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <span className="flex items-center gap-1.5">
-                  <b>{l.healthProtected || !l.type ? 'Afastado' : `Afastamento: ${LEAVE_TYPE_LABELS[l.type]}`}</b>
-                  {l.healthProtected ? <Dica nome="Dado de saúde" texto={EMPLOYEE_DICAS.saude} /> : null}
+                  <b>{leaveTitle(l)}</b>
+                  {l.healthProtected ? <Dica nome="Dados de saúde" texto={EMPLOYEE_DICAS.saude} /> : null}
                 </span>
                 <StatusChip tone={LEAVE_STATE_TONES[l.state]}>{LEAVE_STATE_LABELS[l.state]}</StatusChip>
               </div>

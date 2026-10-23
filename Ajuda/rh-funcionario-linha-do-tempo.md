@@ -30,12 +30,12 @@ Ver os afastamentos, as trocas de cargo e os reajustes de salário do funcionár
 - Cada mudança fica embaixo do afastamento, com o antes e o depois e quando foi feita. O histórico de alterações também registra, sem mostrar o tipo nem o motivo.
 - Se outra pessoa mudou o funcionário ao mesmo tempo, o sistema avisa e oferece **Recarregar**.
 
-## Doença e acidente de trabalho
-- Doença e Acidente de trabalho são dado de saúde. O tipo e o motivo desses afastamentos só aparecem para quem tem a permissão **Ver dados de saúde** do RH.
-- Quem não tem a permissão vê só **Afastado** e as datas. Pode encerrar e cancelar, mas não registra nem edita afastamento de saúde, e esses tipos não aparecem na lista.
+## Tipo, motivo e dados de saúde
+- O tipo e o motivo dos afastamentos podem revelar dado de saúde. Por isso, **de todos os afastamentos**, eles só aparecem para quem tem a permissão **Ver dados de saúde** do RH.
+- Quem não tem a permissão vê só **Afastado** e as datas, em qualquer afastamento. Pode encerrar e cancelar, mas não edita, e não registra Doença nem Acidente de trabalho: esses tipos não aparecem na lista.
 
 ## Perguntas frequentes
-**Por que não vejo os reajustes nem os afastamentos?** Reajustes mostram o salário e afastamentos mostram o tipo e as datas. Os dois só aparecem para quem tem a permissão Ver dados sensíveis do RH; os demais veem só a situação Afastado. O tipo Doença ou Acidente de trabalho pede também a permissão Ver dados de saúde. As trocas de cargo aparecem para todos que veem o RH.
+**Por que não vejo os reajustes nem os afastamentos?** Reajustes mostram o salário e afastamentos mostram o tipo e as datas. Os dois só aparecem para quem tem a permissão Ver dados sensíveis do RH; os demais veem só a situação Afastado. O tipo e o motivo do afastamento pedem também a permissão Ver dados de saúde. As trocas de cargo aparecem para todos que veem o RH.
 
 **O afastamento acabou antes ou vai durar mais. E agora?** Se acabou antes, use **Encerrar afastamento** com a data da volta. Se vai durar mais, use **Editar** e mude o fim previsto.
 

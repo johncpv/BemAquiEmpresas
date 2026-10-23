@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
-  emptyEmployeeDraft, emptyLeaveDraft, employeeDraftErrors, isHealthLeave, leaveActions, leaveCancelError, leaveDraftError, leaveDraftFrom, leaveReturnError, leaveTypeOptions,
+  emptyEmployeeDraft, emptyLeaveDraft, employeeDraftErrors, isHealthLeave, leaveActions, leaveCancelError, leaveDraftError, leaveDraftFrom, leaveReturnError, leaveTitle, leaveTypeOptions,
   previousDay, returnDate, STATUS_OPTIONS, withPosition,
 } from './employee'
 
@@ -69,6 +69,12 @@ describe('editar, encerrar e cancelar afastamento (CAD-04c1b)', () => {
     expect(leaveActions({ state: 'Current', healthProtected: true }, false)).toEqual({ edit: false, end: true, cancel: false })
     expect(leaveActions({ state: 'Ended', healthProtected: false }, true)).toEqual({ edit: false, end: false, cancel: false })
     expect(leaveActions({ state: 'Cancelled', healthProtected: false }, true)).toEqual({ edit: false, end: false, cancel: false })
+  })
+
+  it('sem hr.view_health, todo afastamento aparece só como Afastado (PO 22/10/2026)', () => {
+    expect(leaveTitle({ type: 'Maternity', healthProtected: false })).toBe('Afastamento: Maternidade')
+    expect(leaveTitle({ type: null, healthProtected: true })).toBe('Afastado')
+    expect(leaveActions({ state: 'Scheduled', healthProtected: true }, false)).toEqual({ edit: false, end: false, cancel: true })
   })
 
   it('a edição vem com o gravado', () => {

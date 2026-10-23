@@ -45,6 +45,13 @@ public class EmployeeLeaveChangeRulesTests
     public void Doenca_e_acidente_sao_dado_de_saude(EmployeeLeaveType type, bool health) => EmployeeLeaveRules.IsHealth(type).Should().Be(health);
 
     [Fact]
+    public void Tipo_e_motivo_de_qualquer_afastamento_so_com_view_health()
+    {
+        EmployeeLeaveRules.ShowsDetails(canViewHealth: true).Should().BeTrue();
+        EmployeeLeaveRules.ShowsDetails(canViewHealth: false).Should().BeFalse("PO 22/10/2026: nenhum tipo sem a ação, para não deixar inferir o de saúde");
+    }
+
+    [Fact]
     public void Editar_so_o_previsto_ou_o_em_curso()
     {
         var today = D("2026-10-15");
