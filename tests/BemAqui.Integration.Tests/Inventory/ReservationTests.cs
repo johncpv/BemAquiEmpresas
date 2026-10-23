@@ -210,6 +210,9 @@ public partial class ReservationTests(TenancyFixture tenancy) : IClassFixture<Te
 
         public Task<ProductionOrderState?> StatusAsync(Guid id, CancellationToken cancellationToken = default) =>
             Task.FromResult(Orders.TryGetValue(id, out var o) ? o.Status : (ProductionOrderState?)null);
+
+        public async Task<IReadOnlyList<ProductionOrderInfo>> OpenAsync(CancellationToken cancellationToken = default) =>
+            await FindManyAsync(Orders.Where(o => o.Value.Status is not (ProductionOrderState.Completed or ProductionOrderState.Cancelled)).Select(o => o.Key).ToList(), cancellationToken);
     }
 
     private sealed class FakeBoms : IReleasedBomSource

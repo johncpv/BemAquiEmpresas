@@ -1,4 +1,7 @@
+using BemAqui.BuildingBlocks.Identity;
 using BemAqui.BuildingBlocks.Jobs;
+using BemAqui.BuildingBlocks.Notifications;
+using BemAqui.Engineering.Contracts;
 using BemAqui.BuildingBlocks.Messaging;
 using BemAqui.BuildingBlocks.Persistence.Auditing;
 using BemAqui.BuildingBlocks.Tenancy;
@@ -14,11 +17,56 @@ namespace BemAqui.Inventory.Application;
 /// <summary>
 /// Gatilhos da reconciliação das reservas (EST-02 CA 1, 9 e 10, ADR 0023 §6): o evento só diz qual OS olhar; o alvo vem da fonte.
 /// Roda na transação da inbox (idempotente por mensagem). A origem gravada é a da auditoria do consumidor ("Evento {tipo} · mensagem
-/// {id}"). <c>BomReleased</c> e <c>BomRevised</c> entram aqui na integração com a ENG-02 (ver o Change Log da EST-02).
+/// {id}"). Na liberação e na revisão da BOM, quem libera BOM (<c>engineering.approve</c>) recebe o aviso curto do fim da reserva
+/// (padrão 7, decisão do PO de 23/10/2026): "Material reservado: {n} itens, {f} em falta.", na mesma transação (sai depois do commit).
 /// </summary>
-public sealed class ReservationConsumers(StockReservationService reservations, AuditOrigin origin)
-    : IIntegrationEventConsumer<ProductionOrderCancelled>, IIntegrationEventConsumer<ProductionOrderCompleted>
+public sealed class ReservationConsumers(
+    StockReservationService reservations, AuditOrigin origin, IInventoryDb db, IUserDirectory users, INotificationService notifications, TenantContextHolder tenant)
+    : IIntegrationEventConsumer<ProductionOrderCancelled>, IIntegrationEventConsumer<ProductionOrderCompleted>, IIntegrationEventConsumer<BomReleased>,
+        IIntegrationEventConsumer<BomRevised>
 {
+    public const string NoticeType = "inventory.reservation_done";
+
+    /// <summary>"Material reservado: 3 itens, 1 em falta." (padrão 7).</summary>
+    public static string Notice(int items, int missing) => $"Material reservado: {items} {(items == 1 ? "item" : "itens")}, {missing} em falta.";
+
+    public Task HandleAsync(BomReleased integrationEvent, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(integrationEvent);
+        return ReconcileAndNotifyAsync(integrationEvent.ProductionOrderId, Origin(nameof(BomReleased)), cancellationToken);
+    }
+
+    /// <summary>Revisão antiga é ignorada sem olhar o número: a reconciliação lê a revisão vigente da fonte (CA 2).</summary>
+    public Task HandleAsync(BomRevised integrationEvent, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(integrationEvent);
+        return ReconcileAndNotifyAsync(integrationEvent.ProductionOrderId, Origin(nameof(BomRevised)), cancellationToken);
+    }
+
+    private async Task ReconcileAndNotifyAsync(Guid orderId, string label, CancellationToken ct)
+    {
+        await reservations.ReconcileOrderAsync(orderId, label, cancellationToken: ct);
+        if (tenant.Resolved?.IsReleased(StockReservationService.Module) != true)
+        {
+            return;
+        }
+
+        var rows = await db.Reservations.AsNoTracking().Where(r => r.ProductionOrderId == orderId && r.Status == Contracts.ReservationState.Active)
+            .Select(r => new { r.ItemId, Short = r.RequestedQuantity > r.Quantity + r.QuantityIssued }).ToListAsync(ct);
+        if (rows.Count == 0)
+        {
+            return;
+        }
+
+        var text = Notice(rows.Select(r => r.ItemId).Distinct().Count(), rows.Where(r => r.Short).Select(r => r.ItemId).Distinct().Count());
+        foreach (var user in await users.UsersWithPermissionAsync("engineering.approve", ct))
+        {
+            notifications.Notify(user, NoticeType, text, "/app/producao/os/" + orderId + "?aba=material");
+        }
+
+        await db.SaveChangesAsync(ct);
+    }
+
     public Task HandleAsync(ProductionOrderCancelled integrationEvent, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(integrationEvent);

@@ -152,6 +152,13 @@ public class ReservationRulesTests
         StockLedger.Reserved(6m, 4m, "UN").Code.Should().Be(StockLedger.InsufficientStockCode);
     }
 
+    [Fact]
+    public void Aviso_do_fim_da_reserva_tem_o_texto_do_PO()
+    {
+        ReservationConsumers.Notice(3, 1).Should().Be("Material reservado: 3 itens, 1 em falta.", "padrão 7, decisão do PO de 23/10/2026");
+        ReservationConsumers.Notice(1, 0).Should().Be("Material reservado: 1 item, 0 em falta.");
+    }
+
     private static IEnumerable<string[]> Permutations(string[] items)
     {
         if (items.Length <= 1)

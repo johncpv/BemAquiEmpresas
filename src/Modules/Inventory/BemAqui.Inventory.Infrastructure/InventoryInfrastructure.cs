@@ -61,12 +61,12 @@ public static class InventoryInfrastructure
         services.AddAuditableEntity<ManualPosting>("inventory");
         services.AddAuditableEntity<ManualPostingLine>("inventory");
         services.AddAuditableEntity<InventoryParameters>("inventory");
-        // Reservas e faltas (EST-02, ADR 0023 §6): reconciliação a partir da fonte; a BOM liberada vem pela porta IReleasedBomSource
-        // (sem a ENG-02, nenhuma OS tem BOM liberada).
+        // Reservas e faltas (EST-02, ADR 0023 §6): reconciliação a partir da fonte; a BOM liberada vem do IBoms da ENG-02 pela porta
+        // IReleasedBomSource (o NoReleasedBomSource fica para os testes que não têm BOM).
         services.TryAddScoped<ReservationAllocator>();
         services.TryAddScoped<StockReservationService>();
         services.TryAddScoped<IStockReservations>(sp => sp.GetRequiredService<StockReservationService>());
-        services.TryAddScoped<IReleasedBomSource, NoReleasedBomSource>();
+        services.TryAddScoped<IReleasedBomSource, BomsReleasedBomSource>();
         services.TryAddScoped<ReservationConsumers>();
         services.TryAddScoped<ReservationBackfill>();
         services.AddAuditableEntity<Reservation>("inventory");
