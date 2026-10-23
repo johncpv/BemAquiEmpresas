@@ -27979,7 +27979,8 @@
               "$ref": "#/components/schemas/ReturnLineInput"
             }
           }
-        }
+        },
+        "additionalProperties": false
       },
       "LotDetail": {
         "required": [
@@ -37504,7 +37505,8 @@
             "type": "integer",
             "format": "uint32"
           }
-        }
+        },
+        "additionalProperties": false
       },
       "RequisitionDecisionInput": {
         "required": [
@@ -37542,7 +37544,8 @@
             "type": "integer",
             "format": "uint32"
           }
-        }
+        },
+        "additionalProperties": false
       },
       "RequisitionDetail": {
         "required": [
@@ -37890,7 +37893,8 @@
               "$ref": "#/components/schemas/RequisitionLineInput"
             }
           }
-        }
+        },
+        "additionalProperties": false
       },
       "RequisitionItemLocation": {
         "required": [
@@ -38016,7 +38020,8 @@
               "string"
             ]
           }
-        }
+        },
+        "additionalProperties": false
       },
       "RequisitionLineView": {
         "required": [
@@ -38228,7 +38233,8 @@
             "type": "integer",
             "format": "uint32"
           }
-        }
+        },
+        "additionalProperties": false
       },
       "RequisitionSummary": {
         "required": [
@@ -38677,7 +38683,8 @@
               "$ref": "#/components/schemas/ReturnLineInput"
             }
           }
-        }
+        },
+        "additionalProperties": false
       },
       "ReturnLineInput": {
         "required": [
@@ -38694,7 +38701,8 @@
             "type": "number",
             "format": "double"
           }
-        }
+        },
+        "additionalProperties": false
       },
       "ReverseCompletionInput": {
         "required": [
@@ -39851,7 +39859,8 @@
               "$ref": "#/components/schemas/ShopfloorMaterialLineInput"
             }
           }
-        }
+        },
+        "additionalProperties": false
       },
       "ShopfloorMaterialItem": {
         "required": [
@@ -39907,7 +39916,8 @@
             "type": "number",
             "format": "double"
           }
-        }
+        },
+        "additionalProperties": false
       },
       "ShopfloorMaterialRequest": {
         "required": [
