@@ -168,8 +168,9 @@ public partial class FabricationTests
         lines[0].GetProperty("unitCode").GetString().Should().Be("KG", "a unidade de estoque é o padrão");
         lines[1].GetProperty("requiredQuantity").GetDecimal().Should().Be(2m, "40 PC × 2 × 0,025 kg");
         lines[1].GetProperty("unitCode").GetString().Should().Be("PC");
-        saved.GetProperty("stockConnected").GetBoolean().Should().BeFalse("o saldo liga na EST-01a");
-        lines[0].GetProperty("available").ValueKind.Should().Be(JsonValueKind.Null);
+        saved.GetProperty("stockConnected").GetBoolean().Should().BeTrue("o saldo vem do IStockBalances da EST-01a");
+        lines[0].GetProperty("available").GetDecimal().Should().Be(0m, "item sem posição no estoque");
+        lines[0].GetProperty("shortage").GetDecimal().Should().Be(3.3m, "no rascunho, a falta é a necessidade acima do disponível");
 
         var duplicated = await SaveBomAsync(engineer, saved, BomLine(steel, 1m), BomLine(steel, 2m));
         duplicated.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
@@ -185,6 +186,55 @@ public partial class FabricationTests
         (await SaveBomAsync(engineer, bom, BomLine(steel, 1m))).StatusCode.Should().Be(HttpStatusCode.Conflict);
         (await OutboxAsync<BomReleased>(order)).Should().Be(0);
         (await engineer.SendAsync(Post(Boms, new { productionOrderId = order, copyFromBomId = (Guid?)null }))).StatusCode.Should().Be(HttpStatusCode.Conflict, "um rascunho por vez");
+    }
+
+    /// <summary>Entrada de estoque pelo motor (EST-01a), numa transação própria, como faria o recebimento.</summary>
+    private async Task ReceiveStockAsync(Guid item, decimal quantity, decimal unitCost)
+    {
+        await using var scope = await ScopeAsync();
+        var db = scope.ServiceProvider.GetRequiredService<BemAqui.Host.Persistence.TenantDbContext>();
+        var location = new BemAqui.Inventory.Domain.Location { Code = Unique("L"), Name = "Local " + Guid.NewGuid().ToString("N")[..4], CreatedAt = DateTimeOffset.UtcNow };
+        db.Locations.Add(location);
+        await db.SaveChangesAsync();
+        await using var transaction = await db.Database.BeginTransactionAsync();
+        var posted = await scope.ServiceProvider.GetRequiredService<IStockMovements>()
+            .PostAsync(new StockPosting(StockMovementType.Receipt, item, location.Id, null, quantity, unitCost, StockSources.GoodsReceipt, Guid.NewGuid()));
+        posted.IsSuccess.Should().BeTrue(posted.Error?.Message);
+        await transaction.CommitAsync();
+    }
+
+    [Fact]
+    public async Task Saldo_e_custo_previsto_vem_do_motor_de_estoque_e_a_reserva_espera_a_EST02()
+    {
+        var (owner, order, _, _) = await BomOrderAsync(quantity: 2m);
+        var (_, engineer) = await ActorAsync("engineering");
+        var steel = await MaterialAsync("Chapa 7 mm");
+        await ReceiveStockAsync(steel, 2m, 10m);
+        await ReceiveStockAsync(steel, 1m, 10m);
+
+        var bom = await CreatedBomAsync(engineer, order);
+        bom = await OkAsync(await SaveBomAsync(engineer, bom, BomLine(steel, 2.5m)));
+        var line = bom.GetProperty("lines")[0];
+        line.GetProperty("onHand").GetDecimal().Should().Be(3m, "somado nos locais (CA 3, padrão 8)");
+        line.GetProperty("reserved").GetDecimal().Should().Be(0m);
+        line.GetProperty("available").GetDecimal().Should().Be(3m);
+        line.GetProperty("shortage").GetDecimal().Should().Be(2m, "necessidade 5 − disponível 3");
+        bom.GetProperty("shortageCount").GetInt32().Should().Be(1);
+        line.GetProperty("estimatedCost").ValueKind.Should().Be(JsonValueKind.Null, "a Engenharia do seed não tem projects.view_cost");
+
+        var withCost = await OkAsync(await owner.GetAsync($"{Boms}/{bom.GetProperty("id").GetGuid()}"));
+        withCost.GetProperty("lines")[0].GetProperty("estimatedCost").GetDecimal().Should().Be(50m, "necessidade 5 × custo médio 10, sem gravar");
+        withCost.GetProperty("estimatedCost").GetDecimal().Should().Be(50m);
+
+        var preview = await OkAsync(await engineer.GetAsync($"{Boms}/{bom.GetProperty("id").GetGuid()}/release-preview"));
+        preview.GetProperty("stockConnected").GetBoolean().Should().BeTrue();
+        preview.GetProperty("reservationsConnected").GetBoolean().Should().BeFalse("as reservas são da EST-02");
+        preview.GetProperty("shortageCount").GetInt32().Should().Be(1);
+        var first = preview.GetProperty("lines")[0];
+        first.GetProperty("available").GetDecimal().Should().Be(3m);
+        first.GetProperty("shortage").GetDecimal().Should().Be(2m);
+        first.GetProperty("toReserve").ValueKind.Should().Be(JsonValueKind.Null);
+        first.GetProperty("issued").ValueKind.Should().Be(JsonValueKind.Null);
     }
 
     [Fact]

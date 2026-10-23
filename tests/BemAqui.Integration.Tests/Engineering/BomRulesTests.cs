@@ -146,6 +146,35 @@ public class BomRulesTests
         BomService.WillStop(Order(null, true, ProductionOrderState.ReadyToComplete), released: false).Should().BeFalse("não há mais etapa para começar");
     }
 
+    private sealed class FakeBalances(params StockAvailability[] rows) : IStockBalances
+    {
+        public Task<IReadOnlyList<StockAvailability>> GetAsync(IReadOnlyCollection<Guid> itemIds, Guid? locationId = null, CancellationToken cancellationToken = default) =>
+            Task.FromResult<IReadOnlyList<StockAvailability>>(rows.Where(r => itemIds.Contains(r.ItemId)).ToList());
+    }
+
+    private sealed class FakeCosts : IItemCosts
+    {
+        public Task<IReadOnlyDictionary<Guid, decimal>> AverageCostsAsync(IReadOnlyCollection<Guid> itemIds, CancellationToken cancellationToken = default) =>
+            Task.FromResult<IReadOnlyDictionary<Guid, decimal>>(itemIds.ToDictionary(i => i, _ => 12.5m));
+    }
+
+    [Fact]
+    public async Task Saldo_da_BOM_soma_os_locais_do_IStockBalances_e_as_reservas_esperam_a_EST02()
+    {
+        var (a, b) = (Guid.CreateVersion7(), Guid.CreateVersion7());
+        var stock = new StockBalancesBomStock(new FakeBalances(
+            new StockAvailability(a, Guid.CreateVersion7(), 10m, 2m, 8m), new StockAvailability(a, Guid.CreateVersion7(), 3m, 0m, 3m), new StockAvailability(b, Guid.CreateVersion7(), 1m, 1m, 0m)), new FakeCosts());
+        stock.Connected.Should().BeTrue();
+        stock.ReservationsConnected.Should().BeFalse();
+        var positions = await stock.PositionsAsync([a, b, Guid.CreateVersion7()]);
+        positions[a].Should().Be(new BomStockPosition(13m, 2m, 11m));
+        positions[b].Should().Be(new BomStockPosition(1m, 1m, 0m));
+        positions.Should().HaveCount(2, "item sem posição fica fora (vale zero)");
+        (await stock.PositionsAsync([])).Should().BeEmpty();
+        (await stock.AverageCostsAsync([a]))[a].Should().Be(12.5m);
+        (await stock.IssuedForOrderAsync(Guid.CreateVersion7())).Should().BeNull("o baixado por OS vem da EST-02");
+    }
+
     [Fact]
     public void Maquina_de_estados_da_revisao()
     {

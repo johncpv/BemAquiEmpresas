@@ -19,7 +19,7 @@ public class EngineeringRulesTests
 
     /// <summary>
     /// ENG-02 CA 16 e 18: a Produção liga o bloqueio das etapas sem BOM pelo <c>IBoms</c> da Engenharia (nunca o NoBomGate na composição), e
-    /// o saldo da BOM fica desligado até a EST-01a.
+    /// o saldo da BOM vem do motor de estoque (EST-01a).
     /// </summary>
     [Fact]
     public void Producao_bloqueia_pela_BOM_liberada_do_IBoms_da_Engenharia()
@@ -34,7 +34,7 @@ public class EngineeringRulesTests
         new BemAqui.Engineering.Endpoints.EngineeringModule().AddServices(engineering, configuration);
         engineering.Single(d => d.ServiceType == typeof(BemAqui.Engineering.Contracts.IBoms)).ImplementationType.Should().Be<BemAqui.Engineering.Application.BomsContract>();
         engineering.Single(d => d.ServiceType == typeof(BemAqui.Engineering.Application.IBomStock)).ImplementationType
-            .Should().Be<BemAqui.Engineering.Application.DisconnectedBomStock>("a EST-01a troca pelo IStockBalances");
+            .Should().Be<BemAqui.Engineering.Application.StockBalancesBomStock>("o saldo vem do IStockBalances da EST-01a");
     }
 
     [Fact]
