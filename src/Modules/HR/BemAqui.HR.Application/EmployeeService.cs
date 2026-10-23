@@ -100,8 +100,8 @@ public sealed partial class EmployeeService(
     }
 
     /// <summary>
-    /// Linha do tempo (CA 16): trocas de cargo com <c>hr.view</c>; reajustes só com <c>hr.view_sensitive</c>. Afastamentos nunca
-    /// saem aqui, só por <see cref="LeavesAsync"/> (CAD-04c1 CA 4).
+    /// Linha do tempo (CA 16): trocas de cargo com <c>hr.view</c>; reajustes só com <c>hr.view_sensitive</c>. Afastamentos e as
+    /// mudanças deles nunca saem aqui, só por <see cref="LeavesAsync"/> (CAD-04c1 CA 4, CAD-04c1b).
     /// </summary>
     public async Task<Result<IReadOnlyList<TimelineEntry>>> TimelineAsync(Guid id, CancellationToken cancellationToken = default)
     {
@@ -111,16 +111,19 @@ public sealed partial class EmployeeService(
         }
 
         var sensitive = await CanSensitiveAsync(cancellationToken);
-        return await db.EmployeeHistory.AsNoTracking().Where(h => h.EmployeeId == id && h.Kind != EmployeeHistoryKind.Leave && (sensitive || h.Kind != EmployeeHistoryKind.Salary))
+        return await db.EmployeeHistory.AsNoTracking().Where(h => h.EmployeeId == id && (h.Kind == EmployeeHistoryKind.Position || (sensitive && h.Kind == EmployeeHistoryKind.Salary)))
             .OrderByDescending(h => h.EffectiveDate).ThenByDescending(h => h.CreatedAt)
             .Select(h => new TimelineEntry(h.Id, h.Kind, h.EffectiveDate, h.OldValue, h.NewValue, h.Reason, h.UserId, h.CreatedAt)).ToListAsync(cancellationToken);
     }
 
     private ValueTask<bool> CanSensitiveAsync(CancellationToken ct) => permissions.HasPermissionAsync("hr", PositionService.SensitiveAction, ct);
 
-    /// <summary>Ids dos funcionários com afastamento vigente no dia (início ≤ dia ≤ fim previsto).</summary>
+    /// <summary>Dado de saúde (CAD-04c1b): tipo Doença ou Acidente de trabalho e os detalhes dele.</summary>
+    private ValueTask<bool> CanHealthAsync(CancellationToken ct) => permissions.HasPermissionAsync("hr", HealthAction, ct);
+
+    /// <summary>Ids dos funcionários com afastamento vigente no dia (início ≤ dia ≤ fim previsto), sem os cancelados (CAD-04c1b).</summary>
     private IQueryable<Guid> CurrentLeaves(DateOnly day) =>
-        db.EmployeeHistory.Where(h => h.Kind == EmployeeHistoryKind.Leave && h.EffectiveDate <= day && h.LeaveEndDate >= day).Select(h => h.EmployeeId);
+        db.EmployeeHistory.Where(h => h.Kind == EmployeeHistoryKind.Leave && h.CancelledAt == null && h.EffectiveDate <= day && h.LeaveEndDate >= day).Select(h => h.EmployeeId);
 
     private async Task<List<EmployeeDetail>> DetailsAsync(IReadOnlyList<Employee> employees, CancellationToken ct)
     {

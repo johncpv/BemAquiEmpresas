@@ -31,14 +31,56 @@ public sealed record TerminationInput(DateOnly TerminationDate);
 public sealed record UserLinkInput(Guid UserId);
 
 /// <summary>
-/// Registrar afastamento (CAD-04c1 CA 1), comando próprio com <c>hr.edit</c> e <c>hr.view_sensitive</c>. <c>ExpectedEndDate</c> é o
-/// último dia afastado; <c>Version</c> é o <c>xmin</c> do funcionário (ADR 0019 §2). O motivo não leva CID nem diagnóstico.
+/// Registrar ou editar afastamento (CAD-04c1 CA 1, CAD-04c1b CA 1), comando próprio com <c>hr.edit</c> e <c>hr.view_sensitive</c>;
+/// Doença e Acidente de trabalho exigem também <c>hr.view_health</c>. <c>ExpectedEndDate</c> é o último dia afastado;
+/// <c>Version</c> é o <c>xmin</c> do funcionário (ADR 0019 §2). O motivo não leva CID nem diagnóstico.
 /// </summary>
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record LeaveInput(EmployeeLeaveType? Type, DateOnly? StartDate, DateOnly? ExpectedEndDate, string? Reason, uint Version);
 
-/// <summary>Afastamento só pela rota <c>/leaves/sensitive</c> (CA 4), com <c>no-store</c> e <c>SensitiveRead</c>.</summary>
-public sealed record LeaveDetail(Guid Id, EmployeeLeaveType Type, DateOnly StartDate, DateOnly ExpectedEndDate, DateOnly ExpectedReturnDate, string Reason, Guid? UserId, DateTimeOffset CreatedAt);
+/// <summary>Encerrar antes do previsto (CAD-04c1b CA 4): <c>ReturnDate</c> é o dia da volta, entre o início e o fim previsto, até hoje.</summary>
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record LeaveEndInput(DateOnly? ReturnDate, uint Version);
+
+/// <summary>Cancelar o afastamento que não começou (CAD-04c1b CA 6): cancelamento lógico, com motivo sem CID nem diagnóstico.</summary>
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record LeaveCancelInput(string? Reason, uint Version);
+
+/// <summary>
+/// Afastamento só pela rota <c>/leaves/sensitive</c> (CA 4), com <c>no-store</c> e <c>SensitiveRead</c>. Sem <c>hr.view_health</c>,
+/// o de Doença ou Acidente de trabalho vem com <c>HealthProtected</c>, sem tipo nem motivo, só com as datas (CAD-04c1b CA 8).
+/// <c>Changes</c>: o rastro das edições, do encerramento antes do previsto e do cancelamento, do mais recente ao mais antigo.
+/// </summary>
+public sealed record LeaveDetail(
+    Guid Id,
+    EmployeeLeaveType? Type,
+    bool HealthProtected,
+    EmployeeLeaveState State,
+    DateOnly StartDate,
+    DateOnly ExpectedEndDate,
+    DateOnly ExpectedReturnDate,
+    string? Reason,
+    Guid? UserId,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset? CancelledAt,
+    IReadOnlyList<LeaveChangeDetail> Changes);
+
+/// <summary>
+/// Uma mudança do afastamento (CAD-04c1b CA 7), com o período antes e depois e, na edição, o tipo antes e depois (nulos quando
+/// protegidos). <c>Reason</c> é o motivo do cancelamento.
+/// </summary>
+public sealed record LeaveChangeDetail(
+    Guid Id,
+    EmployeeLeaveChangeKind Kind,
+    DateOnly OldStartDate,
+    DateOnly OldExpectedEndDate,
+    DateOnly NewStartDate,
+    DateOnly NewExpectedEndDate,
+    EmployeeLeaveType? OldType,
+    EmployeeLeaveType? NewType,
+    string? Reason,
+    Guid? UserId,
+    DateTimeOffset CreatedAt);
 
 /// <summary>
 /// Funcionário para a lista e o detalhe (CA 8): nunca traz dado pessoal nem salário. <c>Status</c> é a situação de hoje

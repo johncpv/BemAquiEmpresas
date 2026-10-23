@@ -232,7 +232,8 @@ public partial class EmployeesTests
 
         var endpoints = tenancy.Factory.Services.GetRequiredService<EndpointDataSource>().Endpoints.OfType<RouteEndpoint>()
             .Where(e => e.RoutePattern.RawText?.StartsWith("/api/v1/hr", StringComparison.Ordinal) == true && e.RoutePattern.RawText.Contains("/leaves", StringComparison.Ordinal)).ToList();
-        endpoints.Should().HaveCount(2);
+        // Registrar e ler (CAD-04c1); editar, encerrar antes e cancelar (CAD-04c1b).
+        endpoints.Should().HaveCount(5);
         foreach (var endpoint in endpoints)
         {
             endpoint.Metadata.GetMetadata<RequiresModuleMetadata>()!.ModuleCode.Should().Be("hr", endpoint.DisplayName);

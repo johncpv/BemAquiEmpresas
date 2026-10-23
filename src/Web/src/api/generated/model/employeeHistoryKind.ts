@@ -12,4 +12,5 @@ export const EmployeeHistoryKind = {
   Salary: 'Salary',
   Position: 'Position',
   Leave: 'Leave',
+  LeaveChange: 'LeaveChange',
 } as const;

@@ -87,8 +87,13 @@ public static partial class ModuleCatalog
         new("finance", "Caixa e pagamentos", ModuleAreas.Financial, 2, 100, "Contas a receber e a pagar, ordens de pagamento e fluxo de caixa.", CrudApprove,
             [new("pay", "Pagar", "Dar baixa de pagamento: registra a saída de caixa de uma ordem aprovada.")], "ordem de pagamento, dentro da alçada"),
         new("fiscal", "Fiscal", ModuleAreas.Financial, 5, 110, "Notas fiscais de saída e de entrada.", [StandardActions.View, StandardActions.Create, StandardActions.Edit], []),
+        // CAD-04c1b (PO 22/10/2026, ADR 0003 adendo de 21/10/2026): o dado de saúde sai da hr.view_sensitive para a ação própria;
+        // uma não implica a outra. A RH-01b usa a mesma ação para o atestado.
         new("hr", "RH", ModuleAreas.People, 6, 120, "Funcionários, cargos, ponto e folha.", CrudApprove,
-            [new("view_sensitive", "Ver dados sensíveis", "Ver salário, documentos e dados pessoais protegidos pela LGPD.")], "ajustes de ponto"),
+            [
+                new("view_sensitive", "Ver dados sensíveis", "Ver salário, documentos e dados pessoais protegidos pela LGPD."),
+                new("view_health", "Ver dados de saúde", "Ver atestados e dados de saúde: o tipo Doença ou Acidente de trabalho dos afastamentos, com o motivo, e o atestado médico."),
+            ], "ajustes de ponto"),
         new("kiosk", "Painel da TV", ModuleAreas.Dedicated, 4, 130, "Painéis de fábrica na TV, sem login. Criar = gerar o token de uma tela.", [StandardActions.View, StandardActions.Create], []),
         new("shopfloor", "App do operador", ModuleAreas.Dedicated, 3, 140, "Fila do operador e apontamento das etapas. Criar = apontar.", [StandardActions.View, StandardActions.Create], []),
         new("identity", "Usuários e acessos", ModuleAreas.System, 0, 150, "Usuários, grupos e permissões.", Crud, []),

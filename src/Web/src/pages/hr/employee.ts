@@ -1,4 +1,4 @@
-import type { EmployeeLeaveType as GeneratedLeaveType, EmployeeStatus } from '@/api/generated/model'
+import type { EmployeeLeaveState, EmployeeLeaveType as GeneratedLeaveType, EmployeeStatus, LeaveDetail } from '@/api/generated/model'
 import type { StatusTone } from '@/components/ui/status-chip'
 import { formatMoney } from '@/lib/format'
 
@@ -22,10 +22,67 @@ export const LEAVE_TYPE_LABELS: Record<LeaveType, string> = {
 
 export const LEAVE_REASON_MAX = 200
 
+/** Doença e acidente de trabalho são dado de saúde: só com hr.view_health (CAD-04c1b, PO 22/10/2026). */
+export const HEALTH_LEAVE_TYPES: readonly LeaveType[] = ['Illness', 'WorkAccident']
+
+export const isHealthLeave = (type: LeaveType | '' | null | undefined) => !!type && HEALTH_LEAVE_TYPES.includes(type)
+
+/** Tipos que o usuário pode escolher: sem hr.view_health, os de saúde não aparecem (o servidor recusa com 403). */
+export const leaveTypeOptions = (canHealth: boolean) =>
+  (Object.keys(LEAVE_TYPE_LABELS) as LeaveType[]).filter((t) => canHealth || !isHealthLeave(t)).map((value) => ({ value, label: LEAVE_TYPE_LABELS[value] }))
+
+/** Estado do afastamento no dia (CAD-04c1b): o servidor calcula; em curso em âmbar, previsto informativo. */
+export const LEAVE_STATE_LABELS: Record<EmployeeLeaveState, string> = { Scheduled: 'Previsto', Current: 'Vigente', Ended: 'Encerrado', Cancelled: 'Cancelado' }
+
+export const LEAVE_STATE_TONES: Record<EmployeeLeaveState, StatusTone> = { Scheduled: 'info', Current: 'warn', Ended: 'neutral', Cancelled: 'neutral' }
+
+/**
+ * Título do afastamento na linha do tempo: sem hr.view_health o servidor não manda o tipo de nenhum afastamento
+ * (healthProtected, PO 22/10/2026), e aparece só "Afastado".
+ */
+export const leaveTitle = (leave: Pick<LeaveDetail, 'type' | 'healthProtected'>) =>
+  leave.healthProtected || !leave.type ? 'Afastado' : `Afastamento: ${LEAVE_TYPE_LABELS[leave.type]}`
+
+/** O que cada estado permite (CAD-04c1b CA 1, 4 e 6): editar previsto ou em curso; encerrar em curso; cancelar previsto. */
+export function leaveActions(leave: Pick<LeaveDetail, 'state' | 'healthProtected'>, canHealth: boolean) {
+  const open = leave.state === 'Scheduled' || leave.state === 'Current'
+  return {
+    edit: open && (canHealth || !leave.healthProtected),
+    end: leave.state === 'Current',
+    cancel: leave.state === 'Scheduled',
+  }
+}
+
 export interface LeaveDraft { type: LeaveType | ''; startDate: string; expectedEndDate: string; reason: string }
 
 /** Diálogo vem com o início em hoje (propositivo, CAD-04c1). */
 export const emptyLeaveDraft = (today: string): LeaveDraft => ({ type: '', startDate: today, expectedEndDate: '', reason: '' })
+
+/** Edição vem com o que está gravado (CAD-04c1b CA 1). */
+export const leaveDraftFrom = (leave: Pick<LeaveDetail, 'type' | 'startDate' | 'expectedEndDate' | 'reason'>): LeaveDraft =>
+  ({ type: leave.type ?? '', startDate: leave.startDate, expectedEndDate: leave.expectedEndDate, reason: leave.reason ?? '' })
+
+/** Dia anterior (aaaa-mm-dd): na volta antes do previsto, o último dia afastado. */
+export function previousDay(day: string) {
+  const [y, m, d] = day.split('-').map(Number)
+  return new Date(Date.UTC(y, m - 1, d - 1)).toISOString().slice(0, 10)
+}
+
+/** Encerrar antes (CAD-04c1b CA 4): a volta fica depois do início, até o fim previsto e nunca depois de hoje. O servidor confere de novo. */
+export function leaveReturnError(leave: Pick<LeaveDetail, 'startDate' | 'expectedEndDate'>, back: string, today: string): string | undefined {
+  if (!back) return 'Informe a data da volta.'
+  if (back <= leave.startDate) return 'A volta precisa ser depois do início do afastamento.'
+  if (back > leave.expectedEndDate) return 'A volta precisa ser até o fim previsto. Para estender o afastamento, use "Editar".'
+  if (back > today) return 'A volta não pode ser depois de hoje.'
+  return undefined
+}
+
+/** Cancelar (CAD-04c1b CA 6): motivo obrigatório, até 200, sem CID. */
+export function leaveCancelError(reason: string): string | undefined {
+  if (!reason.trim()) return 'Informe o motivo do cancelamento.'
+  if (reason.trim().length > LEAVE_REASON_MAX) return 'O motivo aceita até 200 caracteres.'
+  return undefined
+}
 
 /** Primeiro erro do afastamento, na ordem dos campos; o servidor confere de novo (CA 1 e 5). */
 export function leaveDraftError(d: LeaveDraft): string | undefined {
@@ -51,8 +108,10 @@ export const EMPLOYEE_DICAS = {
   pis: 'Número do PIS/PASEP/NIT, com 11 dígitos. O último é o dígito verificador.',
   ctps: 'Carteira de Trabalho: número e série. Na carteira digital, o número é o CPF.',
   matricula: 'Código do funcionário na empresa, se houver. É único e aparece nas listas e no ponto.',
-  afastado: 'Há um afastamento vigente hoje. A situação volta a Ativo sozinha no dia seguinte ao fim previsto. O tipo e o motivo só aparecem com a permissão Ver dados sensíveis.',
+  afastado: 'Há um afastamento vigente hoje. A situação volta a Ativo sozinha no dia seguinte ao fim previsto. As datas aparecem com a permissão Ver dados sensíveis; o tipo e o motivo, só com Ver dados de saúde.',
   motivoAfastamento: 'Texto curto para o RH se lembrar do caso. Não informe CID nem diagnóstico: dado de saúde é sensível pela LGPD.',
+  saude: 'O tipo e o motivo dos afastamentos só aparecem para quem tem a permissão Ver dados de saúde, porque podem revelar dado de saúde (LGPD). Sem ela, você vê só as datas e não escolhe Doença nem Acidente de trabalho.',
+  volta: 'Primeiro dia de trabalho depois do afastamento. O último dia afastado passa a ser a véspera da volta.',
 }
 
 /** Rascunho da criação (CAD-04b CA 1): salário e jornada vêm do cargo enquanto não forem editados. */

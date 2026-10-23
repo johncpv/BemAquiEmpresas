@@ -21,6 +21,31 @@ public enum EmployeeHistoryKind
 
     /// <summary>Afastamento (CAD-04c1): tipo, fim previsto e motivo sensíveis (LGPD art. 11).</summary>
     Leave,
+
+    /// <summary>
+    /// Mudança de um afastamento (CAD-04c1b): edição, encerramento antes do previsto ou cancelamento, com o período antes e
+    /// depois. É o rastro na linha do tempo e nunca conta como afastamento.
+    /// </summary>
+    LeaveChange,
+}
+
+/// <summary>O que mudou num afastamento (CAD-04c1b).</summary>
+[JsonConverter(typeof(JsonStringEnumConverter<EmployeeLeaveChangeKind>))]
+public enum EmployeeLeaveChangeKind
+{
+    Edited,
+    EndedEarly,
+    Cancelled,
+}
+
+/// <summary>Estado do afastamento no dia (CAD-04c1b), calculado na leitura como a situação "Afastado".</summary>
+[JsonConverter(typeof(JsonStringEnumConverter<EmployeeLeaveState>))]
+public enum EmployeeLeaveState
+{
+    Scheduled,
+    Current,
+    Ended,
+    Cancelled,
 }
 
 /// <summary>Tipos de afastamento (CAD-04c1, decisão do PO de 21/10/2026). Férias não são afastamento (ficam para a folha).</summary>
@@ -137,7 +162,8 @@ public sealed class EmployeeHistoryEntry : Entity, IAuditable
 
     public EmployeeHistoryKind Kind { get; init; }
 
-    public DateOnly EffectiveDate { get; init; }
+    /// <summary>Vigência; no afastamento, o início (editável enquanto o afastamento não começou, CAD-04c1b).</summary>
+    public DateOnly EffectiveDate { get; set; }
 
     [PersonalData]
     public string? OldValue { get; init; }
@@ -147,7 +173,7 @@ public sealed class EmployeeHistoryEntry : Entity, IAuditable
 
     /// <summary>Motivo (até 200). No afastamento, sem CID nem diagnóstico, e nunca em log nem evento (CAD-04c1 CA 5).</summary>
     [PersonalData]
-    public string Reason { get; init; } = string.Empty;
+    public string Reason { get; set; } = string.Empty;
 
     public Guid? UserId { get; init; }
 
@@ -155,11 +181,30 @@ public sealed class EmployeeHistoryEntry : Entity, IAuditable
 
     /// <summary>Tipo do afastamento (só no Leave): dado de saúde quando é doença ou acidente (LGPD art. 11).</summary>
     [PersonalData]
-    public EmployeeLeaveType? LeaveType { get; init; }
+    public EmployeeLeaveType? LeaveType { get; set; }
 
-    /// <summary>Fim previsto do afastamento (só no Leave), inclusive: a volta prevista é o dia seguinte.</summary>
+    /// <summary>
+    /// Fim previsto do afastamento (só no Leave), inclusive: a volta prevista é o dia seguinte. No encerramento antes do previsto
+    /// (CAD-04c1b), vira o dia anterior à volta; o previsto original fica na entrada <c>LeaveChange</c>.
+    /// </summary>
     [PersonalData]
-    public DateOnly? LeaveEndDate { get; init; }
+    public DateOnly? LeaveEndDate { get; set; }
+
+    /// <summary>Tipo anterior (só no LeaveChange de edição, CAD-04c1b): dado de saúde, como o tipo.</summary>
+    [PersonalData]
+    public EmployeeLeaveType? PreviousLeaveType { get; init; }
+
+    /// <summary>Afastamento a que o LeaveChange se refere (CAD-04c1b).</summary>
+    public Guid? LeaveId { get; init; }
+
+    /// <summary>O que mudou (só no LeaveChange, CAD-04c1b).</summary>
+    public EmployeeLeaveChangeKind? LeaveChange { get; init; }
+
+    /// <summary>
+    /// Cancelamento lógico do afastamento que não começou (CAD-04c1b): sai da situação, da sobreposição e do job, e continua na
+    /// linha do tempo como "Cancelado", com o motivo na entrada LeaveChange.
+    /// </summary>
+    public DateTimeOffset? CancelledAt { get; set; }
 
     /// <summary>Quando o <c>EmployeeLeaveStarted</c> foi para o outbox (CA 7): cada evento sai uma vez só.</summary>
     public DateTimeOffset? StartPublishedAt { get; set; }
@@ -182,6 +227,93 @@ public static class EmployeeLeaveRules
     /// <summary>Situação na leitura: Desligado prevalece sobre Afastado; a coluna gravada só tem Active ou Terminated.</summary>
     public static EmployeeStatus Situation(EmployeeStatus stored, bool onLeaveToday) =>
         stored == EmployeeStatus.Terminated ? EmployeeStatus.Terminated : onLeaveToday ? EmployeeStatus.OnLeave : EmployeeStatus.Active;
+
+    public const string CancelledCode = "leave_cancelled";
+    public const string EndedCode = "leave_ended";
+    public const string NotStartedCode = "leave_not_started";
+    public const string StartedCode = "leave_started";
+
+    /// <summary>Doença e acidente de trabalho são dado de saúde: tipo e detalhes só com <c>hr.view_health</c> (CAD-04c1b, PO 22/10/2026).</summary>
+    public static bool IsHealth(EmployeeLeaveType? type) => type is EmployeeLeaveType.Illness or EmployeeLeaveType.WorkAccident;
+
+    /// <summary>
+    /// Tipo e motivo de qualquer afastamento só com <c>hr.view_health</c> (PO 22/10/2026, CAD-04c1b 1.1): mostrar os demais tipos
+    /// deixaria inferir que o "Afastado" sem tipo é de saúde. Sem a ação, só "Afastado" e as datas.
+    /// </summary>
+    public static bool ShowsDetails(bool canViewHealth) => canViewHealth;
+
+    /// <summary>Estado no dia (CAD-04c1b): cancelado prevalece; antes do início, previsto; até o fim, em curso; depois, encerrado.</summary>
+    public static EmployeeLeaveState State(DateOnly start, DateOnly end, bool cancelled, DateOnly today) =>
+        cancelled ? EmployeeLeaveState.Cancelled
+        : today < start ? EmployeeLeaveState.Scheduled
+        : today <= end ? EmployeeLeaveState.Current
+        : EmployeeLeaveState.Ended;
+
+    /// <summary>
+    /// Editar (CAD-04c1b CA 1 e 2): só o previsto ou o em curso. No em curso, o início fica hoje ou antes (o começo já foi
+    /// publicado) e o fim previsto, hoje ou depois (para terminar antes existe o encerramento). As demais validações são as do
+    /// registro (tipo, datas, admissão, motivo, sobreposição).
+    /// </summary>
+    public static Error? EditError(EmployeeLeaveState state, DateOnly newStart, DateOnly newEnd, DateOnly today) => state switch
+    {
+        EmployeeLeaveState.Cancelled => Error.Conflict(CancelledCode, "Este afastamento foi cancelado e não pode mais ser alterado."),
+        EmployeeLeaveState.Ended => Error.Conflict(EndedCode, "Este afastamento já terminou e não pode mais ser alterado."),
+        EmployeeLeaveState.Current when newStart > today => Field("startDate", "O afastamento já começou: o início precisa ser hoje ou antes."),
+        EmployeeLeaveState.Current when newEnd < today => Field("expectedEndDate", "Para terminar antes do previsto, use \"Encerrar afastamento\"."),
+        _ => null,
+    };
+
+    /// <summary>Encerrar antes (CAD-04c1b CA 4): só o em curso; a volta fica depois do início, até o fim previsto e nunca depois de hoje.</summary>
+    public static Error? EndError(EmployeeLeaveState state, DateOnly start, DateOnly end, DateOnly? returnDate, DateOnly today)
+    {
+        switch (state)
+        {
+            case EmployeeLeaveState.Cancelled:
+                return Error.Conflict(CancelledCode, "Este afastamento foi cancelado.");
+            case EmployeeLeaveState.Ended:
+                return Error.Conflict(EndedCode, "Este afastamento já terminou.");
+            case EmployeeLeaveState.Scheduled:
+                return Error.Conflict(NotStartedCode, "O afastamento ainda não começou. Para desistir dele, use \"Cancelar afastamento\".");
+        }
+
+        if (returnDate is not { } back)
+        {
+            return Field("returnDate", "Informe a data da volta.");
+        }
+
+        if (back <= start)
+        {
+            return Field("returnDate", "A volta precisa ser depois do início do afastamento.");
+        }
+
+        if (back > end)
+        {
+            return Field("returnDate", "A volta precisa ser até o fim previsto. Para estender o afastamento, use \"Editar\".");
+        }
+
+        return back > today ? Field("returnDate", "A volta não pode ser depois de hoje.") : null;
+    }
+
+    /// <summary>Cancelar (CAD-04c1b CA 6): só o que ainda não começou, com motivo de até 200 caracteres.</summary>
+    public static Error? CancelError(EmployeeLeaveState state, string? reason)
+    {
+        if (state == EmployeeLeaveState.Cancelled)
+        {
+            return Error.Conflict(CancelledCode, "Este afastamento já foi cancelado.");
+        }
+
+        if (state != EmployeeLeaveState.Scheduled)
+        {
+            return Error.Conflict(StartedCode, "O afastamento já começou: não dá para cancelar, só encerrar.");
+        }
+
+        return string.IsNullOrWhiteSpace(reason) || reason.Trim().Length > ReasonMaxLength
+            ? Field("reason", "Informe o motivo do cancelamento, com até 200 caracteres. Não informe CID nem diagnóstico.")
+            : null;
+    }
+
+    private static Error Field(string field, string message) =>
+        Error.Validation(Error.Codes.Validation, message, new Dictionary<string, string[]> { [field] = [message] });
 }
 
 /// <summary>PIS/PASEP/NIT (CA 6): 11 dígitos, pesos 3 2 9 8 7 6 5 4 3 2; dígito = 11 − resto, e 10 ou 11 viram 0.</summary>

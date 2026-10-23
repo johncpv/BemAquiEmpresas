@@ -4411,6 +4411,156 @@
         }
       }
     },
+    "/api/v1/hr/employees/{id}/leaves/{leaveId}": {
+      "put": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "UpdateEmployeeLeave",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "leaveId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LeaveInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/leaves/{leaveId}/end": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "EndEmployeeLeave",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "leaveId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LeaveEndInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/leaves/{leaveId}/cancel": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "CancelEmployeeLeave",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "leaveId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LeaveCancelInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/hr/employees/{id}/user": {
       "get": {
         "tags": [
@@ -21224,7 +21374,23 @@
         "enum": [
           "Salary",
           "Position",
-          "Leave"
+          "Leave",
+          "LeaveChange"
+        ]
+      },
+      "EmployeeLeaveChangeKind": {
+        "enum": [
+          "Edited",
+          "EndedEarly",
+          "Cancelled"
+        ]
+      },
+      "EmployeeLeaveState": {
+        "enum": [
+          "Scheduled",
+          "Current",
+          "Ended",
+          "Cancelled"
         ]
       },
       "EmployeeLeaveType": {
@@ -24753,13 +24919,36 @@
           }
         }
       },
-      "LeaveDetail": {
+      "LeaveCancelInput": {
+        "required": [
+          "reason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "LeaveChangeDetail": {
         "required": [
           "id",
-          "type",
-          "startDate",
-          "expectedEndDate",
-          "expectedReturnDate",
+          "kind",
+          "oldStartDate",
+          "oldExpectedEndDate",
+          "newStartDate",
+          "newExpectedEndDate",
+          "oldType",
+          "newType",
           "reason",
           "userId",
           "createdAt"
@@ -24770,8 +24959,100 @@
             "type": "string",
             "format": "uuid"
           },
+          "kind": {
+            "$ref": "#/components/schemas/EmployeeLeaveChangeKind"
+          },
+          "oldStartDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "oldExpectedEndDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "newStartDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "newExpectedEndDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "oldType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/EmployeeLeaveType"
+              }
+            ]
+          },
+          "newType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/EmployeeLeaveType"
+              }
+            ]
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "userId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "LeaveDetail": {
+        "required": [
+          "id",
+          "type",
+          "healthProtected",
+          "state",
+          "startDate",
+          "expectedEndDate",
+          "expectedReturnDate",
+          "reason",
+          "userId",
+          "createdAt",
+          "cancelledAt",
+          "changes"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
           "type": {
-            "$ref": "#/components/schemas/EmployeeLeaveType"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/EmployeeLeaveType"
+              }
+            ]
+          },
+          "healthProtected": {
+            "type": "boolean"
+          },
+          "state": {
+            "$ref": "#/components/schemas/EmployeeLeaveState"
           },
           "startDate": {
             "type": "string",
@@ -24786,7 +25067,10 @@
             "format": "date"
           },
           "reason": {
-            "type": "string"
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "userId": {
             "type": [
@@ -24798,8 +25082,42 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "cancelledAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "changes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LeaveChangeDetail"
+            }
           }
         }
+      },
+      "LeaveEndInput": {
+        "required": [
+          "returnDate",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "returnDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
       },
       "LeaveInput": {
         "required": [

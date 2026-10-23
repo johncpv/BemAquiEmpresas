@@ -12,6 +12,7 @@ Ver quem alterou o cadastro do funcionário, quando e o que mudou.
 ## Como usar
 - Cada linha mostra a ação, o usuário e a data no horário de Brasília.
 - Os dados pessoais e o salário aparecem como \*\*\*: o histórico diz que mudaram, sem mostrar o valor.
+- Nas mudanças de afastamento, o tipo, o motivo e o fim previsto também aparecem como \*\*\*. O antes e o depois das datas e do tipo ficam na aba Linha do tempo, para quem tem a permissão.
 
 ## Perguntas frequentes
 **Por que aparece "Dados protegidos"?** O histórico do RH só abre para quem tem a permissão Ver dados sensíveis.

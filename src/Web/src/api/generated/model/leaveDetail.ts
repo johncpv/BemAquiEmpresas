@@ -4,16 +4,24 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { EmployeeLeaveState } from './employeeLeaveState';
 import type { EmployeeLeaveType } from './employeeLeaveType';
+import type { LeaveChangeDetail } from './leaveChangeDetail';
 
 export interface LeaveDetail {
   id: string;
-  type: EmployeeLeaveType;
+  type: null | EmployeeLeaveType;
+  healthProtected: boolean;
+  state: EmployeeLeaveState;
   startDate: string;
   expectedEndDate: string;
   expectedReturnDate: string;
-  reason: string;
+  /** @nullable */
+  reason: string | null;
   /** @nullable */
   userId: string | null;
   createdAt: string;
+  /** @nullable */
+  cancelledAt: string | null;
+  changes: LeaveChangeDetail[];
 }

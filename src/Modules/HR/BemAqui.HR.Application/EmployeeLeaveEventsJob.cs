@@ -21,7 +21,9 @@ public sealed class EmployeeLeaveEvents(IHrDb db, IEventPublisher events, TimePr
         var today = BusinessTime.Today(clock);
         var now = clock.GetUtcNow();
         var due = await db.EmployeeHistory
-            .Where(h => h.Kind == EmployeeHistoryKind.Leave && ((h.StartPublishedAt == null && h.EffectiveDate <= today) || (h.EndPublishedAt == null && h.LeaveEndDate < today)))
+            // Cancelado não publica (CAD-04c1b); o encerrado antes do previsto já publicou o fim no próprio encerramento.
+            .Where(h => h.Kind == EmployeeHistoryKind.Leave && h.CancelledAt == null
+                && ((h.StartPublishedAt == null && h.EffectiveDate <= today) || (h.EndPublishedAt == null && h.LeaveEndDate < today)))
             .ToListAsync(cancellationToken);
         var published = due.Count(leave => LeaveEvents.PublishDue(events, leave, today, now));
         await db.SaveChangesAsync(cancellationToken);

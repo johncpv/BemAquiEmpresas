@@ -44,7 +44,9 @@ public class PersonalDataTests
         ["LaborUnion"] = ["Id", "Name", "Document", "BaseMonth", "IsActive", "CreatedAt", "IsDeleted", "DeletedAt"],
         ["Employee"] = ["Id", "Name", "Registration", "PositionId", "WorkScheduleId", "UnionId", "AdmissionDate", "TerminationDate", "Status", "CreatedAt", "Version", "IsDeleted", "DeletedAt"],
         // CAD-04c1: tipo, fim previsto e motivo do afastamento são [PersonalData] (LGPD art. 11); só as marcas de publicação ficam fora.
-        ["EmployeeHistoryEntry"] = ["Id", "EmployeeId", "Kind", "EffectiveDate", "UserId", "CreatedAt", "StartPublishedAt", "EndPublishedAt"],
+        // CAD-04c1b: o vínculo da mudança com o afastamento, o que mudou e a marca do cancelamento não são dado pessoal; o tipo
+        // anterior é.
+        ["EmployeeHistoryEntry"] = ["Id", "EmployeeId", "Kind", "EffectiveDate", "UserId", "CreatedAt", "StartPublishedAt", "EndPublishedAt", "LeaveId", "LeaveChange", "CancelledAt"],
     };
 
     [Fact]
@@ -56,6 +58,8 @@ public class PersonalDataTests
         Violations(auditable, HrNonSensitive).Should().BeEmpty();
         typeof(BemAqui.HR.Domain.EmployeeHistoryEntry).GetProperty("Reason")!.GetCustomAttribute<PersonalDataAttribute>().Should().NotBeNull("o motivo do afastamento é sensível (CAD-04c1 CA 9)");
         typeof(BemAqui.HR.Domain.EmployeeHistoryEntry).GetProperty("LeaveType")!.GetCustomAttribute<PersonalDataAttribute>().Should().NotBeNull("o tipo do afastamento é sensível (CAD-04c1 CA 9)");
+        typeof(BemAqui.HR.Domain.EmployeeHistoryEntry).GetProperty("PreviousLeaveType")!.GetCustomAttribute<PersonalDataAttribute>().Should().NotBeNull("o tipo anterior do afastamento é sensível (CAD-04c1b)");
+        typeof(BemAqui.HR.Domain.EmployeeHistoryEntry).GetProperty("OldValue")!.GetCustomAttribute<PersonalDataAttribute>().Should().NotBeNull("o período antes da mudança do afastamento é sensível (CAD-04c1b)");
 
         var application = Solution.Assemblies.Single(a => a.GetName().Name == "BemAqui.HR.Application");
         var sensitive = auditable.SelectMany(t => t.GetProperties().Where(p => p.GetCustomAttribute<PersonalDataAttribute>() is not null).Select(p => p.Name)).ToHashSet(StringComparer.Ordinal);

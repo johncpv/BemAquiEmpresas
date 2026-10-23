@@ -290,6 +290,10 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-3--engenharia-est
 - Requisitos: R-RH-3, R-SEC-5, R-SEC-10, PRD §6 (LGPD).
 - CA: afastamentos com seis tipos; situação "Afastado" calculada na leitura ("Desligado" prevalece); `IEmployees.Status` para a PRD-03a; job diário publica início e fim do afastamento com data futura, uma vez; afastamentos na exportação e anonimização (ADR 0018).
 
+**CAD-04c1b [x] Funcionários: editar e encerrar antes um afastamento (P)** — 3.1, depois da CAD-04c1 — decisão do PO de 22/10/2026 — [story](stories/CAD-04c1b-editar-encerrar-afastamento.md)
+- Requisitos: R-RH-3, R-SEC-5, R-SEC-10, R-PRP-1, PRD §6 (LGPD).
+- CA: editar o previsto ou o em curso com as validações do registro (datas, sobreposição, desligado, `xmin`); encerrar antes com a volta entre o início e o fim previsto, até hoje, situação recalculada na hora e `EmployeeLeaveEnded` uma vez só; cancelar (cancelamento lógico, com motivo) só o que não começou; rastro antes → depois na linha do tempo e na auditoria, sem tipo nem motivo em log e evento; `hr.view_health` (seed patch `hr-view-health`) para Doença e Acidente de trabalho, sem ela só "Afastado" e as datas.
+
 **PRD-03a [x] App do operador: fila, apontamento e checklist (G)** — 3.1, ordem 5 — quebra da PRD-03 — [story](stories/PRD-03a-pwa-fila-apontamento.md)
 - Requisitos: R-PRD-3, R-PRD-6, PRD §6 (Usabilidade), R-PRP-5, R-SEC-5.
 - CA: fila com todas as etapas prontas, as do meu centro primeiro, e busca pelo número (D11); primeira etapa sem BOM (D12); pausa com motivos e aviso ao almoxarifado; "Finalizar etapa · {h} h apontadas"; supervisor aponta por funcionário sem sobreposição e com até 7 dias; quem apontou não corrige nem aprova, salvo sem outro aprovador elegível (`SoleOwnerRule`, marca e aviso ao Proprietário); kit "chão de fábrica"; DTO sem custo.
@@ -555,6 +559,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-6--rh-e-patrimôn
 **RH-01b [ ] Ponto: lançamento manual, pedido de ajuste, abono de ausência e aprovação (M)** — 6.1, ordem 7 — `Ready` — [story](stories/RH-01b-ajustes-ponto-aprovacao.md)
 - Requisitos: R-RH-4 (parte), PRD §6 LGPD, R-SEC-5, R-COM-2, R-COM-3, R-PRP-2, R-PRP-5, R-PRP-6 (D).
 - CA: lançamento do RH e pedido do funcionário como ajuste `Pending`, ambos com aprovação; lista única de ausências com os afastamentos; atestado só com `hr.view_health`; quem pede não aprova (Proprietário único com a marca); período fechado bloqueia.
+- **`hr.view_health` (decisão do PO de 22/10/2026):** a RH-01b usa a ação `hr.view_health` já entregue pela CAD-04c1b (catálogo e seed patch `hr-view-health` no grupo RH); não cria ação nem seed patch novo.
 
 **RH-01c [ ] Ponto: espelho mensal, banco de horas simples e fechamento do período (G)** — 6.1, ordem 8 — `Ready (pré-condição externa)` — [story](stories/RH-01c-espelho-banco-horas-fechamento.md)
 - Requisitos: R-RH-4 (parte), R-RH-5, R-COM-3, PRD §6 (Desempenho, LGPD), R-SEC-5, R-PRP-2, R-PRP-5.

@@ -16,7 +16,8 @@ Como **funcionário**, quero **pedir o ajuste de uma marcação esquecida ou err
 
 ## Contexto e referências
 - PRD R-RH-4 ("ajustes com justificativa e aprovação"; "lançamento manual pelo RH").
-- `ModuleCatalog`: `hr.approve` ("ajustes de ponto, revisão da conta de salário e fechamento da folha", RH-02c); é ação reservada ao Proprietário para conceder (ADR 0008). No seed, só o Proprietário tem `hr.approve`. Ação nova **`hr.view_health`** (adendo de 21/10/2026 à ADR 0003): ver motivo de saúde e atestado, separado de salário (`hr.view_sensitive`).
+- `ModuleCatalog`: `hr.approve` ("ajustes de ponto, revisão da conta de salário e fechamento da folha", RH-02c); é ação reservada ao Proprietário para conceder (ADR 0008). No seed, só o Proprietário tem `hr.approve`. Ação **`hr.view_health`** (adendo de 21/10/2026 à ADR 0003): ver motivo de saúde e atestado, separado de salário (`hr.view_sensitive`).
+- **Decisão do PO de 22/10/2026:** a RH-01b usa a `hr.view_health` entregue pela **CAD-04c1b** (catálogo, seed patch `hr-view-health` no grupo RH, reserva ao Proprietário e a regra dos afastamentos de Doença e Acidente de trabalho). A RH-01b não cria a ação nem o seed patch de novo; o CA 1 passa a conferir o que já existe e a acrescentar só a perda do PIN, quando o PIN existir (PRD-03b).
 - `03-modelo-dados` → `hr.time_entries` (`justification`, `approved_by`); RH-01a (marcação imutável, `status`).
 - `04-fluxos-estados` §3.6 (regra do solicitante: quem pede não aprova, com a exceção do Proprietário único da D6) como referência da segregação de função.
 - **Revisão pré-Fases 4 a 8** (`docs/revisoes/2026-10-21-revisao-pre-fases4-8.md`): tabela 3.3 pontos 6 a 9, §4.3 (transversal: anexos autorizados por registro), §4.4 padrão 8; DSH-04 (Minha pauta) já entregue na Fase 4.
