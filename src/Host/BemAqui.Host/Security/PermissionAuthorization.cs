@@ -63,8 +63,16 @@ public sealed class PermissionHandler : AuthorizationHandler<PermissionRequireme
             return;
         }
 
-        // Alternativas de módulos diferentes (RequireAnyPermissionOf): basta um dos módulos estar liberado.
         var resolved = http.RequestServices.GetRequiredService<TenantContextHolder>().Resolved;
+        // Camada 1 primeiro: a rota de um módulo (RequireModule) não liberado responde module_not_released, mesmo que uma alternativa
+        // de outro módulo esteja liberada (a autorização roda antes do filtro do RequireModule).
+        if (http.GetEndpoint()?.Metadata.GetMetadata<RequiresModuleMetadata>() is { } owner && resolved?.IsReleased(owner.ModuleCode) != true)
+        {
+            context.Fail(new AuthorizationFailureReason(this, NotReleasedReason + ":" + owner.ModuleCode));
+            return;
+        }
+
+        // Alternativas de módulos diferentes (RequireAnyPermissionOf): basta um dos módulos estar liberado.
         if (!requirement.Alternatives.Any(a => resolved?.IsReleased(a[..a.IndexOf('.', StringComparison.Ordinal)]) == true))
         {
             context.Fail(new AuthorizationFailureReason(this, NotReleasedReason + ":" + requirement.Module));
