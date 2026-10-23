@@ -44,10 +44,10 @@ public sealed partial class BomService
             decimal? done = issued is null ? null : issued.GetValueOrDefault(d.ItemId);
             return new BomReleasePreviewLine(d.ItemId, item?.Code ?? "—", item?.Name ?? "Item não encontrado", item?.UnitCode ?? string.Empty, item is { IsActive: true, IsDeleted: false },
                 d.Change, d.Before, d.After, d.MoreToReserve, d.ToRelease,
-                available, available is { } free ? Math.Min(wanted, Math.Max(0, free)) : null, available is { } a ? BomRules.Shortage(wanted, a) : null,
+                available, stock.ReservationsConnected && available is { } free ? Math.Min(wanted, Math.Max(0, free)) : null, available is { } a ? BomRules.Shortage(wanted, a) : null,
                 done, done is { } baixado ? BomRules.IssuedAboveWarning(baixado, d.After, item?.Name ?? "item", item?.UnitCode ?? string.Empty) : null);
         }).ToList();
-        return new BomReleasePreview(bom.Id, bom.Revision, previous is not null, previous?.Revision, lines.Count == 0, stock.Connected,
+        return new BomReleasePreview(bom.Id, bom.Revision, previous is not null, previous?.Revision, lines.Count == 0, stock.Connected, stock.ReservationsConnected,
             preview.Count(p => p.Shortage > 0), preview.Count(p => !p.ItemActive && p.Change != BomChange.Removed), preview);
     }
 

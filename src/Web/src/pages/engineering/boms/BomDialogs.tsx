@@ -52,7 +52,8 @@ function ReleaseImpact({ preview }: { preview: BomReleasePreview }) {
   const cell = 'p-1.5 text-right tabular-nums'
   return (
     <div className="space-y-2">
-      {!preview.stockConnected ? <p className="text-xs text-muted-foreground">O saldo do estoque ainda não aparece nesta versão. A reserva e a falta são calculadas quando o estoque for ligado.</p> : null}
+      {!preview.stockConnected ? <p className="text-xs text-muted-foreground">O saldo do estoque ainda não aparece. A falta é calculada quando o estoque estiver ligado.</p> : null}
+      {preview.stockConnected && !preview.reservationsConnected ? <p className="text-xs text-muted-foreground">Quanto vai ser reservado e o que já foi baixado ainda não aparecem nesta versão.</p> : null}
       {preview.inactiveCount > 0 ? <p className="rounded-md border border-warn-soft bg-warn-soft px-2 py-1 text-xs text-warn-ink">{preview.inactiveCount} {preview.inactiveCount === 1 ? 'item inativo' : 'itens inativos'} na BOM. Confira antes de liberar.</p> : null}
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
@@ -63,7 +64,7 @@ function ReleaseImpact({ preview }: { preview: BomReleasePreview }) {
               <th className={cell}>Necessidade</th>
               {preview.isRevision ? <><th className={cell}>A reservar a mais</th><th className={cell}>A liberar</th></> : null}
               <th className={`${cell} max-sm:hidden`}>Disponível</th>
-              <th className={cell}>Vai reservar</th>
+              {preview.reservationsConnected ? <th className={cell}>Vai reservar</th> : null}
               <th className={cell}>Falta</th>
             </tr>
           </thead>
@@ -78,7 +79,7 @@ function ReleaseImpact({ preview }: { preview: BomReleasePreview }) {
                 <td className={cell}>{preview.isRevision ? `${qty(l.previousRequired)} → ${qty(l.required, l.stockUnitCode)}` : qty(l.required, l.stockUnitCode)}</td>
                 {preview.isRevision ? <><td className={cell}>{qty(l.moreToReserve)}</td><td className={cell}>{qty(l.toRelease)}</td></> : null}
                 <td className={`${cell} max-sm:hidden`}>{qty(l.available)}</td>
-                <td className={cell}>{qty(l.toReserve)}</td>
+                {preview.reservationsConnected ? <td className={cell}>{qty(l.toReserve)}</td> : null}
                 <td className={cell}>{(l.shortage ?? 0) > 0 ? <StatusChip tone="crit">Falta {qty(l.shortage)}</StatusChip> : qty(l.shortage)}</td>
               </tr>
             ))}
@@ -86,7 +87,7 @@ function ReleaseImpact({ preview }: { preview: BomReleasePreview }) {
         </table>
       </div>
       {preview.lines.filter((l) => l.issuedWarning).map((l) => <p key={l.itemId} role="note" className="rounded-md border border-warn-soft bg-warn-soft px-2 py-1 text-xs text-warn-ink">{l.issuedWarning}</p>)}
-      {preview.stockConnected ? <p className="font-semibold">{preview.shortageCount === 0 ? 'Todo o material está disponível.' : `${preview.shortageCount} ${preview.shortageCount === 1 ? 'item em falta' : 'itens em falta'}: o comprador recebe a solicitação.`}</p> : null}
+      {preview.stockConnected ? <p className="font-semibold">{preview.shortageCount === 0 ? 'Todo o material está disponível.' : `${preview.shortageCount} ${preview.shortageCount === 1 ? 'item em falta' : 'itens em falta'} pelo saldo disponível.`}</p> : null}
     </div>
   )
 }

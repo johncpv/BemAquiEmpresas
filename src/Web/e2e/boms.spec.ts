@@ -55,7 +55,7 @@ test.describe('BOM da OS (ENG-02)', () => {
         return json(r, draft, 201)
       },
       'GET /api/v1/engineering/boms/b1/release-preview': (r: Route) => json(r, {
-        bomId: 'b1', revision: 0, isRevision: false, previousRevision: null, empty: false, stockConnected: true, shortageCount: 1, inactiveCount: 0,
+        bomId: 'b1', revision: 0, isRevision: false, previousRevision: null, empty: false, stockConnected: true, reservationsConnected: false, shortageCount: 1, inactiveCount: 0,
         lines: [{ itemId: 'it-CHAPA', itemCode: 'CHAPA', itemName: 'Chapa de aço 2 mm', stockUnitCode: 'KG', itemActive: true, change: 'Added', previousRequired: 0, required: 3.3,
           moreToReserve: 3.3, toRelease: 0, available: 1, toReserve: 1, shortage: 2.3, issued: null, issuedWarning: null }],
       }),
@@ -89,7 +89,10 @@ test.describe('BOM da OS (ENG-02)', () => {
     await page.getByRole('button', { name: 'Liberar BOM' }).click()
     const release = page.getByRole('alertdialog')
     await expect(release.getByText('Falta 2,3')).toBeVisible()
-    await expect(release.getByText('1 item em falta: o comprador recebe a solicitação.')).toBeVisible()
+    await expect(release.getByText('1 item em falta pelo saldo disponível.')).toBeVisible()
+    // EST-01a ligada: o saldo aparece; "vai reservar" e o baixado esperam a EST-02.
+    await expect(release.getByText('Quanto vai ser reservado e o que já foi baixado ainda não aparecem nesta versão.')).toBeVisible()
+    await expect(release.getByRole('columnheader', { name: 'Vai reservar' })).toHaveCount(0)
     await release.getByRole('button', { name: 'Liberar BOM' }).click()
     await expect(page.getByText('BOM liberada. Reservando material…')).toBeVisible()
     expect(sent.release).toEqual({ version: 1 })

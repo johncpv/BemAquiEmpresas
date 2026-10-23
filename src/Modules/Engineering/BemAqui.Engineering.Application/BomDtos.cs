@@ -116,7 +116,10 @@ public sealed record BomReleasePreviewLine(
     decimal? Issued,
     string? IssuedWarning);
 
-/// <summary>Prévia do diálogo de impacto da liberação (padrão 4); <c>Empty</c>: "BOM sem material" (CA 9).</summary>
+/// <summary>
+/// Prévia do diálogo de impacto da liberação (padrão 4); <c>Empty</c>: "BOM sem material" (CA 9). <c>ReservationsConnected</c> false
+/// (até a EST-02): "vai reservar" vem nulo.
+/// </summary>
 public sealed record BomReleasePreview(
     Guid BomId,
     int Revision,
@@ -124,6 +127,7 @@ public sealed record BomReleasePreview(
     int? PreviousRevision,
     bool Empty,
     bool StockConnected,
+    bool ReservationsConnected,
     int ShortageCount,
     int InactiveCount,
     IReadOnlyList<BomReleasePreviewLine> Lines);

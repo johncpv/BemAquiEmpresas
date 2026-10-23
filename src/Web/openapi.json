@@ -38846,6 +38846,7 @@
           "previousRevision",
           "empty",
           "stockConnected",
+          "reservationsConnected",
           "shortageCount",
           "inactiveCount",
           "lines"
@@ -38874,6 +38875,9 @@
             "type": "boolean"
           },
           "stockConnected": {
+            "type": "boolean"
+          },
+          "reservationsConnected": {
             "type": "boolean"
           },
           "shortageCount": {

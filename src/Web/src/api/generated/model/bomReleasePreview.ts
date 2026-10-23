@@ -14,6 +14,7 @@ export interface BomReleasePreview {
   previousRevision: number | null;
   empty: boolean;
   stockConnected: boolean;
+  reservationsConnected: boolean;
   shortageCount: number;
   inactiveCount: number;
   lines: BomReleasePreviewLine[];

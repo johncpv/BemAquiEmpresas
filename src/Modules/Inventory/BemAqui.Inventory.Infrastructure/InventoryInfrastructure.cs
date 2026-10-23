@@ -32,6 +32,8 @@ public static class InventoryInfrastructure
         services.TryAddScoped<IUnitConversion>(sp => sp.GetRequiredService<ItemConversionService>());
         // Unidades usáveis por item para a BOM (ENG-02 CA 2).
         services.TryAddScoped<IItemUnits, ItemUnitsContract>();
+        // Custo médio por item para o custo previsto da BOM (ENG-02, só com projects.view_cost no chamador).
+        services.TryAddScoped<IItemCosts, ItemCostsContract>();
         services.TryAddScoped<ItemSupplierCodeService>();
         services.TryAddScoped<IItemSupplierCodes>(sp => sp.GetRequiredService<ItemSupplierCodeService>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IPartyUsageProvider, ItemSupplierCodeService>());

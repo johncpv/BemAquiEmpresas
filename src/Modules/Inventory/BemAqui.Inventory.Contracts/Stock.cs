@@ -115,3 +115,12 @@ public sealed record StockIssued(
 public sealed record StockReturned(
     Guid MovementId, string SourceType, Guid SourceId, int Seq, Guid ProjectId, Guid? ProductionOrderId, Guid ItemId, decimal Quantity,
     decimal PreviousAmount, decimal NewAmount, DateTimeOffset At) : IIntegrationEvent;
+
+/// <summary>
+/// Custo médio atual por item (<c>numeric(18,6)</c>, ADR 0023 §3), para o custo previsto da BOM (ENG-02), que só aparece para quem tem
+/// <c>projects.view_cost</c> e nunca é gravado. Item que não existe fica fora do dicionário.
+/// </summary>
+public interface IItemCosts
+{
+    Task<IReadOnlyDictionary<Guid, decimal>> AverageCostsAsync(IReadOnlyCollection<Guid> itemIds, CancellationToken cancellationToken = default);
+}
