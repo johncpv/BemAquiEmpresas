@@ -62,6 +62,17 @@ import type {
   BankEntryInput,
   BankInfo,
   BankTransferDetail,
+  BomComparison,
+  BomCopyInput,
+  BomCopySource,
+  BomCreateInput,
+  BomDetail,
+  BomItemOption,
+  BomLineView,
+  BomOrderView,
+  BomReleasePreview,
+  BomUpdate,
+  BomVersionInput,
   CalendarDetail,
   CalendarExceptionDetail,
   CalendarExceptionInput,
@@ -78,6 +89,7 @@ import type {
   CompanyLogo,
   CompanyProfileDto,
   CompanyProfileInput,
+  CompareBomsParams,
   CompleteOpeningInput,
   CompleteOrderInput,
   CompleteStepInput,
@@ -140,6 +152,7 @@ import type {
   GetManualPostingHistoryParams,
   GetMissingLaborCostsParams,
   GetNonConformityHistoryParams,
+  GetOrderBomHistoryParams,
   GetProductionBoardParams,
   GetQualityQueueParams,
   GetQuoteFunnelParams,
@@ -191,6 +204,9 @@ import type {
   LinkableUser,
   LinkedUserView,
   ListBankAccountsParams,
+  ListBomCopySourcesParams,
+  ListBomItemOptionsParams,
+  ListBomsParams,
   ListCalendarExceptionsParams,
   ListContractsParams,
   ListEmployeesParams,
@@ -273,6 +289,7 @@ import type {
   PagedListOfAuditEntryDto,
   PagedListOfBalanceRow,
   PagedListOfBankAccountDetail,
+  PagedListOfBomOrderSummary,
   PagedListOfEmployeeDetail,
   PagedListOfImportPendingItem,
   PagedListOfImportRunRow,
@@ -20873,6 +20890,1425 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getUnlinkRoutingTemplateItemMutationOptions(options), queryClient);
+    }
+
+export const getListBomsUrl = (params?: ListBomsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/engineering/boms?${stringifiedParams}` : `/api/v1/engineering/boms`
+}
+
+export const listBoms = async (params?: ListBomsParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfBomOrderSummary> => {
+
+  return apiFetch<PagedListOfBomOrderSummary>(getListBomsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListBomsQueryKey = (params?: ListBomsParams,) => {
+    return [
+    `/api/v1/engineering/boms`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListBomsQueryOptions = <TData = Awaited<ReturnType<typeof listBoms>>, TError = unknown>(params?: ListBomsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBoms>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListBomsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listBoms>>> = ({ signal }) => listBoms(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listBoms>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListBomsQueryResult = NonNullable<Awaited<ReturnType<typeof listBoms>>>
+export type ListBomsQueryError = unknown
+
+
+export function useListBoms<TData = Awaited<ReturnType<typeof listBoms>>, TError = unknown>(
+ params: undefined |  ListBomsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBoms>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listBoms>>,
+          TError,
+          Awaited<ReturnType<typeof listBoms>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListBoms<TData = Awaited<ReturnType<typeof listBoms>>, TError = unknown>(
+ params?: ListBomsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBoms>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listBoms>>,
+          TError,
+          Awaited<ReturnType<typeof listBoms>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListBoms<TData = Awaited<ReturnType<typeof listBoms>>, TError = unknown>(
+ params?: ListBomsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBoms>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListBoms<TData = Awaited<ReturnType<typeof listBoms>>, TError = unknown>(
+ params?: ListBomsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBoms>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListBomsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateBomUrl = () => {
+
+
+
+
+  return `/api/v1/engineering/boms`
+}
+
+export const createBom = async (bomCreateInput: BomCreateInput, options?: Parameters<typeof apiFetch>[1]): Promise<BomDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<BomDetail>(getCreateBomUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(bomCreateInput)
+  }
+);}
+
+
+
+
+
+export const getCreateBomMutationKey = () => ['createBom'] as const;
+
+export const getCreateBomMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createBom>>, TError,CreateBomMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createBom>>, TError,CreateBomMutationVariables, TContext> => {
+
+const mutationKey = getCreateBomMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createBom>>, CreateBomMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createBom(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateBomMutationResult = NonNullable<Awaited<ReturnType<typeof createBom>>>
+    export type CreateBomMutationBody = BomCreateInput
+    export type CreateBomMutationError = unknown
+    export type CreateBomMutationVariables = {data: BomCreateInput}
+
+    export const useCreateBom = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createBom>>, TError,CreateBomMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createBom>>,
+        TError,
+        CreateBomMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateBomMutationOptions(options), queryClient);
+    }
+
+export const getGetOrderBomUrl = (orderId: string,) => {
+
+
+
+
+  return `/api/v1/engineering/boms/orders/${orderId}`
+}
+
+export const getOrderBom = async (orderId: string, options?: Parameters<typeof apiFetch>[1]): Promise<BomOrderView> => {
+
+  return apiFetch<BomOrderView>(getGetOrderBomUrl(orderId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOrderBomQueryKey = (orderId: string,) => {
+    return [
+    `/api/v1/engineering/boms/orders/${orderId}`
+    ] as const;
+    }
+
+
+export const getGetOrderBomQueryOptions = <TData = Awaited<ReturnType<typeof getOrderBom>>, TError = unknown>(orderId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderBom>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOrderBomQueryKey(orderId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOrderBom>>> = ({ signal }) => getOrderBom(orderId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: orderId !== null && orderId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOrderBom>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetOrderBomQueryResult = NonNullable<Awaited<ReturnType<typeof getOrderBom>>>
+export type GetOrderBomQueryError = unknown
+
+
+export function useGetOrderBom<TData = Awaited<ReturnType<typeof getOrderBom>>, TError = unknown>(
+ orderId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderBom>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrderBom>>,
+          TError,
+          Awaited<ReturnType<typeof getOrderBom>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOrderBom<TData = Awaited<ReturnType<typeof getOrderBom>>, TError = unknown>(
+ orderId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderBom>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrderBom>>,
+          TError,
+          Awaited<ReturnType<typeof getOrderBom>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOrderBom<TData = Awaited<ReturnType<typeof getOrderBom>>, TError = unknown>(
+ orderId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderBom>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetOrderBom<TData = Awaited<ReturnType<typeof getOrderBom>>, TError = unknown>(
+ orderId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderBom>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetOrderBomQueryOptions(orderId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetOrderBomHistoryUrl = (orderId: string,
+    params?: GetOrderBomHistoryParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/engineering/boms/orders/${orderId}/history?${stringifiedParams}` : `/api/v1/engineering/boms/orders/${orderId}/history`
+}
+
+export const getOrderBomHistory = async (orderId: string,
+    params?: GetOrderBomHistoryParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfRelatedAuditEntryDto> => {
+
+  return apiFetch<PagedListOfRelatedAuditEntryDto>(getGetOrderBomHistoryUrl(orderId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOrderBomHistoryQueryKey = (orderId: string,
+    params?: GetOrderBomHistoryParams,) => {
+    return [
+    `/api/v1/engineering/boms/orders/${orderId}/history`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetOrderBomHistoryQueryOptions = <TData = Awaited<ReturnType<typeof getOrderBomHistory>>, TError = unknown>(orderId: string,
+    params?: GetOrderBomHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderBomHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOrderBomHistoryQueryKey(orderId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOrderBomHistory>>> = ({ signal }) => getOrderBomHistory(orderId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: orderId !== null && orderId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOrderBomHistory>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetOrderBomHistoryQueryResult = NonNullable<Awaited<ReturnType<typeof getOrderBomHistory>>>
+export type GetOrderBomHistoryQueryError = unknown
+
+
+export function useGetOrderBomHistory<TData = Awaited<ReturnType<typeof getOrderBomHistory>>, TError = unknown>(
+ orderId: string,
+    params: undefined |  GetOrderBomHistoryParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderBomHistory>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrderBomHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getOrderBomHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOrderBomHistory<TData = Awaited<ReturnType<typeof getOrderBomHistory>>, TError = unknown>(
+ orderId: string,
+    params?: GetOrderBomHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderBomHistory>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrderBomHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getOrderBomHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOrderBomHistory<TData = Awaited<ReturnType<typeof getOrderBomHistory>>, TError = unknown>(
+ orderId: string,
+    params?: GetOrderBomHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderBomHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetOrderBomHistory<TData = Awaited<ReturnType<typeof getOrderBomHistory>>, TError = unknown>(
+ orderId: string,
+    params?: GetOrderBomHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderBomHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetOrderBomHistoryQueryOptions(orderId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListBomItemOptionsUrl = (orderId: string,
+    params?: ListBomItemOptionsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/engineering/boms/orders/${orderId}/item-options?${stringifiedParams}` : `/api/v1/engineering/boms/orders/${orderId}/item-options`
+}
+
+export const listBomItemOptions = async (orderId: string,
+    params?: ListBomItemOptionsParams, options?: Parameters<typeof apiFetch>[1]): Promise<BomItemOption[]> => {
+
+  return apiFetch<BomItemOption[]>(getListBomItemOptionsUrl(orderId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListBomItemOptionsQueryKey = (orderId: string,
+    params?: ListBomItemOptionsParams,) => {
+    return [
+    `/api/v1/engineering/boms/orders/${orderId}/item-options`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListBomItemOptionsQueryOptions = <TData = Awaited<ReturnType<typeof listBomItemOptions>>, TError = unknown>(orderId: string,
+    params?: ListBomItemOptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBomItemOptions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListBomItemOptionsQueryKey(orderId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listBomItemOptions>>> = ({ signal }) => listBomItemOptions(orderId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: orderId !== null && orderId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listBomItemOptions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListBomItemOptionsQueryResult = NonNullable<Awaited<ReturnType<typeof listBomItemOptions>>>
+export type ListBomItemOptionsQueryError = unknown
+
+
+export function useListBomItemOptions<TData = Awaited<ReturnType<typeof listBomItemOptions>>, TError = unknown>(
+ orderId: string,
+    params: undefined |  ListBomItemOptionsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBomItemOptions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listBomItemOptions>>,
+          TError,
+          Awaited<ReturnType<typeof listBomItemOptions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListBomItemOptions<TData = Awaited<ReturnType<typeof listBomItemOptions>>, TError = unknown>(
+ orderId: string,
+    params?: ListBomItemOptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBomItemOptions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listBomItemOptions>>,
+          TError,
+          Awaited<ReturnType<typeof listBomItemOptions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListBomItemOptions<TData = Awaited<ReturnType<typeof listBomItemOptions>>, TError = unknown>(
+ orderId: string,
+    params?: ListBomItemOptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBomItemOptions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListBomItemOptions<TData = Awaited<ReturnType<typeof listBomItemOptions>>, TError = unknown>(
+ orderId: string,
+    params?: ListBomItemOptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBomItemOptions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListBomItemOptionsQueryOptions(orderId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListBomCopySourcesUrl = (orderId: string,
+    params?: ListBomCopySourcesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/engineering/boms/orders/${orderId}/copy-sources?${stringifiedParams}` : `/api/v1/engineering/boms/orders/${orderId}/copy-sources`
+}
+
+export const listBomCopySources = async (orderId: string,
+    params?: ListBomCopySourcesParams, options?: Parameters<typeof apiFetch>[1]): Promise<BomCopySource[]> => {
+
+  return apiFetch<BomCopySource[]>(getListBomCopySourcesUrl(orderId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListBomCopySourcesQueryKey = (orderId: string,
+    params?: ListBomCopySourcesParams,) => {
+    return [
+    `/api/v1/engineering/boms/orders/${orderId}/copy-sources`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListBomCopySourcesQueryOptions = <TData = Awaited<ReturnType<typeof listBomCopySources>>, TError = unknown>(orderId: string,
+    params?: ListBomCopySourcesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBomCopySources>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListBomCopySourcesQueryKey(orderId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listBomCopySources>>> = ({ signal }) => listBomCopySources(orderId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: orderId !== null && orderId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listBomCopySources>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListBomCopySourcesQueryResult = NonNullable<Awaited<ReturnType<typeof listBomCopySources>>>
+export type ListBomCopySourcesQueryError = unknown
+
+
+export function useListBomCopySources<TData = Awaited<ReturnType<typeof listBomCopySources>>, TError = unknown>(
+ orderId: string,
+    params: undefined |  ListBomCopySourcesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBomCopySources>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listBomCopySources>>,
+          TError,
+          Awaited<ReturnType<typeof listBomCopySources>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListBomCopySources<TData = Awaited<ReturnType<typeof listBomCopySources>>, TError = unknown>(
+ orderId: string,
+    params?: ListBomCopySourcesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBomCopySources>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listBomCopySources>>,
+          TError,
+          Awaited<ReturnType<typeof listBomCopySources>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListBomCopySources<TData = Awaited<ReturnType<typeof listBomCopySources>>, TError = unknown>(
+ orderId: string,
+    params?: ListBomCopySourcesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBomCopySources>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListBomCopySources<TData = Awaited<ReturnType<typeof listBomCopySources>>, TError = unknown>(
+ orderId: string,
+    params?: ListBomCopySourcesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBomCopySources>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListBomCopySourcesQueryOptions(orderId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCompareBomsUrl = (params: CompareBomsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/engineering/boms/compare?${stringifiedParams}` : `/api/v1/engineering/boms/compare`
+}
+
+export const compareBoms = async (params: CompareBomsParams, options?: Parameters<typeof apiFetch>[1]): Promise<BomComparison> => {
+
+  return apiFetch<BomComparison>(getCompareBomsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getCompareBomsQueryKey = (params?: CompareBomsParams,) => {
+    return [
+    `/api/v1/engineering/boms/compare`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getCompareBomsQueryOptions = <TData = Awaited<ReturnType<typeof compareBoms>>, TError = unknown>(params: CompareBomsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof compareBoms>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getCompareBomsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof compareBoms>>> = ({ signal }) => compareBoms(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof compareBoms>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type CompareBomsQueryResult = NonNullable<Awaited<ReturnType<typeof compareBoms>>>
+export type CompareBomsQueryError = unknown
+
+
+export function useCompareBoms<TData = Awaited<ReturnType<typeof compareBoms>>, TError = unknown>(
+ params: CompareBomsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof compareBoms>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof compareBoms>>,
+          TError,
+          Awaited<ReturnType<typeof compareBoms>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCompareBoms<TData = Awaited<ReturnType<typeof compareBoms>>, TError = unknown>(
+ params: CompareBomsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof compareBoms>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof compareBoms>>,
+          TError,
+          Awaited<ReturnType<typeof compareBoms>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCompareBoms<TData = Awaited<ReturnType<typeof compareBoms>>, TError = unknown>(
+ params: CompareBomsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof compareBoms>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useCompareBoms<TData = Awaited<ReturnType<typeof compareBoms>>, TError = unknown>(
+ params: CompareBomsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof compareBoms>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getCompareBomsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetBomUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/engineering/boms/${id}`
+}
+
+export const getBom = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<BomDetail> => {
+
+  return apiFetch<BomDetail>(getGetBomUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBomQueryKey = (id: string,) => {
+    return [
+    `/api/v1/engineering/boms/${id}`
+    ] as const;
+    }
+
+
+export const getGetBomQueryOptions = <TData = Awaited<ReturnType<typeof getBom>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBom>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBomQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBom>>> = ({ signal }) => getBom(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBom>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetBomQueryResult = NonNullable<Awaited<ReturnType<typeof getBom>>>
+export type GetBomQueryError = unknown
+
+
+export function useGetBom<TData = Awaited<ReturnType<typeof getBom>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBom>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBom>>,
+          TError,
+          Awaited<ReturnType<typeof getBom>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetBom<TData = Awaited<ReturnType<typeof getBom>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBom>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBom>>,
+          TError,
+          Awaited<ReturnType<typeof getBom>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetBom<TData = Awaited<ReturnType<typeof getBom>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBom>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetBom<TData = Awaited<ReturnType<typeof getBom>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBom>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetBomQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSaveBomUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/engineering/boms/${id}`
+}
+
+export const saveBom = async (id: string,
+    bomUpdate: BomUpdate, options?: Parameters<typeof apiFetch>[1]): Promise<BomDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<BomDetail>(getSaveBomUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(bomUpdate)
+  }
+);}
+
+
+
+
+
+export const getSaveBomMutationKey = () => ['saveBom'] as const;
+
+export const getSaveBomMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveBom>>, TError,SaveBomMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveBom>>, TError,SaveBomMutationVariables, TContext> => {
+
+const mutationKey = getSaveBomMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveBom>>, SaveBomMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  saveBom(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveBomMutationResult = NonNullable<Awaited<ReturnType<typeof saveBom>>>
+    export type SaveBomMutationBody = BomUpdate
+    export type SaveBomMutationError = unknown
+    export type SaveBomMutationVariables = {id: string;data: BomUpdate}
+
+    export const useSaveBom = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveBom>>, TError,SaveBomMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof saveBom>>,
+        TError,
+        SaveBomMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSaveBomMutationOptions(options), queryClient);
+    }
+
+export const getGetBomLineUrl = (id: string,
+    lineId: string,) => {
+
+
+
+
+  return `/api/v1/engineering/boms/${id}/lines/${lineId}`
+}
+
+export const getBomLine = async (id: string,
+    lineId: string, options?: Parameters<typeof apiFetch>[1]): Promise<BomLineView> => {
+
+  return apiFetch<BomLineView>(getGetBomLineUrl(id,lineId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBomLineQueryKey = (id: string,
+    lineId: string,) => {
+    return [
+    `/api/v1/engineering/boms/${id}/lines/${lineId}`
+    ] as const;
+    }
+
+
+export const getGetBomLineQueryOptions = <TData = Awaited<ReturnType<typeof getBomLine>>, TError = unknown>(id: string,
+    lineId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBomLine>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBomLineQueryKey(id,lineId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBomLine>>> = ({ signal }) => getBomLine(id,lineId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && lineId !== null && lineId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBomLine>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetBomLineQueryResult = NonNullable<Awaited<ReturnType<typeof getBomLine>>>
+export type GetBomLineQueryError = unknown
+
+
+export function useGetBomLine<TData = Awaited<ReturnType<typeof getBomLine>>, TError = unknown>(
+ id: string,
+    lineId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBomLine>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBomLine>>,
+          TError,
+          Awaited<ReturnType<typeof getBomLine>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetBomLine<TData = Awaited<ReturnType<typeof getBomLine>>, TError = unknown>(
+ id: string,
+    lineId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBomLine>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBomLine>>,
+          TError,
+          Awaited<ReturnType<typeof getBomLine>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetBomLine<TData = Awaited<ReturnType<typeof getBomLine>>, TError = unknown>(
+ id: string,
+    lineId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBomLine>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetBomLine<TData = Awaited<ReturnType<typeof getBomLine>>, TError = unknown>(
+ id: string,
+    lineId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBomLine>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetBomLineQueryOptions(id,lineId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetBomReleasePreviewUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/engineering/boms/${id}/release-preview`
+}
+
+export const getBomReleasePreview = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<BomReleasePreview> => {
+
+  return apiFetch<BomReleasePreview>(getGetBomReleasePreviewUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBomReleasePreviewQueryKey = (id: string,) => {
+    return [
+    `/api/v1/engineering/boms/${id}/release-preview`
+    ] as const;
+    }
+
+
+export const getGetBomReleasePreviewQueryOptions = <TData = Awaited<ReturnType<typeof getBomReleasePreview>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBomReleasePreview>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBomReleasePreviewQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBomReleasePreview>>> = ({ signal }) => getBomReleasePreview(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBomReleasePreview>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetBomReleasePreviewQueryResult = NonNullable<Awaited<ReturnType<typeof getBomReleasePreview>>>
+export type GetBomReleasePreviewQueryError = unknown
+
+
+export function useGetBomReleasePreview<TData = Awaited<ReturnType<typeof getBomReleasePreview>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBomReleasePreview>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBomReleasePreview>>,
+          TError,
+          Awaited<ReturnType<typeof getBomReleasePreview>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetBomReleasePreview<TData = Awaited<ReturnType<typeof getBomReleasePreview>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBomReleasePreview>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBomReleasePreview>>,
+          TError,
+          Awaited<ReturnType<typeof getBomReleasePreview>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetBomReleasePreview<TData = Awaited<ReturnType<typeof getBomReleasePreview>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBomReleasePreview>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetBomReleasePreview<TData = Awaited<ReturnType<typeof getBomReleasePreview>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBomReleasePreview>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetBomReleasePreviewQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCopyBomUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/engineering/boms/${id}/copy`
+}
+
+export const copyBom = async (id: string,
+    bomCopyInput: BomCopyInput, options?: Parameters<typeof apiFetch>[1]): Promise<BomDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<BomDetail>(getCopyBomUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(bomCopyInput)
+  }
+);}
+
+
+
+
+
+export const getCopyBomMutationKey = () => ['copyBom'] as const;
+
+export const getCopyBomMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof copyBom>>, TError,CopyBomMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof copyBom>>, TError,CopyBomMutationVariables, TContext> => {
+
+const mutationKey = getCopyBomMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof copyBom>>, CopyBomMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  copyBom(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CopyBomMutationResult = NonNullable<Awaited<ReturnType<typeof copyBom>>>
+    export type CopyBomMutationBody = BomCopyInput
+    export type CopyBomMutationError = unknown
+    export type CopyBomMutationVariables = {id: string;data: BomCopyInput}
+
+    export const useCopyBom = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof copyBom>>, TError,CopyBomMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof copyBom>>,
+        TError,
+        CopyBomMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCopyBomMutationOptions(options), queryClient);
+    }
+
+export const getReviseBomUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/engineering/boms/${id}/revise`
+}
+
+export const reviseBom = async (id: string,
+    bomVersionInput: BomVersionInput, options?: Parameters<typeof apiFetch>[1]): Promise<BomDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<BomDetail>(getReviseBomUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(bomVersionInput)
+  }
+);}
+
+
+
+
+
+export const getReviseBomMutationKey = () => ['reviseBom'] as const;
+
+export const getReviseBomMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviseBom>>, TError,ReviseBomMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reviseBom>>, TError,ReviseBomMutationVariables, TContext> => {
+
+const mutationKey = getReviseBomMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reviseBom>>, ReviseBomMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  reviseBom(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReviseBomMutationResult = NonNullable<Awaited<ReturnType<typeof reviseBom>>>
+    export type ReviseBomMutationBody = BomVersionInput
+    export type ReviseBomMutationError = unknown
+    export type ReviseBomMutationVariables = {id: string;data: BomVersionInput}
+
+    export const useReviseBom = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviseBom>>, TError,ReviseBomMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reviseBom>>,
+        TError,
+        ReviseBomMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReviseBomMutationOptions(options), queryClient);
+    }
+
+export const getReleaseBomUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/engineering/boms/${id}/release`
+}
+
+export const releaseBom = async (id: string,
+    bomVersionInput: BomVersionInput, options?: Parameters<typeof apiFetch>[1]): Promise<BomDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<BomDetail>(getReleaseBomUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(bomVersionInput)
+  }
+);}
+
+
+
+
+
+export const getReleaseBomMutationKey = () => ['releaseBom'] as const;
+
+export const getReleaseBomMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof releaseBom>>, TError,ReleaseBomMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof releaseBom>>, TError,ReleaseBomMutationVariables, TContext> => {
+
+const mutationKey = getReleaseBomMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof releaseBom>>, ReleaseBomMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  releaseBom(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReleaseBomMutationResult = NonNullable<Awaited<ReturnType<typeof releaseBom>>>
+    export type ReleaseBomMutationBody = BomVersionInput
+    export type ReleaseBomMutationError = unknown
+    export type ReleaseBomMutationVariables = {id: string;data: BomVersionInput}
+
+    export const useReleaseBom = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof releaseBom>>, TError,ReleaseBomMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof releaseBom>>,
+        TError,
+        ReleaseBomMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReleaseBomMutationOptions(options), queryClient);
+    }
+
+export const getDiscardBomUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/engineering/boms/${id}/discard`
+}
+
+export const discardBom = async (id: string,
+    bomVersionInput: BomVersionInput, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<void>(getDiscardBomUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(bomVersionInput)
+  }
+);}
+
+
+
+
+
+export const getDiscardBomMutationKey = () => ['discardBom'] as const;
+
+export const getDiscardBomMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof discardBom>>, TError,DiscardBomMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof discardBom>>, TError,DiscardBomMutationVariables, TContext> => {
+
+const mutationKey = getDiscardBomMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof discardBom>>, DiscardBomMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  discardBom(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DiscardBomMutationResult = NonNullable<Awaited<ReturnType<typeof discardBom>>>
+    export type DiscardBomMutationBody = BomVersionInput
+    export type DiscardBomMutationError = unknown
+    export type DiscardBomMutationVariables = {id: string;data: BomVersionInput}
+
+    export const useDiscardBom = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof discardBom>>, TError,DiscardBomMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof discardBom>>,
+        TError,
+        DiscardBomMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDiscardBomMutationOptions(options), queryClient);
     }
 
 export const getListWorkCentersUrl = (params?: ListWorkCentersParams,) => {
