@@ -189,5 +189,7 @@ public partial class StockTests(TenancyFixture tenancy) : IClassFixture<TenancyF
         public Task<IReadOnlyList<ProjectItemInfo>> FabricationCandidatesAsync(Guid? projectId, int limit, CancellationToken cancellationToken = default) => Task.FromResult<IReadOnlyList<ProjectItemInfo>>([]);
 
         public Task<decimal?> BudgetedAsync(Guid projectId, CostType costType, CancellationToken cancellationToken = default) => Task.FromResult<decimal?>(null);
+
+        public Task<ProjectFabricationInfo?> FabricationAsync(Guid projectId, CancellationToken cancellationToken = default) => Task.FromResult<ProjectFabricationInfo?>(null);
     }
 }
