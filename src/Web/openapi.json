@@ -890,6 +890,56 @@
         }
       }
     },
+    "/api/v1/auth/pin/users": {
+      "get": {
+        "tags": [
+          "Autentica\u00E7\u00E3o"
+        ],
+        "operationId": "ListPinUsers",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PinUsers"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/pin": {
+      "post": {
+        "tags": [
+          "Autentica\u00E7\u00E3o"
+        ],
+        "operationId": "LoginWithPin",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PinLoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PinSessionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/forgot-password": {
       "post": {
         "tags": [
@@ -2121,6 +2171,223 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/shopfloor/device": {
+      "get": {
+        "tags": [
+          "App do operador"
+        ],
+        "operationId": "GetShopfloorDevice",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopfloorDeviceContext"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "App do operador"
+        ],
+        "operationId": "RegisterShopfloorDevice",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterDeviceInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopfloorDeviceContext"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/shopfloor/device/theme": {
+      "put": {
+        "tags": [
+          "App do operador"
+        ],
+        "operationId": "SetShopfloorDeviceTheme",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeviceThemeInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopfloorDeviceContext"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/shopfloor/device/pin": {
+      "post": {
+        "tags": [
+          "App do operador"
+        ],
+        "operationId": "CreateShopfloorPin",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePinInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopfloorDeviceContext"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "App do operador"
+        ],
+        "operationId": "DeleteMyShopfloorPin",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/settings/security/shopfloor-devices": {
+      "get": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "ListShopfloorDevices",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopfloorDeviceList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/security/shopfloor-devices/{id}/revoke": {
+      "post": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "RevokeShopfloorDevice",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopfloorDeviceList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/pins": {
+      "get": {
+        "tags": [
+          "Identidade"
+        ],
+        "operationId": "ListMyPins",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MyPin"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/pins/{deviceId}": {
+      "delete": {
+        "tags": [
+          "Identidade"
+        ],
+        "operationId": "DeleteMyPin",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -18549,6 +18816,10 @@
           },
           "code": {
             "type": "string"
+          },
+          "ephemeral": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -19348,6 +19619,21 @@
           }
         }
       },
+      "CreatePinInput": {
+        "required": [
+          "pin",
+          "confirmation"
+        ],
+        "type": "object",
+        "properties": {
+          "pin": {
+            "type": "string"
+          },
+          "confirmation": {
+            "type": "string"
+          }
+        }
+      },
       "CurrentSession": {
         "required": [
           "userId",
@@ -19482,6 +19768,24 @@
           "AtRisk",
           "Late"
         ]
+      },
+      "DeviceTheme": {
+        "enum": [
+          "System",
+          "Light",
+          "Dark"
+        ]
+      },
+      "DeviceThemeInput": {
+        "required": [
+          "theme"
+        ],
+        "type": "object",
+        "properties": {
+          "theme": {
+            "$ref": "#/components/schemas/DeviceTheme"
+          }
+        }
       },
       "DisableTwoFactorRequest": {
         "required": [
@@ -23620,6 +23924,10 @@
           },
           "password": {
             "type": "string"
+          },
+          "ephemeral": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -23934,6 +24242,35 @@
             "items": {
               "$ref": "#/components/schemas/MyModule"
             }
+          }
+        }
+      },
+      "MyPin": {
+        "required": [
+          "deviceId",
+          "deviceName",
+          "createdAt",
+          "lastUsedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "deviceName": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastUsedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           }
         }
       },
@@ -27478,6 +27815,92 @@
           "total": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "PinDevice": {
+        "required": [
+          "name",
+          "theme"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "theme": {
+            "$ref": "#/components/schemas/DeviceTheme"
+          }
+        }
+      },
+      "PinLoginRequest": {
+        "required": [
+          "userId",
+          "pin"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "pin": {
+            "type": "string"
+          }
+        }
+      },
+      "PinSessionResponse": {
+        "required": [
+          "accessToken",
+          "expiresAt",
+          "sessionExpiresAt"
+        ],
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sessionExpiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PinUser": {
+        "required": [
+          "userId",
+          "displayName"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "displayName": {
+            "type": "string"
+          }
+        }
+      },
+      "PinUsers": {
+        "required": [
+          "device",
+          "users"
+        ],
+        "type": "object",
+        "properties": {
+          "device": {
+            "$ref": "#/components/schemas/PinDevice"
+          },
+          "users": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PinUser"
+            }
           }
         }
       },
@@ -31452,6 +31875,17 @@
           }
         }
       },
+      "RegisterDeviceInput": {
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      },
       "RelatedAuditEntryDto": {
         "required": [
           "id",
@@ -32501,6 +32935,165 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "ShopfloorDeviceContext": {
+        "required": [
+          "registered",
+          "deviceId",
+          "name",
+          "theme",
+          "expiresAt",
+          "hasMyPin",
+          "canCreatePin",
+          "pinUnavailableReason",
+          "canRegister",
+          "registerUnavailableReason"
+        ],
+        "type": "object",
+        "properties": {
+          "registered": {
+            "type": "boolean"
+          },
+          "deviceId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "theme": {
+            "$ref": "#/components/schemas/DeviceTheme"
+          },
+          "expiresAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "hasMyPin": {
+            "type": "boolean"
+          },
+          "canCreatePin": {
+            "type": "boolean"
+          },
+          "pinUnavailableReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "canRegister": {
+            "type": "boolean"
+          },
+          "registerUnavailableReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ShopfloorDeviceList": {
+        "required": [
+          "devices",
+          "activeCount",
+          "maxActive"
+        ],
+        "type": "object",
+        "properties": {
+          "devices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShopfloorDeviceRow"
+            }
+          },
+          "activeCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxActive": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ShopfloorDeviceRow": {
+        "required": [
+          "id",
+          "name",
+          "createdByName",
+          "createdAt",
+          "lastSeenAt",
+          "expiresAt",
+          "revokedAt",
+          "revokedByName",
+          "revokedReason",
+          "status",
+          "daysUnused",
+          "pins"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "createdByName": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastSeenAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "revokedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "revokedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "revokedReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "type": "string"
+          },
+          "daysUnused": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pins": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -34114,6 +34707,10 @@
               "null",
               "string"
             ]
+          },
+          "ephemeral": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -34328,6 +34925,9 @@
       "name": "Ajuda"
     },
     {
+      "name": "App do operador"
+    },
+    {
       "name": "Terceiros"
     },
     {
@@ -34347,9 +34947,6 @@
     },
     {
       "name": "Qualidade"
-    },
-    {
-      "name": "App do operador"
     },
     {
       "name": "Estoque"

@@ -94,11 +94,13 @@ import type {
   CostCenterSuggestion,
   CostRefreshPreview,
   CreatePartyRequest,
+  CreatePinInput,
   CurrentSession,
   CustomerOption,
   CutoverInput,
   DecisionInput,
   DeleteQuoteParams,
+  DeviceThemeInput,
   DisableTwoFactorRequest,
   DiscountsAndCancellations,
   DocumentCheck,
@@ -231,6 +233,7 @@ import type {
   ModuleRelease,
   ModuleSummary,
   MyPermissionsResponse,
+  MyPin,
   NonConformityActionInput,
   NonConformityCloseInput,
   NonConformityCostInput,
@@ -287,6 +290,9 @@ import type {
   PaymentTermOption,
   PayrollChargesInput,
   PendingFabricationPage,
+  PinLoginRequest,
+  PinSessionResponse,
+  PinUsers,
   PlatformChallengeRequest,
   PlatformChallengeResponse,
   PlatformConfirmRequest,
@@ -358,6 +364,7 @@ import type {
   ReceivablesCreated,
   RecurringExpenseDetail,
   RecurringExpenseInput,
+  RegisterDeviceInput,
   RemoveQuoteItemParams,
   ResetPasswordRequest,
   ResubmitInput,
@@ -387,6 +394,8 @@ import type {
   ShopfloorActionResult,
   ShopfloorAttachment,
   ShopfloorChecklistInput,
+  ShopfloorDeviceContext,
+  ShopfloorDeviceList,
   ShopfloorFinishInput,
   ShopfloorPauseInput,
   ShopfloorQueueStep,
@@ -3129,6 +3138,183 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getLogoutMutationOptions(options), queryClient);
+    }
+
+export const getListPinUsersUrl = () => {
+
+
+
+
+  return `/api/v1/auth/pin/users`
+}
+
+export const listPinUsers = async ( options?: Parameters<typeof apiFetch>[1]): Promise<PinUsers> => {
+
+  return apiFetch<PinUsers>(getListPinUsersUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListPinUsersQueryKey = () => {
+    return [
+    `/api/v1/auth/pin/users`
+    ] as const;
+    }
+
+
+export const getListPinUsersQueryOptions = <TData = Awaited<ReturnType<typeof listPinUsers>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPinUsers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListPinUsersQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPinUsers>>> = ({ signal }) => listPinUsers({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPinUsers>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListPinUsersQueryResult = NonNullable<Awaited<ReturnType<typeof listPinUsers>>>
+export type ListPinUsersQueryError = unknown
+
+
+export function useListPinUsers<TData = Awaited<ReturnType<typeof listPinUsers>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPinUsers>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPinUsers>>,
+          TError,
+          Awaited<ReturnType<typeof listPinUsers>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPinUsers<TData = Awaited<ReturnType<typeof listPinUsers>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPinUsers>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPinUsers>>,
+          TError,
+          Awaited<ReturnType<typeof listPinUsers>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPinUsers<TData = Awaited<ReturnType<typeof listPinUsers>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPinUsers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListPinUsers<TData = Awaited<ReturnType<typeof listPinUsers>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPinUsers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListPinUsersQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getLoginWithPinUrl = () => {
+
+
+
+
+  return `/api/v1/auth/pin`
+}
+
+export const loginWithPin = async (pinLoginRequest: PinLoginRequest, options?: Parameters<typeof apiFetch>[1]): Promise<PinSessionResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<PinSessionResponse>(getLoginWithPinUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(pinLoginRequest)
+  }
+);}
+
+
+
+
+
+export const getLoginWithPinMutationKey = () => ['loginWithPin'] as const;
+
+export const getLoginWithPinMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof loginWithPin>>, TError,LoginWithPinMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof loginWithPin>>, TError,LoginWithPinMutationVariables, TContext> => {
+
+const mutationKey = getLoginWithPinMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof loginWithPin>>, LoginWithPinMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  loginWithPin(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LoginWithPinMutationResult = NonNullable<Awaited<ReturnType<typeof loginWithPin>>>
+    export type LoginWithPinMutationBody = PinLoginRequest
+    export type LoginWithPinMutationError = unknown
+    export type LoginWithPinMutationVariables = {data: PinLoginRequest}
+
+    export const useLoginWithPin = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof loginWithPin>>, TError,LoginWithPinMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof loginWithPin>>,
+        TError,
+        LoginWithPinMutationVariables,
+        TContext
+      > => {
+      return useMutation(getLoginWithPinMutationOptions(options), queryClient);
     }
 
 export const getForgotPasswordUrl = () => {
@@ -6854,6 +7040,741 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getSavePricingModeMutationOptions(options), queryClient);
+    }
+
+export const getGetShopfloorDeviceUrl = () => {
+
+
+
+
+  return `/api/v1/shopfloor/device`
+}
+
+export const getShopfloorDevice = async ( options?: Parameters<typeof apiFetch>[1]): Promise<ShopfloorDeviceContext> => {
+
+  return apiFetch<ShopfloorDeviceContext>(getGetShopfloorDeviceUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetShopfloorDeviceQueryKey = () => {
+    return [
+    `/api/v1/shopfloor/device`
+    ] as const;
+    }
+
+
+export const getGetShopfloorDeviceQueryOptions = <TData = Awaited<ReturnType<typeof getShopfloorDevice>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShopfloorDevice>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetShopfloorDeviceQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getShopfloorDevice>>> = ({ signal }) => getShopfloorDevice({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getShopfloorDevice>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetShopfloorDeviceQueryResult = NonNullable<Awaited<ReturnType<typeof getShopfloorDevice>>>
+export type GetShopfloorDeviceQueryError = unknown
+
+
+export function useGetShopfloorDevice<TData = Awaited<ReturnType<typeof getShopfloorDevice>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShopfloorDevice>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getShopfloorDevice>>,
+          TError,
+          Awaited<ReturnType<typeof getShopfloorDevice>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetShopfloorDevice<TData = Awaited<ReturnType<typeof getShopfloorDevice>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShopfloorDevice>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getShopfloorDevice>>,
+          TError,
+          Awaited<ReturnType<typeof getShopfloorDevice>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetShopfloorDevice<TData = Awaited<ReturnType<typeof getShopfloorDevice>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShopfloorDevice>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetShopfloorDevice<TData = Awaited<ReturnType<typeof getShopfloorDevice>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShopfloorDevice>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetShopfloorDeviceQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getRegisterShopfloorDeviceUrl = () => {
+
+
+
+
+  return `/api/v1/shopfloor/device`
+}
+
+export const registerShopfloorDevice = async (registerDeviceInput: RegisterDeviceInput, options?: Parameters<typeof apiFetch>[1]): Promise<ShopfloorDeviceContext> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ShopfloorDeviceContext>(getRegisterShopfloorDeviceUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(registerDeviceInput)
+  }
+);}
+
+
+
+
+
+export const getRegisterShopfloorDeviceMutationKey = () => ['registerShopfloorDevice'] as const;
+
+export const getRegisterShopfloorDeviceMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof registerShopfloorDevice>>, TError,RegisterShopfloorDeviceMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof registerShopfloorDevice>>, TError,RegisterShopfloorDeviceMutationVariables, TContext> => {
+
+const mutationKey = getRegisterShopfloorDeviceMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof registerShopfloorDevice>>, RegisterShopfloorDeviceMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  registerShopfloorDevice(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RegisterShopfloorDeviceMutationResult = NonNullable<Awaited<ReturnType<typeof registerShopfloorDevice>>>
+    export type RegisterShopfloorDeviceMutationBody = RegisterDeviceInput
+    export type RegisterShopfloorDeviceMutationError = unknown
+    export type RegisterShopfloorDeviceMutationVariables = {data: RegisterDeviceInput}
+
+    export const useRegisterShopfloorDevice = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof registerShopfloorDevice>>, TError,RegisterShopfloorDeviceMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof registerShopfloorDevice>>,
+        TError,
+        RegisterShopfloorDeviceMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRegisterShopfloorDeviceMutationOptions(options), queryClient);
+    }
+
+export const getSetShopfloorDeviceThemeUrl = () => {
+
+
+
+
+  return `/api/v1/shopfloor/device/theme`
+}
+
+export const setShopfloorDeviceTheme = async (deviceThemeInput: DeviceThemeInput, options?: Parameters<typeof apiFetch>[1]): Promise<ShopfloorDeviceContext> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ShopfloorDeviceContext>(getSetShopfloorDeviceThemeUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(deviceThemeInput)
+  }
+);}
+
+
+
+
+
+export const getSetShopfloorDeviceThemeMutationKey = () => ['setShopfloorDeviceTheme'] as const;
+
+export const getSetShopfloorDeviceThemeMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setShopfloorDeviceTheme>>, TError,SetShopfloorDeviceThemeMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof setShopfloorDeviceTheme>>, TError,SetShopfloorDeviceThemeMutationVariables, TContext> => {
+
+const mutationKey = getSetShopfloorDeviceThemeMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setShopfloorDeviceTheme>>, SetShopfloorDeviceThemeMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  setShopfloorDeviceTheme(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetShopfloorDeviceThemeMutationResult = NonNullable<Awaited<ReturnType<typeof setShopfloorDeviceTheme>>>
+    export type SetShopfloorDeviceThemeMutationBody = DeviceThemeInput
+    export type SetShopfloorDeviceThemeMutationError = unknown
+    export type SetShopfloorDeviceThemeMutationVariables = {data: DeviceThemeInput}
+
+    export const useSetShopfloorDeviceTheme = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setShopfloorDeviceTheme>>, TError,SetShopfloorDeviceThemeMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof setShopfloorDeviceTheme>>,
+        TError,
+        SetShopfloorDeviceThemeMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSetShopfloorDeviceThemeMutationOptions(options), queryClient);
+    }
+
+export const getCreateShopfloorPinUrl = () => {
+
+
+
+
+  return `/api/v1/shopfloor/device/pin`
+}
+
+export const createShopfloorPin = async (createPinInput: CreatePinInput, options?: Parameters<typeof apiFetch>[1]): Promise<ShopfloorDeviceContext> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ShopfloorDeviceContext>(getCreateShopfloorPinUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(createPinInput)
+  }
+);}
+
+
+
+
+
+export const getCreateShopfloorPinMutationKey = () => ['createShopfloorPin'] as const;
+
+export const getCreateShopfloorPinMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createShopfloorPin>>, TError,CreateShopfloorPinMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createShopfloorPin>>, TError,CreateShopfloorPinMutationVariables, TContext> => {
+
+const mutationKey = getCreateShopfloorPinMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createShopfloorPin>>, CreateShopfloorPinMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createShopfloorPin(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateShopfloorPinMutationResult = NonNullable<Awaited<ReturnType<typeof createShopfloorPin>>>
+    export type CreateShopfloorPinMutationBody = CreatePinInput
+    export type CreateShopfloorPinMutationError = unknown
+    export type CreateShopfloorPinMutationVariables = {data: CreatePinInput}
+
+    export const useCreateShopfloorPin = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createShopfloorPin>>, TError,CreateShopfloorPinMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createShopfloorPin>>,
+        TError,
+        CreateShopfloorPinMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateShopfloorPinMutationOptions(options), queryClient);
+    }
+
+export const getDeleteMyShopfloorPinUrl = () => {
+
+
+
+
+  return `/api/v1/shopfloor/device/pin`
+}
+
+export const deleteMyShopfloorPin = async ( options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDeleteMyShopfloorPinUrl(),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteMyShopfloorPinMutationKey = () => ['deleteMyShopfloorPin'] as const;
+
+export const getDeleteMyShopfloorPinMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMyShopfloorPin>>, TError,void, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteMyShopfloorPin>>, TError,void, TContext> => {
+
+const mutationKey = getDeleteMyShopfloorPinMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteMyShopfloorPin>>, void> = () => {
+
+
+          return  deleteMyShopfloorPin(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteMyShopfloorPinMutationResult = NonNullable<Awaited<ReturnType<typeof deleteMyShopfloorPin>>>
+
+    export type DeleteMyShopfloorPinMutationError = unknown
+
+
+    export const useDeleteMyShopfloorPin = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMyShopfloorPin>>, TError,void, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteMyShopfloorPin>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getDeleteMyShopfloorPinMutationOptions(options), queryClient);
+    }
+
+export const getListShopfloorDevicesUrl = () => {
+
+
+
+
+  return `/api/v1/settings/security/shopfloor-devices`
+}
+
+export const listShopfloorDevices = async ( options?: Parameters<typeof apiFetch>[1]): Promise<ShopfloorDeviceList> => {
+
+  return apiFetch<ShopfloorDeviceList>(getListShopfloorDevicesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListShopfloorDevicesQueryKey = () => {
+    return [
+    `/api/v1/settings/security/shopfloor-devices`
+    ] as const;
+    }
+
+
+export const getListShopfloorDevicesQueryOptions = <TData = Awaited<ReturnType<typeof listShopfloorDevices>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShopfloorDevices>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListShopfloorDevicesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listShopfloorDevices>>> = ({ signal }) => listShopfloorDevices({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listShopfloorDevices>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListShopfloorDevicesQueryResult = NonNullable<Awaited<ReturnType<typeof listShopfloorDevices>>>
+export type ListShopfloorDevicesQueryError = unknown
+
+
+export function useListShopfloorDevices<TData = Awaited<ReturnType<typeof listShopfloorDevices>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShopfloorDevices>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listShopfloorDevices>>,
+          TError,
+          Awaited<ReturnType<typeof listShopfloorDevices>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListShopfloorDevices<TData = Awaited<ReturnType<typeof listShopfloorDevices>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShopfloorDevices>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listShopfloorDevices>>,
+          TError,
+          Awaited<ReturnType<typeof listShopfloorDevices>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListShopfloorDevices<TData = Awaited<ReturnType<typeof listShopfloorDevices>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShopfloorDevices>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListShopfloorDevices<TData = Awaited<ReturnType<typeof listShopfloorDevices>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShopfloorDevices>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListShopfloorDevicesQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getRevokeShopfloorDeviceUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/settings/security/shopfloor-devices/${id}/revoke`
+}
+
+export const revokeShopfloorDevice = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<ShopfloorDeviceList> => {
+
+  return apiFetch<ShopfloorDeviceList>(getRevokeShopfloorDeviceUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getRevokeShopfloorDeviceMutationKey = () => ['revokeShopfloorDevice'] as const;
+
+export const getRevokeShopfloorDeviceMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeShopfloorDevice>>, TError,RevokeShopfloorDeviceMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof revokeShopfloorDevice>>, TError,RevokeShopfloorDeviceMutationVariables, TContext> => {
+
+const mutationKey = getRevokeShopfloorDeviceMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof revokeShopfloorDevice>>, RevokeShopfloorDeviceMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  revokeShopfloorDevice(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RevokeShopfloorDeviceMutationResult = NonNullable<Awaited<ReturnType<typeof revokeShopfloorDevice>>>
+
+    export type RevokeShopfloorDeviceMutationError = unknown
+    export type RevokeShopfloorDeviceMutationVariables = {id: string}
+
+    export const useRevokeShopfloorDevice = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeShopfloorDevice>>, TError,RevokeShopfloorDeviceMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof revokeShopfloorDevice>>,
+        TError,
+        RevokeShopfloorDeviceMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRevokeShopfloorDeviceMutationOptions(options), queryClient);
+    }
+
+export const getListMyPinsUrl = () => {
+
+
+
+
+  return `/api/v1/me/pins`
+}
+
+export const listMyPins = async ( options?: Parameters<typeof apiFetch>[1]): Promise<MyPin[]> => {
+
+  return apiFetch<MyPin[]>(getListMyPinsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListMyPinsQueryKey = () => {
+    return [
+    `/api/v1/me/pins`
+    ] as const;
+    }
+
+
+export const getListMyPinsQueryOptions = <TData = Awaited<ReturnType<typeof listMyPins>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyPins>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListMyPinsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMyPins>>> = ({ signal }) => listMyPins({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listMyPins>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListMyPinsQueryResult = NonNullable<Awaited<ReturnType<typeof listMyPins>>>
+export type ListMyPinsQueryError = unknown
+
+
+export function useListMyPins<TData = Awaited<ReturnType<typeof listMyPins>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyPins>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listMyPins>>,
+          TError,
+          Awaited<ReturnType<typeof listMyPins>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListMyPins<TData = Awaited<ReturnType<typeof listMyPins>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyPins>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listMyPins>>,
+          TError,
+          Awaited<ReturnType<typeof listMyPins>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListMyPins<TData = Awaited<ReturnType<typeof listMyPins>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyPins>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListMyPins<TData = Awaited<ReturnType<typeof listMyPins>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyPins>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListMyPinsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getDeleteMyPinUrl = (deviceId: string,) => {
+
+
+
+
+  return `/api/v1/me/pins/${deviceId}`
+}
+
+export const deleteMyPin = async (deviceId: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDeleteMyPinUrl(deviceId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteMyPinMutationKey = () => ['deleteMyPin'] as const;
+
+export const getDeleteMyPinMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMyPin>>, TError,DeleteMyPinMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteMyPin>>, TError,DeleteMyPinMutationVariables, TContext> => {
+
+const mutationKey = getDeleteMyPinMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteMyPin>>, DeleteMyPinMutationVariables> = (props) => {
+          const {deviceId} = props ?? {};
+
+          return  deleteMyPin(deviceId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteMyPinMutationResult = NonNullable<Awaited<ReturnType<typeof deleteMyPin>>>
+
+    export type DeleteMyPinMutationError = unknown
+    export type DeleteMyPinMutationVariables = {deviceId: string}
+
+    export const useDeleteMyPin = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMyPin>>, TError,DeleteMyPinMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteMyPin>>,
+        TError,
+        DeleteMyPinMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeleteMyPinMutationOptions(options), queryClient);
     }
 
 export const getListPartiesUrl = (params?: ListPartiesParams,) => {
