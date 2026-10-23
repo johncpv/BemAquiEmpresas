@@ -119,7 +119,7 @@ public partial class ShopfloorPinTests
     public async Task Perfil_com_acao_reservada_nao_cria_PIN_e_quem_ganhou_uma_perde_o_PIN_no_proximo_login()
     {
         var (device, deviceId) = await DeviceAsync();
-        var (_, reserved) = await UserAsync(Operator + "|finance:view,pay");
+        var (_, reserved) = await UserAsync(Operator + "|hr:view,view_sensitive");
         var (reservedToken, _) = await FullLoginAsync(reserved, device: device);
         var refused = await Client().SendAsync(Authorized(HttpMethod.Post, "/api/v1/shopfloor/device/pin", reservedToken, device, new { pin = GoodPin, confirmation = GoodPin }));
         refused.StatusCode.Should().Be(HttpStatusCode.Forbidden);

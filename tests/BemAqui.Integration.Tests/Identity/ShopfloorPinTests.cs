@@ -73,7 +73,13 @@ public partial class ShopfloorPinTests(TenancyFixture tenancy) : IClassFixture<T
     }
 
     /// <summary>Teto alto para esta classe: cada teste registra o próprio aparelho.</summary>
-    private Task HighCapAsync(string value = "1000") => WithDbAsync(async db =>
+    /// <summary>
+    /// Um Proprietário ativo criado pelo teste: os avisos de segurança vão aos Proprietários ativos, e outros testes do mesmo tenant
+    /// desativam usuários por um tempo (segregação da qualidade).
+    /// </summary>
+    private Task<(Guid Id, string Email)> OwnerOnDutyAsync() => UserAsync(Group.OwnerSeedKey, employee: false, name: "Proprietário de plantão");
+
+    private Task HighCapAsync(string value = "100") => WithDbAsync(async db =>
     {
         var row = await db.TenantSettings.FirstOrDefaultAsync(s => s.Key == TenantSetting.MaxShopfloorDevices);
         if (row is null)
@@ -190,6 +196,7 @@ public partial class ShopfloorPinTests(TenancyFixture tenancy) : IClassFixture<T
     private async Task<(string Secret, Guid DeviceId)> DeviceAsync(string name = "Tablet Linha 1")
     {
         await HighCapAsync();
+        await OwnerOnDutyAsync();
         var (_, email) = await UserAsync(Supervisor);
         var (token, _) = await FullLoginAsync(email);
         var response = await Client().SendAsync(Authorized(HttpMethod.Post, "/api/v1/shopfloor/device", token, body: new { name }));
@@ -281,6 +288,7 @@ public partial class ShopfloorPinTests(TenancyFixture tenancy) : IClassFixture<T
     public async Task Registro_grava_so_o_hash_cookie_Host_por_180_dias_e_avisa_o_Proprietario()
     {
         await HighCapAsync();
+        await OwnerOnDutyAsync();
         var (_, email) = await UserAsync(Supervisor, name: "Rita Prado");
         var (token, _) = await FullLoginAsync(email);
 
