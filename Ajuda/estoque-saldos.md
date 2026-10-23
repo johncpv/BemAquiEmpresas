@@ -23,6 +23,8 @@ Ver o que existe de cada item em cada local: o físico, o que já está reservad
 
 **O que é o disponível?** É o físico menos o que já está reservado para OS abertas.
 
+**De onde vem o reservado?** Da BOM liberada de cada OS. O material reservado continua no físico, mas a saída avulsa e a transferência só tiram o disponível: o sistema recusa e mostra "Há {x} disponível; {y} está reservado para OS.". Veja o que falta comprar em **Faltas**.
+
 **Por que não consigo lançar saldo inicial?** O saldo inicial só vale enquanto a implantação está aberta e para item sem nenhum movimento no local. Depois, use uma entrada ou um ajuste de estoque.
 
-**A saída pode deixar o saldo negativo?** Não. O sistema recusa e mostra quanto há no local.
+**A saída pode deixar o saldo negativo?** Não. O sistema recusa e mostra quanto há no local. Ela também não tira o que está reservado para OS.

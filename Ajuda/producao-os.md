@@ -12,6 +12,7 @@ Ver e ajustar as etapas desta OS antes de a fábrica começar: letra, nome, cent
 ## Como usar
 - O cabeçalho mostra o número, a situação, o cliente, o produto, a quantidade e a etapa atual (o display de andar com a letra da etapa).
 - A faixa de fatos mostra a data prometida, as horas padrão somadas, a etapa atual e o roteiro de origem.
+- Com material em falta, o cabeçalho mostra o chip **Falta material** com quantos itens faltam. Clique nele para abrir a aba **Material**.
 - Enquanto nenhuma etapa começou, quem edita na produção inclui, remove e reordena etapas, troca o centro e as horas e edita o checklist. Clique em **Salvar etapas**. A primeira etapa fica pronta e as demais aguardando.
 - **Trocar roteiro** substitui as etapas pelas do roteiro escolhido. O diálogo mostra quantas etapas e horas mudam, antes e depois. O roteiro sugerido aparece com a tag **Sugerido**.
 - **Cancelar OS** pede o motivo. A OS que já começou só é cancelada por quem aprova na produção.

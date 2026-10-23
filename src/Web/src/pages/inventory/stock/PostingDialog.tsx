@@ -90,7 +90,9 @@ export function PostingDialog({ kind, onClose, onPosted, item: initialItem = nul
     ...(needsReason ? [{ ok: reason.trim().length > 0, text: 'Motivo escrito.' }] : []),
     ...(kind === 'Transfer' ? [{ ok: !!target && target !== locationId, text: 'Local de destino, diferente do de origem.' }] : []),
     ...(kind === 'OpeningBalance' ? [{ ok: !hasMovementHere, text: 'Item sem movimento neste local (senão, use uma entrada ou um ajuste).' }, { ok: !!cutoff && cutoff <= todayIso(), text: 'Data de corte até hoje.' }] : []),
-    ...(impact?.insufficient ? [{ ok: false, text: `Saldo suficiente no local (há ${formatQuantity(impact.onHandBefore)} ${ctx?.unitCode ?? ''}).` }] : []),
+    ...(impact?.insufficient ? [{ ok: false, text: impact.reserved > 0
+      ? `Disponível suficiente no local (há ${formatQuantity(impact.available)} ${ctx?.unitCode ?? ''} disponível; ${formatQuantity(impact.reserved)} está reservado para OS).`
+      : `Saldo suficiente no local (há ${formatQuantity(impact.onHandBefore)} ${ctx?.unitCode ?? ''}).` }] : []),
   ]
 
   const submit = async () => {
@@ -115,6 +117,7 @@ export function PostingDialog({ kind, onClose, onPosted, item: initialItem = nul
       impact={impact ? (
         <div aria-live="polite" className="space-y-1">
           <p>Saldo no local {formatQuantity(impact.onHandBefore)} → <b>{formatQuantity(impact.onHandAfter)}</b> {ctx?.unitCode}</p>
+          {impact.reserved > 0 ? <p className="tabular-nums">Disponível no local {formatQuantity(impact.available)} {ctx?.unitCode} · {formatQuantity(impact.reserved)} reservado para OS</p> : null}
           {impact.target ? <p>Saldo no destino {formatQuantity(impact.target.before)} → <b>{formatQuantity(impact.target.after)}</b> {ctx?.unitCode}</p> : null}
           <p>Custo médio {formatUnitCost(impact.averageBefore)} → <b>{formatUnitCost(impact.averageAfter)}</b></p>
           <p>Valor do lançamento: <Money value={impact.value} className="font-semibold" /></p>

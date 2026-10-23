@@ -18,6 +18,7 @@ import { PageHeading } from '@/shell/PageHeading'
 import { TYPE_LABELS } from '../item-labels'
 import { InventoryTabs } from '../InventoryTabs'
 import { OpeningBatchDialog } from './OpeningBatchDialog'
+import { RESERVATION_DICAS } from './reservations'
 import { PostingDialog } from './PostingDialog'
 import { DICAS, formatQuantity, formatUnitCost, SITUATION, SITUATION_OPTIONS } from './stock'
 
@@ -61,7 +62,7 @@ export function BalancesPage() {
     { id: 'item', header: 'Item', cell: ({ row: { original: b } }) => <Link to={'/app/estoque/itens/$id' as never} params={{ id: b.itemId } as never} search={{ aba: 'movimentos' } as never} className="font-semibold text-primary hover:underline"><span className="font-mono">{b.itemCode}</span> {b.itemName}</Link> },
     { id: 'location', header: 'Local', cell: ({ row: { original: b } }) => <span title={b.locationName}>{b.locationCode}</span> },
     { id: 'onHand', header: 'Físico', meta: { numeric: true, secondary: true }, cell: ({ row: { original: b } }) => `${formatQuantity(b.onHand)} ${b.unitCode}` },
-    { id: 'reserved', header: 'Reservado', meta: { numeric: true, secondary: true }, cell: ({ row: { original: b } }) => formatQuantity(b.reserved) },
+    { id: 'reserved', header: () => <span className="inline-flex items-center">Reservado<Dica nome="Reservado" texto={RESERVATION_DICAS.reservado} /></span>, meta: { numeric: true, secondary: true }, cell: ({ row: { original: b } }) => formatQuantity(b.reserved) },
     { id: 'available', header: () => <span className="inline-flex items-center">Disponível<Dica nome="Disponível" texto={DICAS.disponivel} /></span>, meta: { numeric: true }, cell: ({ row: { original: b } }) => <b>{formatQuantity(b.available)}</b> },
     { id: 'min', header: 'Mínimo', meta: { numeric: true, secondary: true }, cell: ({ row: { original: b } }) => formatQuantity(b.minStock) },
     { id: 'avg', header: () => <span className="inline-flex items-center">Custo médio<Dica nome="Custo médio" texto={DICAS.custoMedio} /></span>, meta: { numeric: true, secondary: true }, cell: ({ row: { original: b } }) => formatUnitCost(b.averageCost) },
