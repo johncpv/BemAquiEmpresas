@@ -7830,6 +7830,256 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("work_centers", "production");
                 });
 
+            modelBuilder.Entity("BemAqui.Purchasing.Domain.PurchaseRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("CancelReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("cancel_reason");
+
+                    b.Property<DateTimeOffset?>("CancelledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("cancelled_at");
+
+                    b.Property<Guid?>("CancelledBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cancelled_by");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("notes");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("number");
+
+                    b.Property<string>("Origin")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("origin");
+
+                    b.Property<Guid?>("ProductionOrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("production_order_id");
+
+                    b.Property<Guid?>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<Guid?>("RequestedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("requested_by");
+
+                    b.Property<DateOnly?>("RunDate")
+                        .HasColumnType("date")
+                        .HasColumnName("run_date");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_purchase_requests");
+
+                    b.HasIndex("Number")
+                        .IsUnique()
+                        .HasDatabaseName("ux_purchase_requests_number");
+
+                    b.HasIndex("ProductionOrderId")
+                        .HasDatabaseName("ix_purchase_requests_production_order_id")
+                        .HasFilter("production_order_id IS NOT NULL");
+
+                    b.HasIndex("ProjectId")
+                        .HasDatabaseName("ix_purchase_requests_project_id")
+                        .HasFilter("project_id IS NOT NULL");
+
+                    b.HasIndex("Status", "Origin")
+                        .HasDatabaseName("ix_purchase_requests_status_origin");
+
+                    b.ToTable("purchase_requests", "purchasing");
+                });
+
+            modelBuilder.Entity("BemAqui.Purchasing.Domain.PurchaseRequestLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("BomLineId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("bom_line_id");
+
+                    b.Property<bool>("CalculatedOnOnboarding")
+                        .HasColumnType("boolean")
+                        .HasColumnName("calculated_on_onboarding");
+
+                    b.Property<string>("CancelReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("cancel_reason");
+
+                    b.Property<DateTimeOffset?>("CancelledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("cancelled_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<decimal?>("EnteredQuantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("entered_quantity");
+
+                    b.Property<Guid?>("EnteredUnitId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("entered_unit_id");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_id");
+
+                    b.Property<bool>("ManuallyEdited")
+                        .HasColumnType("boolean")
+                        .HasColumnName("manually_edited");
+
+                    b.Property<DateOnly>("NeededBy")
+                        .HasColumnType("date")
+                        .HasColumnName("needed_by");
+
+                    b.Property<decimal>("OrderedQuantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("ordered_quantity");
+
+                    b.Property<string>("Origin")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("origin");
+
+                    b.Property<Guid?>("ProductionOrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("production_order_id");
+
+                    b.Property<Guid?>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("quantity");
+
+                    b.Property<Guid>("RequestId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("request_id");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_purchase_request_lines");
+
+                    b.HasIndex("ProductionOrderId")
+                        .HasDatabaseName("ix_purchase_request_lines_production_order_id")
+                        .HasFilter("production_order_id IS NOT NULL");
+
+                    b.HasIndex("ItemId", "Status")
+                        .HasDatabaseName("ix_purchase_request_lines_item_status");
+
+                    b.HasIndex("RequestId", "Sequence")
+                        .IsUnique()
+                        .HasDatabaseName("ux_purchase_request_lines_request_sequence");
+
+                    b.HasIndex(new[] { "ItemId" }, "ux_purchase_request_lines_open_min_stock")
+                        .IsUnique()
+                        .HasDatabaseName("ux_purchase_request_lines_open_min_stock")
+                        .HasFilter("status = 'Open' AND origin = 'MinStock' AND NOT manually_edited");
+
+                    b.HasIndex(new[] { "ProductionOrderId", "ItemId" }, "ux_purchase_request_lines_open_shortage")
+                        .IsUnique()
+                        .HasDatabaseName("ux_purchase_request_lines_open_shortage")
+                        .HasFilter("status = 'Open' AND origin = 'BomShortage' AND NOT manually_edited");
+
+                    b.ToTable("purchase_request_lines", "purchasing");
+                });
+
+            modelBuilder.Entity("BemAqui.Purchasing.Domain.PurchasingParameter", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("key");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<decimal?>("Value")
+                        .HasPrecision(9, 2)
+                        .HasColumnType("numeric(9,2)")
+                        .HasColumnName("value");
+
+                    b.HasKey("Id")
+                        .HasName("pk_purchasing_parameters");
+
+                    b.HasIndex("Key")
+                        .IsUnique()
+                        .HasDatabaseName("ix_purchasing_parameters_key");
+
+                    b.ToTable("parameters", "purchasing");
+                });
+
             modelBuilder.Entity("BemAqui.Commercial.Domain.Contract", b =>
                 {
                     b.HasOne("BemAqui.Commercial.Domain.Quote", null)
@@ -8627,6 +8877,16 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_work_centers_calendars_calendar_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Purchasing.Domain.PurchaseRequestLine", b =>
+                {
+                    b.HasOne("BemAqui.Purchasing.Domain.PurchaseRequest", null)
+                        .WithMany()
+                        .HasForeignKey("RequestId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_purchase_request_lines_purchase_requests_request_id");
                 });
 
             modelBuilder.Entity("BemAqui.Parties.Domain.Party", b =>

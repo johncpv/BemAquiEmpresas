@@ -82,7 +82,10 @@ public static partial class ModuleCatalog
             "concluir a OS e aprovar etapas"),
         new("inventory", "Estoque", ModuleAreas.Factory, 3, 70, "Itens, saldos, reservas e movimentos.", CrudApprove,
             [new("adjust", "Ajustar estoque", "Lançar ajuste de inventário, que muda o saldo sem documento de origem.")], "ajuste de inventário"),
-        new("purchasing", "Compras", ModuleAreas.Factory, 3, 80, "Solicitações, cotações, pedidos e recebimento.", CrudApprove, [], "pedido de compra dentro da alçada"),
+        // CMP-01 CA 1 (D8, ADR 0003 adendo de 21/10/2026, ADR 0024 §5): receber o pedido aprovado é ação própria, separada de pedir e
+        // aprovar; usada na CMP-04. Concedível pela regra de delegação da ADR 0008.
+        new("purchasing", "Compras", ModuleAreas.Factory, 3, 80, "Solicitações, cotações, pedidos e recebimento.", CrudApprove,
+            [new("receive", "Registrar recebimento", "Registrar recebimento: dar entrada no estoque do que chegou de um pedido de compra aprovado.")], "pedido de compra dentro da alçada"),
         new("assets", "Patrimônio", ModuleAreas.Factory, 6, 90, "Bens, QR code e manutenção.", Crud, []),
         new("finance", "Caixa e pagamentos", ModuleAreas.Financial, 2, 100, "Contas a receber e a pagar, ordens de pagamento e fluxo de caixa.", CrudApprove,
             [new("pay", "Pagar", "Dar baixa de pagamento: registra a saída de caixa de uma ordem aprovada.")], "ordem de pagamento, dentro da alçada"),

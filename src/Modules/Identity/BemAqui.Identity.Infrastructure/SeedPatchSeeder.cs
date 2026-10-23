@@ -71,6 +71,13 @@ public sealed class SeedPatchSeeder : ITenantSeeder
         [
             ("engineering", "engineering", ["approve"]),
         ]),
+        // CMP-01 CA 2 (D8, ADR 0024 §5): o Almoxarifado vê as compras e registra o recebimento (CMP-04), sem pedir, editar nem aprovar; o
+        // Financeiro acompanha. purchasing.create, edit e approve ficam só com o Proprietário (o tenant concede a quem compra).
+        new("purchasing-permissions",
+        [
+            ("warehouse", "purchasing", ["view", "receive"]),
+            ("finance", "purchasing", ["view"]),
+        ]),
     ];
 
     public int Order => 25;

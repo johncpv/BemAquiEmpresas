@@ -53,6 +53,15 @@ internal sealed class RecurringJobsRegistrar(IRecurringJobManager recurring, ICo
         recurring.AddOrUpdate<BemAqui.Inventory.Application.ManualDigestRecurringJob>(BemAqui.Inventory.Application.ManualDigestRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             configuration["Jobs:Cron:" + BemAqui.Inventory.Application.ManualDigestRecurringJob.Id] is { Length: > 0 } digest ? digest : BemAqui.Inventory.Application.ManualDigestRecurringJob.Cron,
             new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
+        // Solicitações de compra (CMP-01): a recomposição das faltas que já existiam (D3, CA 7) dispara na subida e repete às 03:50; o
+        // job do estoque mínimo (CA 9) roda às 06:00 de São Paulo (valor inicial; Jobs:Cron:purchasing-min-stock muda) e antes recompõe
+        // as faltas de novo (rede de segurança).
+        recurring.AddOrUpdate<BemAqui.Purchasing.Application.ShortageBackfillRecurringJob>(BemAqui.Purchasing.Application.ShortageBackfillRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
+            BemAqui.Purchasing.Application.ShortageBackfillRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
+        recurring.Trigger(BemAqui.Purchasing.Application.ShortageBackfillRecurringJob.Id);
+        recurring.AddOrUpdate<BemAqui.Purchasing.Application.MinStockPurchaseRequestRecurringJob>(BemAqui.Purchasing.Application.MinStockPurchaseRequestRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
+            configuration["Jobs:Cron:" + BemAqui.Purchasing.Application.MinStockPurchaseRequestRecurringJob.Id] is { Length: > 0 } minStock ? minStock : BemAqui.Purchasing.Application.MinStockPurchaseRequestRecurringJob.Cron,
+            new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         return Task.CompletedTask;
     }
 

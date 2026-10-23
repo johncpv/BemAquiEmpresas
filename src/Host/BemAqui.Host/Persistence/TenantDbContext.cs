@@ -21,7 +21,7 @@ namespace BemAqui.Host.Persistence;
 /// DbContext único do banco de tenant (ADR 0006): tabelas compartilhadas da base e, conforme as stories
 /// avançam, as configurações de cada módulo. A conexão por tenant chega na FND-02.
 /// </summary>
-public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) : BemAquiDbContext(options), IIdentityDb, IPartiesDb, IMigrationDb, IFinanceDb, IInventoryDb, IProductionDb, IHrDb, BemAqui.Commercial.Application.ICommercialDb, BemAqui.Engineering.Application.IEngineeringDb
+public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) : BemAquiDbContext(options), IIdentityDb, IPartiesDb, IMigrationDb, IFinanceDb, IInventoryDb, IProductionDb, IHrDb, BemAqui.Commercial.Application.ICommercialDb, BemAqui.Engineering.Application.IEngineeringDb, BemAqui.Purchasing.Application.IPurchasingDb
 {
     public DbSet<User> Users => Set<User>();
 
@@ -218,6 +218,12 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
     public DbSet<BemAqui.Engineering.Domain.Bom> Boms => Set<BemAqui.Engineering.Domain.Bom>();
 
     public DbSet<BemAqui.Engineering.Domain.BomLine> BomLines => Set<BemAqui.Engineering.Domain.BomLine>();
+
+    public DbSet<BemAqui.Purchasing.Domain.PurchaseRequest> PurchaseRequests => Set<BemAqui.Purchasing.Domain.PurchaseRequest>();
+
+    public DbSet<BemAqui.Purchasing.Domain.PurchaseRequestLine> PurchaseRequestLines => Set<BemAqui.Purchasing.Domain.PurchaseRequestLine>();
+
+    public DbSet<BemAqui.Purchasing.Domain.PurchasingParameter> PurchasingParameters => Set<BemAqui.Purchasing.Domain.PurchasingParameter>();
 
     public DbSet<JobPosition> JobPositions => Set<JobPosition>();
 
