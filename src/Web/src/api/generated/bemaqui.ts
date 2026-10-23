@@ -149,10 +149,12 @@ import type {
   GetFabricationOrderHistoryParams,
   GetInstallationDefaultsParams,
   GetItemKardexParams,
+  GetItemReservationHistoryParams,
   GetManualPostingHistoryParams,
   GetMissingLaborCostsParams,
   GetNonConformityHistoryParams,
   GetOrderBomHistoryParams,
+  GetOrderReservationHistoryParams,
   GetProductionBoardParams,
   GetQualityQueueParams,
   GetQuoteFunnelParams,
@@ -243,6 +245,7 @@ import type {
   ListRoutingTemplatesParams,
   ListStockBalancesParams,
   ListStockMovementsParams,
+  ListStockShortagesParams,
   ListSupplierOptionsParams,
   ListTenantsParams,
   ListUnitsParams,
@@ -285,6 +288,7 @@ import type {
   OrderCompletionPreview,
   OrderLaborCostView,
   OrderLaborView,
+  OrderMaterialView,
   OrderQualityView,
   PagedListOfAuditEntryDto,
   PagedListOfBalanceRow,
@@ -301,7 +305,9 @@ import type {
   PagedListOfPaymentTermDetail,
   PagedListOfPositionDetail,
   PagedListOfRelatedAuditEntryDto,
+  PagedListOfReservationChangeRow,
   PagedListOfRoutingTemplateSummary,
+  PagedListOfShortageRow,
   PagedListOfTenantRow,
   PagedListOfWorkCenterDetail,
   PartyAddressInfo,
@@ -404,6 +410,7 @@ import type {
   RecurringExpenseInput,
   RegisterDeviceInput,
   RemoveQuoteItemParams,
+  ReservationDetail,
   ResetPasswordRequest,
   ResubmitInput,
   ReverseCompletionInput,
@@ -35094,6 +35101,526 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getCancelManualPostingMutationOptions(options), queryClient);
     }
+
+export const getGetOrderMaterialUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/production-orders/${id}/reservations`
+}
+
+export const getOrderMaterial = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<OrderMaterialView> => {
+
+  return apiFetch<OrderMaterialView>(getGetOrderMaterialUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOrderMaterialQueryKey = (id: string,) => {
+    return [
+    `/api/v1/inventory/production-orders/${id}/reservations`
+    ] as const;
+    }
+
+
+export const getGetOrderMaterialQueryOptions = <TData = Awaited<ReturnType<typeof getOrderMaterial>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderMaterial>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOrderMaterialQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOrderMaterial>>> = ({ signal }) => getOrderMaterial(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOrderMaterial>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetOrderMaterialQueryResult = NonNullable<Awaited<ReturnType<typeof getOrderMaterial>>>
+export type GetOrderMaterialQueryError = unknown
+
+
+export function useGetOrderMaterial<TData = Awaited<ReturnType<typeof getOrderMaterial>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderMaterial>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrderMaterial>>,
+          TError,
+          Awaited<ReturnType<typeof getOrderMaterial>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOrderMaterial<TData = Awaited<ReturnType<typeof getOrderMaterial>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderMaterial>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrderMaterial>>,
+          TError,
+          Awaited<ReturnType<typeof getOrderMaterial>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOrderMaterial<TData = Awaited<ReturnType<typeof getOrderMaterial>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderMaterial>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetOrderMaterial<TData = Awaited<ReturnType<typeof getOrderMaterial>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderMaterial>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetOrderMaterialQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetOrderReservationHistoryUrl = (id: string,
+    params?: GetOrderReservationHistoryParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/inventory/production-orders/${id}/reservations/history?${stringifiedParams}` : `/api/v1/inventory/production-orders/${id}/reservations/history`
+}
+
+export const getOrderReservationHistory = async (id: string,
+    params?: GetOrderReservationHistoryParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfReservationChangeRow> => {
+
+  return apiFetch<PagedListOfReservationChangeRow>(getGetOrderReservationHistoryUrl(id,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOrderReservationHistoryQueryKey = (id: string,
+    params?: GetOrderReservationHistoryParams,) => {
+    return [
+    `/api/v1/inventory/production-orders/${id}/reservations/history`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetOrderReservationHistoryQueryOptions = <TData = Awaited<ReturnType<typeof getOrderReservationHistory>>, TError = unknown>(id: string,
+    params?: GetOrderReservationHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderReservationHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOrderReservationHistoryQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOrderReservationHistory>>> = ({ signal }) => getOrderReservationHistory(id,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOrderReservationHistory>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetOrderReservationHistoryQueryResult = NonNullable<Awaited<ReturnType<typeof getOrderReservationHistory>>>
+export type GetOrderReservationHistoryQueryError = unknown
+
+
+export function useGetOrderReservationHistory<TData = Awaited<ReturnType<typeof getOrderReservationHistory>>, TError = unknown>(
+ id: string,
+    params: undefined |  GetOrderReservationHistoryParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderReservationHistory>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrderReservationHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getOrderReservationHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOrderReservationHistory<TData = Awaited<ReturnType<typeof getOrderReservationHistory>>, TError = unknown>(
+ id: string,
+    params?: GetOrderReservationHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderReservationHistory>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrderReservationHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getOrderReservationHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOrderReservationHistory<TData = Awaited<ReturnType<typeof getOrderReservationHistory>>, TError = unknown>(
+ id: string,
+    params?: GetOrderReservationHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderReservationHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetOrderReservationHistory<TData = Awaited<ReturnType<typeof getOrderReservationHistory>>, TError = unknown>(
+ id: string,
+    params?: GetOrderReservationHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderReservationHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetOrderReservationHistoryQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetOrderReservationUrl = (id: string,
+    reservationId: string,) => {
+
+
+
+
+  return `/api/v1/inventory/production-orders/${id}/reservations/${reservationId}`
+}
+
+export const getOrderReservation = async (id: string,
+    reservationId: string, options?: Parameters<typeof apiFetch>[1]): Promise<ReservationDetail> => {
+
+  return apiFetch<ReservationDetail>(getGetOrderReservationUrl(id,reservationId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOrderReservationQueryKey = (id: string,
+    reservationId: string,) => {
+    return [
+    `/api/v1/inventory/production-orders/${id}/reservations/${reservationId}`
+    ] as const;
+    }
+
+
+export const getGetOrderReservationQueryOptions = <TData = Awaited<ReturnType<typeof getOrderReservation>>, TError = unknown>(id: string,
+    reservationId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderReservation>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOrderReservationQueryKey(id,reservationId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOrderReservation>>> = ({ signal }) => getOrderReservation(id,reservationId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && reservationId !== null && reservationId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOrderReservation>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetOrderReservationQueryResult = NonNullable<Awaited<ReturnType<typeof getOrderReservation>>>
+export type GetOrderReservationQueryError = unknown
+
+
+export function useGetOrderReservation<TData = Awaited<ReturnType<typeof getOrderReservation>>, TError = unknown>(
+ id: string,
+    reservationId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderReservation>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrderReservation>>,
+          TError,
+          Awaited<ReturnType<typeof getOrderReservation>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOrderReservation<TData = Awaited<ReturnType<typeof getOrderReservation>>, TError = unknown>(
+ id: string,
+    reservationId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderReservation>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrderReservation>>,
+          TError,
+          Awaited<ReturnType<typeof getOrderReservation>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOrderReservation<TData = Awaited<ReturnType<typeof getOrderReservation>>, TError = unknown>(
+ id: string,
+    reservationId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderReservation>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetOrderReservation<TData = Awaited<ReturnType<typeof getOrderReservation>>, TError = unknown>(
+ id: string,
+    reservationId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderReservation>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetOrderReservationQueryOptions(id,reservationId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListStockShortagesUrl = (params?: ListStockShortagesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/inventory/shortages?${stringifiedParams}` : `/api/v1/inventory/shortages`
+}
+
+export const listStockShortages = async (params?: ListStockShortagesParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfShortageRow> => {
+
+  return apiFetch<PagedListOfShortageRow>(getListStockShortagesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListStockShortagesQueryKey = (params?: ListStockShortagesParams,) => {
+    return [
+    `/api/v1/inventory/shortages`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListStockShortagesQueryOptions = <TData = Awaited<ReturnType<typeof listStockShortages>>, TError = unknown>(params?: ListStockShortagesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStockShortages>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListStockShortagesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listStockShortages>>> = ({ signal }) => listStockShortages(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listStockShortages>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListStockShortagesQueryResult = NonNullable<Awaited<ReturnType<typeof listStockShortages>>>
+export type ListStockShortagesQueryError = unknown
+
+
+export function useListStockShortages<TData = Awaited<ReturnType<typeof listStockShortages>>, TError = unknown>(
+ params: undefined |  ListStockShortagesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStockShortages>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStockShortages>>,
+          TError,
+          Awaited<ReturnType<typeof listStockShortages>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStockShortages<TData = Awaited<ReturnType<typeof listStockShortages>>, TError = unknown>(
+ params?: ListStockShortagesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStockShortages>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStockShortages>>,
+          TError,
+          Awaited<ReturnType<typeof listStockShortages>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStockShortages<TData = Awaited<ReturnType<typeof listStockShortages>>, TError = unknown>(
+ params?: ListStockShortagesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStockShortages>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListStockShortages<TData = Awaited<ReturnType<typeof listStockShortages>>, TError = unknown>(
+ params?: ListStockShortagesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStockShortages>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListStockShortagesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetItemReservationHistoryUrl = (itemId: string,
+    params?: GetItemReservationHistoryParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/inventory/items/${itemId}/reservations/history?${stringifiedParams}` : `/api/v1/inventory/items/${itemId}/reservations/history`
+}
+
+export const getItemReservationHistory = async (itemId: string,
+    params?: GetItemReservationHistoryParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfReservationChangeRow> => {
+
+  return apiFetch<PagedListOfReservationChangeRow>(getGetItemReservationHistoryUrl(itemId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetItemReservationHistoryQueryKey = (itemId: string,
+    params?: GetItemReservationHistoryParams,) => {
+    return [
+    `/api/v1/inventory/items/${itemId}/reservations/history`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetItemReservationHistoryQueryOptions = <TData = Awaited<ReturnType<typeof getItemReservationHistory>>, TError = unknown>(itemId: string,
+    params?: GetItemReservationHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemReservationHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetItemReservationHistoryQueryKey(itemId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getItemReservationHistory>>> = ({ signal }) => getItemReservationHistory(itemId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: itemId !== null && itemId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getItemReservationHistory>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetItemReservationHistoryQueryResult = NonNullable<Awaited<ReturnType<typeof getItemReservationHistory>>>
+export type GetItemReservationHistoryQueryError = unknown
+
+
+export function useGetItemReservationHistory<TData = Awaited<ReturnType<typeof getItemReservationHistory>>, TError = unknown>(
+ itemId: string,
+    params: undefined |  GetItemReservationHistoryParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemReservationHistory>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getItemReservationHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getItemReservationHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetItemReservationHistory<TData = Awaited<ReturnType<typeof getItemReservationHistory>>, TError = unknown>(
+ itemId: string,
+    params?: GetItemReservationHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemReservationHistory>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getItemReservationHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getItemReservationHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetItemReservationHistory<TData = Awaited<ReturnType<typeof getItemReservationHistory>>, TError = unknown>(
+ itemId: string,
+    params?: GetItemReservationHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemReservationHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetItemReservationHistory<TData = Awaited<ReturnType<typeof getItemReservationHistory>>, TError = unknown>(
+ itemId: string,
+    params?: GetItemReservationHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemReservationHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetItemReservationHistoryQueryOptions(itemId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getListBanksUrl = () => {
 
