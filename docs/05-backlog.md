@@ -302,7 +302,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-3--engenharia-est
 - Requisitos: R-PRD-6, R-COM-2, R-COM-3, R-COM-4, R-PRP-5, R-SEC-5, R-SEC-10.
 - CA: ação `production.approve_quality`, usável por PIN, que só aprova ou reprova a qualidade (D6), com seed patch `production-quality` para a Supervisão; quem fez etapa da tentativa não aprova ("Autoinspeção" sem outro aprovador); NC com responsável padrão = quem reprovou; última etapa deixa a OS "Pronta para concluir", nunca `Completed`.
 
-**PRD-06a1 [ ] Conclusão da OS e fabricação concluída do projeto (P)** — 3.1, ordem 8 — quebra da PRD-06a (D1) — [story](stories/PRD-06a1-conclusao-os.md)
+**PRD-06a1 [x] Conclusão da OS e fabricação concluída do projeto (P)** — 3.1, ordem 8 — quebra da PRD-06a (D1) — [story](stories/PRD-06a1-conclusao-os.md)
 - Requisitos: R-PRD-7, R-PRJ-6, R-COM-4, R-PRP-2, R-PRP-7, R-SEC-5.
 - CA: estado `ReadyToComplete`; concluir com `production.approve` e login completo; projeto "Fabricado" e `ProjectFabricated` liberando a parcela, sem estoque; registro manual de fabricação bloqueado quando o projeto tem OS; sem conclusão parcial; estorno `Completed → InProgress` e `Fabricated → InProgress`, recusado com a parcela recebida.
 

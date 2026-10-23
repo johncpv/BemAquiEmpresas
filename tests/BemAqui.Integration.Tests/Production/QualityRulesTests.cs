@@ -81,7 +81,7 @@ public class QualityRulesTests
         last.Should().Equal(D, D, D);
         QualityRules.ReadyToComplete(last).Should().BeTrue("D12: Pronta para concluir");
         LaborRules.OrderStatus(ProductionOrderStatus.Quality, last.Select(s => new StepState(s, false)).ToList())
-            .Should().Be(ProductionOrderStatus.InProgress, "a conclusão é explícita (PRD-06a1), nunca Completed");
+            .Should().Be(ProductionOrderStatus.ReadyToComplete, "a conclusão é explícita (PRD-06a1 CA 1), nunca Completed");
     }
 
     [Fact]

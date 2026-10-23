@@ -44,7 +44,7 @@ public class LaborRulesTests
         LaborRules.OrderStatus(ProductionOrderStatus.Paused, [S(ProductionStepStatus.InProgress), S(W)]).Should().Be(ProductionOrderStatus.InProgress, "CA 12");
         LaborRules.OrderStatus(ProductionOrderStatus.InProgress, [S(D), S(R), S(W, true)]).Should().Be(ProductionOrderStatus.InProgress, "a próxima pronta");
         LaborRules.OrderStatus(ProductionOrderStatus.InProgress, [S(D), S(R, true)]).Should().Be(ProductionOrderStatus.Quality, "CA 16: Aguardando qualidade");
-        LaborRules.OrderStatus(ProductionOrderStatus.InProgress, [S(D), S(D)]).Should().Be(ProductionOrderStatus.InProgress, "CA 17: Pronta para concluir");
+        LaborRules.OrderStatus(ProductionOrderStatus.InProgress, [S(D), S(D)]).Should().Be(ProductionOrderStatus.ReadyToComplete, "CA 17 e PRD-06a1 CA 1: Pronta para concluir, gravada");
         LaborRules.OrderStatus(ProductionOrderStatus.Cancelled, [S(ProductionStepStatus.InProgress)]).Should().Be(ProductionOrderStatus.Cancelled);
         LaborRules.OrderStatus(ProductionOrderStatus.Completed, [S(D)]).Should().Be(ProductionOrderStatus.Completed);
         LaborRules.OrderStatus(ProductionOrderStatus.Open, []).Should().Be(ProductionOrderStatus.Open, "sem roteiro");

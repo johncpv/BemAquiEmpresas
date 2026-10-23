@@ -15,4 +15,5 @@ export const ProductionOrderStatus = {
   Cancelled: 'Cancelled',
   Paused: 'Paused',
   Quality: 'Quality',
+  ReadyToComplete: 'ReadyToComplete',
 } as const;

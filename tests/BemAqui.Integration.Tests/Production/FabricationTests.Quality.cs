@@ -131,7 +131,7 @@ public partial class FabricationTests
         result.GetProperty("readyToComplete").GetBoolean().Should().BeTrue("D12: Pronta para concluir");
         result.GetProperty("canCompleteOrder").GetBoolean().Should().BeFalse("CA 4: só production.approve conclui a OS");
         var saved = await OrderAsync(order);
-        saved.Status.Should().Be(ProductionOrderStatus.InProgress, "nunca Completed: a conclusão é da PRD-06a1");
+        saved.Status.Should().Be(ProductionOrderStatus.ReadyToComplete, "nunca Completed: a conclusão é explícita (PRD-06a1 CA 1)");
         (await StepAsync(q)).Status.Should().Be(ProductionStepStatus.Done);
         (await OutboxAsync<QualityApproved>(order)).Should().Be(1);
         (await WithDbAsync(db => db.QualityDecisions.AsNoTracking().CountAsync(d => d.StepId == q && d.Result == QualityResult.Approved && d.Attempt == 1))).Should().Be(1);

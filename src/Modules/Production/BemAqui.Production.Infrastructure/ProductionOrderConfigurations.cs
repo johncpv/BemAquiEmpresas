@@ -23,6 +23,7 @@ internal sealed class ProductionOrderConfiguration : IEntityTypeConfiguration<Pr
         b.Property(e => e.Quantity).HasPrecision(18, 4);
         b.Property(e => e.AcceptedByName).HasMaxLength(120);
         b.Property(e => e.CancelReason).HasMaxLength(500);
+        b.Property(e => e.CompletionReversalReason).HasMaxLength(500);
         b.HasIndex(e => e.Number).IsUnique();
         b.HasIndex(e => new { e.ProjectId, e.Type });
         b.HasIndex(e => e.InstallerId);

@@ -38,6 +38,10 @@ public static class HostEvents
             .AddEvent<BemAqui.Production.Contracts.QualityRejected>()
             // PRD-02 CA 8: "Concluir etapa" tira a OS de Aberta; o Commercial passa o projeto a InProgress.
             .AddHandler<BemAqui.Production.Contracts.ProductionStepStarted, BemAqui.Commercial.Application.FabricationConsumers>()
+            // PRD-06a1 CA 7 e 10: a última OS de fabricação concluída passa o projeto a Fabricated (ProjectFabricated libera a parcela); o
+            // estorno da conclusão volta o projeto a InProgress e avisa o Financeiro. A PRD-06a2 acrescenta a entrada no estoque.
+            .AddHandler<BemAqui.Production.Contracts.ProductionOrderCompleted, BemAqui.Commercial.Application.FabricationCompletionConsumers>()
+            .AddHandler<BemAqui.Production.Contracts.ProductionOrderCompletionReversed, BemAqui.Commercial.Application.FabricationCompletionConsumers>()
             // PRD-03a e PRD-04: apontamento fechado e corrigido viram custo de mão de obra na razão commercial.project_costs (ADR 0025 §2);
             // o que foi fechado antes da PRD-04 entra pela recomposição (D3, LaborCostBackfillJob).
             .AddHandler<BemAqui.Production.Contracts.LaborEntryClosed, BemAqui.Commercial.Application.LaborCostConsumer>()

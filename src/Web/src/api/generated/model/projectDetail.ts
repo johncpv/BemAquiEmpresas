@@ -42,4 +42,7 @@ export interface ProjectDetail {
   /** @nullable */
   contractStatus?: string | null;
   isOnboarding?: boolean;
+  fabricatedByOrders?: boolean;
+  fabricationOrders?: number;
+  openFabricationOrders?: number;
 }

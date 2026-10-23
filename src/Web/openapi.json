@@ -8297,6 +8297,119 @@
         }
       }
     },
+    "/api/v1/production/production-orders/{id}/completion": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "GetFabricationOrderCompletion",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderCompletionPreview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/production-orders/{id}/complete": {
+      "post": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "CompleteFabricationOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompleteOrderInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FabricationOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/production-orders/{id}/reverse-completion": {
+      "post": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "ReverseFabricationOrderCompletion",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReverseCompletionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FabricationOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/production/production-orders/{id}/history": {
       "get": {
         "tags": [
@@ -18339,6 +18452,18 @@
         },
         "additionalProperties": false
       },
+      "CompleteOrderInput": {
+        "required": [
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
       "CompleteStepInput": {
         "required": [
           "reason",
@@ -18355,6 +18480,49 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          }
+        }
+      },
+      "CompletionMilestoneView": {
+        "required": [
+          "description",
+          "amount",
+          "dueDate",
+          "receivableId",
+          "released",
+          "received"
+        ],
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "amount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "receivableId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "released": {
+            "type": "boolean"
+          },
+          "received": {
+            "type": "boolean"
           }
         }
       },
@@ -20317,6 +20485,44 @@
             "type": "integer",
             "format": "int32",
             "default": 0
+          },
+          "completedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "completedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "completionBlocker": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "completionReversedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "completionReversedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "completionReversalReason": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -24710,6 +24916,94 @@
           }
         }
       },
+      "OrderCompletionPreview": {
+        "required": [
+          "orderId",
+          "orderNumber",
+          "status",
+          "canComplete",
+          "completeBlocker",
+          "canReverse",
+          "reverseBlocker",
+          "lastFabricationOrder",
+          "otherOpenOrders",
+          "projectId",
+          "projectNumber",
+          "projectStatus",
+          "projectFabricatedByOrders",
+          "showAmounts",
+          "milestones",
+          "stockNotice",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProductionOrderStatus"
+          },
+          "canComplete": {
+            "type": "boolean"
+          },
+          "completeBlocker": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "canReverse": {
+            "type": "boolean"
+          },
+          "reverseBlocker": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lastFabricationOrder": {
+            "type": "boolean"
+          },
+          "otherOpenOrders": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": "string"
+          },
+          "projectStatus": {
+            "type": "string"
+          },
+          "projectFabricatedByOrders": {
+            "type": "boolean"
+          },
+          "showAmounts": {
+            "type": "boolean"
+          },
+          "milestones": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CompletionMilestoneView"
+            }
+          },
+          "stockNotice": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
       "OrderLaborCostView": {
         "required": [
           "orderId",
@@ -27687,7 +27981,8 @@
           "Completed",
           "Cancelled",
           "Paused",
-          "Quality"
+          "Quality",
+          "ReadyToComplete"
         ]
       },
       "ProductionParametersInput": {
@@ -27993,6 +28288,20 @@
           "isOnboarding": {
             "type": "boolean",
             "default": false
+          },
+          "fabricatedByOrders": {
+            "type": "boolean",
+            "default": false
+          },
+          "fabricationOrders": {
+            "type": "integer",
+            "format": "int32",
+            "default": 0
+          },
+          "openFabricationOrders": {
+            "type": "integer",
+            "format": "int32",
+            "default": 0
           }
         }
       },
@@ -31248,6 +31557,25 @@
           "suggestedDueDate": {
             "type": "string",
             "format": "date"
+          }
+        }
+      },
+      "ReverseCompletionInput": {
+        "required": [
+          "reason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
           }
         }
       },

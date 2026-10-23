@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { generateFabricationOrders, getListFabricationOrdersQueryKey, getListPendingFabricationItemsQueryKey, useListFabricationOrders, useListPendingFabricationItems, useListWorkCenters } from '@/api/generated/bemaqui'
 import type { FabricationOrderSummary, PendingFabricationItem } from '@/api/generated/model'
 import { useIdempotencyKey } from '@/api/idempotency'
@@ -48,10 +48,18 @@ function OrdersTable() {
   const [search] = useTableSearch()
   const navigate = useNavigate()
   const { situacao, linha, atraso, projeto, cliente } = useTableFilters(['situacao', 'linha', 'atraso', 'projeto', 'cliente'])
+  const canApprove = useCan('production.approve')
+  // PRD-06a1 CA 1: quem conclui a OS abre a lista em "Aguardando você" (prontas para concluir); "Todas" troca o filtro.
+  useEffect(() => {
+    if (canApprove && !situacao && !projeto && !cliente) void navigate({ to: '.', search: (prev: Record<string, unknown>) => ({ ...prev, situacao: 'pronta' }), replace: true } as never)
+    // Só ao abrir a lista: depois, o filtro é do usuário.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canApprove])
+  const waiting = situacao === 'pronta'
   const centers = useListWorkCenters({ pageSize: 100 })
   const lines = [...new Set((centers.data?.items ?? []).map((c) => c.line).filter((l): l is string => !!l))].sort((a, b) => a.localeCompare(b, 'pt-BR'))
   const query = useListFabricationOrders({
-    situation: situacao || undefined, line: linha || undefined, late: atraso === '1' ? true : undefined, projectId: projeto || undefined, partyId: cliente || undefined,
+    situation: situacao && situacao !== 'todas' ? situacao : undefined, line: linha || undefined, late: atraso === '1' ? true : undefined, projectId: projeto || undefined, partyId: cliente || undefined,
     page: search.page, pageSize: search.pageSize,
   })
   const filterBy = (key: 'projeto' | 'cliente', value: string) => void navigate({ to: '.', search: (prev: Record<string, unknown>) => ({ ...prev, [key]: value, page: undefined }) } as never)
@@ -99,10 +107,19 @@ function OrdersTable() {
       <DataTable label="OS de fabricação" columns={columns} query={query} getRowId={(o) => o.id} searchable={false}
         rowClassName={(o) => (o.delayDays ? 'border-l-4 border-l-crit' : undefined)}
         filters={[
-          { key: 'situacao', label: 'Situação', options: FABRICATION_SITUATIONS },
+          { key: 'situacao', label: 'Situação', options: [...(canApprove ? [{ value: 'todas', label: 'Todas' }] : []), ...FABRICATION_SITUATIONS.map((s) => (s.value === 'pronta' && canApprove ? { ...s, label: 'Aguardando você' } : s))] },
           ...(lines.length > 0 ? [{ key: 'linha', label: 'Linha', options: lines.map((l) => ({ value: l, label: l })) }] : []),
           { key: 'atraso', label: 'Prazo', options: [{ value: '1', label: 'Atrasadas' }] },
         ]}
+        filteredEmpty={waiting && !linha && !atraso && !projeto && !cliente ? {
+          title: 'Nenhuma OS pronta para concluir.', description: 'A OS chega aqui quando todas as etapas e a qualidade terminam. Acompanhe a fábrica pelo Kanban.',
+          action: (
+            <span className="flex flex-wrap gap-2">
+              <Link to={'/app/producao/kanban' as never} className={primary}>Ver no Kanban</Link>
+              <Link to={'/app/producao/os' as never} search={{ situacao: 'todas' } as never} className={button}>Ver todas as OS</Link>
+            </span>
+          ),
+        } : undefined}
         empty={{ title: 'As OS de fabricação nascem com a aprovação do orçamento.', description: 'Equipamento gera OS sozinho. Componente fabricado e itens antigos, pelo filtro "Itens de projeto sem OS".', action: empty }} />
     </>
   )

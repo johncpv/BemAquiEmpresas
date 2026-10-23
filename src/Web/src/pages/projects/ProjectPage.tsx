@@ -35,7 +35,9 @@ export function ProjectPage() {
   const stage = projectStage(p.status ?? '')
   const active = p.contractStatus === 'Active'
   const inProduction = p.status === 'Planned' || p.status === 'InProgress'
-  const canFabricate = active && canEdit && inProduction
+  // PRD-06a1 CA 9 (ponto 81): com OS de fabricação, a fabricação é concluída pelas OS e o registro manual some.
+  const byOrders = (p.fabricationOrders ?? 0) > 0
+  const canFabricate = active && canEdit && inProduction && !byOrders
   const canDeliver = active && canApprove && (p.status === 'Fabricated' || (inProduction && !p.hasFabricationMilestone))
   const refresh = async () => {
     await client.invalidateQueries({ queryKey: getGetProjectQueryKey(id) })
@@ -55,9 +57,15 @@ export function ProjectPage() {
           {canDeliver ? <ProjectEventDialog project={p} kind="delivery" onDone={refresh} /> : null}
         </div>
       </PageHeading>
+      {active && inProduction && byOrders ? (
+        <p role="note" className="mb-3 flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
+          <span>A fabricação deste projeto é concluída pelas OS ({p.openFabricationOrders} {p.openFabricationOrders === 1 ? 'aberta' : 'abertas'}).</span>
+          <Link to={'/app/producao/os' as never} search={{ projeto: p.id } as never} className="font-semibold text-primary hover:underline">Ver as OS</Link>
+        </p>
+      ) : null}
       {p.fabricatedOn || p.deliveredOn ? (
         <p className="mb-3 text-sm text-muted-foreground">
-          {p.fabricatedOn ? `Fabricação concluída em ${formatDate(p.fabricatedOn)}. ` : ''}
+          {p.fabricatedOn ? `Fabricação concluída em ${formatDate(p.fabricatedOn)}${p.fabricatedByOrders ? ' pelas OS' : ''}. ` : ''}
           {p.deliveredOn ? `Entregue em ${formatDate(p.deliveredOn)}${p.deliveredManually ? ' (registrada à mão)' : ''}.` : ''}
         </p>
       ) : null}

@@ -54,8 +54,8 @@ public static class LaborRules
 
     /// <summary>
     /// Situação da OS pelas etapas (04-fluxos §1, CA 11, 12, 16 e 17): a etapa atual de qualidade pronta, em inspeção ou pausada,
-    /// <c>Quality</c> (PRD-05 CA 2); em andamento, <c>InProgress</c>; pausada, <c>Paused</c>; todas concluídas, <c>InProgress</c>
-    /// ("Pronta para concluir", conclusão explícita na PRD-06a1, D12). Concluída e cancelada não mudam.
+    /// <c>Quality</c> (PRD-05 CA 2); em andamento, <c>InProgress</c>; pausada, <c>Paused</c>; todas concluídas, <c>ReadyToComplete</c>
+    /// ("Pronta para concluir", PRD-06a1 CA 1, D12: a conclusão é explícita). Concluída e cancelada não mudam.
     /// </summary>
     public static ProductionOrderStatus OrderStatus(ProductionOrderStatus current, IReadOnlyList<StepState> steps)
     {
@@ -77,7 +77,7 @@ public static class LaborRules
 
         if (index < 0)
         {
-            return ProductionOrderStatus.InProgress;
+            return ProductionOrderStatus.ReadyToComplete;
         }
 
         return steps[index] switch

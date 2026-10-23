@@ -14,6 +14,7 @@ Ver a fila do que a fábrica tem para produzir: cada equipamento vendido vira um
 - A OS atrasada (prometido no passado e OS não concluída) tem a faixa vermelha e o texto **Atrasada {n} d**.
 - Filtre por situação, linha (do centro de trabalho) e **Atrasadas**. Clique no projeto ou no cliente de uma linha para ver só as OS dele.
 - O chip **Sem roteiro** marca a OS que nasceu sem etapas: abra a OS e escolha o roteiro.
+- Quem aprova na produção abre a lista em **Aguardando você**: as OS **Prontas para concluir**, com todas as etapas e a qualidade feitas. Abra a OS e clique em **Concluir OS**. Para ver as outras, escolha **Todas** em Situação.
 - **Itens de projeto sem OS** mostra os itens que ainda podem gerar OS. Marque os itens e clique em **Gerar OS**: o diálogo diz quantas OS vão nascer.
 
 ## Quais itens geram OS
@@ -24,6 +25,8 @@ Ver a fila do que a fábrica tem para produzir: cada equipamento vendido vira um
 - Cada item gera uma OS, com a quantidade do item.
 
 ## Perguntas frequentes
+**A lista abriu vazia em "Aguardando você". E agora?** Nenhuma OS está pronta para concluir. Acompanhe a fábrica pelo Kanban ou escolha **Todas** em Situação.
+
 **Os projetos aprovados antes da OS automática têm OS?** Não sozinhos. Use **Itens de projeto sem OS** para gerar as OS desses itens.
 
 **Por que a OS veio com estas etapas?** O sistema sugere o roteiro nesta ordem: o roteiro do item do projeto, o roteiro vinculado ao produto, o último roteiro usado com o mesmo produto e, se só houver um roteiro ativo, ele.

@@ -37,7 +37,9 @@ public sealed class ProductionOrdersContract(IProductionDb db) : IProductionOrde
             var mine = steps[o.Id].ToList();
             var index = FabricationRules.CurrentIndex(mine.Select(s => s.Status).ToList());
             return new ProductionOrderInfo(o.Id, o.Number, ProductionOrderKind.Fabrication, o.ProjectId, o.ProjectItemId.GetValueOrDefault(), o.ProductId, o.Quantity.GetValueOrDefault(),
-                State(o.Status), index < 0 ? null : mine[index].Name, index < 0 ? null : mine[index].Code);
+                State(o.Status), index < 0 ? null : mine[index].Name, index < 0 ? null : mine[index].Code,
+                o.Status == ProductionOrderStatus.Completed ? o.ActualEnd : null, o.Status == ProductionOrderStatus.Completed ? o.CompletedBy : null,
+                o.CompletionReversedAt, o.CompletionReversedBy, o.CompletionReversalReason);
         }).ToList();
     }
 
@@ -48,6 +50,7 @@ public sealed class ProductionOrdersContract(IProductionDb db) : IProductionOrde
         ProductionOrderStatus.Paused => ProductionOrderState.Paused,
         ProductionOrderStatus.Quality => ProductionOrderState.Quality,
         ProductionOrderStatus.Completed => ProductionOrderState.Completed,
+        ProductionOrderStatus.ReadyToComplete => ProductionOrderState.ReadyToComplete,
         _ => ProductionOrderState.Cancelled,
     };
 }

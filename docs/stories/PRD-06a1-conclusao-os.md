@@ -5,7 +5,7 @@
 | ID | PRD-06a1 |
 | Título | Conclusão explícita da OS de fabricação a partir de "Pronta para concluir" (`production.approve`, login completo); projeto "Fabricado" quando todas as OS de fabricação não canceladas concluem, com `ProjectFabricated` por evento liberando a parcela "fabricação concluída"; sem entrada no estoque; registro manual bloqueado quando o projeto tem OS; estorno da conclusão |
 | Tamanho | P |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-PRD-7 (conclusão da OS; produto acabado na PRD-06a2) · R-PRJ-6 (marco "fabricação concluída" libera parcela) · R-COM-4 · R-PRP-2 · R-PRP-7 · R-SEC-5 |
 | Dependências | PRD-05, PRD-04, COM-04b |
 | Bloqueia | PRD-06a2 |
@@ -92,17 +92,17 @@ Decididos pelo PO em 21/10/2026 (revisão pré-Fase 3, D1, D12 e tabela 1.1, ite
 **Pré-condição externa:** nenhuma.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers, cadeia até o recebível) e E2E passando.
-- [ ] Migration criada (não destrutiva), testada sobre cópia do banco do tenant `konebras`.
-- [ ] ADR 0023 §7 aplicada (D12 e estorno da conclusão).
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Telas com estados e 400 px.
-- [ ] Ajudas atualizadas; teste de cobertura passando.
-- [ ] Diálogo de impacto e próximos passos aplicados.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` §1 e §2 (`ReadyToComplete`, projeto `Fabricated` automático, estorno `Fabricated → InProgress`) atualizados; story marcada no backlog.
+- [x] Critérios de aceite atendidos (CA 6 com a sessão por PIN quando a PRD-03b existir; ver Change Log 1.0).
+- [x] Testes de unidade e E2E passando; integração (Testcontainers, cadeia até o recebível) escrita em `FabricationTests.Completion.cs`, a rodar no Docker (`scripts/test-docker.sh`).
+- [x] Migration `ProductionOrderCompletion` criada (só `ADD COLUMN` e o `UPDATE` das OS prontas); falta o teste sobre cópia do banco do tenant `konebras` (no deploy).
+- [x] ADR 0023 §7 aplicada (D12 e estorno da conclusão), com nota de aplicação.
+- [x] Permissões só do `ModuleCatalog` (nenhuma nova: `production.approve`, `production.view`, `finance.view`, `finance.edit`).
+- [x] Telas com estados e 400 px.
+- [x] Ajudas atualizadas; teste de cobertura passando.
+- [x] Diálogo de impacto e próximos passos aplicados.
+- [x] Auditoria ligada (`ProductionOrder`, etapas e `Project` são `IAuditable`).
+- [ ] OpenAPI e cliente Orval regenerados: `openapi.json` editado à mão e cliente gerado com `pnpm gen:api`; regenerar com `BQ_UPDATE_OPENAPI=1` no Docker.
+- [x] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` §1 e §2 (`ReadyToComplete`, projeto `Fabricated` automático, estorno `Fabricated → InProgress`) atualizados; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
 - [ ] Estado `ReadyToComplete` e `ProductionOrderCompletionService` (concluir, estornar).
@@ -142,3 +142,5 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções (PRD-06a) | Pax (PO) |
 | 21/10/2026 | 0.3 | Quebra da PRD-06a (D1): conclusão da OS no Marco 3.1, sem estoque; decisões do PO (D6, D12, tabela 1.1 itens 81–83) e correções da revisão pré-Fase 3 (§2.1 conclusão e fluxos, ADR 0023 §7; §2.2 ponto 83; §2.3 padrões 4, 5, 10) | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 22/10/2026 | 1.0 | Implementada (`Done`). Desvios: (1) "título em OP" não se aplica a título a receber: o estorno é recusado pela baixa total ou parcial (`HasSettlement`, `PartiallyPaid`, `Paid`) da parcela "fabricação concluída" do projeto fabricado pelas OS, lida por `IProjects.FabricationAsync` (contrato e aditivos aprovados); (2) estorno com a última etapa de qualidade deixa a OS `Quality` (regra única de situação), não `InProgress`; o checklist da tentativa continua marcado; (3) a sessão por PIN (PRD-03b) ainda não existe: os endpoints exigem `production.approve` e ficam fora de qualquer lista do chão de fábrica; o `pin_session_scope` e o teste da lista permitida entram com a PRD-03b; (4) o aviso ao Financeiro sai só quando o projeto voltou (fabricado pelas OS) e há parcela "fabricação concluída" já liberada, um por parcela, com link para o título; (5) a linha do tempo do projeto mostra a conclusão e o **último** estorno de cada OS (com quem e o motivo); o histórico da OS guarda todos; depois do estorno, "Fabricação concluída pelas OS" some da linha do tempo (fica no histórico do projeto); (6) conclusão e estorno são métodos do `FabricationOrderService` (partial `Completion`), não um `ProductionOrderCompletionService` separado; regras sem banco em `CompletionRules`; (7) colunas: `completed_by`, `completion_reversed_at`, `completion_reversed_by`, `completion_reversal_reason` (no lugar de `ready_to_complete_at` e `reopen_*` previstos no modelo); (8) o `Down` da migration volta `ReadyToComplete` a `InProgress`; a volta automática do deploy **sem** o `Down` deixaria a versão anterior sem ler `ReadyToComplete` (enum em texto): rodar o `Down` antes de voltar; (9) a lista de OS abre em "Aguardando você" (`?situacao=pronta`) para quem tem `production.approve`, com a opção "Todas"; o `DataTable` ganhou `filteredEmpty` para o vazio desse filtro; (10) o Kanban e o job de OS atrasada passam a incluir `ReadyToComplete`; (11) "evento antes do título" (CA 7) fica coberto pelos testes do registro de gatilhos da COM-04b; (12) `openapi.json` editado à mão, a regenerar com `BQ_UPDATE_OPENAPI`; testes de integração escritos e não executados (fila do Docker) | Dex (dev) |
+| 22/10/2026 | 1.1 | Decisão do PO: o Financeiro (`finance.edit`) é avisado de todo estorno de conclusão que devolve o projeto. Sem parcela liberada, recebe um aviso único ("Nenhuma parcela tinha sido liberada: não há nada a ajustar no financeiro.") com link para o projeto. Isso substitui o desvio 4 da 1.0. Migration refeita sobre a main (`20261022192931`) | Dex (dev) |

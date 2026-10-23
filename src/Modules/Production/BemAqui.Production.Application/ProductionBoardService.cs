@@ -19,7 +19,7 @@ public sealed class ProductionBoardService(
     TimeProvider clock)
 {
     private static readonly ProductionOrderStatus[] OpenStatuses =
-        [ProductionOrderStatus.Open, ProductionOrderStatus.InProgress, ProductionOrderStatus.Paused, ProductionOrderStatus.Quality];
+        [ProductionOrderStatus.Open, ProductionOrderStatus.InProgress, ProductionOrderStatus.Paused, ProductionOrderStatus.Quality, ProductionOrderStatus.ReadyToComplete];
 
     public async Task<ProductionBoard> GetAsync(ProductionBoardQuery query, CancellationToken cancellationToken = default)
     {

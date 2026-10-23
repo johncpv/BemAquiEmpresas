@@ -32,7 +32,26 @@ public interface IProjects
 
     /// <summary>Orçado de uma natureza (COM-06: valor padrão da OS e "Orçado" na OP). O chamador confere <c>projects.view_cost</c>.</summary>
     Task<decimal?> BudgetedAsync(Guid projectId, CostType costType, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Fabricação do projeto para a conclusão da OS (PRD-06a1 CA 2, 10 e 11): situação, se foi fabricado pelas OS, as parcelas com gatilho
+    /// "fabricação concluída" (lidas por <c>IReceivables.ForContractAsync</c>) e o motivo que impede o estorno da conclusão (parcela já
+    /// recebida, projeto além de <c>Fabricated</c>), conferido de forma síncrona antes de gravar. Null se o projeto não existe. O chamador
+    /// confere <c>finance.view</c> antes de mostrar valor e vencimento.
+    /// </summary>
+    Task<ProjectFabricationInfo?> FabricationAsync(Guid projectId, CancellationToken cancellationToken = default);
 }
+
+/// <summary>Parcela "fabricação concluída" do contrato (PRD-06a1 CA 2 e 11): o marco, o valor, o prazo e o título, se já existe.</summary>
+public sealed record FabricationMilestoneInfo(
+    Guid MilestoneId, string Description, decimal Amount, int DaysAfterEvent, Guid? ReceivableId, string? ReceivableNumber, bool Released, bool Received);
+
+/// <summary>
+/// Fabricação do projeto (PRD-06a1): <c>Status</c> é o nome de <c>ProjectStatus</c>; <c>ReversalBlocker</c> é a mensagem do 409 do estorno
+/// da conclusão (CA 11) ou null quando o estorno pode seguir.
+/// </summary>
+public sealed record ProjectFabricationInfo(
+    Guid ProjectId, string Number, string Status, DateOnly? FabricatedOn, bool FabricatedByOrders, IReadOnlyList<FabricationMilestoneInfo> Milestones, string? ReversalBlocker);
 
 /// <summary>Tipo do item do projeto, copiado do item do orçamento (PRD-01, D14): só o equipamento gera OS de fabricação sozinho.</summary>
 [JsonConverter(typeof(JsonStringEnumConverter<ProjectItemKind>))]

@@ -5,6 +5,7 @@ using BemAqui.Commercial.Contracts;
 using BemAqui.Finance.Application;
 using BemAqui.Finance.Contracts;
 using BemAqui.Identity.Domain;
+using BemAqui.Production.Domain;
 using BemAqui.SharedKernel;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
@@ -40,7 +41,15 @@ public partial class QuoteTests
         await ConsumeAsync<MilestoneReachedConsumer>(c => c.HandleAsync(new ProjectFabricated(Guid.NewGuid(), contractId, Today), CancellationToken.None));
         (await WithDbAsync(db => db.ProjectTriggerEvents.CountAsync(t => t.ContractId == contractId))).Should().Be(0);
 
-        // CA 9 e 6: fabricação registrada à mão libera com data + prazo, uma vez.
+        // PRD-06a1 CA 9: com OS de fabricação, a fabricação é concluída pelas OS e não se registra à mão.
+        await DrainAsync();
+        var byOrders = await owner.PostAsJsonAsync($"/api/v1/projects/{projectId}/fabrication", new { date = Iso(Today.AddDays(-1)), version = Version(project) });
+        byOrders.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        (await JsonAsync(byOrders)).GetProperty("code").GetString().Should().Be("fabrication_by_orders");
+        await WithDbAsync(db => db.ProductionOrders.Where(o => o.ProjectId == projectId && o.Type == ProductionOrderType.Fabrication)
+            .ExecuteUpdateAsync(u => u.SetProperty(o => o.Status, ProductionOrderStatus.Cancelled)));
+
+        // CA 9 e 6: sem OS de fabricação ativa, a fabricação registrada à mão libera com data + prazo, uma vez.
         var fabricated = await owner.PostAsJsonAsync($"/api/v1/projects/{projectId}/fabrication", new { date = Iso(Today.AddDays(-1)), version = Version(project) });
         fabricated.StatusCode.Should().Be(HttpStatusCode.OK, await fabricated.Content.ReadAsStringAsync());
         await DrainAsync();

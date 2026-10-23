@@ -48,4 +48,16 @@ export interface FabricationOrderDetail {
   selfInspection?: boolean;
   readyToComplete?: boolean;
   openNonConformities?: number;
+  /** @nullable */
+  completedAt?: string | null;
+  /** @nullable */
+  completedByName?: string | null;
+  /** @nullable */
+  completionBlocker?: string | null;
+  /** @nullable */
+  completionReversedAt?: string | null;
+  /** @nullable */
+  completionReversedByName?: string | null;
+  /** @nullable */
+  completionReversalReason?: string | null;
 }

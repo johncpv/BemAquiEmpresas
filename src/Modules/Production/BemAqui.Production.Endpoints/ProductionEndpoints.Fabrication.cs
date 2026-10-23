@@ -46,6 +46,16 @@ internal static partial class ProductionEndpoints
         orders.MapPost("/{id:guid}/steps/{stepId:guid}/complete", async (Guid id, Guid stepId, CompleteStepInput input, FabricationOrderService service, CancellationToken ct) =>
                 (await service.CompleteStepAsync(id, stepId, input, ct)).ToHttpResult())
             .RequirePermission("production.approve").WithName("CompleteFabricationStep").Produces<FabricationOrderDetail>();
+        // PRD-06a1 CA 2, 6, 10 e 13: concluir e estornar só com production.approve (fora da lista permitida da sessão por PIN, ADR 0026 §4);
+        // a OS de outro tenant ou de instalação dá 404.
+        orders.MapGet("/{id:guid}/completion", async (Guid id, FabricationOrderService service, CancellationToken ct) => (await service.CompletionPreviewAsync(id, ct)).ToHttpResult())
+            .RequirePermission("production.approve").WithName("GetFabricationOrderCompletion").Produces<OrderCompletionPreview>();
+        orders.MapPost("/{id:guid}/complete", async (Guid id, CompleteOrderInput input, FabricationOrderService service, CancellationToken ct) =>
+                (await service.CompleteOrderAsync(id, input, ct)).ToHttpResult())
+            .RequirePermission("production.approve").WithName("CompleteFabricationOrder").Produces<FabricationOrderDetail>();
+        orders.MapPost("/{id:guid}/reverse-completion", async (Guid id, ReverseCompletionInput input, FabricationOrderService service, CancellationToken ct) =>
+                (await service.ReverseCompletionAsync(id, input, ct)).ToHttpResult())
+            .RequirePermission("production.approve").WithName("ReverseFabricationOrderCompletion").Produces<FabricationOrderDetail>();
         orders.MapGet("/{id:guid}/history", async (Guid id, int? page, int? pageSize, AuditHistory history, CancellationToken ct) =>
                 (await history.GetWithChildrenAsync(nameof(ProductionOrder), id.ToString(), OrderHistoryChildren, "orderId", new PageRequest(page ?? 1, pageSize ?? PageRequest.DefaultPageSize).Normalize(), ct)).ToHttpResult())
             .RequirePermission("production.view").WithName("GetFabricationOrderHistory").Produces<PagedList<RelatedAuditEntryDto>>();

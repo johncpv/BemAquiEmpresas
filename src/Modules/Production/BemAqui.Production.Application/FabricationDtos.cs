@@ -49,7 +49,9 @@ public sealed record FabricationOrderDetail(
     Guid Id, string Number, ProductionOrderStatus Status, Guid ProjectId, string ProjectNumber, string ProjectName, Guid PartyId, string PartyName, DateOnly? PromisedDate,
     Guid ProjectItemId, string ItemDescription, Guid? ProductId, string? ProductCode, string? ProductName, decimal Quantity, int Priority, Guid? RoutingTemplateId,
     string? RoutingTemplateName, IReadOnlyList<FabricationStepView> Steps, decimal TotalStandardHours, int CurrentStepIndex, bool Started, int? DelayDays, string? CancelReason,
-    DateTimeOffset? CancelledAt, DateTimeOffset CreatedAt, uint Version, int QualityAttempt = 1, bool SelfInspection = false, bool ReadyToComplete = false, int OpenNonConformities = 0);
+    DateTimeOffset? CancelledAt, DateTimeOffset CreatedAt, uint Version, int QualityAttempt = 1, bool SelfInspection = false, bool ReadyToComplete = false, int OpenNonConformities = 0,
+    DateTimeOffset? CompletedAt = null, string? CompletedByName = null, string? CompletionBlocker = null, DateTimeOffset? CompletionReversedAt = null,
+    string? CompletionReversedByName = null, string? CompletionReversalReason = null);
 
 /// <summary>Linha da lista (CA 15): etapa atual pelas letras, prometido com atraso e o chip "Sem roteiro".</summary>
 public sealed record FabricationOrderSummary(
