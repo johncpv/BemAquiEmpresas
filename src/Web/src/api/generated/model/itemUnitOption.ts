@@ -9,4 +9,5 @@ export interface ItemUnitOption {
   unitId: string;
   code: string;
   isStockUnit: boolean;
+  toStock: number;
 }

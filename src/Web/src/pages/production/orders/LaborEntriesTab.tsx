@@ -13,6 +13,7 @@ import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Tag } from '@/components/ui/tag'
 import { formatDateTime, formatMoney } from '@/lib/format'
+import { useBomRecovery } from '@/pages/engineering/boms/bom-recovery'
 import { useCan } from '@/pages/use-can'
 import { PAUSE_REASONS, pauseLabel } from '@/pages/shopfloor/shopfloor'
 import { Dica } from '@/help/Dica'
@@ -46,6 +47,8 @@ export function LaborEntriesTab({ order, onChanged }: { order: FabricationOrderD
   const canRecord = canEdit && canPoint
   const [concludeReason, setConcludeReason] = useState('')
   const canApprove = useCan('production.approve')
+  // ENG-02 CA 16: a recusa por BOM não liberada leva à aba BOM.
+  const bomRecovery = useBomRecovery(order.id)
   const [recording, setRecording] = useState(false)
   const [picked, setCorrecting] = useState<LaborEntryView | null>(null)
   const refresh = async () => {
@@ -112,7 +115,7 @@ export function LaborEntriesTab({ order, onChanged }: { order: FabricationOrderD
       {correcting ? <CorrectLaborDialog orderId={order.id} entry={correcting} onClose={() => { setCorrecting(null); if (search.corrigir) clearSearch() }} onDone={refresh} /> : null}
       {concludeStep ? (
         <ConfirmDialog verb="Concluir etapa" done="Etapa concluída" title={`Concluir a etapa ${concludeStep.name} da ${order.number}?`} open onOpenChange={(o) => { if (!o) clearSearch() }}
-          description="Os apontamentos abertos da etapa fecham agora, com a marca Encerrado pelo supervisor, e a próxima etapa fica pronta." onReload={refresh}
+          description="Os apontamentos abertos da etapa fecham agora, com a marca Encerrado pelo supervisor, e a próxima etapa fica pronta." onReload={refresh} recovery={bomRecovery}
           preconditions={[{ ok: concludeReason.trim().length > 0, text: 'Informe o motivo.' }]}
           onConfirm={async () => { await completeFabricationStep(order.id, concludeStep.id, { reason: concludeReason.trim(), version: order.version }); await refresh() }}>
           <label className="block space-y-1 text-sm font-medium">Motivo
@@ -157,6 +160,7 @@ const toPauses = (rows: PauseRow[]): LaborPauseInput[] =>
  */
 function RecordLaborDialog({ order, onClose, onDone }: { order: FabricationOrderDetail; onClose: () => void; onDone: () => Promise<void> }) {
   const employees = useListLaborEmployees()
+  const bomRecovery = useBomRecovery(order.id)
   const steps = order.steps.filter((s) => !s.isQualityStep && (s.status === 'Ready' || s.status === 'InProgress' || s.status === 'Paused') && !s.awaitingApproval)
   const [key] = useState(() => crypto.randomUUID())
   const [employeeId, setEmployeeId] = useState('')
@@ -166,7 +170,7 @@ function RecordLaborDialog({ order, onClose, onDone }: { order: FabricationOrder
   const [end, setEnd] = useState(() => toLocalInput(new Date().toISOString()))
   const [pauses, setPauses] = useState<PauseRow[]>([])
   return (
-    <ConfirmDialog size="lg" open onOpenChange={(o) => { if (!o) onClose() }} verb="Apontar por funcionário" done="Apontamento registrado" title={`Apontar por funcionário na ${order.number}`}
+    <ConfirmDialog size="lg" open onOpenChange={(o) => { if (!o) onClose() }} recovery={bomRecovery} verb="Apontar por funcionário" done="Apontamento registrado" title={`Apontar por funcionário na ${order.number}`}
       description="O apontamento fica com a marca Apontado por você e entra nas horas da etapa. Retroativo só até 7 dias."
       preconditions={[{ ok: !!employeeId, text: 'Escolha o funcionário.' }, { ok: !!stepId, text: steps.length === 0 ? 'Nenhuma etapa pronta ou em andamento nesta OS.' : 'Escolha a etapa.' }, { ok: !!start, text: 'Informe o início.' }]}
       onConfirm={async () => {

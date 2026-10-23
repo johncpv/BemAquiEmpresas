@@ -16,6 +16,7 @@ Ver e ajustar as etapas desta OS antes de a fábrica começar: letra, nome, cent
 - **Trocar roteiro** substitui as etapas pelas do roteiro escolhido. O diálogo mostra quantas etapas e horas mudam, antes e depois. O roteiro sugerido aparece com a tag **Sugerido**.
 - **Cancelar OS** pede o motivo. A OS que já começou só é cancelada por quem aprova na produção.
 - Depois da primeira etapa iniciada, as etapas ficam só para leitura.
+- A aba **BOM** (para quem vê a Engenharia) tem a lista de materiais da OS. A primeira etapa começa sem BOM; as seguintes só começam, e só são concluídas pelo supervisor, com a BOM liberada.
 - **Pronta para concluir:** todas as etapas e a qualidade foram feitas. A OS espera o supervisor concluir. Ela aparece assim na lista, no Kanban e aqui.
 - **Concluir OS** (quem aprova na produção, com login completo): o diálogo mostra o que muda. A OS passa a **Concluída**; se é a última OS de fabricação do projeto, o projeto passa a **Fabricado** e a parcela do marco "fabricação concluída" é liberada, com valor e vencimento para quem vê o financeiro. A OS conclui com a quantidade inteira. A mensagem é **OS concluída**.
 - Enquanto falta etapa, qualidade ou há apontamento aberto, **Concluir OS** fica desabilitado e diz o motivo, por exemplo "Falta aprovar a Qualidade".

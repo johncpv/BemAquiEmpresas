@@ -28,6 +28,7 @@ import { PlatformSetPasswordPage } from '@/platform/PlatformSetPasswordPage'
 import { TenantDetailPage } from '@/platform/TenantDetailPage'
 import { TenantsPage } from '@/platform/TenantsPage'
 import { ComponentsMold, CreateMold, DetailMold, PanelMold } from '@/dev/molds/lazy'
+import { BomsPage } from '@/pages/engineering/boms/BomsPage'
 import { NewRoutingPage } from '@/pages/engineering/routings/NewRoutingPage'
 import { RoutingPage } from '@/pages/engineering/routings/RoutingPage'
 import { RoutingsPage } from '@/pages/engineering/routings/RoutingsPage'
@@ -178,6 +179,8 @@ const engineeringRootRoute = createRoute({ getParentRoute: () => appRoute, path:
 const routingsRoute = createRoute({ getParentRoute: () => appRoute, path: 'engenharia/roteiros', component: gated('engineering', RoutingsPage) })
 const newRoutingRoute = createRoute({ getParentRoute: () => appRoute, path: 'engenharia/roteiros/novo', component: gated('engineering', NewRoutingPage), validateSearch: (s: Record<string, unknown>): { de?: string } => ({ de: text(s.de) }) })
 const routingRoute = createRoute({ getParentRoute: () => appRoute, path: 'engenharia/roteiros/$id', component: gated('engineering', RoutingPage) })
+// BOMs das OS (ENG-02 CA 17): abre no filtro das OS que vão parar sem BOM; a BOM em si fica na aba BOM da OS.
+const bomsRoute = createRoute({ getParentRoute: () => appRoute, path: 'engenharia/boms', component: gated('engineering', BomsPage) })
 const productionRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao', beforeLoad: () => { throw redirect({ to: '/app/producao/os' }) } })
 // OS de fabricação (PRD-01): primeira aba da Produção.
 const fabricationOrdersRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/os', component: gated('production', FabricationOrdersPage) })
@@ -307,7 +310,7 @@ export const routeTree = rootRoute.addChildren([
   inviteRoute,
   appRoute.addChildren([appIndexRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute,
     aiSettingsRoute, importRunsRoute, importRunRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute,
-    inventoryRootRoute, balancesRoute, movementsRoute, movementRoute, manualPostingsRoute, manualPostingRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, productionRootRoute, fabricationOrdersRoute, fabricationOrderRoute, kanbanRoute, openLaborRoute, operatorRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute, qualityRoute, qualityStepRoute, nonConformitiesRoute, nonConformityRoute,
+    inventoryRootRoute, balancesRoute, movementsRoute, movementRoute, manualPostingsRoute, manualPostingRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, bomsRoute, productionRootRoute, fabricationOrdersRoute, fabricationOrderRoute, kanbanRoute, openLaborRoute, operatorRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute, qualityRoute, qualityStepRoute, nonConformitiesRoute, nonConformityRoute,
     financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, payablesRoute, newPayableRoute, payableRoute, recurringRoute, approvalRulesRoute, openingRoute, cashFlowRoute, agingRoute, paymentOrdersRoute, newPaymentOrderRoute, paymentOrderRoute, statementRoute, quotesRoute, quoteFunnelRoute, quoteRoute, quoteCompareRoute, contractsRoute, contractRoute, amendmentRoute, projectsRoute, projectRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
   platformLoginRoute,
   platformPasswordRoute,
