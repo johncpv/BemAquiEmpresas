@@ -24,7 +24,7 @@ namespace BemAqui.Production.Application;
 public sealed partial class FabricationOrderService(
     IProductionDb db, IProjects projects, IParties parties, IItems items, IWorkCenters workCenters, IRoutingTemplates routings, INumberSequence numbers,
     IPermissionChecker permissions, ICurrentUser currentUser, IUserDirectory users, INotificationService notifications, IEventPublisher events, TimeProvider clock,
-    ProductionBoardNotifier board, LaborWorkflow labor)
+    ProductionBoardNotifier board, LaborWorkflow labor, IBomGate bom)
 {
     public const string Link = "/app/producao/os/";
 

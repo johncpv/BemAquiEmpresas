@@ -33,6 +33,9 @@ public static class HostEvents
             // PRD-01 CA 18: handler próprio da fabricação; CA 16: a EST-02 consome o cancelamento da OS.
             .AddHandler<BemAqui.Commercial.Contracts.ContractCancelled, BemAqui.Production.Application.FabricationContractCancelledConsumer>()
             .AddEvent<BemAqui.Production.Contracts.ProductionOrderCancelled>()
+            // ENG-02 CA 8 e 13: BOM liberada e revisada; a EST-02 reconcilia as reservas a partir do IBoms (ADR 0023 §6).
+            .AddEvent<BemAqui.Engineering.Contracts.BomReleased>()
+            .AddEvent<BemAqui.Engineering.Contracts.BomRevised>()
             // PRD-05: decisões de qualidade no outbox para a DSH-03 e o PNL-01.
             .AddEvent<BemAqui.Production.Contracts.QualityApproved>()
             .AddEvent<BemAqui.Production.Contracts.QualityRejected>()

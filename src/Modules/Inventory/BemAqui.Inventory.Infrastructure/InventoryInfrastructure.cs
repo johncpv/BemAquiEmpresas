@@ -30,6 +30,8 @@ public static class InventoryInfrastructure
         // Conversões e códigos do fornecedor (CAD-02b).
         services.TryAddScoped<ItemConversionService>();
         services.TryAddScoped<IUnitConversion>(sp => sp.GetRequiredService<ItemConversionService>());
+        // Unidades usáveis por item para a BOM (ENG-02 CA 2).
+        services.TryAddScoped<IItemUnits, ItemUnitsContract>();
         services.TryAddScoped<ItemSupplierCodeService>();
         services.TryAddScoped<IItemSupplierCodes>(sp => sp.GetRequiredService<ItemSupplierCodeService>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IPartyUsageProvider, ItemSupplierCodeService>());

@@ -207,6 +207,10 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BemAqui.Engineering.Domain.RoutingTemplateItem> RoutingTemplateItems => Set<BemAqui.Engineering.Domain.RoutingTemplateItem>();
 
+    public DbSet<BemAqui.Engineering.Domain.Bom> Boms => Set<BemAqui.Engineering.Domain.Bom>();
+
+    public DbSet<BemAqui.Engineering.Domain.BomLine> BomLines => Set<BemAqui.Engineering.Domain.BomLine>();
+
     public DbSet<JobPosition> JobPositions => Set<JobPosition>();
 
     public DbSet<WorkSchedule> WorkSchedules => Set<WorkSchedule>();

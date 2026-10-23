@@ -18,7 +18,54 @@ internal static class EngineeringEndpoints
     {
         var engineering = api.MapGroup("/engineering").WithTags("Engenharia").RequireModule("engineering");
         MapRoutingTemplates(engineering.MapGroup("/routing-templates"));
+        MapBoms(engineering.MapGroup("/boms"));
         return api;
+    }
+
+    private static readonly string[] BomHistoryChildren = [nameof(BomLine)];
+
+    /// <summary>
+    /// BOM da OS (ENG-02 CA 19): ver com engineering.view, criar com engineering.create, salvar, copiar e revisar com engineering.edit,
+    /// liberar com engineering.approve e descartar o rascunho com engineering.delete. A OS é conferida pelo IProductionOrders; a linha,
+    /// pela BOM da URL (IDOR).
+    /// </summary>
+    private static void MapBoms(RouteGroupBuilder boms)
+    {
+        boms.MapGet(string.Empty, async (string? situation, string? q, int? page, int? pageSize, BomService service, CancellationToken ct) =>
+                Results.Ok(await service.ListAsync(new BomListQuery(situation, q), new PageRequest(page ?? 1, pageSize ?? PageRequest.DefaultPageSize).Normalize(), ct)))
+            .RequirePermission("engineering.view").WithName("ListBoms").Produces<PagedList<BomOrderSummary>>();
+        boms.MapGet("/orders/{orderId:guid}", async (Guid orderId, BomService service, CancellationToken ct) => (await service.GetOrderAsync(orderId, ct)).ToHttpResult())
+            .RequirePermission("engineering.view").WithName("GetOrderBom").Produces<BomOrderView>();
+        boms.MapGet("/orders/{orderId:guid}/history", async (Guid orderId, int? page, int? pageSize, AuditHistory history, CancellationToken ct) =>
+                (await history.GetByParentAsync(nameof(Bom), "productionOrderId", orderId.ToString(), BomHistoryChildren, "bomId",
+                    new PageRequest(page ?? 1, pageSize ?? PageRequest.DefaultPageSize).Normalize(), ct)).ToHttpResult())
+            .RequirePermission("engineering.view").WithName("GetOrderBomHistory").Produces<PagedList<RelatedAuditEntryDto>>();
+        boms.MapGet("/orders/{orderId:guid}/item-options", async (Guid orderId, string? q, BomService service, CancellationToken ct) => (await service.ItemOptionsAsync(orderId, q, ct)).ToHttpResult())
+            .RequirePermission("engineering.view").WithName("ListBomItemOptions").Produces<IReadOnlyList<BomItemOption>>();
+        boms.MapGet("/orders/{orderId:guid}/copy-sources", async (Guid orderId, string? q, BomService service, CancellationToken ct) => (await service.CopySourcesAsync(orderId, q, ct)).ToHttpResult())
+            .RequirePermission("engineering.view").WithName("ListBomCopySources").Produces<IReadOnlyList<BomCopySource>>();
+        boms.MapGet("/compare", async (Guid from, Guid to, BomService service, CancellationToken ct) => (await service.CompareAsync(from, to, ct)).ToHttpResult())
+            .RequirePermission("engineering.view").WithName("CompareBoms").Produces<BomComparison>();
+        boms.MapGet("/{id:guid}", async (Guid id, BomService service, CancellationToken ct) => (await service.GetAsync(id, ct)).ToHttpResult())
+            .RequirePermission("engineering.view").WithName("GetBom").Produces<BomDetail>();
+        boms.MapGet("/{id:guid}/lines/{lineId:guid}", async (Guid id, Guid lineId, BomService service, CancellationToken ct) => (await service.GetLineAsync(id, lineId, ct)).ToHttpResult())
+            .RequirePermission("engineering.view").WithName("GetBomLine").Produces<BomLineView>();
+        boms.MapGet("/{id:guid}/release-preview", async (Guid id, BomService service, CancellationToken ct) => (await service.ReleasePreviewAsync(id, ct)).ToHttpResult())
+            .RequirePermission("engineering.view").WithName("GetBomReleasePreview").Produces<BomReleasePreview>();
+        boms.MapPost(string.Empty, async (BomCreateInput input, BomService service, CancellationToken ct) =>
+                (await service.CreateAsync(input, ct)).ToHttpResult(saved => Results.Created("/api/v1/engineering/boms/" + saved.Id, saved)))
+            .RequirePermission("engineering.create").RequireIdempotencyKey().WithName("CreateBom").Produces<BomDetail>(StatusCodes.Status201Created);
+        boms.MapPut("/{id:guid}", async (Guid id, BomUpdate input, BomService service, CancellationToken ct) => (await service.SaveAsync(id, input, ct)).ToHttpResult())
+            .RequirePermission("engineering.edit").WithName("SaveBom").Produces<BomDetail>();
+        boms.MapPost("/{id:guid}/copy", async (Guid id, BomCopyInput input, BomService service, CancellationToken ct) => (await service.CopyAsync(id, input, ct)).ToHttpResult())
+            .RequirePermission("engineering.edit").WithName("CopyBom").Produces<BomDetail>();
+        boms.MapPost("/{id:guid}/revise", async (Guid id, BomVersionInput input, BomService service, CancellationToken ct) =>
+                (await service.ReviseAsync(id, input, ct)).ToHttpResult(saved => Results.Created("/api/v1/engineering/boms/" + saved.Id, saved)))
+            .RequirePermission("engineering.edit").RequireIdempotencyKey().WithName("ReviseBom").Produces<BomDetail>(StatusCodes.Status201Created);
+        boms.MapPost("/{id:guid}/release", async (Guid id, BomVersionInput input, BomService service, CancellationToken ct) => (await service.ReleaseAsync(id, input, ct)).ToHttpResult())
+            .RequirePermission("engineering.approve").WithName("ReleaseBom").Produces<BomDetail>();
+        boms.MapPost("/{id:guid}/discard", async (Guid id, BomVersionInput input, BomService service, CancellationToken ct) => (await service.DiscardAsync(id, input, ct)).ToHttpResult())
+            .RequirePermission("engineering.delete").WithName("DiscardBom");
     }
 
     private static void MapRoutingTemplates(RouteGroupBuilder routes)

@@ -49,7 +49,7 @@ public static class ProductionInfrastructure
         services.TryAddSingleton<IProductionBoardPush, NoProductionBoardPush>();
         services.TryAddScoped<LateOrdersNotifier>();
 
-        // App do operador e apontamento (PRD-03a): fila, comandos, supervisor; o bloqueio por BOM liga na ENG-02 (IBomGate).
+        // App do operador e apontamento (PRD-03a): fila, comandos, supervisor; o bloqueio por BOM (IBomGate) ligou na ENG-02.
         services.TryAddScoped<LaborWorkflow>();
         // Custo de mão de obra (PRD-04): snapshot no fechamento, correção, recálculo, consultas de custo e a recomposição (D3).
         services.TryAddScoped<LaborCosting>();
@@ -60,7 +60,8 @@ public static class ProductionInfrastructure
         services.AddAuditableEntity<ProductionParameter>("settings");
         services.TryAddScoped<ShopfloorService>();
         services.TryAddScoped<SupervisorLaborService>();
-        services.TryAddScoped<IBomGate, NoBomGate>();
+        // ENG-02 CA 16 (D12): a etapa depois da primeira só inicia ou conclui com a BOM da OS liberada (IBoms da Engenharia).
+        services.TryAddScoped<IBomGate, EngineeringBomGate>();
         services.AddAuditableEntity<LaborEntry>("production");
         services.AddAuditableEntity<StepPause>("production");
 

@@ -26,12 +26,15 @@ public sealed class ProductionOrdersContract(IProductionDb db) : IProductionOrde
         await db.ProductionOrders.AsNoTracking().Where(o => o.Id == id && o.Type == ProductionOrderType.Fabrication).Select(o => (ProductionOrderStatus?)o.Status)
             .FirstOrDefaultAsync(cancellationToken) is { } status ? State(status) : null;
 
+    public async Task<IReadOnlyList<ProductionOrderInfo>> OpenAsync(CancellationToken cancellationToken = default) =>
+        await InfosAsync(db.ProductionOrders.Where(o => o.Status != ProductionOrderStatus.Completed && o.Status != ProductionOrderStatus.Cancelled), cancellationToken);
+
     private async Task<IReadOnlyList<ProductionOrderInfo>> InfosAsync(IQueryable<ProductionOrder> query, CancellationToken ct)
     {
         var orders = await query.AsNoTracking().Where(o => o.Type == ProductionOrderType.Fabrication).OrderBy(o => o.Number).ToListAsync(ct);
         var ids = orders.Select(o => o.Id).ToList();
         var steps = (await db.ProductionOrderSteps.AsNoTracking().Where(s => ids.Contains(s.OrderId)).OrderBy(s => s.Sequence)
-            .Select(s => new { s.OrderId, s.Name, s.Code, s.Status }).ToListAsync(ct)).ToLookup(s => s.OrderId);
+            .Select(s => new { s.OrderId, s.Name, s.Code, s.Status, s.Sequence }).ToListAsync(ct)).ToLookup(s => s.OrderId);
         return orders.Select(o =>
         {
             var mine = steps[o.Id].ToList();
@@ -39,7 +42,8 @@ public sealed class ProductionOrdersContract(IProductionDb db) : IProductionOrde
             return new ProductionOrderInfo(o.Id, o.Number, ProductionOrderKind.Fabrication, o.ProjectId, o.ProjectItemId.GetValueOrDefault(), o.ProductId, o.Quantity.GetValueOrDefault(),
                 State(o.Status), index < 0 ? null : mine[index].Name, index < 0 ? null : mine[index].Code,
                 o.Status == ProductionOrderStatus.Completed ? o.ActualEnd : null, o.Status == ProductionOrderStatus.Completed ? o.CompletedBy : null,
-                o.CompletionReversedAt, o.CompletionReversedBy, o.CompletionReversalReason);
+                o.CompletionReversedAt, o.CompletionReversedBy, o.CompletionReversalReason,
+                index < 0 ? null : index + 1, mine.Count > 0 && mine[0].Status == ProductionStepStatus.Done, mine.Count);
         }).ToList();
     }
 

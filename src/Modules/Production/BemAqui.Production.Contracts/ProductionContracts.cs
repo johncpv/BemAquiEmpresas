@@ -113,12 +113,13 @@ public enum ProductionOrderState
 /// <summary>
 /// OS de fabricação vista pelos outros módulos (PRD-01 CA 21): número, tipo, projeto, item do projeto, produto, quantidade,
 /// situação e etapa atual (nome e letra), sem dado de custo. PRD-06a1 CA 15: a conclusão (quando e quem) e o último estorno da
-/// conclusão (quando, quem e o motivo), para a linha do tempo do projeto.
+/// conclusão (quando, quem e o motivo), para a linha do tempo do projeto. ENG-02 CA 17: a sequência da etapa atual (1..n; null sem
+/// etapa pendente) e se a primeira etapa já está <c>Done</c>, para a lista "OS que vão parar sem BOM".
 /// </summary>
 public sealed record ProductionOrderInfo(
     Guid Id, string Number, ProductionOrderKind Type, Guid ProjectId, Guid ProjectItemId, Guid? ProductId, decimal Quantity, ProductionOrderState Status,
     string? CurrentStepName, string? CurrentStepCode, DateTimeOffset? CompletedAt = null, Guid? CompletedBy = null, DateTimeOffset? CompletionReversedAt = null,
-    Guid? CompletionReversedBy = null, string? CompletionReversalReason = null);
+    Guid? CompletionReversedBy = null, string? CompletionReversalReason = null, int? CurrentStepSequence = null, bool FirstStepDone = false, int StepCount = 0);
 
 /// <summary>
 /// OS de fabricação para Engineering, Inventory, Purchasing e Commercial (PRD-01 CA 21, ADR 0006): só o tipo Fabrication, sobre a
@@ -135,6 +136,9 @@ public interface IProductionOrders
 
     /// <summary>Situação da OS de fabricação; null se não existe ou não é de fabricação.</summary>
     Task<ProductionOrderState?> StatusAsync(Guid id, CancellationToken cancellationToken = default);
+
+    /// <summary>OS de fabricação em aberto (nem concluídas nem canceladas), para a lista de BOMs da Engenharia (ENG-02 CA 17).</summary>
+    Task<IReadOnlyList<ProductionOrderInfo>> OpenAsync(CancellationToken cancellationToken = default);
 }
 
 /// <summary>

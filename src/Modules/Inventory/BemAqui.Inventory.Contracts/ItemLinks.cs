@@ -20,3 +20,19 @@ public interface IItemSupplierCodes
 {
     Task<SupplierCodeMatch?> FindAsync(Guid partyId, string supplierCode, CancellationToken cancellationToken = default);
 }
+
+/// <summary>Unidade em que um item pode ser informado: a de estoque ou outra com conversão cadastrada (ENG-02 CA 2).</summary>
+public sealed record ItemUnitOption(Guid UnitId, string Code, bool IsStockUnit);
+
+/// <summary>
+/// Unidades usáveis por item para os editores de outros módulos (BOM da ENG-02): a de estoque primeiro e depois as convertidas. A conta
+/// continua no <see cref="IUnitConversion"/>; aqui é só a lista e o código das unidades.
+/// </summary>
+public interface IItemUnits
+{
+    /// <summary>Por item (inclusive inativos e excluídos); item que não existe fica fora do dicionário.</summary>
+    Task<IReadOnlyDictionary<Guid, IReadOnlyList<ItemUnitOption>>> ForItemsAsync(IReadOnlyCollection<Guid> itemIds, CancellationToken cancellationToken = default);
+
+    /// <summary>Código de cada unidade (inclusive inativas); unidade que não existe fica fora.</summary>
+    Task<IReadOnlyDictionary<Guid, string>> CodesAsync(IReadOnlyCollection<Guid> unitIds, CancellationToken cancellationToken = default);
+}

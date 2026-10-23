@@ -77,9 +77,10 @@ public sealed class LaborWorkflow(
             return Error.Conflict("step_not_ready", "Esta etapa não está pronta para iniciar.");
         }
 
-        if (LaborRules.NeedsBom(scope.Index) && !await bom.IsReleasedAsync(scope.Order.Id, ct))
+        // ENG-02 CA 16: a etapa que já está em andamento ou pausada não é interrompida.
+        if (BomGateRules.Applies(scope.Index, scope.Step.Status != ProductionStepStatus.Ready) && !await bom.IsReleasedAsync(scope.Order.Id, ct))
         {
-            return Error.Conflict("bom_not_released", "A BOM desta OS ainda não foi liberada. Fale com a Engenharia.");
+            return BomGateRules.NotReleased();
         }
 
         return null;
