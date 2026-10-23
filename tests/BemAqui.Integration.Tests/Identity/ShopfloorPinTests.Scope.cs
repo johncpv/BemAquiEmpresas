@@ -3,6 +3,7 @@ using BemAqui.BuildingBlocks.Identity;
 using BemAqui.BuildingBlocks.Web;
 using BemAqui.Identity.Contracts;
 using BemAqui.Identity.Domain;
+using BemAqui.Integration.Tests.Tenancy;
 using FluentAssertions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Routing;
@@ -94,9 +95,11 @@ public partial class ShopfloorPinTests
         (await WithDbAsync(db => db.UserPins.CountAsync(p => p.DeviceId == deviceId))).Should().Be(0);
         (await NotificationsAsync("Aparelho Tablet revogado revogado por Paula Lima")).Should().NotBeEmpty();
 
-        var (_, supervisor) = await UserAsync("production:view,approve", employee: false);
+        // Quem aprova precisa de 2FA para o login completo (FND-06c); aqui o token já vem autenticado.
+        var (supervisorId, _) = await UserAsync("production:view,approve", employee: false);
         var (other, otherId) = await DeviceAsync("Outro tablet");
-        var (supervisorToken, _) = await FullLoginAsync(supervisor, ephemeral: false);
+        var supervisorStamp = await WithDbAsync(db => db.Users.Where(u => u.Id == supervisorId).Select(u => u.SecurityStamp).SingleAsync());
+        var supervisorToken = TestTokens.Create(tenancy.TenantA.Id, Host, userId: supervisorId, stamp: supervisorStamp);
         (await Client().SendAsync(Authorized(HttpMethod.Post, $"/api/v1/settings/security/shopfloor-devices/{otherId}/revoke", supervisorToken))).StatusCode
             .Should().Be(HttpStatusCode.OK, "production.approve também revoga");
         (await Client().SendAsync(PinUsersRequest(other))).StatusCode.Should().Be(HttpStatusCode.NotFound);
