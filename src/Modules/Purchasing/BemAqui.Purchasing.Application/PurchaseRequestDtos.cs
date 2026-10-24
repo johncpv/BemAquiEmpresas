@@ -37,7 +37,7 @@ public sealed record PurchaseRequestListQuery(
 
 /// <summary>Uma SC dentro da visão "Por item"; <c>LineId</c> é a linha aberta, para "Cotar" (CMP-02 CA 1).</summary>
 public sealed record PurchaseItemRequest(
-    Guid RequestId, string Number, PurchaseRequestOrigin Origin, decimal Quantity, DateOnly NeededBy, string? ProjectNumber, string? OrderNumber, Guid LineId = default);
+    Guid RequestId, string Number, PurchaseRequestOrigin Origin, decimal Quantity, DateOnly NeededBy, string? ProjectNumber, string? OrderNumber, Guid LineId);
 
 /// <summary>Visão "Por item" (CA 12): as linhas abertas de todas as SC somadas por item (o comprador compra por item).</summary>
 public sealed record PurchaseItemRow(

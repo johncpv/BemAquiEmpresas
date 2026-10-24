@@ -68,9 +68,10 @@ public sealed record RfqLineView(
     Guid? SelectedSupplierId, Guid? SuggestedSupplierId, RfqSelectionReason? SelectionReason, string? SelectionNote, RfqLastPurchase? LastPurchase);
 
 /// <summary>Prévia de "Gerar pedidos de compra" (CA 9): um pedido por fornecedor vencedor, com as linhas e o total; o pedido já gerado, quando há.</summary>
-public sealed record RfqOrderPreview(
-    Guid SupplierId, Guid PartyId, string PartyName, int Lines, decimal Total, Guid? PurchaseOrderId, string? PurchaseOrderNumber, PurchaseOrderStatus? PurchaseOrderStatus,
-    decimal? PurchaseOrderTotal);
+public sealed record RfqOrderPreview(Guid SupplierId, Guid PartyId, string PartyName, int Lines, decimal Total, RfqOrderRef? Order);
+
+/// <summary>Pedido já gerado para o fornecedor vencedor (número, situação e total atuais).</summary>
+public sealed record RfqOrderRef(Guid Id, string Number, PurchaseOrderStatus Status, decimal Total);
 
 /// <summary>
 /// Detalhe da cotação (CA 1 a 15): cabeçalho, linhas, fornecedores com as respostas, o comparativo (menor custo por linha e o menor total

@@ -18,4 +18,5 @@ export interface PurchasingParametersView {
   accountingConfirmed: boolean;
   accounts: PurchasingAccountOption[];
   receiptTolerancePct?: number;
+  quoteAttachmentAmount?: number;
 }

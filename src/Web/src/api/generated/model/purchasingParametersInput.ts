@@ -18,4 +18,6 @@ export interface PurchasingParametersInput {
   accountingConfirmed?: boolean | null;
   /** @nullable */
   receiptTolerancePct?: number | null;
+  /** @nullable */
+  quoteAttachmentAmount?: number | null;
 }

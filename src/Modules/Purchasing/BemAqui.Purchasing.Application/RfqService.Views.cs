@@ -92,7 +92,8 @@ public sealed partial class RfqService
                 var won = lines.Where(l => l.SelectedSupplierId == s.Id).ToList();
                 var total = RfqRules.SupplierTotal(won.Select(l => (l.Quantity, quotes.First(q => q.RfqLineId == l.Id && q.RfqSupplierId == s.Id).UnitPrice)), s.Freight, s.IpiPct).Total;
                 var order = generated.GetValueOrDefault(s.PartyId);
-                return new RfqOrderPreview(s.Id, s.PartyId, partyNames.GetValueOrDefault(s.PartyId) ?? "Fornecedor removido", won.Count, total, order?.Id, order?.Number, order?.Status, order?.Total);
+                return new RfqOrderPreview(s.Id, s.PartyId, partyNames.GetValueOrDefault(s.PartyId) ?? "Fornecedor removido", won.Count, total,
+                    order is null ? null : new RfqOrderRef(order.Id, order.Number, order.Status, order.Total));
             }).ToList()
             : [];
 
@@ -103,8 +104,8 @@ public sealed partial class RfqService
             rfq.Id, rfq.Number, rfq.Status, rfq.Notes, rfq.CreatedBy, rfq.CreatedBy is { } cb ? userNames.GetValueOrDefault(cb) : null, rfq.CreatedAt, rfq.ClosedAt,
             rfq.ClosedBy is { } closer ? userNames.GetValueOrDefault(closer) : null, rfq.CancelReason, rfq.CancelledAt, rfq.CancelledBy is { } canceller ? userNames.GetValueOrDefault(canceller) : null,
             lineViews, supplierViews, quotesCount, comparison.CheapestOverall, RfqRules.SingleQuoteWarning(rfq.Status, quotesCount), limit, preview, canEdit && open,
-            canEdit && open && quotes.Count > 0, canEdit && open, canCreate && preview.Any(p => p.PurchaseOrderId is null),
-            (canCreate || canEdit) && preview.Any(p => p.PurchaseOrderStatus == PurchaseOrderStatus.Draft), rfq.Version);
+            canEdit && open && quotes.Count > 0, canEdit && open, canCreate && preview.Any(p => p.Order is null),
+            (canCreate || canEdit) && preview.Any(p => p.Order?.Status == PurchaseOrderStatus.Draft), rfq.Version);
     }
 
     /// <summary>Lista "Cotações": por padrão as abertas; a mais recente primeiro.</summary>

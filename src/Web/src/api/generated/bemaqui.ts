@@ -164,6 +164,8 @@ import type {
   GetPurchaseRequestHistoryParams,
   GetQualityQueueParams,
   GetQuoteFunnelParams,
+  GetRfqDefaultsParams,
+  GetRfqHistoryParams,
   GetRoutingTemplateHistoryParams,
   GoodsReceiptDefaults,
   GoodsReceiptDetail,
@@ -269,6 +271,7 @@ import type {
   ListQuoteItemsParams,
   ListQuotesParams,
   ListReceivablesParams,
+  ListRfqsParams,
   ListRoutingProductOptionsParams,
   ListRoutingTemplatesParams,
   ListStockBalancesParams,
@@ -349,6 +352,7 @@ import type {
   PagedListOfRelatedAuditEntryDto,
   PagedListOfRequisitionSummary,
   PagedListOfReservationChangeRow,
+  PagedListOfRfqSummary,
   PagedListOfRoutingTemplateSummary,
   PagedListOfShortageRow,
   PagedListOfTenantRow,
@@ -494,6 +498,16 @@ import type {
   ReturnInput,
   ReverseCompletionInput,
   ReverseMovementInput,
+  RfqCancelInput,
+  RfqCloseInput,
+  RfqDefaults,
+  RfqDetail,
+  RfqInput,
+  RfqOrdersResult,
+  RfqResponseInput,
+  RfqSubmitResult,
+  RfqSupplierInput,
+  RfqVersionInput,
   RoutingItemLinkInput,
   RoutingItemView,
   RoutingProductOption,
@@ -39473,6 +39487,1158 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getCancelPurchaseRequestLineMutationOptions(options), queryClient);
+    }
+
+export const getListRfqsUrl = (params?: ListRfqsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/purchasing/rfqs?${stringifiedParams}` : `/api/v1/purchasing/rfqs`
+}
+
+export const listRfqs = async (params?: ListRfqsParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfRfqSummary> => {
+
+  return apiFetch<PagedListOfRfqSummary>(getListRfqsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListRfqsQueryKey = (params?: ListRfqsParams,) => {
+    return [
+    `/api/v1/purchasing/rfqs`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListRfqsQueryOptions = <TData = Awaited<ReturnType<typeof listRfqs>>, TError = unknown>(params?: ListRfqsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRfqs>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListRfqsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listRfqs>>> = ({ signal }) => listRfqs(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listRfqs>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListRfqsQueryResult = NonNullable<Awaited<ReturnType<typeof listRfqs>>>
+export type ListRfqsQueryError = unknown
+
+
+export function useListRfqs<TData = Awaited<ReturnType<typeof listRfqs>>, TError = unknown>(
+ params: undefined |  ListRfqsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRfqs>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listRfqs>>,
+          TError,
+          Awaited<ReturnType<typeof listRfqs>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListRfqs<TData = Awaited<ReturnType<typeof listRfqs>>, TError = unknown>(
+ params?: ListRfqsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRfqs>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listRfqs>>,
+          TError,
+          Awaited<ReturnType<typeof listRfqs>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListRfqs<TData = Awaited<ReturnType<typeof listRfqs>>, TError = unknown>(
+ params?: ListRfqsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRfqs>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListRfqs<TData = Awaited<ReturnType<typeof listRfqs>>, TError = unknown>(
+ params?: ListRfqsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRfqs>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListRfqsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateRfqUrl = () => {
+
+
+
+
+  return `/api/v1/purchasing/rfqs`
+}
+
+export const createRfq = async (rfqInput: RfqInput, options?: Parameters<typeof apiFetch>[1]): Promise<RfqDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<RfqDetail>(getCreateRfqUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(rfqInput)
+  }
+);}
+
+
+
+
+
+export const getCreateRfqMutationKey = () => ['createRfq'] as const;
+
+export const getCreateRfqMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createRfq>>, TError,CreateRfqMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createRfq>>, TError,CreateRfqMutationVariables, TContext> => {
+
+const mutationKey = getCreateRfqMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createRfq>>, CreateRfqMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createRfq(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateRfqMutationResult = NonNullable<Awaited<ReturnType<typeof createRfq>>>
+    export type CreateRfqMutationBody = RfqInput
+    export type CreateRfqMutationError = unknown
+    export type CreateRfqMutationVariables = {data: RfqInput}
+
+    export const useCreateRfq = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createRfq>>, TError,CreateRfqMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createRfq>>,
+        TError,
+        CreateRfqMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateRfqMutationOptions(options), queryClient);
+    }
+
+export const getGetRfqDefaultsUrl = (params?: GetRfqDefaultsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    const explodeParameters = ["requestLineIds"];
+
+    if (Array.isArray(value) && explodeParameters.includes(key)) {
+      value.forEach((v) => {
+        normalizedParams.append(key, v === null ? 'null' : String(v));
+      });
+      return;
+    }
+
+
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/purchasing/rfqs/defaults?${stringifiedParams}` : `/api/v1/purchasing/rfqs/defaults`
+}
+
+export const getRfqDefaults = async (params?: GetRfqDefaultsParams, options?: Parameters<typeof apiFetch>[1]): Promise<RfqDefaults> => {
+
+  return apiFetch<RfqDefaults>(getGetRfqDefaultsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRfqDefaultsQueryKey = (params?: GetRfqDefaultsParams,) => {
+    return [
+    `/api/v1/purchasing/rfqs/defaults`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetRfqDefaultsQueryOptions = <TData = Awaited<ReturnType<typeof getRfqDefaults>>, TError = unknown>(params?: GetRfqDefaultsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRfqDefaults>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRfqDefaultsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRfqDefaults>>> = ({ signal }) => getRfqDefaults(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRfqDefaults>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetRfqDefaultsQueryResult = NonNullable<Awaited<ReturnType<typeof getRfqDefaults>>>
+export type GetRfqDefaultsQueryError = unknown
+
+
+export function useGetRfqDefaults<TData = Awaited<ReturnType<typeof getRfqDefaults>>, TError = unknown>(
+ params: undefined |  GetRfqDefaultsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRfqDefaults>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRfqDefaults>>,
+          TError,
+          Awaited<ReturnType<typeof getRfqDefaults>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRfqDefaults<TData = Awaited<ReturnType<typeof getRfqDefaults>>, TError = unknown>(
+ params?: GetRfqDefaultsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRfqDefaults>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRfqDefaults>>,
+          TError,
+          Awaited<ReturnType<typeof getRfqDefaults>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRfqDefaults<TData = Awaited<ReturnType<typeof getRfqDefaults>>, TError = unknown>(
+ params?: GetRfqDefaultsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRfqDefaults>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetRfqDefaults<TData = Awaited<ReturnType<typeof getRfqDefaults>>, TError = unknown>(
+ params?: GetRfqDefaultsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRfqDefaults>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetRfqDefaultsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetRfqUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/purchasing/rfqs/${id}`
+}
+
+export const getRfq = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<RfqDetail> => {
+
+  return apiFetch<RfqDetail>(getGetRfqUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRfqQueryKey = (id: string,) => {
+    return [
+    `/api/v1/purchasing/rfqs/${id}`
+    ] as const;
+    }
+
+
+export const getGetRfqQueryOptions = <TData = Awaited<ReturnType<typeof getRfq>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRfq>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRfqQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRfq>>> = ({ signal }) => getRfq(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRfq>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetRfqQueryResult = NonNullable<Awaited<ReturnType<typeof getRfq>>>
+export type GetRfqQueryError = unknown
+
+
+export function useGetRfq<TData = Awaited<ReturnType<typeof getRfq>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRfq>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRfq>>,
+          TError,
+          Awaited<ReturnType<typeof getRfq>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRfq<TData = Awaited<ReturnType<typeof getRfq>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRfq>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRfq>>,
+          TError,
+          Awaited<ReturnType<typeof getRfq>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRfq<TData = Awaited<ReturnType<typeof getRfq>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRfq>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetRfq<TData = Awaited<ReturnType<typeof getRfq>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRfq>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetRfqQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetRfqHistoryUrl = (id: string,
+    params?: GetRfqHistoryParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/purchasing/rfqs/${id}/history?${stringifiedParams}` : `/api/v1/purchasing/rfqs/${id}/history`
+}
+
+export const getRfqHistory = async (id: string,
+    params?: GetRfqHistoryParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfRelatedAuditEntryDto> => {
+
+  return apiFetch<PagedListOfRelatedAuditEntryDto>(getGetRfqHistoryUrl(id,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRfqHistoryQueryKey = (id: string,
+    params?: GetRfqHistoryParams,) => {
+    return [
+    `/api/v1/purchasing/rfqs/${id}/history`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetRfqHistoryQueryOptions = <TData = Awaited<ReturnType<typeof getRfqHistory>>, TError = unknown>(id: string,
+    params?: GetRfqHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRfqHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRfqHistoryQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRfqHistory>>> = ({ signal }) => getRfqHistory(id,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRfqHistory>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetRfqHistoryQueryResult = NonNullable<Awaited<ReturnType<typeof getRfqHistory>>>
+export type GetRfqHistoryQueryError = unknown
+
+
+export function useGetRfqHistory<TData = Awaited<ReturnType<typeof getRfqHistory>>, TError = unknown>(
+ id: string,
+    params: undefined |  GetRfqHistoryParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRfqHistory>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRfqHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getRfqHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRfqHistory<TData = Awaited<ReturnType<typeof getRfqHistory>>, TError = unknown>(
+ id: string,
+    params?: GetRfqHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRfqHistory>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRfqHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getRfqHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRfqHistory<TData = Awaited<ReturnType<typeof getRfqHistory>>, TError = unknown>(
+ id: string,
+    params?: GetRfqHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRfqHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetRfqHistory<TData = Awaited<ReturnType<typeof getRfqHistory>>, TError = unknown>(
+ id: string,
+    params?: GetRfqHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRfqHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetRfqHistoryQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getAddRfqSupplierUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/purchasing/rfqs/${id}/suppliers`
+}
+
+export const addRfqSupplier = async (id: string,
+    rfqSupplierInput: RfqSupplierInput, options?: Parameters<typeof apiFetch>[1]): Promise<RfqDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<RfqDetail>(getAddRfqSupplierUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(rfqSupplierInput)
+  }
+);}
+
+
+
+
+
+export const getAddRfqSupplierMutationKey = () => ['addRfqSupplier'] as const;
+
+export const getAddRfqSupplierMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addRfqSupplier>>, TError,AddRfqSupplierMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addRfqSupplier>>, TError,AddRfqSupplierMutationVariables, TContext> => {
+
+const mutationKey = getAddRfqSupplierMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addRfqSupplier>>, AddRfqSupplierMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  addRfqSupplier(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddRfqSupplierMutationResult = NonNullable<Awaited<ReturnType<typeof addRfqSupplier>>>
+    export type AddRfqSupplierMutationBody = RfqSupplierInput
+    export type AddRfqSupplierMutationError = unknown
+    export type AddRfqSupplierMutationVariables = {id: string;data: RfqSupplierInput}
+
+    export const useAddRfqSupplier = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addRfqSupplier>>, TError,AddRfqSupplierMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof addRfqSupplier>>,
+        TError,
+        AddRfqSupplierMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAddRfqSupplierMutationOptions(options), queryClient);
+    }
+
+export const getRemoveRfqSupplierUrl = (id: string,
+    supplierId: string,) => {
+
+
+
+
+  return `/api/v1/purchasing/rfqs/${id}/suppliers/${supplierId}/remove`
+}
+
+export const removeRfqSupplier = async (id: string,
+    supplierId: string,
+    rfqVersionInput: RfqVersionInput, options?: Parameters<typeof apiFetch>[1]): Promise<RfqDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<RfqDetail>(getRemoveRfqSupplierUrl(id,supplierId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(rfqVersionInput)
+  }
+);}
+
+
+
+
+
+export const getRemoveRfqSupplierMutationKey = () => ['removeRfqSupplier'] as const;
+
+export const getRemoveRfqSupplierMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeRfqSupplier>>, TError,RemoveRfqSupplierMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof removeRfqSupplier>>, TError,RemoveRfqSupplierMutationVariables, TContext> => {
+
+const mutationKey = getRemoveRfqSupplierMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof removeRfqSupplier>>, RemoveRfqSupplierMutationVariables> = (props) => {
+          const {id,supplierId,data} = props ?? {};
+
+          return  removeRfqSupplier(id,supplierId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RemoveRfqSupplierMutationResult = NonNullable<Awaited<ReturnType<typeof removeRfqSupplier>>>
+    export type RemoveRfqSupplierMutationBody = RfqVersionInput
+    export type RemoveRfqSupplierMutationError = unknown
+    export type RemoveRfqSupplierMutationVariables = {id: string;supplierId: string;data: RfqVersionInput}
+
+    export const useRemoveRfqSupplier = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeRfqSupplier>>, TError,RemoveRfqSupplierMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof removeRfqSupplier>>,
+        TError,
+        RemoveRfqSupplierMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRemoveRfqSupplierMutationOptions(options), queryClient);
+    }
+
+export const getSaveRfqResponseUrl = (id: string,
+    supplierId: string,) => {
+
+
+
+
+  return `/api/v1/purchasing/rfqs/${id}/suppliers/${supplierId}/response`
+}
+
+export const saveRfqResponse = async (id: string,
+    supplierId: string,
+    rfqResponseInput: RfqResponseInput, options?: Parameters<typeof apiFetch>[1]): Promise<RfqDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<RfqDetail>(getSaveRfqResponseUrl(id,supplierId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(rfqResponseInput)
+  }
+);}
+
+
+
+
+
+export const getSaveRfqResponseMutationKey = () => ['saveRfqResponse'] as const;
+
+export const getSaveRfqResponseMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveRfqResponse>>, TError,SaveRfqResponseMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveRfqResponse>>, TError,SaveRfqResponseMutationVariables, TContext> => {
+
+const mutationKey = getSaveRfqResponseMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveRfqResponse>>, SaveRfqResponseMutationVariables> = (props) => {
+          const {id,supplierId,data} = props ?? {};
+
+          return  saveRfqResponse(id,supplierId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveRfqResponseMutationResult = NonNullable<Awaited<ReturnType<typeof saveRfqResponse>>>
+    export type SaveRfqResponseMutationBody = RfqResponseInput
+    export type SaveRfqResponseMutationError = unknown
+    export type SaveRfqResponseMutationVariables = {id: string;supplierId: string;data: RfqResponseInput}
+
+    export const useSaveRfqResponse = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveRfqResponse>>, TError,SaveRfqResponseMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof saveRfqResponse>>,
+        TError,
+        SaveRfqResponseMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSaveRfqResponseMutationOptions(options), queryClient);
+    }
+
+export const getDeclineRfqSupplierUrl = (id: string,
+    supplierId: string,) => {
+
+
+
+
+  return `/api/v1/purchasing/rfqs/${id}/suppliers/${supplierId}/decline`
+}
+
+export const declineRfqSupplier = async (id: string,
+    supplierId: string,
+    rfqVersionInput: RfqVersionInput, options?: Parameters<typeof apiFetch>[1]): Promise<RfqDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<RfqDetail>(getDeclineRfqSupplierUrl(id,supplierId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(rfqVersionInput)
+  }
+);}
+
+
+
+
+
+export const getDeclineRfqSupplierMutationKey = () => ['declineRfqSupplier'] as const;
+
+export const getDeclineRfqSupplierMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof declineRfqSupplier>>, TError,DeclineRfqSupplierMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof declineRfqSupplier>>, TError,DeclineRfqSupplierMutationVariables, TContext> => {
+
+const mutationKey = getDeclineRfqSupplierMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof declineRfqSupplier>>, DeclineRfqSupplierMutationVariables> = (props) => {
+          const {id,supplierId,data} = props ?? {};
+
+          return  declineRfqSupplier(id,supplierId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeclineRfqSupplierMutationResult = NonNullable<Awaited<ReturnType<typeof declineRfqSupplier>>>
+    export type DeclineRfqSupplierMutationBody = RfqVersionInput
+    export type DeclineRfqSupplierMutationError = unknown
+    export type DeclineRfqSupplierMutationVariables = {id: string;supplierId: string;data: RfqVersionInput}
+
+    export const useDeclineRfqSupplier = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof declineRfqSupplier>>, TError,DeclineRfqSupplierMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof declineRfqSupplier>>,
+        TError,
+        DeclineRfqSupplierMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeclineRfqSupplierMutationOptions(options), queryClient);
+    }
+
+export const getCloseRfqUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/purchasing/rfqs/${id}/close`
+}
+
+export const closeRfq = async (id: string,
+    rfqCloseInput: RfqCloseInput, options?: Parameters<typeof apiFetch>[1]): Promise<RfqDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<RfqDetail>(getCloseRfqUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(rfqCloseInput)
+  }
+);}
+
+
+
+
+
+export const getCloseRfqMutationKey = () => ['closeRfq'] as const;
+
+export const getCloseRfqMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof closeRfq>>, TError,CloseRfqMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof closeRfq>>, TError,CloseRfqMutationVariables, TContext> => {
+
+const mutationKey = getCloseRfqMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof closeRfq>>, CloseRfqMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  closeRfq(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CloseRfqMutationResult = NonNullable<Awaited<ReturnType<typeof closeRfq>>>
+    export type CloseRfqMutationBody = RfqCloseInput
+    export type CloseRfqMutationError = unknown
+    export type CloseRfqMutationVariables = {id: string;data: RfqCloseInput}
+
+    export const useCloseRfq = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof closeRfq>>, TError,CloseRfqMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof closeRfq>>,
+        TError,
+        CloseRfqMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCloseRfqMutationOptions(options), queryClient);
+    }
+
+export const getCancelRfqUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/purchasing/rfqs/${id}/cancel`
+}
+
+export const cancelRfq = async (id: string,
+    rfqCancelInput: RfqCancelInput, options?: Parameters<typeof apiFetch>[1]): Promise<RfqDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<RfqDetail>(getCancelRfqUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(rfqCancelInput)
+  }
+);}
+
+
+
+
+
+export const getCancelRfqMutationKey = () => ['cancelRfq'] as const;
+
+export const getCancelRfqMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelRfq>>, TError,CancelRfqMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelRfq>>, TError,CancelRfqMutationVariables, TContext> => {
+
+const mutationKey = getCancelRfqMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelRfq>>, CancelRfqMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  cancelRfq(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelRfqMutationResult = NonNullable<Awaited<ReturnType<typeof cancelRfq>>>
+    export type CancelRfqMutationBody = RfqCancelInput
+    export type CancelRfqMutationError = unknown
+    export type CancelRfqMutationVariables = {id: string;data: RfqCancelInput}
+
+    export const useCancelRfq = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelRfq>>, TError,CancelRfqMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof cancelRfq>>,
+        TError,
+        CancelRfqMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCancelRfqMutationOptions(options), queryClient);
+    }
+
+export const getGenerateRfqPurchaseOrdersUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/purchasing/rfqs/${id}/purchase-orders`
+}
+
+export const generateRfqPurchaseOrders = async (id: string,
+    rfqVersionInput: RfqVersionInput, options?: Parameters<typeof apiFetch>[1]): Promise<RfqOrdersResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<RfqOrdersResult>(getGenerateRfqPurchaseOrdersUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(rfqVersionInput)
+  }
+);}
+
+
+
+
+
+export const getGenerateRfqPurchaseOrdersMutationKey = () => ['generateRfqPurchaseOrders'] as const;
+
+export const getGenerateRfqPurchaseOrdersMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateRfqPurchaseOrders>>, TError,GenerateRfqPurchaseOrdersMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof generateRfqPurchaseOrders>>, TError,GenerateRfqPurchaseOrdersMutationVariables, TContext> => {
+
+const mutationKey = getGenerateRfqPurchaseOrdersMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generateRfqPurchaseOrders>>, GenerateRfqPurchaseOrdersMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  generateRfqPurchaseOrders(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GenerateRfqPurchaseOrdersMutationResult = NonNullable<Awaited<ReturnType<typeof generateRfqPurchaseOrders>>>
+    export type GenerateRfqPurchaseOrdersMutationBody = RfqVersionInput
+    export type GenerateRfqPurchaseOrdersMutationError = unknown
+    export type GenerateRfqPurchaseOrdersMutationVariables = {id: string;data: RfqVersionInput}
+
+    export const useGenerateRfqPurchaseOrders = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateRfqPurchaseOrders>>, TError,GenerateRfqPurchaseOrdersMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof generateRfqPurchaseOrders>>,
+        TError,
+        GenerateRfqPurchaseOrdersMutationVariables,
+        TContext
+      > => {
+      return useMutation(getGenerateRfqPurchaseOrdersMutationOptions(options), queryClient);
+    }
+
+export const getSubmitRfqPurchaseOrdersUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/purchasing/rfqs/${id}/purchase-orders/submit`
+}
+
+export const submitRfqPurchaseOrders = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<RfqSubmitResult> => {
+
+  return apiFetch<RfqSubmitResult>(getSubmitRfqPurchaseOrdersUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getSubmitRfqPurchaseOrdersMutationKey = () => ['submitRfqPurchaseOrders'] as const;
+
+export const getSubmitRfqPurchaseOrdersMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitRfqPurchaseOrders>>, TError,SubmitRfqPurchaseOrdersMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof submitRfqPurchaseOrders>>, TError,SubmitRfqPurchaseOrdersMutationVariables, TContext> => {
+
+const mutationKey = getSubmitRfqPurchaseOrdersMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof submitRfqPurchaseOrders>>, SubmitRfqPurchaseOrdersMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  submitRfqPurchaseOrders(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SubmitRfqPurchaseOrdersMutationResult = NonNullable<Awaited<ReturnType<typeof submitRfqPurchaseOrders>>>
+
+    export type SubmitRfqPurchaseOrdersMutationError = unknown
+    export type SubmitRfqPurchaseOrdersMutationVariables = {id: string}
+
+    export const useSubmitRfqPurchaseOrders = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitRfqPurchaseOrders>>, TError,SubmitRfqPurchaseOrdersMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof submitRfqPurchaseOrders>>,
+        TError,
+        SubmitRfqPurchaseOrdersMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSubmitRfqPurchaseOrdersMutationOptions(options), queryClient);
     }
 
 export const getListPurchaseOrdersUrl = (params?: ListPurchaseOrdersParams,) => {
