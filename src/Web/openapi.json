@@ -13242,7 +13242,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/LotDetail"
+                    "$ref": "#/components/schemas/ItemLotRow"
                   }
                 }
               }
@@ -13283,7 +13283,197 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LotDetail"
+                  "$ref": "#/components/schemas/ItemLotRow"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "CorrectItemLot",
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "lotId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LotCorrectionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemLotRow"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/items/{itemId}/lots/{lotId}/trace": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetLotTrace",
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "lotId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LotTrace"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/items/{itemId}/lots/{lotId}/trace/export": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "ExportLotTrace",
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "lotId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/items/{itemId}/serials/{serialId}/trace": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetSerialTrace",
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "serialId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SerialTrace"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/traceability": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "SearchTraceability",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TraceSearchResult"
                 }
               }
             }
@@ -28581,6 +28771,101 @@
           }
         }
       },
+      "ItemLotRow": {
+        "required": [
+          "id",
+          "itemId",
+          "lotNumber",
+          "supplierPartyId",
+          "supplierName",
+          "receivedAt",
+          "expiry",
+          "expiryState",
+          "daysToExpiry",
+          "onHand",
+          "balances",
+          "hasOutflow",
+          "correctionReason",
+          "correctedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lotNumber": {
+            "type": "string"
+          },
+          "supplierPartyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "supplierName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "receivedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "expiry": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "expiryState": {
+            "$ref": "#/components/schemas/LotExpiryState"
+          },
+          "daysToExpiry": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "onHand": {
+            "type": "number",
+            "format": "double"
+          },
+          "balances": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TraceLotBalance"
+            }
+          },
+          "hasOutflow": {
+            "type": "boolean"
+          },
+          "correctionReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "correctedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
       "ItemSearchHit": {
         "required": [
           "id",
@@ -29703,42 +29988,16 @@
         },
         "additionalProperties": false
       },
-      "LotDetail": {
+      "LotCorrectionInput": {
         "required": [
-          "id",
-          "itemId",
           "lotNumber",
-          "supplierPartyId",
-          "receivedAt",
           "expiry",
-          "onHand"
+          "reason"
         ],
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "itemId": {
-            "type": "string",
-            "format": "uuid"
-          },
           "lotNumber": {
             "type": "string"
-          },
-          "supplierPartyId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "uuid"
-          },
-          "receivedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
           },
           "expiry": {
             "type": [
@@ -29747,9 +30006,145 @@
             ],
             "format": "date"
           },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "LotExpiryState": {
+        "enum": [
+          "None",
+          "Ok",
+          "Expiring",
+          "Expired"
+        ]
+      },
+      "LotTrace": {
+        "required": [
+          "lotId",
+          "lotNumber",
+          "itemId",
+          "itemCode",
+          "itemName",
+          "unitCode",
+          "expiry",
+          "expiryState",
+          "daysToExpiry",
+          "supplierPartyId",
+          "supplierName",
+          "receivedAt",
+          "entries",
+          "totalReceived",
+          "balances",
+          "onHand",
+          "consumptions",
+          "totalConsumed",
+          "others",
+          "totalOther",
+          "balanced"
+        ],
+        "type": "object",
+        "properties": {
+          "lotId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lotNumber": {
+            "type": "string"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "expiry": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "expiryState": {
+            "$ref": "#/components/schemas/LotExpiryState"
+          },
+          "daysToExpiry": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "supplierPartyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "supplierName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "receivedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TraceEntry"
+            }
+          },
+          "totalReceived": {
+            "type": "number",
+            "format": "double"
+          },
+          "balances": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TraceLotBalance"
+            }
+          },
           "onHand": {
             "type": "number",
             "format": "double"
+          },
+          "consumptions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TraceConsumption"
+            }
+          },
+          "totalConsumed": {
+            "type": "number",
+            "format": "double"
+          },
+          "others": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TraceOtherLine"
+            }
+          },
+          "totalOther": {
+            "type": "number",
+            "format": "double"
+          },
+          "balanced": {
+            "type": "boolean"
           }
         }
       },
@@ -43499,6 +43894,168 @@
           "Cancelled"
         ]
       },
+      "SerialTrace": {
+        "required": [
+          "serialId",
+          "serialNumber",
+          "status",
+          "itemId",
+          "itemCode",
+          "itemName",
+          "locationId",
+          "locationName",
+          "createdAt",
+          "productionOrderId",
+          "productionOrderNumber",
+          "productionOrderStatus",
+          "completedAt",
+          "orderUnits",
+          "projectId",
+          "projectNumber",
+          "projectName",
+          "customer",
+          "shipmentId",
+          "shipmentNumber",
+          "shippedAt",
+          "sharedLotsNote",
+          "lots"
+        ],
+        "type": "object",
+        "properties": {
+          "serialId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "serialNumber": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SerialState"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "locationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "locationName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "productionOrderId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "productionOrderNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "productionOrderStatus": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ProductionOrderState"
+              }
+            ]
+          },
+          "completedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "orderUnits": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "projectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "projectName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "customer": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TraceCustomer"
+              }
+            ]
+          },
+          "shipmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "shipmentNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "shippedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "sharedLotsNote": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TraceConsumedLot"
+            }
+          }
+        }
+      },
       "SetGroupMembersRequest": {
         "required": [
           "userIds"
@@ -45727,6 +46284,456 @@
           },
           "otpAuthUri": {
             "type": "string"
+          }
+        }
+      },
+      "TraceConsumedLot": {
+        "required": [
+          "itemId",
+          "itemCode",
+          "itemName",
+          "unitCode",
+          "lotId",
+          "lotNumber",
+          "quantity",
+          "supplierName",
+          "expiry",
+          "expiryState",
+          "entries"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "lotId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "lotNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "supplierName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "expiry": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "expiryState": {
+            "$ref": "#/components/schemas/LotExpiryState"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TraceEntry"
+            }
+          }
+        }
+      },
+      "TraceConsumption": {
+        "required": [
+          "productionOrderId",
+          "orderNumber",
+          "orderStatus",
+          "projectId",
+          "projectNumber",
+          "projectName",
+          "customer",
+          "at",
+          "quantity",
+          "serials",
+          "noSerialNote",
+          "sharedLotsNote"
+        ],
+        "type": "object",
+        "properties": {
+          "productionOrderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "orderStatus": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ProductionOrderState"
+              }
+            ]
+          },
+          "projectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "projectName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "customer": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TraceCustomer"
+              }
+            ]
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "serials": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TraceSerial"
+            }
+          },
+          "noSerialNote": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "sharedLotsNote": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "TraceCustomer": {
+        "required": [
+          "partyId",
+          "name",
+          "kind",
+          "masked"
+        ],
+        "type": "object",
+        "properties": {
+          "partyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PartyKind"
+          },
+          "masked": {
+            "type": "boolean"
+          }
+        }
+      },
+      "TraceEntry": {
+        "required": [
+          "movementId",
+          "sourceType",
+          "sourceId",
+          "number",
+          "label",
+          "at",
+          "quantity",
+          "reversed"
+        ],
+        "type": "object",
+        "properties": {
+          "movementId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sourceType": {
+            "type": "string"
+          },
+          "sourceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "label": {
+            "type": "string"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "reversed": {
+            "type": "boolean"
+          }
+        }
+      },
+      "TraceLotBalance": {
+        "required": [
+          "locationId",
+          "locationName",
+          "onHand"
+        ],
+        "type": "object",
+        "properties": {
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "locationName": {
+            "type": "string"
+          },
+          "onHand": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "TraceLotHit": {
+        "required": [
+          "id",
+          "itemId",
+          "lotNumber",
+          "itemCode",
+          "itemName",
+          "expiry"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lotNumber": {
+            "type": "string"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "expiry": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          }
+        }
+      },
+      "TraceOtherLine": {
+        "required": [
+          "movementId",
+          "number",
+          "type",
+          "sourceType",
+          "sourceId",
+          "sourceNumber",
+          "at",
+          "quantity",
+          "explanation"
+        ],
+        "type": "object",
+        "properties": {
+          "movementId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/StockMovementType"
+          },
+          "sourceType": {
+            "type": "string"
+          },
+          "sourceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sourceNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "explanation": {
+            "type": "string"
+          }
+        }
+      },
+      "TraceSearchResult": {
+        "required": [
+          "term",
+          "looksLikeSerial",
+          "serials",
+          "lots"
+        ],
+        "type": "object",
+        "properties": {
+          "term": {
+            "type": "string"
+          },
+          "looksLikeSerial": {
+            "type": "boolean"
+          },
+          "serials": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TraceSerialHit"
+            }
+          },
+          "lots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TraceLotHit"
+            }
+          }
+        }
+      },
+      "TraceSerial": {
+        "required": [
+          "id",
+          "serialNumber",
+          "status",
+          "shipmentId",
+          "shipmentNumber",
+          "shippedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "serialNumber": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SerialState"
+          },
+          "shipmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "shipmentNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "shippedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "TraceSerialHit": {
+        "required": [
+          "id",
+          "itemId",
+          "serialNumber",
+          "itemCode",
+          "itemName",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "serialNumber": {
+            "type": "string"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SerialState"
           }
         }
       },
