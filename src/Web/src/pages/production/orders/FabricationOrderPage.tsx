@@ -45,6 +45,10 @@ export function FabricationOrderPage() {
   const canSeeCost = useCan('projects.view_cost')
   const canFinance = useCan('finance.view')
   const canSeeBom = useCan('engineering.view')
+  const canApprove = useCan('production.approve')
+  const canShip = useCan('production.create')
+  const [completeOpen, setCompleteOpen] = useState(false)
+  const [readyDismissed, setReadyDismissed] = useState(false)
   const query = useGetFabricationOrder(id)
   // EST-02 CA 14: aba Material e o total de faltas no cabeçalho, com o módulo Estoque liberado (a aba aceita production.view).
   const { all } = useNavigation()
@@ -94,7 +98,7 @@ export function FabricationOrderPage() {
         )}
         actions={(
           <span className="flex flex-wrap gap-2">
-            <CompleteOrderDialog order={o} onDone={async (preview) => { setCompleted(preview ?? null); await refresh() }} />
+            <CompleteOrderDialog order={o} open={completeOpen} onOpenChange={setCompleteOpen} onDone={async (preview) => { setCompleted(preview ?? null); await refresh() }} />
             <ReverseCompletionDialog order={o} onDone={async () => { setCompleted(null); await refresh() }} />
             {editable && canEdit ? <ChangeRoutingDialog order={o} onDone={refresh} /> : null}
             <CancelFabricationDialog order={o} onDone={refresh} />
@@ -108,10 +112,18 @@ export function FabricationOrderPage() {
           { label: 'Ver no Kanban', onSelect: () => void navigate({ to: '/app/producao/kanban', search: o.routingTemplateId ? { roteiro: o.routingTemplateId } : {} } as never) },
         ]} /></div>
       ) : null}
+      {/* PRD-06b CA 9 (D4): a última etapa ("Expedição": preparar e embalar) finalizada deixa a OS pronta para concluir; o próximo passo é concluir. */}
+      {o.status === 'ReadyToComplete' && canApprove && !o.completionBlocker && !readyDismissed ? (
+        <div className="mb-4"><NextSteps onDismiss={() => setReadyDismissed(true)} steps={[
+          { label: 'Concluir OS', onSelect: () => setCompleteOpen(true) },
+          { label: 'Ver projeto', onSelect: () => void navigate({ to: '/app/projetos/$id', params: { id: o.projectId }, search: { aba: 'itens' } } as never) },
+        ]} /></div>
+      ) : null}
       {completed && o.status === 'Completed' ? (
         <div className="mb-4"><NextSteps onDismiss={() => setCompleted(null)} steps={[
           ...(released ? [{ label: 'Ver parcela liberada', onSelect: () => void navigate({ to: '/app/financeiro/receber/$id', params: { id: released.receivableId! } } as never) }] : []),
-          // PRD-06a2: as séries e a entrada no estoque; o "Novo romaneio" entra com a PRD-06b.
+          // PRD-06b CA 9: o produto no estoque leva ao romaneio já com o projeto e as séries da OS.
+          ...(stockReleased && o.entryMovementId && canShip ? [{ label: 'Novo romaneio', onSelect: () => void navigate({ to: '/app/producao/expedicao/novo', search: { projeto: o.projectId, os: o.id } } as never) }] : []),
           ...(stockReleased && o.entryMovementId ? [{ label: 'Ver séries', onSelect: () => { setCompleted(null); void navigate({ to: '.', search: { aba: 'series' } } as never) } }] : []),
           { label: 'Ver projeto', onSelect: () => void navigate({ to: '/app/projetos/$id', params: { id: o.projectId }, search: { aba: 'linha-do-tempo' } } as never) },
           { label: 'Ver OS de fabricação', onSelect: () => void navigate({ to: '/app/producao/os' } as never) },

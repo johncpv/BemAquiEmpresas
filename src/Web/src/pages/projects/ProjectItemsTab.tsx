@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
-import { generateFabricationOrder, getListFabricationOrdersQueryKey, getListPendingFabricationItemsQueryKey, useListFabricationOrders, useListInstallations, useListPendingFabricationItems } from '@/api/generated/bemaqui'
+import { generateFabricationOrder, getListFabricationOrdersQueryKey, getListPendingFabricationItemsQueryKey, useListFabricationOrders, useListInstallations, useListPendingFabricationItems, useListShipments } from '@/api/generated/bemaqui'
 import type { ProjectDetail } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { useIdempotencyKey } from '@/api/idempotency'
@@ -14,13 +14,15 @@ import { formatDate } from '@/lib/format'
 import { useCan } from '@/pages/use-can'
 import { INSTALLATION_STATUS } from '../production/installations/installations'
 import { FABRICATION_DICAS, FABRICATION_STATUS } from '../production/orders/fabrication'
+import { quantity as shipped, SHIPMENT_DICAS, SHIPMENT_STATUS } from '../production/shipments/shipments'
 import { NewInstallationDialog } from './NewInstallationDialog'
 
 const qty = (v: number) => v.toLocaleString('pt-BR', { maximumFractionDigits: 4 })
 
 /**
  * Itens e OS (COM-05 CA 5, COM-06, PRD-01 CA 5 e 21): cada item com a OS de fabricação e a etapa, ou "Gerar OS de fabricação"
- * (production.create) para o item que ainda pode gerar; abaixo, as OS de instalação e "Nova OS de instalação".
+ * (production.create) para o item que ainda pode gerar; abaixo, as OS de instalação e "Nova OS de instalação". PRD-06b CA 13: os romaneios do
+ * projeto e "Novo romaneio" (production.create).
  */
 export function ProjectItemsTab({ project }: { project: ProjectDetail }) {
   const canView = useCan('production.view')
@@ -29,6 +31,7 @@ export function ProjectItemsTab({ project }: { project: ProjectDetail }) {
   const orders = useListInstallations({ projectId: project.id, pageSize: 100 }, { query: { enabled: canView } })
   const fabrication = useListFabricationOrders({ projectId: project.id, pageSize: 100 }, { query: { enabled: canView } })
   const pending = useListPendingFabricationItems({ projectId: project.id, pageSize: 100 }, { query: { enabled: canView } })
+  const shipments = useListShipments({ projectId: project.id, pageSize: 50 }, { query: { enabled: canView } })
   const client = useQueryClient()
   const navigate = useNavigate()
   const idempotency = useIdempotencyKey()
@@ -92,6 +95,20 @@ export function ProjectItemsTab({ project }: { project: ProjectDetail }) {
                 {o.noRouting ? null : <StageIndicator stages={o.stepNames} letters={o.codes} current={o.currentStepIndex} showLabel />}
                 <StatusChip tone={FABRICATION_STATUS[o.status]?.tone ?? 'neutral'}>{FABRICATION_STATUS[o.status]?.label ?? o.status}</StatusChip>
               </span>
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 className="flex items-center text-sm font-semibold">Romaneios<Dica nome="Romaneio" texto={SHIPMENT_DICAS.romaneio} /></h3>
+        {canView && canCreateFabrication ? <Link to={'/app/producao/expedicao/novo' as never} search={{ projeto: project.id } as never} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Novo romaneio</Link> : null}
+      </div>
+      {!canView || (shipments.data?.items ?? []).length === 0 ? <p className="text-sm text-muted-foreground">Ainda sem romaneio.</p> : (
+        <ul className="divide-y divide-border rounded-md border border-border bg-card text-sm" aria-label="Romaneios do projeto">
+          {shipments.data!.items.map((r) => (
+            <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 p-3">
+              <span><Link to={'/app/producao/expedicao/$id' as never} params={{ id: r.id } as never} className="font-semibold text-primary hover:underline">{r.number}</Link> <span className="tabular-nums text-muted-foreground">· {r.lines} {r.lines === 1 ? 'item' : 'itens'} · {shipped(r.units)} un.</span></span>
+              <span className="flex items-center gap-2"><span className="tabular-nums">{r.shippedAt ? formatDate(r.shippedAt.slice(0, 10)) : r.plannedDate ? formatDate(r.plannedDate) : '—'}</span><StatusChip tone={SHIPMENT_STATUS[r.status].tone}>{SHIPMENT_STATUS[r.status].label}</StatusChip></span>
             </li>
           ))}
         </ul>

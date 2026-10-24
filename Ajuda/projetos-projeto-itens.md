@@ -14,6 +14,7 @@ Ver o que foi vendido e as ordens de serviço de cada item: a OS de fabricação
 - O equipamento ganha a OS de fabricação sozinho na aprovação do orçamento. O componente fabricado, e o equipamento de projeto aprovado antes da OS automática, mostram **Gerar OS de fabricação** (quem cria na produção).
 - Serviço e contrato de implantação não geram OS de fabricação.
 - Abaixo, as OS de fabricação e as OS de instalação do projeto, com a etapa e a situação.
+- **Romaneios**: os romaneios de expedição do projeto, com o número, os itens, a data e a situação. **Novo romaneio** (quem cria na produção) abre o romaneio já com as séries e o endereço da obra.
 - **Nova OS de instalação** (quem cria na produção): escolha os itens (os que ainda não têm OS vêm marcados), o instalador, o valor combinado e as datas previstas. O valor vem sugerido pelo orçado de instalação do projeto, para quem vê custo.
 
 ## Perguntas frequentes

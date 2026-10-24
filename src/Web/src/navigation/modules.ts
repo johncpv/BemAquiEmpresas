@@ -51,7 +51,7 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
   projects: { slug: 'projetos', aliases: ['contratos'], icon: FolderKanban },
   parties: { slug: 'cadastros', icon: Contact, tabs: [{ slug: 'terceiros', label: 'Terceiros' }] },
   engineering: { slug: 'engenharia', icon: DraftingCompass, tabs: [{ slug: 'roteiros', label: 'Roteiros' }, { slug: 'boms', label: 'BOMs' }] },
-  production: { slug: 'producao', icon: Factory, tabs: [{ slug: 'os', label: 'OS de fabricação' }, { slug: 'kanban', label: 'Kanban' }, { slug: 'apontamentos-abertos', label: 'Apontamentos abertos' }, { slug: 'instalacoes', label: 'Instalações' }, { slug: 'centros-de-trabalho', label: 'Centros de trabalho' }, { slug: 'calendario', label: 'Calendário' }, { slug: 'modelo-instalacao', label: 'Modelo da OS de instalação' }] },
+  production: { slug: 'producao', icon: Factory, tabs: [{ slug: 'os', label: 'OS de fabricação' }, { slug: 'kanban', label: 'Kanban' }, { slug: 'apontamentos-abertos', label: 'Apontamentos abertos' }, { slug: 'expedicao', label: 'Expedição' }, { slug: 'instalacoes', label: 'Instalações' }, { slug: 'centros-de-trabalho', label: 'Centros de trabalho' }, { slug: 'calendario', label: 'Calendário' }, { slug: 'modelo-instalacao', label: 'Modelo da OS de instalação' }] },
   inventory: { slug: 'estoque', icon: Boxes, tabs: [
     { slug: 'saldos', label: 'Saldos', group: STOCK_OPERATION },
     { slug: 'movimentos', label: 'Movimentos', group: STOCK_OPERATION },
