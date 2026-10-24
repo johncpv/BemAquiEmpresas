@@ -97,6 +97,10 @@ import { ShortagesPage } from '@/pages/inventory/stock/ShortagesPage'
 import { NewPurchaseRequestPage } from '@/pages/purchasing/NewPurchaseRequestPage'
 import { PurchaseRequestPage } from '@/pages/purchasing/PurchaseRequestPage'
 import { PurchaseRequestsPage } from '@/pages/purchasing/PurchaseRequestsPage'
+import { EditPurchaseOrderPage } from '@/pages/purchasing/orders/EditPurchaseOrderPage'
+import { NewPurchaseOrderPage } from '@/pages/purchasing/orders/NewPurchaseOrderPage'
+import { PurchaseOrderPage } from '@/pages/purchasing/orders/PurchaseOrderPage'
+import { PurchaseOrdersPage } from '@/pages/purchasing/orders/PurchaseOrdersPage'
 import { MovementPage } from '@/pages/inventory/stock/MovementPage'
 import { MovementsPage } from '@/pages/inventory/stock/MovementsPage'
 import { CalendarPage } from '@/pages/production/CalendarPage'
@@ -182,6 +186,11 @@ const purchasingRootRoute = createRoute({ getParentRoute: () => appRoute, path: 
 const purchaseRequestsRoute = createRoute({ getParentRoute: () => appRoute, path: 'compras/solicitacoes', component: gated('purchasing', PurchaseRequestsPage) })
 const newPurchaseRequestRoute = createRoute({ getParentRoute: () => appRoute, path: 'compras/solicitacoes/nova', component: gated('purchasing', NewPurchaseRequestPage) })
 const purchaseRequestRoute = createRoute({ getParentRoute: () => appRoute, path: 'compras/solicitacoes/$id', component: gated('purchasing', PurchaseRequestPage) })
+// Pedidos de compra (CMP-03a): lista, novo (à mão ou das SC), detalhe com abas na URL e edição.
+const purchaseOrdersRoute = createRoute({ getParentRoute: () => appRoute, path: 'compras/pedidos', component: gated('purchasing', PurchaseOrdersPage) })
+const newPurchaseOrderRoute = createRoute({ getParentRoute: () => appRoute, path: 'compras/pedidos/novo', component: gated('purchasing', NewPurchaseOrderPage) })
+const purchaseOrderRoute = createRoute({ getParentRoute: () => appRoute, path: 'compras/pedidos/$id', component: gated('purchasing', PurchaseOrderPage) })
+const editPurchaseOrderRoute = createRoute({ getParentRoute: () => appRoute, path: 'compras/pedidos/$id/editar', component: gated('purchasing', EditPurchaseOrderPage) })
 const locationsRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/locais', component: gated('inventory', LocationsPage) })
 // Itens, unidades, categorias e garantia padrão (CAD-02a).
 const itemsRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/itens', component: gated('inventory', ItemsPage) })
@@ -326,7 +335,7 @@ export const routeTree = rootRoute.addChildren([
   inviteRoute,
   appRoute.addChildren([appIndexRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute,
     aiSettingsRoute, importRunsRoute, importRunRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute,
-    inventoryRootRoute, balancesRoute, movementsRoute, movementRoute, manualPostingsRoute, manualPostingRoute, shortagesRoute, requisitionsRoute, requisitionRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, bomsRoute, productionRootRoute, fabricationOrdersRoute, fabricationOrderRoute, kanbanRoute, openLaborRoute, operatorRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute, qualityRoute, qualityStepRoute, nonConformitiesRoute, nonConformityRoute, purchasingRootRoute, purchaseRequestsRoute, newPurchaseRequestRoute, purchaseRequestRoute,
+    inventoryRootRoute, balancesRoute, movementsRoute, movementRoute, manualPostingsRoute, manualPostingRoute, shortagesRoute, requisitionsRoute, requisitionRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, bomsRoute, productionRootRoute, fabricationOrdersRoute, fabricationOrderRoute, kanbanRoute, openLaborRoute, operatorRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute, qualityRoute, qualityStepRoute, nonConformitiesRoute, nonConformityRoute, purchasingRootRoute, purchaseRequestsRoute, newPurchaseRequestRoute, purchaseRequestRoute, purchaseOrdersRoute, newPurchaseOrderRoute, purchaseOrderRoute, editPurchaseOrderRoute,
     financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, payablesRoute, newPayableRoute, payableRoute, recurringRoute, approvalRulesRoute, openingRoute, cashFlowRoute, agingRoute, paymentOrdersRoute, newPaymentOrderRoute, paymentOrderRoute, statementRoute, quotesRoute, quoteFunnelRoute, quoteRoute, quoteCompareRoute, contractsRoute, contractRoute, amendmentRoute, projectsRoute, projectRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
   platformLoginRoute,
   platformPasswordRoute,

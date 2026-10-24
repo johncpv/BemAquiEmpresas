@@ -15,6 +15,7 @@ Ver o que a solicitação pede, para quando e em que pé está cada item, e ajus
 - Se você diminuir a linha da falta abaixo do que a OS precisa, aparece o aviso "A OS {número} continua com falta de {x}.".
 - **Cancelar linha** e **Cancelar solicitação** pedem o motivo. Solicitação com item em cotação ou pedido não é cancelada inteira: cancele só as linhas em aberto.
 - A faixa de fatos mostra o destino, a OS, a necessidade mais próxima e quem pediu (ou **Sistema · Falta da BOM**, **Sistema · Estoque mínimo**).
+- **Pedir direto ao último fornecedor** (com a permissão de criar em Compras) abre o novo pedido de compra com as linhas em aberto, o fornecedor do último pedido de cada item e o último preço pago. As linhas atendidas passam a **Pedida**.
 
 ## Perguntas frequentes
 **A linha da falta mudou sozinha. Por quê?** A falta da OS mudou: chegou material, a BOM foi revista ou a OS foi cancelada. A linha em aberto acompanha a falta. Linha em cotação ou pedido não muda; quem compra recebe o aviso.
