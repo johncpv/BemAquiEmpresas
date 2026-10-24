@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BemAqui.Host.Persistence.Migrations
 {
     [DbContext(typeof(TenantDbContext))]
-    [Migration("20261024002656_PurchaseOrders")]
+    [Migration("20261024023142_PurchaseOrders")]
     partial class PurchaseOrders
     {
         /// <inheritdoc />
@@ -5586,6 +5586,221 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("manual_posting_lines", "inventory");
                 });
 
+            modelBuilder.Entity("BemAqui.Inventory.Domain.MaterialRequisition", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("completed_at");
+
+                    b.Property<Guid?>("CompletedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("completed_by");
+
+                    b.Property<DateTimeOffset?>("DecidedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("decided_at");
+
+                    b.Property<Guid?>("DecidedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("decided_by");
+
+                    b.Property<string>("DecisionComment")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("decision_comment");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("number");
+
+                    b.Property<decimal>("OverBomValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("over_bom_value");
+
+                    b.Property<Guid>("ProductionOrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("production_order_id");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<string>("RejectReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("reject_reason");
+
+                    b.Property<DateTimeOffset>("RequestedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("requested_at");
+
+                    b.Property<Guid?>("RequestedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("requested_by");
+
+                    b.Property<string>("ReversalReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("reversal_reason");
+
+                    b.Property<bool>("ReversalSelfApproved")
+                        .HasColumnType("boolean")
+                        .HasColumnName("reversal_self_approved");
+
+                    b.Property<DateTimeOffset?>("ReversedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reversed_at");
+
+                    b.Property<Guid?>("ReversedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reversed_by");
+
+                    b.Property<bool>("SelfApproved")
+                        .HasColumnType("boolean")
+                        .HasColumnName("self_approved");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<Guid?>("StepId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("step_id");
+
+                    b.Property<string>("StepName")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("step_name");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_material_requisitions");
+
+                    b.HasIndex("Number")
+                        .IsUnique()
+                        .HasDatabaseName("ux_material_requisitions_number");
+
+                    b.HasIndex("ProjectId")
+                        .HasDatabaseName("ix_material_requisitions_project_id");
+
+                    b.HasIndex("ProductionOrderId", "RequestedAt")
+                        .HasDatabaseName("ix_material_requisitions_order_requested_at");
+
+                    b.HasIndex("Status", "RequestedAt")
+                        .HasDatabaseName("ix_material_requisitions_status_requested_at");
+
+                    b.ToTable("material_requisitions", "inventory");
+                });
+
+            modelBuilder.Entity("BemAqui.Inventory.Domain.MaterialRequisitionLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("IsExtra")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_extra");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_id");
+
+                    b.Property<Guid>("LocationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("location_id");
+
+                    b.Property<Guid?>("LotId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("lot_id");
+
+                    b.Property<Guid?>("MovementId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("movement_id");
+
+                    b.Property<decimal>("OverQuantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("over_quantity");
+
+                    b.Property<string>("OverReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("over_reason");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("quantity");
+
+                    b.Property<Guid>("RequisitionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("requisition_id");
+
+                    b.Property<Guid?>("ReservationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reservation_id");
+
+                    b.Property<Guid?>("ReturnsLineId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("returns_line_id");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.HasKey("Id")
+                        .HasName("pk_material_requisition_lines");
+
+                    b.HasIndex("ItemId")
+                        .HasDatabaseName("ix_material_requisition_lines_item_id");
+
+                    b.HasIndex("LocationId")
+                        .HasDatabaseName("ix_material_requisition_lines_location_id");
+
+                    b.HasIndex("LotId")
+                        .HasDatabaseName("ix_material_requisition_lines_lot_id");
+
+                    b.HasIndex("MovementId")
+                        .HasDatabaseName("ix_material_requisition_lines_movement_id")
+                        .HasFilter("movement_id IS NOT NULL");
+
+                    b.HasIndex("ReservationId")
+                        .HasDatabaseName("ix_material_requisition_lines_reservation_id");
+
+                    b.HasIndex("ReturnsLineId")
+                        .HasDatabaseName("ix_material_requisition_lines_returns_line_id")
+                        .HasFilter("returns_line_id IS NOT NULL");
+
+                    b.HasIndex("RequisitionId", "Sequence")
+                        .IsUnique()
+                        .HasDatabaseName("ux_material_requisition_lines_requisition_sequence");
+
+                    b.ToTable("material_requisition_lines", "inventory");
+                });
+
             modelBuilder.Entity("BemAqui.Inventory.Domain.MeasureUnit", b =>
                 {
                     b.Property<Guid>("Id")
@@ -8709,6 +8924,48 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasForeignKey("ToLocationId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_manual_posting_lines_locations_to_location_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Inventory.Domain.MaterialRequisitionLine", b =>
+                {
+                    b.HasOne("BemAqui.Inventory.Domain.Item", null)
+                        .WithMany()
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_material_requisition_lines_items_item_id");
+
+                    b.HasOne("BemAqui.Inventory.Domain.Location", null)
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_material_requisition_lines_locations_location_id");
+
+                    b.HasOne("BemAqui.Inventory.Domain.Lot", null)
+                        .WithMany()
+                        .HasForeignKey("LotId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_material_requisition_lines_lots_lot_id");
+
+                    b.HasOne("BemAqui.Inventory.Domain.MaterialRequisition", null)
+                        .WithMany()
+                        .HasForeignKey("RequisitionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_material_requisition_lines_material_requisitions_requisitio");
+
+                    b.HasOne("BemAqui.Inventory.Domain.Reservation", null)
+                        .WithMany()
+                        .HasForeignKey("ReservationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_material_requisition_lines_reservations_reservation_id");
+
+                    b.HasOne("BemAqui.Inventory.Domain.MaterialRequisitionLine", null)
+                        .WithMany()
+                        .HasForeignKey("ReturnsLineId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_material_requisition_lines_material_requisition_lines_retur");
                 });
 
             modelBuilder.Entity("BemAqui.Inventory.Domain.Reservation", b =>
