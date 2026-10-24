@@ -324,6 +324,7 @@ public partial class FabricationTests
 
         var reversed = await OkAsync(await ReverseOrderAsync(owner, order, Version(preview)));
         reversed.GetProperty("status").GetString().Should().Be("Quality", "a última etapa é de qualidade: a OS volta a Qualidade (regra única da PRD-06a1)");
+        (await OrderAsync(order)).QualityAttempt.Should().Be(2, "a qualidade já decidida volta numa tentativa nova, para ser inspecionada de novo");
         reversed.GetProperty("entryMovementId").ValueKind.Should().Be(JsonValueKind.Null);
         var inverse = await WithDbAsync(db => db.StockMovements.AsNoTracking().SingleAsync(m => m.ReversesMovementId == entry.Id));
         (inverse.Quantity, inverse.UnitCost).Should().Be((-2m, entry.UnitCost), "CA 10: movimento inverso pelo custo da entrada");

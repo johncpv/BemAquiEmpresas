@@ -149,6 +149,10 @@ public sealed partial class FabricationOrderService
             last.AwaitingApprovalSince = null;
             last.CompletedBySupervisor = false;
             last.CompletionReason = null;
+            if (last.IsQualityStep)
+            {
+                await ReopenQualityAsync(order, last, cancellationToken);
+            }
         }
 
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
@@ -221,6 +225,26 @@ public sealed partial class FabricationOrderService
     /// <summary>Itens que podem ser o produto da OS (CA 1), pela busca.</summary>
     public Task<IReadOnlyList<OrderProductOption>> ProductOptionsAsync(string? term, CancellationToken cancellationToken = default) =>
         goods.ProductOptionsAsync(term, cancellationToken);
+
+    /// <summary>
+    /// Estorno com a última etapa de qualidade: a decisão da tentativa atual já está gravada (único por etapa e tentativa, PRD-05), então a
+    /// etapa volta numa tentativa nova da OS para ser inspecionada de novo, com o checklist zerado (os itens marcados da tentativa anterior
+    /// ficam guardados) e sem a última decisão. O início da tentativa não muda: a segregação continua olhando quem trabalhou nela.
+    /// </summary>
+    private async Task ReopenQualityAsync(ProductionOrder order, ProductionOrderStep step, CancellationToken ct)
+    {
+        var current = await db.ProductionOrderChecklist.Where(c => c.StepId == step.Id && c.Attempt == step.Attempt).OrderBy(c => c.Sequence).ToListAsync(ct);
+        order.QualityAttempt++;
+        foreach (var item in current)
+        {
+            db.ProductionOrderChecklist.Add(new ProductionOrderChecklistItem { OrderId = item.OrderId, StepId = item.StepId, Sequence = item.Sequence, Text = item.Text, Attempt = order.QualityAttempt });
+        }
+
+        step.Attempt = order.QualityAttempt;
+        step.DecidedBy = null;
+        step.DecidedAt = null;
+        step.SelfInspection = false;
+    }
 
     /// <summary>Motivo que impede concluir a OS (CA 4), pelas etapas e pelo apontamento aberto; null: pode concluir.</summary>
     private async Task<string?> CompletionBlockerAsync(ProductionOrder order, CancellationToken ct)
