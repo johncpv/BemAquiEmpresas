@@ -75,7 +75,7 @@ test.describe('Produto acabado na conclusão da OS (PRD-06a2)', () => {
     })
 
     await page.goto('/app/producao/os/of1')
-    await page.getByRole('button', { name: 'Concluir OS' }).click()
+    await page.getByRole('button', { name: 'Concluir OS' }).first().click()
     const dialog = page.getByRole('alertdialog')
     await expect(dialog.getByText('Entra no estoque: 2 UN de ELV-6 · Elevador 6 paradas em Almoxarifado principal.')).toBeVisible()
     await expect(dialog.getByText('Gera 2 números de série, um por unidade.')).toBeVisible()
@@ -119,7 +119,7 @@ test.describe('Produto acabado na conclusão da OS (PRD-06a2)', () => {
     })
 
     await page.goto('/app/producao/os/of1')
-    await page.getByRole('button', { name: 'Concluir OS' }).click()
+    await page.getByRole('button', { name: 'Concluir OS' }).first().click()
     const dialog = page.getByRole('alertdialog')
     await expect(dialog.getByText('Custo da OS zerado: o produto entra no estoque com custo 0.')).toBeVisible()
     await expect(dialog.getByText('Sem controle de série: a entrada é por quantidade.')).toBeVisible()
@@ -144,7 +144,7 @@ test.describe('Produto acabado na conclusão da OS (PRD-06a2)', () => {
     })
 
     await page.goto('/app/producao/os/of1')
-    await expect(page.getByRole('button', { name: 'Concluir OS' })).toBeDisabled()
+    await expect(page.getByRole('button', { name: 'Concluir OS' }).first()).toBeDisabled()
     await expect(page.getByText('Escolha o item de estoque do produto antes de concluir.')).toBeVisible()
     await page.getByRole('button', { name: 'Escolher item do produto' }).click()
     const dialog = page.getByRole('alertdialog')
@@ -152,7 +152,7 @@ test.describe('Produto acabado na conclusão da OS (PRD-06a2)', () => {
     await dialog.getByRole('button', { name: 'Escolher item' }).click()
     await expect(page.getByText('Item do produto escolhido').first()).toBeVisible()
     expect(put).toEqual({ itemId: 'i9', version: 7 })
-    await expect(page.getByRole('button', { name: 'Concluir OS' })).toBeEnabled()
+    await expect(page.getByRole('button', { name: 'Concluir OS' }).first()).toBeEnabled()
   })
 
   test('as séries do item: série, OS, projeto, situação e local; sem série, o vazio diz por quê', async ({ page }) => {
