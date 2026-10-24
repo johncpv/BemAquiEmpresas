@@ -16,4 +16,6 @@ export interface ApprovalRuleInput {
   /** @nullable */
   approverUserId: string | null;
   level: number;
+  /** @nullable */
+  documentType?: string | null;
 }

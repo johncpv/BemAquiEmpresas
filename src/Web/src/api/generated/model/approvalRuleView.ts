@@ -21,4 +21,5 @@ export interface ApprovalRuleView {
   approverUserId: string | null;
   approverName: string;
   isDefault: boolean;
+  documentType: string;
 }
