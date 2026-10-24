@@ -1,0 +1,8 @@
+Pedido de compra {{ order_number }}
+
+{{ tenant_name }} enviou o pedido de compra {{ order_number }}, com previsão de entrega em {{ expected_date }}.
+{% if message != blank %}
+{{ message }}
+{% endif %}
+O pedido está em PDF, anexo a este e-mail, com os itens, as quantidades, os preços e a condição de pagamento.
+Para responder, use o próprio e-mail: a resposta vai para {{ sender_name }}.
