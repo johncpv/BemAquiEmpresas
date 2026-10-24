@@ -17,7 +17,7 @@ const milestone = { description: 'Fabricação concluída', amount: 40000, dueDa
 const preview = (over: Record<string, unknown> = {}) => ({
   orderId: 'of1', orderNumber: 'OS-2026-00041', status: 'ReadyToComplete', canComplete: true, completeBlocker: null, canReverse: false, reverseBlocker: 'Só OS concluída tem a conclusão estornada.',
   lastFabricationOrder: true, otherOpenOrders: 0, projectId: 'p1', projectNumber: 'PRJ-2026-0007', projectStatus: 'InProgress', projectFabricatedByOrders: false, showAmounts: true,
-  milestones: [milestone], stockNotice: 'O produto acabado ainda não entra no estoque nesta versão.', version: 7, ...over,
+  milestones: [milestone], stockNotice: 'O Estoque não está liberado nesta versão do sistema: o produto acabado não entra no estoque.', version: 7, stock: null, ...over,
 })
 const project = (over: Record<string, unknown> = {}) => ({
   id: 'p1', number: 'PRJ-2026-0007', name: 'Aurora — Elevador', status: 'InProgress', partyId: 'cli1', partyName: 'Condomínio Aurora', contractId: 'k1', contractNumber: 'CTR-2026-0004',
@@ -72,7 +72,7 @@ test.describe('Conclusão da OS (PRD-06a1)', () => {
     await expect(dialog.getByText('A OS-2026-00041 passa a Concluída.')).toBeVisible()
     await expect(dialog.getByText('O projeto PRJ-2026-0007 passa a Fabricado.')).toBeVisible()
     await expect(dialog.getByText(/Libera a parcela Fabricação concluída de R\$\s40\.000,00, vencendo em 01\/11\/2026\./)).toBeVisible()
-    await expect(dialog.getByText('O produto acabado ainda não entra no estoque nesta versão.')).toBeVisible()
+    await expect(dialog.getByText('O Estoque não está liberado nesta versão do sistema: o produto acabado não entra no estoque.')).toBeVisible()
     await expect(dialog.getByRole('spinbutton')).toHaveCount(0)
     if (info.project.name === 'celular') {
       const box = await dialog.boundingBox()
@@ -81,7 +81,7 @@ test.describe('Conclusão da OS (PRD-06a1)', () => {
     }
     await dialog.getByRole('button', { name: 'Concluir OS' }).click()
     await expect(page.getByText('OS concluída').first()).toBeVisible()
-    expect(posted).toEqual({ version: 7 })
+    expect(posted).toEqual({ version: 7, locationId: null, serialNumbers: null, confirmZeroCost: false })
     await expect(page.getByText(/Concluída em 22\/10\/2026.* por Rui Supervisor/)).toBeVisible()
     await expect(page.getByRole('button', { name: 'Estornar conclusão' })).toBeVisible()
 
