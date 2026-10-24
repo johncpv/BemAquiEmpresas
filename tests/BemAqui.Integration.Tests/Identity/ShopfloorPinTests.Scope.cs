@@ -18,7 +18,7 @@ public partial class ShopfloorPinTests
     private static readonly string[] Allowed =
     [
         "GetShopfloorQueue", "SearchShopfloorOrder", "GetShopfloorStep", "StartShopfloorStep", "PauseShopfloorStep", "ResumeShopfloorStep", "LeaveShopfloorStep",
-        "FinishShopfloorStep", "MarkShopfloorChecklist", "ListShopfloorAttachments", "DownloadShopfloorAttachment", "GetShopfloorDevice", "SetShopfloorDeviceTheme",
+        "FinishShopfloorStep", "GetShopfloorStepMaterial", "RequestShopfloorMaterial", "MarkShopfloorChecklist", "ListShopfloorAttachments", "DownloadShopfloorAttachment", "GetShopfloorDevice", "SetShopfloorDeviceTheme",
         "DeleteMyShopfloorPin", "GetQualityQueue", "GetQualityStep", "MarkQualityChecklist", "StartQualityInspection", "ApproveQuality", "RejectQuality",
         "UploadNonConformityAttachment", "GetCurrentSession", "GetMyPermissions", "Logout", "ListHelp", "ListSeenHelp", "GetHelp", "MarkHelpSeen", "AskHelp",
     ];

@@ -33,6 +33,8 @@ public static class CommercialInfrastructure
         services.TryAddScoped<QuoteApprovalService>();
         services.TryAddScoped<ContractService>();
         services.TryAddScoped<ProjectService>();
+        // EST-03 CA 11: recomposição do custo de material das saídas com projeto anteriores ao consumidor (D3).
+        services.TryAddScoped<MaterialCostBackfill>();
         services.TryAddScoped<AmendmentService>();
         services.TryAddScoped<IProjects>(sp => sp.GetRequiredService<ProjectService>());
         services.TryAddScoped<IContracts>(sp => sp.GetRequiredService<ProjectService>());

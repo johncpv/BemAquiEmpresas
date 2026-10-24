@@ -22,6 +22,8 @@ export const CHANGE_KIND: Record<ReservationChangeKind, string> = {
   Released: 'Liberou',
   Completed: 'Completou com material que chegou',
   Requested: 'Ajustou a necessidade',
+  Issued: 'Baixou pela requisição',
+  Returned: 'Voltou ao estoque',
 }
 
 /** Aviso de demora do processamento assíncrono (padrão 7 da Fase 3). */

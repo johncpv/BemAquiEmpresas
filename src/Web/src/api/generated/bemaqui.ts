@@ -151,6 +151,7 @@ import type {
   GetItemKardexParams,
   GetItemReservationHistoryParams,
   GetManualPostingHistoryParams,
+  GetMaterialRequisitionHistoryParams,
   GetMissingLaborCostsParams,
   GetNonConformityHistoryParams,
   GetOrderBomHistoryParams,
@@ -223,6 +224,7 @@ import type {
   ListItemsParams,
   ListLocationsParams,
   ListManualPostingsParams,
+  ListMaterialRequisitionsParams,
   ListMyNotificationsParams,
   ListNonConformitiesParams,
   ListPartiesParams,
@@ -255,6 +257,7 @@ import type {
   LoginRequest,
   LoginResponse,
   LookupCnpjParams,
+  LossInput,
   LotDetail,
   ManualCancelInput,
   ManualDecisionInput,
@@ -288,8 +291,10 @@ import type {
   OrderCompletionPreview,
   OrderLaborCostView,
   OrderLaborView,
+  OrderMaterialCostView,
   OrderMaterialView,
   OrderQualityView,
+  OrderRequisitions,
   PagedListOfAuditEntryDto,
   PagedListOfBalanceRow,
   PagedListOfBankAccountDetail,
@@ -305,6 +310,7 @@ import type {
   PagedListOfPaymentTermDetail,
   PagedListOfPositionDetail,
   PagedListOfRelatedAuditEntryDto,
+  PagedListOfRequisitionSummary,
   PagedListOfReservationChangeRow,
   PagedListOfRoutingTemplateSummary,
   PagedListOfShortageRow,
@@ -333,6 +339,7 @@ import type {
   PaymentTermOption,
   PayrollChargesInput,
   PendingFabricationPage,
+  PickingRow,
   PinLoginRequest,
   PinSessionResponse,
   PinUsers,
@@ -410,9 +417,19 @@ import type {
   RecurringExpenseInput,
   RegisterDeviceInput,
   RemoveQuoteItemParams,
+  RequisitionConfirmInput,
+  RequisitionDecisionInput,
+  RequisitionDeclineInput,
+  RequisitionDetail,
+  RequisitionDraft,
+  RequisitionInput,
+  RequisitionItemStock,
+  RequisitionLineView,
+  RequisitionReverseInput,
   ReservationDetail,
   ResetPasswordRequest,
   ResubmitInput,
+  ReturnInput,
   ReverseCompletionInput,
   ReverseMovementInput,
   RoutingItemLinkInput,
@@ -444,6 +461,9 @@ import type {
   ShopfloorDeviceContext,
   ShopfloorDeviceList,
   ShopfloorFinishInput,
+  ShopfloorMaterialInput,
+  ShopfloorMaterialRequest,
+  ShopfloorMaterialView,
   ShopfloorPauseInput,
   ShopfloorQueueStep,
   ShopfloorQueueView,
@@ -29684,6 +29704,184 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getMarkShopfloorChecklistMutationOptions(options), queryClient);
     }
 
+export const getGetShopfloorStepMaterialUrl = (stepId: string,) => {
+
+
+
+
+  return `/api/v1/shopfloor/steps/${stepId}/material`
+}
+
+export const getShopfloorStepMaterial = async (stepId: string, options?: Parameters<typeof apiFetch>[1]): Promise<ShopfloorMaterialView> => {
+
+  return apiFetch<ShopfloorMaterialView>(getGetShopfloorStepMaterialUrl(stepId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetShopfloorStepMaterialQueryKey = (stepId: string,) => {
+    return [
+    `/api/v1/shopfloor/steps/${stepId}/material`
+    ] as const;
+    }
+
+
+export const getGetShopfloorStepMaterialQueryOptions = <TData = Awaited<ReturnType<typeof getShopfloorStepMaterial>>, TError = unknown>(stepId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShopfloorStepMaterial>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetShopfloorStepMaterialQueryKey(stepId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getShopfloorStepMaterial>>> = ({ signal }) => getShopfloorStepMaterial(stepId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: stepId !== null && stepId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getShopfloorStepMaterial>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetShopfloorStepMaterialQueryResult = NonNullable<Awaited<ReturnType<typeof getShopfloorStepMaterial>>>
+export type GetShopfloorStepMaterialQueryError = unknown
+
+
+export function useGetShopfloorStepMaterial<TData = Awaited<ReturnType<typeof getShopfloorStepMaterial>>, TError = unknown>(
+ stepId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShopfloorStepMaterial>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getShopfloorStepMaterial>>,
+          TError,
+          Awaited<ReturnType<typeof getShopfloorStepMaterial>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetShopfloorStepMaterial<TData = Awaited<ReturnType<typeof getShopfloorStepMaterial>>, TError = unknown>(
+ stepId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShopfloorStepMaterial>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getShopfloorStepMaterial>>,
+          TError,
+          Awaited<ReturnType<typeof getShopfloorStepMaterial>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetShopfloorStepMaterial<TData = Awaited<ReturnType<typeof getShopfloorStepMaterial>>, TError = unknown>(
+ stepId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShopfloorStepMaterial>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetShopfloorStepMaterial<TData = Awaited<ReturnType<typeof getShopfloorStepMaterial>>, TError = unknown>(
+ stepId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShopfloorStepMaterial>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetShopfloorStepMaterialQueryOptions(stepId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getRequestShopfloorMaterialUrl = (stepId: string,) => {
+
+
+
+
+  return `/api/v1/shopfloor/steps/${stepId}/material-requests`
+}
+
+export const requestShopfloorMaterial = async (stepId: string,
+    shopfloorMaterialInput: ShopfloorMaterialInput, options?: Parameters<typeof apiFetch>[1]): Promise<ShopfloorMaterialRequest> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ShopfloorMaterialRequest>(getRequestShopfloorMaterialUrl(stepId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(shopfloorMaterialInput)
+  }
+);}
+
+
+
+
+
+export const getRequestShopfloorMaterialMutationKey = () => ['requestShopfloorMaterial'] as const;
+
+export const getRequestShopfloorMaterialMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestShopfloorMaterial>>, TError,RequestShopfloorMaterialMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof requestShopfloorMaterial>>, TError,RequestShopfloorMaterialMutationVariables, TContext> => {
+
+const mutationKey = getRequestShopfloorMaterialMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof requestShopfloorMaterial>>, RequestShopfloorMaterialMutationVariables> = (props) => {
+          const {stepId,data} = props ?? {};
+
+          return  requestShopfloorMaterial(stepId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RequestShopfloorMaterialMutationResult = NonNullable<Awaited<ReturnType<typeof requestShopfloorMaterial>>>
+    export type RequestShopfloorMaterialMutationBody = ShopfloorMaterialInput
+    export type RequestShopfloorMaterialMutationError = unknown
+    export type RequestShopfloorMaterialMutationVariables = {stepId: string;data: ShopfloorMaterialInput}
+
+    export const useRequestShopfloorMaterial = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestShopfloorMaterial>>, TError,RequestShopfloorMaterialMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof requestShopfloorMaterial>>,
+        TError,
+        RequestShopfloorMaterialMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRequestShopfloorMaterialMutationOptions(options), queryClient);
+    }
+
 export const getListShopfloorAttachmentsUrl = (stepId: string,) => {
 
 
@@ -35610,6 +35808,1658 @@ export function useGetItemReservationHistory<TData = Awaited<ReturnType<typeof g
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetItemReservationHistoryQueryOptions(itemId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListMaterialRequisitionsUrl = (params?: ListMaterialRequisitionsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/inventory/requisitions?${stringifiedParams}` : `/api/v1/inventory/requisitions`
+}
+
+export const listMaterialRequisitions = async (params?: ListMaterialRequisitionsParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfRequisitionSummary> => {
+
+  return apiFetch<PagedListOfRequisitionSummary>(getListMaterialRequisitionsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListMaterialRequisitionsQueryKey = (params?: ListMaterialRequisitionsParams,) => {
+    return [
+    `/api/v1/inventory/requisitions`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListMaterialRequisitionsQueryOptions = <TData = Awaited<ReturnType<typeof listMaterialRequisitions>>, TError = unknown>(params?: ListMaterialRequisitionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMaterialRequisitions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListMaterialRequisitionsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMaterialRequisitions>>> = ({ signal }) => listMaterialRequisitions(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listMaterialRequisitions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListMaterialRequisitionsQueryResult = NonNullable<Awaited<ReturnType<typeof listMaterialRequisitions>>>
+export type ListMaterialRequisitionsQueryError = unknown
+
+
+export function useListMaterialRequisitions<TData = Awaited<ReturnType<typeof listMaterialRequisitions>>, TError = unknown>(
+ params: undefined |  ListMaterialRequisitionsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMaterialRequisitions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listMaterialRequisitions>>,
+          TError,
+          Awaited<ReturnType<typeof listMaterialRequisitions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListMaterialRequisitions<TData = Awaited<ReturnType<typeof listMaterialRequisitions>>, TError = unknown>(
+ params?: ListMaterialRequisitionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMaterialRequisitions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listMaterialRequisitions>>,
+          TError,
+          Awaited<ReturnType<typeof listMaterialRequisitions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListMaterialRequisitions<TData = Awaited<ReturnType<typeof listMaterialRequisitions>>, TError = unknown>(
+ params?: ListMaterialRequisitionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMaterialRequisitions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListMaterialRequisitions<TData = Awaited<ReturnType<typeof listMaterialRequisitions>>, TError = unknown>(
+ params?: ListMaterialRequisitionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMaterialRequisitions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListMaterialRequisitionsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListRequisitionsToPickUrl = () => {
+
+
+
+
+  return `/api/v1/inventory/requisitions/to-pick`
+}
+
+export const listRequisitionsToPick = async ( options?: Parameters<typeof apiFetch>[1]): Promise<PickingRow[]> => {
+
+  return apiFetch<PickingRow[]>(getListRequisitionsToPickUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListRequisitionsToPickQueryKey = () => {
+    return [
+    `/api/v1/inventory/requisitions/to-pick`
+    ] as const;
+    }
+
+
+export const getListRequisitionsToPickQueryOptions = <TData = Awaited<ReturnType<typeof listRequisitionsToPick>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRequisitionsToPick>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListRequisitionsToPickQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listRequisitionsToPick>>> = ({ signal }) => listRequisitionsToPick({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listRequisitionsToPick>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListRequisitionsToPickQueryResult = NonNullable<Awaited<ReturnType<typeof listRequisitionsToPick>>>
+export type ListRequisitionsToPickQueryError = unknown
+
+
+export function useListRequisitionsToPick<TData = Awaited<ReturnType<typeof listRequisitionsToPick>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRequisitionsToPick>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listRequisitionsToPick>>,
+          TError,
+          Awaited<ReturnType<typeof listRequisitionsToPick>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListRequisitionsToPick<TData = Awaited<ReturnType<typeof listRequisitionsToPick>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRequisitionsToPick>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listRequisitionsToPick>>,
+          TError,
+          Awaited<ReturnType<typeof listRequisitionsToPick>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListRequisitionsToPick<TData = Awaited<ReturnType<typeof listRequisitionsToPick>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRequisitionsToPick>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListRequisitionsToPick<TData = Awaited<ReturnType<typeof listRequisitionsToPick>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRequisitionsToPick>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListRequisitionsToPickQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetRequisitionItemStockUrl = (itemId: string,) => {
+
+
+
+
+  return `/api/v1/inventory/requisitions/item-stock/${itemId}`
+}
+
+export const getRequisitionItemStock = async (itemId: string, options?: Parameters<typeof apiFetch>[1]): Promise<RequisitionItemStock> => {
+
+  return apiFetch<RequisitionItemStock>(getGetRequisitionItemStockUrl(itemId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRequisitionItemStockQueryKey = (itemId: string,) => {
+    return [
+    `/api/v1/inventory/requisitions/item-stock/${itemId}`
+    ] as const;
+    }
+
+
+export const getGetRequisitionItemStockQueryOptions = <TData = Awaited<ReturnType<typeof getRequisitionItemStock>>, TError = unknown>(itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRequisitionItemStock>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRequisitionItemStockQueryKey(itemId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRequisitionItemStock>>> = ({ signal }) => getRequisitionItemStock(itemId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: itemId !== null && itemId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRequisitionItemStock>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetRequisitionItemStockQueryResult = NonNullable<Awaited<ReturnType<typeof getRequisitionItemStock>>>
+export type GetRequisitionItemStockQueryError = unknown
+
+
+export function useGetRequisitionItemStock<TData = Awaited<ReturnType<typeof getRequisitionItemStock>>, TError = unknown>(
+ itemId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRequisitionItemStock>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRequisitionItemStock>>,
+          TError,
+          Awaited<ReturnType<typeof getRequisitionItemStock>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRequisitionItemStock<TData = Awaited<ReturnType<typeof getRequisitionItemStock>>, TError = unknown>(
+ itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRequisitionItemStock>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRequisitionItemStock>>,
+          TError,
+          Awaited<ReturnType<typeof getRequisitionItemStock>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRequisitionItemStock<TData = Awaited<ReturnType<typeof getRequisitionItemStock>>, TError = unknown>(
+ itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRequisitionItemStock>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetRequisitionItemStock<TData = Awaited<ReturnType<typeof getRequisitionItemStock>>, TError = unknown>(
+ itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRequisitionItemStock>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetRequisitionItemStockQueryOptions(itemId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetMaterialRequisitionUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/requisitions/${id}`
+}
+
+export const getMaterialRequisition = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<RequisitionDetail> => {
+
+  return apiFetch<RequisitionDetail>(getGetMaterialRequisitionUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMaterialRequisitionQueryKey = (id: string,) => {
+    return [
+    `/api/v1/inventory/requisitions/${id}`
+    ] as const;
+    }
+
+
+export const getGetMaterialRequisitionQueryOptions = <TData = Awaited<ReturnType<typeof getMaterialRequisition>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMaterialRequisition>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMaterialRequisitionQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMaterialRequisition>>> = ({ signal }) => getMaterialRequisition(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMaterialRequisition>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetMaterialRequisitionQueryResult = NonNullable<Awaited<ReturnType<typeof getMaterialRequisition>>>
+export type GetMaterialRequisitionQueryError = unknown
+
+
+export function useGetMaterialRequisition<TData = Awaited<ReturnType<typeof getMaterialRequisition>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMaterialRequisition>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMaterialRequisition>>,
+          TError,
+          Awaited<ReturnType<typeof getMaterialRequisition>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMaterialRequisition<TData = Awaited<ReturnType<typeof getMaterialRequisition>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMaterialRequisition>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMaterialRequisition>>,
+          TError,
+          Awaited<ReturnType<typeof getMaterialRequisition>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMaterialRequisition<TData = Awaited<ReturnType<typeof getMaterialRequisition>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMaterialRequisition>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetMaterialRequisition<TData = Awaited<ReturnType<typeof getMaterialRequisition>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMaterialRequisition>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetMaterialRequisitionQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetMaterialRequisitionLineUrl = (id: string,
+    lineId: string,) => {
+
+
+
+
+  return `/api/v1/inventory/requisitions/${id}/lines/${lineId}`
+}
+
+export const getMaterialRequisitionLine = async (id: string,
+    lineId: string, options?: Parameters<typeof apiFetch>[1]): Promise<RequisitionLineView> => {
+
+  return apiFetch<RequisitionLineView>(getGetMaterialRequisitionLineUrl(id,lineId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMaterialRequisitionLineQueryKey = (id: string,
+    lineId: string,) => {
+    return [
+    `/api/v1/inventory/requisitions/${id}/lines/${lineId}`
+    ] as const;
+    }
+
+
+export const getGetMaterialRequisitionLineQueryOptions = <TData = Awaited<ReturnType<typeof getMaterialRequisitionLine>>, TError = unknown>(id: string,
+    lineId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMaterialRequisitionLine>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMaterialRequisitionLineQueryKey(id,lineId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMaterialRequisitionLine>>> = ({ signal }) => getMaterialRequisitionLine(id,lineId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && lineId !== null && lineId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMaterialRequisitionLine>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetMaterialRequisitionLineQueryResult = NonNullable<Awaited<ReturnType<typeof getMaterialRequisitionLine>>>
+export type GetMaterialRequisitionLineQueryError = unknown
+
+
+export function useGetMaterialRequisitionLine<TData = Awaited<ReturnType<typeof getMaterialRequisitionLine>>, TError = unknown>(
+ id: string,
+    lineId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMaterialRequisitionLine>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMaterialRequisitionLine>>,
+          TError,
+          Awaited<ReturnType<typeof getMaterialRequisitionLine>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMaterialRequisitionLine<TData = Awaited<ReturnType<typeof getMaterialRequisitionLine>>, TError = unknown>(
+ id: string,
+    lineId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMaterialRequisitionLine>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMaterialRequisitionLine>>,
+          TError,
+          Awaited<ReturnType<typeof getMaterialRequisitionLine>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMaterialRequisitionLine<TData = Awaited<ReturnType<typeof getMaterialRequisitionLine>>, TError = unknown>(
+ id: string,
+    lineId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMaterialRequisitionLine>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetMaterialRequisitionLine<TData = Awaited<ReturnType<typeof getMaterialRequisitionLine>>, TError = unknown>(
+ id: string,
+    lineId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMaterialRequisitionLine>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetMaterialRequisitionLineQueryOptions(id,lineId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetMaterialRequisitionHistoryUrl = (id: string,
+    params?: GetMaterialRequisitionHistoryParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/inventory/requisitions/${id}/history?${stringifiedParams}` : `/api/v1/inventory/requisitions/${id}/history`
+}
+
+export const getMaterialRequisitionHistory = async (id: string,
+    params?: GetMaterialRequisitionHistoryParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfRelatedAuditEntryDto> => {
+
+  return apiFetch<PagedListOfRelatedAuditEntryDto>(getGetMaterialRequisitionHistoryUrl(id,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMaterialRequisitionHistoryQueryKey = (id: string,
+    params?: GetMaterialRequisitionHistoryParams,) => {
+    return [
+    `/api/v1/inventory/requisitions/${id}/history`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetMaterialRequisitionHistoryQueryOptions = <TData = Awaited<ReturnType<typeof getMaterialRequisitionHistory>>, TError = unknown>(id: string,
+    params?: GetMaterialRequisitionHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMaterialRequisitionHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMaterialRequisitionHistoryQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMaterialRequisitionHistory>>> = ({ signal }) => getMaterialRequisitionHistory(id,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMaterialRequisitionHistory>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetMaterialRequisitionHistoryQueryResult = NonNullable<Awaited<ReturnType<typeof getMaterialRequisitionHistory>>>
+export type GetMaterialRequisitionHistoryQueryError = unknown
+
+
+export function useGetMaterialRequisitionHistory<TData = Awaited<ReturnType<typeof getMaterialRequisitionHistory>>, TError = unknown>(
+ id: string,
+    params: undefined |  GetMaterialRequisitionHistoryParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMaterialRequisitionHistory>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMaterialRequisitionHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getMaterialRequisitionHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMaterialRequisitionHistory<TData = Awaited<ReturnType<typeof getMaterialRequisitionHistory>>, TError = unknown>(
+ id: string,
+    params?: GetMaterialRequisitionHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMaterialRequisitionHistory>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMaterialRequisitionHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getMaterialRequisitionHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMaterialRequisitionHistory<TData = Awaited<ReturnType<typeof getMaterialRequisitionHistory>>, TError = unknown>(
+ id: string,
+    params?: GetMaterialRequisitionHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMaterialRequisitionHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetMaterialRequisitionHistory<TData = Awaited<ReturnType<typeof getMaterialRequisitionHistory>>, TError = unknown>(
+ id: string,
+    params?: GetMaterialRequisitionHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMaterialRequisitionHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetMaterialRequisitionHistoryQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getConfirmMaterialRequestUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/requisitions/${id}/confirm`
+}
+
+export const confirmMaterialRequest = async (id: string,
+    requisitionConfirmInput: RequisitionConfirmInput, options?: Parameters<typeof apiFetch>[1]): Promise<RequisitionDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<RequisitionDetail>(getConfirmMaterialRequestUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(requisitionConfirmInput)
+  }
+);}
+
+
+
+
+
+export const getConfirmMaterialRequestMutationKey = () => ['confirmMaterialRequest'] as const;
+
+export const getConfirmMaterialRequestMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmMaterialRequest>>, TError,ConfirmMaterialRequestMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof confirmMaterialRequest>>, TError,ConfirmMaterialRequestMutationVariables, TContext> => {
+
+const mutationKey = getConfirmMaterialRequestMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof confirmMaterialRequest>>, ConfirmMaterialRequestMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  confirmMaterialRequest(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConfirmMaterialRequestMutationResult = NonNullable<Awaited<ReturnType<typeof confirmMaterialRequest>>>
+    export type ConfirmMaterialRequestMutationBody = RequisitionConfirmInput
+    export type ConfirmMaterialRequestMutationError = unknown
+    export type ConfirmMaterialRequestMutationVariables = {id: string;data: RequisitionConfirmInput}
+
+    export const useConfirmMaterialRequest = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmMaterialRequest>>, TError,ConfirmMaterialRequestMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof confirmMaterialRequest>>,
+        TError,
+        ConfirmMaterialRequestMutationVariables,
+        TContext
+      > => {
+      return useMutation(getConfirmMaterialRequestMutationOptions(options), queryClient);
+    }
+
+export const getDeclineMaterialRequestUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/requisitions/${id}/decline`
+}
+
+export const declineMaterialRequest = async (id: string,
+    requisitionDeclineInput: RequisitionDeclineInput, options?: Parameters<typeof apiFetch>[1]): Promise<RequisitionDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<RequisitionDetail>(getDeclineMaterialRequestUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(requisitionDeclineInput)
+  }
+);}
+
+
+
+
+
+export const getDeclineMaterialRequestMutationKey = () => ['declineMaterialRequest'] as const;
+
+export const getDeclineMaterialRequestMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof declineMaterialRequest>>, TError,DeclineMaterialRequestMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof declineMaterialRequest>>, TError,DeclineMaterialRequestMutationVariables, TContext> => {
+
+const mutationKey = getDeclineMaterialRequestMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof declineMaterialRequest>>, DeclineMaterialRequestMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  declineMaterialRequest(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeclineMaterialRequestMutationResult = NonNullable<Awaited<ReturnType<typeof declineMaterialRequest>>>
+    export type DeclineMaterialRequestMutationBody = RequisitionDeclineInput
+    export type DeclineMaterialRequestMutationError = unknown
+    export type DeclineMaterialRequestMutationVariables = {id: string;data: RequisitionDeclineInput}
+
+    export const useDeclineMaterialRequest = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof declineMaterialRequest>>, TError,DeclineMaterialRequestMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof declineMaterialRequest>>,
+        TError,
+        DeclineMaterialRequestMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeclineMaterialRequestMutationOptions(options), queryClient);
+    }
+
+export const getApproveMaterialRequisitionUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/requisitions/${id}/approve`
+}
+
+export const approveMaterialRequisition = async (id: string,
+    requisitionDecisionInput: RequisitionDecisionInput, options?: Parameters<typeof apiFetch>[1]): Promise<RequisitionDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<RequisitionDetail>(getApproveMaterialRequisitionUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(requisitionDecisionInput)
+  }
+);}
+
+
+
+
+
+export const getApproveMaterialRequisitionMutationKey = () => ['approveMaterialRequisition'] as const;
+
+export const getApproveMaterialRequisitionMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof approveMaterialRequisition>>, TError,ApproveMaterialRequisitionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof approveMaterialRequisition>>, TError,ApproveMaterialRequisitionMutationVariables, TContext> => {
+
+const mutationKey = getApproveMaterialRequisitionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof approveMaterialRequisition>>, ApproveMaterialRequisitionMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  approveMaterialRequisition(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ApproveMaterialRequisitionMutationResult = NonNullable<Awaited<ReturnType<typeof approveMaterialRequisition>>>
+    export type ApproveMaterialRequisitionMutationBody = RequisitionDecisionInput
+    export type ApproveMaterialRequisitionMutationError = unknown
+    export type ApproveMaterialRequisitionMutationVariables = {id: string;data: RequisitionDecisionInput}
+
+    export const useApproveMaterialRequisition = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof approveMaterialRequisition>>, TError,ApproveMaterialRequisitionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof approveMaterialRequisition>>,
+        TError,
+        ApproveMaterialRequisitionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getApproveMaterialRequisitionMutationOptions(options), queryClient);
+    }
+
+export const getRejectMaterialRequisitionUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/requisitions/${id}/reject`
+}
+
+export const rejectMaterialRequisition = async (id: string,
+    requisitionDecisionInput: RequisitionDecisionInput, options?: Parameters<typeof apiFetch>[1]): Promise<RequisitionDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<RequisitionDetail>(getRejectMaterialRequisitionUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(requisitionDecisionInput)
+  }
+);}
+
+
+
+
+
+export const getRejectMaterialRequisitionMutationKey = () => ['rejectMaterialRequisition'] as const;
+
+export const getRejectMaterialRequisitionMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rejectMaterialRequisition>>, TError,RejectMaterialRequisitionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof rejectMaterialRequisition>>, TError,RejectMaterialRequisitionMutationVariables, TContext> => {
+
+const mutationKey = getRejectMaterialRequisitionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof rejectMaterialRequisition>>, RejectMaterialRequisitionMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  rejectMaterialRequisition(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RejectMaterialRequisitionMutationResult = NonNullable<Awaited<ReturnType<typeof rejectMaterialRequisition>>>
+    export type RejectMaterialRequisitionMutationBody = RequisitionDecisionInput
+    export type RejectMaterialRequisitionMutationError = unknown
+    export type RejectMaterialRequisitionMutationVariables = {id: string;data: RequisitionDecisionInput}
+
+    export const useRejectMaterialRequisition = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rejectMaterialRequisition>>, TError,RejectMaterialRequisitionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof rejectMaterialRequisition>>,
+        TError,
+        RejectMaterialRequisitionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRejectMaterialRequisitionMutationOptions(options), queryClient);
+    }
+
+export const getReverseMaterialRequisitionUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/requisitions/${id}/reverse`
+}
+
+export const reverseMaterialRequisition = async (id: string,
+    requisitionReverseInput: RequisitionReverseInput, options?: Parameters<typeof apiFetch>[1]): Promise<RequisitionDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<RequisitionDetail>(getReverseMaterialRequisitionUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(requisitionReverseInput)
+  }
+);}
+
+
+
+
+
+export const getReverseMaterialRequisitionMutationKey = () => ['reverseMaterialRequisition'] as const;
+
+export const getReverseMaterialRequisitionMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reverseMaterialRequisition>>, TError,ReverseMaterialRequisitionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reverseMaterialRequisition>>, TError,ReverseMaterialRequisitionMutationVariables, TContext> => {
+
+const mutationKey = getReverseMaterialRequisitionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reverseMaterialRequisition>>, ReverseMaterialRequisitionMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  reverseMaterialRequisition(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReverseMaterialRequisitionMutationResult = NonNullable<Awaited<ReturnType<typeof reverseMaterialRequisition>>>
+    export type ReverseMaterialRequisitionMutationBody = RequisitionReverseInput
+    export type ReverseMaterialRequisitionMutationError = unknown
+    export type ReverseMaterialRequisitionMutationVariables = {id: string;data: RequisitionReverseInput}
+
+    export const useReverseMaterialRequisition = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reverseMaterialRequisition>>, TError,ReverseMaterialRequisitionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reverseMaterialRequisition>>,
+        TError,
+        ReverseMaterialRequisitionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReverseMaterialRequisitionMutationOptions(options), queryClient);
+    }
+
+export const getListOrderRequisitionsUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/production-orders/${id}/requisitions`
+}
+
+export const listOrderRequisitions = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<OrderRequisitions> => {
+
+  return apiFetch<OrderRequisitions>(getListOrderRequisitionsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListOrderRequisitionsQueryKey = (id: string,) => {
+    return [
+    `/api/v1/inventory/production-orders/${id}/requisitions`
+    ] as const;
+    }
+
+
+export const getListOrderRequisitionsQueryOptions = <TData = Awaited<ReturnType<typeof listOrderRequisitions>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrderRequisitions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListOrderRequisitionsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listOrderRequisitions>>> = ({ signal }) => listOrderRequisitions(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listOrderRequisitions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListOrderRequisitionsQueryResult = NonNullable<Awaited<ReturnType<typeof listOrderRequisitions>>>
+export type ListOrderRequisitionsQueryError = unknown
+
+
+export function useListOrderRequisitions<TData = Awaited<ReturnType<typeof listOrderRequisitions>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrderRequisitions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listOrderRequisitions>>,
+          TError,
+          Awaited<ReturnType<typeof listOrderRequisitions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListOrderRequisitions<TData = Awaited<ReturnType<typeof listOrderRequisitions>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrderRequisitions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listOrderRequisitions>>,
+          TError,
+          Awaited<ReturnType<typeof listOrderRequisitions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListOrderRequisitions<TData = Awaited<ReturnType<typeof listOrderRequisitions>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrderRequisitions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListOrderRequisitions<TData = Awaited<ReturnType<typeof listOrderRequisitions>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrderRequisitions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListOrderRequisitionsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateMaterialRequisitionUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/production-orders/${id}/requisitions`
+}
+
+export const createMaterialRequisition = async (id: string,
+    requisitionInput: RequisitionInput, options?: Parameters<typeof apiFetch>[1]): Promise<RequisitionDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<RequisitionDetail>(getCreateMaterialRequisitionUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(requisitionInput)
+  }
+);}
+
+
+
+
+
+export const getCreateMaterialRequisitionMutationKey = () => ['createMaterialRequisition'] as const;
+
+export const getCreateMaterialRequisitionMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createMaterialRequisition>>, TError,CreateMaterialRequisitionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createMaterialRequisition>>, TError,CreateMaterialRequisitionMutationVariables, TContext> => {
+
+const mutationKey = getCreateMaterialRequisitionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createMaterialRequisition>>, CreateMaterialRequisitionMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  createMaterialRequisition(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateMaterialRequisitionMutationResult = NonNullable<Awaited<ReturnType<typeof createMaterialRequisition>>>
+    export type CreateMaterialRequisitionMutationBody = RequisitionInput
+    export type CreateMaterialRequisitionMutationError = unknown
+    export type CreateMaterialRequisitionMutationVariables = {id: string;data: RequisitionInput}
+
+    export const useCreateMaterialRequisition = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createMaterialRequisition>>, TError,CreateMaterialRequisitionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createMaterialRequisition>>,
+        TError,
+        CreateMaterialRequisitionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateMaterialRequisitionMutationOptions(options), queryClient);
+    }
+
+export const getGetRequisitionDraftUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/production-orders/${id}/requisitions/draft`
+}
+
+export const getRequisitionDraft = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<RequisitionDraft> => {
+
+  return apiFetch<RequisitionDraft>(getGetRequisitionDraftUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRequisitionDraftQueryKey = (id: string,) => {
+    return [
+    `/api/v1/inventory/production-orders/${id}/requisitions/draft`
+    ] as const;
+    }
+
+
+export const getGetRequisitionDraftQueryOptions = <TData = Awaited<ReturnType<typeof getRequisitionDraft>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRequisitionDraft>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRequisitionDraftQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRequisitionDraft>>> = ({ signal }) => getRequisitionDraft(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRequisitionDraft>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetRequisitionDraftQueryResult = NonNullable<Awaited<ReturnType<typeof getRequisitionDraft>>>
+export type GetRequisitionDraftQueryError = unknown
+
+
+export function useGetRequisitionDraft<TData = Awaited<ReturnType<typeof getRequisitionDraft>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRequisitionDraft>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRequisitionDraft>>,
+          TError,
+          Awaited<ReturnType<typeof getRequisitionDraft>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRequisitionDraft<TData = Awaited<ReturnType<typeof getRequisitionDraft>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRequisitionDraft>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRequisitionDraft>>,
+          TError,
+          Awaited<ReturnType<typeof getRequisitionDraft>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRequisitionDraft<TData = Awaited<ReturnType<typeof getRequisitionDraft>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRequisitionDraft>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetRequisitionDraft<TData = Awaited<ReturnType<typeof getRequisitionDraft>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRequisitionDraft>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetRequisitionDraftQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetOrderRequisitionUrl = (id: string,
+    reqId: string,) => {
+
+
+
+
+  return `/api/v1/inventory/production-orders/${id}/requisitions/${reqId}`
+}
+
+export const getOrderRequisition = async (id: string,
+    reqId: string, options?: Parameters<typeof apiFetch>[1]): Promise<RequisitionDetail> => {
+
+  return apiFetch<RequisitionDetail>(getGetOrderRequisitionUrl(id,reqId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOrderRequisitionQueryKey = (id: string,
+    reqId: string,) => {
+    return [
+    `/api/v1/inventory/production-orders/${id}/requisitions/${reqId}`
+    ] as const;
+    }
+
+
+export const getGetOrderRequisitionQueryOptions = <TData = Awaited<ReturnType<typeof getOrderRequisition>>, TError = unknown>(id: string,
+    reqId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderRequisition>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOrderRequisitionQueryKey(id,reqId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOrderRequisition>>> = ({ signal }) => getOrderRequisition(id,reqId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && reqId !== null && reqId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOrderRequisition>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetOrderRequisitionQueryResult = NonNullable<Awaited<ReturnType<typeof getOrderRequisition>>>
+export type GetOrderRequisitionQueryError = unknown
+
+
+export function useGetOrderRequisition<TData = Awaited<ReturnType<typeof getOrderRequisition>>, TError = unknown>(
+ id: string,
+    reqId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderRequisition>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrderRequisition>>,
+          TError,
+          Awaited<ReturnType<typeof getOrderRequisition>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOrderRequisition<TData = Awaited<ReturnType<typeof getOrderRequisition>>, TError = unknown>(
+ id: string,
+    reqId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderRequisition>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrderRequisition>>,
+          TError,
+          Awaited<ReturnType<typeof getOrderRequisition>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOrderRequisition<TData = Awaited<ReturnType<typeof getOrderRequisition>>, TError = unknown>(
+ id: string,
+    reqId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderRequisition>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetOrderRequisition<TData = Awaited<ReturnType<typeof getOrderRequisition>>, TError = unknown>(
+ id: string,
+    reqId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderRequisition>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetOrderRequisitionQueryOptions(id,reqId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getReturnMaterialToStockUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/production-orders/${id}/returns`
+}
+
+export const returnMaterialToStock = async (id: string,
+    returnInput: ReturnInput, options?: Parameters<typeof apiFetch>[1]): Promise<RequisitionDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<RequisitionDetail>(getReturnMaterialToStockUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(returnInput)
+  }
+);}
+
+
+
+
+
+export const getReturnMaterialToStockMutationKey = () => ['returnMaterialToStock'] as const;
+
+export const getReturnMaterialToStockMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof returnMaterialToStock>>, TError,ReturnMaterialToStockMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof returnMaterialToStock>>, TError,ReturnMaterialToStockMutationVariables, TContext> => {
+
+const mutationKey = getReturnMaterialToStockMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof returnMaterialToStock>>, ReturnMaterialToStockMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  returnMaterialToStock(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReturnMaterialToStockMutationResult = NonNullable<Awaited<ReturnType<typeof returnMaterialToStock>>>
+    export type ReturnMaterialToStockMutationBody = ReturnInput
+    export type ReturnMaterialToStockMutationError = unknown
+    export type ReturnMaterialToStockMutationVariables = {id: string;data: ReturnInput}
+
+    export const useReturnMaterialToStock = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof returnMaterialToStock>>, TError,ReturnMaterialToStockMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof returnMaterialToStock>>,
+        TError,
+        ReturnMaterialToStockMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReturnMaterialToStockMutationOptions(options), queryClient);
+    }
+
+export const getRecordMaterialLossUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/production-orders/${id}/losses`
+}
+
+export const recordMaterialLoss = async (id: string,
+    lossInput: LossInput, options?: Parameters<typeof apiFetch>[1]): Promise<RequisitionDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<RequisitionDetail>(getRecordMaterialLossUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(lossInput)
+  }
+);}
+
+
+
+
+
+export const getRecordMaterialLossMutationKey = () => ['recordMaterialLoss'] as const;
+
+export const getRecordMaterialLossMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordMaterialLoss>>, TError,RecordMaterialLossMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof recordMaterialLoss>>, TError,RecordMaterialLossMutationVariables, TContext> => {
+
+const mutationKey = getRecordMaterialLossMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof recordMaterialLoss>>, RecordMaterialLossMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  recordMaterialLoss(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RecordMaterialLossMutationResult = NonNullable<Awaited<ReturnType<typeof recordMaterialLoss>>>
+    export type RecordMaterialLossMutationBody = LossInput
+    export type RecordMaterialLossMutationError = unknown
+    export type RecordMaterialLossMutationVariables = {id: string;data: LossInput}
+
+    export const useRecordMaterialLoss = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordMaterialLoss>>, TError,RecordMaterialLossMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof recordMaterialLoss>>,
+        TError,
+        RecordMaterialLossMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRecordMaterialLossMutationOptions(options), queryClient);
+    }
+
+export const getGetOrderMaterialCostUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/production-orders/${id}/material-cost`
+}
+
+export const getOrderMaterialCost = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<OrderMaterialCostView> => {
+
+  return apiFetch<OrderMaterialCostView>(getGetOrderMaterialCostUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOrderMaterialCostQueryKey = (id: string,) => {
+    return [
+    `/api/v1/inventory/production-orders/${id}/material-cost`
+    ] as const;
+    }
+
+
+export const getGetOrderMaterialCostQueryOptions = <TData = Awaited<ReturnType<typeof getOrderMaterialCost>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderMaterialCost>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOrderMaterialCostQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOrderMaterialCost>>> = ({ signal }) => getOrderMaterialCost(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOrderMaterialCost>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetOrderMaterialCostQueryResult = NonNullable<Awaited<ReturnType<typeof getOrderMaterialCost>>>
+export type GetOrderMaterialCostQueryError = unknown
+
+
+export function useGetOrderMaterialCost<TData = Awaited<ReturnType<typeof getOrderMaterialCost>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderMaterialCost>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrderMaterialCost>>,
+          TError,
+          Awaited<ReturnType<typeof getOrderMaterialCost>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOrderMaterialCost<TData = Awaited<ReturnType<typeof getOrderMaterialCost>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderMaterialCost>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrderMaterialCost>>,
+          TError,
+          Awaited<ReturnType<typeof getOrderMaterialCost>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOrderMaterialCost<TData = Awaited<ReturnType<typeof getOrderMaterialCost>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderMaterialCost>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetOrderMaterialCost<TData = Awaited<ReturnType<typeof getOrderMaterialCost>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderMaterialCost>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetOrderMaterialCostQueryOptions(id,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

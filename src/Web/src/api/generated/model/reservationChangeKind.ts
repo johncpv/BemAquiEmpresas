@@ -13,4 +13,6 @@ export const ReservationChangeKind = {
   Released: 'Released',
   Completed: 'Completed',
   Requested: 'Requested',
+  Issued: 'Issued',
+  Returned: 'Returned',
 } as const;

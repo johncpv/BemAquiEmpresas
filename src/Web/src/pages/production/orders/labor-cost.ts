@@ -7,6 +7,7 @@ export const LABOR_COST_DICAS = {
   custoHora: 'Custo do cargo por hora, com encargos; o salário de cada pessoa não aparece.',
   implantacao: 'Custo calculado na implantação, com o custo-hora do cargo daquele dia.',
   semCusto: 'O cargo do funcionário estava sem custo-hora no fechamento: as horas contam, mas o custo ficou zero até recalcular.',
+  material: 'Material baixado para a OS pela requisição, pelo custo médio do momento da baixa, menos as devoluções (pelo custo da baixa original) e os estornos.',
 }
 
 export const COST_ORIGIN: Record<LaborCostOrigin, string> = {

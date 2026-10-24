@@ -17,6 +17,9 @@ public sealed record ReservationLineSource(Guid? BomLineId, int Revision, DateTi
 /// </summary>
 public sealed record ReservationContext(string Origin, bool IsBackfill = false, bool OrderClosed = false);
 
+/// <summary>Parte da baixa da requisição num local (EST-03): quanto sai do reservado da OS e o total baixado (reservado + excedente).</summary>
+public sealed record ReservationIssue(Guid LocationId, decimal FromReserved, decimal Total);
+
 /// <summary>
 /// Quem escreve a reserva e o reservado da posição (EST-02, ADR 0023 §2, §3 e §6). O chamador já travou a linha do item
 /// (<see cref="LockItemAsync"/>, a mesma trava do motor, em ordem crescente de <c>item_id</c>); aqui a posição do item é travada
@@ -64,6 +67,102 @@ public sealed class ReservationAllocator(IInventoryDb db, IEventPublisher events
     {
         var positions = await LockPositionsAsync(itemId, cancellationToken);
         await CompleteLockedAsync(itemId, locationId, originOrderId, null, new ReservationContext(origin), positions, cancellationToken);
+    }
+
+    /// <summary>
+    /// Baixa pela requisição (EST-03 CA 2 e 3, ADR 0023 §1): o chamador já travou o item; aqui a posição é travada, cada parte tira do
+    /// reservado da reserva da OS no local (<c>FromReserved</c>, nunca acima do reservado) e soma tudo ao baixado; o material extra ou
+    /// de outro local ganha uma linha só com o baixado (a reconciliação mostra o "Baixado acima da BOM"). Devolve as posições
+    /// travadas, já com o reservado novo, para o chamador conferir o disponível do excedente antes do motor.
+    /// </summary>
+    public async Task<IReadOnlyList<StockPosition>> IssueAsync(
+        ReservationOrder order, Guid itemId, IReadOnlyList<ReservationIssue> parts, string origin, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(order);
+        ArgumentNullException.ThrowIfNull(parts);
+        var positions = await LockPositionsAsync(itemId, cancellationToken);
+        var rows = await RowsAsync(itemId, order.ProductionOrderId, cancellationToken);
+        var before = rows.Sum(r => r.Shortage);
+        var now = clock.GetUtcNow();
+        foreach (var part in parts.GroupBy(p => p.LocationId))
+        {
+            var row = rows.FirstOrDefault(r => r.LocationId == part.Key) ?? AddRow(order, itemId, part.Key, origin, now, rows);
+            var take = Math.Min(row.Quantity, part.Sum(p => p.FromReserved));
+            if (take > 0)
+            {
+                positions.First(p => p.LocationId == part.Key).ApplyReserved(-take);
+            }
+
+            row.Quantity -= take;
+            row.QuantityIssued += part.Sum(p => p.Total);
+            Record(order, itemId, row, ReservationChangeKind.Issued, -take, origin, now);
+        }
+
+        PublishShortage(order, itemId, rows, before);
+        return positions;
+    }
+
+    /// <summary>
+    /// Devolução ou estorno da baixa (EST-03 CA 12 e 14): o baixado da OS no item desce (primeiro no local da devolução, depois nos
+    /// demais), e a reserva volta a ter necessidade; o motor completa a falta com o material que voltou e a reconciliação leva ao alvo
+    /// da BOM vigente (senão o saldo fica livre).
+    /// </summary>
+    public async Task UnissueAsync(ReservationOrder order, Guid itemId, Guid locationId, decimal quantity, string origin, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(order);
+        await LockPositionsAsync(itemId, cancellationToken);
+        var rows = await RowsAsync(itemId, order.ProductionOrderId, cancellationToken);
+        var before = rows.Sum(r => r.Shortage);
+        var now = clock.GetUtcNow();
+        var left = quantity;
+        foreach (var row in rows.Where(r => r.QuantityIssued > 0).OrderBy(r => r.LocationId == locationId ? 0 : 1).ThenByDescending(r => r.QuantityIssued).ToList())
+        {
+            if (left <= 0)
+            {
+                break;
+            }
+
+            var back = Math.Min(row.QuantityIssued, left);
+            row.QuantityIssued -= back;
+            left -= back;
+            Record(order, itemId, row, ReservationChangeKind.Returned, 0m, origin, now);
+        }
+
+        PublishShortage(order, itemId, rows, before);
+    }
+
+    private Reservation AddRow(ReservationOrder order, Guid itemId, Guid locationId, string origin, DateTimeOffset now, List<Reservation> rows)
+    {
+        var row = new Reservation
+        {
+            ItemId = itemId, LocationId = locationId, ProductionOrderId = order.ProductionOrderId, ProjectId = order.ProjectId, Status = ReservationState.Consumed,
+            CreatedAt = now, UpdatedAt = now, Origin = origin,
+        };
+        db.Reservations.Add(row);
+        rows.Add(row);
+        return row;
+    }
+
+    private void Record(ReservationOrder order, Guid itemId, Reservation row, ReservationChangeKind kind, decimal delta, string origin, DateTimeOffset now)
+    {
+        row.Status = Status(new ReservationSlot(row.LocationId, row.RequestedQuantity, row.Quantity, row.QuantityIssued), orderClosed: false);
+        row.Origin = origin;
+        row.IsBackfill = false;
+        row.UpdatedAt = now;
+        db.ReservationChanges.Add(new ReservationChange
+        {
+            ReservationId = row.Id, ProductionOrderId = order.ProductionOrderId, ItemId = itemId, LocationId = row.LocationId, Kind = kind, QuantityDelta = delta,
+            QuantityAfter = row.Quantity, RequestedAfter = row.RequestedQuantity, ShortageAfter = row.Shortage, Origin = origin, At = now,
+        });
+    }
+
+    private void PublishShortage(ReservationOrder order, Guid itemId, List<Reservation> rows, decimal before)
+    {
+        var after = rows.Sum(r => r.Shortage);
+        if (after != before)
+        {
+            events.Publish(new StockShortageChanged(itemId, order.ProductionOrderId, order.ProjectId, rows.Select(r => r.BomLineId).FirstOrDefault(id => id is not null), after));
+        }
     }
 
     private async Task CompleteLockedAsync(

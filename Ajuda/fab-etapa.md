@@ -19,6 +19,7 @@ Apontar o seu trabalho numa etapa da OS: iniciar, pausar, retomar, sair e finali
 - Toque em **Pausar** e escolha o motivo: Falta de material, Máquina parada, Intervalo, Fim do turno ou Outro. O motivo que você mais usa aparece primeiro. O texto é opcional.
 - O cronômetro para e o cartão mostra "Pausada: {motivo}". **Falta de material** avisa o almoxarifado sozinha.
 - Toque em **Retomar** para voltar. As pausas não contam como horas trabalhadas.
+- Precisa de material? Toque em **Pedir material**, escolha os itens da BOM e as quantidades. Depois de pausar por **Falta de material**, o pedido aparece em destaque. O almoxarifado separa e baixa; você vê **Material separado** ou **Recusado: {motivo}** na própria etapa.
 
 ## Finalizar
 - **Finalizar etapa** só libera com todos os itens do checklist marcados. Enquanto faltar, o botão mostra "Marque os {n} itens que faltam".

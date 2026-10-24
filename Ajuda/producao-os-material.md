@@ -19,12 +19,23 @@ Ver o material que esta OS precisa e o que o estoque já separou para ela. Para 
 - **Baixado acima da BOM** aparece quando já foi baixado mais do que a revisão nova pede. Devolva o excedente pela requisição de material.
 - **Calculado na implantação** marca a reserva feita na implantação das reservas, a partir das BOMs que já estavam liberadas.
 - No celular aparecem item, reservado e falta. Toque na linha para ver a necessidade, o baixado e os locais.
-- Embaixo fica o **Histórico da reserva**: quanto foi reservado, liberado e completado, por qual origem e quando.
+- Embaixo fica o **Histórico da reserva**: quanto foi reservado, liberado, completado, baixado e devolvido, por qual origem e quando.
+
+## Requisitar e devolver
+- **Requisitar material** (com a ação **Criar** no Estoque) abre o diálogo com todo o reservado a baixar. No item com lote vem o lote **Sugerido**: o de validade mais próxima e, sem validade ou empatado, o mais antigo pela entrada. Se ele não basta, a linha já vem dividida; use **Dividir em outro lote** para dividir à mão.
+- **Material extra** acrescenta um item fora da BOM. O que passa do reservado, e o material extra, é **Consumo acima da BOM**: sai do disponível do item e pede o motivo.
+- A confirmação mostra, por item, a quantidade, o lote e o disponível antes → depois, e o total pelo custo médio de agora. Clique em **Baixar material**: a reserva vira baixado e o custo entra no projeto na hora.
+- Se o consumo acima da BOM passa de R$ 1.000,00, o botão vira **Enviar para aprovação**: nada sai do estoque até outra pessoa com a ação **Aprovar** no Estoque decidir.
+- **Devolver ao estoque** escolhe as linhas baixadas, a quantidade (até o que ainda não voltou) e o local. A devolução sai pelo custo da baixa original e reduz o custo do projeto. Se a BOM ainda pede o item, o material volta a ficar reservado para a OS.
+- Na OS cancelada com material baixado, devolva o que voltou ou clique em **Manter no projeto como perda**, com o motivo: o custo continua no projeto.
+- A lista **Requisições e devoluções** mostra cada documento, quem pediu, quando e o valor. Clique no número para ver o detalhe e o histórico.
 
 ## Perguntas frequentes
 **Por que a aba diz para liberar a BOM?** A reserva só existe depois que a BOM da OS é liberada. Clique em **Abrir BOM**, revise as linhas e libere.
 
 **O reservado sai do estoque?** Não. Ele continua no físico, mas não sai em saída avulsa, transferência nem em outra OS. Só a requisição de material desta OS baixa o reservado.
+
+**O operador pediu material pelo app. Onde vejo?** O pedido aparece na lista **Requisições e devoluções** e em Estoque → Requisições, em **Aguardando você**. Abra e clique em **Confirmar pedido**.
 
 **O que acontece se a OS for cancelada ou concluída?** As reservas são liberadas e as faltas zeram. O material volta a ficar disponível e completa as faltas de outras OS.
 

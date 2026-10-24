@@ -91,7 +91,22 @@ public interface IStockMovements
 
     /// <summary>Custo de material da OS (PRD-06a2), sem depender da permissão de quem chama e sem passar pelo Commercial.</summary>
     Task<OrderMaterialCost> CostByOrderAsync(Guid productionOrderId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Saídas e devoluções com projeto como o motor as publicou (EST-03 CA 11, ADR 0025 §3), para a recomposição do Commercial: cada
+    /// movimento original vira o fato <c>Seq</c> 1 (0 → total) e, se estornado, também o <c>Seq</c> 2 (total → 0). Em ordem de
+    /// lançamento, a partir de <paramref name="afterPostedSeq"/>, até <paramref name="take"/> movimentos originais.
+    /// </summary>
+    Task<IReadOnlyList<ProjectStockMovement>> ProjectMovementsAsync(long afterPostedSeq, int take, CancellationToken cancellationToken = default);
 }
+
+/// <summary>
+/// Um fato de custo de material com projeto (EST-03 CA 11), no mesmo formato de <see cref="StockIssued"/>/<see cref="StockReturned"/>:
+/// <c>MovementId</c> é o do movimento original, <c>PostedSeq</c> a ordem de lançamento dele (o cursor da recomposição).
+/// </summary>
+public sealed record ProjectStockMovement(
+    Guid MovementId, long PostedSeq, StockMovementType Type, int Seq, Guid ProjectId, Guid? ProductionOrderId, Guid ItemId, decimal Quantity, decimal PreviousAmount,
+    decimal NewAmount, DateTimeOffset At);
 
 /// <summary>Físico, reservado e disponível (físico − reservado) por item e local, lidos da posição; sem custo.</summary>
 public sealed record StockAvailability(Guid ItemId, Guid LocationId, decimal OnHand, decimal Reserved, decimal Available);

@@ -70,6 +70,12 @@ public static class InventoryInfrastructure
         services.TryAddScoped<ReservationConsumers>();
         services.TryAddScoped<ReservationBackfill>();
         services.AddAuditableEntity<Reservation>("inventory");
+        // Requisição de material da OS, devolução e perda (EST-03): a baixa é síncrona pelo motor; o pedido do operador entra pelo
+        // IMaterialRequisitions (nunca baixa).
+        services.TryAddScoped<MaterialRequisitionService>();
+        services.TryAddScoped<IMaterialRequisitions, MaterialRequisitionsContract>();
+        services.AddAuditableEntity<MaterialRequisition>("inventory");
+        services.AddAuditableEntity<MaterialRequisitionLine>("inventory");
         return services;
     }
 }

@@ -69,6 +69,12 @@ public enum ReservationChangeKind
 
     /// <summary>Só a necessidade ou a falta mudou, sem mexer no reservado.</summary>
     Requested,
+
+    /// <summary>Baixou para a OS pela requisição (EST-03): o reservado vira baixado.</summary>
+    Issued,
+
+    /// <summary>Voltou ao estoque pela devolução ou pelo estorno da requisição (EST-03): o baixado desce.</summary>
+    Returned,
 }
 
 /// <summary>
@@ -111,6 +117,15 @@ public static class ReservationOrigins
     public const string Manual = "Reconciliação";
 
     public static string Entry(string movementNumber) => "Entrada " + movementNumber;
+
+    /// <summary>Baixa pela requisição (EST-03): "Requisição REQ-2026-0001".</summary>
+    public static string Requisition(string number) => "Requisição " + number;
+
+    /// <summary>Devolução ao estoque (EST-03): "Devolução REQ-2026-0002".</summary>
+    public static string Return(string number) => "Devolução " + number;
+
+    /// <summary>Estorno da requisição ou da devolução (EST-03): "Estorno REQ-2026-0001".</summary>
+    public static string Reversal(string number) => "Estorno " + number;
 }
 
 /// <summary>Reserva de uma linha num local, para o planejamento puro (sem banco).</summary>

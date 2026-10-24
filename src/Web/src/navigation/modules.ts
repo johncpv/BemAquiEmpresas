@@ -57,6 +57,7 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
     { slug: 'movimentos', label: 'Movimentos', group: STOCK_OPERATION },
     { slug: 'lancamentos', label: 'Lançamentos pendentes', group: STOCK_OPERATION },
     { slug: 'faltas', label: 'Faltas', group: STOCK_OPERATION },
+    { slug: 'requisicoes', label: 'Requisições', group: STOCK_OPERATION },
     { slug: 'itens', label: 'Itens', group: STOCK_SETUP },
     { slug: 'locais', label: 'Locais', group: STOCK_SETUP },
     { slug: 'unidades', label: 'Unidades', group: STOCK_SETUP },

@@ -26,6 +26,21 @@ export const FAB_DICAS = {
   meuCentro: 'Mostra só as etapas do centro de trabalho do seu cargo. As outras continuam na fila: desligue para ver.',
 } as const
 
+/** EST-03: o pedido de material vai ao almoxarifado, que separa e baixa; nunca tira do estoque sozinho. */
+export const MATERIAL_DICA = 'Peça os itens da BOM que faltam na etapa. O almoxarifado separa, escolhe o lote e baixa; você vê aqui quando o material foi separado ou recusado.'
+
+/** Quantidade digitada no /fab (vírgula ou ponto), nunca negativa; vazio ou inválido = 0. */
+export function parseFloorQuantity(text: string | undefined): number {
+  const value = Number((text ?? '').trim().replace(',', '.'))
+  return Number.isFinite(value) && value > 0 ? Math.round(value * 10_000) / 10_000 : 0
+}
+
+/** Botões − e + da quantidade (EST-03 CA 5): passo de 1, sem passar de zero. */
+export function stepQuantity(text: string | undefined, delta: number): string {
+  const next = Math.max(0, parseFloorQuantity(text) + delta)
+  return next === 0 ? '' : String(next).replace('.', ',')
+}
+
 /** "Só meu centro" lembrado no aparelho (CA 2): sem valor gravado, desligado. */
 export const MY_CENTER_KEY = 'bq.fab.so-meu-centro'
 

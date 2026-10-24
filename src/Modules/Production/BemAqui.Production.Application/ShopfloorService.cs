@@ -21,7 +21,8 @@ namespace BemAqui.Production.Application;
 /// </summary>
 public sealed partial class ShopfloorService(
     IProductionDb db, LaborWorkflow workflow, IBomGate bom, IUserEmployeeLink links, IEmployees employees, IUserDirectory users, ICurrentUser currentUser,
-    INotificationService notifications, IProjects projects, IParties parties, IItems items, IWorkCenters workCenters, AttachmentService attachments, TimeProvider clock)
+    INotificationService notifications, IProjects projects, IParties parties, IItems items, IWorkCenters workCenters, AttachmentService attachments, TimeProvider clock,
+    IMaterialRequisitions requisitions)
 {
     public const string MaterialPauseType = "production.material_pause";
 

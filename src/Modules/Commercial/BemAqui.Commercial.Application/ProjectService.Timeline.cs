@@ -56,6 +56,21 @@ public sealed partial class ProjectService
             }
         }
 
+        // EST-03 CA 17: material baixado e devolvido por OS e dia, pela razão do próprio Commercial, só com projects.view_cost.
+        if (await permissions.HasPermissionAsync("projects", "view_cost", cancellationToken))
+        {
+            var material = await db.ProjectCosts.AsNoTracking()
+                .Where(c => c.ProjectId == id && (c.Source == ProjectCostSource.StockIssue || c.Source == ProjectCostSource.StockReturn))
+                .GroupBy(c => new { c.ProductionOrderId, c.Source, c.OccurredOn, c.IsBackfill })
+                .Select(g => new { g.Key.ProductionOrderId, g.Key.Source, g.Key.OccurredOn, g.Key.IsBackfill, Amount = g.Sum(c => c.Amount), At = g.Min(c => c.RecordedAt) })
+                .ToListAsync(cancellationToken);
+            var numbers = (await productionOrders.ByProjectAsync(id, cancellationToken)).ToDictionary(o => o.Id, o => o.Number);
+            foreach (var m in material.Where(m => m.Amount != 0))
+            {
+                entries.Add(MaterialEntry(m.ProductionOrderId, m.ProductionOrderId is { } o ? numbers.GetValueOrDefault(o) : null, m.Source, m.Amount, m.IsBackfill ? At(m.OccurredOn) : m.At, m.IsBackfill));
+            }
+        }
+
         if (project.DeliveredOn is { } delivered)
         {
             entries.Add(new(At(delivered), "delivered", project.DeliveredManually ? "Entrega registrada (sem instalação)" : "Entrega registrada", null, null));
@@ -85,6 +100,19 @@ public sealed partial class ProjectService
         }
 
         return entries.OrderBy(e => e.At).Take(200).ToList();
+    }
+
+    /// <summary>
+    /// "Material baixado para a OS-2026-00012: R$ 1.200,00" e "Material devolvido da OS-2026-00012: R$ 200,00" (EST-03 CA 17); o
+    /// recomposto leva "(calculado na implantação)".
+    /// </summary>
+    public static ProjectTimelineEntry MaterialEntry(Guid? orderId, string? orderNumber, ProjectCostSource source, decimal amount, DateTimeOffset at, bool backfill)
+    {
+        var order = orderNumber ?? "OS";
+        var money = "R$ " + Math.Abs(amount).ToString("N2", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"));
+        var title = source == ProjectCostSource.StockReturn || amount < 0 ? $"Material devolvido da {order}: {money}" : $"Material baixado para a {order}: {money}";
+        return new ProjectTimelineEntry(at, "material_cost", backfill ? title + " (calculado na implantação)" : title, null,
+            orderId is { } o ? "/app/producao/os/" + o + "?aba=material" : null);
     }
 
     /// <summary>Data de negócio às 00h de São Paulo, para ordenar junto com os instantes.</summary>

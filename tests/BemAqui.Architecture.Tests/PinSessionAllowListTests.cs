@@ -25,6 +25,9 @@ public static partial class PinSessionAllowList
         ["MarkShopfloorChecklist"] = "checklist",
         ["ListShopfloorAttachments"] = "documentos da OS pelo endpoint que confere a fila do operador",
         ["DownloadShopfloorAttachment"] = "documentos da OS pelo endpoint que confere a fila do operador",
+        // EST-03 CA 5 e 6 (ADR 0026 §4): material da etapa e "Pedir material"; o pedido só cria a requisição Requested, nunca baixa.
+        ["GetShopfloorStepMaterial"] = "itens da BOM e pedidos da etapa, sem custo",
+        ["RequestShopfloorMaterial"] = "pedir material ao almoxarifado (shopfloor.create), sem baixa",
         // Aparelho no /fab (PRD-03b): ver o aparelho, tema por aparelho (CA 11) e "Apagar meu PIN deste aparelho" (CA 9).
         ["GetShopfloorDevice"] = "o /fab sabe se o aparelho está registrado e qual o tema",
         ["SetShopfloorDeviceTheme"] = "tema do /fab no aparelho (ponto 95)",

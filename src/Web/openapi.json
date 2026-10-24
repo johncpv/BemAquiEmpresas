@@ -11431,6 +11431,78 @@
         }
       }
     },
+    "/api/v1/shopfloor/steps/{stepId}/material": {
+      "get": {
+        "tags": [
+          "App do operador"
+        ],
+        "operationId": "GetShopfloorStepMaterial",
+        "parameters": [
+          {
+            "name": "stepId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopfloorMaterialView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/shopfloor/steps/{stepId}/material-requests": {
+      "post": {
+        "tags": [
+          "App do operador"
+        ],
+        "operationId": "RequestShopfloorMaterial",
+        "parameters": [
+          {
+            "name": "stepId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShopfloorMaterialInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopfloorMaterialRequest"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/shopfloor/steps/{stepId}/attachments": {
       "get": {
         "tags": [
@@ -13960,6 +14032,704 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PagedListOfReservationChangeRow"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/requisitions": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "ListMaterialRequisitions",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/MaterialRequisitionStatus"
+            }
+          },
+          {
+            "name": "awaitingMe",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "productionOrderId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/MaterialRequisitionKind"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfRequisitionSummary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/requisitions/to-pick": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "ListRequisitionsToPick",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PickingRow"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/requisitions/item-stock/{itemId}": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetRequisitionItemStock",
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequisitionItemStock"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/requisitions/{id}": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetMaterialRequisition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequisitionDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/requisitions/{id}/lines/{lineId}": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetMaterialRequisitionLine",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "lineId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequisitionLineView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/requisitions/{id}/history": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetMaterialRequisitionHistory",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfRelatedAuditEntryDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/requisitions/{id}/confirm": {
+      "post": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "ConfirmMaterialRequest",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequisitionConfirmInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequisitionDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/requisitions/{id}/decline": {
+      "post": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "DeclineMaterialRequest",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequisitionDeclineInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequisitionDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/requisitions/{id}/approve": {
+      "post": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "ApproveMaterialRequisition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequisitionDecisionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequisitionDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/requisitions/{id}/reject": {
+      "post": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "RejectMaterialRequisition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequisitionDecisionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequisitionDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/requisitions/{id}/reverse": {
+      "post": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "ReverseMaterialRequisition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequisitionReverseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequisitionDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/production-orders/{id}/requisitions": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "ListOrderRequisitions",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderRequisitions"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "CreateMaterialRequisition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequisitionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequisitionDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/production-orders/{id}/requisitions/draft": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetRequisitionDraft",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequisitionDraft"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/production-orders/{id}/requisitions/{reqId}": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetOrderRequisition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "reqId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequisitionDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/production-orders/{id}/returns": {
+      "post": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "ReturnMaterialToStock",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReturnInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequisitionDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/production-orders/{id}/losses": {
+      "post": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "RecordMaterialLoss",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LossInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequisitionDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/production-orders/{id}/material-cost": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetOrderMaterialCost",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderMaterialCostView"
                 }
               }
             }
@@ -27187,6 +27957,31 @@
           "Clean"
         ]
       },
+      "LossInput": {
+        "required": [
+          "reason",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lines": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ReturnLineInput"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
       "LotDetail": {
         "required": [
           "id",
@@ -27766,6 +28561,29 @@
             "format": "double"
           }
         }
+      },
+      "MaterialRequestState": {
+        "enum": [
+          "Waiting",
+          "Separated",
+          "Declined"
+        ]
+      },
+      "MaterialRequisitionKind": {
+        "enum": [
+          "Issue",
+          "Return",
+          "Loss"
+        ]
+      },
+      "MaterialRequisitionStatus": {
+        "enum": [
+          "Requested",
+          "PendingApproval",
+          "Completed",
+          "Rejected",
+          "Reversed"
+        ]
       },
       "MatrixEntry": {
         "required": [
@@ -29606,6 +30424,64 @@
           }
         }
       },
+      "OrderMaterialCostItem": {
+        "required": [
+          "itemId",
+          "itemCode",
+          "itemName",
+          "unitCode",
+          "quantity",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "OrderMaterialCostView": {
+        "required": [
+          "productionOrderId",
+          "items",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "productionOrderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderMaterialCostItem"
+            }
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "OrderMaterialLine": {
         "required": [
           "itemId",
@@ -29826,6 +30702,40 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/NonConformitySummary"
+            }
+          }
+        }
+      },
+      "OrderRequisitions": {
+        "required": [
+          "productionOrderId",
+          "orderClosed",
+          "orderCancelled",
+          "requisitions",
+          "returnable"
+        ],
+        "type": "object",
+        "properties": {
+          "productionOrderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderClosed": {
+            "type": "boolean"
+          },
+          "orderCancelled": {
+            "type": "boolean"
+          },
+          "requisitions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RequisitionSummary"
+            }
+          },
+          "returnable": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReturnableLine"
             }
           }
         }
@@ -30336,6 +31246,35 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/RelatedAuditEntryDto"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PagedListOfRequisitionSummary": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RequisitionSummary"
             }
           },
           "page": {
@@ -32325,6 +33264,59 @@
             "format": "int32"
           },
           "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PickingRow": {
+        "required": [
+          "productionOrderId",
+          "orderNumber",
+          "projectId",
+          "projectNumber",
+          "currentStepName",
+          "items",
+          "reserved",
+          "openRequests"
+        ],
+        "type": "object",
+        "properties": {
+          "productionOrderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "currentStepName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reserved": {
+            "type": "number",
+            "format": "double"
+          },
+          "openRequests": {
             "type": "integer",
             "format": "int32"
           }
@@ -36493,12 +37485,862 @@
           }
         }
       },
+      "RequisitionConfirmInput": {
+        "required": [
+          "lines",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "lines": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/RequisitionLineInput"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "RequisitionDecisionInput": {
+        "required": [
+          "comment",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "comment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "RequisitionDeclineInput": {
+        "required": [
+          "reason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "RequisitionDetail": {
+        "required": [
+          "id",
+          "number",
+          "kind",
+          "status",
+          "productionOrderId",
+          "orderNumber",
+          "projectId",
+          "projectNumber",
+          "stepId",
+          "stepName",
+          "requestedByName",
+          "requestedAt",
+          "completedByName",
+          "completedAt",
+          "decidedByName",
+          "decidedAt",
+          "decisionComment",
+          "selfApproved",
+          "rejectReason",
+          "overBomValue",
+          "value",
+          "reversedByName",
+          "reversedAt",
+          "reversalReason",
+          "reversalSelfApproved",
+          "lines",
+          "canConfirm",
+          "canDecide",
+          "decideBlockedReason",
+          "canReverse",
+          "reverseBlockedReason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/MaterialRequisitionKind"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MaterialRequisitionStatus"
+          },
+          "productionOrderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "stepId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "stepName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "requestedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "requestedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "completedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "decidedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "decidedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "decisionComment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "selfApproved": {
+            "type": "boolean"
+          },
+          "rejectReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "overBomValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "value": {
+            "type": "number",
+            "format": "double"
+          },
+          "reversedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reversedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "reversalReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reversalSelfApproved": {
+            "type": "boolean"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RequisitionLineView"
+            }
+          },
+          "canConfirm": {
+            "type": "boolean"
+          },
+          "canDecide": {
+            "type": "boolean"
+          },
+          "decideBlockedReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "canReverse": {
+            "type": "boolean"
+          },
+          "reverseBlockedReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "RequisitionDraft": {
+        "required": [
+          "productionOrderId",
+          "orderNumber",
+          "projectId",
+          "projectNumber",
+          "orderClosed",
+          "bomReleased",
+          "approvalLimit",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "productionOrderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "orderClosed": {
+            "type": "boolean"
+          },
+          "bomReleased": {
+            "type": "boolean"
+          },
+          "approvalLimit": {
+            "type": "number",
+            "format": "double"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RequisitionDraftLine"
+            }
+          }
+        }
+      },
+      "RequisitionDraftLine": {
+        "required": [
+          "reservationId",
+          "itemId",
+          "itemCode",
+          "itemName",
+          "unitCode",
+          "tracksLot",
+          "locationId",
+          "locationCode",
+          "locationName",
+          "reserved",
+          "onHand",
+          "available",
+          "averageCost",
+          "lots",
+          "picks"
+        ],
+        "type": "object",
+        "properties": {
+          "reservationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "tracksLot": {
+            "type": "boolean"
+          },
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "locationCode": {
+            "type": "string"
+          },
+          "locationName": {
+            "type": "string"
+          },
+          "reserved": {
+            "type": "number",
+            "format": "double"
+          },
+          "onHand": {
+            "type": "number",
+            "format": "double"
+          },
+          "available": {
+            "type": "number",
+            "format": "double"
+          },
+          "averageCost": {
+            "type": "number",
+            "format": "double"
+          },
+          "lots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RequisitionLotOption"
+            }
+          },
+          "picks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RequisitionLotPick"
+            }
+          }
+        }
+      },
+      "RequisitionInput": {
+        "required": [
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "lines": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/RequisitionLineInput"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "RequisitionItemLocation": {
+        "required": [
+          "locationId",
+          "locationCode",
+          "locationName",
+          "isDefault",
+          "onHand",
+          "available",
+          "lots"
+        ],
+        "type": "object",
+        "properties": {
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "locationCode": {
+            "type": "string"
+          },
+          "locationName": {
+            "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "onHand": {
+            "type": "number",
+            "format": "double"
+          },
+          "available": {
+            "type": "number",
+            "format": "double"
+          },
+          "lots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RequisitionLotOption"
+            }
+          }
+        }
+      },
+      "RequisitionItemStock": {
+        "required": [
+          "itemId",
+          "itemCode",
+          "itemName",
+          "unitCode",
+          "tracksLot",
+          "averageCost",
+          "locations"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "tracksLot": {
+            "type": "boolean"
+          },
+          "averageCost": {
+            "type": "number",
+            "format": "double"
+          },
+          "locations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RequisitionItemLocation"
+            }
+          }
+        }
+      },
+      "RequisitionLineInput": {
+        "required": [
+          "reservationId",
+          "itemId",
+          "locationId",
+          "lotId",
+          "quantity",
+          "overReason"
+        ],
+        "type": "object",
+        "properties": {
+          "reservationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lotId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "overReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "RequisitionLineView": {
+        "required": [
+          "id",
+          "sequence",
+          "reservationId",
+          "itemId",
+          "itemCode",
+          "itemName",
+          "unitCode",
+          "locationId",
+          "locationCode",
+          "locationName",
+          "lotId",
+          "lotNumber",
+          "quantity",
+          "overQuantity",
+          "overReason",
+          "isExtra",
+          "returnsLineId",
+          "movementId",
+          "movementNumber",
+          "unitCost",
+          "amount",
+          "returnable"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reservationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "locationCode": {
+            "type": "string"
+          },
+          "locationName": {
+            "type": "string"
+          },
+          "lotId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "lotNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "overQuantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "overReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isExtra": {
+            "type": "boolean"
+          },
+          "returnsLineId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "movementId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "movementNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "unitCost": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "amount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "returnable": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "RequisitionLotOption": {
+        "required": [
+          "lotId",
+          "lotNumber",
+          "expiry",
+          "onHand",
+          "suggested"
+        ],
+        "type": "object",
+        "properties": {
+          "lotId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lotNumber": {
+            "type": "string"
+          },
+          "expiry": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "onHand": {
+            "type": "number",
+            "format": "double"
+          },
+          "suggested": {
+            "type": "boolean"
+          }
+        }
+      },
+      "RequisitionLotPick": {
+        "required": [
+          "lotId",
+          "lotNumber",
+          "quantity",
+          "suggested"
+        ],
+        "type": "object",
+        "properties": {
+          "lotId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lotNumber": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "suggested": {
+            "type": "boolean"
+          }
+        }
+      },
+      "RequisitionReverseInput": {
+        "required": [
+          "reason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "RequisitionSummary": {
+        "required": [
+          "id",
+          "number",
+          "kind",
+          "status",
+          "productionOrderId",
+          "orderNumber",
+          "projectId",
+          "projectNumber",
+          "stepName",
+          "lineCount",
+          "firstItem",
+          "value",
+          "overBomValue",
+          "requestedByName",
+          "requestedAt",
+          "fromOperator",
+          "awaitingMe"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/MaterialRequisitionKind"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MaterialRequisitionStatus"
+          },
+          "productionOrderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "stepName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lineCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "firstItem": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "value": {
+            "type": "number",
+            "format": "double"
+          },
+          "overBomValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "requestedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "requestedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fromOperator": {
+            "type": "boolean"
+          },
+          "awaitingMe": {
+            "type": "boolean"
+          }
+        }
+      },
       "ReservationChangeKind": {
         "enum": [
           "Reserved",
           "Released",
           "Completed",
-          "Requested"
+          "Requested",
+          "Issued",
+          "Returned"
         ]
       },
       "ReservationChangeRow": {
@@ -36743,6 +38585,124 @@
             "format": "date"
           }
         }
+      },
+      "ReturnableLine": {
+        "required": [
+          "issueLineId",
+          "requisitionId",
+          "requisitionNumber",
+          "itemId",
+          "itemCode",
+          "itemName",
+          "unitCode",
+          "lotId",
+          "lotNumber",
+          "locationId",
+          "locationCode",
+          "issued",
+          "returnable",
+          "unitCost"
+        ],
+        "type": "object",
+        "properties": {
+          "issueLineId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "requisitionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "requisitionNumber": {
+            "type": "string"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "lotId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "lotNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "locationCode": {
+            "type": "string"
+          },
+          "issued": {
+            "type": "number",
+            "format": "double"
+          },
+          "returnable": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitCost": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "ReturnInput": {
+        "required": [
+          "locationId",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lines": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ReturnLineInput"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "ReturnLineInput": {
+        "required": [
+          "issueLineId",
+          "quantity"
+        ],
+        "type": "object",
+        "properties": {
+          "issueLineId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
       },
       "ReverseCompletionInput": {
         "required": [
@@ -37881,6 +39841,191 @@
         "properties": {
           "forAll": {
             "type": "boolean"
+          }
+        }
+      },
+      "ShopfloorMaterialInput": {
+        "required": [
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "lines": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ShopfloorMaterialLineInput"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "ShopfloorMaterialItem": {
+        "required": [
+          "itemId",
+          "itemCode",
+          "itemName",
+          "unitCode",
+          "required",
+          "reserved",
+          "issued"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "required": {
+            "type": "number",
+            "format": "double"
+          },
+          "reserved": {
+            "type": "number",
+            "format": "double"
+          },
+          "issued": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "ShopfloorMaterialLineInput": {
+        "required": [
+          "itemId",
+          "quantity"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ShopfloorMaterialRequest": {
+        "required": [
+          "id",
+          "number",
+          "state",
+          "declineReason",
+          "requestedAt",
+          "decidedAt",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "state": {
+            "$ref": "#/components/schemas/MaterialRequestState"
+          },
+          "declineReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "requestedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "decidedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShopfloorMaterialRequestLine"
+            }
+          }
+        }
+      },
+      "ShopfloorMaterialRequestLine": {
+        "required": [
+          "itemId",
+          "itemCode",
+          "itemName",
+          "unitCode",
+          "quantity"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "ShopfloorMaterialView": {
+        "required": [
+          "stepId",
+          "orderNumber",
+          "bomReleased",
+          "items",
+          "requests"
+        ],
+        "type": "object",
+        "properties": {
+          "stepId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "bomReleased": {
+            "type": "boolean"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShopfloorMaterialItem"
+            }
+          },
+          "requests": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShopfloorMaterialRequest"
+            }
           }
         }
       },
