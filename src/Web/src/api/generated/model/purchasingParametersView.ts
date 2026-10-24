@@ -17,4 +17,5 @@ export interface PurchasingParametersView {
   freightCostType: CostType;
   accountingConfirmed: boolean;
   accounts: PurchasingAccountOption[];
+  receiptTolerancePct?: number;
 }

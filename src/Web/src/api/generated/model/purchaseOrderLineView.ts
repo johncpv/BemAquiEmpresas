@@ -25,4 +25,7 @@ export interface PurchaseOrderLineView {
   quantityReceived: number;
   requestLineIds: string[];
   requests: PurchaseOrderRequestRef[];
+  quantityOverReceived?: number;
+  amountReceived?: number;
+  quantityOpen?: number;
 }
