@@ -140,7 +140,7 @@ public partial class PurchaseOrderTests
         (await RequestLineAsync(lineId)).Status.Should().Be(PurchaseRequestStatus.Open);
         (await WithDbAsync(db => db.PurchaseRequests.AsNoTracking().SingleAsync(r => r.Id == requestId))).Status.Should().Be(PurchaseRequestStatus.Open);
         var outbox = await WithDbAsync(db => db.OutboxMessages.AsNoTracking().Where(m => m.Type.Contains("PurchaseOrderCancelled")).ToListAsync());
-        outbox.Select(m => JsonDocument.Parse(m.Payload).RootElement.GetProperty("purchaseOrderId").GetGuid()).Should().Contain(id);
+        outbox.Select(m => JsonDocument.Parse(m.Payload).RootElement.GetProperty("PurchaseOrderId").GetGuid()).Should().Contain(id);
     }
 
     /// <summary>CA 16: pedido com recebimento não é cancelado nem editado (409).</summary>

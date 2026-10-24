@@ -46,7 +46,7 @@ public partial class PurchaseOrderTests
 
         (await WithDbAsync(db => db.Notifications.AsNoTracking().CountAsync(n => n.UserId == ownerId && n.Type == "purchasing.purchase_order"))).Should().BeGreaterThan(0);
         var outbox = await WithDbAsync(db => db.OutboxMessages.AsNoTracking().Where(m => m.Type.Contains("PurchaseOrderSubmitted")).ToListAsync());
-        outbox.Select(m => JsonDocument.Parse(m.Payload).RootElement.GetProperty("purchaseOrderId").GetGuid()).Should().Contain(id);
+        outbox.Select(m => JsonDocument.Parse(m.Payload).RootElement.GetProperty("PurchaseOrderId").GetGuid()).Should().Contain(id);
     }
 
     /// <summary>CA 10 (ADR 0024 §4): quem tem finance.approve e não tem purchasing.approve não aprova nem reprova pedido.</summary>
@@ -236,7 +236,9 @@ public partial class PurchaseOrderTests
         using var pdf = new MultipartFormDataContent { { new ByteArrayContent("%PDF-1.4\n%%EOF"u8.ToArray()) { Headers = { ContentType = new("application/pdf") } }, "file", "proposta.pdf" } };
         (await viewer.PostAsync($"/api/v1/attachments/PurchaseOrder/{first.GetProperty("id").GetGuid()}", pdf)).StatusCode.Should().Be(HttpStatusCode.Forbidden, "anexar exige purchasing.edit");
         (await viewer.GetAsync($"/api/v1/attachments/PurchaseOrder/{first.GetProperty("id").GetGuid()}")).StatusCode.Should().Be(HttpStatusCode.OK, "ler anexo com purchasing.view");
-        (await buyer.GetAsync($"/api/v1/attachments/PurchaseOrder/{Guid.CreateVersion7()}")).StatusCode.Should().Be(HttpStatusCode.NotFound, "OwnerExists");
+        // OwnerExists vale no envio (a lista de um dono inexistente é vazia, como nos outros donos).
+        using var orphan = new MultipartFormDataContent { { new ByteArrayContent("%PDF-1.4\n%%EOF"u8.ToArray()) { Headers = { ContentType = new("application/pdf") } }, "file", "proposta.pdf" } };
+        (await buyer.PostAsync($"/api/v1/attachments/PurchaseOrder/{Guid.CreateVersion7()}", orphan)).StatusCode.Should().Be(HttpStatusCode.NotFound, "OwnerExists");
 
         await SetReleasedAsync(false);
         try

@@ -83,6 +83,12 @@ public sealed partial class PurchaseOrderService(
         }
 
         var touched = LinkRequests(p.Lines.SelectMany(l => l.RequestLines), now);
+        // A situação da SC é derivada das linhas gravadas: grava as linhas antes de recalcular (a mesma transação).
+        if (await SaveAsync(cancellationToken) is { } linesConflict)
+        {
+            return linesConflict;
+        }
+
         await PurchaseRequestUpdates.RefreshStatusAsync(db, touched, now, cancellationToken, currentUser.UserId);
         if (await SaveAsync(cancellationToken) is { } conflict)
         {
@@ -156,6 +162,12 @@ public sealed partial class PurchaseOrderService(
             }
 
             events.Publish(new PurchaseOrderChanged(order.Id, order.Attempt, wasSent));
+        }
+
+        // A situação da SC é derivada das linhas gravadas: grava as linhas antes de recalcular (a mesma transação).
+        if (await SaveAsync(cancellationToken) is { } linesConflict)
+        {
+            return linesConflict;
         }
 
         await PurchaseRequestUpdates.RefreshStatusAsync(db, touched, now, cancellationToken, currentUser.UserId);
@@ -232,6 +244,12 @@ public sealed partial class PurchaseOrderService(
         order.CancelledBy = currentUser.UserId;
         order.UpdatedAt = now;
         var touched = await UnlinkRequestsAsync(lines.SelectMany(l => l.RequestLineIds).ToList(), now, cancellationToken);
+        // A situação da SC é derivada das linhas gravadas: grava as linhas antes de recalcular (a mesma transação).
+        if (await SaveAsync(cancellationToken) is { } linesConflict)
+        {
+            return linesConflict;
+        }
+
         await PurchaseRequestUpdates.RefreshStatusAsync(db, touched, now, cancellationToken, currentUser.UserId);
         events.Publish(new PurchaseOrderCancelled(order.Id));
         if (await SaveAsync(cancellationToken) is { } conflict)
@@ -377,7 +395,10 @@ public sealed partial class PurchaseOrderService(
         || lines.Zip(p.Lines).Any(x => x.First.ItemId != x.Second.Item.Id || x.First.Quantity != x.Second.Quantity || x.First.UnitPrice != x.Second.UnitPrice
             || !x.First.RequestLineIds.Order().SequenceEqual(x.Second.RequestLines.Select(r => r.Id).Order()));
 
-    /// <summary>Grava; dois comandos ao mesmo tempo no pedido ou na mesma linha de SC: o segundo recebe 409 (CA 22).</summary>
+    /// <summary>
+    /// Grava; dois comandos ao mesmo tempo no pedido ou na mesma linha de SC: o segundo recebe 409 (CA 22). Na aprovação simultânea, o
+    /// segundo pode bater antes no índice único da parcela dos títulos (<c>ux_payables_origin_installment</c>), também 409.
+    /// </summary>
     private async Task<Error?> SaveAsync(CancellationToken ct)
     {
         try
@@ -389,7 +410,14 @@ public sealed partial class PurchaseOrderService(
         {
             return Stale();
         }
+        catch (DbUpdateException ex) when (BemAqui.BuildingBlocks.Persistence.DbErrors.IsUniqueViolation(ex) || IsDeadlock(ex))
+        {
+            return Stale();
+        }
     }
+
+    private static bool IsDeadlock(DbUpdateException ex) =>
+        ex.InnerException is Npgsql.PostgresException { SqlState: Npgsql.PostgresErrorCodes.DeadlockDetected or Npgsql.PostgresErrorCodes.SerializationFailure };
 
     internal static Error NotFound() => Error.NotFound("purchase_order_not_found", "Pedido de compra não encontrado.");
 
