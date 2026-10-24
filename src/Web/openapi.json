@@ -9323,6 +9323,37 @@
         }
       }
     },
+    "/api/v1/production/production-orders/{id}/completion/cost": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "GetFabricationOrderCompletionCost",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderCost"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/production/production-orders/{id}/complete": {
       "post": {
         "tags": [
@@ -9386,6 +9417,88 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ReverseCompletionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FabricationOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/production-orders/{id}/product-options": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "ListFabricationProductOptions",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OrderProductOption"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/production-orders/{id}/product": {
+      "put": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "SetFabricationOrderProduct",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderProductInput"
               }
             }
           },
@@ -14730,6 +14843,131 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/OrderMaterialCostView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/production-orders/{id}/serials": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetOrderSerials",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderSerialsView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/production-orders/{id}/serials/{serialId}": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetOrderSerial",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "serialId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderSerialDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/items/{itemId}/serials": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "ListItemSerials",
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/SerialState"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfItemSerialRow"
                 }
               }
             }
@@ -23678,6 +23916,26 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          },
+          "locationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "serialNumbers": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "confirmZeroCost": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -23712,6 +23970,30 @@
           }
         },
         "additionalProperties": false
+      },
+      "CompletionLocationOption": {
+        "required": [
+          "id",
+          "code",
+          "name",
+          "isDefault"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean"
+          }
+        }
       },
       "CompletionMilestoneView": {
         "required": [
@@ -23752,6 +24034,154 @@
             "type": "boolean"
           },
           "received": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CompletionReservationView": {
+        "required": [
+          "itemId",
+          "itemCode",
+          "itemName",
+          "unitCode",
+          "locationName",
+          "quantity"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "locationName": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "CompletionStockView": {
+        "required": [
+          "enabled",
+          "productId",
+          "productCode",
+          "productName",
+          "unitCode",
+          "quantity",
+          "tracksSerial",
+          "tracksLot",
+          "suggestedSerials",
+          "suggestedLocationId",
+          "locations",
+          "reservationsToRelease",
+          "zeroCost",
+          "entryMovementId",
+          "entryMovementNumber",
+          "serialsToCancel",
+          "shippedSerials",
+          "completedWithoutStock"
+        ],
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "productId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "productCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "productName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "unitCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "tracksSerial": {
+            "type": "boolean"
+          },
+          "tracksLot": {
+            "type": "boolean"
+          },
+          "suggestedSerials": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "suggestedLocationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "locations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CompletionLocationOption"
+            }
+          },
+          "reservationsToRelease": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CompletionReservationView"
+            }
+          },
+          "zeroCost": {
+            "type": "boolean"
+          },
+          "entryMovementId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "entryMovementNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "serialsToCancel": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "shippedSerials": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "completedWithoutStock": {
             "type": "boolean"
           }
         }
@@ -25806,6 +26236,17 @@
               "null",
               "string"
             ]
+          },
+          "entryMovementId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "completedWithoutStock": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -26362,6 +26803,46 @@
               "string"
             ],
             "format": "uuid"
+          }
+        }
+      },
+      "FinishedGoodsCostView": {
+        "required": [
+          "movementId",
+          "movementNumber",
+          "quantity",
+          "unitCost",
+          "totalCost",
+          "postedAt",
+          "reversed"
+        ],
+        "type": "object",
+        "properties": {
+          "movementId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "movementNumber": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitCost": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalCost": {
+            "type": "number",
+            "format": "double"
+          },
+          "postedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reversed": {
+            "type": "boolean"
           }
         }
       },
@@ -28121,6 +28602,76 @@
           },
           "type": {
             "$ref": "#/components/schemas/ItemType"
+          }
+        }
+      },
+      "ItemSerialRow": {
+        "required": [
+          "id",
+          "serialNumber",
+          "status",
+          "locationId",
+          "locationName",
+          "productionOrderId",
+          "productionOrderNumber",
+          "projectId",
+          "projectNumber",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "serialNumber": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SerialState"
+          },
+          "locationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "locationName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "productionOrderId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "productionOrderNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "projectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -31478,11 +32029,95 @@
             }
           },
           "stockNotice": {
-            "type": "string"
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "version": {
             "type": "integer",
             "format": "uint32"
+          },
+          "stock": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CompletionStockView"
+              }
+            ]
+          }
+        }
+      },
+      "OrderConsumedLotRow": {
+        "required": [
+          "itemId",
+          "itemCode",
+          "itemName",
+          "unitCode",
+          "lotId",
+          "lotNumber",
+          "quantity"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "lotId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "lotNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "OrderCost": {
+        "required": [
+          "labor",
+          "material",
+          "total",
+          "unit"
+        ],
+        "type": "object",
+        "properties": {
+          "labor": {
+            "type": "number",
+            "format": "double"
+          },
+          "material": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "unit": {
+            "type": "number",
+            "format": "double"
           }
         }
       },
@@ -31543,6 +32178,16 @@
             "items": {
               "$ref": "#/components/schemas/MissingCostPosition"
             }
+          },
+          "finishedGoods": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/FinishedGoodsCostView"
+              }
+            ]
           }
         }
       },
@@ -31833,6 +32478,51 @@
           }
         }
       },
+      "OrderProductInput": {
+        "required": [
+          "itemId",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "OrderProductOption": {
+        "required": [
+          "id",
+          "code",
+          "name",
+          "type",
+          "tracksSerial"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "tracksSerial": {
+            "type": "boolean"
+          }
+        }
+      },
       "OrderQualityView": {
         "required": [
           "orderId",
@@ -31906,6 +32596,191 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ReturnableLine"
+            }
+          }
+        }
+      },
+      "OrderSerialDetail": {
+        "required": [
+          "serial",
+          "itemId",
+          "itemCode",
+          "itemName",
+          "productionOrderId",
+          "projectId",
+          "consumedLots"
+        ],
+        "type": "object",
+        "properties": {
+          "serial": {
+            "$ref": "#/components/schemas/OrderSerialRow"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "productionOrderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "consumedLots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderConsumedLotRow"
+            }
+          }
+        }
+      },
+      "OrderSerialRow": {
+        "required": [
+          "id",
+          "serialNumber",
+          "status",
+          "locationId",
+          "locationName",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "serialNumber": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SerialState"
+          },
+          "locationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "locationName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "OrderSerialsView": {
+        "required": [
+          "productionOrderId",
+          "productId",
+          "productCode",
+          "productName",
+          "tracksSerial",
+          "entryMovementId",
+          "entryMovementNumber",
+          "entryQuantity",
+          "unitCode",
+          "entryLocationName",
+          "entryPostedAt",
+          "entryReversed",
+          "serials",
+          "consumedLots"
+        ],
+        "type": "object",
+        "properties": {
+          "productionOrderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "productId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "productCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "productName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "tracksSerial": {
+            "type": "boolean"
+          },
+          "entryMovementId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "entryMovementNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "entryQuantity": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "unitCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "entryLocationName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "entryPostedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "entryReversed": {
+            "type": "boolean"
+          },
+          "serials": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderSerialRow"
+            }
+          },
+          "consumedLots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderConsumedLotRow"
             }
           }
         }
@@ -32126,6 +33001,35 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ItemListItem"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PagedListOfItemSerialRow": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ItemSerialRow"
             }
           },
           "page": {
@@ -42587,6 +43491,13 @@
             "type": "boolean"
           }
         }
+      },
+      "SerialState": {
+        "enum": [
+          "InStock",
+          "Shipped",
+          "Cancelled"
+        ]
       },
       "SetGroupMembersRequest": {
         "required": [

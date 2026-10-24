@@ -4,6 +4,7 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { FinishedGoodsCostView } from './finishedGoodsCostView';
 import type { LaborEntryCostView } from './laborEntryCostView';
 import type { MissingCostPosition } from './missingCostPosition';
 import type { StepLaborCostView } from './stepLaborCostView';
@@ -19,4 +20,5 @@ export interface OrderLaborCostView {
   missingCount: number;
   includesBackfill: boolean;
   missingPositions: MissingCostPosition[];
+  finishedGoods?: null | FinishedGoodsCostView;
 }

@@ -67,8 +67,9 @@ public partial class FabricationTests
         }
     }
 
+    /// <summary>"Concluir OS" com a confirmação do custo zerado (PRD-06a2 CA 7): estas OS não têm horas nem material.</summary>
     private static async Task<HttpResponseMessage> CompleteOrderAsync(HttpClient client, Guid orderId, uint version) =>
-        await client.SendAsync(Post($"{Base}/{orderId}/complete", new { version }));
+        await client.SendAsync(Post($"{Base}/{orderId}/complete", new { version, confirmZeroCost = true }));
 
     private static async Task<HttpResponseMessage> ReverseOrderAsync(HttpClient client, Guid orderId, uint version, string? reason = "Medida errada na cabine") =>
         await client.SendAsync(Post($"{Base}/{orderId}/reverse-completion", new { reason, version }));
@@ -119,7 +120,7 @@ public partial class FabricationTests
     }
 
     [Fact]
-    public async Task Concluir_a_ultima_OS_fabrica_o_projeto_e_libera_a_parcela_sem_estoque()
+    public async Task Concluir_a_ultima_OS_fabrica_o_projeto_e_libera_a_parcela()
     {
         var (owner, project, contract, orders) = await CompletionDatasetAsync();
         var (supervisorId, supervisor) = await ActorAsync("production:view,approve;finance:view");
@@ -128,7 +129,8 @@ public partial class FabricationTests
         var preview = await OkAsync(await supervisor.GetAsync($"{Base}/{orders[0]}/completion"));
         preview.GetProperty("canComplete").GetBoolean().Should().BeTrue();
         preview.GetProperty("lastFabricationOrder").GetBoolean().Should().BeTrue("CA 2");
-        preview.GetProperty("stockNotice").GetString().Should().Be("O produto acabado ainda não entra no estoque nesta versão.");
+        preview.GetProperty("stockNotice").ValueKind.Should().Be(JsonValueKind.Null, "PRD-06a2: com o Estoque liberado, o produto entra no estoque");
+        preview.GetProperty("stock").GetProperty("enabled").GetBoolean().Should().BeTrue();
         var milestone = preview.GetProperty("milestones").EnumerateArray().Single();
         milestone.GetProperty("description").GetString().Should().Be("Fabricação concluída");
         milestone.GetProperty("amount").GetDecimal().Should().BeGreaterThan(0, "com finance.view, o valor");

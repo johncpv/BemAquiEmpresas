@@ -43,7 +43,8 @@ public sealed record FabricationStepView(
 
 /// <summary>
 /// OS de fabricação (CA 10): cabeçalho (número, situação, projeto, cliente, produto, quantidade), fatos (prometido, horas padrão,
-/// etapa atual) e as etapas. Sem custo.
+/// etapa atual) e as etapas. Sem custo (PRD-06a2 CA 14). PRD-06a2: o movimento de entrada do produto acabado e a marca "Concluída antes do
+/// controle de estoque" (CA 9).
 /// </summary>
 public sealed record FabricationOrderDetail(
     Guid Id, string Number, ProductionOrderStatus Status, Guid ProjectId, string ProjectNumber, string ProjectName, Guid PartyId, string PartyName, DateOnly? PromisedDate,
@@ -51,7 +52,7 @@ public sealed record FabricationOrderDetail(
     string? RoutingTemplateName, IReadOnlyList<FabricationStepView> Steps, decimal TotalStandardHours, int CurrentStepIndex, bool Started, int? DelayDays, string? CancelReason,
     DateTimeOffset? CancelledAt, DateTimeOffset CreatedAt, uint Version, int QualityAttempt = 1, bool SelfInspection = false, bool ReadyToComplete = false, int OpenNonConformities = 0,
     DateTimeOffset? CompletedAt = null, string? CompletedByName = null, string? CompletionBlocker = null, DateTimeOffset? CompletionReversedAt = null,
-    string? CompletionReversedByName = null, string? CompletionReversalReason = null);
+    string? CompletionReversedByName = null, string? CompletionReversalReason = null, Guid? EntryMovementId = null, bool CompletedWithoutStock = false);
 
 /// <summary>Linha da lista (CA 15): etapa atual pelas letras, prometido com atraso e o chip "Sem roteiro".</summary>
 public sealed record FabricationOrderSummary(

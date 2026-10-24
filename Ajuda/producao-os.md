@@ -19,10 +19,17 @@ Ver e ajustar as etapas desta OS antes de a fábrica começar: letra, nome, cent
 - Depois da primeira etapa iniciada, as etapas ficam só para leitura.
 - A aba **BOM** (para quem vê a Engenharia) tem a lista de materiais da OS. A primeira etapa começa sem BOM; as seguintes só começam, e só são concluídas pelo supervisor, com a BOM liberada.
 - **Pronta para concluir:** todas as etapas e a qualidade foram feitas. A OS espera o supervisor concluir. Ela aparece assim na lista, no Kanban e aqui.
-- **Concluir OS** (quem aprova na produção, com login completo): o diálogo mostra o que muda. A OS passa a **Concluída**; se é a última OS de fabricação do projeto, o projeto passa a **Fabricado** e a parcela do marco "fabricação concluída" é liberada, com valor e vencimento para quem vê o financeiro. A OS conclui com a quantidade inteira. A mensagem é **OS concluída**.
+- **Concluir OS** (quem aprova na produção, com login completo): o diálogo mostra o que muda. A OS passa a **Concluída**; se é a última OS de fabricação do projeto, o projeto passa a **Fabricado** e a parcela do marco "fabricação concluída" é liberada, com valor e vencimento para quem vê o financeiro. A OS conclui com a quantidade inteira.
+- **Entrada no estoque** (com o Estoque liberado): na mesma conclusão, o produto acabado entra no estoque com a quantidade da OS. O diálogo mostra o **local de entrada** (o local padrão, com a tag **Sugerido**; dá para trocar), os **números de série** de cada unidade (gerados no formato código do item, ano e sequência, e editáveis antes de confirmar), as reservas de material que sobraram e serão liberadas e, para quem vê custo e margem, o **custo apurado da OS** e o custo unitário. A mensagem é **OS concluída. Produto acabado no estoque.**
+- O **custo apurado da OS** são as horas apontadas mais o material baixado para a OS, menos o devolvido. O produto entra no estoque por esse custo dividido pela quantidade, mesmo quando quem conclui não vê o custo.
+- **Custo da OS zerado:** sem horas nem material, o diálogo mostra o aviso âmbar e pede para marcar **Confirmo a entrada com custo 0** antes de concluir.
+- Se algo falha (por exemplo, um número de série que já existe no item), nada é gravado: a OS continua **Pronta para concluir** e o erro aparece no diálogo. Se a conclusão demorar mais de 30 segundos, o diálogo avisa; não feche a tela.
+- **Sem item de estoque do produto:** **Concluir OS** fica desabilitado com "Escolha o item de estoque do produto antes de concluir.". Quem edita na produção clica em **Escolher item do produto**, busca o produto acabado ou componente e confirma.
 - Enquanto falta etapa, qualidade ou há apontamento aberto, **Concluir OS** fica desabilitado e diz o motivo, por exemplo "Falta aprovar a Qualidade".
-- Depois de concluir, os próximos passos levam à parcela liberada e ao projeto.
-- **Estornar conclusão** (quem aprova na produção): informe o motivo. A OS volta para a última etapa e o projeto volta de Fabricado para Em andamento. A parcela já liberada continua em aberto e o Financeiro é avisado. A mensagem é **Conclusão estornada**.
+- Depois de concluir, os próximos passos levam à parcela liberada, às séries e ao projeto. A aba **Séries** mostra a entrada, as séries e os lotes consumidos.
+- **Estornar conclusão** (quem aprova na produção): informe o motivo. A OS volta para a última etapa e o projeto volta de Fabricado para Em andamento. A entrada no estoque ganha o movimento inverso, as séries ficam **Canceladas** e a reserva do material volta a seguir a BOM. A parcela já liberada continua em aberto e o Financeiro é avisado. A mensagem é **Conclusão estornada**.
+- O estorno é recusado se uma série já foi **expedida** ("O produto já foi expedido.") ou se o produto sem série já saiu do estoque (saldo insuficiente).
+- **Concluída antes do controle de estoque:** a OS foi concluída antes de o sistema dar entrada do produto acabado. O produto não entrou no estoque e não tem séries.
 
 ## Perguntas frequentes
 **Mudar as etapas aqui muda o roteiro?** Não. A mudança vale só para esta OS. Para mudar o roteiro de todos, edite em Engenharia → Roteiros.
@@ -31,7 +38,9 @@ Ver e ajustar as etapas desta OS antes de a fábrica começar: letra, nome, cent
 
 **O que são as horas padrão?** As horas de trabalho esperadas para uma unidade em cada etapa. O planejamento usa este número.
 
-**Concluir a OS dá entrada no estoque?** Ainda não. O produto acabado ainda não entra no estoque nesta versão. A entrada, com as séries e os lotes, chega numa próxima versão.
+**Concluir a OS dá entrada no estoque?** Sim, com o Estoque liberado nesta versão do sistema: o produto acabado entra pelo custo apurado da OS, com as séries e os lotes consumidos. Essa entrada não soma de novo no custo do projeto: o custo já entrou pelo material baixado e pelas horas.
+
+**E as OS concluídas antes da entrada no estoque?** Continuam sem entrada e sem séries, com o aviso "Concluída antes do controle de estoque". O sistema não refaz o estoque delas. Se o produto ainda está na fábrica, lance a entrada pelo Estoque (Saldos → Lançar entrada).
 
 **Por que o estorno da conclusão foi recusado?** Porque a parcela "fabricação concluída" já foi recebida, mesmo em parte, ou o projeto já está instalando ou entregue. Fale com o Financeiro antes de estornar.
 

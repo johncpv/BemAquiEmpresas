@@ -90,8 +90,11 @@ public sealed class ProductionOrder : Entity, IAuditable, IConcurrencyVersioned
     /// <summary>Item do projeto fabricado (PRD-01): uma OS de fabricação não cancelada por item.</summary>
     public Guid? ProjectItemId { get; init; }
 
-    /// <summary>Produto (item do estoque) do item do projeto, quando houver.</summary>
-    public Guid? ProductId { get; init; }
+    /// <summary>
+    /// Produto (item do estoque) do item do projeto, quando houver. PRD-06a2 CA 1: a conclusão exige o produto; a OS sem ele ganha o item
+    /// pelo "Escolher item do produto" (<c>production.edit</c>) enquanto não está concluída nem cancelada.
+    /// </summary>
+    public Guid? ProductId { get; set; }
 
     /// <summary>Quantidade do item do projeto (D14: uma OS por item, com a quantidade do item).</summary>
     public decimal? Quantity { get; init; }
@@ -116,6 +119,18 @@ public sealed class ProductionOrder : Entity, IAuditable, IConcurrencyVersioned
     public Guid? CompletionReversedBy { get; set; }
 
     public string? CompletionReversalReason { get; set; }
+
+    /// <summary>
+    /// Entrada do produto acabado no estoque (PRD-06a2 CA 5): o movimento <c>Production</c> lançado na conclusão; o estorno da conclusão
+    /// lança o inverso e limpa (CA 10).
+    /// </summary>
+    public Guid? EntryMovementId { get; set; }
+
+    /// <summary>
+    /// "Concluída antes do controle de estoque" (PRD-06a2 CA 9): a OS concluída pela PRD-06a1 (migration) ou com o módulo Estoque não
+    /// liberado no tenant, sem entrada no estoque nem séries. O estorno limpa: a reconclusão segue a regra do momento.
+    /// </summary>
+    public bool CompletedWithoutStock { get; set; }
 
     public string? CancelReason { get; set; }
 

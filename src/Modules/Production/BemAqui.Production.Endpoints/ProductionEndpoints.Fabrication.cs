@@ -50,12 +50,20 @@ internal static partial class ProductionEndpoints
         // a OS de outro tenant ou de instalação dá 404.
         orders.MapGet("/{id:guid}/completion", async (Guid id, FabricationOrderService service, CancellationToken ct) => (await service.CompletionPreviewAsync(id, ct)).ToHttpResult())
             .RequirePermission("production.approve").WithName("GetFabricationOrderCompletion").Produces<OrderCompletionPreview>();
+        // PRD-06a2 CA 2, 3 e 14: o custo apurado da OS em DTO separado, com production.view e projects.view_cost (como a aba Custos).
+        orders.MapGet("/{id:guid}/completion/cost", async (Guid id, FabricationOrderService service, CancellationToken ct) => (await service.CompletionCostAsync(id, ct)).ToHttpResult())
+            .RequirePermission("production.view").RequirePermission("projects.view_cost").WithName("GetFabricationOrderCompletionCost").Produces<OrderCost>();
         orders.MapPost("/{id:guid}/complete", async (Guid id, CompleteOrderInput input, FabricationOrderService service, CancellationToken ct) =>
                 (await service.CompleteOrderAsync(id, input, ct)).ToHttpResult())
             .RequirePermission("production.approve").WithName("CompleteFabricationOrder").Produces<FabricationOrderDetail>();
         orders.MapPost("/{id:guid}/reverse-completion", async (Guid id, ReverseCompletionInput input, FabricationOrderService service, CancellationToken ct) =>
                 (await service.ReverseCompletionAsync(id, input, ct)).ToHttpResult())
             .RequirePermission("production.approve").WithName("ReverseFabricationOrderCompletion").Produces<FabricationOrderDetail>();
+        // PRD-06a2 CA 1: "Escolher item do produto" na OS sem item de estoque, com production.edit; a busca é dos produtos e componentes.
+        orders.MapGet("/{id:guid}/product-options", async (Guid id, string? q, FabricationOrderService service, CancellationToken ct) => Results.Ok(await service.ProductOptionsAsync(q, ct)))
+            .RequirePermission("production.edit").WithName("ListFabricationProductOptions").Produces<IReadOnlyList<OrderProductOption>>();
+        orders.MapPut("/{id:guid}/product", async (Guid id, OrderProductInput input, FabricationOrderService service, CancellationToken ct) => (await service.SetProductAsync(id, input, ct)).ToHttpResult())
+            .RequirePermission("production.edit").WithName("SetFabricationOrderProduct").Produces<FabricationOrderDetail>();
         orders.MapGet("/{id:guid}/history", async (Guid id, int? page, int? pageSize, AuditHistory history, CancellationToken ct) =>
                 (await history.GetWithChildrenAsync(nameof(ProductionOrder), id.ToString(), OrderHistoryChildren, "orderId", new PageRequest(page ?? 1, pageSize ?? PageRequest.DefaultPageSize).Normalize(), ct)).ToHttpResult())
             .RequirePermission("production.view").WithName("GetFabricationOrderHistory").Produces<PagedList<RelatedAuditEntryDto>>();

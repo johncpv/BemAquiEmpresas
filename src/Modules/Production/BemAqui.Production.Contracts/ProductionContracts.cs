@@ -159,9 +159,12 @@ public sealed record QualityRejected(Guid NonConformityId, Guid ProductionOrderI
 /// <summary>
 /// OS de fabricação concluída (PRD-06a1 CA 3), com a quantidade inteira (sem conclusão parcial, ponto 82) e a data da conclusão. O
 /// Commercial confere se todas as OS de fabricação não canceladas do projeto concluíram e publica <c>ProjectFabricated</c> (CA 7). A
-/// entrada do produto acabado no estoque é da PRD-06a2.
+/// entrada do produto acabado no estoque já foi feita de forma síncrona na mesma transação (PRD-06a2 CA 5, ADR 0023 §1); o evento leva o
+/// produto, o custo unitário, as séries e o local para a projeção (painéis), com valores padrão para as mensagens antigas do outbox.
 /// </summary>
-public sealed record ProductionOrderCompleted(Guid ProductionOrderId, Guid ProjectId, decimal Quantity, DateOnly CompletedOn) : BemAqui.SharedKernel.IIntegrationEvent;
+public sealed record ProductionOrderCompleted(
+    Guid ProductionOrderId, Guid ProjectId, decimal Quantity, DateOnly CompletedOn, Guid? ProductId = null, decimal UnitCost = 0, IReadOnlyList<string>? SerialNumbers = null,
+    Guid? LocationId = null) : BemAqui.SharedKernel.IIntegrationEvent;
 
 /// <summary>
 /// Conclusão da OS de fabricação estornada (PRD-06a1 CA 10): a OS voltou a <c>InProgress</c>. O Commercial volta o projeto de

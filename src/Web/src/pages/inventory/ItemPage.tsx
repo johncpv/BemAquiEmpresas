@@ -22,9 +22,13 @@ import { ItemConversions } from './ItemConversions'
 import { ItemDataForm } from './ItemDataForm'
 import { ItemSupplierCodes } from './ItemSupplierCodes'
 import { ItemKardex } from './stock/ItemKardex'
+import { ItemSerials } from './stock/ItemSerials'
 import { ItemReservations } from './stock/ReservationHistory'
 
-/** Item (CAD-02a, molde "detalhe com abas"): Dados, Conversões e Fornecedores (CAD-02b), Movimentos (kardex, EST-01a) e Histórico de alterações. */
+/**
+ * Item (CAD-02a, molde "detalhe com abas"): Dados, Conversões e Fornecedores (CAD-02b), Movimentos (kardex, EST-01a), Reservas (EST-02),
+ * Séries (PRD-06a2) e Histórico de alterações.
+ */
 export function ItemPage() {
   const { id } = useParams({ strict: false }) as { id: string }
   const search = useSearch({ strict: false }) as Record<string, unknown>
@@ -97,6 +101,8 @@ export function ItemPage() {
         { id: 'movimentos', label: 'Movimentos', content: <ItemKardex itemId={item.id} /> },
         // EST-02 CA 13 e 18: físico, reservado e disponível e o histórico da reserva em todas as OS.
         { id: 'reservas', label: 'Reservas', content: <ItemReservations itemId={item.id} /> },
+        // PRD-06a2 CA 11: séries do produto acabado (série, OS, projeto, situação e local).
+        { id: 'series', label: 'Séries', content: <ItemSerials itemId={item.id} tracksSerial={item.tracksSerial} /> },
         { id: 'historico', label: 'Histórico de alterações', content: <RecordHistory entity="Item" id={item.id} /> },
       ]} />
     </>

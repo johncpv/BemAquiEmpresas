@@ -21,7 +21,13 @@ public sealed record MissingCostPosition(Guid? PositionId, string PositionName, 
 /// </summary>
 public sealed record OrderLaborCostView(
     Guid OrderId, string OrderNumber, bool ShowsEntryCost, IReadOnlyList<LaborEntryCostView> Entries, IReadOnlyList<StepLaborCostView> Steps, decimal TotalHours, decimal LaborCost, int MissingCount,
-    bool IncludesBackfill, IReadOnlyList<MissingCostPosition> MissingPositions);
+    bool IncludesBackfill, IReadOnlyList<MissingCostPosition> MissingPositions, FinishedGoodsCostView? FinishedGoods = null);
+
+/// <summary>
+/// Produto acabado da OS concluída na aba Custos (PRD-06a2 CA 11 e 15), só com <c>projects.view_cost</c>: o movimento de entrada, a
+/// quantidade, o custo unitário (custo apurado ÷ quantidade, 6 casas) e o total do movimento; <c>Reversed</c> quando a conclusão foi estornada.
+/// </summary>
+public sealed record FinishedGoodsCostView(Guid MovementId, string MovementNumber, decimal Quantity, decimal UnitCost, decimal TotalCost, DateTimeOffset PostedAt, bool Reversed);
 
 /// <summary>Uma versão do custo do apontamento (CA 17): snapshot, horas, valor, versão, origem e quem fez.</summary>
 public sealed record LaborCostHistoryView(

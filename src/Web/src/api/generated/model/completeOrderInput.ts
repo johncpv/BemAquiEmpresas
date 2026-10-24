@@ -7,4 +7,9 @@
 
 export interface CompleteOrderInput {
   version: number;
+  /** @nullable */
+  locationId?: string | null;
+  /** @nullable */
+  serialNumbers?: string[] | null;
+  confirmZeroCost?: boolean;
 }

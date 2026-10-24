@@ -352,7 +352,7 @@ _MIG-01d (saldos iniciais de estoque) não entra aqui: cancelada pelo PO em 18/1
 - Requisitos: R-CMP-3, R-COM-1, R-COM-3, R-PRP-2, R-SEC-5.
 - CA: PDF pelo `IPdfRenderer` sem custo nem projeto; envio pela fila depois do `Clean`; confirmação de destinatário fora dos contatos do fornecedor; mensagem escapada, sem links; CR/LF recusado; pedido a `Sent`.
 
-**PRD-06a2 [ ] Produto acabado: entrada no estoque, séries e lotes consumidos (M)** — 3.4, ordem 19 — quebra da PRD-06a (D1) — [story](stories/PRD-06a2-produto-acabado.md)
+**PRD-06a2 [x] Produto acabado: entrada no estoque, séries e lotes consumidos (M)** — 3.4, ordem 19 — quebra da PRD-06a (D1) — [story](stories/PRD-06a2-produto-acabado.md)
 - Requisitos: R-PRD-7, R-EST-8, R-EST-7, R-COM-4, R-PRP-2, R-PRP-7, R-SEC-5.
 - CA: na transação da conclusão, entrada `Production` pelo custo da OS (fontes síncronas, ADR 0025 §2), séries `{código}-{AAAA}-{seq}` (D15), lotes consumidos em `inventory.serial_components` e reservas liberadas; produto obrigatório; OS concluídas antes ficam sem entrada no estoque, documentado; estorno reverte a entrada e as séries não expedidas.
 

@@ -11,6 +11,7 @@ Ver quanto o material e a mão de obra estão custando nesta OS: o material baix
 
 ## Como usar
 - A linha **Material** (com o Estoque liberado) mostra o custo baixado para a OS por item e o total: cada baixa pelo custo médio do momento, menos as devoluções (pelo custo da baixa original) e os estornos.
+- Na OS concluída, a linha **Produto acabado no estoque** mostra o movimento de entrada, a quantidade, o custo unitário (custo apurado da OS dividido pela quantidade, com 6 casas) e o total. Com a conclusão estornada, aparece como **entrada estornada**.
 - A linha **Mão de obra** mostra o total de horas e o custo da OS. Abaixo, cada etapa com as horas e o custo.
 - A aba mostra só os totais (por etapa e da OS). O custo-hora e o custo de cada apontamento aparecem na aba **Apontamentos** quando a empresa liga **Exibir custo-hora em cada apontamento** em Configurações → Parâmetros → Produção (começa desligado).
 - O custo de cada apontamento usa o **custo-hora do cargo** gravado no fechamento do apontamento. Se o custo-hora do cargo mudar depois, os apontamentos antigos não mudam; só os próximos usam o valor novo.

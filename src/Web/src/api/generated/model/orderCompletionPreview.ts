@@ -5,6 +5,7 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { CompletionMilestoneView } from './completionMilestoneView';
+import type { CompletionStockView } from './completionStockView';
 import type { ProductionOrderStatus } from './productionOrderStatus';
 
 export interface OrderCompletionPreview {
@@ -25,6 +26,8 @@ export interface OrderCompletionPreview {
   projectFabricatedByOrders: boolean;
   showAmounts: boolean;
   milestones: CompletionMilestoneView[];
-  stockNotice: string;
+  /** @nullable */
+  stockNotice: string | null;
   version: number;
+  stock?: null | CompletionStockView;
 }

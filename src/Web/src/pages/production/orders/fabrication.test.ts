@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { canCancel, canChangeSteps, canShowComplete, completionImpact, delayLabel, reversalImpact, routingImpact } from './fabrication'
+import {
+  canCancel, canChangeSteps, canShowComplete, completionImpact, delayLabel, reversalImpact, routingImpact, serialsProblem, stockCompletionImpact, stockReversalImpact, unitCost,
+} from './fabrication'
 
 describe('OS de fabricação (PRD-01)', () => {
   it('etapas só mudam na OS aberta sem etapa iniciada (CA 7 e 8)', () => {
@@ -51,5 +53,38 @@ describe('Conclusão da OS (PRD-06a1)', () => {
     expect(canShowComplete({ status: 'ReadyToComplete', steps: [{}] }, false)).toBe(false)
     expect(canShowComplete({ status: 'Completed', steps: [{}] }, true)).toBe(false)
     expect(canShowComplete({ status: 'Open', steps: [] }, true)).toBe(false)
+  })
+})
+
+describe('Produto acabado na conclusão (PRD-06a2)', () => {
+  const stock = {
+    enabled: true, productCode: 'ELV-6', productName: 'Elevador 6 paradas', unitCode: 'UN', quantity: 2, tracksSerial: true,
+    reservationsToRelease: [{ itemCode: 'CH-12', itemName: 'Chapa 12 mm', unitCode: 'KG', locationName: 'Almoxarifado', quantity: 8 }],
+  }
+
+  it('o diálogo diz o que entra, onde, as séries e as reservas liberadas (CA 2 e 5)', () => {
+    expect(stockCompletionImpact(stock, 'Almoxarifado', 2)).toEqual([
+      'Entra no estoque: 2 UN de ELV-6 · Elevador 6 paradas em Almoxarifado.', 'Gera 2 números de série, um por unidade.', 'Libera a reserva de 8 KG de CH-12 em Almoxarifado.',
+    ])
+    expect(stockCompletionImpact({ ...stock, tracksSerial: false, reservationsToRelease: [] }, null, 0)[1]).toBe('Sem controle de série: a entrada é por quantidade.')
+    expect(stockCompletionImpact({ ...stock, enabled: false }, null, 0)).toEqual([])
+  })
+
+  it('séries editadas: uma por unidade, sem vazio nem repetida (CA 4)', () => {
+    expect(serialsProblem(['A-1', 'A-2'], 2)).toBeNull()
+    expect(serialsProblem(['A-1'], 2)).toBe('Informe 2 números de série, um por unidade.')
+    expect(serialsProblem(['A-1', ' '], 2)).toBe('Número de série vazio.')
+    expect(serialsProblem(['A-1', 'A-1 '], 2)).toBe('O número de série A-1 se repete.')
+  })
+
+  it('o estorno diz o movimento inverso e as séries canceladas (CA 10)', () => {
+    expect(stockReversalImpact({ enabled: true, entryMovementNumber: 'MOV-2026-000010', quantity: 2, unitCode: 'UN', serialsToCancel: 2 })).toEqual([
+      'A entrada MOV-2026-000010 é estornada: sai 2 UN do estoque.', '2 séries são canceladas.', 'A reserva do material volta a seguir a BOM liberada.',
+    ])
+    expect(stockReversalImpact({ enabled: true, entryMovementNumber: null, quantity: 2, unitCode: 'UN', serialsToCancel: 0 })).toEqual([])
+  })
+
+  it('custo unitário em 6 casas (CA 2)', () => {
+    expect(unitCost(1666.916667)).toBe('R$ 1.666,916667')
   })
 })

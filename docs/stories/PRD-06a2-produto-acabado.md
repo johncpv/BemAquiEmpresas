@@ -5,7 +5,7 @@
 | ID | PRD-06a2 |
 | Título | Na conclusão da OS de fabricação, entrada síncrona do produto acabado (`Production`) pelo custo da OS lido por fontes síncronas (horas da Produção + `IStockMovements.CostByOrderAsync`), séries por unidade `{código}-{AAAA}-{seq}`, registro dos lotes de matéria-prima consumidos e liberação síncrona das reservas restantes; o estorno da conclusão reverte a entrada e as séries não expedidas |
 | Tamanho | M |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-PRD-7 (conclusão gera produto acabado em estoque com número de série e registra lotes consumidos) · R-EST-8 (série no produto acabado) · R-EST-7 (produto acabado pelo custo da OS, `04-fluxos` §3.1) · R-COM-4 · R-PRP-2 · R-PRP-7 · R-SEC-5 |
 | Dependências | PRD-06a1, EST-03, EST-02, EST-01a |
 | Bloqueia | PRD-06b, EST-04 |
@@ -93,17 +93,18 @@ Decididos pelo PO em 21/10/2026 (revisão pré-Fase 3, D1, D15 e tabela 1.1, ite
 **Pré-condição externa:** conferir a numeração que a Konebras já usa nos elevadores (campos `elev_*` do Dolibarr, só leitura) antes de implementar a série; se houver um formato em uso, o PO decide se o prefixo ou a sequência inicial se ajustam ao D15. Não bloqueia: o padrão D15 vale se a conferência não mudar nada.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers) e E2E passando.
-- [ ] Migration criada (não destrutiva), testada sobre cópia do banco do tenant `konebras`.
-- [ ] ADR 0023 (§1, §3, §4, §6) e ADR 0025 §2 aplicadas.
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Telas com estados e 400 px.
-- [ ] Ajudas novas e atualizadas; teste de cobertura passando.
-- [ ] Diálogo de impacto e próximos passos aplicados.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` (`serials`, `serial_components`) e `docs/04-fluxos-estados.md` §1 e §4 (entrada síncrona na conclusão, série D15, OS concluídas antes sem estoque) atualizados; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, arquitetura e E2E passando; integração (Testcontainers) escrita, roda no CI (Docker em fila nesta máquina).
+- [x] Migration criada (não destrutiva).
+- [ ] Migration testada sobre cópia do banco do tenant `konebras` (CI/homologação, antes do deploy).
+- [x] ADR 0023 (§1, §3, §4, §6) e ADR 0025 §2 aplicadas.
+- [x] Permissões só do `ModuleCatalog` (nenhuma nova).
+- [x] Telas com estados e 400 px.
+- [x] Ajudas novas e atualizadas; teste de cobertura passando.
+- [x] Diálogo de impacto e próximos passos aplicados.
+- [x] Auditoria ligada (`Serial` auditada; a OS já era).
+- [ ] OpenAPI regenerado com `BQ_UPDATE_OPENAPI` (editado à mão nesta máquina; cliente Orval gerado dele).
+- [x] `docs/03-modelo-dados.md` (`serials`, `serial_components`, `serial_sequences`) e `docs/04-fluxos-estados.md` §1, §2 e §4 (entrada síncrona na conclusão, série D15, OS concluídas antes sem estoque) atualizados; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
 - [ ] `SerialNumberGenerator` com o formato D15.
@@ -143,3 +144,5 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções (PRD-06a) | Pax (PO) |
 | 21/10/2026 | 0.3 | Quebra da PRD-06a (D1): produto acabado no Marco 3.4; decisões do PO (D15, tabela 1.1 itens 26 e 80) e correções da revisão pré-Fase 3 (§2.1 conclusão síncrona, ADR 0023 §1 e ADR 0025 §2; §2.3 padrões 4, 6, 7, 10); pré-condição externa `elev_*` | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` com pré-condição externa | Pax (PO) |
+| 23/10/2026 | 1.0 | Implementada (`Done`). Desvios e decisões de implementação: (1) **Sequência da série** numa tabela do estoque, `inventory.serial_sequences` (item e ano), e não no `shared.number_sequences` "tipo Serial": a numeração compartilhada é por tipo de documento (`doc_type` até 16, sem o item) e o prefixo é o código do item; valor inicial no parâmetro `inventory.parameters.serial_start_value` (padrão 1, sem tela); número já usado (inclusive o editado à mão) é pulado. As regras sem banco ficam em `SerialRules` (`Inventory.Contracts`). (2) **Estoque não liberado no tenant:** a OS conclui sem estoque, como na PRD-06a1, e fica `completed_without_stock` (sem exigir o produto); o 403 `module_not_released` do CA 12 vale para as rotas das séries (`/inventory/...`). (3) **Local "padrão do item":** o item não tem local próprio; o sugerido é o local padrão do tenant (tag "Sugerido"), editável. (4) **Custo apurado em DTO separado** (CA 2, 3 e 14): `GET /production-orders/{id}/completion/cost` com `projects.view_cost`; o impacto do diálogo (`CompletionStockView`) só traz a marca `zeroCost`; a aba Custos ganhou a linha "Produto acabado no estoque" (movimento, quantidade, unitário em 6 casas e total). (5) **Custo zero:** a API exige `confirmZeroCost` (422 sem ele); o motor passa a aceitar custo 0 só na entrada `Production`. (6) **Chave de idempotência:** `(ProductionOrder, osId, perna, Production)` com a perna 1 na primeira conclusão e + 1 a cada reconclusão depois de um estorno (com a perna fixa 1, a reconclusão devolveria o movimento já estornado). (7) Produto que controla lote entra no lote com o número da OS. (8) **`serial_components`:** uma linha por OS, item e lote com `serial_id` nulo (a série herda os lotes da OS inteira); `lot_id` anulável para o material sem controle de lote; o estorno marca `reversed_at`. (9) **Aba Séries** da OS e do item servidas pelo Inventory (`/inventory/production-orders/{id}/serials`, IDOR em `/{serialId}`, com `inventory.view` ou `production.view`; `/inventory/items/{id}/serials` com `inventory.view`), visíveis com o Estoque liberado, como a aba Material. (10) **"Escolher item do produto"** (CA 1): rotas novas `GET /production-orders/{id}/product-options` e `PUT /production-orders/{id}/product` com `production.edit`; não confere se o item escolhido está na BOM da OS. (11) **Reserva no estorno:** o Inventory passa a consumir `ProductionOrderCompletionReversed` e reconcilia pela BOM liberada vigente (ADR 0023 §6). (12) **CA 15:** o histórico da OS é o da auditoria da OS (situação e `entry_movement_id`); a série é auditada, mas não entra no histórico da OS; o item mostra a entrada no kardex; a linha do tempo do projeto diz "{OS} concluída: {n} unidades no estoque ({séries})" e, só com `projects.view_cost`, " · custo unitário R$ …". (13) Próximos passos: "Ver parcela liberada", "Ver séries" e "Ver projeto"; "Novo romaneio" entra com a PRD-06b. (14) O estorno de OS concluída antes do estoque não mexe no estoque e limpa a marca: a reconclusão segue a regra nova. (15) O movimento `Production` leva o projeto e a OS (filtro do kardex) e nunca publica `StockIssued`/`StockReturned`. (16) Padrão 7: "Concluindo a OS…" no diálogo, com o aviso de demora depois de 30 s. (17) **Pré-condição externa** (`elev_*` do Dolibarr) não conferida nesta máquina (sem acesso à VPS): vale o padrão D15. (18) `openapi.json` editado à mão (regenerar com `BQ_UPDATE_OPENAPI`); testes de integração escritos e não executados (fila do Docker); dos testes de arquitetura, os 9 de sempre ficam bloqueados pelo Smart App Control (`0x800711C7`) e rodam no CI. (19) A migration `FinishedGoodsSerials` não foi testada sobre a cópia do banco `konebras`. Pendente do PO: confirmar 2, 3, 10 e 17 | Dev |
+| 24/10/2026 | 1.1 | Recomendação aceita (PO 24/10): o estorno da conclusão de uma OS cuja última etapa é de qualidade abre uma tentativa nova da inspeção, com o checklist zerado e a decisão anterior guardada. Isso corrige a OS que ficava presa sem poder ser reconcluída (defeito desde a PRD-06a1) e substitui o desvio 2 da PRD-06a1 ("o checklist da tentativa continua marcado"). Número de série no padrão D15 `{código}-{AAAA}-{00001}` (recomendação aceita). | Dex (dev) |

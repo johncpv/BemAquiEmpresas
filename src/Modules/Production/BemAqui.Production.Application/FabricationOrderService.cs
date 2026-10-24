@@ -24,7 +24,7 @@ namespace BemAqui.Production.Application;
 public sealed partial class FabricationOrderService(
     IProductionDb db, IProjects projects, IParties parties, IItems items, IWorkCenters workCenters, IRoutingTemplates routings, INumberSequence numbers,
     IPermissionChecker permissions, ICurrentUser currentUser, IUserDirectory users, INotificationService notifications, IEventPublisher events, TimeProvider clock,
-    ProductionBoardNotifier board, LaborWorkflow labor, IBomGate bom)
+    ProductionBoardNotifier board, LaborWorkflow labor, IBomGate bom, FinishedGoods goods)
 {
     public const string Link = "/app/producao/os/";
 
@@ -112,7 +112,9 @@ public sealed partial class FabricationOrderService(
         var routing = order.RoutingTemplateId is { } routingId && await routings.FindAsync([routingId], cancellationToken) is [var template, ..] ? template : null;
         var applied = await LaborReader.AppliedMinutesAsync(db, stepIds, clock.GetUtcNow(), cancellationToken);
         // PRD-06a1 CA 4 e 12: o motivo do botão "Concluir OS" desabilitado, quem concluiu e o último estorno.
-        var blocker = order.Status is ProductionOrderStatus.Completed or ProductionOrderStatus.Cancelled ? null : await CompletionBlockerAsync(order, cancellationToken);
+        // PRD-06a2 CA 1: sem o item de estoque do produto, o botão também fica desabilitado com o motivo.
+        var blocker = order.Status is ProductionOrderStatus.Completed or ProductionOrderStatus.Cancelled ? null
+            : await CompletionBlockerAsync(order, cancellationToken) ?? goods.ProductBlocker(order);
         var completedBy = order.Status == ProductionOrderStatus.Completed && order.CompletedBy is { } completer ? await users.DisplayNameAsync(completer, cancellationToken) : null;
         var reversedBy = order.CompletionReversedBy is { } reverser ? await users.DisplayNameAsync(reverser, cancellationToken) : null;
         var views = steps.Select(s => new FabricationStepView(
@@ -127,7 +129,8 @@ public sealed partial class FabricationOrderService(
             views, views.Sum(s => s.StandardHours), FabricationRules.CurrentIndex(steps.Select(s => s.Status).ToList()), FabricationRules.HasStarted(order.Status, steps.Select(s => s.Status)),
             DelayDays(order.Status, project?.PromisedDate), order.CancelReason, order.CancelledAt, order.CreatedAt, order.Version, order.QualityAttempt, order.SelfInspection,
             QualityRules.ReadyToComplete(steps.Select(s => s.Status)) && order.Status is not (ProductionOrderStatus.Completed or ProductionOrderStatus.Cancelled), openNc,
-            order.Status == ProductionOrderStatus.Completed ? order.ActualEnd : null, completedBy, blocker, order.CompletionReversedAt, reversedBy, order.CompletionReversalReason);
+            order.Status == ProductionOrderStatus.Completed ? order.ActualEnd : null, completedBy, blocker, order.CompletionReversedAt, reversedBy, order.CompletionReversalReason,
+            order.EntryMovementId, order.Status == ProductionOrderStatus.Completed && order.CompletedWithoutStock);
     }
 
     /// <summary>Projetos, clientes, itens do projeto e produtos das OS, de uma vez por contrato.</summary>
