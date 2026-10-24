@@ -5,7 +5,7 @@
 | ID | EST-04 |
 | Título | Consulta de lotes e séries e rastreabilidade nos dois sentidos: da série do produto acabado para a OS, o projeto, o cliente e os lotes de matéria-prima consumidos (com fornecedor e recebimento); do lote para as OS, séries, projetos e clientes onde foi usado; exportação do resultado, com o cliente pessoa física protegido |
 | Tamanho | M |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-EST-8 (lote na matéria-prima e série no produto acabado, com rastreabilidade nos dois sentidos) · R-PRD-7 (lotes consumidos registrados) · R-PRJ-4 · R-SEC-5 · PRD §6 (Desempenho) · LGPD (PRD §6) |
 | Dependências | CMP-04 (lote com fornecedor e recebimento), EST-03 (lote consumido por OS), PRD-06a2 (série e vínculo `serial_components`), PRD-06b (série expedida no romaneio) |
 | Bloqueia | — |
@@ -80,19 +80,19 @@ Decididos pelo PO em 21/10/2026 (revisão pré-Fase 3, tabela 1.1, itens 87–88
 **Pré-condição externa:** nenhuma.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers), desempenho e E2E passando.
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Telas com estados, inclusive a 400 px e a árvore acessível.
-- [ ] Ajudas escritas; teste de cobertura passando.
-- [ ] Auditoria da exportação ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado (índices, se criados); story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, arquitetura e E2E passando; integração (Testcontainers) e desempenho com 200 OS escritos e não executados nesta máquina (fila do Docker).
+- [x] Permissões só do `ModuleCatalog` (`inventory.view`, `inventory.edit`, `parties.view`, já existentes); migration `InventoryTraceability` não destrutiva.
+- [x] Telas com estados, inclusive a 400 px e a árvore acessível.
+- [x] Ajudas escritas; teste de cobertura passando.
+- [x] Auditoria da exportação ligada (`Exported` no lote) e da correção (diff do `Lot`).
+- [x] Cliente Orval regenerado; `openapi.json` editado à mão (regenerar com `BQ_UPDATE_OPENAPI`).
+- [x] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` atualizados; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `TraceabilityQuery` (série → origem, lote → destino) sobre `IStockTraceability`; `CustomerNameMasker` (PJ, PF com iniciais).
-- [ ] Endpoints `/api/v1/inventory/traceability`, `/items/{id}/lots`; exportação CSV.
-- [ ] Tela de rastreabilidade (`treegrid`), abas do item e ajudas.
+- [x] `TraceabilityService` (série → origem, lote → destino) sobre `IStockTraceability` e os movimentos do lote; `CustomerNameMasker` (PJ, PF com iniciais); `TraceabilityRules` (conciliação, notas, validade, CSV).
+- [x] Endpoints `/api/v1/inventory/traceability`, `/items/{itemId}/lots` (lista, detalhe, correção, rastro e exportação CSV), `/items/{itemId}/serials/{serialId}/trace`.
+- [x] Tela de rastreabilidade (`treegrid`), abas do item e ajudas.
 
 ## Quality gates
 - Agentes previstos: @dev, @qa.
@@ -126,3 +126,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO (D15, tabela 1.1 itens 87–88) e correções da revisão pré-Fase 3 (§2.1 quebra da PRD-06a, ADR 0023 §2 e §7; §2.2 ponto 88; §2.3 padrões 8, 9); nova ordem (Marco 3.4, ordem 21) | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 24/10/2026 | 1.0 | Implementada (`Done`), sobre a PRD-06b (branch `feat/prd-06b-expedicao`). Desvios e decisões de implementação: (1) **Rotas** (IDOR pelo item, CA 8): busca `GET /inventory/traceability?q=`; série → origem `GET /inventory/items/{itemId}/serials/{serialId}/trace`; lote → destino `GET /inventory/items/{itemId}/lots/{lotId}/trace` e o CSV em `/trace/export`; a aba Lotes usa `GET /items/{itemId}/lots` e `GET /items/{itemId}/lots/{lotId}`, que passaram a devolver `ItemLotRow` (o `LotDetail` da EST-01a saiu; o front não o usava), e a correção é `PUT /items/{itemId}/lots/{lotId}` (`inventory.edit`). (2) **Recebimento e fornecedor (CMP-04 em paralelo, ponto de ligação):** o Inventory não lê o Purchasing; o recebimento (número e data) vem do movimento `Receipt` com origem `GoodsReceipt` e o número `REC` em `source_number`, e o link usa `/app/compras/recebimentos/$id` com o `source_id` (a rota da CMP-04); o fornecedor e a validade vêm do lote (`supplier_party_id`, `expiry`), que a CMP-04 precisa passar no `EnsureLotAsync(item, lote, fornecedor, validade)` e no `SourceNumber` do `StockPosting`. (3) **Romaneio** da série lido da saída `Shipment` do próprio estoque (`source_number` do movimento), uma consulta para a lista, sem chamar o `IShipments` por série. (4) **Custo:** nenhum DTO da rastreabilidade traz custo, nem o do lote (o mais seguro; o custo médio continua no item e no kardex com `inventory.view`); teste por reflexão. (5) **CSV:** o utilitário da MIG-01a ficou no `ImportReportWriter` do módulo Migrations, que o Inventory não pode referenciar; a regra foi para `SafeCsv` (BuildingBlocks), e o `ImportReportWriter.Cell` passou a delegar a ele; quantidade negativa sai com `'` (regra do CA 4). A exportação grava a ação nova `Exported` na auditoria do lote (`IAuditWriter.RecordExportAsync`: formato e linhas, sem o conteúdo), que o histórico mostra como "Exportou". (6) **Correção do lote** (CA 6): colunas novas em `lots` (`correction_reason`, `corrected_at`, `corrected_by`; sem tabela nova); "saída" é qualquer movimento negativo do lote (baixa, expedição, ajuste, saída avulsa e também transferência), a leitura mais segura; trava a linha do item como o motor; nada mudou devolve sem gravar (idempotente); corrida pelo mesmo número 409 `lot_conflict`; os documentos já gravados guardam o número antigo (`manual_posting_lines.lot_number`, `shipment_lines.lot_number`). (7) **Índices:** `stock_movements.lot_id` já tinha índice (FK); entraram `ix_lots_lot_number` e `ix_serials_serial_number` (`text_pattern_ops`) para a busca por prefixo. (8) **Desempenho** (CA 7): os consumos vêm todos de uma vez, com os nomes de OS, projeto, cliente, séries e romaneios em uma consulta por lista (sem paginação na tela, para a conta do lote fechar e o CSV ter tudo); o teste de 200 OS foi escrito. (9) **Busca** (CA 10): igualdade ou `StartsWith` do EF (o Npgsql manda o termo escapado como parâmetro; `%` e `_` são texto), até 50 séries e 50 lotes, exatos primeiro; termo acima de 60 caracteres responde 422; teste de arquitetura sem `LIKE` montado nem SQL cru. (10) **Cliente** (CA 9): PJ pela razão social; PF por extenso só com `parties.view`; as iniciais pulam partículas ("da", "de", "dos"…); o `partyId` (link) só vai para quem tem `parties.view`; o fornecedor aparece pelo nome (o CA 9 trata do cliente). (11) **Situação da série** na rastreabilidade: "Em estoque", "Expedido", "Cancelada" (a aba Séries segue com os rótulos da PRD-06a2). A série no item virou link para a rastreabilidade (CA 1 "abro a série no item"); `TraceSerial` ganhou o item, para o link "Ver origem da série" a partir do lote. (12) **Árvore:** o `TreeTable` (padrão 11) ganhou `searchable`, `expandAll`, `nameHeader` e `className` por coluna; a 400 px a coluna Quantidade some e a quantidade vai para baixo do rótulo (lista aninhada com abrir e fechar); "Exportar CSV" fica em "Mais ações". (13) **"Lote vencido ou bloqueado":** não existe bloqueio de lote no modelo; os testes cobrem o lote vencido (chip "Vencido") e o lote com saída (número travado). (14) `openapi.json` editado à mão (regenerar com `BQ_UPDATE_OPENAPI`); testes de integração escritos e não executados (fila do Docker); dos testes de arquitetura, os 9 de sempre ficam bloqueados pelo Smart App Control (`0x800711C7`) e rodam no CI; a migration não foi testada sobre a cópia do banco `konebras` | Dev |

@@ -112,6 +112,15 @@ Linha: `Open → Quoting (CMP-02) → Ordered (CMP-03a)`; `Open → Cancelled`. 
 - **Custo (CA 7, ADR 0025 §1):** o `Shipment` nunca entra no custo do projeto (o motor só publica `StockIssued`/`StockReturned` para `Issue`/`Return`).
 - **Etapa "Expedição" do roteiro (P-04, D4):** é "preparar e embalar"; finalizada, a OS fica "Pronta para concluir" com o próximo passo "Concluir OS" e, concluída com o produto no estoque, "Novo romaneio" já com o projeto e as séries da OS.
 
+### Rastreabilidade e correção do lote (EST-04, R-EST-8)
+Sem máquina de estado nova e sem evento: é leitura do Inventory, com os nomes resolvidos pelos Contracts (`IProductionOrders`, `IProjects`, `IParties`), uma chamada por lista.
+- **Série → origem (CA 1 e 2):** a série, a OS (`production_order_id`) e a conclusão, o projeto e o cliente, o romaneio (`shipment_id`, número lido da saída `Shipment`) e os lotes de `serial_components` (`IStockTraceability.ForSerialAsync`): a série herda os lotes da OS inteira (ponto 87), com a observação "Lotes da OS {número} ({n} unidades)…".
+- **Lote → destino (CA 3):** os movimentos do lote (`stock_movements.lot_id`): entradas (`Receipt`, `OpeningBalance`, `Production`, com os estornos), consumo por OS (`Issue` − `Return` com `production_order_id`), outras linhas (ajuste, saída avulsa, expedição, inventário, transferência que não fecha) e o saldo (`stock_balances`). **Conta:** recebido − consumido + outras = saldo; o que não fecha aparece como "Diferença na conta". OS concluída sem entrada no estoque nem série: "Sem série: OS concluída antes do registro de séries.".
+- **Recebimento (CMP-04):** vem do movimento `Receipt` com origem `GoodsReceipt` e o número `REC` em `source_number`; o link da tela usa `/app/compras/recebimentos/$id` (`source_id`). O Inventory não lê o Purchasing.
+- **Cliente (CA 9):** PJ pelo nome; PF pelo nome só com `parties.view`, senão pelas iniciais ("J. M. R."); nunca o documento, no DTO e no CSV.
+- **Exportar (CA 4):** CSV pelo `SafeCsv` (BuildingBlocks: `;`, UTF-8 com BOM, célula com `=`, `+`, `-`, `@` recebe `'`); `IAuditWriter.RecordExportAsync` grava `Exported` na auditoria do lote (quem, quando, linhas).
+- **Correção do lote (CA 6, `inventory.edit`):** trava a linha do item (a mesma ordem do motor, ADR 0023 §3), confere a saída e grava; sem saída troca número e validade; com saída (qualquer movimento negativo do lote) só a validade (422 `lot_has_outflow`); número repetido no item 422; nada mudou, devolve sem gravar; corrida pelo mesmo número 409 `lot_conflict`. Os documentos antigos guardam o número que tinham (`manual_posting_lines.lot_number`, `shipment_lines.lot_number`).
+
 ### Pedido de compra
 `Draft → PendingApproval → Approved → Sent → PartiallyReceived → Received`; `Cancelled` antes de receber.
 - **Alçada (ADR 0024 §4):** `PendingApproval` resolve os níveis pelo `IApprovalRouting` do Finance (tipo `PurchaseOrder`, aprovador com `purchasing.approve`); reprovar volta a `Draft` com o histórico imutável; editar pedido aprovado ou enviado volta a `PendingApproval` e exige reenvio ao fornecedor.
