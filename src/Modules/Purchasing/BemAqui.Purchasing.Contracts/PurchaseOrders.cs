@@ -52,6 +52,9 @@ public interface IPurchaseOrders
 
     /// <summary>Comprometido de compras do projeto (pedidos aprovados ainda não recebidos, pelo saldo a receber × preço), por natureza.</summary>
     Task<IReadOnlyList<PurchaseCommitment>> CommittedByProjectAsync(Guid projectId, CancellationToken cancellationToken = default);
+
+    /// <summary>Última compra do item (CMP-04 CA 15): o último pedido aprovado (ou além, sem cancelado) com o item; null sem compra.</summary>
+    Task<LastPurchaseInfo?> LastPurchaseAsync(Guid itemId, CancellationToken cancellationToken = default);
 }
 
 /// <summary>Pedido enviado para aprovação (CA 8): só aviso; o sino e o e-mail aos aprovadores do nível 1 saem na mesma transação.</summary>

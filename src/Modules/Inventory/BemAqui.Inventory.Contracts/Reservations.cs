@@ -40,6 +40,12 @@ public interface IStockReservations
     Task<IReadOnlyList<StockShortageInfo>> OpenShortagesAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// OS cujas faltas foram completadas pelas entradas dadas (CMP-04 CA 7: "Ver OS que receberam material"), pelo número dos movimentos.
+    /// Lido na transação do chamador, logo depois do <see cref="IStockMovements.PostAsync"/>.
+    /// </summary>
+    Task<IReadOnlyList<Guid>> OrdersCompletedByEntriesAsync(IReadOnlyCollection<string> movementNumbers, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Libera, de forma síncrona, todas as reservas ativas da OS (a conclusão da PRD-06a2, ADR 0023 §1): o reservado da posição desce
     /// e as faltas zeram, na transação do chamador. Exige transação aberta (<see cref="InvalidOperationException"/> sem ela), como o
     /// <see cref="IStockMovements.PostAsync"/>. Idempotente: a segunda chamada não muda nada.

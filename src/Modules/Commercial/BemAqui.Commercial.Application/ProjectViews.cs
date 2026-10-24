@@ -109,10 +109,11 @@ public static class ProjectCosts
 
     /// <summary>
     /// Título de compra de item estocável (ADR 0025 adendo): origem <c>Purchase</c> com natureza <c>Material</c>. Conta como
-    /// comprometido até a baixa para a OS, confirmado ou não; as origens de compra chegam na CMP-03a e na CMP-04.
+    /// comprometido até a baixa para a OS, confirmado ou não; as origens de compra são o previsto do pedido (<c>Purchase</c>, CMP-03a) e o
+    /// título do recebimento (<c>GoodsReceipt</c>, CMP-04 CA 10, D2).
     /// </summary>
     public static bool IsStockPurchase(CostPayable payable) =>
-        payable is { Origin: DocumentOrigin.Purchase, CostType: CostType.Material };
+        payable is { Origin: DocumentOrigin.Purchase or DocumentOrigin.GoodsReceipt, CostType: CostType.Material };
 
     private static ProjectCostLine Line(CostType type, decimal budgeted, decimal realized, decimal committed, bool backfill)
     {

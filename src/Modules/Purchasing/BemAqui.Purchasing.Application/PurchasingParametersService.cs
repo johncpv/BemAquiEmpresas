@@ -7,7 +7,7 @@ namespace BemAqui.Purchasing.Application;
 
 /// <summary>
 /// Parâmetros de Compras (ADR 0016 adendo M6), em <c>purchasing.parameters</c>: o prazo padrão de compra (<c>default_lead_days</c>,
-/// 15 dias, de 0 a 365; ponto 31), editado com <c>settings.edit</c> e auditado; e a marca da recomposição da implantação (D3).
+/// 15 dias, de 0 a 365; ponto 31) e a tolerância do recebimento (CMP-04, 0% a 50%), editados com <c>settings.edit</c> e auditados; e a marca da recomposição da implantação (D3).
 /// </summary>
 public sealed class PurchasingParametersService(IPurchasingDb db, IPermissionChecker permissions, BemAqui.Finance.Contracts.IChartOfAccounts chart, TimeProvider clock)
 {
@@ -28,6 +28,9 @@ public sealed class PurchasingParametersService(IPurchasingDb db, IPermissionChe
 
     /// <summary>Natureza do frete: padrão <c>Freight</c>.</summary>
     public const string FreightCostType = "freight_cost_type";
+
+    /// <summary>Tolerância do recebimento (CMP-04 CA 3 e 4, D8): % acima da quantidade da linha e do total aprovado; padrão 0%, de 0 a 50.</summary>
+    public const string ReceiptTolerancePct = "receipt_tolerance_pct";
 
     public const string DefaultPayableAccount = "2.1";
     public const string DefaultFreightAccount = "2.4";
@@ -51,6 +54,10 @@ public sealed class PurchasingParametersService(IPurchasingDb db, IPermissionChe
             ? (int)days
             : PurchaseRequestRules.DefaultLeadDays;
 
+    /// <summary>Tolerância do recebimento em % (CA 3, 4): padrão 0; valor fora de 0 a 50 volta ao padrão.</summary>
+    public async Task<decimal> ReceiptToleranceAsync(CancellationToken cancellationToken = default) =>
+        await ValueAsync(ReceiptTolerancePct, cancellationToken) is { } pct && pct >= 0m && pct <= GoodsReceiptRules.MaxTolerancePct ? pct : 0m;
+
     public async Task<PurchasingParametersView> GetAsync(CancellationToken cancellationToken = default)
     {
         var id = await db.PurchasingParameters.AsNoTracking().Where(p => p.Key == DefaultLeadDays).Select(p => (Guid?)p.Id).FirstOrDefaultAsync(cancellationToken);
@@ -58,7 +65,7 @@ public sealed class PurchasingParametersService(IPurchasingDb db, IPermissionChe
         var accounts = (await chart.PostableAsync(null, cancellationToken)).OrderBy(a => a.Code, StringComparer.Ordinal)
             .Select(a => new PurchasingAccountOption(a.Code, a.Name)).ToList();
         return new PurchasingParametersView(await LeadDaysAsync(cancellationToken), id, defaults.AccountCode, defaults.CostType, defaults.FreightAccountCode, defaults.FreightCostType,
-            await ValueAsync(AccountingConfirmed, cancellationToken) is 1m, accounts);
+            await ValueAsync(AccountingConfirmed, cancellationToken) is 1m, accounts, await ReceiptToleranceAsync(cancellationToken));
     }
 
     public async Task<Result<PurchasingParametersView>> UpdateAsync(PurchasingParametersInput input, CancellationToken cancellationToken = default)
@@ -72,6 +79,11 @@ public sealed class PurchasingParametersService(IPurchasingDb db, IPermissionChe
         if (input.DefaultLeadDays is < PurchaseRequestRules.MinLeadDays or > PurchaseRequestRules.MaxLeadDays)
         {
             return Invalid("defaultLeadDays", "Informe de 0 a 365 dias.");
+        }
+
+        if (input.ReceiptTolerancePct is < 0m or > GoodsReceiptRules.MaxTolerancePct || (input.ReceiptTolerancePct is { } tol && decimal.Round(tol, 2) != tol))
+        {
+            return Invalid("receiptTolerancePct", "Informe a tolerância de 0% a 50%, com até 2 casas.");
         }
 
         // CMP-03a (decisão do PO de 21/10): conta e natureza dos títulos do pedido e do frete, editáveis aqui até a contadora confirmar.
@@ -89,6 +101,11 @@ public sealed class PurchasingParametersService(IPurchasingDb db, IPermissionChe
         await SetTextAsync(PayableCostType, input.PayableCostType?.ToString(), cancellationToken);
         await SetTextAsync(FreightAccountCode, input.FreightAccountCode?.Trim(), cancellationToken);
         await SetTextAsync(FreightCostType, input.FreightCostType?.ToString(), cancellationToken);
+        if (input.ReceiptTolerancePct is { } tolerance)
+        {
+            await SetAsync(ReceiptTolerancePct, tolerance, cancellationToken);
+        }
+
         if (input.AccountingConfirmed is { } confirmed)
         {
             await SetAsync(AccountingConfirmed, confirmed ? 1m : 0m, cancellationToken);

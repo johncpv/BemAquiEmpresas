@@ -16,6 +16,9 @@ public sealed partial class PurchaseOrderService
     public const string OpenOnes = "abertos";
     public const string All = "todos";
 
+    /// <summary>"A receber" (CMP-04 CA 15): aprovados, enviados ou parcialmente recebidos com saldo, pela previsão de entrega.</summary>
+    public const string ToReceive = "a-receber";
+
     /// <summary>Detalhe do pedido (CA 3 a 23); 404 se não existe.</summary>
     public async Task<Result<PurchaseOrderDetail>> DetailAsync(Guid id, CancellationToken cancellationToken = default)
     {
@@ -46,13 +49,20 @@ public sealed partial class PurchaseOrderService
         var received = lines.Sum(l => l.QuantityReceived);
         var changeable = PurchaseOrderRules.IsChangeable(order.Status, received);
         var (canDecide, blocker) = await DecideStateAsync(order, canApprove, cancellationToken);
+        // Recebimento (CMP-04): quem pode registrar agora (ou o motivo), quanto já virou título e se o usuário já recebeu (não corrige o preço).
+        var canReceive = await permissions.HasPermissionAsync("purchasing", "receive", cancellationToken);
+        var receiveBlocker = canReceive ? await ReceiveBlockerAsync(order, lines, cancellationToken) : null;
+        var receipts = await db.GoodsReceipts.AsNoTracking().Where(r => r.PurchaseOrderId == id).Select(r => new { r.Status, r.Amount, r.ReceivedBy }).ToListAsync(cancellationToken);
+        var receivedAmount = receipts.Where(r => r.Status == GoodsReceiptStatus.Completed).Sum(r => r.Amount);
+        var receiptsCount = receipts.Count;
+        var receivedByMe = me is { } current && receipts.Any(r => r.ReceivedBy == current);
         var views = lines.Select(l =>
         {
             var item = itemInfo.GetValueOrDefault(l.ItemId);
             return new PurchaseOrderLineView(
                 l.Id, l.Sequence, l.ItemId, item?.Code ?? string.Empty, item?.Name ?? "Item removido", item?.UnitCode ?? string.Empty, l.Quantity, l.EnteredQuantity,
                 l.EnteredUnitId is { } u ? unitCodes.GetValueOrDefault(u) : null, l.UnitPrice, l.LineTotal, l.CostType, l.QuantityReceived, l.RequestLineIds,
-                requestRefs.Where(r => l.RequestLineIds.Contains(r.LineId)).ToList());
+                requestRefs.Where(r => l.RequestLineIds.Contains(r.LineId)).ToList(), l.QuantityOverReceived, l.AmountReceived, Math.Max(0m, l.Quantity - l.QuantityReceived));
         }).ToList();
         return new PurchaseOrderDetail(
             order.Id, order.Number, order.Status, order.PartyId, party is null ? "Fornecedor removido" : party.TradeName ?? party.LegalName, order.ProjectId, project?.Number, project?.Name,
@@ -63,7 +73,9 @@ public sealed partial class PurchaseOrderService
             order.CancelReason, order.CancelledAt, order.CancelledBy is { } cb ? await users.DisplayNameAsync(cb, cancellationToken) : null, received, views,
             levels.Select(l => new PurchaseOrderLevelView(l.Attempt, l.Level, l.ApprovalRuleId, l.ApproverName, l.ReferenceAmount, l.SplitWarning, l.Status)).ToList(),
             dues.Select(d => new PurchaseOrderInstallmentPreview(d.Number, d.DueDate, d.Amount)).ToList(), me is { } user && user == order.RequestedBy, canEdit && changeable,
-            order.Status == PurchaseOrderStatus.Draft && (canCreate || canEdit), canDecide, canEdit && changeable, blocker, order.Version);
+            order.Status == PurchaseOrderStatus.Draft && (canCreate || canEdit), canDecide, canEdit && changeable, blocker, order.Version, order.ApprovedTotal, order.ClosedBalanceAmount,
+            order.CloseReason, order.ClosedAt, receivedAmount, receiptsCount, canReceive && receiveBlocker is null, canReceive ? receiveBlocker : null,
+            canEdit && order.Status == PurchaseOrderStatus.PartiallyReceived, canApprove && PurchaseOrderRules.OpenForReceipt.Contains(order.Status) && !receivedByMe);
     }
 
     /// <summary>Pode decidir agora? E, quando tem <c>purchasing.approve</c> e não pode, o motivo (CA 9).</summary>
@@ -111,6 +123,10 @@ public sealed partial class PurchaseOrderService
         else if (show == OpenOnes)
         {
             orders = orders.Where(o => o.Status != PurchaseOrderStatus.Received && o.Status != PurchaseOrderStatus.Cancelled);
+        }        else if (show == ToReceive)
+        {
+            var receivable = PurchaseOrderRules.OpenForReceipt.ToList();
+            orders = orders.Where(o => receivable.Contains(o.Status) && db.PurchaseOrderLines.Any(l => l.OrderId == o.Id && l.Quantity > l.QuantityReceived));
         }
 
         if (query.Status is { } status)

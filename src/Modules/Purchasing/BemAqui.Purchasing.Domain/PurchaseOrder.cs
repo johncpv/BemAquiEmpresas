@@ -79,6 +79,18 @@ public sealed class PurchaseOrder : Entity, IAuditable, IConcurrencyVersioned
 
     public Guid? CancelledBy { get; set; }
 
+    /// <summary>Total aprovado na última aprovação (CMP-04, teto D8): Σ confirmado nos recebimentos ≤ este valor + a tolerância.</summary>
+    public decimal? ApprovedTotal { get; set; }
+
+    /// <summary>"Encerrar saldo do pedido" (CMP-04 CA 13): o valor do saldo que não virá (marca "Encerrado com saldo de {x}").</summary>
+    public decimal? ClosedBalanceAmount { get; set; }
+
+    public string? CloseReason { get; set; }
+
+    public DateTimeOffset? ClosedAt { get; set; }
+
+    public Guid? ClosedBy { get; set; }
+
     public uint Version { get; set; }
 }
 
@@ -109,8 +121,14 @@ public sealed class PurchaseOrderLine : Entity, IAuditable
     /// <summary>Natureza de custo do projeto (CA 4): <c>Material</c> nos itens.</summary>
     public CostType CostType { get; set; } = CostType.Material;
 
-    /// <summary>Recebido (CMP-04); 0 nesta story.</summary>
+    /// <summary>Recebido (CMP-04), na unidade de estoque, até a quantidade pedida; o que passa dela (tolerância) fica em <see cref="QuantityOverReceived"/>.</summary>
     public decimal QuantityReceived { get; set; }
+
+    /// <summary>Recebido acima da quantidade pedida, dentro da tolerância (CMP-04 CA 3).</summary>
+    public decimal QuantityOverReceived { get; set; }
+
+    /// <summary>Valor já recebido da linha (Σ qtd × preço de cada recebimento, CMP-04): a correção de preço vale só para o saldo (CA 14).</summary>
+    public decimal AmountReceived { get; set; }
 
     /// <summary>Linhas de SC atendidas por esta linha (vínculo; voltam a <c>Open</c> no cancelamento).</summary>
     public Guid[] RequestLineIds { get; set; } = [];

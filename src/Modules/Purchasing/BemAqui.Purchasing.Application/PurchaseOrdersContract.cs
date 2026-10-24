@@ -51,6 +51,16 @@ public sealed class PurchaseOrdersContract(IPurchasingDb db) : IPurchaseOrders, 
             .Where(c => c.Amount > 0m).ToList();
     }
 
+    public async Task<LastPurchaseInfo?> LastPurchaseAsync(Guid itemId, CancellationToken cancellationToken = default)
+    {
+        var counted = PurchaseOrderRules.CountsForReference.Where(s => s != PurchaseOrderStatus.PendingApproval).ToList();
+        return await (from l in db.PurchaseOrderLines.AsNoTracking()
+                      join o in db.PurchaseOrders.AsNoTracking() on l.OrderId equals o.Id
+                      where l.ItemId == itemId && counted.Contains(o.Status) && o.ApprovedAt != null
+                      orderby o.ApprovedAt descending, o.Number descending
+                      select new LastPurchaseInfo(l.ItemId, o.Id, o.Number, o.PartyId, l.UnitPrice, o.ApprovedAt!.Value)).FirstOrDefaultAsync(cancellationToken);
+    }
+
     public Task<IReadOnlyDictionary<Guid, decimal>> GeneralStockOpenQuantityAsync(IReadOnlyCollection<Guid> itemIds, CancellationToken cancellationToken = default) =>
         OpenQuantityByItemAsync(itemIds, PurchaseOrderDestination.GeneralStock, cancellationToken);
 }

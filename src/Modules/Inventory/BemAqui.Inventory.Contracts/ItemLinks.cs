@@ -19,6 +19,12 @@ public sealed record SupplierCodeMatch(Guid ItemId, string ItemCode, string Item
 public interface IItemSupplierCodes
 {
     Task<SupplierCodeMatch?> FindAsync(Guid partyId, string supplierCode, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Código, unidade e fator do fornecedor para cada item (CMP-04 CA 1: quantidade recebida na unidade do fornecedor). Um por item (o mais
+    /// antigo); item sem código do fornecedor fica fora; fornecedor excluído não casa.
+    /// </summary>
+    Task<IReadOnlyDictionary<Guid, SupplierCodeMatch>> ForItemsAsync(Guid partyId, IReadOnlyCollection<Guid> itemIds, CancellationToken cancellationToken = default);
 }
 
 /// <summary>Unidade em que um item pode ser informado: a de estoque ou outra com conversão cadastrada (ENG-02 CA 2); <c>ToStock</c> é quanto 1 desta unidade vale na de estoque (prévia ao vivo na tela; a conta gravada é do <see cref="IUnitConversion"/>).</summary>

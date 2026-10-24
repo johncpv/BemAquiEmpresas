@@ -36,12 +36,18 @@ public sealed record PurchaseOrderVersionInput(uint Version);
 /// <summary>Aprovar ou reprovar (CA 9, 14): comentário (obrigatório na reprovação) e a versão.</summary>
 public sealed record PurchaseOrderDecisionInput(string? Comment, uint Version);
 
+/// <summary>"Encerrar saldo do pedido" (CMP-04 CA 13): motivo obrigatório e a versão.</summary>
+public sealed record PurchaseOrderCloseInput(string? Reason, uint Version);
+
+/// <summary>"Corrigir preço" da linha (CMP-04 CA 14): o preço novo (vale para o saldo a receber), o motivo obrigatório e a versão do pedido.</summary>
+public sealed record PurchaseOrderPriceInput(decimal UnitPrice, string? Reason, uint Version);
 /// <summary>"Cancelar pedido" (CA 16): motivo obrigatório e a versão.</summary>
 public sealed record PurchaseOrderCancelInput(string? Reason, uint Version);
 
 public sealed record PurchaseOrderLineView(
     Guid Id, int Sequence, Guid ItemId, string ItemCode, string ItemName, string UnitCode, decimal Quantity, decimal? EnteredQuantity, string? EnteredUnitCode, decimal UnitPrice,
-    decimal LineTotal, CostType CostType, decimal QuantityReceived, IReadOnlyList<Guid> RequestLineIds, IReadOnlyList<PurchaseOrderRequestRef> Requests);
+    decimal LineTotal, CostType CostType, decimal QuantityReceived, IReadOnlyList<Guid> RequestLineIds, IReadOnlyList<PurchaseOrderRequestRef> Requests,
+    decimal QuantityOverReceived = 0m, decimal AmountReceived = 0m, decimal QuantityOpen = 0m);
 
 /// <summary>Linha de SC atendida pela linha do pedido (link para a SC).</summary>
 public sealed record PurchaseOrderRequestRef(Guid RequestId, string Number, Guid LineId);
@@ -70,7 +76,9 @@ public sealed record PurchaseOrderDetail(
     int? QuotesCount, string? SingleQuoteWarning, Guid? RequestedBy, string? RequestedByName, DateTimeOffset CreatedAt, DateTimeOffset? SubmittedAt, DateTimeOffset? ApprovedAt,
     int Attempt, decimal? ReferenceAmount, string? SplitWarning, bool SelfApproved, bool ChangedAfterSent, string? RejectionComment, string? CancelReason,
     DateTimeOffset? CancelledAt, string? CancelledByName, decimal QuantityReceived, IReadOnlyList<PurchaseOrderLineView> Lines, IReadOnlyList<PurchaseOrderLevelView> Levels,
-    IReadOnlyList<PurchaseOrderInstallmentPreview> Installments, bool IsRequester, bool CanEdit, bool CanSubmit, bool CanDecide, bool CanCancel, string? DecideBlocker, uint Version);
+    IReadOnlyList<PurchaseOrderInstallmentPreview> Installments, bool IsRequester, bool CanEdit, bool CanSubmit, bool CanDecide, bool CanCancel, string? DecideBlocker, uint Version,
+    decimal? ApprovedTotal = null, decimal? ClosedBalanceAmount = null, string? CloseReason = null, DateTimeOffset? ClosedAt = null, decimal AmountReceived = 0m, int ReceiptsCount = 0,
+    bool CanReceive = false, string? ReceiveBlocker = null, bool CanClose = false, bool CanCorrectPrice = false);
 
 /// <summary>Linha da lista "Pedidos" (CA 20).</summary>
 public sealed record PurchaseOrderSummary(

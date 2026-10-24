@@ -208,6 +208,29 @@ public sealed class PayablesContract(IFinanceDb db, IChartOfAccounts chart, INum
         return Result.Success();
     }
 
+    public async Task<Result<IReadOnlyList<PayableRef>>> CreateOpenInstallmentsAsync(DocumentOrigin origin, Guid originId, OpenPayables plan, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(plan);
+        var asPlanned = new PlannedPayables(plan.PartyId, plan.ProjectId, plan.AccountId, plan.CostType,
+            (plan.Installments ?? []).Select(i => new PlannedInstallment(i.Number, i.Amount, i.DueDate, i.Description)).ToList());
+        if (await PlanErrorAsync(asPlanned, cancellationToken) is { } invalid)
+        {
+            return invalid;
+        }
+
+        var current = await ActiveOfAsync(origin, originId, cancellationToken);
+        var result = new List<PayableRef>();
+        foreach (var installment in plan.Installments!)
+        {
+            var existing = current.FirstOrDefault(p => p.Installment == installment.Number);
+            result.Add(Ref(existing ?? await NewAsync(origin, originId, installment.Number, plan.PartyId, plan.ProjectId, plan.AccountId, CostOf(asPlanned), installment.Amount,
+                installment.DueDate, false, Description(new PlannedInstallment(installment.Number, installment.Amount, installment.DueDate, installment.Description)), PayableStatus.Open,
+                cancellationToken)));
+        }
+
+        return result;
+    }
+
     public async Task<IReadOnlyList<PayableRef>> ListByOriginAsync(DocumentOrigin origin, Guid originId, CancellationToken cancellationToken = default)
     {
         var payables = await db.Payables.AsNoTracking().Where(p => p.Origin == origin && p.OriginId == originId)
