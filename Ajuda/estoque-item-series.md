@@ -10,6 +10,7 @@ modulo: inventory
 Ver cada unidade deste produto que já entrou no estoque com número de série: de qual OS e de qual projeto ela veio, onde está e a situação.
 
 ## Como usar
+- Clique na **série** para ver de onde ela veio na **Rastreabilidade**.
 - Cada linha mostra a **série**, a **situação** (**No estoque**, **Expedida** ou **Cancelada**), a **OS** (clique para abrir a aba **Séries** dela), o **projeto**, o **local** e quando entrou. As mais novas aparecem primeiro.
 - A 400 px ficam a série e a situação; toque na linha para ver a OS, o projeto e o local.
 - As séries nascem quando a OS de fabricação do produto é concluída, no formato código do item, ano e sequência (`ELV-0001-2026-00001`).
@@ -18,4 +19,4 @@ Ver cada unidade deste produto que já entrou no estoque com número de série: 
 ## Perguntas frequentes
 **Por que diz "Este produto não controla série."?** O item está sem controle de série. A entrada do produto acabado é por quantidade. Marque o controle de série na aba **Dados** antes da próxima conclusão.
 
-**Onde vejo de quais lotes uma série foi feita?** Na aba **Séries** da OS que produziu a unidade, em **Lotes de matéria-prima consumidos**.
+**Onde vejo de quais lotes uma série foi feita?** Clique na série: a **Rastreabilidade** abre com a OS, o projeto, o cliente, o romaneio e os **lotes de matéria-prima consumidos**, com fornecedor e recebimento. A aba **Séries** da OS também mostra os lotes.

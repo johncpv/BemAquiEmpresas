@@ -19,7 +19,11 @@ export function ItemSerials({ itemId, tracksSerial }: { itemId: string; tracksSe
   const query = useListItemSerials(itemId, { page: search.page, pageSize: search.pageSize }, { query: { enabled: tracksSerial } })
   if (!tracksSerial) return <EmptyState className="mt-3" title={FINISHED_GOODS.semSerie} description="A entrada do produto acabado é por quantidade. Para controlar série, marque o item em Dados." />
   const columns: ColumnDef<ItemSerialRow>[] = [
-    { id: 'serial', header: 'Série', cell: ({ row }) => <span className="font-semibold tabular-nums">{row.original.serialNumber}</span> },
+    // EST-04 CA 1: a série abre a rastreabilidade (de onde veio: OS, projeto, cliente, romaneio e lotes).
+    {
+      id: 'serial', header: 'Série',
+      cell: ({ row }) => <Link to={'/app/estoque/rastreabilidade' as never} search={{ item: itemId, serie: row.original.id } as never} className="font-semibold tabular-nums text-primary underline">{row.original.serialNumber}</Link>,
+    },
     { id: 'status', header: 'Situação', cell: ({ row }) => <StatusChip tone={SERIAL_STATUS[row.original.status]?.tone ?? 'neutral'}>{SERIAL_STATUS[row.original.status]?.label ?? row.original.status}</StatusChip> },
     {
       id: 'order', header: 'OS', meta: { secondary: true },
