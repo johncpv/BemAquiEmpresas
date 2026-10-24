@@ -344,7 +344,7 @@ _MIG-01d (saldos iniciais de estoque) não entra aqui: cancelada pelo PO em 18/1
 - Requisitos: R-CMP-5, R-EST-6, R-EST-7, R-EST-8, R-FIN-4, R-COM-4, R-PRP-2, R-PRP-7, R-SEC-5.
 - CA: registro com `purchasing.receive`, por quem não pediu nem aprovou (D8); entrada com custo rateado (P-16); cada recebimento gera os próprios títulos em aberto (`CreateOpenInstallmentsAsync`) e replaneja os previstos para o saldo; Σ recebido ≤ aprovado + tolerância; estorno cancela os títulos do recebimento (409 se em OP).
 
-**CMP-02 [ ] Cotação (M)** — 3.3, ordem 17 — [story](stories/CMP-02-cotacao.md)
+**CMP-02 [x] Cotação (M)** — 3.3, ordem 17 — [story](stories/CMP-02-cotacao.md)
 - Requisitos: R-CMP-2, R-CMP-6, R-COM-4, R-PRP-1, R-PRP-3, R-SEC-5.
 - CA: comparativo com rádio por linha e tag "Sugerido"; IPI % por fornecedor; quem lançou cada resposta; anexo da proposta obrigatório acima de R$ 5.000,00 (D8); "Gerar pedidos de compra" pela API da CMP-03a e "Enviar todos para aprovação".
 
