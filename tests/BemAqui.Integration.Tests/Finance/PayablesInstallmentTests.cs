@@ -13,8 +13,8 @@ using Npgsql;
 namespace BemAqui.Integration.Tests.Finance;
 
 /// <summary>
-/// CMP-03a CA 17 a 19 (ADR 0024 Â§2): <c>IPayables</c> por parcela. A migraÃ§Ã£o do Ã­ndice Ã© testada sobre um banco no esquema anterior com
-/// tÃ­tulos que imitam os do tenant <c>konebras</c> (instalador da COM-06, recorrente e manual da FIN-02); os mÃ©todos novos e os antigos,
+/// CMP-03a CA 17 a 19 (ADR 0024 §2): <c>IPayables</c> por parcela. A migração do índice é testada sobre um banco no esquema anterior com
+/// títulos que imitam os do tenant <c>konebras</c> (instalador da COM-06, recorrente e manual da FIN-02); os métodos novos e os antigos,
 /// sobre o banco do tenant de teste. Banco desta classe.
 /// </summary>
 public class PayablesInstallmentTests(TenancyFixture tenancy) : IClassFixture<TenancyFixture>
@@ -37,7 +37,7 @@ public class PayablesInstallmentTests(TenancyFixture tenancy) : IClassFixture<Te
         await using var command = new NpgsqlCommand("""
             INSERT INTO finance.payables (id, number, party_id, description, account_id, amount, retention_iss, retention_inss, retention_ir, retention_pcc, paid_amount, issue_date,
                 due_date, is_estimate, status, origin, origin_id, recurring_expense_id, competence, created_at)
-            VALUES (@id, @number, @party, 'TÃ­tulo legado', @account, @amount, 0, 0, 0, 0, 0, @issue, @due, @estimate, @status, @origin, @originId, @recurring, @competence, now())
+            VALUES (@id, @number, @party, 'Título legado', @account, @amount, 0, 0, 0, 0, 0, @issue, @due, @estimate, @status, @origin, @originId, @recurring, @competence, now())
             """, connection);
         command.Parameters.AddWithValue("id", id);
         command.Parameters.AddWithValue("number", number);
@@ -56,14 +56,14 @@ public class PayablesInstallmentTests(TenancyFixture tenancy) : IClassFixture<Te
     }
 
     /// <summary>
-    /// CA 17 e 18: no esquema anterior, tÃ­tulos de origem existentes; o passo 1 cria <c>installment = 1</c> e o Ã­ndice novo mantendo o antigo
-    /// (a versÃ£o anterior continua valendo: um segundo tÃ­tulo da mesma origem ainda Ã© recusado); o passo 2 remove o antigo e libera as
-    /// parcelas, sem duplicar nem mudar valores, situaÃ§Ãµes e vencimentos.
+    /// CA 17 e 18: no esquema anterior, títulos de origem existentes; o passo 1 cria <c>installment = 1</c> e o índice novo mantendo o antigo
+    /// (a versão anterior continua valendo: um segundo título da mesma origem ainda é recusado); o passo 2 remove o antigo e libera as
+    /// parcelas, sem duplicar nem mudar valores, situações e vencimentos.
     /// </summary>
     [Fact]
     public async Task Migracao_em_dois_passos_preserva_os_titulos_de_origem()
     {
-        // Banco novo com o usuÃ¡rio do container (o mesmo do catÃ¡logo), migrado atÃ© antes da CMP-03a.
+        // Banco novo com o usuário do container (o mesmo do catálogo), migrado até antes da CMP-03a.
         var name = $"cmp03a_{Guid.CreateVersion7():N}";
         await using (var admin = new NpgsqlConnection(tenancy.CatalogConnection))
         {
@@ -116,21 +116,21 @@ public class PayablesInstallmentTests(TenancyFixture tenancy) : IClassFixture<Te
             insert.Parameters.AddWithValue("o", installer.Origin);
             await insert.ExecuteNonQueryAsync();
         };
-        await duplicate.Should().ThrowAsync<PostgresException>("entre os dois passos o Ã­ndice antigo (origin, origin_id) continua valendo");
+        await duplicate.Should().ThrowAsync<PostgresException>("entre os dois passos o índice antigo (origin, origin_id) continua valendo");
 
         await db.Database.MigrateAsync();
 
         var after = await db.Payables.AsNoTracking().OrderBy(p => p.Number).ToListAsync();
-        after.Should().HaveCount(3, "a migraÃ§Ã£o nÃ£o duplica");
+        after.Should().HaveCount(3, "a migração não duplica");
         after.Should().OnlyContain(p => p.Installment == 1);
         after.Select(p => (p.Id, p.Number, p.Status.ToString(), p.Amount, p.DueDate, p.IsEstimate))
-            .Should().Equal(before.Select(b => (b.Id, b.Number, b.Status, b.Amount, b.DueDate, b.IsEstimate)), "mesmos valores, situaÃ§Ãµes e vencimentos");
-        await duplicate.Should().NotThrowAsync("com o Ã­ndice antigo removido, a parcela 2 da mesma origem entra");
+            .Should().Equal(before.Select(b => (b.Id, b.Number, b.Status, b.Amount, b.DueDate, b.IsEstimate)), "mesmos valores, situações e vencimentos");
+        await duplicate.Should().NotThrowAsync("com o índice antigo removido, a parcela 2 da mesma origem entra");
     }
 
     private sealed record LegacyRow(Guid Id, string Number, string Status, decimal Amount, DateOnly? DueDate, bool IsEstimate);
 
-    /// <summary>CA 17 e 18: os mÃ©todos de uma parcela continuam valendo com installment = 1 (idempotente, busca pela origem, cancelar).</summary>
+    /// <summary>CA 17 e 18: os métodos de uma parcela continuam valendo com installment = 1 (idempotente, busca pela origem, cancelar).</summary>
     [Fact]
     public async Task Metodos_de_uma_parcela_continuam_com_installment_1()
     {
@@ -148,15 +148,15 @@ public class PayablesInstallmentTests(TenancyFixture tenancy) : IClassFixture<Te
         first.Value.Installment.Should().Be(1);
         (await payables.FindByOriginAsync(DocumentOrigin.Installer, origin))!.Id.Should().Be(first.Value.Id);
         var installer = await db.Payables.AsNoTracking().SingleAsync(p => p.Id == first.Value.Id);
-        installer.CostType.Should().BeNull("sem projeto nÃ£o hÃ¡ natureza");
-        (await db.Accounts.AsNoTracking().SingleAsync(a => a.Id == installer.AccountId)).Code.Should().Be("2.3", "a origem antiga mantÃ©m a conta de hoje (CA 19)");
+        installer.CostType.Should().BeNull("sem projeto não há natureza");
+        (await db.Accounts.AsNoTracking().SingleAsync(a => a.Id == installer.AccountId)).Code.Should().Be("2.3", "a origem antiga mantém a conta de hoje (CA 19)");
         (await payables.CancelFromOriginAsync(DocumentOrigin.Installer, origin, "OS cancelada")).IsSuccess.Should().BeTrue();
         await db.SaveChangesAsync();
         (await db.Payables.AsNoTracking().SingleAsync(p => p.Id == first.Value.Id)).Status.Should().Be(PayableStatus.Cancelled);
     }
 
     /// <summary>
-    /// CA 19: criar por parcela (conta e natureza do chamador, "Estimado", idempotente), trocar as parcelas e cancelar tudo pela origem; tÃ­tulo
+    /// CA 19: criar por parcela (conta e natureza do chamador, "Estimado", idempotente), trocar as parcelas e cancelar tudo pela origem; título
     /// pago ou em OP recusa a troca e o cancelamento.
     /// </summary>
     [Fact]
@@ -192,7 +192,7 @@ public class PayablesInstallmentTests(TenancyFixture tenancy) : IClassFixture<Te
         var listed = await payables.ListByOriginAsync(DocumentOrigin.Purchase, origin);
         listed.Select(p => p.Installment).Should().Equal((short)1, (short)2);
 
-        // TÃ­tulo numa OP: a troca e o cancelamento sÃ£o recusados (409 payable_in_payment_order), nada muda.
+        // Título numa OP: a troca e o cancelamento são recusados (409 payable_in_payment_order), nada muda.
         var first = await db.Payables.SingleAsync(p => p.Id == created[0].Id);
         first.Status = PayableStatus.AwaitingApproval;
         await db.SaveChangesAsync();
@@ -205,7 +205,7 @@ public class PayablesInstallmentTests(TenancyFixture tenancy) : IClassFixture<Te
         await db.SaveChangesAsync();
         (await db.Payables.AsNoTracking().Where(p => p.Origin == DocumentOrigin.Purchase && p.OriginId == origin).ToListAsync()).Should().OnlyContain(p => p.Status == PayableStatus.Cancelled);
 
-        // Cancelado nÃ£o ocupa a chave: a parcela 1 pode nascer de novo (replanejamento depois do estorno, ADR 0024 Â§2).
+        // Cancelado não ocupa a chave: a parcela 1 pode nascer de novo (replanejamento depois do estorno, ADR 0024 §2).
         (await payables.CreatePlannedInstallmentsAsync(DocumentOrigin.Purchase, origin, plan)).IsSuccess.Should().BeTrue();
         await db.SaveChangesAsync();
         (await db.Payables.AsNoTracking().CountAsync(p => p.Origin == DocumentOrigin.Purchase && p.OriginId == origin && p.Status != PayableStatus.Cancelled)).Should().Be(2);
