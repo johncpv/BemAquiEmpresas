@@ -115,6 +115,8 @@ public sealed partial class ShipmentService
     private void AddLines(Guid shipmentId, IReadOnlyList<CheckedLine> lines)
     {
         var sequence = 0;
+        // A tabela das séries do romaneio é da Produção (as séries do estoque mudam só pelo IStockSerials).
+        var held = db.ShipmentLineSerials;
         foreach (var l in lines)
         {
             var line = new ShipmentLine
@@ -125,7 +127,7 @@ public sealed partial class ShipmentService
             db.ShipmentLines.Add(line);
             foreach (var s in l.Serials)
             {
-                db.ShipmentLineSerials.Add(new ShipmentLineSerial { ShipmentId = shipmentId, LineId = line.Id, SerialId = s.Id, SerialNumber = s.SerialNumber });
+                held.Add(new ShipmentLineSerial { ShipmentId = shipmentId, LineId = line.Id, SerialId = s.Id, SerialNumber = s.SerialNumber });
             }
         }
     }
