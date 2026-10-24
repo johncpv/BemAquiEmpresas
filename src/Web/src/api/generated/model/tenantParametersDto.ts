@@ -13,4 +13,7 @@ export interface TenantParametersDto {
   chargesSettingId: string | null;
   /** @nullable */
   pricingSettingId: string | null;
+  emailDispatchMaxPerUserDay?: number;
+  /** @nullable */
+  emailDispatchSettingId?: string | null;
 }

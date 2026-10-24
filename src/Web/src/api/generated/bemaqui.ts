@@ -120,6 +120,7 @@ import type {
   DiscountsAndCancellations,
   DocumentCheck,
   DueDateInput,
+  EmailDispatchLimitInput,
   EmployeeCreateInput,
   EmployeeCreated,
   EmployeeDetail,
@@ -437,6 +438,10 @@ import type {
   PurchaseOrderDecisions,
   PurchaseOrderDefaults,
   PurchaseOrderDetail,
+  PurchaseOrderDispatchDraft,
+  PurchaseOrderDispatchInput,
+  PurchaseOrderDispatchView,
+  PurchaseOrderDocuments,
   PurchaseOrderInput,
   PurchaseOrderLineUpdate,
   PurchaseOrderPayableView,
@@ -7217,6 +7222,88 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getSavePricingModeMutationOptions(options), queryClient);
+    }
+
+export const getSaveEmailDispatchLimitUrl = () => {
+
+
+
+
+  return `/api/v1/settings/parameters/email-dispatch-limit`
+}
+
+export const saveEmailDispatchLimit = async (emailDispatchLimitInput: EmailDispatchLimitInput, options?: Parameters<typeof apiFetch>[1]): Promise<TenantParametersDto> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<TenantParametersDto>(getSaveEmailDispatchLimitUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(emailDispatchLimitInput)
+  }
+);}
+
+
+
+
+
+export const getSaveEmailDispatchLimitMutationKey = () => ['saveEmailDispatchLimit'] as const;
+
+export const getSaveEmailDispatchLimitMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveEmailDispatchLimit>>, TError,SaveEmailDispatchLimitMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveEmailDispatchLimit>>, TError,SaveEmailDispatchLimitMutationVariables, TContext> => {
+
+const mutationKey = getSaveEmailDispatchLimitMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveEmailDispatchLimit>>, SaveEmailDispatchLimitMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  saveEmailDispatchLimit(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveEmailDispatchLimitMutationResult = NonNullable<Awaited<ReturnType<typeof saveEmailDispatchLimit>>>
+    export type SaveEmailDispatchLimitMutationBody = EmailDispatchLimitInput
+    export type SaveEmailDispatchLimitMutationError = unknown
+    export type SaveEmailDispatchLimitMutationVariables = {data: EmailDispatchLimitInput}
+
+    export const useSaveEmailDispatchLimit = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveEmailDispatchLimit>>, TError,SaveEmailDispatchLimitMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof saveEmailDispatchLimit>>,
+        TError,
+        SaveEmailDispatchLimitMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSaveEmailDispatchLimitMutationOptions(options), queryClient);
     }
 
 export const getGetShopfloorDeviceUrl = () => {
@@ -44246,6 +44333,477 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getCancelPurchaseOrderMutationOptions(options), queryClient);
+    }
+
+export const getDownloadPurchaseOrderPdfUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/purchasing/purchase-orders/${id}/pdf`
+}
+
+export const downloadPurchaseOrderPdf = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDownloadPurchaseOrderPdfUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadPurchaseOrderPdfQueryKey = (id: string,) => {
+    return [
+    `/api/v1/purchasing/purchase-orders/${id}/pdf`
+    ] as const;
+    }
+
+
+export const getDownloadPurchaseOrderPdfQueryOptions = <TData = Awaited<ReturnType<typeof downloadPurchaseOrderPdf>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPurchaseOrderPdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadPurchaseOrderPdfQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadPurchaseOrderPdf>>> = ({ signal }) => downloadPurchaseOrderPdf(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadPurchaseOrderPdf>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DownloadPurchaseOrderPdfQueryResult = NonNullable<Awaited<ReturnType<typeof downloadPurchaseOrderPdf>>>
+export type DownloadPurchaseOrderPdfQueryError = unknown
+
+
+export function useDownloadPurchaseOrderPdf<TData = Awaited<ReturnType<typeof downloadPurchaseOrderPdf>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPurchaseOrderPdf>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadPurchaseOrderPdf>>,
+          TError,
+          Awaited<ReturnType<typeof downloadPurchaseOrderPdf>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadPurchaseOrderPdf<TData = Awaited<ReturnType<typeof downloadPurchaseOrderPdf>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPurchaseOrderPdf>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadPurchaseOrderPdf>>,
+          TError,
+          Awaited<ReturnType<typeof downloadPurchaseOrderPdf>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadPurchaseOrderPdf<TData = Awaited<ReturnType<typeof downloadPurchaseOrderPdf>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPurchaseOrderPdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useDownloadPurchaseOrderPdf<TData = Awaited<ReturnType<typeof downloadPurchaseOrderPdf>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPurchaseOrderPdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDownloadPurchaseOrderPdfQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetPurchaseOrderDocumentsUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/purchasing/purchase-orders/${id}/documents`
+}
+
+export const getPurchaseOrderDocuments = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<PurchaseOrderDocuments> => {
+
+  return apiFetch<PurchaseOrderDocuments>(getGetPurchaseOrderDocumentsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPurchaseOrderDocumentsQueryKey = (id: string,) => {
+    return [
+    `/api/v1/purchasing/purchase-orders/${id}/documents`
+    ] as const;
+    }
+
+
+export const getGetPurchaseOrderDocumentsQueryOptions = <TData = Awaited<ReturnType<typeof getPurchaseOrderDocuments>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderDocuments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPurchaseOrderDocumentsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPurchaseOrderDocuments>>> = ({ signal }) => getPurchaseOrderDocuments(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderDocuments>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetPurchaseOrderDocumentsQueryResult = NonNullable<Awaited<ReturnType<typeof getPurchaseOrderDocuments>>>
+export type GetPurchaseOrderDocumentsQueryError = unknown
+
+
+export function useGetPurchaseOrderDocuments<TData = Awaited<ReturnType<typeof getPurchaseOrderDocuments>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderDocuments>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPurchaseOrderDocuments>>,
+          TError,
+          Awaited<ReturnType<typeof getPurchaseOrderDocuments>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPurchaseOrderDocuments<TData = Awaited<ReturnType<typeof getPurchaseOrderDocuments>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderDocuments>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPurchaseOrderDocuments>>,
+          TError,
+          Awaited<ReturnType<typeof getPurchaseOrderDocuments>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPurchaseOrderDocuments<TData = Awaited<ReturnType<typeof getPurchaseOrderDocuments>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderDocuments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetPurchaseOrderDocuments<TData = Awaited<ReturnType<typeof getPurchaseOrderDocuments>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderDocuments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetPurchaseOrderDocumentsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetPurchaseOrderDispatchUrl = (id: string,
+    dispatchId: string,) => {
+
+
+
+
+  return `/api/v1/purchasing/purchase-orders/${id}/dispatches/${dispatchId}`
+}
+
+export const getPurchaseOrderDispatch = async (id: string,
+    dispatchId: string, options?: Parameters<typeof apiFetch>[1]): Promise<PurchaseOrderDispatchView> => {
+
+  return apiFetch<PurchaseOrderDispatchView>(getGetPurchaseOrderDispatchUrl(id,dispatchId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPurchaseOrderDispatchQueryKey = (id: string,
+    dispatchId: string,) => {
+    return [
+    `/api/v1/purchasing/purchase-orders/${id}/dispatches/${dispatchId}`
+    ] as const;
+    }
+
+
+export const getGetPurchaseOrderDispatchQueryOptions = <TData = Awaited<ReturnType<typeof getPurchaseOrderDispatch>>, TError = unknown>(id: string,
+    dispatchId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderDispatch>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPurchaseOrderDispatchQueryKey(id,dispatchId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPurchaseOrderDispatch>>> = ({ signal }) => getPurchaseOrderDispatch(id,dispatchId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && dispatchId !== null && dispatchId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderDispatch>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetPurchaseOrderDispatchQueryResult = NonNullable<Awaited<ReturnType<typeof getPurchaseOrderDispatch>>>
+export type GetPurchaseOrderDispatchQueryError = unknown
+
+
+export function useGetPurchaseOrderDispatch<TData = Awaited<ReturnType<typeof getPurchaseOrderDispatch>>, TError = unknown>(
+ id: string,
+    dispatchId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderDispatch>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPurchaseOrderDispatch>>,
+          TError,
+          Awaited<ReturnType<typeof getPurchaseOrderDispatch>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPurchaseOrderDispatch<TData = Awaited<ReturnType<typeof getPurchaseOrderDispatch>>, TError = unknown>(
+ id: string,
+    dispatchId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderDispatch>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPurchaseOrderDispatch>>,
+          TError,
+          Awaited<ReturnType<typeof getPurchaseOrderDispatch>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPurchaseOrderDispatch<TData = Awaited<ReturnType<typeof getPurchaseOrderDispatch>>, TError = unknown>(
+ id: string,
+    dispatchId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderDispatch>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetPurchaseOrderDispatch<TData = Awaited<ReturnType<typeof getPurchaseOrderDispatch>>, TError = unknown>(
+ id: string,
+    dispatchId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderDispatch>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetPurchaseOrderDispatchQueryOptions(id,dispatchId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetPurchaseOrderDispatchDraftUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/purchasing/purchase-orders/${id}/dispatch-draft`
+}
+
+export const getPurchaseOrderDispatchDraft = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<PurchaseOrderDispatchDraft> => {
+
+  return apiFetch<PurchaseOrderDispatchDraft>(getGetPurchaseOrderDispatchDraftUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPurchaseOrderDispatchDraftQueryKey = (id: string,) => {
+    return [
+    `/api/v1/purchasing/purchase-orders/${id}/dispatch-draft`
+    ] as const;
+    }
+
+
+export const getGetPurchaseOrderDispatchDraftQueryOptions = <TData = Awaited<ReturnType<typeof getPurchaseOrderDispatchDraft>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderDispatchDraft>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPurchaseOrderDispatchDraftQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPurchaseOrderDispatchDraft>>> = ({ signal }) => getPurchaseOrderDispatchDraft(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderDispatchDraft>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetPurchaseOrderDispatchDraftQueryResult = NonNullable<Awaited<ReturnType<typeof getPurchaseOrderDispatchDraft>>>
+export type GetPurchaseOrderDispatchDraftQueryError = unknown
+
+
+export function useGetPurchaseOrderDispatchDraft<TData = Awaited<ReturnType<typeof getPurchaseOrderDispatchDraft>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderDispatchDraft>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPurchaseOrderDispatchDraft>>,
+          TError,
+          Awaited<ReturnType<typeof getPurchaseOrderDispatchDraft>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPurchaseOrderDispatchDraft<TData = Awaited<ReturnType<typeof getPurchaseOrderDispatchDraft>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderDispatchDraft>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPurchaseOrderDispatchDraft>>,
+          TError,
+          Awaited<ReturnType<typeof getPurchaseOrderDispatchDraft>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPurchaseOrderDispatchDraft<TData = Awaited<ReturnType<typeof getPurchaseOrderDispatchDraft>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderDispatchDraft>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetPurchaseOrderDispatchDraft<TData = Awaited<ReturnType<typeof getPurchaseOrderDispatchDraft>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderDispatchDraft>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetPurchaseOrderDispatchDraftQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getDispatchPurchaseOrderUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/purchasing/purchase-orders/${id}/dispatches`
+}
+
+export const dispatchPurchaseOrder = async (id: string,
+    purchaseOrderDispatchInput: PurchaseOrderDispatchInput, options?: Parameters<typeof apiFetch>[1]): Promise<PurchaseOrderDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<PurchaseOrderDetail>(getDispatchPurchaseOrderUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(purchaseOrderDispatchInput)
+  }
+);}
+
+
+
+
+
+export const getDispatchPurchaseOrderMutationKey = () => ['dispatchPurchaseOrder'] as const;
+
+export const getDispatchPurchaseOrderMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof dispatchPurchaseOrder>>, TError,DispatchPurchaseOrderMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof dispatchPurchaseOrder>>, TError,DispatchPurchaseOrderMutationVariables, TContext> => {
+
+const mutationKey = getDispatchPurchaseOrderMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof dispatchPurchaseOrder>>, DispatchPurchaseOrderMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  dispatchPurchaseOrder(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DispatchPurchaseOrderMutationResult = NonNullable<Awaited<ReturnType<typeof dispatchPurchaseOrder>>>
+    export type DispatchPurchaseOrderMutationBody = PurchaseOrderDispatchInput
+    export type DispatchPurchaseOrderMutationError = unknown
+    export type DispatchPurchaseOrderMutationVariables = {id: string;data: PurchaseOrderDispatchInput}
+
+    export const useDispatchPurchaseOrder = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof dispatchPurchaseOrder>>, TError,DispatchPurchaseOrderMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof dispatchPurchaseOrder>>,
+        TError,
+        DispatchPurchaseOrderMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDispatchPurchaseOrderMutationOptions(options), queryClient);
     }
 
 export const getClosePurchaseOrderBalanceUrl = (id: string,) => {

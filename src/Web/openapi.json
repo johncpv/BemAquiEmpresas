@@ -2175,6 +2175,36 @@
         }
       }
     },
+    "/api/v1/settings/parameters/email-dispatch-limit": {
+      "put": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "SaveEmailDispatchLimit",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailDispatchLimitInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantParametersDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/shopfloor/device": {
       "get": {
         "tags": [
@@ -17672,6 +17702,173 @@
         }
       }
     },
+    "/api/v1/purchasing/purchase-orders/{id}/pdf": {
+      "get": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "DownloadPurchaseOrderPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/purchase-orders/{id}/documents": {
+      "get": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "GetPurchaseOrderDocuments",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseOrderDocuments"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/purchase-orders/{id}/dispatches/{dispatchId}": {
+      "get": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "GetPurchaseOrderDispatch",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "dispatchId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseOrderDispatchView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/purchase-orders/{id}/dispatch-draft": {
+      "get": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "GetPurchaseOrderDispatchDraft",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseOrderDispatchDraft"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/purchase-orders/{id}/dispatches": {
+      "post": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "DispatchPurchaseOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PurchaseOrderDispatchInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/purchasing/purchase-orders/{id}/close": {
       "post": {
         "tags": [
@@ -27805,6 +28002,18 @@
           }
         },
         "additionalProperties": false
+      },
+      "EmailDispatchLimitInput": {
+        "required": [
+          "maxPerUserDay"
+        ],
+        "type": "object",
+        "properties": {
+          "maxPerUserDay": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
       },
       "EmployeeCreated": {
         "required": [
@@ -41361,6 +41570,205 @@
           "canCorrectPrice": {
             "type": "boolean",
             "default": false
+          },
+          "canDispatch": {
+            "type": "boolean",
+            "default": false
+          },
+          "canDownloadPdf": {
+            "type": "boolean",
+            "default": false
+          },
+          "sentAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "PurchaseOrderDispatchDraft": {
+        "required": [
+          "to",
+          "subject",
+          "supplierName",
+          "supplierEmails",
+          "isResend",
+          "companyComplete"
+        ],
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "subject": {
+            "type": "string"
+          },
+          "supplierName": {
+            "type": "string"
+          },
+          "supplierEmails": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isResend": {
+            "type": "boolean"
+          },
+          "companyComplete": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PurchaseOrderDispatchInput": {
+        "required": [
+          "to",
+          "cc",
+          "message",
+          "confirmRecipient",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": "string"
+          },
+          "cc": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "message": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "confirmRecipient": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "PurchaseOrderDispatchView": {
+        "required": [
+          "id",
+          "to",
+          "cc",
+          "recipientConfirmed",
+          "isResend",
+          "sentByName",
+          "createdAt",
+          "attachmentId",
+          "attachmentName",
+          "status",
+          "error",
+          "waitingScan",
+          "sentAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "to": {
+            "type": "string"
+          },
+          "cc": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "recipientConfirmed": {
+            "type": "boolean"
+          },
+          "isResend": {
+            "type": "boolean"
+          },
+          "sentByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "attachmentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "attachmentName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "type": "string"
+          },
+          "error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "waitingScan": {
+            "type": "boolean"
+          },
+          "sentAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "PurchaseOrderDocuments": {
+        "required": [
+          "generated",
+          "uploaded",
+          "dispatches",
+          "companyComplete"
+        ],
+        "type": "object",
+        "properties": {
+          "generated": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttachmentDto"
+            }
+          },
+          "uploaded": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttachmentDto"
+            }
+          },
+          "dispatches": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PurchaseOrderDispatchView"
+            }
+          },
+          "companyComplete": {
+            "type": "boolean"
           }
         }
       },
@@ -52357,6 +52765,18 @@
             "format": "uuid"
           },
           "pricingSettingId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "emailDispatchMaxPerUserDay": {
+            "type": "integer",
+            "format": "int32",
+            "default": 20
+          },
+          "emailDispatchSettingId": {
             "type": [
               "null",
               "string"

@@ -91,4 +91,8 @@ export interface PurchaseOrderDetail {
   receiveBlocker?: string | null;
   canClose?: boolean;
   canCorrectPrice?: boolean;
+  canDispatch?: boolean;
+  canDownloadPdf?: boolean;
+  /** @nullable */
+  sentAt?: string | null;
 }
