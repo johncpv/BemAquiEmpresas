@@ -47,9 +47,38 @@ public partial class FabricationTests
             await CreatedAsync(await IssueAsync(owner, order, null, ReqLine(line, 4m)));
         }
 
-        await FinishStepsAsync(owner, order);
+        await FinishWithQualityAsync(owner, order);
         (await OrderAsync(order)).Status.Should().Be(ProductionOrderStatus.ReadyToComplete);
         return (owner, order, project, product, steel);
+    }
+
+    /// <summary>
+    /// Leva a OS (roteiro C → M → Q do <see cref="BomOrderAsync"/>) até "Pronta para concluir": as etapas produtivas pelo "Concluir etapa" do
+    /// supervisor (PRD-02) e a de qualidade pela inspeção (PRD-05: checklist marcado e "Aprovar"), que o quadro não decide (409 quality_step).
+    /// </summary>
+    private async Task FinishWithQualityAsync(HttpClient supervisor, Guid orderId)
+    {
+        var (_, inspector) = await ActorAsync("production:view,approve_quality");
+        for (var round = 0; round < 10; round++)
+        {
+            var order = await GetOrderAsync(supervisor, orderId);
+            var pending = order.GetProperty("steps").EnumerateArray().FirstOrDefault(s => s.GetProperty("status").GetString() != "Done");
+            if (pending.ValueKind == JsonValueKind.Undefined)
+            {
+                return;
+            }
+
+            var stepId = pending.GetProperty("id").GetGuid();
+            if (pending.GetProperty("isQualityStep").GetBoolean())
+            {
+                await MarkQualityAsync(inspector, stepId);
+                await OkAsync(await ApproveQualityAsync(inspector, stepId, await OrderVersionAsync(orderId)));
+                continue;
+            }
+
+            var done = await supervisor.PostAsJsonAsync($"{Base}/{orderId}/steps/{stepId}/complete", new { reason = "Feito fora do sistema.", version = Version(order) });
+            done.StatusCode.Should().Be(HttpStatusCode.OK, await done.Content.ReadAsStringAsync());
+        }
     }
 
     /// <summary>Apontamento fechado com custo direto no banco (o cálculo do custo tem os testes da PRD-04).</summary>
@@ -101,7 +130,7 @@ public partial class FabricationTests
     public async Task Sem_item_de_estoque_do_produto_a_conclusao_pede_o_item_e_o_atalho_liga_o_produto()
     {
         var (owner, order, _, _) = await BomOrderAsync(quantity: 1m, withProduct: false);
-        await FinishStepsAsync(owner, order);
+        await FinishWithQualityAsync(owner, order);
         var detail = await GetOrderAsync(owner, order);
         detail.GetProperty("completionBlocker").GetString().Should().Be("Escolha o item de estoque do produto antes de concluir.", "CA 1: botão desabilitado com o motivo");
         var preview = await OkAsync(await owner.GetAsync($"{Base}/{order}/completion"));
@@ -278,7 +307,7 @@ public partial class FabricationTests
         var reversed = await OkAsync(await ReverseOrderAsync(owner, order, Version(detail)));
         reversed.GetProperty("completedWithoutStock").GetBoolean().Should().BeFalse();
         (await ProductionMovementsAsync(order)).Should().BeEmpty();
-        await FinishStepsAsync(owner, order);
+        await FinishWithQualityAsync(owner, order);
         await OkAsync(await CompleteWithAsync(owner, order, await OrderVersionAsync(order)));
         (await ProductionMovementsAsync(order)).Should().ContainSingle();
     }
@@ -294,7 +323,7 @@ public partial class FabricationTests
         preview.GetProperty("stock").GetProperty("serialsToCancel").GetInt32().Should().Be(2);
 
         var reversed = await OkAsync(await ReverseOrderAsync(owner, order, Version(preview)));
-        reversed.GetProperty("status").GetString().Should().Be("InProgress");
+        reversed.GetProperty("status").GetString().Should().Be("Quality", "a última etapa é de qualidade: a OS volta a Qualidade (regra única da PRD-06a1)");
         reversed.GetProperty("entryMovementId").ValueKind.Should().Be(JsonValueKind.Null);
         var inverse = await WithDbAsync(db => db.StockMovements.AsNoTracking().SingleAsync(m => m.ReversesMovementId == entry.Id));
         (inverse.Quantity, inverse.UnitCost).Should().Be((-2m, entry.UnitCost), "CA 10: movimento inverso pelo custo da entrada");
@@ -304,7 +333,7 @@ public partial class FabricationTests
         await DrainAsync();
         (await ReservationsOfAsync(order)).Should().Contain(r => r.ItemId == steel && r.Status == ReservationState.Active, "CA 10: reserva reconciliada a partir da BOM");
 
-        await FinishStepsAsync(owner, order);
+        await FinishWithQualityAsync(owner, order);
         await OkAsync(await CompleteWithAsync(owner, order, await OrderVersionAsync(order)));
         var entries = await ProductionMovementsAsync(order);
         entries.Where(m => m.ReversesMovementId == null).Select(m => m.Leg).Should().Equal(1, 2);

@@ -50,9 +50,9 @@ internal static partial class ProductionEndpoints
         // a OS de outro tenant ou de instalação dá 404.
         orders.MapGet("/{id:guid}/completion", async (Guid id, FabricationOrderService service, CancellationToken ct) => (await service.CompletionPreviewAsync(id, ct)).ToHttpResult())
             .RequirePermission("production.approve").WithName("GetFabricationOrderCompletion").Produces<OrderCompletionPreview>();
-        // PRD-06a2 CA 2, 3 e 14: o custo apurado da OS em DTO separado, só com projects.view_cost.
+        // PRD-06a2 CA 2, 3 e 14: o custo apurado da OS em DTO separado, com production.view e projects.view_cost (como a aba Custos).
         orders.MapGet("/{id:guid}/completion/cost", async (Guid id, FabricationOrderService service, CancellationToken ct) => (await service.CompletionCostAsync(id, ct)).ToHttpResult())
-            .RequirePermission("projects.view_cost").WithName("GetFabricationOrderCompletionCost").Produces<OrderCost>();
+            .RequirePermission("production.view").RequirePermission("projects.view_cost").WithName("GetFabricationOrderCompletionCost").Produces<OrderCost>();
         orders.MapPost("/{id:guid}/complete", async (Guid id, CompleteOrderInput input, FabricationOrderService service, CancellationToken ct) =>
                 (await service.CompleteOrderAsync(id, input, ct)).ToHttpResult())
             .RequirePermission("production.approve").WithName("CompleteFabricationOrder").Produces<FabricationOrderDetail>();
