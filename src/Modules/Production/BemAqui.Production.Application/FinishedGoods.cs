@@ -1,4 +1,3 @@
-using BemAqui.BuildingBlocks.Authorization;
 using BemAqui.BuildingBlocks.Tenancy;
 using BemAqui.Inventory.Contracts;
 using BemAqui.Production.Domain;
@@ -18,7 +17,7 @@ public sealed record FinishedGoodsPosted(Guid MovementId, Guid ProductId, Guid L
 /// </summary>
 public sealed class FinishedGoods(
     IProductionDb db, IStockMovements stock, IStockSerials serials, IStockTraceability traceability, IStockReservations reservations, ILocations locations, IItems items,
-    IPermissionChecker permissions, TenantContextHolder tenant)
+    TenantContextHolder tenant)
 {
     public const string InventoryModule = "inventory";
 
@@ -48,8 +47,7 @@ public sealed class FinishedGoods(
         var quantity = order.Quantity.GetValueOrDefault();
         if (!Enabled)
         {
-            return new CompletionStockView(false, order.ProductId, null, null, null, quantity, false, false, [], null, [], [], false, null, null, null, null, false, null, null, 0, 0,
-                order.CompletedWithoutStock);
+            return new CompletionStockView(false, order.ProductId, null, null, null, quantity, false, false, [], null, [], [], false, null, null, 0, 0, order.CompletedWithoutStock);
         }
 
         var product = order.ProductId is { } productId && await items.FindAsync([productId], ct) is [var found, ..] ? found : null;
@@ -59,14 +57,12 @@ public sealed class FinishedGoods(
         var suggestedSerials = order.Status != ProductionOrderStatus.Completed && product is { TracksSerial: true } && units is { } count
             ? await serials.SuggestAsync(product.Id, count, ct) : [];
         var toRelease = await ReservationsAsync(order.Id, ct);
-        var showCost = await permissions.HasPermissionAsync("projects", "view_cost", ct);
         var cost = await CostAsync(order, ct);
         var orderSerials = await serials.ForOrderAsync(order.Id, ct);
         var entry = order.EntryMovementId is not null ? await serials.EntryAsync(order.Id, ct) : null;
         return new CompletionStockView(
             true, product?.Id, product?.Code, product?.Name, product?.UnitCode, quantity, product?.TracksSerial == true, product?.TracksLot == true, suggestedSerials, suggested?.Id,
-            active.Select(l => new CompletionLocationOption(l.Id, l.Code, l.Name, l.IsDefault)).ToList(), toRelease, showCost, showCost ? cost.Labor : null,
-            showCost ? cost.Material : null, showCost ? cost.Total : null, showCost ? cost.Unit : null, cost.Total == 0, entry?.MovementId, entry?.Number,
+            active.Select(l => new CompletionLocationOption(l.Id, l.Code, l.Name, l.IsDefault)).ToList(), toRelease, cost.Total == 0, entry?.MovementId, entry?.Number,
             orderSerials.Count(s => s.Status == SerialState.InStock), orderSerials.Count(s => s.Status == SerialState.Shipped), order.CompletedWithoutStock);
     }
 

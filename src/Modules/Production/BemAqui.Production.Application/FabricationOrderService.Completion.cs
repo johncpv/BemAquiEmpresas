@@ -208,6 +208,16 @@ public sealed partial class FabricationOrderService
         return await GetAsync(id, cancellationToken);
     }
 
+    /// <summary>
+    /// Custo apurado da OS para o diálogo (PRD-06a2 CA 2 e 3), em DTO separado, só com <c>projects.view_cost</c> (endpoint): o mesmo
+    /// cálculo que a entrada usa, pelas fontes síncronas.
+    /// </summary>
+    public async Task<Result<OrderCost>> CompletionCostAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var order = await Fabrication(db.ProductionOrders.AsNoTracking()).FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
+        return order is null ? InstallationOrderService.NotFound() : await goods.CostAsync(order, cancellationToken);
+    }
+
     /// <summary>Itens que podem ser o produto da OS (CA 1), pela busca.</summary>
     public Task<IReadOnlyList<OrderProductOption>> ProductOptionsAsync(string? term, CancellationToken cancellationToken = default) =>
         goods.ProductOptionsAsync(term, cancellationToken);

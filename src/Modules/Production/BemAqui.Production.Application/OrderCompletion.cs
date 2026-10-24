@@ -22,17 +22,19 @@ public sealed record CompletionReservationView(Guid ItemId, string ItemCode, str
 
 /// <summary>
 /// Impacto no estoque de "Concluir OS" e de "Estornar conclusão" (PRD-06a2 CA 2, 3, 4, 7 e 10). <c>Enabled</c> falso: o módulo Estoque
-/// não está liberado no tenant e a OS conclui sem estoque. O custo apurado (horas + material baixado − devolvido) só vem com
-/// <c>projects.view_cost</c> (<c>ShowCost</c>); <c>ZeroCost</c> vale para todos, porque pede a confirmação explícita. No estorno: o
-/// movimento de entrada, as séries a cancelar e as já expedidas (bloqueiam o estorno).
+/// não está liberado no tenant e a OS conclui sem estoque. Sem custo (CA 14): o custo apurado vem em DTO separado,
+/// <see cref="OrderCost"/>, com <c>projects.view_cost</c>; <c>ZeroCost</c> vale para todos, porque pede a confirmação explícita (CA 7). No
+/// estorno: o movimento de entrada, as séries a cancelar e as já expedidas (bloqueiam o estorno).
 /// </summary>
 public sealed record CompletionStockView(
     bool Enabled, Guid? ProductId, string? ProductCode, string? ProductName, string? UnitCode, decimal Quantity, bool TracksSerial, bool TracksLot,
     IReadOnlyList<string> SuggestedSerials, Guid? SuggestedLocationId, IReadOnlyList<CompletionLocationOption> Locations, IReadOnlyList<CompletionReservationView> ReservationsToRelease,
-    bool ShowCost, decimal? LaborCost, decimal? MaterialCost, decimal? TotalCost, decimal? UnitCost, bool ZeroCost, Guid? EntryMovementId, string? EntryMovementNumber,
-    int SerialsToCancel, int ShippedSerials, bool CompletedWithoutStock);
+    bool ZeroCost, Guid? EntryMovementId, string? EntryMovementNumber, int SerialsToCancel, int ShippedSerials, bool CompletedWithoutStock);
 
-/// <summary>Custo apurado da OS na conclusão (CA 3): horas da Produção + material baixado − devolvido (Inventory), e o unitário em 6 casas.</summary>
+/// <summary>
+/// Custo apurado da OS na conclusão (CA 2 e 3): horas da Produção + material baixado − devolvido (Inventory), e o unitário em 6 casas.
+/// Lido com <c>projects.view_cost</c> (<c>GET …/completion/cost</c>); a entrada usa o mesmo cálculo, sem depender da permissão.
+/// </summary>
 public sealed record OrderCost(decimal Labor, decimal Material, decimal Total, decimal Unit);
 
 /// <summary>"Estornar conclusão" (CA 10): motivo obrigatório, até 500.</summary>
