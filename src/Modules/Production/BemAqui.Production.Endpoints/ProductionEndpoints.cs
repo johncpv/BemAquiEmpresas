@@ -21,6 +21,7 @@ internal static partial class ProductionEndpoints
         MapLabor(production);
         MapQuality(production);
         MapInstallations(production.MapGroup("/installations"));
+        MapShipments(production.MapGroup("/shipments"));
         MapInstallationTemplate(production.MapGroup("/installation-template"));
         api.MapShopfloorEndpoints();
         MapParameters(production.MapGroup("/parameters"));

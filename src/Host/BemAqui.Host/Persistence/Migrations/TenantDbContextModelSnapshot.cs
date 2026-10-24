@@ -6073,6 +6073,14 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("character varying(60)")
                         .HasColumnName("serial_number");
 
+                    b.Property<Guid?>("ShipmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("shipment_id");
+
+                    b.Property<DateTimeOffset?>("ShippedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("shipped_at");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -7894,6 +7902,265 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("quality_decisions", "production");
                 });
 
+            modelBuilder.Entity("BemAqui.Production.Domain.Shipment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("CancelReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("cancel_reason");
+
+                    b.Property<DateTimeOffset?>("CancelledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("cancelled_at");
+
+                    b.Property<Guid?>("CancelledBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cancelled_by");
+
+                    b.Property<Guid?>("CarrierPartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("carrier_party_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("DeliveryAddress")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("delivery_address");
+
+                    b.Property<string>("DriverName")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("driver_name");
+
+                    b.Property<decimal?>("GrossWeight")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("gross_weight");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("number");
+
+                    b.Property<Guid>("PartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("party_id");
+
+                    b.Property<Guid?>("PdfAttachmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("pdf_attachment_id");
+
+                    b.Property<DateOnly?>("PlannedDate")
+                        .HasColumnType("date")
+                        .HasColumnName("planned_date");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<string>("ReversalReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("reversal_reason");
+
+                    b.Property<DateTimeOffset?>("ReversedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reversed_at");
+
+                    b.Property<Guid?>("ReversedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reversed_by");
+
+                    b.Property<bool>("SelfApproved")
+                        .HasColumnType("boolean")
+                        .HasColumnName("self_approved");
+
+                    b.Property<DateTimeOffset?>("ShippedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("shipped_at");
+
+                    b.Property<Guid?>("ShippedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("shipped_by");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset?>("StockApprovalRequestedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("stock_approval_requested_at");
+
+                    b.Property<Guid?>("StockApprovalRequestedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("stock_approval_requested_by");
+
+                    b.Property<Guid?>("StockApprovedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("stock_approved_by");
+
+                    b.Property<string>("VehiclePlate")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("vehicle_plate");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<int?>("Volumes")
+                        .HasColumnType("integer")
+                        .HasColumnName("volumes");
+
+                    b.HasKey("Id")
+                        .HasName("pk_shipments");
+
+                    b.HasIndex("Number")
+                        .IsUnique()
+                        .HasDatabaseName("ix_shipments_number");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_shipments_status");
+
+                    b.HasIndex("PartyId", "CreatedAt")
+                        .HasDatabaseName("ix_shipments_party_id_created_at");
+
+                    b.HasIndex("ProjectId", "Status")
+                        .HasDatabaseName("ix_shipments_project_id_status");
+
+                    b.ToTable("shipments", "production", t =>
+                        {
+                            t.HasCheckConstraint("ck_shipments_gross_weight", "gross_weight IS NULL OR gross_weight >= 0");
+
+                            t.HasCheckConstraint("ck_shipments_volumes", "volumes IS NULL OR volumes > 0");
+                        });
+                });
+
+            modelBuilder.Entity("BemAqui.Production.Domain.ShipmentLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("FromGeneralStock")
+                        .HasColumnType("boolean")
+                        .HasColumnName("from_general_stock");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_id");
+
+                    b.Property<Guid>("LocationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("location_id");
+
+                    b.Property<Guid?>("LotId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("lot_id");
+
+                    b.Property<string>("LotNumber")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("lot_number");
+
+                    b.Property<Guid?>("MovementId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("movement_id");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("quantity");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.Property<Guid>("ShipmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("shipment_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_shipment_lines");
+
+                    b.HasIndex("ItemId")
+                        .HasDatabaseName("ix_shipment_lines_item_id");
+
+                    b.HasIndex("ShipmentId", "Sequence")
+                        .IsUnique()
+                        .HasDatabaseName("ix_shipment_lines_shipment_id_sequence");
+
+                    b.ToTable("shipment_lines", "production", t =>
+                        {
+                            t.HasCheckConstraint("ck_shipment_lines_quantity", "quantity > 0");
+                        });
+                });
+
+            modelBuilder.Entity("BemAqui.Production.Domain.ShipmentLineSerial", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("LineId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("line_id");
+
+                    b.Property<DateTimeOffset?>("ReleasedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("released_at");
+
+                    b.Property<Guid>("SerialId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("serial_id");
+
+                    b.Property<string>("SerialNumber")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("serial_number");
+
+                    b.Property<Guid>("ShipmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("shipment_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_shipment_line_serials");
+
+                    b.HasIndex("LineId")
+                        .HasDatabaseName("ix_shipment_line_serials_line_id");
+
+                    b.HasIndex("SerialId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_shipment_line_serials_active")
+                        .HasFilter("released_at IS NULL");
+
+                    b.HasIndex("ShipmentId")
+                        .HasDatabaseName("ix_shipment_line_serials_shipment_id");
+
+                    b.ToTable("shipment_line_serials", "production");
+                });
+
             modelBuilder.Entity("BemAqui.Production.Domain.StepPause", b =>
                 {
                     b.Property<Guid>("Id")
@@ -9436,6 +9703,33 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_quality_decisions_production_order_steps_step_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Production.Domain.ShipmentLine", b =>
+                {
+                    b.HasOne("BemAqui.Production.Domain.Shipment", null)
+                        .WithMany()
+                        .HasForeignKey("ShipmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_shipment_lines_shipments_shipment_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Production.Domain.ShipmentLineSerial", b =>
+                {
+                    b.HasOne("BemAqui.Production.Domain.ShipmentLine", null)
+                        .WithMany()
+                        .HasForeignKey("LineId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_shipment_line_serials_shipment_lines_line_id");
+
+                    b.HasOne("BemAqui.Production.Domain.Shipment", null)
+                        .WithMany()
+                        .HasForeignKey("ShipmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_shipment_line_serials_shipments_shipment_id");
                 });
 
             modelBuilder.Entity("BemAqui.Production.Domain.StepPause", b =>

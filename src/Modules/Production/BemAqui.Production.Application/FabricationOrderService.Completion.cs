@@ -39,7 +39,7 @@ public sealed partial class FabricationOrderService
             m.Description, showAmounts ? m.Amount : null, showAmounts ? Today.AddDays(m.DaysAfterEvent) : null, showAmounts ? m.ReceivableId : null, m.Released, m.Received)).ToList();
         var stock = await goods.PreviewAsync(order, cancellationToken);
         var reverseBlocker = order.Status != ProductionOrderStatus.Completed ? "Só OS concluída tem a conclusão estornada."
-            : stock.ShippedSerials > 0 ? CompletionRules.ProductShipped : project?.ReversalBlocker;
+            : (await goods.ShipmentBlockerAsync(order, cancellationToken))?.Message ?? project?.ReversalBlocker;
         return new OrderCompletionPreview(
             order.Id, order.Number, order.Status, blocker is null, blocker, reverseBlocker is null, reverseBlocker, last, otherOpen, order.ProjectId, project?.Number ?? string.Empty,
             project?.Status ?? string.Empty, project?.FabricatedByOrders == true, showAmounts, milestones, stock.Enabled ? null : CompletionRules.StockNotice, order.Version, stock);

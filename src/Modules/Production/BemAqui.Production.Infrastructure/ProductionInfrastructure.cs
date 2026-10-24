@@ -87,6 +87,20 @@ public static class ProductionInfrastructure
             "production", [.. InstallationTypes, "application/acad", "application/dxf"], 25 * 1024 * 1024,
             OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IProductionDb>().ProductionOrders.AnyAsync(o => o.Id == id, ct),
             ReadAction: "view", WriteAction: "edit", CheckFile: CheckOrderFileAsync));
+
+        // Expedição (PRD-06b): romaneio, a saída síncrona pelo IStockMovements e o contrato IShipments (Commercial, Fase 5 e EST-04).
+        services.TryAddScoped<ShipmentService>();
+        services.TryAddScoped<IShipments, ShipmentsContract>();
+        services.AddAuditableEntity<Shipment>("production");
+        services.AddAuditableEntity<ShipmentLine>("production");
+        services.AddAuditableEntity<ShipmentLineSerial>("production");
+
+        // Dono Shipment (ADR 0019 §7 adendo de 21/10/2026): o PDF gerado e os comprovantes pdf, png e jpg até 10 MB; ler com
+        // production.view, gravar com production.create. O limite de envios por hora é o geral (429).
+        services.AddAttachmentOwner(ShipmentRules.AttachmentOwner, new AttachmentOwnerRules(
+            "production", InstallationTypes, 10 * 1024 * 1024,
+            OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IProductionDb>().Shipments.AnyAsync(s => s.Id == id, ct),
+            ReadAction: "view", WriteAction: "create"));
         return services;
     }
 

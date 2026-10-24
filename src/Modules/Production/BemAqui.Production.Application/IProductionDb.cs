@@ -36,6 +36,12 @@ public interface IProductionDb
 
     DbSet<QualityDecision> QualityDecisions { get; }
 
+    DbSet<Shipment> Shipments { get; }
+
+    DbSet<ShipmentLine> ShipmentLines { get; }
+
+    DbSet<ShipmentLineSerial> ShipmentLineSerials { get; }
+
     DatabaseFacade Database { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);

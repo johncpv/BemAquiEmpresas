@@ -204,3 +204,52 @@ public sealed record LaborEntryClosed(
 public sealed record LaborEntryCorrected(
     Guid LaborEntryId, Guid ProductionOrderId = default, Guid ProjectId = default, int Minutes = 0, int Version = 0, decimal PreviousAmount = 0, decimal NewAmount = 0,
     DateOnly OccurredOn = default, LaborCostOrigin Origin = LaborCostOrigin.Correction) : BemAqui.SharedKernel.IIntegrationEvent;
+
+/// <summary>Situação do romaneio para os outros módulos (PRD-06b): rascunho, aguardando o estoque geral, expedido, cancelado e estornado.</summary>
+[JsonConverter(typeof(JsonStringEnumConverter<ShipmentState>))]
+public enum ShipmentState
+{
+    Draft,
+    AwaitingStockApproval,
+    Shipped,
+    Cancelled,
+    Reversed,
+}
+
+/// <summary>Linha do romaneio (PRD-06b CA 12): item, quantidade, local, lote, séries e a saída <c>Shipment</c> no estoque. Sem valor nem custo.</summary>
+public sealed record ShipmentLineInfo(
+    Guid LineId, int Sequence, Guid ItemId, decimal Quantity, Guid LocationId, Guid? LotId, bool FromGeneralStock, IReadOnlyList<Guid> SerialIds, IReadOnlyList<string> SerialNumbers,
+    Guid? MovementId);
+
+/// <summary>
+/// Romaneio visto pelos outros módulos (PRD-06b CA 12 e 13): o Commercial mostra no Projeto 360; a NF-e de saída da Fase 5 (FIS-03) e a
+/// rastreabilidade (EST-04) leem as linhas e as séries. Sem valor (o romaneio não é documento fiscal) e sem dado pessoal.
+/// </summary>
+public sealed record ShipmentInfo(
+    Guid Id, string Number, Guid ProjectId, Guid PartyId, ShipmentState Status, DateOnly? PlannedDate, DateTimeOffset CreatedAt, DateTimeOffset? ShippedAt, Guid? ShippedBy,
+    DateTimeOffset? ReversedAt, Guid? ReversedBy, string? ReversalReason, IReadOnlyList<ShipmentLineInfo> Lines);
+
+/// <summary>
+/// Romaneios da Produção para Commercial, Fiscal (Fase 5) e Inventory (EST-04), ADR 0006. A NF-e de saída referencia o romaneio
+/// (<c>outgoing_invoices.shipment_id</c>) e nunca baixa o estoque de novo (D4): a baixa já foi feita na confirmação.
+/// </summary>
+public interface IShipments
+{
+    /// <summary>Por id, com as linhas e as séries; null se não existe.</summary>
+    Task<ShipmentInfo?> ByIdAsync(Guid id, CancellationToken cancellationToken = default);
+
+    /// <summary>Romaneios do projeto (todas as situações), do mais antigo ao mais novo.</summary>
+    Task<IReadOnlyList<ShipmentInfo>> ByProjectAsync(Guid projectId, CancellationToken cancellationToken = default);
+}
+
+/// <summary>Linha do <see cref="ShipmentDispatched"/>: item, séries, quantidade e local da saída.</summary>
+public sealed record ShipmentDispatchedLine(Guid ItemId, IReadOnlyList<Guid> SerialIds, decimal Quantity, Guid LocationId);
+
+/// <summary>
+/// Romaneio expedido (PRD-06b CA 4): só para avisos e painéis. A saída do produto acabado (<c>Shipment</c>) e as séries expedidas já
+/// foram gravadas de forma síncrona na confirmação (D4, ADR 0023 §1); nenhum consumidor mexe no estoque. Sem dado pessoal.
+/// </summary>
+public sealed record ShipmentDispatched(Guid ShipmentId, Guid ProjectId, IReadOnlyList<ShipmentDispatchedLine> Lines) : BemAqui.SharedKernel.IIntegrationEvent;
+
+/// <summary>Expedição estornada (PRD-06b CA 11): as entradas inversas e as séries de volta ao estoque já foram gravadas; só aviso e projeção.</summary>
+public sealed record ShipmentReversed(Guid ShipmentId, Guid ProjectId, DateOnly ReversedOn) : BemAqui.SharedKernel.IIntegrationEvent;
