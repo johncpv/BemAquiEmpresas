@@ -32,6 +32,9 @@ public sealed class PurchasingParametersService(IPurchasingDb db, IPermissionChe
     /// <summary>Tolerância do recebimento (CMP-04 CA 3 e 4, D8): % acima da quantidade da linha e do total aprovado; padrão 0%, de 0 a 50.</summary>
     public const string ReceiptTolerancePct = "receipt_tolerance_pct";
 
+    /// <summary>Cotação (CMP-02 CA 6, D8): custo total da resposta acima deste valor exige o anexo da proposta; padrão R$ 5.000,00.</summary>
+    public const string QuoteAttachmentAmount = "quote_attachment_amount";
+
     public const string DefaultPayableAccount = "2.1";
     public const string DefaultFreightAccount = "2.4";
 
@@ -58,6 +61,10 @@ public sealed class PurchasingParametersService(IPurchasingDb db, IPermissionChe
     public async Task<decimal> ReceiptToleranceAsync(CancellationToken cancellationToken = default) =>
         await ValueAsync(ReceiptTolerancePct, cancellationToken) is { } pct && pct >= 0m && pct <= GoodsReceiptRules.MaxTolerancePct ? pct : 0m;
 
+    /// <summary>Limite do anexo da proposta (CA 6): padrão R$ 5.000,00; valor fora de 0 a 1.000.000 volta ao padrão.</summary>
+    public async Task<decimal> QuoteAttachmentAmountAsync(CancellationToken cancellationToken = default) =>
+        await ValueAsync(QuoteAttachmentAmount, cancellationToken) is { } amount && amount >= 0m && amount <= RfqRules.MaxAttachmentAmount ? amount : RfqRules.DefaultAttachmentAmount;
+
     public async Task<PurchasingParametersView> GetAsync(CancellationToken cancellationToken = default)
     {
         var id = await db.PurchasingParameters.AsNoTracking().Where(p => p.Key == DefaultLeadDays).Select(p => (Guid?)p.Id).FirstOrDefaultAsync(cancellationToken);
@@ -65,7 +72,7 @@ public sealed class PurchasingParametersService(IPurchasingDb db, IPermissionChe
         var accounts = (await chart.PostableAsync(null, cancellationToken)).OrderBy(a => a.Code, StringComparer.Ordinal)
             .Select(a => new PurchasingAccountOption(a.Code, a.Name)).ToList();
         return new PurchasingParametersView(await LeadDaysAsync(cancellationToken), id, defaults.AccountCode, defaults.CostType, defaults.FreightAccountCode, defaults.FreightCostType,
-            await ValueAsync(AccountingConfirmed, cancellationToken) is 1m, accounts, await ReceiptToleranceAsync(cancellationToken));
+            await ValueAsync(AccountingConfirmed, cancellationToken) is 1m, accounts, await ReceiptToleranceAsync(cancellationToken), await QuoteAttachmentAmountAsync(cancellationToken));
     }
 
     public async Task<Result<PurchasingParametersView>> UpdateAsync(PurchasingParametersInput input, CancellationToken cancellationToken = default)
@@ -86,6 +93,11 @@ public sealed class PurchasingParametersService(IPurchasingDb db, IPermissionChe
             return Invalid("receiptTolerancePct", "Informe a tolerância de 0% a 50%, com até 2 casas.");
         }
 
+        if (input.QuoteAttachmentAmount is < 0m or > RfqRules.MaxAttachmentAmount || (input.QuoteAttachmentAmount is { } limit && decimal.Round(limit, 2) != limit))
+        {
+            return Invalid("quoteAttachmentAmount", "Informe o valor de R$ 0,00 a R$ 1.000.000,00, com até 2 casas.");
+        }
+
         // CMP-03a (decisão do PO de 21/10): conta e natureza dos títulos do pedido e do frete, editáveis aqui até a contadora confirmar.
         var postable = (await chart.PostableAsync(null, cancellationToken)).Select(a => a.Code).ToHashSet(StringComparer.Ordinal);
         foreach (var (field, code) in new[] { ("payableAccountCode", input.PayableAccountCode), ("freightAccountCode", input.FreightAccountCode) })
@@ -104,6 +116,11 @@ public sealed class PurchasingParametersService(IPurchasingDb db, IPermissionChe
         if (input.ReceiptTolerancePct is { } tolerance)
         {
             await SetAsync(ReceiptTolerancePct, tolerance, cancellationToken);
+        }
+
+        if (input.QuoteAttachmentAmount is { } attachmentAmount)
+        {
+            await SetAsync(QuoteAttachmentAmount, attachmentAmount, cancellationToken);
         }
 
         if (input.AccountingConfirmed is { } confirmed)

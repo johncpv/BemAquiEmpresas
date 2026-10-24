@@ -35,8 +35,9 @@ public sealed record PurchaseRequestSummary(
 public sealed record PurchaseRequestListQuery(
     string? Show, PurchaseRequestOrigin? Origin, PurchaseRequestStatus? Status, Guid? ProjectId, Guid? ItemId, Guid? ProductionOrderId, string? Term);
 
-/// <summary>Uma SC dentro da visão "Por item".</summary>
-public sealed record PurchaseItemRequest(Guid RequestId, string Number, PurchaseRequestOrigin Origin, decimal Quantity, DateOnly NeededBy, string? ProjectNumber, string? OrderNumber);
+/// <summary>Uma SC dentro da visão "Por item"; <c>LineId</c> é a linha aberta, para "Cotar" (CMP-02 CA 1).</summary>
+public sealed record PurchaseItemRequest(
+    Guid RequestId, string Number, PurchaseRequestOrigin Origin, decimal Quantity, DateOnly NeededBy, string? ProjectNumber, string? OrderNumber, Guid LineId = default);
 
 /// <summary>Visão "Por item" (CA 12): as linhas abertas de todas as SC somadas por item (o comprador compra por item).</summary>
 public sealed record PurchaseItemRow(
@@ -71,11 +72,12 @@ public sealed record PurchaseRequestDefaults(
 /// </summary>
 public sealed record PurchasingParametersView(
     int DefaultLeadDays, Guid? DefaultLeadDaysId, string PayableAccountCode, BemAqui.SharedKernel.CostType PayableCostType, string FreightAccountCode,
-    BemAqui.SharedKernel.CostType FreightCostType, bool AccountingConfirmed, IReadOnlyList<PurchasingAccountOption> Accounts, decimal ReceiptTolerancePct = 0m);
+    BemAqui.SharedKernel.CostType FreightCostType, bool AccountingConfirmed, IReadOnlyList<PurchasingAccountOption> Accounts, decimal ReceiptTolerancePct = 0m,
+    decimal QuoteAttachmentAmount = Domain.RfqRules.DefaultAttachmentAmount);
 
 public sealed record PurchasingAccountOption(string Code, string Name);
 
 /// <summary>Campos nulos ficam como estão (a tela de Configurações manda todos).</summary>
 public sealed record PurchasingParametersInput(
     int DefaultLeadDays, string? PayableAccountCode = null, BemAqui.SharedKernel.CostType? PayableCostType = null, string? FreightAccountCode = null,
-    BemAqui.SharedKernel.CostType? FreightCostType = null, bool? AccountingConfirmed = null, decimal? ReceiptTolerancePct = null);
+    BemAqui.SharedKernel.CostType? FreightCostType = null, bool? AccountingConfirmed = null, decimal? ReceiptTolerancePct = null, decimal? QuoteAttachmentAmount = null);

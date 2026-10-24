@@ -23,7 +23,11 @@ public sealed partial class PurchaseOrderService
     /// itens ativos fora Serviço, quantidade convertida para a unidade de estoque, preço com até 6 casas, linhas de SC em aberto do mesmo
     /// item, destino (o das SC quando há SC; senão o projeto em andamento ou o estoque geral), frete, IPI e o total recalculado. 422 no campo.
     /// </summary>
-    private async Task<Result<Prepared>> PrepareAsync(Draft draft, PurchaseOrder? order, HashSet<Guid> alreadyLinked, CancellationToken ct)
+    /// <remarks>
+    /// <paramref name="fromRfq"/> (CMP-02 CA 9): as linhas de SC da cotação de origem, que podem estar <c>Quoting</c> (ou de novo
+    /// <c>Open</c>, quando o pedido gerado antes foi cancelado).
+    /// </remarks>
+    private async Task<Result<Prepared>> PrepareAsync(Draft draft, PurchaseOrder? order, HashSet<Guid> alreadyLinked, CancellationToken ct, IReadOnlySet<Guid>? fromRfq = null)
     {
         var lines = draft.Lines ?? [];
         if (lines.Count == 0)
@@ -137,7 +141,8 @@ public sealed partial class PurchaseOrderService
                     return Invalid(prefix + "requestLineIds", "A linha de solicitação não é deste item.");
                 }
 
-                if (requestLine.Status != PurchaseRequestStatus.Open && !alreadyLinked.Contains(requestLine.Id))
+                var quotedHere = fromRfq?.Contains(requestLine.Id) == true && requestLine.Status == PurchaseRequestStatus.Quoting;
+                if (requestLine.Status != PurchaseRequestStatus.Open && !alreadyLinked.Contains(requestLine.Id) && !quotedHere)
                 {
                     return Error.Conflict(PurchaseRequestService.LineNotOpenCode, "Uma linha de solicitação deste pedido já virou pedido, está em cotação ou foi cancelada. Recarregue.");
                 }

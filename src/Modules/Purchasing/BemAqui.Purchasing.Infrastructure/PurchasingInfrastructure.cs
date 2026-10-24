@@ -48,6 +48,29 @@ public static class PurchasingInfrastructure
         services.AddAuditableEntity<PurchaseOrderPriceCorrection>("purchasing");
         services.AddAuditableEntity<GoodsReceipt>("purchasing");
         services.AddAuditableEntity<GoodsReceiptLine>("purchasing");
+        // Cotação (CMP-02): serviço, auditoria da cotação, dos fornecedores e respostas, das linhas e vencedores, dos vínculos com a SC e dos preços.
+        services.TryAddScoped<RfqService>();
+        services.AddAuditableEntity<Rfq>("purchasing");
+        services.AddAuditableEntity<RfqSupplier>("purchasing");
+        services.AddAuditableEntity<RfqLine>("purchasing");
+        services.AddAuditableEntity<RfqLineRequest>("purchasing");
+        services.AddAuditableEntity<RfqQuote>("purchasing");
+        // Proposta do fornecedor (ADR 0019 §7, adendo de 21/10/2026, CMP-02 CA 4): dono Rfq com o id do fornecedor na cotação; pdf, png, jpg e
+        // xlsx até 10 MB; ler com purchasing.view, gravar com purchasing.edit, só com a cotação aberta (CA 14).
+        services.AddAttachmentOwner(RfqService.AttachmentOwner, new AttachmentOwnerRules("purchasing",
+            ["application/pdf", "image/png", "image/jpeg", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"], 10 * 1024 * 1024,
+            OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IPurchasingDb>().RfqSuppliers.AnyAsync(s => s.Id == id, ct),
+            CanAttach: async (sp, id, ct) =>
+            {
+                var db = sp.GetRequiredService<IPurchasingDb>();
+                var status = await (from s in db.RfqSuppliers join r in db.Rfqs on s.RfqId equals r.Id where s.Id == id select (RfqStatus?)r.Status).FirstOrDefaultAsync(ct);
+                return status switch
+                {
+                    RfqStatus.Closed => BemAqui.SharedKernel.Error.Conflict(RfqService.ClosedCode, "A cotação está concluída."),
+                    RfqStatus.Cancelled => BemAqui.SharedKernel.Error.Conflict(RfqService.CancelledCode, "A cotação está cancelada."),
+                    _ => null,
+                };
+            }));
         // Anexos do pedido (adendo à ADR 0019 §7, CMP-03a CA 21): ler com purchasing.view, gravar com purchasing.edit; pdf, png e jpg até 10 MB.
         services.AddAttachmentOwner(PurchaseOrderService.AttachmentOwner, new AttachmentOwnerRules("purchasing", ["application/pdf", "image/png", "image/jpeg"], 10 * 1024 * 1024,
             OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IPurchasingDb>().PurchaseOrders.AnyAsync(o => o.Id == id, ct)));
@@ -59,8 +82,10 @@ public static class PurchasingInfrastructure
 internal sealed class PurchasingUsage(IPurchasingDb db) : IPartyUsageProvider, IPaymentTermUsageProvider
 {
     async Task<string?> IPartyUsageProvider.UsageAsync(Guid partyId, CancellationToken cancellationToken) =>
-        await db.PurchaseOrders.AnyAsync(o => o.PartyId == partyId, cancellationToken) ? "pedidos de compra" : null;
+        await db.PurchaseOrders.AnyAsync(o => o.PartyId == partyId, cancellationToken) ? "pedidos de compra"
+        : await db.RfqSuppliers.AnyAsync(s => s.PartyId == partyId, cancellationToken) ? "cotações" : null;
 
     async Task<string?> IPaymentTermUsageProvider.UsageAsync(Guid termId, CancellationToken cancellationToken) =>
-        await db.PurchaseOrders.AnyAsync(o => o.PaymentTermId == termId, cancellationToken) ? "pedidos de compra" : null;
+        await db.PurchaseOrders.AnyAsync(o => o.PaymentTermId == termId, cancellationToken) ? "pedidos de compra"
+        : await db.RfqSuppliers.AnyAsync(s => s.PaymentTermId == termId, cancellationToken) ? "cotações" : null;
 }

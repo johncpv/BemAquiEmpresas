@@ -23,8 +23,14 @@ internal static class PurchaseRequestUpdates
     /// </summary>
     public static async Task RefreshStatusAsync(IPurchasingDb db, IReadOnlyCollection<Guid> requestIds, DateTimeOffset now, CancellationToken ct, Guid? by = null)
     {
-        var lines = await db.PurchaseRequestLines.AsNoTracking().Where(l => requestIds.Contains(l.RequestId))
-            .Select(l => new { l.RequestId, l.Status, l.CancelReason, l.CancelledAt }).ToListAsync(ct);
+        var saved = await db.PurchaseRequestLines.AsNoTracking().Where(l => requestIds.Contains(l.RequestId))
+            .Select(l => new { l.Id, l.RequestId, l.Status, l.CancelReason, l.CancelledAt }).ToListAsync(ct);
+
+        // As linhas mudadas e ainda não gravadas (pedido e cotação mudam a linha e a SC na mesma gravação) valem pelo que está na memória.
+        var local = db.PurchaseRequestLines.Local.Where(l => requestIds.Contains(l.RequestId)).ToDictionary(l => l.Id);
+        var lines = saved.Select(l => local.TryGetValue(l.Id, out var t) ? new { l.Id, t.RequestId, t.Status, t.CancelReason, t.CancelledAt } : l)
+            .Concat(local.Values.Where(t => saved.All(s => s.Id != t.Id)).Select(t => new { t.Id, t.RequestId, t.Status, t.CancelReason, t.CancelledAt }))
+            .ToList();
         var requests = await db.PurchaseRequests.Where(r => requestIds.Contains(r.Id)).ToListAsync(ct);
         foreach (var request in requests)
         {
