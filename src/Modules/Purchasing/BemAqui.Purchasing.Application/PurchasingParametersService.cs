@@ -14,6 +14,35 @@ public sealed class PurchasingParametersService(IPurchasingDb db, IPermissionChe
     public const string DefaultLeadDays = "default_lead_days";
     public const string ShortagesBackfilled = "shortages_backfilled";
 
+    /// <summary>Conta do plano dos títulos do pedido (CMP-03a CA 19, ponto 39): código, padrão "2.1" (Materiais).</summary>
+    public const string PayableAccountCode = "payable_account_code";
+
+    /// <summary>Natureza de custo dos itens do pedido: padrão <c>Material</c>.</summary>
+    public const string PayableCostType = "payable_cost_type";
+
+    /// <summary>Conta do título de frete de outro fornecedor (ADR 0024 §2): padrão "2.4" (Fretes); o frete do próprio fornecedor vai nas parcelas do pedido.</summary>
+    public const string FreightAccountCode = "freight_account_code";
+
+    /// <summary>Natureza do frete: padrão <c>Freight</c>.</summary>
+    public const string FreightCostType = "freight_cost_type";
+
+    public const string DefaultPayableAccount = "2.1";
+    public const string DefaultFreightAccount = "2.4";
+
+    /// <summary>
+    /// Padrões dos títulos do pedido (CA 19): a conta e a natureza dos itens e do frete, vindos de <c>purchasing.parameters</c> (vazio =
+    /// padrão). A natureza inválida volta ao padrão.
+    /// </summary>
+    public async Task<PurchasePayableDefaults> PayableDefaultsAsync(CancellationToken cancellationToken = default)
+    {
+        var texts = await db.PurchasingParameters.AsNoTracking().Where(p => p.Text != null).ToDictionaryAsync(p => p.Key, p => p.Text!, cancellationToken);
+        return new PurchasePayableDefaults(
+            texts.GetValueOrDefault(PayableAccountCode) ?? DefaultPayableAccount, CostOf(texts.GetValueOrDefault(PayableCostType), CostType.Material),
+            texts.GetValueOrDefault(FreightAccountCode) ?? DefaultFreightAccount, CostOf(texts.GetValueOrDefault(FreightCostType), CostType.Freight));
+    }
+
+    private static CostType CostOf(string? text, CostType fallback) => Enum.TryParse<CostType>(text, out var parsed) && Enum.IsDefined(parsed) ? parsed : fallback;
+
     public async Task<int> LeadDaysAsync(CancellationToken cancellationToken = default) =>
         await ValueAsync(DefaultLeadDays, cancellationToken) is { } days && days >= PurchaseRequestRules.MinLeadDays && days <= PurchaseRequestRules.MaxLeadDays
             ? (int)days
