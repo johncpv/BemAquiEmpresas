@@ -56,6 +56,11 @@ internal static partial class ProductionEndpoints
         orders.MapPost("/{id:guid}/reverse-completion", async (Guid id, ReverseCompletionInput input, FabricationOrderService service, CancellationToken ct) =>
                 (await service.ReverseCompletionAsync(id, input, ct)).ToHttpResult())
             .RequirePermission("production.approve").WithName("ReverseFabricationOrderCompletion").Produces<FabricationOrderDetail>();
+        // PRD-06a2 CA 1: "Escolher item do produto" na OS sem item de estoque, com production.edit; a busca é dos produtos e componentes.
+        orders.MapGet("/{id:guid}/product-options", async (Guid id, string? q, FabricationOrderService service, CancellationToken ct) => Results.Ok(await service.ProductOptionsAsync(q, ct)))
+            .RequirePermission("production.edit").WithName("ListFabricationProductOptions").Produces<IReadOnlyList<OrderProductOption>>();
+        orders.MapPut("/{id:guid}/product", async (Guid id, OrderProductInput input, FabricationOrderService service, CancellationToken ct) => (await service.SetProductAsync(id, input, ct)).ToHttpResult())
+            .RequirePermission("production.edit").WithName("SetFabricationOrderProduct").Produces<FabricationOrderDetail>();
         orders.MapGet("/{id:guid}/history", async (Guid id, int? page, int? pageSize, AuditHistory history, CancellationToken ct) =>
                 (await history.GetWithChildrenAsync(nameof(ProductionOrder), id.ToString(), OrderHistoryChildren, "orderId", new PageRequest(page ?? 1, pageSize ?? PageRequest.DefaultPageSize).Normalize(), ct)).ToHttpResult())
             .RequirePermission("production.view").WithName("GetFabricationOrderHistory").Produces<PagedList<RelatedAuditEntryDto>>();

@@ -42,11 +42,16 @@ public sealed partial class ProjectService
         }
 
         // PRD-06a1 CA 15: conclusão e último estorno da conclusão de cada OS de fabricação, com quem e o motivo (o histórico da OS tem todos).
+        // PRD-06a2 CA 15: a conclusão diz quantas unidades entraram no estoque e as séries; o custo só com projects.view_cost.
+        var viewCost = await permissions.HasPermissionAsync("projects", "view_cost", cancellationToken);
         foreach (var order in await productionOrders.ByProjectAsync(id, cancellationToken))
         {
             if (order.CompletedAt is { } completed)
             {
-                entries.Add(new(completed, "production_order_completed", $"{order.Number} concluída", await WhoAsync(order.CompletedBy, cancellationToken), "/app/producao/os/" + order.Id));
+                var stock = await serials.EntryAsync(order.Id, cancellationToken) is { Reversed: false } entry
+                    ? FinishedGoodsText(entry, (await serials.ForOrderAsync(order.Id, cancellationToken)).Where(s => s.Status != BemAqui.Inventory.Contracts.SerialState.Cancelled).Select(s => s.SerialNumber).ToList(), viewCost)
+                    : string.Empty;
+                entries.Add(new(completed, "production_order_completed", $"{order.Number} concluída{stock}", await WhoAsync(order.CompletedBy, cancellationToken), "/app/producao/os/" + order.Id));
             }
 
             if (order.CompletionReversedAt is { } reversed)
@@ -113,6 +118,26 @@ public sealed partial class ProjectService
         var title = source == ProjectCostSource.StockReturn || amount < 0 ? $"Material devolvido da {order}: {money}" : $"Material baixado para a {order}: {money}";
         return new ProjectTimelineEntry(at, "material_cost", backfill ? title + " (calculado na implantação)" : title, null,
             orderId is { } o ? "/app/producao/os/" + o + "?aba=material" : null);
+    }
+
+    /// <summary>
+    /// Complemento da conclusão (PRD-06a2 CA 15): ": 2 unidades no estoque (ELV-2026-00001, ELV-2026-00002)" e, com
+    /// <c>projects.view_cost</c>, " · custo unitário R$ 1.234,57". Até 5 séries; acima disso, "e mais {n}".
+    /// </summary>
+    public static string FinishedGoodsText(BemAqui.Inventory.Contracts.FinishedGoodsEntry entry, IReadOnlyList<string> serialNumbers, bool viewCost)
+    {
+        ArgumentNullException.ThrowIfNull(entry);
+        ArgumentNullException.ThrowIfNull(serialNumbers);
+        var ptBr = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
+        var units = entry.Quantity == 1 ? "1 unidade" : $"{entry.Quantity.ToString("0.####", ptBr)} unidades";
+        var text = $": {units} no estoque";
+        if (serialNumbers.Count > 0)
+        {
+            var shown = string.Join(", ", serialNumbers.Take(5));
+            text += serialNumbers.Count > 5 ? $" ({shown} e mais {serialNumbers.Count - 5})" : $" ({shown})";
+        }
+
+        return viewCost ? text + " · custo unitário R$ " + entry.UnitCost.ToString("N2", ptBr) : text;
     }
 
     /// <summary>Data de negócio às 00h de São Paulo, para ordenar junto com os instantes.</summary>

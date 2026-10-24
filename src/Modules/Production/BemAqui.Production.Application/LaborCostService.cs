@@ -15,7 +15,7 @@ namespace BemAqui.Production.Application;
 /// </summary>
 public sealed class LaborCostService(
     IProductionDb db, LaborCosting costing, IEventPublisher events, IPositions positions, IUserDirectory users, IPermissionChecker permissions, ProductionParametersService parameters,
-    TimeProvider clock)
+    TimeProvider clock, BemAqui.Inventory.Contracts.IStockSerials serials, FinishedGoods finishedGoods)
 {
     /// <summary>Custo por apontamento e por etapa, total de mão de obra e os cargos sem custo-hora (CA 14).</summary>
     public async Task<Result<OrderLaborCostView>> OrderAsync(Guid orderId, CancellationToken cancellationToken = default)
@@ -45,9 +45,12 @@ public sealed class LaborCostService(
             return new StepLaborCostView(s.Id, s.Code ?? string.Empty, s.Name, stepMinutes, LaborRules.Hours(stepMinutes), mine.Sum(e => e.Cost), mine.Count(e => e.CostMissing), mine.Any(e => e.CostBackfilled));
         }).ToList();
         var total = entries.Sum(e => minutes[e.Id]);
+        // PRD-06a2 CA 11: a entrada do produto acabado (custo unitário e total), lida do Inventory; só existe com o Estoque liberado.
+        var entry = finishedGoods.Enabled ? await serials.EntryAsync(orderId, cancellationToken) : null;
         return new OrderLaborCostView(
             order.Id, order.Number, showEntries, views, stepViews, LaborRules.Hours(total), entries.Sum(e => e.Cost), entries.Count(e => e.CostMissing), entries.Any(e => e.CostBackfilled),
-            await MissingPositionsAsync(entries.Where(e => e.CostMissing).ToList(), cancellationToken));
+            await MissingPositionsAsync(entries.Where(e => e.CostMissing).ToList(), cancellationToken),
+            entry is null ? null : new FinishedGoodsCostView(entry.MovementId, entry.Number, entry.Quantity, entry.UnitCost, entry.TotalCost, entry.PostedAt, entry.Reversed));
     }
 
     /// <summary>Histórico do custo do apontamento (CA 17), da versão mais nova para a mais antiga.</summary>

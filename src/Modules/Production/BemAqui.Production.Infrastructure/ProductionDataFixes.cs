@@ -15,4 +15,14 @@ public static class ProductionDataFixes
            AND EXISTS (SELECT 1 FROM production.production_order_steps s WHERE s.order_id = o.id)
            AND NOT EXISTS (SELECT 1 FROM production.production_order_steps s WHERE s.order_id = o.id AND (s.status IS NULL OR s.status <> 'Done'));
         """;
+
+    /// <summary>
+    /// PRD-06a2 CA 9: as OS de fabricação concluídas pela PRD-06a1 (antes do controle de estoque) ficam marcadas "Concluída antes do
+    /// controle de estoque", sem entrada nem séries (sem recomposição). Idempotente: só as concluídas sem movimento de entrada.
+    /// </summary>
+    public const string CompletedWithoutStock = """
+        UPDATE production.production_orders
+           SET completed_without_stock = true
+         WHERE type = 'Fabrication' AND status = 'Completed' AND entry_movement_id IS NULL AND NOT completed_without_stock;
+        """;
 }
