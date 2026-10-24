@@ -77,6 +77,11 @@ public static class HostEvents
             .AddEvent<BemAqui.Purchasing.Contracts.PurchaseOrderApproved>()
             .AddEvent<BemAqui.Purchasing.Contracts.PurchaseOrderRejected>()
             .AddEvent<BemAqui.Purchasing.Contracts.PurchaseOrderChanged>()
-            .AddEvent<BemAqui.Purchasing.Contracts.PurchaseOrderCancelled>();
+            .AddEvent<BemAqui.Purchasing.Contracts.PurchaseOrderCancelled>()
+            // CMP-04 (ADR 0024 §1): o recebimento, o estorno, o encerramento e a correção de preço são só aviso e projeção (nenhum consumidor cria título).
+            .AddEvent<BemAqui.Purchasing.Contracts.GoodsReceived>()
+            .AddEvent<BemAqui.Purchasing.Contracts.GoodsReceiptReversed>()
+            .AddEvent<BemAqui.Purchasing.Contracts.PurchaseOrderClosed>()
+            .AddEvent<BemAqui.Purchasing.Contracts.PurchaseOrderPriceCorrected>();
     }
 }
