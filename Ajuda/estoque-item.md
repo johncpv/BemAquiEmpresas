@@ -12,6 +12,7 @@ Ver e alterar os dados de um item: identificação, dados fiscais, estoque míni
 ## Como usar
 - Altere o que precisar e clique em **Salvar item**.
 - O custo médio aparece só para leitura: ele é calculado pelos movimentos de estoque.
+- Para quem vê Compras, **Última compra** mostra o preço e o fornecedor do último pedido aprovado do item, com o link para o pedido.
 - **Duplicar item** abre um item novo com estes dados, sem o código.
 - **Inativar item** tira o item dos seletores. Ele continua nos documentos que já o usam.
 

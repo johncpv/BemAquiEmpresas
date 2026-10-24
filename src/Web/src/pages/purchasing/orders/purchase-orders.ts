@@ -31,6 +31,7 @@ export const ORDER_DICAS = {
   referencia: 'Valor de referência é o que decide a alçada: o maior entre o total do pedido e a soma dos pedidos do mesmo fornecedor nos últimos 30 dias (aprovados ou aguardando), incluindo este. Evita dividir uma compra grande em pedidos pequenos.',
   estimado: 'Estimado: o título previsto tem a data calculada pela previsão de entrega mais os dias da parcela. A data e o valor se confirmam no recebimento.',
   comprometido: 'Comprometido é o que já está pedido e aprovado para o projeto, mas ainda não virou custo realizado. O material conta como realizado só quando sai do estoque para a OS.',
+  corrigirPreco: 'Corrigir preço muda o preço só do que ainda falta receber: as entradas já feitas ficam com o preço de antes. Dentro do valor aprovado (mais a tolerância), o previsto do caixa se ajusta na hora; acima, o pedido volta para a aprovação e o recebimento espera.',
   sugerido: 'Sugerido pelo último pedido do item: o fornecedor e o preço pago da última vez (ou o custo médio, sem pedido anterior). Confira antes de enviar.',
 }
 
@@ -57,6 +58,9 @@ export function orderTotals(lines: { quantity: number; unitPrice: number }[], fr
   const ipi = round2((subtotal * ipiPct) / 100)
   return { subtotal, ipi, total: round2(subtotal + freight + ipi) }
 }
+
+/** "Encerrado com saldo de {x}" (CMP-04 CA 13). */
+export const closedLabel = (balance: number) => `Encerrado com saldo de ${balance.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`
 
 /** "Atrasado {n} d" (CA 20). */
 export const lateLabel = (daysLate: number | null | undefined) => (daysLate && daysLate > 0 ? `Atrasado ${daysLate} d` : null)

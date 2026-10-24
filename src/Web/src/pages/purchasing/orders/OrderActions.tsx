@@ -1,6 +1,6 @@
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
-import { approvePurchaseOrder, cancelPurchaseOrder, rejectPurchaseOrder, submitPurchaseOrder, useGetCashFlow, useListPurchaseOrderPayables } from '@/api/generated/bemaqui'
+import { approvePurchaseOrder, cancelPurchaseOrder, closePurchaseOrderBalance, rejectPurchaseOrder, submitPurchaseOrder, useGetCashFlow, useListPurchaseOrderPayables } from '@/api/generated/bemaqui'
 import type { PurchaseOrderDetail } from '@/api/generated/model'
 import { inputClass } from '@/components/form/form-utils'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
@@ -9,6 +9,7 @@ import { Dica } from '@/help/Dica'
 import { formatDate } from '@/lib/format'
 import { useCan } from '@/pages/use-can'
 import { daysUntil, todayIso } from '../purchasing'
+import { RECEIPT_DICAS } from '../receipts/receipts'
 import { ORDER_DICAS, projectedAfter } from './purchase-orders'
 import { OrderLevels } from './OrderTabs'
 
@@ -18,6 +19,7 @@ interface Props {
   refresh: () => Promise<unknown>
   onApproved: (last: boolean) => void
   onSubmitted: () => void
+  onClosed?: () => void
 }
 
 const button = (text: string, primary = false) => (
@@ -70,7 +72,7 @@ function CashImpact({ order, enabled }: { order: PurchaseOrderDetail; enabled: b
  * Ações do pedido pela situação e pela permissão (CA 5, 9, 11, 12, 14, 16): enviar para aprovação, aprovar (diálogo grande com o impacto
  * no caixa, o fracionamento e o aviso "1 cotação"), reprovar com o motivo e cancelar com o impacto nos títulos previstos.
  */
-export function OrderActions({ order, set, refresh, onApproved, onSubmitted }: Props) {
+export function OrderActions({ order, set, refresh, onApproved, onSubmitted, onClosed }: Props) {
   const { acao } = useSearch({ strict: false }) as { acao?: string }
   const navigate = useNavigate()
   const canFinance = useCan('finance.view')
@@ -78,14 +80,26 @@ export function OrderActions({ order, set, refresh, onApproved, onSubmitted }: P
   const [reason, setReason] = useState('')
   const [approveOpen, setApproveOpen] = useState(acao === 'aprovar' && order.canDecide)
   const [cancelOpen, setCancelOpen] = useState(false)
+  const canReceivePerm = useCan('purchasing.receive')
+  const balance = Math.max(0, Math.round((order.total - (order.amountReceived ?? 0)) * 100) / 100)
   const payables = useListPurchaseOrderPayables(order.id, { query: { enabled: cancelOpen && canFinance } })
   const active = (payables.data ?? []).filter((p) => p.status !== 'Cancelled')
   const lastLevel = order.levels.filter((l) => l.status === 'Pending').length <= 1
   const clearAction = () => { if (acao) void navigate({ to: '.', search: (p: Record<string, unknown>) => ({ ...p, acao: undefined }), replace: true } as never) }
   const v = order.version
 
+  const receive = canReceivePerm && (order.canReceive || order.receiveBlocker) ? (
+    <span className="inline-flex flex-col">
+      <button type="button" disabled={!order.canReceive} title={order.receiveBlocker ?? undefined}
+        onClick={() => void navigate({ to: '/app/compras/pedidos/$id/recebimento', params: { id: order.id } } as never)}
+        className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60">Registrar recebimento</button>
+      {order.receiveBlocker ? <span className="mt-1 max-w-64 text-xs text-muted-foreground">{order.receiveBlocker}</span> : null}
+    </span>
+  ) : null
+
   return (
     <div className="flex flex-wrap gap-2">
+      {receive}
       {order.canSubmit ? (
         <ConfirmDialog verb="Enviar para aprovação" done="Pedido enviado para aprovação" title={`Enviar o ${order.number} para aprovação?`}
           description="A alçada é resolvida pelo valor de referência (o pedido e os do mesmo fornecedor em 30 dias). Os aprovadores do nível 1 recebem o aviso."
@@ -113,7 +127,15 @@ export function OrderActions({ order, set, refresh, onApproved, onSubmitted }: P
         </>
       ) : null}
       {order.canEdit ? <button type="button" onClick={() => void navigate({ to: '/app/compras/pedidos/$id/editar', params: { id: order.id } } as never)} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Editar pedido</button> : null}
-      {order.canCancel ? (
+      {order.canClose ? (
+        <ConfirmDialog verb="Encerrar saldo do pedido" done="Saldo do pedido encerrado" title={`Encerrar o saldo do ${order.number}?`}
+          description={<span className="inline-flex items-center">O resto do pedido não vem mais: o pedido fica Recebido e a quantidade que não chegou volta para as solicitações.<Dica nome="Encerrar saldo" texto={RECEIPT_DICAS.encerrarSaldo} /></span>}
+          impact={<p className="tabular-nums">Cancela o previsto de <Money value={balance} className="font-semibold" /> no fluxo de caixa.</p>}
+          onOpen={() => setReason('')} preconditions={[{ ok: reason.trim().length > 0, text: 'Motivo escrito.' }]}
+          onConfirm={async () => { set(await closePurchaseOrderBalance(order.id, { reason: reason.trim(), version: v })); onClosed?.() }} onReload={refresh} trigger={button('Encerrar saldo do pedido')}>
+          <Reason id="motivo-encerrar" label="Motivo" value={reason} onChange={setReason} />
+        </ConfirmDialog>
+      ) : null}      {order.canCancel ? (
         <ConfirmDialog destructive size="lg" verb="Cancelar pedido" done="Pedido cancelado" title={`Cancelar o ${order.number}?`} open={cancelOpen} onOpenChange={setCancelOpen}
           description="As linhas de solicitação voltam para Abertas. Pedido cancelado não volta."
           impact={order.status === 'Draft' && order.attempt === 0

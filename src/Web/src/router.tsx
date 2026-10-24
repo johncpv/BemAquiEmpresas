@@ -107,6 +107,9 @@ import { NewPurchaseOrderPage } from '@/pages/purchasing/orders/NewPurchaseOrder
 import { PurchaseOrderPage } from '@/pages/purchasing/orders/PurchaseOrderPage'
 import { PurchaseOrdersPage } from '@/pages/purchasing/orders/PurchaseOrdersPage'
 import { TraceabilityPage } from '@/pages/inventory/stock/TraceabilityPage'
+import { GoodsReceiptPage } from '@/pages/purchasing/receipts/GoodsReceiptPage'
+import { GoodsReceiptsPage } from '@/pages/purchasing/receipts/GoodsReceiptsPage'
+import { NewGoodsReceiptPage } from '@/pages/purchasing/receipts/NewGoodsReceiptPage'
 import { MovementPage } from '@/pages/inventory/stock/MovementPage'
 import { MovementsPage } from '@/pages/inventory/stock/MovementsPage'
 import { CalendarPage } from '@/pages/production/CalendarPage'
@@ -202,6 +205,10 @@ const traceabilityRoute = createRoute({ getParentRoute: () => appRoute, path: 'e
 // Ajustes de estoque (EST-01b), na "Operação" do Estoque: "Aguardando você" é o filtro padrão de quem aprova; abas do detalhe na URL.
 const adjustmentsRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/ajustes', component: gated('inventory', AdjustmentsPage) })
 const adjustmentRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/ajustes/$id', component: gated('inventory', AdjustmentPage) })
+// Recebimentos (CMP-04): abre em "A receber"; o detalhe do recebimento e o registro pela página do pedido.
+const goodsReceiptsRoute = createRoute({ getParentRoute: () => appRoute, path: 'compras/recebimentos', component: gated('purchasing', GoodsReceiptsPage) })
+const goodsReceiptRoute = createRoute({ getParentRoute: () => appRoute, path: 'compras/recebimentos/$id', component: gated('purchasing', GoodsReceiptPage) })
+const newGoodsReceiptRoute = createRoute({ getParentRoute: () => appRoute, path: 'compras/pedidos/$id/recebimento', component: gated('purchasing', NewGoodsReceiptPage) })
 const locationsRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/locais', component: gated('inventory', LocationsPage) })
 // Itens, unidades, categorias e garantia padrão (CAD-02a).
 const itemsRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/itens', component: gated('inventory', ItemsPage) })
@@ -350,7 +357,7 @@ export const routeTree = rootRoute.addChildren([
   inviteRoute,
   appRoute.addChildren([appIndexRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute,
     aiSettingsRoute, importRunsRoute, importRunRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute,
-    inventoryRootRoute, balancesRoute, movementsRoute, movementRoute, manualPostingsRoute, manualPostingRoute, shortagesRoute, requisitionsRoute, requisitionRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, bomsRoute, productionRootRoute, fabricationOrdersRoute, fabricationOrderRoute, kanbanRoute, openLaborRoute, operatorRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute, qualityRoute, qualityStepRoute, nonConformitiesRoute, nonConformityRoute, purchasingRootRoute, purchaseRequestsRoute, newPurchaseRequestRoute, purchaseRequestRoute, purchaseOrdersRoute, newPurchaseOrderRoute, purchaseOrderRoute, editPurchaseOrderRoute, shipmentsRoute, newShipmentRoute, shipmentRoute, traceabilityRoute, adjustmentsRoute, adjustmentRoute,
+    inventoryRootRoute, balancesRoute, movementsRoute, movementRoute, manualPostingsRoute, manualPostingRoute, shortagesRoute, requisitionsRoute, requisitionRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, bomsRoute, productionRootRoute, fabricationOrdersRoute, fabricationOrderRoute, kanbanRoute, openLaborRoute, operatorRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute, qualityRoute, qualityStepRoute, nonConformitiesRoute, nonConformityRoute, purchasingRootRoute, purchaseRequestsRoute, newPurchaseRequestRoute, purchaseRequestRoute, purchaseOrdersRoute, newPurchaseOrderRoute, purchaseOrderRoute, editPurchaseOrderRoute, shipmentsRoute, newShipmentRoute, shipmentRoute, traceabilityRoute, adjustmentsRoute, adjustmentRoute, goodsReceiptsRoute, goodsReceiptRoute, newGoodsReceiptRoute,
     financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, payablesRoute, newPayableRoute, payableRoute, recurringRoute, approvalRulesRoute, openingRoute, cashFlowRoute, agingRoute, paymentOrdersRoute, newPaymentOrderRoute, paymentOrderRoute, statementRoute, quotesRoute, quoteFunnelRoute, quoteRoute, quoteCompareRoute, contractsRoute, contractRoute, amendmentRoute, projectsRoute, projectRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
   platformLoginRoute,
   platformPasswordRoute,

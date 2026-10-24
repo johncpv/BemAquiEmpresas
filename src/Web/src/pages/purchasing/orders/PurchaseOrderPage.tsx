@@ -16,13 +16,13 @@ import { formatQuantity } from '@/pages/inventory/stock/stock'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { OrderActions } from './OrderActions'
-import { OrderDecisions, OrderDocuments, OrderHistory, OrderItems, OrderLevels, OrderPayables } from './OrderTabs'
-import { lateLabel, ORDER_DICAS, ORDER_STATUS, orderDestination } from './purchase-orders'
+import { OrderDecisions, OrderDocuments, OrderHistory, OrderItems, OrderLevels, OrderPayables, OrderReceipts } from './OrderTabs'
+import { closedLabel, lateLabel, ORDER_DICAS, ORDER_STATUS, orderDestination } from './purchase-orders'
 
 /** Faixa do estado em modo leitura (padrão de tela da Fase 3). */
 function readOnlyBand(o: PurchaseOrderDetail): string | null {
   if (o.status === 'Cancelled') return `Pedido cancelado${o.cancelledByName ? ` por ${o.cancelledByName}` : ''}${o.cancelledAt ? ` em ${formatDateTime(o.cancelledAt)}` : ''}: só para consulta. Motivo: ${o.cancelReason ?? '—'}`
-  if (o.status === 'Received') return 'Pedido recebido: só para consulta.'
+  if (o.status === 'Received' && o.closedBalanceAmount != null) return `Pedido recebido, ${closedLabel(o.closedBalanceAmount)}: só para consulta. Motivo: ${o.closeReason ?? '—'}`
   if (o.status === 'PendingApproval' && !o.canDecide) return o.decideBlocker ?? 'Aguardando aprovação: o pedido não muda até a decisão, salvo se você editar (volta para a aprovação).'
   return null
 }
@@ -74,7 +74,8 @@ export function PurchaseOrderPage() {
                 ...(canFinance ? [{ label: 'Ver previsão no fluxo de caixa', onSelect: go('/app/financeiro/fluxo-de-caixa') }] : []),
                 { label: 'Próximo pedido aguardando você', onSelect: go('/app/compras/pedidos', { filtro: 'aguardando-voce' }) },
               ]
-              : [{ label: 'Próximo pedido aguardando você', onSelect: go('/app/compras/pedidos', { filtro: 'aguardando-voce' }) }])} />
+              : [{ label: 'Próximo pedido aguardando você', onSelect: go('/app/compras/pedidos', { filtro: 'aguardando-voce' }) }])}
+            onClosed={() => setSteps([{ label: 'Ver solicitações', onSelect: go('/app/compras/solicitacoes') }, { label: 'Ver recebimentos', onSelect: go('/app/compras/recebimentos', { aba: 'recebidos' }) }])} />
         </div>
       </PageHeading>
       {shown.length ? <div className="mb-3"><NextSteps steps={shown} onDismiss={() => { setSteps([]); setCreatedShown(false) }} /></div> : null}
@@ -88,7 +89,7 @@ export function PurchaseOrderPage() {
         { label: 'Total', value: <Money value={o.total} className="font-semibold" /> },
         { label: 'Previsão de entrega', value: <span className="tabular-nums">{formatDate(o.expectedDate)}</span> },
         { label: 'Condição', value: o.paymentTermName ?? '—' },
-        { label: 'Recebido', value: <span className="tabular-nums">{o.quantityReceived > 0 ? formatQuantity(o.quantityReceived) : 'Nada ainda'}</span> },
+        { label: 'Recebido', value: (o.amountReceived ?? 0) > 0 ? <Money value={o.amountReceived ?? 0} /> : <span className="tabular-nums">{o.quantityReceived > 0 ? formatQuantity(o.quantityReceived) : 'Nada ainda'}</span> },
       ]} />
       {o.status === 'PendingApproval' ? <div className="mb-3"><OrderLevels levels={o.levels} /></div> : null}
       {o.projectId && o.status !== 'Cancelled' && o.status !== 'Draft' ? (
@@ -96,8 +97,9 @@ export function PurchaseOrderPage() {
       ) : null}
       {o.notes ? <p className="mb-3 text-sm"><span className="text-muted-foreground">Observação:</span> {o.notes}</p> : null}
       <UrlTabs label="Seções do pedido" fallback="itens" tabs={[
-        { id: 'itens', label: 'Itens', content: <OrderItems order={o} /> },
+        { id: 'itens', label: 'Itens', content: <OrderItems order={o} set={set} refresh={refresh} /> },
         { id: 'decisoes', label: 'Decisões', content: <OrderDecisions orderId={o.id} /> },
+        { id: 'recebimentos', label: 'Recebimentos', content: <OrderReceipts order={o} /> },
         { id: 'financeiro', label: 'Financeiro', disabled: !canFinance, content: <OrderPayables orderId={o.id} /> },
         { id: 'documentos', label: 'Documentos', content: <OrderDocuments orderId={o.id} /> },
         { id: 'historico', label: 'Histórico de alterações', content: <OrderHistory orderId={o.id} /> },
