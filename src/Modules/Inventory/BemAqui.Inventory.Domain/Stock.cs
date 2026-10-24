@@ -304,5 +304,8 @@ public sealed class InventoryParameters : Entity, IAuditable, IConcurrencyVersio
     /// <summary>Quando a recomposição das reservas da implantação terminou (EST-02 CA 12, D3); depois disso o job não faz nada.</summary>
     public DateTimeOffset? ReservationsBackfilledAt { get; set; }
 
+    /// <summary>Valor inicial da sequência da série por item e ano (PRD-06a2 CA 4, D15): padrão 1; sem tela nesta fase.</summary>
+    public int SerialStartValue { get; set; } = 1;
+
     public uint Version { get; set; }
 }

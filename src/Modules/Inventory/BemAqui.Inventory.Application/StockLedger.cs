@@ -248,7 +248,13 @@ public sealed class StockLedger(
             return Field("sourceId", "Movimento sem documento de origem.");
         }
 
-        if (posting.Quantity > 0 && posting.Type is not (StockMovementType.Transfer or StockMovementType.Adjustment) && posting.UnitCost is not > 0)
+        // PRD-06a2 CA 7: o produto acabado entra pelo custo apurado da OS, que pode ser 0 (confirmado no diálogo); as outras entradas, > 0.
+        if (posting.Type == StockMovementType.Production && posting.UnitCost is null)
+        {
+            return Field("unitCost", "Informe o custo unitário do produto acabado.");
+        }
+
+        if (posting.Quantity > 0 && posting.Type is not (StockMovementType.Transfer or StockMovementType.Adjustment or StockMovementType.Production) && posting.UnitCost is not > 0)
         {
             return Field("unitCost", "Informe o custo unitário da entrada, maior que zero.");
         }

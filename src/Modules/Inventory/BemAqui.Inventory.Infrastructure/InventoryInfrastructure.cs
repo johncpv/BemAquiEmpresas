@@ -76,6 +76,12 @@ public static class InventoryInfrastructure
         services.TryAddScoped<IMaterialRequisitions, MaterialRequisitionsContract>();
         services.AddAuditableEntity<MaterialRequisition>("inventory");
         services.AddAuditableEntity<MaterialRequisitionLine>("inventory");
+        // Produto acabado (PRD-06a2): séries e lotes consumidos, gravados na transação da conclusão da OS (a Produção é dona dela).
+        services.TryAddScoped<StockSerialService>();
+        services.TryAddScoped<IStockSerials>(sp => sp.GetRequiredService<StockSerialService>());
+        services.TryAddScoped<IStockTraceability>(sp => sp.GetRequiredService<StockSerialService>());
+        services.TryAddScoped<SerialQueryService>();
+        services.AddAuditableEntity<Serial>("inventory");
         return services;
     }
 }

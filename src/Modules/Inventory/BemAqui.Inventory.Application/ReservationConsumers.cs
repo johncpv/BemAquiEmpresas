@@ -23,7 +23,7 @@ namespace BemAqui.Inventory.Application;
 public sealed class ReservationConsumers(
     StockReservationService reservations, AuditOrigin origin, IInventoryDb db, IUserDirectory users, INotificationService notifications, TenantContextHolder tenant)
     : IIntegrationEventConsumer<ProductionOrderCancelled>, IIntegrationEventConsumer<ProductionOrderCompleted>, IIntegrationEventConsumer<BomReleased>,
-        IIntegrationEventConsumer<BomRevised>
+        IIntegrationEventConsumer<BomRevised>, IIntegrationEventConsumer<ProductionOrderCompletionReversed>
 {
     public const string NoticeType = "inventory.reservation_done";
 
@@ -81,6 +81,16 @@ public sealed class ReservationConsumers(
     {
         ArgumentNullException.ThrowIfNull(integrationEvent);
         return reservations.ReconcileOrderAsync(integrationEvent.ProductionOrderId, Origin(nameof(ProductionOrderCompleted)), cancellationToken: cancellationToken);
+    }
+
+    /// <summary>
+    /// PRD-06a2 CA 10: o estorno da conclusão devolve a OS a andamento; a reserva é reconciliada a partir da fonte (a BOM liberada vigente,
+    /// ADR 0023 §6), não refeita pelo que a conclusão liberou.
+    /// </summary>
+    public Task HandleAsync(ProductionOrderCompletionReversed integrationEvent, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(integrationEvent);
+        return reservations.ReconcileOrderAsync(integrationEvent.ProductionOrderId, Origin(nameof(ProductionOrderCompletionReversed)), cancellationToken: cancellationToken);
     }
 
     private string Origin(string type) => string.IsNullOrWhiteSpace(origin.Label) ? "Evento " + type : origin.Label;

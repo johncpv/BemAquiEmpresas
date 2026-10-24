@@ -46,6 +46,13 @@ public interface IInventoryDb
 
     DbSet<MaterialRequisitionLine> MaterialRequisitionLines { get; }
 
+    /// <summary>Séries do produto acabado, lotes consumidos e a sequência da série por item e ano (PRD-06a2).</summary>
+    DbSet<Serial> Serials { get; }
+
+    DbSet<SerialComponent> SerialComponents { get; }
+
+    DbSet<SerialSequence> SerialSequences { get; }
+
     /// <summary>Para trocar o local padrão em dois passos numa transação (o índice único parcial é checado a cada comando).</summary>
     DatabaseFacade Database { get; }
 

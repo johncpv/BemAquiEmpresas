@@ -181,6 +181,12 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<MaterialRequisitionLine> MaterialRequisitionLines => Set<MaterialRequisitionLine>();
 
+    public DbSet<Serial> Serials => Set<Serial>();
+
+    public DbSet<SerialComponent> SerialComponents => Set<SerialComponent>();
+
+    public DbSet<SerialSequence> SerialSequences => Set<SerialSequence>();
+
     public DbSet<WorkCenter> WorkCenters => Set<WorkCenter>();
 
     public DbSet<Calendar> Calendars => Set<Calendar>();
