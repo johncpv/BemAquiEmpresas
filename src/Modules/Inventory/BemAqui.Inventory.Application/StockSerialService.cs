@@ -17,6 +17,7 @@ public sealed class StockSerialService(IInventoryDb db, TimeProvider clock) : IS
 {
     public const string ShippedCode = "serial_shipped";
     public const string ShippedMessage = "O produto já foi expedido.";
+    public const string NotInStockCode = "serial_not_in_stock";
 
     public async Task<IReadOnlyList<string>> SuggestAsync(Guid itemId, int count, CancellationToken cancellationToken = default)
     {
@@ -133,6 +134,69 @@ public sealed class StockSerialService(IInventoryDb db, TimeProvider clock) : IS
         return new FinishedGoodsEntry(entry.Id, entry.Number, entry.ItemId, entry.LocationId, entry.Quantity, entry.UnitCost, entry.TotalCost, entry.PostedAt, reversed, entry.Leg);
     }
 
+    public async Task<IReadOnlyList<SerialInfo>> FindAsync(IReadOnlyCollection<Guid> serialIds, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(serialIds);
+        if (serialIds.Count == 0)
+        {
+            return [];
+        }
+
+        var rows = await db.Serials.AsNoTracking().Where(s => serialIds.Contains(s.Id)).OrderBy(s => s.SerialNumber).ToListAsync(cancellationToken);
+        return rows.Select(Info).ToList();
+    }
+
+    public async Task<Result<int>> ShipAsync(Guid shipmentId, IReadOnlyCollection<Guid> serialIds, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(serialIds);
+        RequireTransaction();
+        var ids = serialIds.Distinct().ToList();
+        if (ids.Count == 0)
+        {
+            return 0;
+        }
+
+        var serials = await db.Serials.Where(s => ids.Contains(s.Id)).OrderBy(s => s.SerialNumber).ToListAsync(cancellationToken);
+        if (serials.Count != ids.Count)
+        {
+            return Error.Conflict(NotInStockCode, "Uma série do romaneio não existe mais. Recarregue o romaneio.");
+        }
+
+        // PRD-06b CA 16: quem chega depois encontra a série já expedida e não grava nada (o chamador desfaz a transação).
+        if (serials.FirstOrDefault(s => s.Status != SerialState.InStock) is { } gone)
+        {
+            return Error.Conflict(NotInStockCode, $"A série {gone.SerialNumber} não está mais no estoque.");
+        }
+
+        var now = clock.GetUtcNow();
+        foreach (var serial in serials)
+        {
+            serial.Status = SerialState.Shipped;
+            serial.ShippedAt = now;
+            serial.ShipmentId = shipmentId;
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+        return serials.Count;
+    }
+
+    public async Task<Result<int>> UnshipAsync(Guid shipmentId, IReadOnlyCollection<Guid> serialIds, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(serialIds);
+        RequireTransaction();
+        var ids = serialIds.Distinct().ToList();
+        var serials = await db.Serials.Where(s => ids.Contains(s.Id) && s.ShipmentId == shipmentId && s.Status == SerialState.Shipped).ToListAsync(cancellationToken);
+        foreach (var serial in serials)
+        {
+            serial.Status = SerialState.InStock;
+            serial.ShippedAt = null;
+            serial.ShipmentId = null;
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+        return serials.Count;
+    }
+
     public async Task<IReadOnlyList<ConsumedLot>> RecordOrderAsync(Guid productionOrderId, CancellationToken cancellationToken = default)
     {
         RequireTransaction();
@@ -220,7 +284,8 @@ public sealed class StockSerialService(IInventoryDb db, TimeProvider clock) : IS
         }
     }
 
-    internal static SerialInfo Info(Serial s) => new(s.Id, s.ItemId, s.SerialNumber, s.ProductionOrderId, s.ProjectId, s.LocationId, s.Status, s.EntryMovementId, s.CreatedAt);
+    internal static SerialInfo Info(Serial s) =>
+        new(s.Id, s.ItemId, s.SerialNumber, s.ProductionOrderId, s.ProjectId, s.LocationId, s.Status, s.EntryMovementId, s.CreatedAt, s.ShipmentId, s.ShippedAt);
 
     private static Error Field(string field, string message) =>
         Error.Validation(Error.Codes.Validation, message, new Dictionary<string, string[]> { [field] = [message] });

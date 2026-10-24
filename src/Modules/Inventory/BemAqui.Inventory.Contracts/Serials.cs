@@ -13,9 +13,10 @@ public enum SerialState
     Cancelled,
 }
 
-/// <summary>Série vista pelos outros módulos, sem custo.</summary>
+/// <summary>Série vista pelos outros módulos, sem custo. <c>ShipmentId</c> é o romaneio que a expediu (PRD-06b).</summary>
 public sealed record SerialInfo(
-    Guid Id, Guid ItemId, string SerialNumber, Guid? ProductionOrderId, Guid? ProjectId, Guid? LocationId, SerialState Status, Guid? EntryMovementId, DateTimeOffset CreatedAt);
+    Guid Id, Guid ItemId, string SerialNumber, Guid? ProductionOrderId, Guid? ProjectId, Guid? LocationId, SerialState Status, Guid? EntryMovementId, DateTimeOffset CreatedAt,
+    Guid? ShipmentId = null, DateTimeOffset? ShippedAt = null);
 
 /// <summary>
 /// Séries de uma OS concluída (PRD-06a2 CA 4 e 5): o item, a OS, o projeto, o local e o movimento de entrada. <c>SerialNumbers</c> nulo
@@ -53,6 +54,19 @@ public interface IStockSerials
 
     /// <summary>A entrada <c>Production</c> mais recente da OS (com a marca de estornada) ou null.</summary>
     Task<FinishedGoodsEntry?> EntryAsync(Guid productionOrderId, CancellationToken cancellationToken = default);
+
+    /// <summary>Séries por id (todas as situações); as que não existem ficam fora.</summary>
+    Task<IReadOnlyList<SerialInfo>> FindAsync(IReadOnlyCollection<Guid> serialIds, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Confirmação do romaneio (PRD-06b CA 4, D4): as séries vão a <c>Shipped</c> com o romaneio, na transação do chamador (depois da
+    /// saída <c>Shipment</c> pelo <see cref="IStockMovements"/>, que trava o item). Alguma fora do estoque: 409 <c>serial_not_in_stock</c>
+    /// e nada muda. Devolve quantas foram expedidas.
+    /// </summary>
+    Task<Result<int>> ShipAsync(Guid shipmentId, IReadOnlyCollection<Guid> serialIds, CancellationToken cancellationToken = default);
+
+    /// <summary>Estorno da expedição (PRD-06b CA 11): as séries expedidas pelo romaneio voltam a <c>InStock</c>, no mesmo local.</summary>
+    Task<Result<int>> UnshipAsync(Guid shipmentId, IReadOnlyCollection<Guid> serialIds, CancellationToken cancellationToken = default);
 }
 
 /// <summary>Lote consumido pela OS (CA 8): item, lote (nulo sem controle de lote) e quantidade líquida, na unidade de estoque. Sem custo.</summary>
