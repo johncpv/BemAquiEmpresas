@@ -174,10 +174,19 @@ public sealed partial class PurchaseOrderService
             await ReopenRequestLinesAsync(line, line.Quantity - line.QuantityReceived, order.Number, now, touched, cancellationToken);
         }
 
-        await db.SaveChangesAsync(cancellationToken);
+        // A linha de SC mudou ao mesmo tempo (edição, cotação): 409, e nada grava.
+        if (await SaveAsync(cancellationToken) is { } requestConflict)
+        {
+            return requestConflict;
+        }
+
         await PurchaseRequestUpdates.RefreshStatusAsync(db, touched, now, cancellationToken, currentUser.UserId);
         events.Publish(new PurchaseOrderClosed(order.Id, balance));
-        await db.SaveChangesAsync(cancellationToken);
+        if (await SaveAsync(cancellationToken) is { } late)
+        {
+            return late;
+        }
+
         await transaction.CommitAsync(cancellationToken);
         return await DetailAsync(id, cancellationToken);
     }
