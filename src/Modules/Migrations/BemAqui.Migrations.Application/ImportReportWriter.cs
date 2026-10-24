@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using BemAqui.BuildingBlocks.Export;
 using BemAqui.Migrations.Domain;
 
 namespace BemAqui.Migrations.Application;
@@ -80,22 +81,10 @@ public static class ImportReportWriter
 
     /// <summary>
     /// Célula segura (CA 18): começando com <c>=</c>, <c>+</c>, <c>-</c>, <c>@</c>, tabulação ou retorno de carro, ganha o
-    /// prefixo <c>'</c> para a planilha não executar como fórmula; aspas, separador e quebra de linha vão entre aspas.
+    /// prefixo <c>'</c> para a planilha não executar como fórmula; aspas, separador e quebra de linha vão entre aspas. A regra mora no
+    /// <see cref="SafeCsv"/> dos BuildingBlocks, a mesma de toda exportação (EST-04).
     /// </summary>
-    public static string Cell(string? value)
-    {
-        if (string.IsNullOrEmpty(value))
-        {
-            return string.Empty;
-        }
-
-        if (value[0] is '=' or '+' or '-' or '@' or '\t' or '\r')
-        {
-            value = "'" + value;
-        }
-
-        return value.IndexOfAny([';', '"', '\n', '\r']) >= 0 ? "\"" + value.Replace("\"", "\"\"", StringComparison.Ordinal) + "\"" : value;
-    }
+    public static string Cell(string? value) => SafeCsv.Cell(value);
 
     /// <summary>Grava <c>run-&lt;id&gt;.json</c> e <c>.csv</c> no diretório do relatório, com permissão 0600 (CA 18).</summary>
     public static async Task<IReadOnlyList<string>> WriteFilesAsync(string directory, ImportReport report, IReadOnlyList<ImportItem> items, CancellationToken cancellationToken = default)
