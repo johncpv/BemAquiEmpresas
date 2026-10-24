@@ -15,5 +15,6 @@ public sealed class InventoryModule : IModule
 
     public void AddServices(IServiceCollection services, IConfiguration configuration) => services.AddInventoryInfrastructure();
 
-    public void MapEndpoints(IEndpointRouteBuilder endpoints) => endpoints.MapInventoryEndpoints().MapItemEndpoints().MapStockEndpoints().MapReservationEndpoints().MapRequisitionEndpoints().MapSerialEndpoints().MapTraceabilityEndpoints();
+    public void MapEndpoints(IEndpointRouteBuilder endpoints) => endpoints.MapInventoryEndpoints().MapItemEndpoints().MapStockEndpoints().MapReservationEndpoints().MapRequisitionEndpoints().MapSerialEndpoints().MapTraceabilityEndpoints()
+        .MapAdjustmentEndpoints();
 }

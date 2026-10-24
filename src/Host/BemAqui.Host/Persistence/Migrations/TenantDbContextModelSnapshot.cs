@@ -6219,6 +6219,240 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("serial_sequences", "inventory");
                 });
 
+            modelBuilder.Entity("BemAqui.Inventory.Domain.StockAdjustment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("CancelReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("cancel_reason");
+
+                    b.Property<DateTimeOffset?>("DecidedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("decided_at");
+
+                    b.Property<Guid?>("DecidedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("decided_by");
+
+                    b.Property<string>("DecisionComment")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("decision_comment");
+
+                    b.Property<Guid>("LocationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("location_id");
+
+                    b.Property<string>("Mode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("mode");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("number");
+
+                    b.Property<string>("Origin")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("origin");
+
+                    b.Property<Guid?>("OriginId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("origin_id");
+
+                    b.Property<string>("OriginNumber")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("origin_number");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("reason");
+
+                    b.Property<string>("ReasonDetail")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("reason_detail");
+
+                    b.Property<DateTimeOffset>("RequestedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("requested_at");
+
+                    b.Property<Guid?>("RequestedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("requested_by");
+
+                    b.Property<string>("ReversalReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("reversal_reason");
+
+                    b.Property<bool>("ReversalSelfApproved")
+                        .HasColumnType("boolean")
+                        .HasColumnName("reversal_self_approved");
+
+                    b.Property<DateTimeOffset?>("ReversedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reversed_at");
+
+                    b.Property<Guid?>("ReversedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reversed_by");
+
+                    b.Property<bool>("SelfApproved")
+                        .HasColumnType("boolean")
+                        .HasColumnName("self_approved");
+
+                    b.Property<decimal>("ShortageValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("shortage_value");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<decimal>("SurplusValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("surplus_value");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_stock_adjustments");
+
+                    b.HasIndex("Number")
+                        .IsUnique()
+                        .HasDatabaseName("ux_stock_adjustments_number");
+
+                    b.HasIndex("OriginId")
+                        .HasDatabaseName("ix_stock_adjustments_origin_id")
+                        .HasFilter("origin_id IS NOT NULL");
+
+                    b.HasIndex("LocationId", "Status")
+                        .HasDatabaseName("ix_stock_adjustments_location_status");
+
+                    b.HasIndex("Status", "RequestedAt")
+                        .HasDatabaseName("ix_stock_adjustments_status_requested_at");
+
+                    b.ToTable("stock_adjustments", "inventory");
+                });
+
+            modelBuilder.Entity("BemAqui.Inventory.Domain.StockAdjustmentLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AdjustmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("adjustment_id");
+
+                    b.Property<decimal?>("AppliedDeltaQty")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("applied_delta_qty");
+
+                    b.Property<decimal?>("CountedQty")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("counted_qty");
+
+                    b.Property<decimal>("DeltaQty")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("delta_qty");
+
+                    b.Property<decimal>("EnteredQuantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("entered_quantity");
+
+                    b.Property<Guid?>("EnteredUnitId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("entered_unit_id");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_id");
+
+                    b.Property<Guid?>("LotId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("lot_id");
+
+                    b.Property<Guid?>("MovementId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("movement_id");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.Property<decimal?>("SystemQtyAtApproval")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("system_qty_at_approval");
+
+                    b.Property<decimal>("SystemQtyAtRequest")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("system_qty_at_request");
+
+                    b.Property<decimal?>("UnitCost")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)")
+                        .HasColumnName("unit_cost");
+
+                    b.Property<decimal>("UnitCostEstimate")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)")
+                        .HasColumnName("unit_cost_estimate");
+
+                    b.HasKey("Id")
+                        .HasName("pk_stock_adjustment_lines");
+
+                    b.HasIndex("ItemId")
+                        .HasDatabaseName("ix_stock_adjustment_lines_item_id");
+
+                    b.HasIndex("LotId")
+                        .HasDatabaseName("ix_stock_adjustment_lines_lot_id");
+
+                    b.HasIndex("MovementId")
+                        .HasDatabaseName("ix_stock_adjustment_lines_movement_id");
+
+                    b.HasIndex("AdjustmentId", "Sequence")
+                        .IsUnique()
+                        .HasDatabaseName("ux_stock_adjustment_lines_adjustment_sequence");
+
+                    b.HasIndex("AdjustmentId", "ItemId", "LotId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_stock_adjustment_lines_adjustment_item_lot");
+
+                    NpgsqlIndexBuilderExtensions.AreNullsDistinct(b.HasIndex("AdjustmentId", "ItemId", "LotId"), false);
+
+                    b.ToTable("stock_adjustment_lines", "inventory");
+                });
+
             modelBuilder.Entity("BemAqui.Inventory.Domain.StockBalance", b =>
                 {
                     b.Property<Guid>("Id")
@@ -9497,6 +9731,45 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_serial_sequences_items_item_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Inventory.Domain.StockAdjustment", b =>
+                {
+                    b.HasOne("BemAqui.Inventory.Domain.Location", null)
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_stock_adjustments_locations_location_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Inventory.Domain.StockAdjustmentLine", b =>
+                {
+                    b.HasOne("BemAqui.Inventory.Domain.StockAdjustment", null)
+                        .WithMany()
+                        .HasForeignKey("AdjustmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_stock_adjustment_lines_stock_adjustments_adjustment_id");
+
+                    b.HasOne("BemAqui.Inventory.Domain.Item", null)
+                        .WithMany()
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_stock_adjustment_lines_items_item_id");
+
+                    b.HasOne("BemAqui.Inventory.Domain.Lot", null)
+                        .WithMany()
+                        .HasForeignKey("LotId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_stock_adjustment_lines_lots_lot_id");
+
+                    b.HasOne("BemAqui.Inventory.Domain.StockMovement", null)
+                        .WithMany()
+                        .HasForeignKey("MovementId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_stock_adjustment_lines_stock_movements_movement_id");
                 });
 
             modelBuilder.Entity("BemAqui.Inventory.Domain.StockBalance", b =>

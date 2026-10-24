@@ -31,7 +31,7 @@ public partial class StockTests
         again.StatusCode.Should().Be(HttpStatusCode.Conflict, "CA 2");
         var problem = await JsonAsync(again);
         Detail(problem).Should().Be("Este item já tem movimentos neste local. Use um ajuste de estoque.");
-        problem.GetProperty("recovery").GetString().Should().Be("Lançar entrada");
+        problem.GetProperty("recovery").GetString().Should().Be("Lançar ajuste", "EST-01b: o caminho para corrigir é o ajuste de estoque");
 
         var tomorrow = await warehouse.SendAsync(Command($"{Base}/opening-balances", new { cutoffDate = Iso(Today.AddDays(1)), itemId = await ItemAsync(), locationId = location, quantity = 1m, unitId = (Guid?)null, unitCost = 1m, lotNumber = (string?)null }));
         FieldErrors(await JsonAsync(tomorrow), "cutoffDate").Should().ContainSingle();

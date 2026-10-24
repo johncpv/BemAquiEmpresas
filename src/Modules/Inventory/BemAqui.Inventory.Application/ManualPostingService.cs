@@ -18,7 +18,8 @@ namespace BemAqui.Inventory.Application;
 /// </summary>
 public sealed partial class ManualPostingService(
     IInventoryDb db, IStockMovements ledger, INumberSequence numbers, IUnitConversion conversion, IProjects projects, IUserDirectory users,
-    IPermissionChecker permissions, INotificationService notifications, ICurrentUser currentUser, TimeProvider clock, ReversePolicy policy, StockQueryService queries)
+    IPermissionChecker permissions, INotificationService notifications, ICurrentUser currentUser, TimeProvider clock, ReversePolicy policy, StockQueryService queries,
+    ILocationCountLock locks)
 {
     public const string Link = "/app/estoque/lancamentos/";
     public const string MovementLink = "/app/estoque/movimentos/";
