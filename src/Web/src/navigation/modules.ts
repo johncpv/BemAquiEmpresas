@@ -64,7 +64,7 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
     { slug: 'categorias', label: 'Categorias', group: STOCK_SETUP },
     { slug: 'garantia', label: 'Garantia padrão', group: STOCK_SETUP },
   ] },
-  purchasing: { slug: 'compras', icon: ShoppingCart },
+  purchasing: { slug: 'compras', icon: ShoppingCart, tabs: [{ slug: 'solicitacoes', label: 'Solicitações' }] },
   assets: { slug: 'patrimonio', icon: Tag },
   finance: { slug: 'financeiro', icon: Wallet, tabs: [
     { slug: 'receber', label: 'A receber', group: CASH },

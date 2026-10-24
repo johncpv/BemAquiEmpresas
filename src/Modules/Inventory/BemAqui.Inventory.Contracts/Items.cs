@@ -40,7 +40,15 @@ public interface IItems
     Task<IReadOnlyList<ItemSummary>> SearchAsync(ItemType? type, string? term, int limit = 20, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<ItemSummary>> FindAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Itens ativos de estoque (fora Serviço) com estoque mínimo &gt; 0, na unidade de estoque (CAD-02a): o job do mínimo da CMP-01 (CA 9).
+    /// </summary>
+    Task<IReadOnlyList<ItemMinStock>> WithMinStockAsync(CancellationToken cancellationToken = default);
 }
+
+/// <summary>Estoque mínimo de um item, na unidade de estoque (CMP-01 CA 9).</summary>
+public sealed record ItemMinStock(Guid ItemId, decimal MinStock);
 
 /// <summary>
 /// Uso de um item (CA 14, 16 e 17): o EST-01 informa movimento e saldo; BOM (ENG-02), códigos do fornecedor (CAD-02b) e

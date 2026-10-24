@@ -4,6 +4,7 @@ using BemAqui.Commercial.Contracts;
 using BemAqui.Inventory.Contracts;
 using BemAqui.Inventory.Domain;
 using BemAqui.Production.Contracts;
+using BemAqui.Purchasing.Contracts;
 using BemAqui.SharedKernel;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,7 +19,8 @@ namespace BemAqui.Inventory.Application;
 /// de <c>item_id</c>, as mesmas do motor (ADR 0023 §3).
 /// </summary>
 public sealed class StockReservationService(
-    IInventoryDb db, ReservationAllocator allocator, IReleasedBomSource boms, IProductionOrders orders, IProjects projects, TenantContextHolder tenant)
+    IInventoryDb db, ReservationAllocator allocator, IReleasedBomSource boms, IProductionOrders orders, IProjects projects, TenantContextHolder tenant,
+    IPurchaseRequests purchaseRequests)
     : IStockReservations
 {
     public const string Module = "inventory";
@@ -119,6 +121,8 @@ public sealed class StockReservationService(
         var locations = await LocationNamesAsync(rows.Select(r => r.LocationId).Distinct().ToList(), cancellationToken);
         var stockItems = await StockItemsAsync(bomItems.Distinct().ToList(), cancellationToken);
         var pendingItems = closed || bom is null ? [] : bom.Lines.Where(l => stockItems.Contains(l.ItemId)).Select(l => l.ItemId).Distinct().ToList();
+        var requestLinks = (await purchaseRequests.ForOrderAsync(productionOrderId, cancellationToken)).GroupBy(r => r.ItemId)
+            .ToDictionary(g => g.Key, g => PurchaseRequestLink(g.Select(r => r.RequestId).Distinct().ToList(), g.Key));
         var reconciling = pendingItems.Count > 0
             && (pendingItems.Any(i => rows.All(r => r.ItemId != i)) || rows.Any(r => r.Status == ReservationState.Active && r.BomRevision < bom!.Revision));
         var lines = itemIds
@@ -138,7 +142,7 @@ public sealed class StockReservationService(
                         var location = locations.GetValueOrDefault(r.LocationId);
                         return new OrderMaterialLocation(r.Id, r.LocationId, location?.Code ?? string.Empty, location?.Name ?? "Local removido", r.RequestedQuantity, r.Quantity, r.QuantityIssued, r.Shortage, r.Status);
                     }).ToList(),
-                    null);
+                    requestLinks.GetValueOrDefault(itemId));
             })
             .Where(l => l.Required > 0 || l.Reserved > 0 || l.Issued > 0 || bomItems.Contains(l.ItemId))
             .OrderBy(l => l.ItemCode, StringComparer.Ordinal).ToList();
@@ -217,6 +221,8 @@ public sealed class StockReservationService(
         var projectInfo = (await projects.FindManyAsync(rows.Select(r => r.ProjectId).Distinct().ToList(), cancellationToken)).ToDictionary(p => p.Id);
         var available = await db.StockPositions.AsNoTracking().Where(p => itemIds.Contains(p.ItemId)).GroupBy(p => p.ItemId)
             .Select(g => new { g.Key, Available = g.Sum(p => p.QuantityOnHand - p.QuantityReserved) }).ToDictionaryAsync(x => x.Key, x => x.Available, cancellationToken);
+        var requests = (await purchaseRequests.ForOrdersAsync(orderIds, cancellationToken)).GroupBy(r => r.ItemId)
+            .ToDictionary(g => g.Key, g => (IReadOnlyList<Guid>)g.Select(r => r.RequestId).Distinct().ToList());
         var result = itemIds.Select(itemId =>
             {
                 var name = items.GetValueOrDefault(itemId);
@@ -230,12 +236,19 @@ public sealed class StockReservationService(
                     .OrderBy(o => o.PromisedDate is null ? 1 : 0).ThenBy(o => o.PromisedDate).ThenBy(o => o.OrderNumber, StringComparer.Ordinal).ToList();
                 return new ShortageRow(
                     itemId, name?.Code ?? string.Empty, name?.Name ?? "Item removido", name?.Unit ?? string.Empty, byOrder.Sum(o => o.ShortQty), available.GetValueOrDefault(itemId),
-                    byOrder.Select(o => o.PromisedDate).Where(d => d is not null).Min(), byOrder, null);
+                    byOrder.Select(o => o.PromisedDate).Where(d => d is not null).Min(), byOrder,
+                    requests.TryGetValue(itemId, out var itemRequests) ? PurchaseRequestLink(itemRequests, itemId) : null);
             })
             .OrderBy(r => r.NearestPromisedDate is null ? 1 : 0).ThenBy(r => r.NearestPromisedDate).ThenBy(r => r.ItemCode, StringComparer.Ordinal).ToList();
         var normalized = page.Normalize();
         return new PagedList<ShortageRow>(result.Skip(normalized.Skip).Take(normalized.PageSize).ToList(), normalized.Page, normalized.PageSize, result.Count);
     }
+
+    /// <summary>
+    /// Link "SC gerada" (CMP-01 CA 15): a solicitação, quando o item tem uma só nas OS; a lista filtrada pelo item, quando tem mais.
+    /// </summary>
+    private static string PurchaseRequestLink(IReadOnlyList<Guid> requestIds, Guid itemId) =>
+        requestIds.Count == 1 ? "/app/compras/solicitacoes/" + requestIds[0] : "/app/compras/solicitacoes?item=" + itemId + "&filtro=todas";
 
     private static StockReservationInfo Info(Reservation r) =>
         new(r.Id, r.ProductionOrderId, r.ItemId, r.LocationId, r.BomLineId, r.BomRevision, r.RequestedQuantity, r.Quantity, r.QuantityIssued, r.Shortage, r.Status, r.IsBackfill);

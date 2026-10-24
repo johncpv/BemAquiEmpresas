@@ -13,6 +13,9 @@ import { InventoryTabs } from '../InventoryTabs'
 import { RESERVATION_DICAS, shortageLabel } from './reservations'
 import { formatQuantity } from './stock'
 
+/** "Gerar solicitação de compra" já preenchida (CMP-01): o item e, com uma OS só, a OS (destino e necessidade vêm dela). */
+const newRequestSearch = (row: ShortageRow) => (row.orders.length === 1 ? { item: row.itemId, os: row.orders[0].productionOrderId } : { item: row.itemId })
+
 /** As OS de um item com falta, com o link para a aba Material de cada uma. */
 function OrderLinks({ row }: { row: ShortageRow }) {
   return (
@@ -51,7 +54,7 @@ export function ShortagesPage() {
     {
       id: 'action', header: 'Compra', meta: { secondary: true }, cell: ({ row: { original: r } }) => r.purchaseRequestLink
         ? <a href={r.purchaseRequestLink} className="font-semibold text-primary">Ver solicitação</a>
-        : <Link to={'/app/compras' as never} className="font-semibold text-primary">Gerar solicitação de compra</Link>,
+        : <Link to={'/app/compras/solicitacoes/nova' as never} search={newRequestSearch(r) as never} className="font-semibold text-primary">Gerar solicitação de compra</Link>,
     },
   ]
 
@@ -69,7 +72,7 @@ export function ShortagesPage() {
           render: (r) => (
             <p className="text-sm tabular-nums">
               Disponível {formatQuantity(r.available)} {r.unitCode} · Prometido {r.nearestPromisedDate ? formatDate(r.nearestPromisedDate) : '—'} ·{' '}
-              {r.purchaseRequestLink ? <a href={r.purchaseRequestLink} className="font-semibold text-primary">Ver solicitação</a> : <Link to={'/app/compras' as never} className="font-semibold text-primary">Gerar solicitação de compra</Link>}
+              {r.purchaseRequestLink ? <a href={r.purchaseRequestLink} className="font-semibold text-primary">Ver solicitação</a> : <Link to={'/app/compras/solicitacoes/nova' as never} search={newRequestSearch(r) as never} className="font-semibold text-primary">Gerar solicitação de compra</Link>}
             </p>
           ),
         }}

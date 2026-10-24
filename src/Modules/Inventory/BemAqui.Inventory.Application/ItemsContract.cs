@@ -31,6 +31,10 @@ public sealed class ItemsContract(IInventoryDb db) : IItems
         return await Project(db.Items.IgnoreQueryFilters().AsNoTracking().Where(i => ids.Contains(i.Id))).ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<ItemMinStock>> WithMinStockAsync(CancellationToken cancellationToken = default) =>
+        await db.Items.AsNoTracking().Where(i => i.IsActive && i.Type != ItemType.Service && i.MinStock > 0)
+            .OrderBy(i => i.Code).Select(i => new ItemMinStock(i.Id, i.MinStock)).ToListAsync(cancellationToken);
+
     private IQueryable<ItemSummary> Project(IQueryable<Item> items) => items.Select(i => new ItemSummary(
         i.Id, i.Code, i.Name, i.Type, i.UnitId,
         db.Units.IgnoreQueryFilters().Where(u => u.Id == i.UnitId).Select(u => u.Code).FirstOrDefault() ?? string.Empty,

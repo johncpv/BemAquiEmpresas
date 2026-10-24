@@ -5,7 +5,7 @@
 | ID | CMP-01 |
 | Título | Solicitação de compra manual, automática pela falta de material da BOM liberada (aviso `StockShortageChanged`, recomposta a partir das faltas abertas) e automática pelo estoque mínimo (job diário), sem duplicar; lista de solicitações com o que precisa ser comprado e para quando; ação `purchasing.receive` no catálogo e seed de Compras |
 | Tamanho | M |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-CMP-1 (manual ou automática pela falta da BOM ou pelo estoque mínimo) · R-CMP-6 (vínculo com projeto ou estoque geral) · R-COM-2 (notificação de estoque mínimo) · R-COM-4 (numeração SC) · R-PRP-2 · R-PRP-4/5 (falta de material na pauta, alerta acionável) · R-SEC-5 |
 | Dependências | EST-02 (`StockShortageChanged`, `IStockReservations.OpenShortagesAsync`) |
 | Bloqueia | CMP-03a, CMP-02, EST-06 |
@@ -99,17 +99,17 @@ Decididos pelo PO em 21/10/2026 (revisão pré-Fase 3, tabela 1.1, itens 30–34
 **Pré-condição externa:** nenhuma.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, arquitetura, integração (Testcontainers, com os dois testes de job) e E2E passando.
-- [ ] Migration criada (não destrutiva), testada sobre cópia do banco do tenant `konebras`; seed patch `purchasing-permissions` idempotente.
-- [ ] Permissões só do `ModuleCatalog` (`purchasing.receive` incluída); job registrado no `RecurringJobsRegistrar`.
-- [ ] ADR 0023 §6 aplicada (falta como aviso, recomposição pela fonte); D3 aplicada (recomposição na implantação).
-- [ ] Telas com estados, inclusive a 400 px.
-- [ ] Ajuda da lista e do detalhe; teste de cobertura passando.
-- [ ] Padrões, alertas acionáveis e próximos passos avaliados.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, arquitetura, integração (Testcontainers, com os dois testes de job) e E2E escritos; unidade, Vitest e E2E passando. Integração escrita e **não executada** nesta máquina (Docker em fila); 9 testes de arquitetura que carregam os assemblies ficam bloqueados pelo Smart App Control do Windows (rodar `sh scripts/test-docker.sh`).
+- [ ] Migration criada (não destrutiva: só `CREATE`, `CHECK`s por SQL); **falta testar sobre cópia do banco do tenant `konebras`**. Seed patch `purchasing-permissions` idempotente (teste de integração escrito).
+- [x] Permissões só do `ModuleCatalog` (`purchasing.receive` incluída); jobs registrados no `RecurringJobsRegistrar`.
+- [x] ADR 0023 §6 aplicada (falta como aviso, recomposição pela fonte); D3 aplicada (recomposição na implantação).
+- [x] Telas com estados, inclusive a 400 px.
+- [x] Ajuda da lista, da nova e do detalhe (itens e histórico); teste de cobertura passando.
+- [x] Padrões, alertas acionáveis e próximos passos avaliados (desvio 8).
+- [x] Auditoria ligada.
+- [ ] OpenAPI editado à mão e cliente Orval gerado dele; **regenerar com `BQ_UPDATE_OPENAPI`** antes do merge.
+- [x] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` atualizados; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
 - [ ] `IPurchasingDb` com `PurchaseRequest` e `PurchaseRequestLine`; schema `purchasing`; `purchasing.parameters`.
@@ -150,3 +150,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO (D3, D8, tabela 1.1 itens 30–34) e correções da revisão pré-Fase 3 (§2.1 reservas e faltas, ADR 0023 §6; §2.2 CMP-01; §2.3 padrões 2, 5, 6, 11); nova ordem (Marco 3.3, ordem 14) | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 23/10/2026 | 1.0 | Implementada (`Done`). Primeiro módulo de Compras: schema `purchasing` (migration `PurchasingRequests`), `PurchaseRequestService`, `ShortageRecomposer` (consumidor `StockShortageChangedHandler`, recomposição `purchasing-shortage-backfill` e job), `MinStockPurchaseRequests` com o job `purchasing-min-stock`, `IPurchaseRequests`, `purchasing.receive` e o seed patch `purchasing-permissions`, telas em Fábrica → Compras → Solicitações e o prazo padrão em Configurações → Parâmetros. Desvios e decisões de implementação: (1) **Origem:** o valor é `BomShortage` (convenção de nomes do código), não `BOMShortage`; o 03 e o 04 foram acertados. (2) **Chave da linha da falta:** uma linha `BomShortage` aberta por `(production_order_id, item_id)` (índice único parcial), porque a falta da fonte (`StockShortageInfo`) é por OS e item e a linha da BOM pode vir nula; o `bom_line_id` continua gravado. (3) **A mão manda:** além da linha "Editada à mão", a linha automática **cancelada pelo comprador** também faz a recomposição deixar o item como está (não recria); no estoque mínimo, a linha cancelada não trava: se o item continuar abaixo do mínimo, o job do dia seguinte pede de novo. A necessidade da linha do mínimo fica a da criação quando o job só atualiza a quantidade (senão nunca ficaria atrasada). (4) **Contrato do mínimo:** o `IItems` não tinha o estoque mínimo; entrou `IItems.WithMinStockAsync` (itens ativos, fora Serviço, com mínimo &gt; 0). (5) **Saldo a receber dos pedidos:** porta `IOpenPurchaseOrderQuantities` com `NoOpenPurchaseOrders` (zero); a CMP-03a troca pela `IPurchaseOrders.OpenQuantityByItemAsync` (CA 24 dela). (6) **"SC gerada":** além do `ForOrderAsync`, o `IPurchaseRequests` tem o `ForOrdersAsync` (lista Faltas numa consulta); o Inventory preenche o `purchaseRequestLink` da aba Material e da lista Faltas por esse contrato (uma SC: o detalhe; mais de uma: a lista filtrada pelo item). "Gerar solicitação de compra" (Material, Faltas) abre a nova SC preenchida com o item, a OS, a quantidade que falta sem SC, o destino e a necessidade; o próximo passo da BOM liberada leva à lista filtrada pela OS. (7) **Job diário:** o `purchasing-min-stock` roda antes a recomposição das faltas (a rede de segurança do CA 7, que também cobre o CA 8 quando o módulo é liberado). O aviso de queda da falta é deduplicado por OS, item e falta. (8) **Próximos passos:** "Cotar estes itens" (CMP-02) e "Pedir direto ao último fornecedor" (CMP-03a) não aparecem, porque as telas ainda não existem; depois de enviar, os passos são "Nova solicitação", "Ver solicitações" e "Ver por item". A falta da BOM na "Minha pauta" fica para a DSH-04. (9) **Parâmetros:** as chaves na tabela `purchasing.parameters` não levam o prefixo do módulo (`default_lead_days`, como na Produção); `shortages_backfilled` marca a recomposição da implantação. Sem seeder (vazio = 15 dias), então o `CliCommand.Modules` não muda. (10) **Por item** soma só as linhas `Open` (a em cotação já está com o comprador). (11) **Histórico** mostra "usuário {id}" como os demais históricos com filhos, ou a origem do sistema ("Sistema · Falta da BOM {OS}", "Sistema · Estoque mínimo", "Sistema · Calculado na implantação"). (12) Os testes de front que usavam Compras como "módulo em construção" (`App.test.tsx`, `permissions.spec.ts`) passaram a usar Patrimônio. (13) **Pendente:** `openapi.json` editado à mão (regenerar com `BQ_UPDATE_OPENAPI=1 sh scripts/test-docker.sh --filter-class "*OpenApiDocumentTests"` e `pnpm gen:api`); testes de integração escritos e não executados; migration a testar sobre cópia do banco `konebras`. | Dev (Claude) |

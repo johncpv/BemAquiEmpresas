@@ -36,10 +36,10 @@ public static class HostEvents
             .AddHandler<BemAqui.Engineering.Contracts.BomReleased, BemAqui.Inventory.Application.ReservationConsumers>()
             .AddHandler<BemAqui.Engineering.Contracts.BomRevised, BemAqui.Inventory.Application.ReservationConsumers>()
             // EST-02 CA 9 e 10 (ADR 0023 §6): o cancelamento e a conclusão da OS reconciliam as reservas pela fonte (alvo 0).
-            // StockShortageChanged é só aviso para a CMP-01.
             .AddHandler<BemAqui.Production.Contracts.ProductionOrderCancelled, BemAqui.Inventory.Application.ReservationConsumers>()
             .AddHandler<BemAqui.Production.Contracts.ProductionOrderCompleted, BemAqui.Inventory.Application.ReservationConsumers>()
-            .AddEvent<BemAqui.Inventory.Contracts.StockShortageChanged>()
+            // CMP-01 CA 5 a 8: StockShortageChanged é só aviso; o Purchasing recompõe a SC a partir das faltas abertas (ADR 0023 §6).
+            .AddHandler<BemAqui.Inventory.Contracts.StockShortageChanged, BemAqui.Purchasing.Application.StockShortageChangedHandler>()
             // PRD-05: decisões de qualidade no outbox para a DSH-03 e o PNL-01.
             .AddEvent<BemAqui.Production.Contracts.QualityApproved>()
             .AddEvent<BemAqui.Production.Contracts.QualityRejected>()
