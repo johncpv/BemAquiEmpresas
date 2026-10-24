@@ -4,9 +4,17 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { CostType } from './costType';
+import type { PurchasingAccountOption } from './purchasingAccountOption';
 
 export interface PurchasingParametersView {
   defaultLeadDays: number;
   /** @nullable */
   defaultLeadDaysId: string | null;
+  payableAccountCode: string;
+  payableCostType: CostType;
+  freightAccountCode: string;
+  freightCostType: CostType;
+  accountingConfirmed: boolean;
+  accounts: PurchasingAccountOption[];
 }

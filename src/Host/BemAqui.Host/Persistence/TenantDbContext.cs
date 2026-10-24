@@ -225,6 +225,14 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BemAqui.Purchasing.Domain.PurchasingParameter> PurchasingParameters => Set<BemAqui.Purchasing.Domain.PurchasingParameter>();
 
+    public DbSet<BemAqui.Purchasing.Domain.PurchaseOrder> PurchaseOrders => Set<BemAqui.Purchasing.Domain.PurchaseOrder>();
+
+    public DbSet<BemAqui.Purchasing.Domain.PurchaseOrderLine> PurchaseOrderLines => Set<BemAqui.Purchasing.Domain.PurchaseOrderLine>();
+
+    public DbSet<BemAqui.Purchasing.Domain.PurchaseOrderLevel> PurchaseOrderLevels => Set<BemAqui.Purchasing.Domain.PurchaseOrderLevel>();
+
+    public DbSet<BemAqui.Purchasing.Domain.PurchaseOrderApproval> PurchaseOrderApprovals => Set<BemAqui.Purchasing.Domain.PurchaseOrderApproval>();
+
     public DbSet<JobPosition> JobPositions => Set<JobPosition>();
 
     public DbSet<WorkSchedule> WorkSchedules => Set<WorkSchedule>();

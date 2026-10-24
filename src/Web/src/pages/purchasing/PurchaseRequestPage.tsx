@@ -16,6 +16,7 @@ import { UrlTabs } from '@/components/ui/url-tabs'
 import { Dica } from '@/help/Dica'
 import { formatDate, formatDateTime } from '@/lib/format'
 import { formatQuantity } from '@/pages/inventory/stock/stock'
+import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { PurchaseRequestHistory } from './PurchaseRequestHistory'
 import { destination, ORIGIN, PURCHASE_DICAS, STATUS, todayIso, urgency } from './purchasing'
@@ -39,10 +40,12 @@ export function PurchaseRequestPage() {
   const navigate = useNavigate()
   const client = useQueryClient()
   const query = useGetPurchaseRequest(id)
+  const canOrder = useCan('purchasing.create')
+  const order = (lineIds: string[]) => void navigate({ to: '/app/compras/pedidos/novo', search: { sc: lineIds.join(',') } } as never)
   const [steps, setSteps] = useState<Step[]>(() => (criada ? [
+    ...(canOrder ? [{ label: 'Pedir direto ao último fornecedor', onSelect: () => order(query.data?.lines.filter((l) => l.status === 'Open').map((l) => l.id) ?? []) }] : []),
     { label: 'Nova solicitação', onSelect: () => void navigate({ to: '/app/compras/solicitacoes/nova' } as never) },
     { label: 'Ver solicitações', onSelect: () => void navigate({ to: '/app/compras/solicitacoes' } as never) },
-    { label: 'Ver por item', onSelect: () => void navigate({ to: '/app/compras/solicitacoes', search: { visao: 'item' } } as never) },
   ] : []))
   const [warning, setWarning] = useState<string | null>(null)
   const [reason, setReason] = useState('')
@@ -68,6 +71,12 @@ export function PurchaseRequestPage() {
             {nearest && r.status !== 'Cancelled' ? <StatusChip tone={nearest.tone}>{nearest.label}</StatusChip> : null}
             <Link to={'/app/compras/solicitacoes' as never} className="font-semibold text-primary">Voltar às solicitações</Link>
           </p>
+          <span className="flex flex-wrap gap-2">
+          {canOrder && r.lines.some((l) => l.status === 'Open') ? (
+            <button type="button" onClick={() => order(r.lines.filter((l) => l.status === 'Open').map((l) => l.id))} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">
+              Pedir direto ao último fornecedor
+            </button>
+          ) : null}
           {r.canCancel ? (
             <ConfirmDialog destructive verb="Cancelar solicitação" done="Solicitação cancelada" title={`Cancelar a ${r.number}?`}
               description="As linhas em aberto são canceladas. Nada muda no estoque nem no financeiro. Linha automática cancelada não volta sozinha."
@@ -77,6 +86,7 @@ export function PurchaseRequestPage() {
               <textarea id="motivo-sc" value={reason} maxLength={500} rows={3} onChange={(e) => setReason(e.target.value)} className={inputClass} />
             </ConfirmDialog>
           ) : null}
+          </span>
         </div>
       </PageHeading>
       {steps.length ? <div className="mb-3"><NextSteps steps={steps} onDismiss={() => setSteps([])} /></div> : null}

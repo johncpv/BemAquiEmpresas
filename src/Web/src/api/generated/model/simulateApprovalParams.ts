@@ -9,4 +9,5 @@ export type SimulateApprovalParams = {
 amount: number;
 accountId?: string;
 partyId?: string;
+documentType?: string;
 };

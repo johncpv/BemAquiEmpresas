@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="pt-BR">
+<body style="margin:0;padding:24px;background:#e9edf1;font-family:Arial,sans-serif;color:#14202b">
+  <table role="presentation" width="100%" style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:10px">
+    <tr><td style="padding:24px">
+      {% if logo_cid %}<img src="cid:{{ logo_cid }}" alt="{{ tenant_name }}" style="max-height:48px"><br><br>{% endif %}
+      <h1 style="font-size:20px;margin:0 0 16px">Pedido de compra aguardando sua aprovação</h1>
+      <p>O pedido <strong>{{ number }}</strong>, de <strong>{{ supplier }}</strong>, no total de <strong>{{ total }}</strong>, está na sua alçada.</p>
+      <p style="margin:24px 0">
+        <a href="{{ link }}" style="background:#2148c0;color:#ffffff;padding:12px 20px;border-radius:6px;text-decoration:none;font-weight:bold">Abrir pedido de compra</a>
+      </p>
+      <p style="font-size:13px;color:#5a6774">Os itens, os preços e o impacto no caixa ficam só no sistema, depois do login.</p>
+    </td></tr>
+  </table>
+</body>
+</html>

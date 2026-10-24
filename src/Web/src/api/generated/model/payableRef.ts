@@ -14,4 +14,7 @@ export interface PayableRef {
   /** @nullable */
   dueDate: string | null;
   isEstimate: boolean;
+  installment?: number;
+  /** @nullable */
+  paymentOrderId?: string | null;
 }

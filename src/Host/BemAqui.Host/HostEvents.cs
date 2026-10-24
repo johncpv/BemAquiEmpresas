@@ -65,6 +65,13 @@ public static class HostEvents
             .AddEvent<BemAqui.Finance.Contracts.PaymentOrderSubmitted>()
             .AddEvent<BemAqui.Finance.Contracts.PaymentOrderApproved>()
             .AddEvent<BemAqui.Finance.Contracts.PaymentOrderPaid>()
-            .AddEvent<BemAqui.Finance.Contracts.PaymentOrderLevelReleased>();
+            .AddEvent<BemAqui.Finance.Contracts.PaymentOrderLevelReleased>()
+            // CMP-03a (ADR 0024 §1): eventos do pedido de compra só para aviso e projeção; os títulos previstos nascem na transação da aprovação.
+            .AddEvent<BemAqui.Purchasing.Contracts.PurchaseOrderSubmitted>()
+            .AddEvent<BemAqui.Purchasing.Contracts.PurchaseOrderLevelReleased>()
+            .AddEvent<BemAqui.Purchasing.Contracts.PurchaseOrderApproved>()
+            .AddEvent<BemAqui.Purchasing.Contracts.PurchaseOrderRejected>()
+            .AddEvent<BemAqui.Purchasing.Contracts.PurchaseOrderChanged>()
+            .AddEvent<BemAqui.Purchasing.Contracts.PurchaseOrderCancelled>();
     }
 }

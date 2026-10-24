@@ -57,6 +57,9 @@ public sealed class Payable : Entity, IAuditable, IConcurrencyVersioned
 
     public Guid? OriginId { get; set; }
 
+    /// <summary>Parcela da origem (ADR 0024 §2): 1 nos títulos de uma parcela; o pedido de compra tem uma por vencimento da condição.</summary>
+    public short Installment { get; set; } = 1;
+
     public Guid? RecurringExpenseId { get; set; }
 
     /// <summary>Competência da recorrente (primeiro dia do mês).</summary>

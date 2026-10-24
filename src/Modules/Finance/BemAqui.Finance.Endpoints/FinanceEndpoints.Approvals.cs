@@ -8,14 +8,18 @@ namespace BemAqui.Finance.Endpoints;
 
 internal static partial class FinanceEndpoints
 {
-    /// <summary>Alçadas (FIN-03b): finance.view vê; só o Proprietário altera (conferido no serviço).</summary>
+    /// <summary>
+    /// Alçadas (FIN-03b; CMP-03a): finance.view vê; só o Proprietário altera (conferido no serviço). <c>documentType</c> escolhe o tipo
+    /// (<c>PaymentOrder</c>, o padrão, ou <c>PurchaseOrder</c>).
+    /// </summary>
     private static void MapApprovalRules(RouteGroupBuilder rules)
     {
-        rules.MapGet(string.Empty, async (ApprovalRuleService service, CancellationToken ct) => Results.Ok(await service.ListAsync(ct)))
+        rules.MapGet(string.Empty, async (string? documentType, ApprovalRuleService service, CancellationToken ct) => Results.Ok(await service.ListAsync(documentType, ct)))
             .RequirePermission("finance.view").WithName("ListApprovalRules").Produces<IReadOnlyList<ApprovalRuleView>>();
-        rules.MapGet("/approvers", async (ApprovalRuleService service, CancellationToken ct) => Results.Ok(await service.ApproversAsync(ct)))
+        rules.MapGet("/approvers", async (string? documentType, ApprovalRuleService service, CancellationToken ct) => Results.Ok(await service.ApproversAsync(documentType, ct)))
             .RequirePermission("finance.view").WithName("ListApprovalApprovers").Produces<IReadOnlyList<ApproverOption>>();
-        rules.MapGet("/simulate", async (decimal amount, Guid? accountId, Guid? partyId, ApprovalSimulator service, CancellationToken ct) => (await service.SimulateAsync(amount, accountId, partyId, ct)).ToHttpResult())
+        rules.MapGet("/simulate", async (decimal amount, Guid? accountId, Guid? partyId, string? documentType, ApprovalSimulator service, CancellationToken ct) =>
+                (await service.SimulateAsync(amount, accountId, partyId, documentType, ct)).ToHttpResult())
             .RequirePermission("finance.view").WithName("SimulateApproval").Produces<ApprovalSimulation>();
         rules.MapPost(string.Empty, async (ApprovalRuleInput input, ApprovalRuleService service, CancellationToken ct) => (await service.CreateAsync(input, ct)).ToHttpResult())
             .RequirePermission("finance.view").WithName("CreateApprovalRule").Produces<ApprovalRuleView>();

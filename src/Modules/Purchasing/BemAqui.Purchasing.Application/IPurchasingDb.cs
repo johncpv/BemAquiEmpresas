@@ -14,7 +14,15 @@ public interface IPurchasingDb
 
     DbSet<PurchasingParameter> PurchasingParameters { get; }
 
-    /// <summary>Transação da SC com o número e a trava por OS da recomposição.</summary>
+    DbSet<PurchaseOrder> PurchaseOrders { get; }
+
+    DbSet<PurchaseOrderLine> PurchaseOrderLines { get; }
+
+    DbSet<PurchaseOrderLevel> PurchaseOrderLevels { get; }
+
+    DbSet<PurchaseOrderApproval> PurchaseOrderApprovals { get; }
+
+    /// <summary>Transação da SC e do pedido com o número, a trava por OS da recomposição e os títulos previstos da aprovação.</summary>
     DatabaseFacade Database { get; }
 
     EntityEntry<TEntity> Entry<TEntity>(TEntity entity)
@@ -24,17 +32,10 @@ public interface IPurchasingDb
 }
 
 /// <summary>
-/// Saldo a receber dos pedidos em aberto com destino "Estoque geral", por item (CMP-03a CA 24, <c>IPurchaseOrders.OpenQuantityByItemAsync</c>).
-/// Até o pedido existir, a parcela é zero (<see cref="NoOpenPurchaseOrders"/>); a CMP-03a troca a implementação.
+/// Saldo a receber dos pedidos em aberto com destino "Estoque geral", por item, para o job do mínimo da CMP-01 (CA 9). A CMP-03a liga
+/// a porta ao <c>IPurchaseOrders.OpenQuantityByItemAsync</c> (<see cref="PurchaseOrdersContract"/>, CA 24).
 /// </summary>
 public interface IOpenPurchaseOrderQuantities
 {
     Task<IReadOnlyDictionary<Guid, decimal>> GeneralStockOpenQuantityAsync(IReadOnlyCollection<Guid> itemIds, CancellationToken cancellationToken = default);
-}
-
-/// <summary>Sem pedido de compra ainda (CMP-03a): nada a receber.</summary>
-public sealed class NoOpenPurchaseOrders : IOpenPurchaseOrderQuantities
-{
-    public Task<IReadOnlyDictionary<Guid, decimal>> GeneralStockOpenQuantityAsync(IReadOnlyCollection<Guid> itemIds, CancellationToken cancellationToken = default) =>
-        Task.FromResult<IReadOnlyDictionary<Guid, decimal>>(new Dictionary<Guid, decimal>());
 }

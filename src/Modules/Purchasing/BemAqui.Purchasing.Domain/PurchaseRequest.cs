@@ -108,5 +108,8 @@ public sealed class PurchasingParameter : Entity, IAuditable
 
     public decimal? Value { get; set; }
 
+    /// <summary>Valor em texto (CMP-03a CA 19): o código da conta do plano e a natureza dos títulos do pedido.</summary>
+    public string? Text { get; set; }
+
     public DateTimeOffset UpdatedAt { get; set; }
 }

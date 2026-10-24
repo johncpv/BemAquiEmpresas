@@ -68,5 +68,82 @@ internal sealed class PurchasingParameterConfiguration : IEntityTypeConfiguratio
         b.Property(e => e.Key).HasMaxLength(64);
         b.HasIndex(e => e.Key).IsUnique().HasDatabaseName("ix_purchasing_parameters_key");
         b.Property(e => e.Value).HasPrecision(9, 2);
+        b.Property(e => e.Text).HasMaxLength(64);
+    }
+}
+
+/// <summary>
+/// Pedido de compra (CMP-03a): número único; fornecedor, projeto, condição, conta e cotação são de outros módulos (só o id, sem FK,
+/// ADR 0006). Os <c>CHECK</c>s entram por SQL na migration <c>PurchaseOrders</c>.
+/// </summary>
+internal sealed class PurchaseOrderConfiguration : IEntityTypeConfiguration<PurchaseOrder>
+{
+    public void Configure(EntityTypeBuilder<PurchaseOrder> b)
+    {
+        b.ToTable("purchase_orders", PurchasingSchema.Name);
+        b.Property(e => e.Number).HasMaxLength(30);
+        b.Property(e => e.Status).HasConversion<string>().HasMaxLength(20);
+        foreach (var money in new[] { nameof(PurchaseOrder.Subtotal), nameof(PurchaseOrder.Freight), nameof(PurchaseOrder.IpiAmount), nameof(PurchaseOrder.Total), nameof(PurchaseOrder.ReferenceAmount) })
+        {
+            b.Property(money).HasPrecision(18, 2);
+        }
+
+        b.Property(e => e.IpiPct).HasPrecision(7, 4);
+        b.Property(e => e.Notes).HasMaxLength(PurchaseOrderRules.MaxNotes);
+        b.Property(e => e.RejectionComment).HasMaxLength(PurchaseOrderRules.MaxComment);
+        b.Property(e => e.CancelReason).HasMaxLength(PurchaseOrderRules.MaxReason);
+        b.HasIndex(e => e.Number).IsUnique().HasDatabaseName("ux_purchase_orders_number");
+        b.HasIndex(e => e.Status).HasDatabaseName("ix_purchase_orders_status");
+        b.HasIndex(e => new { e.PartyId, e.SubmittedAt }).HasDatabaseName("ix_purchase_orders_party_submitted");
+        b.HasIndex(e => e.ProjectId).HasFilter("project_id IS NOT NULL").HasDatabaseName("ix_purchase_orders_project_id");
+        b.HasIndex(e => e.RfqId).HasFilter("rfq_id IS NOT NULL").HasDatabaseName("ix_purchase_orders_rfq_id");
+    }
+}
+
+/// <summary>Linha do pedido: item do Inventory (só o id); as linhas de SC atendidas em <c>uuid[]</c>.</summary>
+internal sealed class PurchaseOrderLineConfiguration : IEntityTypeConfiguration<PurchaseOrderLine>
+{
+    public void Configure(EntityTypeBuilder<PurchaseOrderLine> b)
+    {
+        b.ToTable("purchase_order_lines", PurchasingSchema.Name);
+        b.Property(e => e.Quantity).HasPrecision(18, 4);
+        b.Property(e => e.EnteredQuantity).HasPrecision(18, 4);
+        b.Property(e => e.QuantityReceived).HasPrecision(18, 4);
+        b.Property(e => e.UnitPrice).HasPrecision(18, 6);
+        b.Property(e => e.LineTotal).HasPrecision(18, 2);
+        b.Property(e => e.CostType).HasConversion<string>().HasMaxLength(16);
+        b.Property(e => e.RequestLineIds).HasColumnType("uuid[]");
+        b.HasOne<PurchaseOrder>().WithMany().HasForeignKey(e => e.OrderId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => e.OrderId).HasDatabaseName("ix_purchase_order_lines_order_id");
+        b.HasIndex(e => e.ItemId).HasDatabaseName("ix_purchase_order_lines_item_id");
+    }
+}
+
+/// <summary>Níveis por tentativa (ADR 0024 §4): um por pedido, tentativa e nível.</summary>
+internal sealed class PurchaseOrderLevelConfiguration : IEntityTypeConfiguration<PurchaseOrderLevel>
+{
+    public void Configure(EntityTypeBuilder<PurchaseOrderLevel> b)
+    {
+        b.ToTable("purchase_order_levels", PurchasingSchema.Name);
+        b.Property(e => e.ApproverName).HasMaxLength(120);
+        b.Property(e => e.ReferenceAmount).HasPrecision(18, 2);
+        b.Property(e => e.SplitWarning).HasMaxLength(200);
+        b.Property(e => e.Status).HasConversion<string>().HasMaxLength(12);
+        b.HasOne<PurchaseOrder>().WithMany().HasForeignKey(e => e.OrderId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => new { e.OrderId, e.Attempt, e.Level }).IsUnique().HasDatabaseName("ux_purchase_order_levels_attempt_level");
+    }
+}
+
+/// <summary>Linha do tempo das decisões (CA 23): imutável.</summary>
+internal sealed class PurchaseOrderApprovalConfiguration : IEntityTypeConfiguration<PurchaseOrderApproval>
+{
+    public void Configure(EntityTypeBuilder<PurchaseOrderApproval> b)
+    {
+        b.ToTable("purchase_order_approvals", PurchasingSchema.Name);
+        b.Property(e => e.Decision).HasConversion<string>().HasMaxLength(12);
+        b.Property(e => e.ReferenceAmount).HasPrecision(18, 2);
+        b.Property(e => e.Comment).HasMaxLength(PurchaseOrderRules.MaxComment);
+        b.HasOne<PurchaseOrder>().WithMany().HasForeignKey(e => e.OrderId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => new { e.OrderId, e.Attempt }).HasDatabaseName("ix_purchase_order_approvals_order_attempt");
     }
 }

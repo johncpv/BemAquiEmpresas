@@ -157,6 +157,8 @@ import type {
   GetOrderBomHistoryParams,
   GetOrderReservationHistoryParams,
   GetProductionBoardParams,
+  GetPurchaseOrderDefaultsParams,
+  GetPurchaseOrderHistoryParams,
   GetPurchaseRequestDefaultsParams,
   GetPurchaseRequestHistoryParams,
   GetQualityQueueParams,
@@ -208,6 +210,8 @@ import type {
   LeaveInput,
   LinkableUser,
   LinkedUserView,
+  ListApprovalApproversParams,
+  ListApprovalRulesParams,
   ListBankAccountsParams,
   ListBomCopySourcesParams,
   ListBomItemOptionsParams,
@@ -239,9 +243,11 @@ import type {
   ListProjectReceivedParams,
   ListProjectsParams,
   ListPurchaseItemOptionsParams,
+  ListPurchaseOrdersParams,
   ListPurchaseProjectOptionsParams,
   ListPurchaseRequestsByItemParams,
   ListPurchaseRequestsParams,
+  ListPurchaseSupplierOptionsParams,
   ListQuoteCopyOptionsParams,
   ListQuoteCostsParams,
   ListQuoteCustomersParams,
@@ -316,6 +322,7 @@ import type {
   PagedListOfPaymentTermDetail,
   PagedListOfPositionDetail,
   PagedListOfPurchaseItemRow,
+  PagedListOfPurchaseOrderSummary,
   PagedListOfPurchaseRequestSummary,
   PagedListOfRelatedAuditEntryDto,
   PagedListOfRequisitionSummary,
@@ -385,6 +392,17 @@ import type {
   ProvisionAccepted,
   ProvisionTenantRequest,
   PurchaseItemOption,
+  PurchaseOrderCancelInput,
+  PurchaseOrderDecisionInput,
+  PurchaseOrderDecisions,
+  PurchaseOrderDefaults,
+  PurchaseOrderDetail,
+  PurchaseOrderInput,
+  PurchaseOrderLineUpdate,
+  PurchaseOrderPayableView,
+  PurchaseOrderUpdateInput,
+  PurchaseOrderVersionInput,
+  PurchasePaymentTermOption,
   PurchaseProjectOption,
   PurchaseRequestCancelInput,
   PurchaseRequestDefaults,
@@ -392,6 +410,7 @@ import type {
   PurchaseRequestInput,
   PurchaseRequestLineUpdate,
   PurchaseRequestLineUpdated,
+  PurchaseSupplierOption,
   PurchasingParametersInput,
   PurchasingParametersView,
   QualityApproveInput,
@@ -38336,6 +38355,1392 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getCancelPurchaseRequestLineMutationOptions(options), queryClient);
     }
 
+export const getListPurchaseOrdersUrl = (params?: ListPurchaseOrdersParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/purchasing/purchase-orders?${stringifiedParams}` : `/api/v1/purchasing/purchase-orders`
+}
+
+export const listPurchaseOrders = async (params?: ListPurchaseOrdersParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfPurchaseOrderSummary> => {
+
+  return apiFetch<PagedListOfPurchaseOrderSummary>(getListPurchaseOrdersUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListPurchaseOrdersQueryKey = (params?: ListPurchaseOrdersParams,) => {
+    return [
+    `/api/v1/purchasing/purchase-orders`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListPurchaseOrdersQueryOptions = <TData = Awaited<ReturnType<typeof listPurchaseOrders>>, TError = unknown>(params?: ListPurchaseOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchaseOrders>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListPurchaseOrdersQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPurchaseOrders>>> = ({ signal }) => listPurchaseOrders(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPurchaseOrders>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListPurchaseOrdersQueryResult = NonNullable<Awaited<ReturnType<typeof listPurchaseOrders>>>
+export type ListPurchaseOrdersQueryError = unknown
+
+
+export function useListPurchaseOrders<TData = Awaited<ReturnType<typeof listPurchaseOrders>>, TError = unknown>(
+ params: undefined |  ListPurchaseOrdersParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchaseOrders>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPurchaseOrders>>,
+          TError,
+          Awaited<ReturnType<typeof listPurchaseOrders>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPurchaseOrders<TData = Awaited<ReturnType<typeof listPurchaseOrders>>, TError = unknown>(
+ params?: ListPurchaseOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchaseOrders>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPurchaseOrders>>,
+          TError,
+          Awaited<ReturnType<typeof listPurchaseOrders>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPurchaseOrders<TData = Awaited<ReturnType<typeof listPurchaseOrders>>, TError = unknown>(
+ params?: ListPurchaseOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchaseOrders>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListPurchaseOrders<TData = Awaited<ReturnType<typeof listPurchaseOrders>>, TError = unknown>(
+ params?: ListPurchaseOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchaseOrders>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListPurchaseOrdersQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreatePurchaseOrderUrl = () => {
+
+
+
+
+  return `/api/v1/purchasing/purchase-orders`
+}
+
+export const createPurchaseOrder = async (purchaseOrderInput: PurchaseOrderInput, options?: Parameters<typeof apiFetch>[1]): Promise<PurchaseOrderDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<PurchaseOrderDetail>(getCreatePurchaseOrderUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(purchaseOrderInput)
+  }
+);}
+
+
+
+
+
+export const getCreatePurchaseOrderMutationKey = () => ['createPurchaseOrder'] as const;
+
+export const getCreatePurchaseOrderMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPurchaseOrder>>, TError,CreatePurchaseOrderMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createPurchaseOrder>>, TError,CreatePurchaseOrderMutationVariables, TContext> => {
+
+const mutationKey = getCreatePurchaseOrderMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createPurchaseOrder>>, CreatePurchaseOrderMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createPurchaseOrder(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreatePurchaseOrderMutationResult = NonNullable<Awaited<ReturnType<typeof createPurchaseOrder>>>
+    export type CreatePurchaseOrderMutationBody = PurchaseOrderInput
+    export type CreatePurchaseOrderMutationError = unknown
+    export type CreatePurchaseOrderMutationVariables = {data: PurchaseOrderInput}
+
+    export const useCreatePurchaseOrder = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPurchaseOrder>>, TError,CreatePurchaseOrderMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createPurchaseOrder>>,
+        TError,
+        CreatePurchaseOrderMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreatePurchaseOrderMutationOptions(options), queryClient);
+    }
+
+export const getGetPurchaseOrderDefaultsUrl = (params?: GetPurchaseOrderDefaultsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    const explodeParameters = ["requestLineIds"];
+
+    if (Array.isArray(value) && explodeParameters.includes(key)) {
+      value.forEach((v) => {
+        normalizedParams.append(key, v === null ? 'null' : String(v));
+      });
+      return;
+    }
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/purchasing/purchase-orders/defaults?${stringifiedParams}` : `/api/v1/purchasing/purchase-orders/defaults`
+}
+
+export const getPurchaseOrderDefaults = async (params?: GetPurchaseOrderDefaultsParams, options?: Parameters<typeof apiFetch>[1]): Promise<PurchaseOrderDefaults> => {
+
+  return apiFetch<PurchaseOrderDefaults>(getGetPurchaseOrderDefaultsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPurchaseOrderDefaultsQueryKey = (params?: GetPurchaseOrderDefaultsParams,) => {
+    return [
+    `/api/v1/purchasing/purchase-orders/defaults`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetPurchaseOrderDefaultsQueryOptions = <TData = Awaited<ReturnType<typeof getPurchaseOrderDefaults>>, TError = unknown>(params?: GetPurchaseOrderDefaultsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderDefaults>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPurchaseOrderDefaultsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPurchaseOrderDefaults>>> = ({ signal }) => getPurchaseOrderDefaults(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderDefaults>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetPurchaseOrderDefaultsQueryResult = NonNullable<Awaited<ReturnType<typeof getPurchaseOrderDefaults>>>
+export type GetPurchaseOrderDefaultsQueryError = unknown
+
+
+export function useGetPurchaseOrderDefaults<TData = Awaited<ReturnType<typeof getPurchaseOrderDefaults>>, TError = unknown>(
+ params: undefined |  GetPurchaseOrderDefaultsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderDefaults>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPurchaseOrderDefaults>>,
+          TError,
+          Awaited<ReturnType<typeof getPurchaseOrderDefaults>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPurchaseOrderDefaults<TData = Awaited<ReturnType<typeof getPurchaseOrderDefaults>>, TError = unknown>(
+ params?: GetPurchaseOrderDefaultsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderDefaults>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPurchaseOrderDefaults>>,
+          TError,
+          Awaited<ReturnType<typeof getPurchaseOrderDefaults>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPurchaseOrderDefaults<TData = Awaited<ReturnType<typeof getPurchaseOrderDefaults>>, TError = unknown>(
+ params?: GetPurchaseOrderDefaultsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderDefaults>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetPurchaseOrderDefaults<TData = Awaited<ReturnType<typeof getPurchaseOrderDefaults>>, TError = unknown>(
+ params?: GetPurchaseOrderDefaultsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderDefaults>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetPurchaseOrderDefaultsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetPurchaseOrderUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/purchasing/purchase-orders/${id}`
+}
+
+export const getPurchaseOrder = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<PurchaseOrderDetail> => {
+
+  return apiFetch<PurchaseOrderDetail>(getGetPurchaseOrderUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPurchaseOrderQueryKey = (id: string,) => {
+    return [
+    `/api/v1/purchasing/purchase-orders/${id}`
+    ] as const;
+    }
+
+
+export const getGetPurchaseOrderQueryOptions = <TData = Awaited<ReturnType<typeof getPurchaseOrder>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrder>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPurchaseOrderQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPurchaseOrder>>> = ({ signal }) => getPurchaseOrder(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrder>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetPurchaseOrderQueryResult = NonNullable<Awaited<ReturnType<typeof getPurchaseOrder>>>
+export type GetPurchaseOrderQueryError = unknown
+
+
+export function useGetPurchaseOrder<TData = Awaited<ReturnType<typeof getPurchaseOrder>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrder>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPurchaseOrder>>,
+          TError,
+          Awaited<ReturnType<typeof getPurchaseOrder>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPurchaseOrder<TData = Awaited<ReturnType<typeof getPurchaseOrder>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrder>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPurchaseOrder>>,
+          TError,
+          Awaited<ReturnType<typeof getPurchaseOrder>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPurchaseOrder<TData = Awaited<ReturnType<typeof getPurchaseOrder>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrder>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetPurchaseOrder<TData = Awaited<ReturnType<typeof getPurchaseOrder>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrder>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetPurchaseOrderQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdatePurchaseOrderUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/purchasing/purchase-orders/${id}`
+}
+
+export const updatePurchaseOrder = async (id: string,
+    purchaseOrderUpdateInput: PurchaseOrderUpdateInput, options?: Parameters<typeof apiFetch>[1]): Promise<PurchaseOrderDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<PurchaseOrderDetail>(getUpdatePurchaseOrderUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(purchaseOrderUpdateInput)
+  }
+);}
+
+
+
+
+
+export const getUpdatePurchaseOrderMutationKey = () => ['updatePurchaseOrder'] as const;
+
+export const getUpdatePurchaseOrderMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePurchaseOrder>>, TError,UpdatePurchaseOrderMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updatePurchaseOrder>>, TError,UpdatePurchaseOrderMutationVariables, TContext> => {
+
+const mutationKey = getUpdatePurchaseOrderMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updatePurchaseOrder>>, UpdatePurchaseOrderMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updatePurchaseOrder(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdatePurchaseOrderMutationResult = NonNullable<Awaited<ReturnType<typeof updatePurchaseOrder>>>
+    export type UpdatePurchaseOrderMutationBody = PurchaseOrderUpdateInput
+    export type UpdatePurchaseOrderMutationError = unknown
+    export type UpdatePurchaseOrderMutationVariables = {id: string;data: PurchaseOrderUpdateInput}
+
+    export const useUpdatePurchaseOrder = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePurchaseOrder>>, TError,UpdatePurchaseOrderMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updatePurchaseOrder>>,
+        TError,
+        UpdatePurchaseOrderMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdatePurchaseOrderMutationOptions(options), queryClient);
+    }
+
+export const getGetPurchaseOrderHistoryUrl = (id: string,
+    params?: GetPurchaseOrderHistoryParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/purchasing/purchase-orders/${id}/history?${stringifiedParams}` : `/api/v1/purchasing/purchase-orders/${id}/history`
+}
+
+export const getPurchaseOrderHistory = async (id: string,
+    params?: GetPurchaseOrderHistoryParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfRelatedAuditEntryDto> => {
+
+  return apiFetch<PagedListOfRelatedAuditEntryDto>(getGetPurchaseOrderHistoryUrl(id,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPurchaseOrderHistoryQueryKey = (id: string,
+    params?: GetPurchaseOrderHistoryParams,) => {
+    return [
+    `/api/v1/purchasing/purchase-orders/${id}/history`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetPurchaseOrderHistoryQueryOptions = <TData = Awaited<ReturnType<typeof getPurchaseOrderHistory>>, TError = unknown>(id: string,
+    params?: GetPurchaseOrderHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPurchaseOrderHistoryQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPurchaseOrderHistory>>> = ({ signal }) => getPurchaseOrderHistory(id,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderHistory>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetPurchaseOrderHistoryQueryResult = NonNullable<Awaited<ReturnType<typeof getPurchaseOrderHistory>>>
+export type GetPurchaseOrderHistoryQueryError = unknown
+
+
+export function useGetPurchaseOrderHistory<TData = Awaited<ReturnType<typeof getPurchaseOrderHistory>>, TError = unknown>(
+ id: string,
+    params: undefined |  GetPurchaseOrderHistoryParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderHistory>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPurchaseOrderHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getPurchaseOrderHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPurchaseOrderHistory<TData = Awaited<ReturnType<typeof getPurchaseOrderHistory>>, TError = unknown>(
+ id: string,
+    params?: GetPurchaseOrderHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderHistory>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPurchaseOrderHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getPurchaseOrderHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPurchaseOrderHistory<TData = Awaited<ReturnType<typeof getPurchaseOrderHistory>>, TError = unknown>(
+ id: string,
+    params?: GetPurchaseOrderHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetPurchaseOrderHistory<TData = Awaited<ReturnType<typeof getPurchaseOrderHistory>>, TError = unknown>(
+ id: string,
+    params?: GetPurchaseOrderHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetPurchaseOrderHistoryQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetPurchaseOrderDecisionsUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/purchasing/purchase-orders/${id}/decisions`
+}
+
+export const getPurchaseOrderDecisions = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<PurchaseOrderDecisions> => {
+
+  return apiFetch<PurchaseOrderDecisions>(getGetPurchaseOrderDecisionsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPurchaseOrderDecisionsQueryKey = (id: string,) => {
+    return [
+    `/api/v1/purchasing/purchase-orders/${id}/decisions`
+    ] as const;
+    }
+
+
+export const getGetPurchaseOrderDecisionsQueryOptions = <TData = Awaited<ReturnType<typeof getPurchaseOrderDecisions>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderDecisions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPurchaseOrderDecisionsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPurchaseOrderDecisions>>> = ({ signal }) => getPurchaseOrderDecisions(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderDecisions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetPurchaseOrderDecisionsQueryResult = NonNullable<Awaited<ReturnType<typeof getPurchaseOrderDecisions>>>
+export type GetPurchaseOrderDecisionsQueryError = unknown
+
+
+export function useGetPurchaseOrderDecisions<TData = Awaited<ReturnType<typeof getPurchaseOrderDecisions>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderDecisions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPurchaseOrderDecisions>>,
+          TError,
+          Awaited<ReturnType<typeof getPurchaseOrderDecisions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPurchaseOrderDecisions<TData = Awaited<ReturnType<typeof getPurchaseOrderDecisions>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderDecisions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPurchaseOrderDecisions>>,
+          TError,
+          Awaited<ReturnType<typeof getPurchaseOrderDecisions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPurchaseOrderDecisions<TData = Awaited<ReturnType<typeof getPurchaseOrderDecisions>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderDecisions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetPurchaseOrderDecisions<TData = Awaited<ReturnType<typeof getPurchaseOrderDecisions>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderDecisions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetPurchaseOrderDecisionsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListPurchaseOrderPayablesUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/purchasing/purchase-orders/${id}/payables`
+}
+
+export const listPurchaseOrderPayables = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<PurchaseOrderPayableView[]> => {
+
+  return apiFetch<PurchaseOrderPayableView[]>(getListPurchaseOrderPayablesUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListPurchaseOrderPayablesQueryKey = (id: string,) => {
+    return [
+    `/api/v1/purchasing/purchase-orders/${id}/payables`
+    ] as const;
+    }
+
+
+export const getListPurchaseOrderPayablesQueryOptions = <TData = Awaited<ReturnType<typeof listPurchaseOrderPayables>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchaseOrderPayables>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListPurchaseOrderPayablesQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPurchaseOrderPayables>>> = ({ signal }) => listPurchaseOrderPayables(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPurchaseOrderPayables>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListPurchaseOrderPayablesQueryResult = NonNullable<Awaited<ReturnType<typeof listPurchaseOrderPayables>>>
+export type ListPurchaseOrderPayablesQueryError = unknown
+
+
+export function useListPurchaseOrderPayables<TData = Awaited<ReturnType<typeof listPurchaseOrderPayables>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchaseOrderPayables>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPurchaseOrderPayables>>,
+          TError,
+          Awaited<ReturnType<typeof listPurchaseOrderPayables>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPurchaseOrderPayables<TData = Awaited<ReturnType<typeof listPurchaseOrderPayables>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchaseOrderPayables>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPurchaseOrderPayables>>,
+          TError,
+          Awaited<ReturnType<typeof listPurchaseOrderPayables>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPurchaseOrderPayables<TData = Awaited<ReturnType<typeof listPurchaseOrderPayables>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchaseOrderPayables>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListPurchaseOrderPayables<TData = Awaited<ReturnType<typeof listPurchaseOrderPayables>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchaseOrderPayables>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListPurchaseOrderPayablesQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdatePurchaseOrderLineUrl = (id: string,
+    lineId: string,) => {
+
+
+
+
+  return `/api/v1/purchasing/purchase-orders/${id}/lines/${lineId}`
+}
+
+export const updatePurchaseOrderLine = async (id: string,
+    lineId: string,
+    purchaseOrderLineUpdate: PurchaseOrderLineUpdate, options?: Parameters<typeof apiFetch>[1]): Promise<PurchaseOrderDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<PurchaseOrderDetail>(getUpdatePurchaseOrderLineUrl(id,lineId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(purchaseOrderLineUpdate)
+  }
+);}
+
+
+
+
+
+export const getUpdatePurchaseOrderLineMutationKey = () => ['updatePurchaseOrderLine'] as const;
+
+export const getUpdatePurchaseOrderLineMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePurchaseOrderLine>>, TError,UpdatePurchaseOrderLineMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updatePurchaseOrderLine>>, TError,UpdatePurchaseOrderLineMutationVariables, TContext> => {
+
+const mutationKey = getUpdatePurchaseOrderLineMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updatePurchaseOrderLine>>, UpdatePurchaseOrderLineMutationVariables> = (props) => {
+          const {id,lineId,data} = props ?? {};
+
+          return  updatePurchaseOrderLine(id,lineId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdatePurchaseOrderLineMutationResult = NonNullable<Awaited<ReturnType<typeof updatePurchaseOrderLine>>>
+    export type UpdatePurchaseOrderLineMutationBody = PurchaseOrderLineUpdate
+    export type UpdatePurchaseOrderLineMutationError = unknown
+    export type UpdatePurchaseOrderLineMutationVariables = {id: string;lineId: string;data: PurchaseOrderLineUpdate}
+
+    export const useUpdatePurchaseOrderLine = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePurchaseOrderLine>>, TError,UpdatePurchaseOrderLineMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updatePurchaseOrderLine>>,
+        TError,
+        UpdatePurchaseOrderLineMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdatePurchaseOrderLineMutationOptions(options), queryClient);
+    }
+
+export const getSubmitPurchaseOrderUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/purchasing/purchase-orders/${id}/submit`
+}
+
+export const submitPurchaseOrder = async (id: string,
+    purchaseOrderVersionInput: PurchaseOrderVersionInput, options?: Parameters<typeof apiFetch>[1]): Promise<PurchaseOrderDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<PurchaseOrderDetail>(getSubmitPurchaseOrderUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(purchaseOrderVersionInput)
+  }
+);}
+
+
+
+
+
+export const getSubmitPurchaseOrderMutationKey = () => ['submitPurchaseOrder'] as const;
+
+export const getSubmitPurchaseOrderMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitPurchaseOrder>>, TError,SubmitPurchaseOrderMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof submitPurchaseOrder>>, TError,SubmitPurchaseOrderMutationVariables, TContext> => {
+
+const mutationKey = getSubmitPurchaseOrderMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof submitPurchaseOrder>>, SubmitPurchaseOrderMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  submitPurchaseOrder(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SubmitPurchaseOrderMutationResult = NonNullable<Awaited<ReturnType<typeof submitPurchaseOrder>>>
+    export type SubmitPurchaseOrderMutationBody = PurchaseOrderVersionInput
+    export type SubmitPurchaseOrderMutationError = unknown
+    export type SubmitPurchaseOrderMutationVariables = {id: string;data: PurchaseOrderVersionInput}
+
+    export const useSubmitPurchaseOrder = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitPurchaseOrder>>, TError,SubmitPurchaseOrderMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof submitPurchaseOrder>>,
+        TError,
+        SubmitPurchaseOrderMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSubmitPurchaseOrderMutationOptions(options), queryClient);
+    }
+
+export const getApprovePurchaseOrderUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/purchasing/purchase-orders/${id}/approve`
+}
+
+export const approvePurchaseOrder = async (id: string,
+    purchaseOrderDecisionInput: PurchaseOrderDecisionInput, options?: Parameters<typeof apiFetch>[1]): Promise<PurchaseOrderDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<PurchaseOrderDetail>(getApprovePurchaseOrderUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(purchaseOrderDecisionInput)
+  }
+);}
+
+
+
+
+
+export const getApprovePurchaseOrderMutationKey = () => ['approvePurchaseOrder'] as const;
+
+export const getApprovePurchaseOrderMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof approvePurchaseOrder>>, TError,ApprovePurchaseOrderMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof approvePurchaseOrder>>, TError,ApprovePurchaseOrderMutationVariables, TContext> => {
+
+const mutationKey = getApprovePurchaseOrderMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof approvePurchaseOrder>>, ApprovePurchaseOrderMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  approvePurchaseOrder(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ApprovePurchaseOrderMutationResult = NonNullable<Awaited<ReturnType<typeof approvePurchaseOrder>>>
+    export type ApprovePurchaseOrderMutationBody = PurchaseOrderDecisionInput
+    export type ApprovePurchaseOrderMutationError = unknown
+    export type ApprovePurchaseOrderMutationVariables = {id: string;data: PurchaseOrderDecisionInput}
+
+    export const useApprovePurchaseOrder = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof approvePurchaseOrder>>, TError,ApprovePurchaseOrderMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof approvePurchaseOrder>>,
+        TError,
+        ApprovePurchaseOrderMutationVariables,
+        TContext
+      > => {
+      return useMutation(getApprovePurchaseOrderMutationOptions(options), queryClient);
+    }
+
+export const getRejectPurchaseOrderUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/purchasing/purchase-orders/${id}/reject`
+}
+
+export const rejectPurchaseOrder = async (id: string,
+    purchaseOrderDecisionInput: PurchaseOrderDecisionInput, options?: Parameters<typeof apiFetch>[1]): Promise<PurchaseOrderDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<PurchaseOrderDetail>(getRejectPurchaseOrderUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(purchaseOrderDecisionInput)
+  }
+);}
+
+
+
+
+
+export const getRejectPurchaseOrderMutationKey = () => ['rejectPurchaseOrder'] as const;
+
+export const getRejectPurchaseOrderMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rejectPurchaseOrder>>, TError,RejectPurchaseOrderMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof rejectPurchaseOrder>>, TError,RejectPurchaseOrderMutationVariables, TContext> => {
+
+const mutationKey = getRejectPurchaseOrderMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof rejectPurchaseOrder>>, RejectPurchaseOrderMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  rejectPurchaseOrder(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RejectPurchaseOrderMutationResult = NonNullable<Awaited<ReturnType<typeof rejectPurchaseOrder>>>
+    export type RejectPurchaseOrderMutationBody = PurchaseOrderDecisionInput
+    export type RejectPurchaseOrderMutationError = unknown
+    export type RejectPurchaseOrderMutationVariables = {id: string;data: PurchaseOrderDecisionInput}
+
+    export const useRejectPurchaseOrder = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rejectPurchaseOrder>>, TError,RejectPurchaseOrderMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof rejectPurchaseOrder>>,
+        TError,
+        RejectPurchaseOrderMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRejectPurchaseOrderMutationOptions(options), queryClient);
+    }
+
+export const getCancelPurchaseOrderUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/purchasing/purchase-orders/${id}/cancel`
+}
+
+export const cancelPurchaseOrder = async (id: string,
+    purchaseOrderCancelInput: PurchaseOrderCancelInput, options?: Parameters<typeof apiFetch>[1]): Promise<PurchaseOrderDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<PurchaseOrderDetail>(getCancelPurchaseOrderUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(purchaseOrderCancelInput)
+  }
+);}
+
+
+
+
+
+export const getCancelPurchaseOrderMutationKey = () => ['cancelPurchaseOrder'] as const;
+
+export const getCancelPurchaseOrderMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelPurchaseOrder>>, TError,CancelPurchaseOrderMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelPurchaseOrder>>, TError,CancelPurchaseOrderMutationVariables, TContext> => {
+
+const mutationKey = getCancelPurchaseOrderMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelPurchaseOrder>>, CancelPurchaseOrderMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  cancelPurchaseOrder(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelPurchaseOrderMutationResult = NonNullable<Awaited<ReturnType<typeof cancelPurchaseOrder>>>
+    export type CancelPurchaseOrderMutationBody = PurchaseOrderCancelInput
+    export type CancelPurchaseOrderMutationError = unknown
+    export type CancelPurchaseOrderMutationVariables = {id: string;data: PurchaseOrderCancelInput}
+
+    export const useCancelPurchaseOrder = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelPurchaseOrder>>, TError,CancelPurchaseOrderMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof cancelPurchaseOrder>>,
+        TError,
+        CancelPurchaseOrderMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCancelPurchaseOrderMutationOptions(options), queryClient);
+    }
+
+export const getListPurchaseSupplierOptionsUrl = (params?: ListPurchaseSupplierOptionsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/purchasing/suppliers?${stringifiedParams}` : `/api/v1/purchasing/suppliers`
+}
+
+export const listPurchaseSupplierOptions = async (params?: ListPurchaseSupplierOptionsParams, options?: Parameters<typeof apiFetch>[1]): Promise<PurchaseSupplierOption[]> => {
+
+  return apiFetch<PurchaseSupplierOption[]>(getListPurchaseSupplierOptionsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListPurchaseSupplierOptionsQueryKey = (params?: ListPurchaseSupplierOptionsParams,) => {
+    return [
+    `/api/v1/purchasing/suppliers`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListPurchaseSupplierOptionsQueryOptions = <TData = Awaited<ReturnType<typeof listPurchaseSupplierOptions>>, TError = unknown>(params?: ListPurchaseSupplierOptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchaseSupplierOptions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListPurchaseSupplierOptionsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPurchaseSupplierOptions>>> = ({ signal }) => listPurchaseSupplierOptions(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPurchaseSupplierOptions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListPurchaseSupplierOptionsQueryResult = NonNullable<Awaited<ReturnType<typeof listPurchaseSupplierOptions>>>
+export type ListPurchaseSupplierOptionsQueryError = unknown
+
+
+export function useListPurchaseSupplierOptions<TData = Awaited<ReturnType<typeof listPurchaseSupplierOptions>>, TError = unknown>(
+ params: undefined |  ListPurchaseSupplierOptionsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchaseSupplierOptions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPurchaseSupplierOptions>>,
+          TError,
+          Awaited<ReturnType<typeof listPurchaseSupplierOptions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPurchaseSupplierOptions<TData = Awaited<ReturnType<typeof listPurchaseSupplierOptions>>, TError = unknown>(
+ params?: ListPurchaseSupplierOptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchaseSupplierOptions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPurchaseSupplierOptions>>,
+          TError,
+          Awaited<ReturnType<typeof listPurchaseSupplierOptions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPurchaseSupplierOptions<TData = Awaited<ReturnType<typeof listPurchaseSupplierOptions>>, TError = unknown>(
+ params?: ListPurchaseSupplierOptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchaseSupplierOptions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListPurchaseSupplierOptions<TData = Awaited<ReturnType<typeof listPurchaseSupplierOptions>>, TError = unknown>(
+ params?: ListPurchaseSupplierOptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchaseSupplierOptions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListPurchaseSupplierOptionsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListPurchasePaymentTermOptionsUrl = () => {
+
+
+
+
+  return `/api/v1/purchasing/payment-terms`
+}
+
+export const listPurchasePaymentTermOptions = async ( options?: Parameters<typeof apiFetch>[1]): Promise<PurchasePaymentTermOption[]> => {
+
+  return apiFetch<PurchasePaymentTermOption[]>(getListPurchasePaymentTermOptionsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListPurchasePaymentTermOptionsQueryKey = () => {
+    return [
+    `/api/v1/purchasing/payment-terms`
+    ] as const;
+    }
+
+
+export const getListPurchasePaymentTermOptionsQueryOptions = <TData = Awaited<ReturnType<typeof listPurchasePaymentTermOptions>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchasePaymentTermOptions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListPurchasePaymentTermOptionsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPurchasePaymentTermOptions>>> = ({ signal }) => listPurchasePaymentTermOptions({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPurchasePaymentTermOptions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListPurchasePaymentTermOptionsQueryResult = NonNullable<Awaited<ReturnType<typeof listPurchasePaymentTermOptions>>>
+export type ListPurchasePaymentTermOptionsQueryError = unknown
+
+
+export function useListPurchasePaymentTermOptions<TData = Awaited<ReturnType<typeof listPurchasePaymentTermOptions>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchasePaymentTermOptions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPurchasePaymentTermOptions>>,
+          TError,
+          Awaited<ReturnType<typeof listPurchasePaymentTermOptions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPurchasePaymentTermOptions<TData = Awaited<ReturnType<typeof listPurchasePaymentTermOptions>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchasePaymentTermOptions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPurchasePaymentTermOptions>>,
+          TError,
+          Awaited<ReturnType<typeof listPurchasePaymentTermOptions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPurchasePaymentTermOptions<TData = Awaited<ReturnType<typeof listPurchasePaymentTermOptions>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchasePaymentTermOptions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListPurchasePaymentTermOptions<TData = Awaited<ReturnType<typeof listPurchasePaymentTermOptions>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchasePaymentTermOptions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListPurchasePaymentTermOptionsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getListPurchaseItemOptionsUrl = (params?: ListPurchaseItemOptionsParams,) => {
   const normalizedParams = new URLSearchParams();
 
@@ -44476,17 +45881,24 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getReprocessFinanceDeadLetterMutationOptions(options), queryClient);
     }
 
-export const getListApprovalRulesUrl = () => {
+export const getListApprovalRulesUrl = (params?: ListApprovalRulesParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/v1/finance/approval-rules`
+  return stringifiedParams.length > 0 ? `/api/v1/finance/approval-rules?${stringifiedParams}` : `/api/v1/finance/approval-rules`
 }
 
-export const listApprovalRules = async ( options?: Parameters<typeof apiFetch>[1]): Promise<ApprovalRuleView[]> => {
+export const listApprovalRules = async (params?: ListApprovalRulesParams, options?: Parameters<typeof apiFetch>[1]): Promise<ApprovalRuleView[]> => {
 
-  return apiFetch<ApprovalRuleView[]>(getListApprovalRulesUrl(),
+  return apiFetch<ApprovalRuleView[]>(getListApprovalRulesUrl(params),
   {
     ...options,
     method: 'GET'
@@ -44499,23 +45911,23 @@ export const listApprovalRules = async ( options?: Parameters<typeof apiFetch>[1
 
 
 
-export const getListApprovalRulesQueryKey = () => {
+export const getListApprovalRulesQueryKey = (params?: ListApprovalRulesParams,) => {
     return [
-    `/api/v1/finance/approval-rules`
+    `/api/v1/finance/approval-rules`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getListApprovalRulesQueryOptions = <TData = Awaited<ReturnType<typeof listApprovalRules>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApprovalRules>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+export const getListApprovalRulesQueryOptions = <TData = Awaited<ReturnType<typeof listApprovalRules>>, TError = unknown>(params?: ListApprovalRulesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApprovalRules>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListApprovalRulesQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getListApprovalRulesQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listApprovalRules>>> = ({ signal }) => listApprovalRules({ signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listApprovalRules>>> = ({ signal }) => listApprovalRules(params, { signal, ...requestOptions });
 
 
 
@@ -44529,7 +45941,7 @@ export type ListApprovalRulesQueryError = unknown
 
 
 export function useListApprovalRules<TData = Awaited<ReturnType<typeof listApprovalRules>>, TError = unknown>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApprovalRules>>, TError, TData>> & Pick<
+ params: undefined |  ListApprovalRulesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApprovalRules>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listApprovalRules>>,
           TError,
@@ -44539,7 +45951,7 @@ export function useListApprovalRules<TData = Awaited<ReturnType<typeof listAppro
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListApprovalRules<TData = Awaited<ReturnType<typeof listApprovalRules>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApprovalRules>>, TError, TData>> & Pick<
+ params?: ListApprovalRulesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApprovalRules>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listApprovalRules>>,
           TError,
@@ -44549,16 +45961,16 @@ export function useListApprovalRules<TData = Awaited<ReturnType<typeof listAppro
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListApprovalRules<TData = Awaited<ReturnType<typeof listApprovalRules>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApprovalRules>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ params?: ListApprovalRulesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApprovalRules>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useListApprovalRules<TData = Awaited<ReturnType<typeof listApprovalRules>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApprovalRules>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ params?: ListApprovalRulesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApprovalRules>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getListApprovalRulesQueryOptions(options)
+  const queryOptions = getListApprovalRulesQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -44653,17 +46065,24 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getCreateApprovalRuleMutationOptions(options), queryClient);
     }
 
-export const getListApprovalApproversUrl = () => {
+export const getListApprovalApproversUrl = (params?: ListApprovalApproversParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/v1/finance/approval-rules/approvers`
+  return stringifiedParams.length > 0 ? `/api/v1/finance/approval-rules/approvers?${stringifiedParams}` : `/api/v1/finance/approval-rules/approvers`
 }
 
-export const listApprovalApprovers = async ( options?: Parameters<typeof apiFetch>[1]): Promise<ApproverOption[]> => {
+export const listApprovalApprovers = async (params?: ListApprovalApproversParams, options?: Parameters<typeof apiFetch>[1]): Promise<ApproverOption[]> => {
 
-  return apiFetch<ApproverOption[]>(getListApprovalApproversUrl(),
+  return apiFetch<ApproverOption[]>(getListApprovalApproversUrl(params),
   {
     ...options,
     method: 'GET'
@@ -44676,23 +46095,23 @@ export const listApprovalApprovers = async ( options?: Parameters<typeof apiFetc
 
 
 
-export const getListApprovalApproversQueryKey = () => {
+export const getListApprovalApproversQueryKey = (params?: ListApprovalApproversParams,) => {
     return [
-    `/api/v1/finance/approval-rules/approvers`
+    `/api/v1/finance/approval-rules/approvers`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getListApprovalApproversQueryOptions = <TData = Awaited<ReturnType<typeof listApprovalApprovers>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApprovalApprovers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+export const getListApprovalApproversQueryOptions = <TData = Awaited<ReturnType<typeof listApprovalApprovers>>, TError = unknown>(params?: ListApprovalApproversParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApprovalApprovers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListApprovalApproversQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getListApprovalApproversQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listApprovalApprovers>>> = ({ signal }) => listApprovalApprovers({ signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listApprovalApprovers>>> = ({ signal }) => listApprovalApprovers(params, { signal, ...requestOptions });
 
 
 
@@ -44706,7 +46125,7 @@ export type ListApprovalApproversQueryError = unknown
 
 
 export function useListApprovalApprovers<TData = Awaited<ReturnType<typeof listApprovalApprovers>>, TError = unknown>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApprovalApprovers>>, TError, TData>> & Pick<
+ params: undefined |  ListApprovalApproversParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApprovalApprovers>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listApprovalApprovers>>,
           TError,
@@ -44716,7 +46135,7 @@ export function useListApprovalApprovers<TData = Awaited<ReturnType<typeof listA
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListApprovalApprovers<TData = Awaited<ReturnType<typeof listApprovalApprovers>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApprovalApprovers>>, TError, TData>> & Pick<
+ params?: ListApprovalApproversParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApprovalApprovers>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listApprovalApprovers>>,
           TError,
@@ -44726,16 +46145,16 @@ export function useListApprovalApprovers<TData = Awaited<ReturnType<typeof listA
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListApprovalApprovers<TData = Awaited<ReturnType<typeof listApprovalApprovers>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApprovalApprovers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ params?: ListApprovalApproversParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApprovalApprovers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useListApprovalApprovers<TData = Awaited<ReturnType<typeof listApprovalApprovers>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApprovalApprovers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ params?: ListApprovalApproversParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApprovalApprovers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getListApprovalApproversQueryOptions(options)
+  const queryOptions = getListApprovalApproversQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

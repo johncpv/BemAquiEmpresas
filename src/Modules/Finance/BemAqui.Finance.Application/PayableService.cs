@@ -33,7 +33,9 @@ public sealed partial class PayableService(
     TimeProvider clock)
 {
     public const string NumberIndex = "ix_payables_number";
+    /// <summary>Índice antigo <c>(origin, origin_id)</c>, removido no segundo passo da migração (CMP-03a CA 17).</summary>
     public const string OriginIndex = "ix_payables_origin";
+    public const string OriginInstallmentIndex = "ux_payables_origin_installment";
     public const string CompetenceIndex = "ix_payables_recurring_competence";
     public const string DocType = "CP";
     public const string NotificationType = "finance.payable";

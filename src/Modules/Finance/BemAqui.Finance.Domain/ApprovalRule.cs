@@ -10,8 +10,14 @@ namespace BemAqui.Finance.Domain;
 [DocumentName("A regra de alçada")]
 public sealed class ApprovalRule : Entity, IAuditable, ISoftDeletable
 {
-    public const string PaymentOrder = "PaymentOrder";
+    public const string PaymentOrder = Contracts.ApprovalDocumentTypes.PaymentOrder;
+    public const string PurchaseOrder = Contracts.ApprovalDocumentTypes.PurchaseOrder;
     public const string DefaultSeedKey = "owner-approves-all";
+
+    /// <summary>Regra padrão própria do pedido de compra (CMP-03a CA 5, ponto 44): "Proprietário aprova tudo".</summary>
+    public const string PurchaseOrderSeedKey = "owner-approves-all-purchase";
+
+    public static string SeedKeyOf(string documentType) => documentType == PurchaseOrder ? PurchaseOrderSeedKey : DefaultSeedKey;
 
     public string DocumentType { get; init; } = PaymentOrder;
 

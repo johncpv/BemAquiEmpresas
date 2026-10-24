@@ -15165,6 +15165,601 @@
         }
       }
     },
+    "/api/v1/purchasing/purchase-orders": {
+      "get": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "ListPurchaseOrders",
+        "parameters": [
+          {
+            "name": "show",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/PurchaseOrderStatus"
+            }
+          },
+          {
+            "name": "partyId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "projectId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfPurchaseOrderSummary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "CreatePurchaseOrder",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PurchaseOrderInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/purchase-orders/defaults": {
+      "get": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "GetPurchaseOrderDefaults",
+        "parameters": [
+          {
+            "name": "requestLineIds",
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          },
+          {
+            "name": "itemId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseOrderDefaults"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/purchase-orders/{id}": {
+      "get": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "GetPurchaseOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "UpdatePurchaseOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PurchaseOrderUpdateInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/purchase-orders/{id}/history": {
+      "get": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "GetPurchaseOrderHistory",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfRelatedAuditEntryDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/purchase-orders/{id}/decisions": {
+      "get": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "GetPurchaseOrderDecisions",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseOrderDecisions"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/purchase-orders/{id}/payables": {
+      "get": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "ListPurchaseOrderPayables",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PurchaseOrderPayableView"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/purchase-orders/{id}/lines/{lineId}": {
+      "put": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "UpdatePurchaseOrderLine",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "lineId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PurchaseOrderLineUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/purchase-orders/{id}/submit": {
+      "post": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "SubmitPurchaseOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PurchaseOrderVersionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/purchase-orders/{id}/approve": {
+      "post": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "ApprovePurchaseOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PurchaseOrderDecisionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/purchase-orders/{id}/reject": {
+      "post": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "RejectPurchaseOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PurchaseOrderDecisionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/purchase-orders/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "CancelPurchaseOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PurchaseOrderCancelInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/suppliers": {
+      "get": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "ListPurchaseSupplierOptions",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PurchaseSupplierOption"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/payment-terms": {
+      "get": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "ListPurchasePaymentTermOptions",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PurchasePaymentTermOption"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/purchasing/items": {
       "get": {
         "tags": [
@@ -17573,6 +18168,15 @@
           "Financeiro"
         ],
         "operationId": "ListApprovalRules",
+        "parameters": [
+          {
+            "name": "documentType",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -17624,6 +18228,15 @@
           "Financeiro"
         ],
         "operationId": "ListApprovalApprovers",
+        "parameters": [
+          {
+            "name": "documentType",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -17671,6 +18284,13 @@
             "schema": {
               "type": "string",
               "format": "uuid"
+            }
+          },
+          {
+            "name": "documentType",
+            "in": "query",
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -20134,6 +20754,12 @@
           "level": {
             "type": "integer",
             "format": "int32"
+          },
+          "documentType": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -20148,7 +20774,8 @@
           "approverGroupId",
           "approverUserId",
           "approverName",
-          "isDefault"
+          "isDefault",
+          "documentType"
         ],
         "type": "object",
         "properties": {
@@ -20203,6 +20830,9 @@
           },
           "isDefault": {
             "type": "boolean"
+          },
+          "documentType": {
+            "type": "string"
           }
         }
       },
@@ -31773,6 +32403,35 @@
           }
         }
       },
+      "PagedListOfPurchaseOrderSummary": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PurchaseOrderSummary"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "PagedListOfPurchaseRequestSummary": {
         "required": [
           "items",
@@ -32952,6 +33611,18 @@
           },
           "isEstimate": {
             "type": "boolean"
+          },
+          "installment": {
+            "type": "integer",
+            "format": "int16",
+            "default": 1
+          },
+          "paymentOrderId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         }
       },
@@ -35385,6 +36056,15 @@
           }
         }
       },
+      "PurchaseDecision": {
+        "enum": [
+          "Submitted",
+          "Approved",
+          "Rejected",
+          "Changed",
+          "Cancelled"
+        ]
+      },
       "PurchaseItemOption": {
         "required": [
           "id",
@@ -35511,6 +36191,1108 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PurchaseItemRequest"
+            }
+          }
+        }
+      },
+      "PurchaseLevelStatus": {
+        "enum": [
+          "Pending",
+          "Approved",
+          "Rejected",
+          "Closed"
+        ]
+      },
+      "PurchaseOrderCancelInput": {
+        "required": [
+          "reason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "PurchaseOrderDecisionInput": {
+        "required": [
+          "comment",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "comment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "PurchaseOrderDecisions": {
+        "required": [
+          "levels",
+          "events"
+        ],
+        "type": "object",
+        "properties": {
+          "levels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PurchaseOrderLevelView"
+            }
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PurchaseOrderDecisionView"
+            }
+          }
+        }
+      },
+      "PurchaseOrderDecisionView": {
+        "required": [
+          "attempt",
+          "level",
+          "decision",
+          "comment",
+          "decidedBy",
+          "decidedByName",
+          "decidedAt",
+          "selfApproved",
+          "referenceAmount",
+          "approverName"
+        ],
+        "type": "object",
+        "properties": {
+          "attempt": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "decision": {
+            "$ref": "#/components/schemas/PurchaseDecision"
+          },
+          "comment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "decidedBy": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "decidedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "decidedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "selfApproved": {
+            "type": "boolean"
+          },
+          "referenceAmount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "approverName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PurchaseOrderDefaultLine": {
+        "required": [
+          "item",
+          "quantity",
+          "unitPrice",
+          "priceSuggested",
+          "priceSource",
+          "requestLineIds",
+          "requestNumbers"
+        ],
+        "type": "object",
+        "properties": {
+          "item": {
+            "$ref": "#/components/schemas/PurchaseItemOption"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "priceSuggested": {
+            "type": "boolean"
+          },
+          "priceSource": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "requestLineIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "requestNumbers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "PurchaseOrderDefaults": {
+        "required": [
+          "partyId",
+          "partyName",
+          "partySuggested",
+          "paymentTermId",
+          "paymentTermName",
+          "expectedDate",
+          "leadDays",
+          "projectId",
+          "projectNumber",
+          "projectName",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "partyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "partySuggested": {
+            "type": "boolean"
+          },
+          "paymentTermId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "paymentTermName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "expectedDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "leadDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "projectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "projectName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PurchaseOrderDefaultLine"
+            }
+          }
+        }
+      },
+      "PurchaseOrderDetail": {
+        "required": [
+          "id",
+          "number",
+          "status",
+          "partyId",
+          "partyName",
+          "projectId",
+          "projectNumber",
+          "projectName",
+          "paymentTermId",
+          "paymentTermName",
+          "expectedDate",
+          "daysLate",
+          "subtotal",
+          "freight",
+          "ipiPct",
+          "ipiAmount",
+          "total",
+          "notes",
+          "rfqId",
+          "quotesCount",
+          "singleQuoteWarning",
+          "requestedBy",
+          "requestedByName",
+          "createdAt",
+          "submittedAt",
+          "approvedAt",
+          "attempt",
+          "referenceAmount",
+          "splitWarning",
+          "selfApproved",
+          "changedAfterSent",
+          "rejectionComment",
+          "cancelReason",
+          "cancelledAt",
+          "cancelledByName",
+          "quantityReceived",
+          "lines",
+          "levels",
+          "installments",
+          "isRequester",
+          "canEdit",
+          "canSubmit",
+          "canDecide",
+          "canCancel",
+          "decideBlocker",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PurchaseOrderStatus"
+          },
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "projectName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "paymentTermId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "paymentTermName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "expectedDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "daysLate": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "subtotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "freight": {
+            "type": "number",
+            "format": "double"
+          },
+          "ipiPct": {
+            "type": "number",
+            "format": "double"
+          },
+          "ipiAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "rfqId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "quotesCount": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "singleQuoteWarning": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "requestedBy": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "requestedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "submittedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "approvedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "attempt": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "referenceAmount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "splitWarning": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "selfApproved": {
+            "type": "boolean"
+          },
+          "changedAfterSent": {
+            "type": "boolean"
+          },
+          "rejectionComment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cancelReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cancelledAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "cancelledByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "quantityReceived": {
+            "type": "number",
+            "format": "double"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PurchaseOrderLineView"
+            }
+          },
+          "levels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PurchaseOrderLevelView"
+            }
+          },
+          "installments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PurchaseOrderInstallmentPreview"
+            }
+          },
+          "isRequester": {
+            "type": "boolean"
+          },
+          "canEdit": {
+            "type": "boolean"
+          },
+          "canSubmit": {
+            "type": "boolean"
+          },
+          "canDecide": {
+            "type": "boolean"
+          },
+          "canCancel": {
+            "type": "boolean"
+          },
+          "decideBlocker": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "PurchaseOrderInput": {
+        "required": [
+          "partyId",
+          "projectId",
+          "paymentTermId",
+          "expectedDate",
+          "freight",
+          "ipiPct",
+          "notes",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "paymentTermId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "expectedDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "freight": {
+            "type": "number",
+            "format": "double"
+          },
+          "ipiPct": {
+            "type": "number",
+            "format": "double"
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lines": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/PurchaseOrderLineInput"
+            }
+          },
+          "rfqId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "quotesCount": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "leadDays": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "PurchaseOrderInstallmentPreview": {
+        "required": [
+          "number",
+          "estimatedDueDate",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "number": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "estimatedDueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "PurchaseOrderLevelView": {
+        "required": [
+          "attempt",
+          "level",
+          "ruleId",
+          "approverName",
+          "referenceAmount",
+          "splitWarning",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "attempt": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ruleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "approverName": {
+            "type": "string"
+          },
+          "referenceAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "splitWarning": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/PurchaseLevelStatus"
+          }
+        }
+      },
+      "PurchaseOrderLineInput": {
+        "required": [
+          "itemId",
+          "quantity",
+          "unitId",
+          "unitPrice",
+          "requestLineIds"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "requestLineIds": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        }
+      },
+      "PurchaseOrderLineUpdate": {
+        "required": [
+          "quantity",
+          "unitPrice",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "PurchaseOrderLineView": {
+        "required": [
+          "id",
+          "sequence",
+          "itemId",
+          "itemCode",
+          "itemName",
+          "unitCode",
+          "quantity",
+          "enteredQuantity",
+          "enteredUnitCode",
+          "unitPrice",
+          "lineTotal",
+          "costType",
+          "quantityReceived",
+          "requestLineIds",
+          "requests"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "enteredQuantity": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "enteredUnitCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "lineTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "costType": {
+            "$ref": "#/components/schemas/CostType"
+          },
+          "quantityReceived": {
+            "type": "number",
+            "format": "double"
+          },
+          "requestLineIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "requests": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PurchaseOrderRequestRef"
+            }
+          }
+        }
+      },
+      "PurchaseOrderPayableView": {
+        "required": [
+          "id",
+          "number",
+          "installment",
+          "status",
+          "amount",
+          "dueDate",
+          "isEstimate",
+          "paymentOrderId"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "installment": {
+            "type": "integer",
+            "format": "int16"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PayableStatus"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "isEstimate": {
+            "type": "boolean"
+          },
+          "paymentOrderId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "PurchaseOrderRequestRef": {
+        "required": [
+          "requestId",
+          "number",
+          "lineId"
+        ],
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "lineId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "PurchaseOrderStatus": {
+        "enum": [
+          "Draft",
+          "PendingApproval",
+          "Approved",
+          "Sent",
+          "PartiallyReceived",
+          "Received",
+          "Cancelled"
+        ]
+      },
+      "PurchaseOrderSummary": {
+        "required": [
+          "id",
+          "number",
+          "status",
+          "partyId",
+          "partyName",
+          "projectId",
+          "projectNumber",
+          "projectName",
+          "total",
+          "expectedDate",
+          "daysLate",
+          "itemSummary",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PurchaseOrderStatus"
+          },
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "projectName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "expectedDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "daysLate": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "itemSummary": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PurchaseOrderUpdateInput": {
+        "required": [
+          "partyId",
+          "projectId",
+          "paymentTermId",
+          "expectedDate",
+          "freight",
+          "ipiPct",
+          "notes",
+          "lines",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "paymentTermId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "expectedDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "freight": {
+            "type": "number",
+            "format": "double"
+          },
+          "ipiPct": {
+            "type": "number",
+            "format": "double"
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lines": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/PurchaseOrderLineInput"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "PurchaseOrderVersionInput": {
+        "required": [
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "PurchasePaymentTermOption": {
+        "required": [
+          "id",
+          "name",
+          "installments"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "installments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Installment"
             }
           }
         }
@@ -36089,6 +37871,52 @@
           }
         }
       },
+      "PurchaseSupplierOption": {
+        "required": [
+          "id",
+          "name",
+          "document",
+          "defaultPaymentTermId"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "document": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "defaultPaymentTermId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "PurchasingAccountOption": {
+        "required": [
+          "code",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
       "PurchasingParametersInput": {
         "required": [
           "defaultLeadDays"
@@ -36098,13 +37926,57 @@
           "defaultLeadDays": {
             "type": "integer",
             "format": "int32"
+          },
+          "payableAccountCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "payableCostType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CostType"
+              }
+            ]
+          },
+          "freightAccountCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "freightCostType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CostType"
+              }
+            ]
+          },
+          "accountingConfirmed": {
+            "type": [
+              "null",
+              "boolean"
+            ]
           }
         }
       },
       "PurchasingParametersView": {
         "required": [
           "defaultLeadDays",
-          "defaultLeadDaysId"
+          "defaultLeadDaysId",
+          "payableAccountCode",
+          "payableCostType",
+          "freightAccountCode",
+          "freightCostType",
+          "accountingConfirmed",
+          "accounts"
         ],
         "type": "object",
         "properties": {
@@ -36118,6 +37990,27 @@
               "string"
             ],
             "format": "uuid"
+          },
+          "payableAccountCode": {
+            "type": "string"
+          },
+          "payableCostType": {
+            "$ref": "#/components/schemas/CostType"
+          },
+          "freightAccountCode": {
+            "type": "string"
+          },
+          "freightCostType": {
+            "$ref": "#/components/schemas/CostType"
+          },
+          "accountingConfirmed": {
+            "type": "boolean"
+          },
+          "accounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PurchasingAccountOption"
+            }
           }
         }
       },
