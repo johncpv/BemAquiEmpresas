@@ -17,12 +17,13 @@ import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { TYPE_LABELS } from '../item-labels'
 import { InventoryTabs } from '../InventoryTabs'
+import { AdjustmentDialog } from './AdjustmentDialog'
 import { OpeningBatchDialog } from './OpeningBatchDialog'
 import { RESERVATION_DICAS } from './reservations'
 import { PostingDialog } from './PostingDialog'
 import { DICAS, formatQuantity, formatUnitCost, SITUATION, SITUATION_OPTIONS } from './stock'
 
-type Open = { kind: ManualPostingKind } | { batch: true } | null
+type Open = { kind: ManualPostingKind } | { batch: true } | { adjust: true } | null
 
 const secondaryButton = 'rounded-md border border-border px-3 py-2 text-sm font-semibold'
 
@@ -79,19 +80,24 @@ export function BalancesPage() {
       <PageHeading title="Estoque: Saldos">
         <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
           <p className="text-muted-foreground">O que existe em cada local, o que está reservado e o custo médio de cada item.</p>
-          <Can perm="inventory.create">
-            <div className="flex flex-wrap gap-2">
-              {entry}
-              <button type="button" onClick={() => setOpen({ kind: 'Issue' })} className={secondaryButton}>Lançar saída</button>
-              <button type="button" onClick={() => setOpen({ kind: 'Transfer' })} className={secondaryButton}>Transferir</button>
-              {openingOpen ? (
-                <>
-                  <button type="button" onClick={() => setOpen({ kind: 'OpeningBalance' })} className={secondaryButton}>Lançar saldo inicial</button>
-                  <button type="button" onClick={() => setOpen({ batch: true })} className={secondaryButton}>Saldo inicial em lote</button>
-                </>
-              ) : null}
-            </div>
-          </Can>
+          <div className="flex flex-wrap gap-2">
+            <Can perm="inventory.adjust">
+              <button type="button" onClick={() => setOpen({ adjust: true })} className={secondaryButton}>Lançar ajuste</button>
+            </Can>
+            <Can perm="inventory.create">
+              <div className="flex flex-wrap gap-2">
+                {entry}
+                <button type="button" onClick={() => setOpen({ kind: 'Issue' })} className={secondaryButton}>Lançar saída</button>
+                <button type="button" onClick={() => setOpen({ kind: 'Transfer' })} className={secondaryButton}>Transferir</button>
+                {openingOpen ? (
+                  <>
+                    <button type="button" onClick={() => setOpen({ kind: 'OpeningBalance' })} className={secondaryButton}>Lançar saldo inicial</button>
+                    <button type="button" onClick={() => setOpen({ batch: true })} className={secondaryButton}>Saldo inicial em lote</button>
+                  </>
+                ) : null}
+              </div>
+            </Can>
+          </div>
         </div>
       </PageHeading>
       <InventoryTabs />
@@ -129,6 +135,13 @@ export function BalancesPage() {
         empty={{ title: openingOpen ? 'Nenhum saldo ainda. Comece lançando o saldo inicial de cada local.' : 'Nenhum saldo ainda.', description: openingOpen ? undefined : 'Lance uma entrada para começar.', action: emptyAction }} />
       {open && 'kind' in open ? <PostingDialog kind={open.kind} onClose={() => setOpen(null)} onPosted={posted(open.kind)} /> : null}
       {open && 'batch' in open ? <OpeningBatchDialog onClose={() => setOpen(null)} onPosted={posted('batch')} /> : null}
+      {open && 'adjust' in open ? (
+        <AdjustmentDialog locationId={local || undefined} onClose={() => setOpen(null)} onDone={(d) => {
+          setOpen(null)
+          void refresh()
+          setSteps([{ label: `Ver ajuste ${d.number}`, onSelect: () => void navigate({ to: '/app/estoque/ajustes/$id' as never, params: { id: d.id } as never }) }, { label: 'Lançar outro ajuste', onSelect: () => setOpen({ adjust: true }) }])
+        }} />
+      ) : null}
     </>
   )
 }
