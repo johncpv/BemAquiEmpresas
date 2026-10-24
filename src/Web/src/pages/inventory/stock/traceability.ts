@@ -151,7 +151,10 @@ export function lotTree(trace: LotTrace): TraceNode[] {
           : c.serials.map((s) => ({
             id: `serial-${s.id}`, label: `Série ${s.serialNumber}`, chip: TRACE_SERIAL_STATUS[s.status],
             detail: s.shipmentNumber ? `Romaneio ${s.shipmentNumber}${s.shippedAt ? ` · ${formatInstantDate(s.shippedAt)}` : ''}` : undefined,
-            link: s.shipmentId ? { to: '/app/producao/expedicao/$id', params: { id: s.shipmentId }, label: 'Abrir romaneio' } : undefined,
+            link: { to: '/app/estoque/rastreabilidade', params: {}, search: { item: s.itemId, serie: s.id }, label: 'Ver origem da série' },
+            children: s.shipmentId ? [{
+              id: `ship-${s.id}`, label: `Romaneio ${s.shipmentNumber ?? ''}`.trim(), link: { to: '/app/producao/expedicao/$id', params: { id: s.shipmentId }, label: 'Abrir romaneio' },
+            }] : undefined,
           })),
       })),
     },

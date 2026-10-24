@@ -41,8 +41,8 @@ public sealed record SerialTrace(
     string? ProjectNumber, string? ProjectName, TraceCustomer? Customer, Guid? ShipmentId, string? ShipmentNumber, DateTimeOffset? ShippedAt, string? SharedLotsNote,
     IReadOnlyList<TraceConsumedLot> Lots);
 
-/// <summary>Série produzida por uma OS que consumiu o lote, com o romaneio quando expedida.</summary>
-public sealed record TraceSerial(Guid Id, string SerialNumber, SerialState Status, Guid? ShipmentId, string? ShipmentNumber, DateTimeOffset? ShippedAt);
+/// <summary>Série produzida por uma OS que consumiu o lote, com o item (o link para a origem dela) e o romaneio quando expedida.</summary>
+public sealed record TraceSerial(Guid Id, Guid ItemId, string SerialNumber, SerialState Status, Guid? ShipmentId, string? ShipmentNumber, DateTimeOffset? ShippedAt);
 
 /// <summary>Consumo do lote por uma OS (CA 3): OS, projeto, cliente, data, quantidade líquida, as séries e a nota de sem série.</summary>
 public sealed record TraceConsumption(

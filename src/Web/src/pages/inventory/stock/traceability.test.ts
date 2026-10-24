@@ -17,7 +17,7 @@ const lot: LotTrace = {
   lotId: 'l1', lotNumber: 'L-01', itemId: 'm1', itemCode: 'CABO', itemName: 'Cabo', unitCode: 'M', expiry: null, expiryState: 'None', daysToExpiry: null, supplierPartyId: null, supplierName: null,
   receivedAt: null, entries: [], totalReceived: 50, balances: [{ locationId: 'a', locationName: 'Almoxarifado', onHand: 28 }], onHand: 28, totalConsumed: 20, totalOther: -2, balanced: true,
   consumptions: [
-    { productionOrderId: 'o1', orderNumber: 'OS-2026-0001', orderStatus: 'Completed', projectId: 'pr1', projectNumber: 'PRJ-2026-0001', projectName: 'Obra', customer: { partyId: 'c1', name: 'Horizonte Ltda', kind: 'PJ', masked: false }, at: '2026-10-10T12:00:00Z', quantity: 12, serials: [{ id: 's1', serialNumber: 'ELV-0001-2026-00001', status: 'Shipped', shipmentId: 'r1', shipmentNumber: 'ROM-2026-0001', shippedAt: '2026-10-22T12:00:00Z' }], noSerialNote: null, sharedLotsNote: null },
+    { productionOrderId: 'o1', orderNumber: 'OS-2026-0001', orderStatus: 'Completed', projectId: 'pr1', projectNumber: 'PRJ-2026-0001', projectName: 'Obra', customer: { partyId: 'c1', name: 'Horizonte Ltda', kind: 'PJ', masked: false }, at: '2026-10-10T12:00:00Z', quantity: 12, serials: [{ id: 's1', itemId: 'p1', serialNumber: 'ELV-0001-2026-00001', status: 'Shipped', shipmentId: 'r1', shipmentNumber: 'ROM-2026-0001', shippedAt: '2026-10-22T12:00:00Z' }], noSerialNote: null, sharedLotsNote: null },
     { productionOrderId: 'o2', orderNumber: 'OS-2025-0009', orderStatus: 'Completed', projectId: null, projectNumber: null, projectName: null, customer: null, at: '2026-09-10T12:00:00Z', quantity: 8, serials: [], noSerialNote: 'Sem série: OS concluída antes do registro de séries.', sharedLotsNote: null },
   ],
   others: [{ movementId: 'mv9', number: 'MOV-2026-000009', type: 'Issue', sourceType: 'ManualPosting', sourceId: 'x', sourceNumber: null, at: '2026-10-11T12:00:00Z', quantity: -2, explanation: 'Saída avulsa MOV-2026-000009' }],
@@ -52,7 +52,7 @@ describe('rastreabilidade (EST-04)', () => {
     const tree = lotTree(lot)
     expect(tree.map((n) => n.label)).toEqual(['Entradas', 'Saldo atual', 'Consumo nas OS', 'Outras saídas e ajustes'])
     const uses = tree[2].children!
-    expect(uses[0].children![0]).toMatchObject({ label: 'Série ELV-0001-2026-00001', detail: expect.stringContaining('Romaneio ROM-2026-0001') })
+    expect(uses[0].children![0]).toMatchObject({ label: 'Série ELV-0001-2026-00001', detail: expect.stringContaining('Romaneio ROM-2026-0001'), link: { search: { item: 'p1', serie: 's1' } } })
     expect(uses[1].children![0].label).toBe('Sem série: OS concluída antes do registro de séries.')
     expect(tree[3].children![0].label).toBe('Saída avulsa MOV-2026-000009')
     expect(reconciliationText(lot)).toBe('Recebido 50 − consumido 20 + outras −2 = saldo 28 M')

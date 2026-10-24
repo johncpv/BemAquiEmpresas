@@ -8,6 +8,7 @@ import type { SerialState } from './serialState';
 
 export interface TraceSerial {
   id: string;
+  itemId: string;
   serialNumber: string;
   status: SerialState;
   /** @nullable */

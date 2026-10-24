@@ -92,7 +92,7 @@ export function ItemLots({ itemId, tracksLot }: { itemId: string; tracksLot: boo
       <DataTable label="Lotes do item" columns={columns} query={query} searchable={false} getRowId={(l) => l.id}
         rowClassName={(l) => l.expiryState === 'Expired' ? 'border-l-4 border-l-crit' : l.expiryState === 'Expiring' ? 'border-l-4 border-l-warn' : ''}
         expandable={{
-          label: (l) => `detalhes do lote ${l.lotNumber}`,
+          label: (l) => `lote ${l.lotNumber}`,
           render: (l) => (
             <div className="space-y-1 text-sm">
               <p>{l.supplierName ?? 'Sem fornecedor'} · entrada {l.receivedAt ? formatInstantDate(l.receivedAt) : '—'} · {places(l)}</p>

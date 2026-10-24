@@ -170,7 +170,7 @@ public sealed class TraceabilityService(
             var tracks = order?.ProductId is { } product && tracksSerial.GetValueOrDefault(product);
             return new TraceConsumption(
                 u.ProductionOrderId, order?.Number, order?.Status, order?.ProjectId, project?.Number, project?.Name, CustomerNameMasker.Customer(party, canView), u.At, u.Quantity,
-                mine.Select(s => new TraceSerial(s.Id, s.SerialNumber, s.Status, s.ShipmentId, s.ShipmentId is { } sh ? shipments.GetValueOrDefault(sh) : null, s.ShippedAt)).ToList(),
+                mine.Select(s => new TraceSerial(s.Id, s.ItemId, s.SerialNumber, s.Status, s.ShipmentId, s.ShipmentId is { } sh ? shipments.GetValueOrDefault(sh) : null, s.ShippedAt)).ToList(),
                 TraceabilityRules.NoSerialNote(mine.Count, order?.Status, originals.Count > 0, reversedAll, tracks), TraceabilityRules.SharedLotsNote(order?.Number, mine.Count));
         }).ToList();
     }

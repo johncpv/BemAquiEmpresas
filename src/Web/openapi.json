@@ -46664,6 +46664,7 @@
       "TraceSerial": {
         "required": [
           "id",
+          "itemId",
           "serialNumber",
           "status",
           "shipmentId",
@@ -46673,6 +46674,10 @@
         "type": "object",
         "properties": {
           "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemId": {
             "type": "string",
             "format": "uuid"
           },

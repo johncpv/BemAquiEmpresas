@@ -185,7 +185,8 @@ public class TraceabilityRulesTests
             [new TraceLotBalance(Guid.CreateVersion7(), "Almoxarifado", 20m)], 20m,
             [
                 new TraceConsumption(Guid.CreateVersion7(), "OS-2026-0001", ProductionOrderState.Completed, Guid.CreateVersion7(), "PRJ-2026-0001", "Obra Centro", pf, T0, 20m,
-                    [new TraceSerial(Guid.CreateVersion7(), "ELV-2026-00001", SerialState.Shipped, Guid.CreateVersion7(), "ROM-2026-0001", T0), new TraceSerial(Guid.CreateVersion7(), "ELV-2026-00002", SerialState.InStock, null, null, null)],
+                    [new TraceSerial(Guid.CreateVersion7(), Guid.CreateVersion7(), "ELV-2026-00001", SerialState.Shipped, Guid.CreateVersion7(), "ROM-2026-0001", T0),
+                        new TraceSerial(Guid.CreateVersion7(), Guid.CreateVersion7(), "ELV-2026-00002", SerialState.InStock, null, null, null)],
                     null, "Lotes da OS OS-2026-0001 (2 unidades): a OS não separa o material por unidade."),
                 new TraceConsumption(Guid.CreateVersion7(), "OS-2025-0009", ProductionOrderState.Completed, null, null, null, null, T0, 8m, [], TraceabilityRules.NoSerialBeforeRegistry, null),
             ], 28m,
