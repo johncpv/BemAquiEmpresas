@@ -73,7 +73,7 @@ export function ApprovalRulesPage() {
           </>
         )}
         <section aria-label="Simulador" className="space-y-2 rounded-md border border-border bg-card p-4 text-sm">
-          <label className="flex flex-wrap items-center gap-2 font-medium">Quem aprovaria {type.id === 'PurchaseOrder' ? 'um pedido' : 'uma OP'} de <span className="w-40"><MoneyInput aria-label={`Valor ${type.id === 'PurchaseOrder' ? 'do pedido' : 'da OP'} simulado`} value={amount} onChange={setAmount} /></span>?</label>
+          <label className="flex flex-wrap items-center gap-2 font-medium">Quem aprovaria {type.id === 'PurchaseOrder' ? 'um pedido' : 'uma OP'} de <span className="w-40"><MoneyInput aria-label={type.id === 'PurchaseOrder' ? 'Valor do pedido simulado' : 'Valor da OP simulada'} value={amount} onChange={setAmount} /></span>?</label>
           {simulation.data ? (
             <ul className="space-y-1">
               {simulation.data.levels.map((l) => <li key={l.level}>Nível {l.level}: {l.approverName}</li>)}
