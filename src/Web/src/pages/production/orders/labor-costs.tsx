@@ -15,7 +15,7 @@ import { Tag } from '@/components/ui/tag'
 import { Dica } from '@/help/Dica'
 import { formatDateTime, formatMoney } from '@/lib/format'
 import { useCan } from '@/pages/use-can'
-import { hours } from './fabrication'
+import { hours, unitCost } from './fabrication'
 import { COST_ORIGIN, LABOR_COST_DICAS, laborCostMarks, recalcImpact, useOrderLaborCosts } from './labor-cost'
 
 /** Célula de custo do apontamento (CA 14): valor, custo-hora do cargo e as marcas, com "Histórico do custo" (CA 17). */
@@ -169,6 +169,15 @@ export function FabricationCostsTab({ orderId, withMaterial = false }: { orderId
     <div className="space-y-3 text-sm">
       <MissingCostNotice orderId={orderId} positions={c.missingPositions} onDone={refresh} />
       {withMaterial ? <MaterialCostLine orderId={orderId} /> : null}
+      {/* PRD-06a2 CA 11: o produto acabado entrou no estoque pelo custo apurado da OS (custo unitário em 6 casas). */}
+      {c.finishedGoods ? (
+        <div className="rounded-md border border-border bg-card p-3">
+          <p className="flex flex-wrap items-center justify-between gap-2">
+            <b>{c.finishedGoods.reversed ? 'Produto acabado (entrada estornada)' : 'Produto acabado no estoque'}</b>
+            <span className="tabular-nums"><span className="text-muted-foreground">{c.finishedGoods.movementNumber} · {formatQuantity(c.finishedGoods.quantity)} × {unitCost(c.finishedGoods.unitCost)} = </span><Money value={c.finishedGoods.totalCost} className="font-semibold" /></span>
+          </p>
+        </div>
+      ) : null}
       <div className="rounded-md border border-border bg-card p-3">
         <p className="flex flex-wrap items-center justify-between gap-2">
           <b className="inline-flex items-center">Mão de obra{c.includesBackfill ? <span className="ml-1 inline-flex items-center"><Tag>Calculado na implantação</Tag><Dica nome="Calculado na implantação" texto={LABOR_COST_DICAS.implantacao} /></span> : null}</b>
