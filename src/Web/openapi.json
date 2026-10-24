@@ -14850,6 +14850,131 @@
         }
       }
     },
+    "/api/v1/inventory/production-orders/{id}/serials": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetOrderSerials",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderSerialsView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/production-orders/{id}/serials/{serialId}": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetOrderSerial",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "serialId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderSerialDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/items/{itemId}/serials": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "ListItemSerials",
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/SerialState"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfItemSerialRow"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/purchasing/purchase-requests": {
       "get": {
         "tags": [
@@ -19360,131 +19485,6 @@
           }
         }
       }
-    },
-    "/api/v1/inventory/production-orders/{id}/serials": {
-      "get": {
-        "tags": [
-          "Estoque"
-        ],
-        "operationId": "GetOrderSerials",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OrderSerialsView"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/inventory/production-orders/{id}/serials/{serialId}": {
-      "get": {
-        "tags": [
-          "Estoque"
-        ],
-        "operationId": "GetOrderSerial",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "serialId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OrderSerialDetail"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/inventory/items/{itemId}/serials": {
-      "get": {
-        "tags": [
-          "Estoque"
-        ],
-        "operationId": "ListItemSerials",
-        "parameters": [
-          {
-            "name": "itemId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "schema": {
-              "$ref": "#/components/schemas/SerialState"
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "pageSize",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PagedListOfItemSerialRow"
-                }
-              }
-            }
-          }
-        }
-      }
     }
   },
   "components": {
@@ -23934,7 +23934,8 @@
             }
           },
           "confirmZeroCost": {
-            "type": "boolean"
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -26244,7 +26245,8 @@
             "format": "uuid"
           },
           "completedWithoutStock": {
-            "type": "boolean"
+            "type": "boolean",
+            "default": false
           }
         }
       },
