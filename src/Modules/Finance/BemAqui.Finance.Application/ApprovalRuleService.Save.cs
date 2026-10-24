@@ -44,21 +44,34 @@ public sealed partial class ApprovalRuleService
             return ReceivableService.Invalid("approverGroupId", "Escolha um grupo ou um usuário aprovador.");
         }
 
-        var approvers = await users.UsersWithPermissionAsync("finance.approve", ct);
-        var members = input.ApproverGroupId is { } group ? await users.GroupMembersAsync(group, ct) : [input.ApproverUserId!.Value];
-        if (members.Count == 0 || members.Any(m => !approvers.Contains(m)))
+        if (input.DocumentType is { } requested && !ApprovalDocumentTypes.IsKnown(requested))
         {
-            return ReceivableService.Invalid(input.ApproverGroupId is null ? "approverUserId" : "approverGroupId", "O aprovador escolhido não tem a permissão Aprovar em Caixa e pagamentos.");
+            return ReceivableService.Invalid("documentType", "Escolha ordem de pagamento ou pedido de compra.");
         }
 
-        var rule = id is { } ruleId ? await db.ApprovalRules.FirstOrDefaultAsync(r => r.Id == ruleId, ct) : new ApprovalRule { CreatedAt = clock.GetUtcNow() };
+        var rule = id is { } ruleId ? await db.ApprovalRules.FirstOrDefaultAsync(r => r.Id == ruleId, ct) : new ApprovalRule { DocumentType = TypeOf(input.DocumentType), CreatedAt = clock.GetUtcNow() };
         if (rule is null)
         {
             return NotFound();
         }
 
+        if (input.DocumentType is { } asked && asked != rule.DocumentType)
+        {
+            return ReceivableService.Invalid("documentType", "A regra não muda de tipo de documento. Crie outra regra.");
+        }
+
+        // Mapa tipo → permissão do aprovador (ADR 0024 §4): pedido de compra só com purchasing.approve.
+        var purchase = rule.DocumentType == ApprovalDocumentTypes.PurchaseOrder;
+        var approvers = await users.UsersWithPermissionAsync(ApprovalDocumentTypes.ApproverPermission(rule.DocumentType), ct);
+        var members = input.ApproverGroupId is { } group ? await users.GroupMembersAsync(group, ct) : [input.ApproverUserId!.Value];
+        if (members.Count == 0 || members.Any(m => !approvers.Contains(m)))
+        {
+            return ReceivableService.Invalid(input.ApproverGroupId is null ? "approverUserId" : "approverGroupId",
+                purchase ? "O aprovador escolhido não tem a permissão Aprovar em Compras." : "O aprovador escolhido não tem a permissão Aprovar em Caixa e pagamentos.");
+        }
+
         var candidate = new ApprovalRule { MinAmount = input.MinAmount, MaxAmount = input.MaxAmount, AccountId = input.AccountId, Level = input.Level, ApproverGroupId = input.ApproverGroupId, ApproverUserId = input.ApproverUserId };
-        var others = await db.ApprovalRules.AsNoTracking().Where(r => r.IsActive && r.Id != rule.Id && r.DocumentType == ApprovalRule.PaymentOrder).ToListAsync(ct);
+        var others = await db.ApprovalRules.AsNoTracking().Where(r => r.IsActive && r.Id != rule.Id && r.DocumentType == rule.DocumentType).ToListAsync(ct);
         if (others.FirstOrDefault(o => o.Level == candidate.Level && o.AccountId == candidate.AccountId && o.Overlaps(candidate)) is { } clash)
         {
             return ReceivableService.Invalid("minAmount", $"A faixa se sobrepõe à regra {await DescribeAsync(clash, ct)}.");
@@ -82,7 +95,7 @@ public sealed partial class ApprovalRuleService
 
         await NotifyOwnersAsync(ct);
         await db.SaveChangesAsync(ct);
-        return (await ListAsync(ct)).First(r => r.Id == rule.Id);
+        return (await ListAsync(rule.DocumentType, ct)).First(r => r.Id == rule.Id);
     }
 
     private static bool SameApprover(ApprovalRule a, ApprovalRule b) =>

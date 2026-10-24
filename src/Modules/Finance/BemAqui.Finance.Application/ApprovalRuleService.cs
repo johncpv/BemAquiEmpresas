@@ -8,24 +8,31 @@ using Microsoft.EntityFrameworkCore;
 namespace BemAqui.Finance.Application;
 
 /// <summary>
-/// Regras de alçada (FIN-03b CA 1 a 5): só membros do Proprietário editam; o aprovador precisa ter <c>finance.approve</c>;
-/// faixas do mesmo nível e conta não se sobrepõem; o mesmo aprovador não decide dois níveis da mesma faixa.
+/// Regras de alçada (FIN-03b CA 1 a 5; CMP-03a, ADR 0024 §4): por tipo de documento (ordem de pagamento ou pedido de compra); só membros
+/// do Proprietário editam; o aprovador precisa ter a permissão do tipo (<c>finance.approve</c> ou <c>purchasing.approve</c>); faixas do
+/// mesmo tipo, nível e conta não se sobrepõem; o mesmo aprovador não decide dois níveis da mesma faixa.
 /// </summary>
 public sealed partial class ApprovalRuleService(IFinanceDb db, IChartOfAccounts chart, IUserDirectory users, ICurrentUser currentUser, INotificationService notifications, TimeProvider clock)
 {
-    public async Task<IReadOnlyList<ApprovalRuleView>> ListAsync(CancellationToken cancellationToken = default)
+    /// <summary>Regras ativas do tipo (sem tipo, a ordem de pagamento, como na FIN-03b).</summary>
+    public async Task<IReadOnlyList<ApprovalRuleView>> ListAsync(string? documentType = null, CancellationToken cancellationToken = default)
     {
-        var rules = await db.ApprovalRules.AsNoTracking().Where(r => r.IsActive).OrderBy(r => r.Level).ThenBy(r => r.AccountId != null).ThenBy(r => r.MinAmount).ToListAsync(cancellationToken);
+        var type = TypeOf(documentType);
+        var rules = await db.ApprovalRules.AsNoTracking().Where(r => r.IsActive && r.DocumentType == type).OrderBy(r => r.Level).ThenBy(r => r.AccountId != null).ThenBy(r => r.MinAmount)
+            .ToListAsync(cancellationToken);
         var accounts = (await chart.FindAsync(rules.Where(r => r.AccountId != null).Select(r => r.AccountId!.Value).Distinct().ToList(), cancellationToken)).ToDictionary(a => a.Id, a => $"{a.Code} {a.Name}");
         var list = new List<ApprovalRuleView>();
         foreach (var r in rules)
         {
             list.Add(new ApprovalRuleView(r.Id, r.Level, r.MinAmount, r.MaxAmount, r.AccountId, r.AccountId is { } a ? accounts.GetValueOrDefault(a) : null, r.ApproverGroupId, r.ApproverUserId,
-                await ApproverNameAsync(r, cancellationToken), r.SeedKey == ApprovalRule.DefaultSeedKey));
+                await ApproverNameAsync(r, cancellationToken), r.SeedKey is ApprovalRule.DefaultSeedKey or ApprovalRule.PurchaseOrderSeedKey, r.DocumentType));
         }
 
         return list;
     }
+
+    /// <summary>Tipo de documento conhecido ou a ordem de pagamento (padrão da FIN-03b).</summary>
+    public static string TypeOf(string? documentType) => ApprovalDocumentTypes.IsKnown(documentType) ? documentType! : ApprovalDocumentTypes.PaymentOrder;
 
     public async Task<Result<ApprovalRuleView>> CreateAsync(ApprovalRuleInput input, CancellationToken cancellationToken = default) =>
         await SaveAsync(null, input, cancellationToken);
@@ -53,10 +60,10 @@ public sealed partial class ApprovalRuleService(IFinanceDb db, IChartOfAccounts 
         return Result.Success();
     }
 
-    /// <summary>Grupos e usuários que podem aprovar (têm <c>finance.approve</c>), para o seletor da regra.</summary>
-    public async Task<IReadOnlyList<ApproverOption>> ApproversAsync(CancellationToken cancellationToken = default)
+    /// <summary>Grupos e usuários que podem aprovar o tipo (têm <c>finance.approve</c> ou <c>purchasing.approve</c>), para o seletor da regra.</summary>
+    public async Task<IReadOnlyList<ApproverOption>> ApproversAsync(string? documentType = null, CancellationToken cancellationToken = default)
     {
-        var approvers = await users.UsersWithPermissionAsync("finance.approve", cancellationToken);
+        var approvers = await users.UsersWithPermissionAsync(ApprovalDocumentTypes.ApproverPermission(TypeOf(documentType)), cancellationToken);
         var options = new List<ApproverOption>();
         foreach (var u in approvers)
         {
@@ -71,15 +78,27 @@ public sealed partial class ApprovalRuleService(IFinanceDb db, IChartOfAccounts 
         return options;
     }
 
-    /// <summary>Regra padrão (CA 1): "Proprietário aprova tudo"; não volta se o tenant a excluiu.</summary>
+    /// <summary>
+    /// Regras padrão (FIN-03b CA 1; CMP-03a CA 5, ponto 44): "Proprietário aprova tudo", uma própria para cada tipo de documento;
+    /// idempotente e não volta se o tenant a excluiu.
+    /// </summary>
     public async Task SeedDefaultAsync(CancellationToken cancellationToken = default)
     {
-        if (await db.ApprovalRules.IgnoreQueryFilters().AnyAsync(r => r.SeedKey == ApprovalRule.DefaultSeedKey, cancellationToken) || await users.OwnerGroupIdAsync(cancellationToken) is not { } owner)
+        if (await users.OwnerGroupIdAsync(cancellationToken) is not { } owner)
         {
             return;
         }
 
-        db.ApprovalRules.Add(new ApprovalRule { MinAmount = 0, ApproverGroupId = owner, Level = 1, SeedKey = ApprovalRule.DefaultSeedKey, CreatedAt = clock.GetUtcNow() });
+        var seeded = await db.ApprovalRules.IgnoreQueryFilters().Where(r => r.SeedKey != null).Select(r => r.SeedKey!).ToListAsync(cancellationToken);
+        foreach (var type in ApprovalDocumentTypes.All)
+        {
+            var key = ApprovalRule.SeedKeyOf(type);
+            if (!seeded.Contains(key))
+            {
+                db.ApprovalRules.Add(new ApprovalRule { DocumentType = type, MinAmount = 0, ApproverGroupId = owner, Level = 1, SeedKey = key, CreatedAt = clock.GetUtcNow() });
+            }
+        }
+
         await db.SaveChangesAsync(cancellationToken);
     }
 

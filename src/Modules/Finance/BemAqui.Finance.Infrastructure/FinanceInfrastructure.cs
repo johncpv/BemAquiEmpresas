@@ -50,6 +50,8 @@ public static class FinanceInfrastructure
         services.TryAddScoped<ApprovalRuleService>();
         services.TryAddScoped<ApprovalResolver>();
         services.TryAddScoped<ApprovalSimulator>();
+        // Motor de alçadas para os outros módulos (CMP-03a, ADR 0024 §4): o pedido de compra resolve a regra e confere a permissão do tipo.
+        services.TryAddScoped<IApprovalRouting, ApprovalRoutingContract>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ITenantSeeder, ApprovalRuleSeeder>());
         services.AddAuditableEntity<ApprovalRule>("finance");
         services.AddAuditableEntity<PaymentOrderLevel>("finance");

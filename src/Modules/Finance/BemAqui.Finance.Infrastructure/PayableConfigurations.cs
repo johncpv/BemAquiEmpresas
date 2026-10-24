@@ -34,8 +34,11 @@ internal sealed class PayableConfiguration : IEntityTypeConfiguration<Payable>
         b.HasIndex(e => new { e.Status, e.DueDate }).HasFilter("status NOT IN ('Paid','Cancelled')").HasDatabaseName("ix_payables_open_due");
         b.HasIndex(e => e.PartyId);
         b.HasIndex(e => e.InstallmentGroupId);
-        // Um título por origem (CA 14) e um por competência da recorrente (CA 17), mesmo em paralelo.
-        b.HasIndex(e => new { e.Origin, e.OriginId }).IsUnique().HasFilter("origin_id IS NOT NULL").HasDatabaseName(PayableService.OriginIndex);
+        // Um título ativo por parcela da origem (ADR 0024 §2, CMP-03a CA 17) e um por competência da recorrente (CA 17), mesmo em
+        // paralelo. Título cancelado não ocupa a chave (o replanejamento recria a parcela). O índice antigo (origin, origin_id) saiu em
+        // dois passos: o novo nasceu na migration PurchaseOrders e o antigo foi removido na PayablesOriginIndexStep2.
+        b.HasIndex(e => new { e.Origin, e.OriginId, e.Installment }).IsUnique().HasFilter("origin_id IS NOT NULL AND status <> 'Cancelled'")
+            .HasDatabaseName(PayableService.OriginInstallmentIndex);
         b.HasIndex(e => new { e.RecurringExpenseId, e.Competence }).IsUnique().HasFilter("recurring_expense_id IS NOT NULL").HasDatabaseName(PayableService.CompetenceIndex);
     }
 }
