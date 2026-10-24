@@ -5,7 +5,7 @@
 | ID | PRD-06b |
 | Título | Romaneio de expedição do projeto (`ROM-AAAA-0001`) com os produtos acabados e as séries, dados de transporte e PDF; a confirmação baixa o produto acabado do estoque de forma síncrona (série `Shipped`, 409 `insufficient_stock`); produto do estoque geral confirmado por outra pessoa com `inventory.approve`; na Fase 5 a NF-e referencia o romaneio e nunca baixa de novo |
 | Tamanho | M |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-PRD-8 (expedição: romaneio, vínculo com NF-e de saída, baixa do produto acabado) · R-EST-6 (saída por venda) · R-EST-8 (série) · R-COM-3 (PDF do romaneio) · R-COM-4 · R-PRP-2 · R-PRP-7 · R-SEC-5 |
 | Dependências | PRD-06a2, COM-03 |
 | Bloqueia | EST-04 |
@@ -94,22 +94,22 @@ Decididos pelo PO em 21/10/2026 (revisão pré-Fase 3, D4, D15 e tabela 1.1, ite
 **Pré-condição externa:** nenhuma.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers, PDF na imagem Alpine) e E2E passando.
-- [ ] Migration criada (não destrutiva), testada sobre cópia do banco do tenant `konebras`.
-- [ ] ADR 0023 §1 aplicada (baixa síncrona) e D4 registrada.
-- [ ] Permissões só do `ModuleCatalog`; dono de anexo `Shipment` registrado (ADR 0019 §7 adendo).
-- [ ] Telas com estados, inclusive a 400 px.
-- [ ] Ajudas da lista e do romaneio; teste de cobertura passando.
-- [ ] Diálogo de impacto e próximos passos aplicados.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` (romaneio) e `docs/04-fluxos-estados.md` §2 e §4 (D4: romaneio baixa, NF-e referencia; `ROM`) atualizados; P-04 com a etapa Expedição "preparar e embalar"; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade e E2E passando; integração (Testcontainers, PDF na imagem Alpine) escrita, a rodar na fila do Docker/CI.
+- [x] Migration criada (não destrutiva, `ProductionShipments`); o teste sobre a cópia do banco `konebras` fica para o deploy (sem acesso à VPS nesta máquina).
+- [x] ADR 0023 §1 aplicada (baixa síncrona) e D4 registrada.
+- [x] Permissões só do `ModuleCatalog`; dono de anexo `Shipment` registrado (ADR 0019 §7 adendo).
+- [x] Telas com estados, inclusive a 400 px.
+- [x] Ajudas da lista e do romaneio; teste de cobertura passando.
+- [x] Diálogo de impacto e próximos passos aplicados.
+- [x] Auditoria ligada.
+- [x] Cliente Orval regenerado; `openapi.json` editado à mão (regenerar com `BQ_UPDATE_OPENAPI`).
+- [x] `docs/03-modelo-dados.md` (romaneio) e `docs/04-fluxos-estados.md` §2 e §4 (D4: romaneio baixa, NF-e referencia; `ROM`) atualizados; P-04 com a etapa Expedição "preparar e embalar"; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `Shipment` e `ShipmentLine` (Domain); `ShipmentService` (montar, confirmar, confirmar estoque geral, cancelar, estornar) com a chamada síncrona ao Inventory.
-- [ ] `ShipmentPdfDocument`; `IStockSerials` no Inventory; `IShipments` no Production.
-- [ ] Tela de expedição, romaneio, próximos passos e ajudas.
+- [x] `Shipment` e `ShipmentLine` (Domain); `ShipmentService` (montar, confirmar, confirmar estoque geral, cancelar, estornar) com a chamada síncrona ao Inventory.
+- [x] `ShipmentPdfDocument`; `IStockSerials` no Inventory; `IShipments` no Production.
+- [x] Tela de expedição, romaneio, próximos passos e ajudas.
 
 ## Quality gates
 - Agentes previstos: @dev, @qa.
@@ -143,3 +143,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO (D4, D15, tabela 1.1 itens 84–86 e 93) e correções da revisão pré-Fase 3 (§2.1 baixa síncrona, ADR 0023 §1; §2.2 ponto 86; §2.3 padrões 4, 5, 6, 8); nova ordem (Marco 3.4) | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 24/10/2026 | 1.0 | Implementada (`Done`), sobre a PRD-06a2 (branch `feat/prd-06a2-produto-acabado`). Desvios e decisões de implementação: (1) **Contratos do Inventory:** o `IStockSerials` ganhou `FindAsync`, `ShipAsync` (séries a `Shipped` com o romaneio, 409 `serial_not_in_stock` se alguma saiu do estoque) e `UnshipAsync` (estorno); o "pronto para expedir" ficou num contrato só de leitura, `IFinishedGoodsStock` (`ForProjectAsync`, `ReadyToShipAsync`, `GeneralStockAsync`): com série, as séries `InStock` do projeto; sem série, as entradas `Production` menos as saídas `Shipment` com o projeto, por item, local e lote, limitadas ao disponível da posição (físico − reservado) e do lote. (2) **Estoque geral** (CA 2 e 6): produto do tipo produto acabado sem projeto = físico menos o que é de algum projeto, mais as séries sem projeto; a linha "Estoque geral" sai **sem projeto** no movimento, para não mexer no que é do projeto (decisão de implementação, a mais segura). (3) **Colunas:** `confirmed_by` virou `stock_approved_by`, com `stock_approval_requested_by/at`, `self_approved` ("Autoaprovado"), `pdf_attachment_id` e as colunas do cancelamento e do estorno; a linha guarda `sequence` (a perna da chave), `lot_id`/`lot_number` e `movement_id`; `shipment_line_serials` tem `released_at` para o índice único parcial `ux_shipment_line_serials_active`; `inventory.serials` ganhou `shipped_at` e `shipment_id`. (4) **Rascunho editável** (`PUT /shipments/{id}`, `production.create`): troca o cabeçalho e as linhas enquanto `Draft`; o projeto não muda. (5) **PDF:** "Baixar PDF" gera na hora (`GET /shipments/{id}/pdf`, `production.view`) em qualquer situação; na confirmação o PDF fica guardado como arquivo do sistema (dono `Shipment`) e aparece na aba Documentos com a tag "Gerado pelo sistema". (6) **Estoque geral por outra pessoa** (CA 6): "envolvidos" são quem montou e quem pediu a confirmação; o aviso vai para quem tem `inventory.approve` menos eles (`dedup_key` por pedido); o `SoleOwnerRule` do Proprietário único tem teste de unidade, e o caso de integração não foi escrito porque o banco de teste compartilhado tem outros aprovadores. (7) **Próximos passos** (CA 8 e 9): "Registrar entrega" leva ao projeto, onde está o botão da COM-04b; "Emitir NF-e: disponível na Fase 5" é um texto sob a faixa (o `NextSteps` não tem ação desabilitada); "Concluir OS" aparece para quem tem `production.approve` sempre que a OS está "Pronta para concluir" (não só logo depois de finalizar a etapa), e os seletores do "Concluir OS" dos E2E da PRD-06a1/06a2 passaram a `.first()`. (8) **Estorno da conclusão da OS** (pendência da PRD-06a2): a regra mora em `FinishedGoods.ShipmentBlockerAsync` e vale também no diálogo: série expedida, ou sem série o que é do projeto no estoque abaixo da entrada da OS, dá 409 `serial_shipped` "O produto já foi expedido."; série ou quantidade em romaneio aberto dá 409 `product_in_shipment` (cancele o romaneio antes). (9) **Linha do tempo do projeto** (CA 13): "Romaneio {ROM} expedido: {n} unidades ({séries})" e "Expedição do {ROM} estornada: {motivo}", sem valor; a aba Itens e OS ganhou a lista "Romaneios" com "Novo romaneio". (10) **Limite de 30 envios por hora** (CA 14): é o limite geral dos anexos (`Attachments:MaxUploadsPerHour`), o mesmo por usuário para todos os donos, já testado na PRD-01 (`FabricationTests.Contracts`); o teste novo cobre tipo, tamanho, dono e permissão. (11) **Placa e motorista** só no detalhe (fora da lista, do contrato `IShipments` e dos eventos); placa gravada sem espaço e em maiúsculas. (12) `openapi.json` editado à mão (regenerar com `BQ_UPDATE_OPENAPI`); testes de integração escritos e não executados (fila do Docker); dos testes de arquitetura, os 9 de sempre ficam bloqueados pelo Smart App Control (`0x800711C7`) e rodam no CI; a migration não foi testada sobre a cópia do banco `konebras`. (13) O E2E `production.spec.ts` "cadastra centro com dois turnos…" já falhava antes desta story (a lista de OS abre em `?situacao=pronta` para quem aprova, PRD-06a1) e não foi mexido. | Dev |

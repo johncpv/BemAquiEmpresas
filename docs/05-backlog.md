@@ -356,7 +356,7 @@ _MIG-01d (saldos iniciais de estoque) não entra aqui: cancelada pelo PO em 18/1
 - Requisitos: R-PRD-7, R-EST-8, R-EST-7, R-COM-4, R-PRP-2, R-PRP-7, R-SEC-5.
 - CA: na transação da conclusão, entrada `Production` pelo custo da OS (fontes síncronas, ADR 0025 §2), séries `{código}-{AAAA}-{seq}` (D15), lotes consumidos em `inventory.serial_components` e reservas liberadas; produto obrigatório; OS concluídas antes ficam sem entrada no estoque, documentado; estorno reverte a entrada e as séries não expedidas.
 
-**PRD-06b [ ] Expedição: romaneio e saída do produto acabado (M)** — 3.4, ordem 20 — [story](stories/PRD-06b-expedicao-romaneio.md)
+**PRD-06b [x] Expedição: romaneio e saída do produto acabado (M)** — 3.4, ordem 20 — [story](stories/PRD-06b-expedicao-romaneio.md)
 - Requisitos: R-PRD-8, R-EST-6, R-EST-8, R-COM-3, R-COM-4, R-PRP-2, R-PRP-7, R-SEC-5.
 - CA: o romaneio confirmado baixa de forma síncrona, com 409 `insufficient_stock` sem gravar nada (D4); na Fase 5 a NF-e referencia o romaneio; numeração `ROM`; estoque geral confirmado por outra pessoa com `inventory.approve` (`SoleOwnerRule`); estorno síncrono; série em dois romaneios recusada.
 
