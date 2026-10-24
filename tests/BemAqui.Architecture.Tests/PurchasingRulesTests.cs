@@ -134,6 +134,57 @@ public class PurchasingRulesTests
         statements.Single(s => s.Contains(".WithName(\"CancelPurchaseOrder\")", StringComparison.Ordinal)).Should().Contain("\"purchasing.edit\"");
     }
 
+    /// <summary>
+    /// CMP-02 CA 1, 9, 10 e 13: criar a cotação e gerar os pedidos exigem <c>purchasing.create</c> e <c>Idempotency-Key</c>; respostas,
+    /// fornecedores, concluir e cancelar exigem <c>purchasing.edit</c>; "Enviar todos" usa a mesma permissão do envio do pedido (CMP-03a).
+    /// </summary>
+    [Fact]
+    public void Cotacao_usa_as_acoes_certas_e_a_Idempotency_Key()
+    {
+        var statements = EndpointsText.Split(';').Where(s => s.Contains(".WithName(\"", StringComparison.Ordinal)).ToList();
+        string Of(string name) => statements.Single(s => s.Contains($".WithName(\"{name}\")", StringComparison.Ordinal));
+        Of("CreateRfq").Should().Contain("\"purchasing.create\"").And.Contain(".RequireIdempotencyKey()");
+        Of("GenerateRfqPurchaseOrders").Should().Contain("\"purchasing.create\"").And.Contain(".RequireIdempotencyKey()");
+        foreach (var name in new[] { "AddRfqSupplier", "RemoveRfqSupplier", "SaveRfqResponse", "DeclineRfqSupplier", "CloseRfq", "CancelRfq" })
+        {
+            Of(name).Should().Contain("\"purchasing.edit\"", name);
+        }
+
+        Of("SubmitRfqPurchaseOrders").Should().Contain(".RequireAnyPermissionOf(\"purchasing.create\", \"purchasing.edit\")");
+        Of("SubmitPurchaseOrder").Should().Contain(".RequireAnyPermissionOf(\"purchasing.create\", \"purchasing.edit\")", "a mesma do envio da CMP-03a");
+        Of("GetRfq").Should().Contain("\"purchasing.view\"");
+        Of("SaveRfqResponse").Should().Contain("/{id:guid}/suppliers/{supplierId:guid}/", "fornecedor lido pela cotação da URL (IDOR)");
+    }
+
+    /// <summary>
+    /// CMP-02 (regra da story): a cotação não grava em <c>purchase_orders</c> por conta própria; o pedido nasce pelo serviço de criação da
+    /// CMP-03a e o envio pelo envio da CMP-03a.
+    /// </summary>
+    [Fact]
+    public void Cotacao_cria_e_envia_o_pedido_pelo_servico_da_CMP_03a()
+    {
+        var dir = Path.Combine(Solution.RootDirectory, "src", "Modules", "Purchasing", "BemAqui.Purchasing.Application");
+        var sources = string.Join("\n", Directory.GetFiles(dir, "RfqService*.cs").Select(File.ReadAllText));
+        sources.Should().NotContain("db.PurchaseOrders.Add").And.NotContain("db.PurchaseOrderLines.Add").And.NotContain("new PurchaseOrder {").And.NotContain("new PurchaseOrder\n");
+        sources.Should().Contain("orders.AddFromRfqAsync(").And.Contain("orders.SubmitAsync(");
+    }
+
+    /// <summary>CMP-02 CA 4 (ADR 0019 §7, adendo de 21/10/2026): o dono de anexo <c>Rfq</c> com os tipos, o tamanho, o <c>OwnerExists</c> e a escrita com edit.</summary>
+    [Fact]
+    public void Dono_de_anexo_Rfq_esta_inscrito_com_as_regras_da_ADR()
+    {
+        var services = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
+        BemAqui.Purchasing.Infrastructure.PurchasingInfrastructure.AddPurchasingInfrastructure(services);
+        var rfq = services.Select(d => d.ImplementationInstance).OfType<BemAqui.BuildingBlocks.Attachments.AttachmentOwnerRegistration>().Single(r => r.OwnerType == "Rfq").Rules;
+        rfq.Module.Should().Be("purchasing");
+        rfq.ReadAction.Should().Be("view");
+        rfq.WriteAction.Should().Be("edit");
+        rfq.MaxSize.Should().Be(10 * 1024 * 1024);
+        rfq.ContentTypes.Should().BeEquivalentTo(["application/pdf", "image/png", "image/jpeg", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"]);
+        rfq.OwnerExists.Should().NotBeNull();
+        rfq.CanAttach.Should().NotBeNull("a cotação concluída não recebe anexo (CA 14)");
+    }
+
     /// <summary>CA 5 (ADR 0023 §6): o aviso de falta tem o consumidor do Purchasing, que recompõe pela fonte.</summary>
     [Fact]
     public void StockShortageChanged_tem_o_consumidor_do_Purchasing()
