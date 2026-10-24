@@ -191,7 +191,7 @@ public partial class FabricationTests
         tab.GetProperty("consumedLots").GetArrayLength().Should().Be(2);
         var itemTab = await OkAsync(await owner.GetAsync($"{Inventory}/items/{product}/serials"));
         itemTab.GetProperty("items").EnumerateArray().Select(s => s.GetProperty("productionOrderNumber").GetString()).Should().OnlyContain(n => n == done.GetProperty("number").GetString());
-        var costs = await OkAsync(await owner.GetAsync($"{Base}/{order}/costs"));
+        var costs = await OkAsync(await owner.GetAsync($"{Base}/{order}/labor-costs"));
         costs.GetProperty("finishedGoods").GetProperty("unitCost").GetDecimal().Should().Be(350m, "aba Custos com projects.view_cost");
     }
 
@@ -429,7 +429,7 @@ public partial class FabricationTests
             body.Should().NotContainAny(["unitCost", "averageCost", "totalCost", "\"cost\""], "CA 14: DTO sem custo");
         }
 
-        (await viewer.GetAsync($"{Base}/{order}/costs")).StatusCode.Should().Be(HttpStatusCode.Forbidden, "custo só com projects.view_cost");
+        (await viewer.GetAsync($"{Base}/{order}/labor-costs")).StatusCode.Should().Be(HttpStatusCode.Forbidden, "custo só com projects.view_cost");
     }
 
     [Fact]
