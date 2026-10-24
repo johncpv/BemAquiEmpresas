@@ -23,10 +23,14 @@ export interface PurchasingAccounting {
   accountingConfirmed: boolean
   /** Tolerância do recebimento (CMP-04, D8): % acima da quantidade e do aprovado; padrão 0%. */
   receiptTolerancePct?: number
+  /** Cotação (CMP-02, D8): custo total da resposta acima deste valor exige o anexo da proposta; padrão R$ 5.000,00. */
+  quoteAttachmentAmount?: number
 }
 
+export const ATTACHMENT_DICA = 'Na cotação, a resposta de um fornecedor com custo total (itens + frete + IPI) acima deste valor só é salva com a proposta dele anexada. Na conclusão, o sistema confere de novo o anexo de cada vencedor.'
+
 /** Alguma coisa mudou em relação ao que está salvo (habilita "Salvar parâmetros de compras"). */
-const KEYS: (keyof PurchasingAccounting)[] = ['defaultLeadDays', 'payableAccountCode', 'payableCostType', 'freightAccountCode', 'freightCostType', 'accountingConfirmed', 'receiptTolerancePct']
+const KEYS: (keyof PurchasingAccounting)[] = ['defaultLeadDays', 'payableAccountCode', 'payableCostType', 'freightAccountCode', 'freightCostType', 'accountingConfirmed', 'receiptTolerancePct', 'quoteAttachmentAmount']
 
 export const purchasingChanged = (saved: PurchasingAccounting, draft: PurchasingAccounting) => KEYS.some((k) => (saved[k] ?? 0) !== (draft[k] ?? 0))
 

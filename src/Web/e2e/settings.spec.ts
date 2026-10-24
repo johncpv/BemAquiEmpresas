@@ -160,7 +160,7 @@ test.describe('configurações da empresa (CAD-06)', () => {
     const { api, calls } = settingsApi()
     let purchasing = {
       defaultLeadDays: 15, defaultLeadDaysId: null as string | null, payableAccountCode: '2.1', payableCostType: 'Material', freightAccountCode: '2.4', freightCostType: 'Freight',
-      accountingConfirmed: false, accounts: [{ code: '1.3', name: 'Estoques' }, { code: '2.1', name: 'Materiais' }, { code: '2.4', name: 'Fretes' }],
+      accountingConfirmed: false, accounts: [{ code: '1.3', name: 'Estoques' }, { code: '2.1', name: 'Materiais' }, { code: '2.4', name: 'Fretes' }], quoteAttachmentAmount: 5000,
     }
     await mockApi(page, {
       ...api,
@@ -185,11 +185,15 @@ test.describe('configurações da empresa (CAD-06)', () => {
     const tolerance = page.getByRole('textbox', { name: /^Tolerância do recebimento/ })
     await expect(tolerance).toHaveValue('0')
     await tolerance.fill('2,5')
+    // CMP-02 (D8): o anexo da proposta na cotação é obrigatório acima de R$ 5.000,00.
+    const attachment = page.getByRole('textbox', { name: /^Anexo da proposta obrigatório acima de/ })
+    await expect(attachment).toHaveValue('5.000,00')
+    await attachment.fill('7500')
     await page.getByRole('button', { name: 'Salvar parâmetros de compras' }).click()
     await expect(page.getByText('Parâmetros de compras salvos')).toBeVisible()
     expect(calls.find((c) => c.path === '/api/v1/purchasing/parameters')?.body).toEqual({
       defaultLeadDays: 15, payableAccountCode: '1.3', payableCostType: 'Material', freightAccountCode: '2.4', freightCostType: 'Freight', accountingConfirmed: true,
-      receiptTolerancePct: 2.5,
+      receiptTolerancePct: 2.5, quoteAttachmentAmount: 7500,
     })
     await expect(group.getByText('A confirmar com a contadora')).toHaveCount(0)
     // Com a tolerância (CMP-04) o botão desceu: volta ao topo para o axe não ler as abas por baixo da mensagem fixa.

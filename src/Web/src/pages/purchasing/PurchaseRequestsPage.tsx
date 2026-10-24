@@ -1,4 +1,5 @@
 import { Link, useNavigate } from '@tanstack/react-router'
+import { useState } from 'react'
 import type { ColumnDef } from '@tanstack/react-table'
 import { useListPurchaseProjectOptions, useListPurchaseRequests, useListPurchaseRequestsByItem } from '@/api/generated/bemaqui'
 import type { PurchaseItemRow, PurchaseRequestOrigin, PurchaseRequestStatus, PurchaseRequestSummary } from '@/api/generated/model'
@@ -49,6 +50,13 @@ export function PurchaseRequestsPage() {
     itemId: item || undefined, productionOrderId: os || undefined, q: search.q, page: search.page, pageSize: search.pageSize,
   }, { query: { enabled: !byItem } })
   const items = useListPurchaseRequestsByItem({ q: search.q, projectId: projeto || undefined, page: search.page, pageSize: search.pageSize }, { query: { enabled: byItem } })
+  // CMP-02: na visão Por item, o comprador marca os itens e clica "Cotar"; as linhas abertas deles vão para a nova cotação.
+  const canQuote = useCan('purchasing.create')
+  const [selected, setSelected] = useState<string[]>([])
+  const quoteSelected = () => {
+    const lineIds = (items.data?.items ?? []).filter((r) => selected.includes(r.itemId)).flatMap((r) => r.requests.map((q) => q.lineId))
+    void navigate({ to: '/app/compras/cotacoes/nova', search: { sc: lineIds.join(',') } } as never)
+  }
 
   const columns: ColumnDef<PurchaseRequestSummary>[] = [
     { id: 'number', header: 'Número', cell: ({ row: { original: r } }) => <Link to={'/app/compras/solicitacoes/$id' as never} params={{ id: r.id } as never} className="font-semibold tabular-nums text-primary hover:underline">{r.number}</Link> },
@@ -109,8 +117,17 @@ export function PurchaseRequestsPage() {
           </Link>
         ) : null}
       </div>
+      {byItem && canQuote ? (
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <button type="button" disabled={selected.length === 0} onClick={quoteSelected} className={cn(newButton, 'disabled:opacity-60')}>
+            {selected.length ? `Cotar ${selected.length} ${selected.length === 1 ? 'item' : 'itens'}` : 'Cotar'}
+          </button>
+          <span className="text-sm text-muted-foreground">{selected.length ? 'Os últimos fornecedores desses itens já vêm escolhidos.' : 'Marque os itens que quer cotar juntos.'}</span>
+        </div>
+      ) : null}
       {byItem ? (
         <DataTable label="Itens a comprar" columns={itemColumns} query={items} getRowId={(r) => r.itemId} searchPlaceholder="Buscar pelo código ou nome do item"
+          selectable={canQuote ? { selected, onChange: setSelected, rowLabel: (r) => `${r.itemCode} ${r.itemName}` } : undefined}
           filters={[{ key: 'projeto', label: 'Projeto', options: (projects.data ?? []).map((p) => ({ value: p.id, label: `${p.number} — ${p.name}` })) }]}
           rowClassName={(r) => rowAccent(r.nearestNeededBy)}
           expandable={{ label: (r) => `solicitações de ${r.itemCode}`, render: (r) => <p className="text-sm tabular-nums">{r.requestCount} {r.requestCount === 1 ? 'solicitação' : 'solicitações'}: {r.requests.map((q) => q.number).join(', ')}</p> }}
