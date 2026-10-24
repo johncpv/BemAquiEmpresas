@@ -583,6 +583,7 @@ export * from './purchaseRequestOrigin';
 export * from './purchaseRequestStatus';
 export * from './purchaseRequestSummary';
 export * from './purchaseSupplierOption';
+export * from './purchasingAccountOption';
 export * from './purchasingParametersInput';
 export * from './purchasingParametersView';
 export * from './qualityApproveInput';

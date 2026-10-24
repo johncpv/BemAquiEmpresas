@@ -156,6 +156,48 @@ test.describe('configurações da empresa (CAD-06)', () => {
     await expect(page.getByText('Histórico de alterações').last()).toBeVisible()
   })
 
+  test('Parâmetros de compras: conta e natureza dos títulos do pedido e do frete, "A confirmar com a contadora" (CMP-03a)', async ({ page }) => {
+    const { api, calls } = settingsApi()
+    let purchasing = {
+      defaultLeadDays: 15, defaultLeadDaysId: null as string | null, payableAccountCode: '2.1', payableCostType: 'Material', freightAccountCode: '2.4', freightCostType: 'Freight',
+      accountingConfirmed: false, accounts: [{ code: '1.3', name: 'Estoques' }, { code: '2.1', name: 'Materiais' }, { code: '2.4', name: 'Fretes' }],
+    }
+    await mockApi(page, {
+      ...api,
+      'GET /api/v1/purchasing/parameters': (r: Route) => json(r, purchasing),
+      'PUT /api/v1/purchasing/parameters': (r: Route) => {
+        const body = r.request().postDataJSON() as Record<string, unknown>
+        calls.push({ path: '/api/v1/purchasing/parameters', body })
+        purchasing = { ...purchasing, ...body, defaultLeadDaysId: 'pc1' } as typeof purchasing
+        return json(r, purchasing)
+      },
+    })
+    await page.goto('/app/configuracoes/parametros')
+    const group = page.getByRole('group', { name: 'Títulos do pedido de compra' })
+    await expect(group.getByRole('combobox', { name: 'Conta do pedido' })).toHaveValue('2.1')
+    await expect(group.getByRole('combobox', { name: 'Natureza do pedido' })).toHaveValue('Material')
+    await expect(group.getByRole('combobox', { name: 'Conta do frete' })).toHaveValue('2.4')
+    await expect(group.getByText('A confirmar com a contadora')).toHaveCount(2)
+    await expect(page.getByRole('button', { name: 'Salvar parâmetros de compras' })).toBeDisabled()
+    await group.getByRole('combobox', { name: 'Conta do pedido' }).selectOption('1.3')
+    await group.getByRole('checkbox', { name: 'Conferido com a contadora' }).check()
+    await page.getByRole('button', { name: 'Salvar parâmetros de compras' }).click()
+    await expect(page.getByText('Parâmetros de compras salvos')).toBeVisible()
+    expect(calls.find((c) => c.path === '/api/v1/purchasing/parameters')?.body).toEqual({
+      defaultLeadDays: 15, payableAccountCode: '1.3', payableCostType: 'Material', freightAccountCode: '2.4', freightCostType: 'Freight', accountingConfirmed: true,
+    })
+    await expect(group.getByText('A confirmar com a contadora')).toHaveCount(0)
+    await noSeriousViolations(page)
+  })
+
+  test('sem purchasing.view a seção Compras não aparece', async ({ page }) => {
+    const { api } = settingsApi()
+    await mockApi(page, { ...api, 'GET /api/v1/me/permissions': (r: Route) => json(r, { permissions: [], isOwner: true, version: '1', modules: allModules({ purchasing: { enabled: false } }) }) })
+    await page.goto('/app/configuracoes/parametros')
+    await expect(page.getByRole('textbox', { name: /% de encargos estimados/ })).toBeVisible()
+    await expect(page.getByRole('group', { name: 'Títulos do pedido de compra' })).toHaveCount(0)
+  })
+
   test('com settings.view e sem settings.edit, as abas abrem só para leitura (CA 20)', async ({ page }) => {
     const { api } = settingsApi()
     const modules = allModules().map((m) => (m.code === 'settings' ? { ...m, actions: ['view'] } : m))

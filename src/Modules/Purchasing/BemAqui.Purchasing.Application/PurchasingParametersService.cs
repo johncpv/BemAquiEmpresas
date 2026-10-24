@@ -9,9 +9,12 @@ namespace BemAqui.Purchasing.Application;
 /// Parâmetros de Compras (ADR 0016 adendo M6), em <c>purchasing.parameters</c>: o prazo padrão de compra (<c>default_lead_days</c>,
 /// 15 dias, de 0 a 365; ponto 31), editado com <c>settings.edit</c> e auditado; e a marca da recomposição da implantação (D3).
 /// </summary>
-public sealed class PurchasingParametersService(IPurchasingDb db, IPermissionChecker permissions, TimeProvider clock)
+public sealed class PurchasingParametersService(IPurchasingDb db, IPermissionChecker permissions, BemAqui.Finance.Contracts.IChartOfAccounts chart, TimeProvider clock)
 {
     public const string DefaultLeadDays = "default_lead_days";
+
+    /// <summary>Conta e natureza dos títulos conferidas com a contadora (P-17); enquanto não, a tela mostra "A confirmar com a contadora".</summary>
+    public const string AccountingConfirmed = "accounting_confirmed";
     public const string ShortagesBackfilled = "shortages_backfilled";
 
     /// <summary>Conta do plano dos títulos do pedido (CMP-03a CA 19, ponto 39): código, padrão "2.1" (Materiais).</summary>
@@ -51,7 +54,11 @@ public sealed class PurchasingParametersService(IPurchasingDb db, IPermissionChe
     public async Task<PurchasingParametersView> GetAsync(CancellationToken cancellationToken = default)
     {
         var id = await db.PurchasingParameters.AsNoTracking().Where(p => p.Key == DefaultLeadDays).Select(p => (Guid?)p.Id).FirstOrDefaultAsync(cancellationToken);
-        return new PurchasingParametersView(await LeadDaysAsync(cancellationToken), id);
+        var defaults = await PayableDefaultsAsync(cancellationToken);
+        var accounts = (await chart.PostableAsync(null, cancellationToken)).OrderBy(a => a.Code, StringComparer.Ordinal)
+            .Select(a => new PurchasingAccountOption(a.Code, a.Name)).ToList();
+        return new PurchasingParametersView(await LeadDaysAsync(cancellationToken), id, defaults.AccountCode, defaults.CostType, defaults.FreightAccountCode, defaults.FreightCostType,
+            await ValueAsync(AccountingConfirmed, cancellationToken) is 1m, accounts);
     }
 
     public async Task<Result<PurchasingParametersView>> UpdateAsync(PurchasingParametersInput input, CancellationToken cancellationToken = default)
@@ -64,13 +71,52 @@ public sealed class PurchasingParametersService(IPurchasingDb db, IPermissionChe
 
         if (input.DefaultLeadDays is < PurchaseRequestRules.MinLeadDays or > PurchaseRequestRules.MaxLeadDays)
         {
-            const string message = "Informe de 0 a 365 dias.";
-            return Error.Validation(Error.Codes.Validation, message, new Dictionary<string, string[]> { ["defaultLeadDays"] = [message] });
+            return Invalid("defaultLeadDays", "Informe de 0 a 365 dias.");
+        }
+
+        // CMP-03a (decisão do PO de 21/10): conta e natureza dos títulos do pedido e do frete, editáveis aqui até a contadora confirmar.
+        var postable = (await chart.PostableAsync(null, cancellationToken)).Select(a => a.Code).ToHashSet(StringComparer.Ordinal);
+        foreach (var (field, code) in new[] { ("payableAccountCode", input.PayableAccountCode), ("freightAccountCode", input.FreightAccountCode) })
+        {
+            if (code is not null && !postable.Contains(code.Trim()))
+            {
+                return Invalid(field, "Escolha uma conta analítica e ativa do plano de contas.");
+            }
         }
 
         await SetAsync(DefaultLeadDays, input.DefaultLeadDays, cancellationToken);
+        await SetTextAsync(PayableAccountCode, input.PayableAccountCode?.Trim(), cancellationToken);
+        await SetTextAsync(PayableCostType, input.PayableCostType?.ToString(), cancellationToken);
+        await SetTextAsync(FreightAccountCode, input.FreightAccountCode?.Trim(), cancellationToken);
+        await SetTextAsync(FreightCostType, input.FreightCostType?.ToString(), cancellationToken);
+        if (input.AccountingConfirmed is { } confirmed)
+        {
+            await SetAsync(AccountingConfirmed, confirmed ? 1m : 0m, cancellationToken);
+        }
+
         await db.SaveChangesAsync(cancellationToken);
         return await GetAsync(cancellationToken);
+    }
+
+    private static Error Invalid(string field, string message) => Error.Validation(Error.Codes.Validation, message, new Dictionary<string, string[]> { [field] = [message] });
+
+    private async Task SetTextAsync(string key, string? text, CancellationToken ct)
+    {
+        if (text is null)
+        {
+            return;
+        }
+
+        var parameter = await db.PurchasingParameters.FirstOrDefaultAsync(p => p.Key == key, ct);
+        if (parameter is null)
+        {
+            db.PurchasingParameters.Add(new PurchasingParameter { Key = key, Text = text, UpdatedAt = clock.GetUtcNow() });
+        }
+        else if (parameter.Text != text)
+        {
+            parameter.Text = text;
+            parameter.UpdatedAt = clock.GetUtcNow();
+        }
     }
 
     /// <summary>A recomposição da implantação já rodou neste tenant (D3)?</summary>

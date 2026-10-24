@@ -108,6 +108,41 @@ public partial class PurchaseOrderTests
         material.Committed.Should().Be(1_000m);
     }
 
+    /// <summary>
+    /// CA 19 (decisão do PO de 21/10): a conta e a natureza do título do pedido vêm de Configurações → Parâmetros, "A confirmar com a
+    /// contadora" até a conferência; salvar exige settings.edit e a conta precisa ser analítica e ativa. Volta ao padrão no fim.
+    /// </summary>
+    [Fact]
+    public async Task Conta_e_natureza_do_titulo_vem_dos_parametros()
+    {
+        var (_, owner) = await ActorAsync("owner");
+        var (_, buyer) = await ActorAsync(Buyer);
+        var initial = await JsonAsync(await owner.GetAsync("/api/v1/purchasing/parameters"));
+        initial.GetProperty("payableAccountCode").GetString().Should().Be("2.1");
+        initial.GetProperty("payableCostType").GetString().Should().Be("Material");
+        initial.GetProperty("freightAccountCode").GetString().Should().Be("2.4");
+        initial.GetProperty("accountingConfirmed").GetBoolean().Should().BeFalse();
+
+        (await buyer.PutAsJsonAsync("/api/v1/purchasing/parameters", new { defaultLeadDays = 15, payableAccountCode = "3.9" })).StatusCode.Should().Be(HttpStatusCode.Forbidden, "settings.edit");
+        (await owner.PutAsJsonAsync("/api/v1/purchasing/parameters", new { defaultLeadDays = 15, payableAccountCode = "9.9.99" })).StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
+        var saved = await owner.PutAsJsonAsync("/api/v1/purchasing/parameters", new { defaultLeadDays = 15, payableAccountCode = "3.9", payableCostType = "Other", accountingConfirmed = true });
+        saved.StatusCode.Should().Be(HttpStatusCode.OK, await saved.Content.ReadAsStringAsync());
+        try
+        {
+            var supplier = await SupplierAsync(owner, "À vista");
+            var order = await SubmitAsync(buyer, await CreateAsync(buyer, OrderBody(supplier, Project(), null, (await ItemAsync(), 1m, 10m, null))));
+            (await DecideAsync(owner, order, true)).StatusCode.Should().Be(HttpStatusCode.OK);
+            var payable = (await PayablesOfAsync(order.GetProperty("id").GetGuid())).Single();
+            (await WithDbAsync(db => db.Accounts.Where(a => a.Id == payable.AccountId).Select(a => a.Code).SingleAsync())).Should().Be("3.9");
+            payable.CostType.Should().Be(CostType.Other);
+        }
+        finally
+        {
+            (await owner.PutAsJsonAsync("/api/v1/purchasing/parameters", new { defaultLeadDays = 15, payableAccountCode = "2.1", payableCostType = "Material", accountingConfirmed = false }))
+                .StatusCode.Should().Be(HttpStatusCode.OK);
+        }
+    }
+
     /// <summary>CA 9: quem pediu não aprova o próprio pedido quando há outro aprovador (403 own_purchase_order).</summary>
     [Fact]
     public async Task Quem_pediu_nao_aprova_o_proprio_pedido()

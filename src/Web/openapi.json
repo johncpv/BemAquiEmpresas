@@ -37902,6 +37902,21 @@
           }
         }
       },
+      "PurchasingAccountOption": {
+        "required": [
+          "code",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
       "PurchasingParametersInput": {
         "required": [
           "defaultLeadDays"
@@ -37911,13 +37926,57 @@
           "defaultLeadDays": {
             "type": "integer",
             "format": "int32"
+          },
+          "payableAccountCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "payableCostType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CostType"
+              }
+            ]
+          },
+          "freightAccountCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "freightCostType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CostType"
+              }
+            ]
+          },
+          "accountingConfirmed": {
+            "type": [
+              "null",
+              "boolean"
+            ]
           }
         }
       },
       "PurchasingParametersView": {
         "required": [
           "defaultLeadDays",
-          "defaultLeadDaysId"
+          "defaultLeadDaysId",
+          "payableAccountCode",
+          "payableCostType",
+          "freightAccountCode",
+          "freightCostType",
+          "accountingConfirmed",
+          "accounts"
         ],
         "type": "object",
         "properties": {
@@ -37931,6 +37990,27 @@
               "string"
             ],
             "format": "uuid"
+          },
+          "payableAccountCode": {
+            "type": "string"
+          },
+          "payableCostType": {
+            "$ref": "#/components/schemas/CostType"
+          },
+          "freightAccountCode": {
+            "type": "string"
+          },
+          "freightCostType": {
+            "$ref": "#/components/schemas/CostType"
+          },
+          "accountingConfirmed": {
+            "type": "boolean"
+          },
+          "accounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PurchasingAccountOption"
+            }
           }
         }
       },
