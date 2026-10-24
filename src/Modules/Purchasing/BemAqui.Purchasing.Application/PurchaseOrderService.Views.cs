@@ -75,7 +75,8 @@ public sealed partial class PurchaseOrderService
             dues.Select(d => new PurchaseOrderInstallmentPreview(d.Number, d.DueDate, d.Amount)).ToList(), me is { } user && user == order.RequestedBy, canEdit && changeable,
             order.Status == PurchaseOrderStatus.Draft && (canCreate || canEdit), canDecide, canEdit && changeable, blocker, order.Version, order.ApprovedTotal, order.ClosedBalanceAmount,
             order.CloseReason, order.ClosedAt, receivedAmount, receiptsCount, canReceive && receiveBlocker is null, canReceive ? receiveBlocker : null,
-            canEdit && order.Status == PurchaseOrderStatus.PartiallyReceived, canApprove && PurchaseOrderRules.OpenForReceipt.Contains(order.Status) && !receivedByMe);
+            canEdit && order.Status == PurchaseOrderStatus.PartiallyReceived, canApprove && PurchaseOrderRules.OpenForReceipt.Contains(order.Status) && !receivedByMe,
+            canEdit && PurchaseOrderRules.Dispatchable.Contains(order.Status), PurchaseOrderRules.PdfStatuses.Contains(order.Status), order.SentAt);
     }
 
     /// <summary>Pode decidir agora? E, quando tem <c>purchasing.approve</c> e não pode, o motivo (CA 9).</summary>

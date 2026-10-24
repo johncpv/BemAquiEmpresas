@@ -79,7 +79,7 @@ public sealed class ItemSupplierCodeService(IInventoryDb db, IParties parties, T
         return await (from c in db.ItemSupplierCodes.AsNoTracking()
                       join i in db.Items.AsNoTracking() on c.ItemId equals i.Id
                       where c.PartyId == partyId && c.SupplierCode == code
-                      select new SupplierCodeMatch(i.Id, i.Code, i.Name, i.UnitId, c.SupplierUnit, c.ConversionFactor)).FirstOrDefaultAsync(cancellationToken);
+                      select new SupplierCodeMatch(i.Id, i.Code, i.Name, i.UnitId, c.SupplierUnit, c.ConversionFactor, c.SupplierCode)).FirstOrDefaultAsync(cancellationToken);
     }
 
     public async Task<IReadOnlyDictionary<Guid, SupplierCodeMatch>> ForItemsAsync(Guid partyId, IReadOnlyCollection<Guid> itemIds, CancellationToken cancellationToken = default)
@@ -95,7 +95,7 @@ public sealed class ItemSupplierCodeService(IInventoryDb db, IParties parties, T
                           join i in db.Items.AsNoTracking() on c.ItemId equals i.Id
                           where c.PartyId == partyId && itemIds.Contains(c.ItemId)
                           orderby c.CreatedAt
-                          select new SupplierCodeMatch(i.Id, i.Code, i.Name, i.UnitId, c.SupplierUnit, c.ConversionFactor)).ToListAsync(cancellationToken);
+                          select new SupplierCodeMatch(i.Id, i.Code, i.Name, i.UnitId, c.SupplierUnit, c.ConversionFactor, c.SupplierCode)).ToListAsync(cancellationToken);
         return rows.GroupBy(r => r.ItemId).ToDictionary(g => g.Key, g => g.First());
     }
 

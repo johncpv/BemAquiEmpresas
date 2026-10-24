@@ -34,6 +34,35 @@ public static class PurchaseOrderRules
         PurchaseOrderStatus.Approved, PurchaseOrderStatus.Sent, PurchaseOrderStatus.PartiallyReceived,
     };
 
+    /// <summary>Situações que geram o PDF (CMP-03b CA 1): do aprovado em diante; rascunho, aguardando aprovação e cancelado, não.</summary>
+    public static readonly IReadOnlySet<PurchaseOrderStatus> PdfStatuses = new HashSet<PurchaseOrderStatus>
+    {
+        PurchaseOrderStatus.Approved, PurchaseOrderStatus.Sent, PurchaseOrderStatus.PartiallyReceived, PurchaseOrderStatus.Received,
+    };
+
+    /// <summary>Situações que podem ser enviadas ou reenviadas ao fornecedor (CMP-03b CA 2 e 4): o aprovado (inclusive o reaprovado) e o enviado.</summary>
+    public static readonly IReadOnlySet<PurchaseOrderStatus> Dispatchable = new HashSet<PurchaseOrderStatus> { PurchaseOrderStatus.Approved, PurchaseOrderStatus.Sent };
+
+    /// <summary>Limites do PDF (ADR 0022, CMP-03b CA 8): até 300 linhas e observação até 2.000 caracteres.</summary>
+    public const int PdfMaxLines = 300;
+    public const int PdfMaxNotes = 2000;
+
+    /// <summary>Mensagem do envio ao fornecedor (CMP-03b CA 2): texto puro, até 1.000 caracteres.</summary>
+    public const int MaxDispatchMessage = 1000;
+
+    /// <summary>Até 3 endereços em cópia (CMP-03b CA 2 e 10).</summary>
+    public const int MaxDispatchCc = 3;
+
+    /// <summary>
+    /// Linha na unidade do fornecedor para o PDF (CMP-03b CA 1): com a unidade do fornecedor cadastrada ("1 {unidade} = {fator} na de
+    /// estoque", CAD-02b), a quantidade é dividida pelo fator (4 casas) e o preço multiplicado (6 casas); o total da linha não muda. Sem
+    /// unidade do fornecedor (ou fator inválido), fica a unidade de estoque.
+    /// </summary>
+    public static (decimal Quantity, decimal UnitPrice, string Unit) SupplierLine(decimal quantity, decimal unitPrice, string stockUnit, string? supplierUnit, decimal factor) =>
+        string.IsNullOrWhiteSpace(supplierUnit) || factor <= 0m
+            ? (quantity, unitPrice, stockUnit)
+            : (Math.Round(quantity / factor, 4, MidpointRounding.AwayFromZero), Math.Round(unitPrice * factor, 6, MidpointRounding.AwayFromZero), supplierUnit.Trim());
+
     /// <summary>Total da linha: quantidade × preço, 2 casas, <c>AwayFromZero</c> (CA 3).</summary>
     public static decimal LineTotal(decimal quantity, decimal unitPrice) => Math.Round(quantity * unitPrice, 2, MidpointRounding.AwayFromZero);
 

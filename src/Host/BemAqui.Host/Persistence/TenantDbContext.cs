@@ -269,6 +269,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BemAqui.Purchasing.Domain.RfqQuote> RfqQuotes => Set<BemAqui.Purchasing.Domain.RfqQuote>();
 
+    public DbSet<BemAqui.Purchasing.Domain.PurchaseOrderDispatch> PurchaseOrderDispatches => Set<BemAqui.Purchasing.Domain.PurchaseOrderDispatch>();
+
     public DbSet<JobPosition> JobPositions => Set<JobPosition>();
 
     public DbSet<WorkSchedule> WorkSchedules => Set<WorkSchedule>();

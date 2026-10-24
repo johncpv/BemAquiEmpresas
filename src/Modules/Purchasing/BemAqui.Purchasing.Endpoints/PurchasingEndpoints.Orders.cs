@@ -19,7 +19,7 @@ namespace BemAqui.Purchasing.Endpoints;
 /// </summary>
 internal static partial class PurchasingEndpoints
 {
-    private static readonly string[] OrderChildren = [nameof(PurchaseOrderLine), nameof(PurchaseOrderPriceCorrection)];
+    private static readonly string[] OrderChildren = [nameof(PurchaseOrderLine), nameof(PurchaseOrderPriceCorrection), nameof(PurchaseOrderDispatch)];
 
     private static void MapOrders(RouteGroupBuilder orders)
     {
@@ -54,6 +54,7 @@ internal static partial class PurchasingEndpoints
             .RequirePermission("purchasing.approve").WithName("RejectPurchaseOrder").Produces<PurchaseOrderDetail>();
         orders.MapPost("/{id:guid}/cancel", async (Guid id, PurchaseOrderCancelInput input, PurchaseOrderService service, CancellationToken ct) => (await service.CancelAsync(id, input, ct)).ToHttpResult())
             .RequirePermission("purchasing.edit").WithName("CancelPurchaseOrder").Produces<PurchaseOrderDetail>();
+        MapOrderDocuments(orders);
     }
 
     /// <summary>Fornecedores e condições para o formulário do pedido, sem exigir as permissões de Terceiros nem do Financeiro.</summary>

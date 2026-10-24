@@ -73,6 +73,9 @@ public sealed class PurchaseOrder : Entity, IAuditable, IConcurrencyVersioned
 
     public DateTimeOffset? ApprovedAt { get; set; }
 
+    /// <summary>Último envio ao fornecedor (CMP-03b CA 2 e 4); null = nunca enviado.</summary>
+    public DateTimeOffset? SentAt { get; set; }
+
     public string? CancelReason { get; set; }
 
     public DateTimeOffset? CancelledAt { get; set; }
