@@ -27,6 +27,8 @@ internal sealed class SerialConfiguration : IEntityTypeConfiguration<Serial>
         b.HasIndex(e => new { e.ItemId, e.Status }).HasDatabaseName("ix_serials_item_status");
         b.HasIndex(e => e.LocationId).HasDatabaseName("ix_serials_location_id");
         b.HasIndex(e => e.EntryMovementId).HasDatabaseName("ix_serials_entry_movement_id");
+        // EST-04 CA 10: busca exata ou por prefixo pelo número da série, em todos os itens.
+        b.HasIndex(e => e.SerialNumber).HasOperators("text_pattern_ops").HasDatabaseName("ix_serials_serial_number");
     }
 }
 

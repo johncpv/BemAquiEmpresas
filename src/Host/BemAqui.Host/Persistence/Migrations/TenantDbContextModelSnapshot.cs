@@ -5340,6 +5340,19 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<DateTimeOffset?>("CorrectedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("corrected_at");
+
+                    b.Property<Guid?>("CorrectedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("corrected_by");
+
+                    b.Property<string>("CorrectionReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("correction_reason");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -5368,6 +5381,11 @@ namespace BemAqui.Host.Persistence.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_lots");
+
+                    b.HasIndex("LotNumber")
+                        .HasDatabaseName("ix_lots_lot_number");
+
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("LotNumber"), new[] { "text_pattern_ops" });
 
                     b.HasIndex("ItemId", "LotNumber")
                         .IsUnique()
@@ -6109,6 +6127,11 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.HasIndex("ProjectId")
                         .HasDatabaseName("ix_serials_project_id")
                         .HasFilter("project_id IS NOT NULL");
+
+                    b.HasIndex("SerialNumber")
+                        .HasDatabaseName("ix_serials_serial_number");
+
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("SerialNumber"), new[] { "text_pattern_ops" });
 
                     b.HasIndex("ItemId", "SerialNumber")
                         .IsUnique()

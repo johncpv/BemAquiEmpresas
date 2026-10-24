@@ -84,6 +84,9 @@ public static class InventoryInfrastructure
         // Expedição (PRD-06b): o romaneio da Produção lê o produto acabado pronto para expedir; a saída é pelo motor e pelo IStockSerials.
         services.TryAddScoped<IFinishedGoodsStock, FinishedGoodsStockService>();
         services.AddAuditableEntity<Serial>("inventory");
+        // Rastreabilidade (EST-04): série → origem, lote → destino e exportação auditada; aba Lotes e correção do lote (auditada pelo Lot).
+        services.TryAddScoped<TraceabilityService>();
+        services.TryAddScoped<LotService>();
         return services;
     }
 }

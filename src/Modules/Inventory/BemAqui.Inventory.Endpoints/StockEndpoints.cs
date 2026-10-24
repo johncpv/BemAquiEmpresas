@@ -48,10 +48,6 @@ internal static class StockEndpoints
             .RequirePermission("inventory.view").WithName("GetItemStockContext").Produces<StockItemContext>();
         inventory.MapGet("/projects", async (string? q, StockQueryService service, CancellationToken ct) => Results.Ok(await service.ProjectsAsync(q, ct)))
             .RequirePermission("inventory.view").WithName("SearchStockProjects").Produces<IReadOnlyList<StockProjectOption>>();
-        inventory.MapGet("/items/{itemId:guid}/lots", async (Guid itemId, StockQueryService service, CancellationToken ct) => (await service.LotsAsync(itemId, ct)).ToHttpResult())
-            .RequirePermission("inventory.view").WithName("ListItemLots").Produces<IReadOnlyList<LotDetail>>();
-        inventory.MapGet("/items/{itemId:guid}/lots/{lotId:guid}", async (Guid itemId, Guid lotId, StockQueryService service, CancellationToken ct) => (await service.LotAsync(itemId, lotId, ct)).ToHttpResult())
-            .RequirePermission("inventory.view").WithName("GetItemLot").Produces<LotDetail>();
     }
 
     private static void MapMovements(RouteGroupBuilder inventory)

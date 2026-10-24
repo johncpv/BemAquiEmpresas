@@ -46,8 +46,11 @@ internal sealed class LotConfiguration : IEntityTypeConfiguration<Lot>
     {
         b.ToTable("lots", InventorySchema.Name);
         b.Property(e => e.LotNumber).HasMaxLength(40);
+        b.Property(e => e.CorrectionReason).HasMaxLength(500);
         b.HasOne<Item>().WithMany().HasForeignKey(e => e.ItemId).OnDelete(DeleteBehavior.Restrict);
         b.HasIndex(e => new { e.ItemId, e.LotNumber }).IsUnique().HasDatabaseName("ux_lots_item_number");
+        // EST-04 CA 10: busca exata ou por prefixo pelo número, em todos os itens (text_pattern_ops atende o LIKE 'x%' parametrizado).
+        b.HasIndex(e => e.LotNumber).HasOperators("text_pattern_ops").HasDatabaseName("ix_lots_lot_number");
     }
 }
 

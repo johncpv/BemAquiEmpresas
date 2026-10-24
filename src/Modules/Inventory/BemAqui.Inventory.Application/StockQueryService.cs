@@ -213,27 +213,6 @@ public sealed class StockQueryService(IInventoryDb db, IProjects projects, IUser
         (await projects.SearchAsync(term, 20, cancellationToken)).Where(p => p.Status is not ("Closed" or "Cancelled"))
             .Select(p => new StockProjectOption(p.Id, p.Number, p.Name)).ToList();
 
-    public async Task<Result<IReadOnlyList<LotDetail>>> LotsAsync(Guid itemId, CancellationToken cancellationToken = default)
-    {
-        if (!await db.Items.AnyAsync(i => i.Id == itemId, cancellationToken))
-        {
-            return Error.NotFound("item_not_found", "Item não encontrado.");
-        }
-
-        return await LotQuery(db.Lots.AsNoTracking().Where(l => l.ItemId == itemId)).ToListAsync(cancellationToken);
-    }
-
-    /// <summary>Lote pelo item (CA 31, IDOR): lote de outro item responde como inexistente.</summary>
-    public async Task<Result<LotDetail>> LotAsync(Guid itemId, Guid lotId, CancellationToken cancellationToken = default)
-    {
-        var lot = await LotQuery(db.Lots.AsNoTracking().Where(l => l.Id == lotId && l.ItemId == itemId)).FirstOrDefaultAsync(cancellationToken);
-        return lot is null ? Error.NotFound("lot_not_found", "Lote não encontrado neste item.") : lot;
-    }
-
-    private IQueryable<LotDetail> LotQuery(IQueryable<Lot> lots) =>
-        lots.OrderByDescending(l => l.CreatedAt).Select(l => new LotDetail(
-            l.Id, l.ItemId, l.LotNumber, l.SupplierPartyId, l.ReceivedAt, l.Expiry, db.StockBalances.Where(b => b.LotId == l.Id).Sum(b => b.QuantityOnHand)));
-
     private async Task<PagedList<MovementRow>> PageAsync(IQueryable<StockMovement> movements, bool descending, PageRequest page, CancellationToken ct)
     {
         var query = from m in movements
