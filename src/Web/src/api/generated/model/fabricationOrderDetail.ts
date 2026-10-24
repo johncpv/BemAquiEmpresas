@@ -60,4 +60,7 @@ export interface FabricationOrderDetail {
   completionReversedByName?: string | null;
   /** @nullable */
   completionReversalReason?: string | null;
+  /** @nullable */
+  entryMovementId?: string | null;
+  completedWithoutStock?: boolean;
 }
