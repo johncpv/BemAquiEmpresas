@@ -392,7 +392,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-4--planejamento-p
 - Requisitos: R-FIN-11, R-FIN-10, R-TER-4, R-PRP-5, PRD §5.14 (Caixa), PRD §6 (Desempenho).
 - CA: recebível deslocado pelo atraso médio do cliente (sem histórico, a média do tenant), em dias corridos; ponderado pela inadimplência (vencido há mais de 30 dias ÷ faturado em 12 meses) acima do limite de 20%; vencido em aberto em max(hoje, vencimento + atraso médio); base × ajustado com o menor saldo de cada um; `ICashForecast` igual à tela; `ChartFrame` e a troca do `--chart-3`; 50 mil títulos em menos de 2 s.
 
-**DSH-02 [ ] Orçado × realizado e margem, por projeto e consolidado (G)** — 4.1, ordem 2 — re-estimada de M — `Ready` — [story](stories/DSH-02-orcado-realizado-margem.md)
+**DSH-02 [x] Orçado × realizado e margem, por projeto e consolidado (G)** — 4.1, ordem 2 — re-estimada de M — [story](stories/DSH-02-orcado-realizado-margem.md)
 - Requisitos: R-PRJ-5, PRD §5.14 (Margem), PRD §1.1 e §1.2, R-PRP-5, PRD §6.
 - CA: um cálculo só (`IProjectMargins`) para o Projeto 360, o relatório e o painel; comprometido de material por saldo com fonte única nos títulos (ADR 0025 adendo); imposto realizado só pela nota (`InvoiceTax`/`InvoiceTaxReversal`), até lá o orçado; custo da NC informativo; margem do consolidado ponderada pela receita; `Kpi`, `DashboardCard` e `ColumnChart`; tudo só com `projects.view_cost`; 5 mil projetos e 200 mil custos em menos de 1 s.
 

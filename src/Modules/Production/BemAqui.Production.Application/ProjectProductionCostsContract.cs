@@ -8,7 +8,7 @@ namespace BemAqui.Production.Application;
 /// <see cref="IProjectProductionCosts"/> (DSH-02 CA 12 e 14): minutos da última versão do custo do apontamento (histórico da PRD-04), centro
 /// de trabalho da etapa e o nome pelo <see cref="IEmployees"/>; NC das OS do projeto com o custo estimado.
 /// </summary>
-public sealed class ProjectProductionCostsContract(IProductionDb db, IEmployees employees) : IProjectProductionCosts
+public sealed class ProjectProductionCostsContract(IProductionDb db, IEmployees employees, ProductionParametersService parameters) : IProjectProductionCosts
 {
     public async Task<IReadOnlyList<LaborEntryCostInfo>> LaborEntriesAsync(IReadOnlyCollection<Guid> laborEntryIds, CancellationToken cancellationToken = default)
     {
@@ -46,7 +46,9 @@ public sealed class ProjectProductionCostsContract(IProductionDb db, IEmployees 
         var ids = laborEntryIds.Distinct().ToArray();
         var rows = await db.LaborEntries.AsNoTracking().Where(e => ids.Contains(e.Id)).Select(e => new { e.Id, e.EmployeeId, e.HourlyCostSnapshot }).ToListAsync(cancellationToken);
         var names = (await employees.FindAsync(rows.Select(r => r.EmployeeId).Distinct().ToList(), cancellationToken)).ToDictionary(e => e.Id, e => e.Name);
-        return rows.Select(r => new LaborEntryWorkerInfo(r.Id, names.GetValueOrDefault(r.EmployeeId, string.Empty), r.HourlyCostSnapshot)).ToList();
+        // Custo-hora por apontamento só com o parâmetro "custo-hora por apontamento" ligado (decisão do PO de 22/10/2026); desligado, só o nome.
+        var showRate = await parameters.ShowLaborEntryCostAsync(cancellationToken);
+        return rows.Select(r => new LaborEntryWorkerInfo(r.Id, names.GetValueOrDefault(r.EmployeeId, string.Empty), showRate ? r.HourlyCostSnapshot : null)).ToList();
     }
 
     public async Task<ProjectNonConformityCost> NonConformitiesAsync(Guid projectId, CancellationToken cancellationToken = default)
