@@ -27,6 +27,8 @@ internal sealed class QuoteConfiguration : IEntityTypeConfiguration<Quote>
         b.HasIndex(e => new { e.Number, e.Revision }).IsUnique();
         b.HasIndex(e => e.Number).IsUnique().HasFilter("is_current").HasDatabaseName("ux_quotes_number_current");
         b.HasIndex(e => e.PartyId);
+        // Minha pauta (DSH-04 CA 12): "Orçamentos vencendo" lê só os enviados atuais pela validade.
+        b.HasIndex(e => e.ValidUntil).HasFilter("is_current AND status = 'Sent'").HasDatabaseName("ix_quotes_sent_valid_until");
     }
 }
 

@@ -1280,6 +1280,10 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.HasIndex("PartyId")
                         .HasDatabaseName("ix_quotes_party_id");
 
+                    b.HasIndex("ValidUntil")
+                        .HasDatabaseName("ix_quotes_sent_valid_until")
+                        .HasFilter("is_current AND status = 'Sent'");
+
                     b.HasIndex("Number", "Revision")
                         .IsUnique()
                         .HasDatabaseName("ix_quotes_number_revision");
