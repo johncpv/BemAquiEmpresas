@@ -52,12 +52,15 @@ public sealed class StockBalance : Entity
     public void ApplyOnHand(decimal delta) => QuantityOnHand += delta;
 }
 
-/// <summary>Lote do item (<c>inventory.lots</c>), único por <c>(item_id, lot_number)</c>; nasce na primeira entrada com o número.</summary>
+/// <summary>
+/// Lote do item (<c>inventory.lots</c>), único por <c>(item_id, lot_number)</c>; nasce na primeira entrada com o número. A correção (EST-04
+/// CA 6) troca a validade e, sem saída, o número digitado errado, com o motivo gravado no próprio lote (vai para o diff da auditoria).
+/// </summary>
 public sealed class Lot : Entity, IAuditable
 {
     public Guid ItemId { get; init; }
 
-    public string LotNumber { get; init; } = string.Empty;
+    public string LotNumber { get; set; } = string.Empty;
 
     public Guid? SupplierPartyId { get; init; }
 
@@ -66,6 +69,13 @@ public sealed class Lot : Entity, IAuditable
     public DateOnly? Expiry { get; set; }
 
     public DateTimeOffset CreatedAt { get; init; }
+
+    /// <summary>Motivo da última correção (EST-04 CA 6).</summary>
+    public string? CorrectionReason { get; set; }
+
+    public DateTimeOffset? CorrectedAt { get; set; }
+
+    public Guid? CorrectedBy { get; set; }
 }
 
 /// <summary>

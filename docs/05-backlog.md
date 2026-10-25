@@ -360,7 +360,7 @@ _MIG-01d (saldos iniciais de estoque) não entra aqui: cancelada pelo PO em 18/1
 - Requisitos: R-PRD-8, R-EST-6, R-EST-8, R-COM-3, R-COM-4, R-PRP-2, R-PRP-7, R-SEC-5.
 - CA: o romaneio confirmado baixa de forma síncrona, com 409 `insufficient_stock` sem gravar nada (D4); na Fase 5 a NF-e referencia o romaneio; numeração `ROM`; estoque geral confirmado por outra pessoa com `inventory.approve` (`SoleOwnerRule`); estorno síncrono; série em dois romaneios recusada.
 
-**EST-04 [ ] Lote, série e rastreabilidade (M)** — 3.4, ordem 21 — [story](stories/EST-04-lote-serie-rastreabilidade.md)
+**EST-04 [x] Lote, série e rastreabilidade (M)** — 3.4, ordem 21 — [story](stories/EST-04-lote-serie-rastreabilidade.md)
 - Requisitos: R-EST-8, R-PRD-7, R-PRJ-4, R-SEC-5, PRD §6 (Desempenho, LGPD).
 - CA: série → OS, projeto, cliente, romaneio e lotes (a série herda os lotes da OS inteira); lote → OS, séries e clientes; cliente PF por iniciais para quem não tem `parties.view` (tela, DTO e CSV); OS concluída antes da PRD-06a2 aparece "Sem série"; lote em 200 OS em menos de 1 s.
 

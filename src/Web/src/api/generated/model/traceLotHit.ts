@@ -5,15 +5,12 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export interface LotDetail {
+export interface TraceLotHit {
   id: string;
   itemId: string;
   lotNumber: string;
-  /** @nullable */
-  supplierPartyId: string | null;
-  /** @nullable */
-  receivedAt: string | null;
+  itemCode: string;
+  itemName: string;
   /** @nullable */
   expiry: string | null;
-  onHand: number;
 }

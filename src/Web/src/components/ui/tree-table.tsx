@@ -1,6 +1,7 @@
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { type KeyboardEvent, type ReactNode, useMemo, useRef, useState } from 'react'
 import { normalizeText } from '@/lib/text'
+import { cn } from '@/lib/utils'
 
 export interface TreeNode {
   id: string
@@ -23,13 +24,27 @@ function flatten<T extends TreeNode>(nodes: T[], open: Set<string>, level = 1, p
   })
 }
 
+function allIds(nodes: TreeNode[]): string[] {
+  return nodes.flatMap((n) => [n.id, ...allIds(n.children ?? [])])
+}
+
+export interface TreeColumn<T> {
+  header: string
+  cell: (node: T) => ReactNode
+  numeric?: boolean
+  /** Classe da célula e do cabeçalho, ex.: "hidden sm:table-cell" para a coluna sumir a 400 px (o rótulo mostra o resumo). */
+  className?: string
+}
+
 /**
- * Árvore em tabela (FND-09d CA 11): plano de contas, centros de custo, categorias. role="treegrid" com aria-level e
- * aria-expanded; setas para cima e para baixo movem, direita expande, esquerda recolhe ou sobe ao pai. A busca mostra
- * o caminho dos pais.
+ * Árvore em tabela (FND-09d CA 11): plano de contas, centros de custo, categorias, rastreabilidade (EST-04). role="treegrid" com
+ * aria-level e aria-expanded; setas para cima e para baixo movem, direita expande, esquerda recolhe ou sobe ao pai. A busca mostra
+ * o caminho dos pais. <c>searchable</c> falso tira a busca interna; <c>expandAll</c> abre todos os níveis de início.
  */
-export function TreeTable<T extends TreeNode>({ nodes, label, columns, renderLabel }: { nodes: T[]; label: string; columns?: { header: string; cell: (node: T) => ReactNode; numeric?: boolean }[]; renderLabel?: (node: T) => ReactNode }) {
-  const [open, setOpen] = useState<Set<string>>(() => new Set(nodes.map((n) => n.id)))
+export function TreeTable<T extends TreeNode>({ nodes, label, columns, renderLabel, searchable = true, expandAll = false, nameHeader = 'Nome' }: {
+  nodes: T[]; label: string; columns?: TreeColumn<T>[]; renderLabel?: (node: T) => ReactNode; searchable?: boolean; expandAll?: boolean; nameHeader?: string
+}) {
+  const [open, setOpen] = useState<Set<string>>(() => new Set(expandAll ? allIds(nodes) : nodes.map((n) => n.id)))
   const [term, setTerm] = useState('')
   const [focus, setFocus] = useState<string | null>(null)
   const refs = useRef(new Map<string, HTMLTableRowElement>())
@@ -62,14 +77,16 @@ export function TreeTable<T extends TreeNode>({ nodes, label, columns, renderLab
 
   return (
     <div className="rounded-md border border-border bg-card">
-      <div className="border-b border-border p-2">
-        <input type="search" value={term} onChange={(e) => setTerm(e.target.value)} placeholder={`Buscar em ${label.toLowerCase()}`} aria-label={`Buscar em ${label.toLowerCase()}`} className="w-full bg-transparent px-1 py-1 text-sm outline-none" />
-      </div>
+      {searchable ? (
+        <div className="border-b border-border p-2">
+          <input type="search" value={term} onChange={(e) => setTerm(e.target.value)} placeholder={`Buscar em ${label.toLowerCase()}`} aria-label={`Buscar em ${label.toLowerCase()}`} className="w-full bg-transparent px-1 py-1 text-sm outline-none" />
+        </div>
+      ) : null}
       <table role="treegrid" aria-label={label} className="w-full border-collapse text-sm">
         <thead className="border-b border-border text-xs text-muted-foreground">
           <tr>
-            <th scope="col" className="px-3 py-2 text-left font-semibold">Nome</th>
-            {columns?.map((c) => <th key={c.header} scope="col" className={c.numeric ? 'px-3 py-2 text-right font-semibold' : 'px-3 py-2 text-left font-semibold'}>{c.header}</th>)}
+            <th scope="col" className="px-3 py-2 text-left font-semibold">{nameHeader}</th>
+            {columns?.map((c) => <th key={c.header} scope="col" className={cn(c.numeric ? 'px-3 py-2 text-right font-semibold' : 'px-3 py-2 text-left font-semibold', c.className)}>{c.header}</th>)}
           </tr>
         </thead>
         <tbody>
@@ -99,7 +116,7 @@ export function TreeTable<T extends TreeNode>({ nodes, label, columns, renderLab
                   </span>
                 </span>
               </td>
-              {columns?.map((c) => <td key={c.header} className={c.numeric ? 'px-3 py-1.5 text-right tabular-nums' : 'px-3 py-1.5'}>{c.cell(row.node)}</td>)}
+              {columns?.map((c) => <td key={c.header} className={cn(c.numeric ? 'px-3 py-1.5 text-right tabular-nums' : 'px-3 py-1.5', c.className)}>{c.cell(row.node)}</td>)}
             </tr>
           ))}
         </tbody>

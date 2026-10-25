@@ -32,4 +32,7 @@ public static class AuditActions
 
     /// <summary>Leitura de dado sensível pela rota <c>/sensitive</c> (ADR 0016): quem e quando, sem os valores.</summary>
     public const string SensitiveRead = "SensitiveRead";
+
+    /// <summary>Exportação de dados (EST-04 CA 4): quem, quando, o quê e quantas linhas, sem o conteúdo exportado.</summary>
+    public const string Exported = "Exported";
 }
