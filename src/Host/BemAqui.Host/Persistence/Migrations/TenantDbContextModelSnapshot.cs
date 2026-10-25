@@ -9447,6 +9447,324 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("parameters", "purchasing");
                 });
 
+            modelBuilder.Entity("BemAqui.Purchasing.Domain.Rfq", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("CancelReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("cancel_reason");
+
+                    b.Property<DateTimeOffset?>("CancelledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("cancelled_at");
+
+                    b.Property<Guid?>("CancelledBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cancelled_by");
+
+                    b.Property<DateTimeOffset?>("ClosedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("closed_at");
+
+                    b.Property<Guid?>("ClosedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("closed_by");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("notes");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("number");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_rfqs");
+
+                    b.HasIndex("Number")
+                        .IsUnique()
+                        .HasDatabaseName("ux_rfqs_number");
+
+                    b.HasIndex("Status", "CreatedAt")
+                        .HasDatabaseName("ix_rfqs_status_created_at");
+
+                    b.ToTable("rfqs", "purchasing");
+                });
+
+            modelBuilder.Entity("BemAqui.Purchasing.Domain.RfqLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_id");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("quantity");
+
+                    b.Property<Guid>("RfqId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("rfq_id");
+
+                    b.Property<Guid?>("SelectedSupplierId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("selected_supplier_id");
+
+                    b.Property<string>("SelectionNote")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("selection_note");
+
+                    b.Property<string>("SelectionReason")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("selection_reason");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.Property<Guid?>("SuggestedSupplierId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("suggested_supplier_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_rfq_lines");
+
+                    b.HasIndex("SelectedSupplierId")
+                        .HasDatabaseName("ix_rfq_lines_selected_supplier_id");
+
+                    b.HasIndex("RfqId", "ItemId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_rfq_lines_rfq_item");
+
+                    b.HasIndex("RfqId", "Sequence")
+                        .IsUnique()
+                        .HasDatabaseName("ux_rfq_lines_rfq_sequence");
+
+                    b.ToTable("rfq_lines", "purchasing");
+                });
+
+            modelBuilder.Entity("BemAqui.Purchasing.Domain.RfqLineRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("quantity");
+
+                    b.Property<Guid>("RequestLineId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("request_line_id");
+
+                    b.Property<Guid>("RfqId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("rfq_id");
+
+                    b.Property<Guid>("RfqLineId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("rfq_line_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_rfq_line_requests");
+
+                    b.HasIndex("RequestLineId")
+                        .HasDatabaseName("ix_rfq_line_requests_request_line_id");
+
+                    b.HasIndex("RfqId")
+                        .HasDatabaseName("ix_rfq_line_requests_rfq_id");
+
+                    b.HasIndex("RfqLineId", "RequestLineId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_rfq_line_requests_line_request");
+
+                    b.ToTable("rfq_line_requests", "purchasing");
+                });
+
+            modelBuilder.Entity("BemAqui.Purchasing.Domain.RfqQuote", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("AvailableQuantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("available_quantity");
+
+                    b.Property<int>("LeadDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("lead_days");
+
+                    b.Property<Guid>("RfqId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("rfq_id");
+
+                    b.Property<Guid>("RfqLineId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("rfq_line_id");
+
+                    b.Property<Guid>("RfqSupplierId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("rfq_supplier_id");
+
+                    b.Property<string>("SupplierUnit")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("supplier_unit");
+
+                    b.Property<decimal?>("SupplierUnitPrice")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)")
+                        .HasColumnName("supplier_unit_price");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)")
+                        .HasColumnName("unit_price");
+
+                    b.HasKey("Id")
+                        .HasName("pk_rfq_quotes");
+
+                    b.HasIndex("RfqId")
+                        .HasDatabaseName("ix_rfq_quotes_rfq_id");
+
+                    b.HasIndex("RfqSupplierId")
+                        .HasDatabaseName("ix_rfq_quotes_rfq_supplier_id");
+
+                    b.HasIndex("RfqLineId", "RfqSupplierId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_rfq_quotes_line_supplier");
+
+                    b.ToTable("rfq_quotes", "purchasing");
+                });
+
+            modelBuilder.Entity("BemAqui.Purchasing.Domain.RfqSupplier", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Declined")
+                        .HasColumnType("boolean")
+                        .HasColumnName("declined");
+
+                    b.Property<decimal>("Freight")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("freight");
+
+                    b.Property<decimal>("IpiPct")
+                        .HasPrecision(7, 4)
+                        .HasColumnType("numeric(7,4)")
+                        .HasColumnName("ipi_pct");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("notes");
+
+                    b.Property<string>("OrderSubmitError")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("order_submit_error");
+
+                    b.Property<DateTimeOffset?>("OrderSubmittedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("order_submitted_at");
+
+                    b.Property<Guid>("PartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("party_id");
+
+                    b.Property<Guid?>("PaymentTermId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("payment_term_id");
+
+                    b.Property<Guid?>("PurchaseOrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("purchase_order_id");
+
+                    b.Property<bool>("Responded")
+                        .HasColumnType("boolean")
+                        .HasColumnName("responded");
+
+                    b.Property<DateTimeOffset?>("RespondedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("responded_at");
+
+                    b.Property<Guid?>("RespondedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("responded_by");
+
+                    b.Property<Guid>("RfqId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("rfq_id");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.Property<DateOnly?>("ValidUntil")
+                        .HasColumnType("date")
+                        .HasColumnName("valid_until");
+
+                    b.HasKey("Id")
+                        .HasName("pk_rfq_suppliers");
+
+                    b.HasIndex("PartyId")
+                        .HasDatabaseName("ix_rfq_suppliers_party_id");
+
+                    b.HasIndex("RfqId", "PartyId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_rfq_suppliers_rfq_party");
+
+                    b.ToTable("rfq_suppliers", "purchasing");
+                });
+
             modelBuilder.Entity("BemAqui.Commercial.Domain.Contract", b =>
                 {
                     b.HasOne("BemAqui.Commercial.Domain.Quote", null)
@@ -10448,6 +10766,80 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_purchase_request_lines_purchase_requests_request_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Purchasing.Domain.RfqLine", b =>
+                {
+                    b.HasOne("BemAqui.Purchasing.Domain.Rfq", null)
+                        .WithMany()
+                        .HasForeignKey("RfqId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_rfq_lines_rfqs_rfq_id");
+
+                    b.HasOne("BemAqui.Purchasing.Domain.RfqSupplier", null)
+                        .WithMany()
+                        .HasForeignKey("SelectedSupplierId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_rfq_lines_rfq_suppliers_selected_supplier_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Purchasing.Domain.RfqLineRequest", b =>
+                {
+                    b.HasOne("BemAqui.Purchasing.Domain.PurchaseRequestLine", null)
+                        .WithMany()
+                        .HasForeignKey("RequestLineId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_rfq_line_requests_purchase_request_lines_request_line_id");
+
+                    b.HasOne("BemAqui.Purchasing.Domain.Rfq", null)
+                        .WithMany()
+                        .HasForeignKey("RfqId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_rfq_line_requests_rfqs_rfq_id");
+
+                    b.HasOne("BemAqui.Purchasing.Domain.RfqLine", null)
+                        .WithMany()
+                        .HasForeignKey("RfqLineId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_rfq_line_requests_rfq_lines_rfq_line_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Purchasing.Domain.RfqQuote", b =>
+                {
+                    b.HasOne("BemAqui.Purchasing.Domain.Rfq", null)
+                        .WithMany()
+                        .HasForeignKey("RfqId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_rfq_quotes_rfqs_rfq_id");
+
+                    b.HasOne("BemAqui.Purchasing.Domain.RfqLine", null)
+                        .WithMany()
+                        .HasForeignKey("RfqLineId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_rfq_quotes_rfq_lines_rfq_line_id");
+
+                    b.HasOne("BemAqui.Purchasing.Domain.RfqSupplier", null)
+                        .WithMany()
+                        .HasForeignKey("RfqSupplierId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_rfq_quotes_rfq_suppliers_rfq_supplier_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Purchasing.Domain.RfqSupplier", b =>
+                {
+                    b.HasOne("BemAqui.Purchasing.Domain.Rfq", null)
+                        .WithMany()
+                        .HasForeignKey("RfqId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_rfq_suppliers_rfqs_rfq_id");
                 });
 
             modelBuilder.Entity("BemAqui.Parties.Domain.Party", b =>

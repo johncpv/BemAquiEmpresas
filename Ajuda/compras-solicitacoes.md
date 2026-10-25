@@ -13,7 +13,7 @@ Ver tudo o que precisa ser comprado e para quando. As solicitações nascem de t
 - Quem compra abre a lista em **Aguardando você**: as solicitações abertas, ainda sem cotação nem pedido. Em **Mostrar**, troque para **Abertas e em cotação** ou **Todas**.
 - Cada linha mostra o número (SC-AAAA-0001), a origem, o destino (o projeto ou **Estoque geral**), a OS, os itens, a necessidade mais próxima e a situação.
 - O chip **Precisa em {n} dias** aparece quando faltam até 7 dias para a necessidade; **Atrasada {n} d**, quando a data já passou. A faixa lateral da linha acompanha o chip.
-- **Por item** soma as linhas abertas de todas as solicitações por item, para comprar junto o que vários pedem.
+- **Por item** soma as linhas abertas de todas as solicitações por item, para comprar junto o que vários pedem. Marque os itens e clique **Cotar** para pedir preço a vários fornecedores de uma vez.
 - **Nova solicitação** abre o formulário com a necessidade já sugerida.
 - Os filtros ficam no endereço da página, para você guardar ou mandar o link.
 - No celular aparecem número, itens, necessidade e situação. Toque na linha para ver a origem, o destino e a OS.

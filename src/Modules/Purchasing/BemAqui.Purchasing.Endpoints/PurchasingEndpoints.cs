@@ -23,6 +23,7 @@ internal static partial class PurchasingEndpoints
     {
         var purchasing = api.MapGroup("/purchasing").WithTags("Compras").RequireModule("purchasing");
         MapRequests(purchasing.MapGroup("/purchase-requests"));
+        MapRfqs(purchasing.MapGroup("/rfqs"));
         var orders = purchasing.MapGroup("/purchase-orders");
         MapOrders(orders);
         MapOrderBalance(orders);

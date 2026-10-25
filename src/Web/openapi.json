@@ -11140,6 +11140,596 @@
         }
       }
     },
+    "/api/v1/production/shipments": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "ListShipments",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "filter",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "situation",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShipmentPage"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "CreateShipment",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShipmentInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShipmentDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/shipments/ready": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "ListReadyToShip",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReadyToShipProject"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/shipments/form": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "GetShipmentForm",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "productionOrderId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShipmentForm"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/shipments/general-stock": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "ListShipmentGeneralStock",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReadyToShipLine"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/shipments/carriers": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "ListShipmentCarriers",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CarrierOption"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/shipments/{id}": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "GetShipment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShipmentDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "UpdateShipment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShipmentInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShipmentDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/shipments/{id}/lines/{lineId}": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "GetShipmentLine",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "lineId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShipmentLineView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/shipments/{id}/impact": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "GetShipmentImpact",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShipmentImpact"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/shipments/{id}/pdf": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "DownloadShipmentPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/production/shipments/{id}/confirm": {
+      "post": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "ConfirmShipment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShipmentDecisionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShipmentDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/shipments/{id}/confirm-stock": {
+      "post": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "ConfirmShipmentGeneralStock",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShipmentDecisionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShipmentDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/shipments/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "CancelShipment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShipmentReasonInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShipmentDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/shipments/{id}/reverse": {
+      "post": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "ReverseShipment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShipmentReasonInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShipmentDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/shipments/{id}/history": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "GetShipmentHistory",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfRelatedAuditEntryDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/production/installation-template": {
       "get": {
         "tags": [
@@ -13217,270 +13807,6 @@
         }
       }
     },
-    "/api/v1/inventory/items/{itemId}/lots": {
-      "get": {
-        "tags": [
-          "Estoque"
-        ],
-        "operationId": "ListItemLots",
-        "parameters": [
-          {
-            "name": "itemId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ItemLotRow"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/inventory/items/{itemId}/lots/{lotId}": {
-      "get": {
-        "tags": [
-          "Estoque"
-        ],
-        "operationId": "GetItemLot",
-        "parameters": [
-          {
-            "name": "itemId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "lotId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ItemLotRow"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "Estoque"
-        ],
-        "operationId": "CorrectItemLot",
-        "parameters": [
-          {
-            "name": "itemId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "lotId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/LotCorrectionInput"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ItemLotRow"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/inventory/items/{itemId}/lots/{lotId}/trace": {
-      "get": {
-        "tags": [
-          "Estoque"
-        ],
-        "operationId": "GetLotTrace",
-        "parameters": [
-          {
-            "name": "itemId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "lotId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LotTrace"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/inventory/items/{itemId}/lots/{lotId}/trace/export": {
-      "get": {
-        "tags": [
-          "Estoque"
-        ],
-        "operationId": "ExportLotTrace",
-        "parameters": [
-          {
-            "name": "itemId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "lotId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/api/v1/inventory/items/{itemId}/serials/{serialId}/trace": {
-      "get": {
-        "tags": [
-          "Estoque"
-        ],
-        "operationId": "GetSerialTrace",
-        "parameters": [
-          {
-            "name": "itemId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "serialId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SerialTrace"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/inventory/traceability": {
-      "get": {
-        "tags": [
-          "Estoque"
-        ],
-        "operationId": "SearchTraceability",
-        "parameters": [
-          {
-            "name": "q",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TraceSearchResult"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/inventory/movements": {
       "get": {
         "tags": [
@@ -15165,6 +15491,676 @@
         }
       }
     },
+    "/api/v1/inventory/traceability": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "SearchTraceability",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TraceSearchResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/items/{itemId}/serials/{serialId}/trace": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetSerialTrace",
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "serialId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SerialTrace"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/items/{itemId}/lots": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "ListItemLots",
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ItemLotRow"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/items/{itemId}/lots/{lotId}": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetItemLot",
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "lotId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemLotRow"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "CorrectItemLot",
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "lotId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LotCorrectionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemLotRow"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/items/{itemId}/lots/{lotId}/trace": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetLotTrace",
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "lotId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LotTrace"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/items/{itemId}/lots/{lotId}/trace/export": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "ExportLotTrace",
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "lotId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/adjustments": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "ListStockAdjustments",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/StockAdjustmentStatus"
+            }
+          },
+          {
+            "name": "awaitingMe",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "mode",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/StockAdjustmentMode"
+            }
+          },
+          {
+            "name": "locationId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfStockAdjustmentSummary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "CreateStockAdjustment",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StockAdjustmentInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockAdjustmentDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/adjustments/{id}": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetStockAdjustment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockAdjustmentDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "UpdateStockAdjustment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/adjustments/{id}/lines/{lineId}": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetStockAdjustmentLine",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "lineId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockAdjustmentLineView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/adjustments/{id}/history": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetStockAdjustmentHistory",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfRelatedAuditEntryDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/adjustments/{id}/approve": {
+      "post": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "ApproveStockAdjustment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StockAdjustmentDecisionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockAdjustmentDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/adjustments/{id}/reject": {
+      "post": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "RejectStockAdjustment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StockAdjustmentDecisionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockAdjustmentDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/adjustments/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "CancelStockAdjustment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StockAdjustmentReasonInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockAdjustmentDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/adjustments/{id}/reverse": {
+      "post": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "ReverseStockAdjustment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StockAdjustmentReasonInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockAdjustmentDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/purchasing/purchase-requests": {
       "get": {
         "tags": [
@@ -15586,6 +16582,549 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PurchaseRequestDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/rfqs": {
+      "get": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "ListRfqs",
+        "parameters": [
+          {
+            "name": "show",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/RfqStatus"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfRfqSummary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "CreateRfq",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RfqInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RfqDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/rfqs/defaults": {
+      "get": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "GetRfqDefaults",
+        "parameters": [
+          {
+            "name": "requestLineIds",
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RfqDefaults"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/rfqs/{id}": {
+      "get": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "GetRfq",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RfqDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/rfqs/{id}/history": {
+      "get": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "GetRfqHistory",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfRelatedAuditEntryDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/rfqs/{id}/suppliers": {
+      "post": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "AddRfqSupplier",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RfqSupplierInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RfqDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/rfqs/{id}/suppliers/{supplierId}/remove": {
+      "post": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "RemoveRfqSupplier",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RfqVersionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RfqDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/rfqs/{id}/suppliers/{supplierId}/response": {
+      "put": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "SaveRfqResponse",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RfqResponseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RfqDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/rfqs/{id}/suppliers/{supplierId}/decline": {
+      "post": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "DeclineRfqSupplier",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RfqVersionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RfqDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/rfqs/{id}/close": {
+      "post": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "CloseRfq",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RfqCloseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RfqDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/rfqs/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "CancelRfq",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RfqCancelInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RfqDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/rfqs/{id}/purchase-orders": {
+      "post": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "GenerateRfqPurchaseOrders",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RfqVersionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RfqOrdersResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/rfqs/{id}/purchase-orders/submit": {
+      "post": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "SubmitRfqPurchaseOrders",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RfqSubmitResult"
                 }
               }
             }
@@ -16126,6 +17665,597 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PurchaseOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/purchase-orders/{id}/close": {
+      "post": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "ClosePurchaseOrderBalance",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PurchaseOrderCloseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/purchase-orders/{id}/lines/{lineId}/correct-price": {
+      "post": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "CorrectPurchaseOrderPrice",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "lineId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PurchaseOrderPriceInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/purchase-orders/{id}/receipt-defaults": {
+      "get": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "GetGoodsReceiptDefaults",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GoodsReceiptDefaults"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/purchase-orders/{id}/receipts/preview": {
+      "post": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "PreviewGoodsReceipt",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GoodsReceiptInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GoodsReceiptPreview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/purchase-orders/{id}/receipts": {
+      "post": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "RegisterGoodsReceipt",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GoodsReceiptInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GoodsReceiptDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "ListPurchaseOrderReceipts",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GoodsReceiptSummary"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/purchase-orders/{id}/receipts/{receiptId}": {
+      "get": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "GetPurchaseOrderReceipt",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "receiptId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GoodsReceiptDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/goods-receipts": {
+      "get": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "ListGoodsReceipts",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/GoodsReceiptStatus"
+            }
+          },
+          {
+            "name": "partyId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "purchaseOrderId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfGoodsReceiptSummary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/goods-receipts/{id}": {
+      "get": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "GetGoodsReceipt",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GoodsReceiptDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/goods-receipts/{id}/lines/{lineId}": {
+      "get": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "GetGoodsReceiptLine",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "lineId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GoodsReceiptLineView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/goods-receipts/{id}/history": {
+      "get": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "GetGoodsReceiptHistory",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfRelatedAuditEntryDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/goods-receipts/{id}/payables": {
+      "get": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "ListGoodsReceiptPayables",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GoodsReceiptPayableView"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/goods-receipts/{id}/reverse": {
+      "post": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "ReverseGoodsReceipt",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GoodsReceiptReverseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GoodsReceiptDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/locations": {
+      "get": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "ListReceiptLocationOptions",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReceiptLocationOption"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/items/{itemId}/last-purchase": {
+      "get": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "GetItemLastPurchase",
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LastPurchaseView"
                 }
               }
             }
@@ -23316,6 +25446,26 @@
           }
         }
       },
+      "CarrierOption": {
+        "required": [
+          "id",
+          "name",
+          "suggested"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "suggested": {
+            "type": "boolean"
+          }
+        }
+      },
       "CashFlowDay": {
         "required": [
           "date",
@@ -25533,7 +27683,8 @@
           "Installer",
           "Purchase",
           "Payroll",
-          "Maintenance"
+          "Maintenance",
+          "GoodsReceipt"
         ]
       },
       "DreGroup": {
@@ -27213,6 +29364,887 @@
           "count": {
             "type": "integer",
             "format": "int32"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "GoodsReceiptDefaultLine": {
+        "required": [
+          "poLineId",
+          "sequence",
+          "itemId",
+          "itemCode",
+          "itemName",
+          "unitCode",
+          "tracksLot",
+          "ordered",
+          "received",
+          "open",
+          "maxQuantity",
+          "unitPrice",
+          "supplierUnit",
+          "supplierFactor"
+        ],
+        "type": "object",
+        "properties": {
+          "poLineId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "tracksLot": {
+            "type": "boolean"
+          },
+          "ordered": {
+            "type": "number",
+            "format": "double"
+          },
+          "received": {
+            "type": "number",
+            "format": "double"
+          },
+          "open": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxQuantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "supplierUnit": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "supplierFactor": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "GoodsReceiptDefaults": {
+        "required": [
+          "orderId",
+          "orderNumber",
+          "status",
+          "partyId",
+          "partyName",
+          "projectId",
+          "projectNumber",
+          "today",
+          "defaultLocationId",
+          "locations",
+          "tolerancePct",
+          "orderSubtotal",
+          "orderFreight",
+          "orderIpiAmount",
+          "freightUsed",
+          "ipiUsed",
+          "approvedTotal",
+          "receivedAmount",
+          "lines",
+          "soleOwner",
+          "blocker",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PurchaseOrderStatus"
+          },
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "today": {
+            "type": "string",
+            "format": "date"
+          },
+          "defaultLocationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "locations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReceiptLocationOption"
+            }
+          },
+          "tolerancePct": {
+            "type": "number",
+            "format": "double"
+          },
+          "orderSubtotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "orderFreight": {
+            "type": "number",
+            "format": "double"
+          },
+          "orderIpiAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "freightUsed": {
+            "type": "number",
+            "format": "double"
+          },
+          "ipiUsed": {
+            "type": "number",
+            "format": "double"
+          },
+          "approvedTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "receivedAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GoodsReceiptDefaultLine"
+            }
+          },
+          "soleOwner": {
+            "type": "boolean"
+          },
+          "blocker": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "GoodsReceiptDetail": {
+        "required": [
+          "id",
+          "number",
+          "status",
+          "purchaseOrderId",
+          "purchaseOrderNumber",
+          "partyId",
+          "partyName",
+          "projectId",
+          "projectNumber",
+          "receivedOn",
+          "subtotal",
+          "freight",
+          "ipiAmount",
+          "amount",
+          "notes",
+          "receivedBy",
+          "receivedByName",
+          "soleOwner",
+          "createdAt",
+          "reversedAt",
+          "reversedByName",
+          "reversalReason",
+          "lines",
+          "servedOrders",
+          "canReverse",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/GoodsReceiptStatus"
+          },
+          "purchaseOrderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "purchaseOrderNumber": {
+            "type": "string"
+          },
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "receivedOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "subtotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "freight": {
+            "type": "number",
+            "format": "double"
+          },
+          "ipiAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "receivedBy": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "receivedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "soleOwner": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reversedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "reversedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reversalReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GoodsReceiptLineView"
+            }
+          },
+          "servedOrders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ServedOrderRef"
+            }
+          },
+          "canReverse": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "GoodsReceiptInput": {
+        "required": [
+          "receivedOn",
+          "freight",
+          "ipiAmount",
+          "notes",
+          "lines",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "receivedOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "freight": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "ipiAmount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lines": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/GoodsReceiptLineInput"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "GoodsReceiptInstallmentPreview": {
+        "required": [
+          "number",
+          "dueDate",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "number": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "GoodsReceiptLineInput": {
+        "required": [
+          "poLineId",
+          "quantity",
+          "inSupplierUnit",
+          "lotNumber",
+          "lotExpiry",
+          "locationId"
+        ],
+        "type": "object",
+        "properties": {
+          "poLineId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "inSupplierUnit": {
+            "type": "boolean"
+          },
+          "lotNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lotExpiry": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "locationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "GoodsReceiptLineView": {
+        "required": [
+          "id",
+          "sequence",
+          "poLineId",
+          "itemId",
+          "itemCode",
+          "itemName",
+          "unitCode",
+          "quantity",
+          "supplierUnit",
+          "supplierQuantity",
+          "lotNumber",
+          "lotExpiry",
+          "locationId",
+          "locationName",
+          "unitPrice",
+          "lineAmount",
+          "freightShare",
+          "ipiShare",
+          "unitCost",
+          "movementId",
+          "movementNumber",
+          "reversalMovementId"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "poLineId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "supplierUnit": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "supplierQuantity": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "lotNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lotExpiry": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "locationName": {
+            "type": "string"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "lineAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "freightShare": {
+            "type": "number",
+            "format": "double"
+          },
+          "ipiShare": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitCost": {
+            "type": "number",
+            "format": "double"
+          },
+          "movementId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "movementNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reversalMovementId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "GoodsReceiptPayableView": {
+        "required": [
+          "id",
+          "number",
+          "installment",
+          "status",
+          "amount",
+          "dueDate",
+          "paymentOrderId"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "installment": {
+            "type": "integer",
+            "format": "int16"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PayableStatus"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "paymentOrderId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "GoodsReceiptPreview": {
+        "required": [
+          "receivedOn",
+          "subtotal",
+          "freight",
+          "ipiAmount",
+          "amount",
+          "freightMax",
+          "ipiMax",
+          "ceiling",
+          "receivedAmountAfter",
+          "lines",
+          "installments",
+          "plannedBefore",
+          "plannedAfter",
+          "orderCompletes",
+          "soleOwner"
+        ],
+        "type": "object",
+        "properties": {
+          "receivedOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "subtotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "freight": {
+            "type": "number",
+            "format": "double"
+          },
+          "ipiAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "freightMax": {
+            "type": "number",
+            "format": "double"
+          },
+          "ipiMax": {
+            "type": "number",
+            "format": "double"
+          },
+          "ceiling": {
+            "type": "number",
+            "format": "double"
+          },
+          "receivedAmountAfter": {
+            "type": "number",
+            "format": "double"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GoodsReceiptPreviewLine"
+            }
+          },
+          "installments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GoodsReceiptInstallmentPreview"
+            }
+          },
+          "plannedBefore": {
+            "type": "number",
+            "format": "double"
+          },
+          "plannedAfter": {
+            "type": "number",
+            "format": "double"
+          },
+          "orderCompletes": {
+            "type": "boolean"
+          },
+          "soleOwner": {
+            "type": "boolean"
+          }
+        }
+      },
+      "GoodsReceiptPreviewLine": {
+        "required": [
+          "poLineId",
+          "itemCode",
+          "itemName",
+          "unitCode",
+          "quantity",
+          "lineAmount",
+          "freightShare",
+          "ipiShare",
+          "unitCost",
+          "averageCostBefore",
+          "averageCostAfter"
+        ],
+        "type": "object",
+        "properties": {
+          "poLineId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "lineAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "freightShare": {
+            "type": "number",
+            "format": "double"
+          },
+          "ipiShare": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitCost": {
+            "type": "number",
+            "format": "double"
+          },
+          "averageCostBefore": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "averageCostAfter": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "GoodsReceiptReverseInput": {
+        "required": [
+          "reason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "GoodsReceiptStatus": {
+        "enum": [
+          "Completed",
+          "Reversed"
+        ]
+      },
+      "GoodsReceiptSummary": {
+        "required": [
+          "id",
+          "number",
+          "status",
+          "receivedOn",
+          "purchaseOrderId",
+          "purchaseOrderNumber",
+          "partyId",
+          "partyName",
+          "itemSummary",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/GoodsReceiptStatus"
+          },
+          "receivedOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "purchaseOrderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "purchaseOrderNumber": {
+            "type": "string"
+          },
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "itemSummary": {
+            "type": "string"
           },
           "amount": {
             "type": "number",
@@ -29550,6 +32582,46 @@
           },
           "name": {
             "type": "string"
+          }
+        }
+      },
+      "LastPurchaseView": {
+        "required": [
+          "itemId",
+          "purchaseOrderId",
+          "purchaseOrderNumber",
+          "partyId",
+          "partyName",
+          "unitPrice",
+          "approvedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "purchaseOrderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "purchaseOrderNumber": {
+            "type": "string"
+          },
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "approvedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -33325,6 +36397,35 @@
           }
         }
       },
+      "PagedListOfGoodsReceiptSummary": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GoodsReceiptSummary"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "PagedListOfImportPendingItem": {
         "required": [
           "items",
@@ -33876,6 +36977,35 @@
           }
         }
       },
+      "PagedListOfRfqSummary": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RfqSummary"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "PagedListOfRoutingTemplateSummary": {
         "required": [
           "items",
@@ -33918,6 +37048,35 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ShortageRow"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PagedListOfStockAdjustmentSummary": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockAdjustmentSummary"
             }
           },
           "page": {
@@ -37412,7 +40571,8 @@
           "quantity",
           "neededBy",
           "projectNumber",
-          "orderNumber"
+          "orderNumber",
+          "lineId"
         ],
         "type": "object",
         "properties": {
@@ -37445,6 +40605,10 @@
               "null",
               "string"
             ]
+          },
+          "lineId": {
+            "type": "string",
+            "format": "uuid"
           }
         }
       },
@@ -37503,6 +40667,25 @@
         ]
       },
       "PurchaseOrderCancelInput": {
+        "required": [
+          "reason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "PurchaseOrderCloseInput": {
         "required": [
           "reason",
           "version"
@@ -38037,6 +41220,61 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          },
+          "approvedTotal": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "closedBalanceAmount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "closeReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "closedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "amountReceived": {
+            "type": "number",
+            "format": "double",
+            "default": 0
+          },
+          "receiptsCount": {
+            "type": "integer",
+            "format": "int32",
+            "default": 0
+          },
+          "canReceive": {
+            "type": "boolean",
+            "default": false
+          },
+          "receiveBlocker": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "canClose": {
+            "type": "boolean",
+            "default": false
+          },
+          "canCorrectPrice": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -38336,6 +41574,21 @@
             "items": {
               "$ref": "#/components/schemas/PurchaseOrderRequestRef"
             }
+          },
+          "quantityOverReceived": {
+            "type": "number",
+            "format": "double",
+            "default": 0
+          },
+          "amountReceived": {
+            "type": "number",
+            "format": "double",
+            "default": 0
+          },
+          "quantityOpen": {
+            "type": "number",
+            "format": "double",
+            "default": 0
           }
         }
       },
@@ -38386,6 +41639,30 @@
               "string"
             ],
             "format": "uuid"
+          }
+        }
+      },
+      "PurchaseOrderPriceInput": {
+        "required": [
+          "unitPrice",
+          "reason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
           }
         }
       },
@@ -39263,6 +42540,20 @@
               "null",
               "boolean"
             ]
+          },
+          "receiptTolerancePct": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "quoteAttachmentAmount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },
@@ -39310,6 +42601,16 @@
             "items": {
               "$ref": "#/components/schemas/PurchasingAccountOption"
             }
+          },
+          "receiptTolerancePct": {
+            "type": "number",
+            "format": "double",
+            "default": 0
+          },
+          "quoteAttachmentAmount": {
+            "type": "number",
+            "format": "double",
+            "default": 5000
           }
         }
       },
@@ -41346,6 +44647,135 @@
           }
         }
       },
+      "ReadyToShipLine": {
+        "required": [
+          "itemId",
+          "itemCode",
+          "itemName",
+          "unitCode",
+          "locationId",
+          "locationName",
+          "lotId",
+          "lotNumber",
+          "tracksSerial",
+          "quantity",
+          "onHand",
+          "reserved",
+          "available",
+          "shippable",
+          "inOpenShipments",
+          "fromGeneralStock",
+          "serials"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "locationName": {
+            "type": "string"
+          },
+          "lotId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "lotNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "tracksSerial": {
+            "type": "boolean"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "onHand": {
+            "type": "number",
+            "format": "double"
+          },
+          "reserved": {
+            "type": "number",
+            "format": "double"
+          },
+          "available": {
+            "type": "number",
+            "format": "double"
+          },
+          "shippable": {
+            "type": "number",
+            "format": "double"
+          },
+          "inOpenShipments": {
+            "type": "number",
+            "format": "double"
+          },
+          "fromGeneralStock": {
+            "type": "boolean"
+          },
+          "serials": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShipmentSerialView"
+            }
+          }
+        }
+      },
+      "ReadyToShipProject": {
+        "required": [
+          "projectId",
+          "projectNumber",
+          "projectName",
+          "partyName",
+          "shippable",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": "string"
+          },
+          "projectName": {
+            "type": "string"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "shippable": {
+            "type": "number",
+            "format": "double"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReadyToShipLine"
+            }
+          }
+        }
+      },
       "ReasonInput": {
         "required": [
           "reason",
@@ -41362,6 +44792,30 @@
           }
         },
         "additionalProperties": false
+      },
+      "ReceiptLocationOption": {
+        "required": [
+          "id",
+          "code",
+          "name",
+          "isDefault"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean"
+          }
+        }
       },
       "ReceivableDetail": {
         "required": [
@@ -43275,6 +46729,1211 @@
           "IsReversal"
         ]
       },
+      "RfqCancelInput": {
+        "required": [
+          "reason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "RfqCloseInput": {
+        "required": [
+          "selections",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "selections": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/RfqSelectionInput"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "RfqDefaultLine": {
+        "required": [
+          "item",
+          "quantity",
+          "requestLineIds",
+          "requestNumbers",
+          "lastPurchase"
+        ],
+        "type": "object",
+        "properties": {
+          "item": {
+            "$ref": "#/components/schemas/PurchaseItemOption"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "requestLineIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "requestNumbers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "lastPurchase": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RfqLastPurchase"
+              }
+            ]
+          }
+        }
+      },
+      "RfqDefaults": {
+        "required": [
+          "lines",
+          "suppliers"
+        ],
+        "type": "object",
+        "properties": {
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RfqDefaultLine"
+            }
+          },
+          "suppliers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RfqSupplierOption"
+            }
+          }
+        }
+      },
+      "RfqDetail": {
+        "required": [
+          "id",
+          "number",
+          "status",
+          "notes",
+          "createdBy",
+          "createdByName",
+          "createdAt",
+          "closedAt",
+          "closedByName",
+          "cancelReason",
+          "cancelledAt",
+          "cancelledByName",
+          "lines",
+          "suppliers",
+          "quotesCount",
+          "cheapestOverallSupplierId",
+          "singleQuoteWarning",
+          "attachmentLimit",
+          "orders",
+          "canEdit",
+          "canClose",
+          "canCancel",
+          "canGenerateOrders",
+          "canSubmitOrders",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RfqStatus"
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdBy": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "createdByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "closedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "closedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cancelReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cancelledAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "cancelledByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RfqLineView"
+            }
+          },
+          "suppliers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RfqSupplierView"
+            }
+          },
+          "quotesCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cheapestOverallSupplierId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "singleQuoteWarning": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "attachmentLimit": {
+            "type": "number",
+            "format": "double"
+          },
+          "orders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RfqOrderPreview"
+            }
+          },
+          "canEdit": {
+            "type": "boolean"
+          },
+          "canClose": {
+            "type": "boolean"
+          },
+          "canCancel": {
+            "type": "boolean"
+          },
+          "canGenerateOrders": {
+            "type": "boolean"
+          },
+          "canSubmitOrders": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "RfqInput": {
+        "required": [
+          "requestLineIds",
+          "lines",
+          "supplierIds",
+          "notes"
+        ],
+        "type": "object",
+        "properties": {
+          "requestLineIds": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "lines": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/RfqLineInput"
+            }
+          },
+          "supplierIds": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "RfqLastPurchase": {
+        "required": [
+          "unitPrice",
+          "approvedAt",
+          "partyName",
+          "orderNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "approvedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "orderNumber": {
+            "type": "string"
+          }
+        }
+      },
+      "RfqLineInput": {
+        "required": [
+          "itemId",
+          "quantity",
+          "unitId"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "RfqLineView": {
+        "required": [
+          "id",
+          "sequence",
+          "itemId",
+          "itemCode",
+          "itemName",
+          "unitCode",
+          "quantity",
+          "requests",
+          "cheapestSupplierId",
+          "selectedSupplierId",
+          "suggestedSupplierId",
+          "selectionReason",
+          "selectionNote",
+          "lastPurchase"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "requests": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RfqRequestRef"
+            }
+          },
+          "cheapestSupplierId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "selectedSupplierId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "suggestedSupplierId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "selectionReason": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RfqSelectionReason"
+              }
+            ]
+          },
+          "selectionNote": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lastPurchase": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RfqLastPurchase"
+              }
+            ]
+          }
+        }
+      },
+      "RfqOrderPreview": {
+        "required": [
+          "supplierId",
+          "partyId",
+          "partyName",
+          "lines",
+          "total",
+          "order"
+        ],
+        "type": "object",
+        "properties": {
+          "supplierId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "lines": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "order": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RfqOrderRef"
+              }
+            ]
+          }
+        }
+      },
+      "RfqOrderRef": {
+        "required": [
+          "id",
+          "number",
+          "status",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PurchaseOrderStatus"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "RfqOrdersResult": {
+        "required": [
+          "orders",
+          "created"
+        ],
+        "type": "object",
+        "properties": {
+          "orders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RfqOrderView"
+            }
+          },
+          "created": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "RfqOrderView": {
+        "required": [
+          "purchaseOrderId",
+          "number",
+          "partyId",
+          "partyName",
+          "status",
+          "total",
+          "created"
+        ],
+        "type": "object",
+        "properties": {
+          "purchaseOrderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PurchaseOrderStatus"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "created": {
+            "type": "boolean"
+          }
+        }
+      },
+      "RfqQuoteInput": {
+        "required": [
+          "lineId",
+          "unitPrice",
+          "inSupplierUnit",
+          "availableQuantity",
+          "leadDays"
+        ],
+        "type": "object",
+        "properties": {
+          "lineId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "inSupplierUnit": {
+            "type": "boolean"
+          },
+          "availableQuantity": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "leadDays": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "RfqQuoteView": {
+        "required": [
+          "lineId",
+          "unitPrice",
+          "supplierUnitPrice",
+          "supplierUnit",
+          "availableQuantity",
+          "leadDays",
+          "lineTotal",
+          "landedCost",
+          "isCheapest"
+        ],
+        "type": "object",
+        "properties": {
+          "lineId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "supplierUnitPrice": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "supplierUnit": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "availableQuantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "leadDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lineTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "landedCost": {
+            "type": "number",
+            "format": "double"
+          },
+          "isCheapest": {
+            "type": "boolean"
+          }
+        }
+      },
+      "RfqRequestRef": {
+        "required": [
+          "requestId",
+          "number",
+          "lineId",
+          "quantity"
+        ],
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "lineId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "RfqResponseInput": {
+        "required": [
+          "freight",
+          "ipiPct",
+          "paymentTermId",
+          "validUntil",
+          "notes",
+          "quotes",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "freight": {
+            "type": "number",
+            "format": "double"
+          },
+          "ipiPct": {
+            "type": "number",
+            "format": "double"
+          },
+          "paymentTermId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "validUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "quotes": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/RfqQuoteInput"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "RfqSelectionInput": {
+        "required": [
+          "lineId",
+          "supplierId",
+          "reason",
+          "note"
+        ],
+        "type": "object",
+        "properties": {
+          "lineId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "supplierId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reason": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RfqSelectionReason"
+              }
+            ]
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "RfqSelectionReason": {
+        "enum": [
+          "LeadTime",
+          "Quality",
+          "PaymentTerm",
+          "ApprovedSupplier",
+          "Other",
+          null
+        ]
+      },
+      "RfqStatus": {
+        "enum": [
+          "Open",
+          "Closed",
+          "Cancelled"
+        ]
+      },
+      "RfqSubmitItem": {
+        "required": [
+          "purchaseOrderId",
+          "number",
+          "partyName",
+          "total",
+          "sent",
+          "levels",
+          "approverName",
+          "code",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "purchaseOrderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "sent": {
+            "type": "boolean"
+          },
+          "levels": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "approverName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "message": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "RfqSubmitResult": {
+        "required": [
+          "items",
+          "sent",
+          "total",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RfqSubmitItem"
+            }
+          },
+          "sent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "RfqSummary": {
+        "required": [
+          "id",
+          "number",
+          "status",
+          "itemSummary",
+          "lineCount",
+          "supplierCount",
+          "respondedCount",
+          "createdAt",
+          "closedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RfqStatus"
+          },
+          "itemSummary": {
+            "type": "string"
+          },
+          "lineCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "supplierCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "respondedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "closedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "RfqSupplierInput": {
+        "required": [
+          "partyId",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "RfqSupplierOption": {
+        "required": [
+          "id",
+          "name",
+          "document",
+          "defaultPaymentTermId",
+          "suggested"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "document": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "defaultPaymentTermId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "suggested": {
+            "type": "boolean"
+          }
+        }
+      },
+      "RfqSupplierUnit": {
+        "required": [
+          "itemId",
+          "unit",
+          "factor"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "factor": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "RfqSupplierView": {
+        "required": [
+          "id",
+          "partyId",
+          "partyName",
+          "sequence",
+          "responded",
+          "declined",
+          "respondedBy",
+          "respondedByName",
+          "respondedAt",
+          "freight",
+          "ipiPct",
+          "paymentTermId",
+          "paymentTermName",
+          "validUntil",
+          "notes",
+          "subtotal",
+          "ipiAmount",
+          "total",
+          "maxLeadDays",
+          "coversAll",
+          "isCheapest",
+          "attachmentRequired",
+          "attachmentsCount",
+          "purchaseOrderId",
+          "purchaseOrderNumber",
+          "orderSubmittedAt",
+          "orderSubmitError",
+          "quotes",
+          "supplierUnits"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "responded": {
+            "type": "boolean"
+          },
+          "declined": {
+            "type": "boolean"
+          },
+          "respondedBy": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "respondedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "respondedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "freight": {
+            "type": "number",
+            "format": "double"
+          },
+          "ipiPct": {
+            "type": "number",
+            "format": "double"
+          },
+          "paymentTermId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "paymentTermName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "validUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "subtotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "ipiAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxLeadDays": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "coversAll": {
+            "type": "boolean"
+          },
+          "isCheapest": {
+            "type": "boolean"
+          },
+          "attachmentRequired": {
+            "type": "boolean"
+          },
+          "attachmentsCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "purchaseOrderId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "purchaseOrderNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "orderSubmittedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "orderSubmitError": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "quotes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RfqQuoteView"
+            }
+          },
+          "supplierUnits": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RfqSupplierUnit"
+            }
+          }
+        }
+      },
+      "RfqVersionInput": {
+        "required": [
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
       "RoutingChecklistItem": {
         "required": [
           "sequence",
@@ -44056,6 +48715,22 @@
           }
         }
       },
+      "ServedOrderRef": {
+        "required": [
+          "id",
+          "number"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          }
+        }
+      },
       "SetGroupMembersRequest": {
         "required": [
           "userIds"
@@ -44252,6 +48927,822 @@
             "type": "string"
           }
         }
+      },
+      "ShipmentDecisionInput": {
+        "required": [
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "ShipmentDetail": {
+        "required": [
+          "id",
+          "number",
+          "status",
+          "projectId",
+          "projectNumber",
+          "projectName",
+          "partyId",
+          "partyName",
+          "deliveryAddress",
+          "carrierPartyId",
+          "carrierName",
+          "vehiclePlate",
+          "driverName",
+          "volumes",
+          "grossWeight",
+          "plannedDate",
+          "hasGeneralStock",
+          "createdAt",
+          "createdBy",
+          "createdByName",
+          "stockApprovalRequestedAt",
+          "stockApprovedByName",
+          "selfApproved",
+          "shippedAt",
+          "shippedByName",
+          "cancelledAt",
+          "cancelledByName",
+          "cancelReason",
+          "reversedAt",
+          "reversedByName",
+          "reversalReason",
+          "pdfAttachmentId",
+          "lines",
+          "next",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ShipmentState"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": "string"
+          },
+          "projectName": {
+            "type": "string"
+          },
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "deliveryAddress": {
+            "type": "string"
+          },
+          "carrierPartyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "carrierName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "vehiclePlate": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "driverName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "volumes": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "grossWeight": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "plannedDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "hasGeneralStock": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdBy": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "createdByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "stockApprovalRequestedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "stockApprovedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "selfApproved": {
+            "type": "boolean"
+          },
+          "shippedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "shippedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cancelledAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "cancelledByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cancelReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reversedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "reversedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reversalReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pdfAttachmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShipmentLineView"
+            }
+          },
+          "next": {
+            "$ref": "#/components/schemas/ShipmentNext"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "ShipmentForm": {
+        "required": [
+          "projectId",
+          "projectNumber",
+          "projectName",
+          "partyId",
+          "partyName",
+          "deliveryAddress",
+          "suggestedCarrierId",
+          "carriers",
+          "available",
+          "productionOrderId"
+        ],
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": "string"
+          },
+          "projectName": {
+            "type": "string"
+          },
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "deliveryAddress": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "suggestedCarrierId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "carriers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CarrierOption"
+            }
+          },
+          "available": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReadyToShipLine"
+            }
+          },
+          "productionOrderId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "ShipmentImpact": {
+        "required": [
+          "id",
+          "number",
+          "status",
+          "requiresStockApproval",
+          "lines",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ShipmentState"
+          },
+          "requiresStockApproval": {
+            "type": "boolean"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShipmentImpactLine"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "ShipmentImpactLine": {
+        "required": [
+          "lineId",
+          "itemCode",
+          "itemName",
+          "unitCode",
+          "locationName",
+          "quantity",
+          "onHandBefore",
+          "onHandAfter",
+          "serialNumbers",
+          "fromGeneralStock",
+          "insufficient"
+        ],
+        "type": "object",
+        "properties": {
+          "lineId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "locationName": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "onHandBefore": {
+            "type": "number",
+            "format": "double"
+          },
+          "onHandAfter": {
+            "type": "number",
+            "format": "double"
+          },
+          "serialNumbers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "fromGeneralStock": {
+            "type": "boolean"
+          },
+          "insufficient": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ShipmentInput": {
+        "required": [
+          "projectId",
+          "deliveryAddress",
+          "carrierPartyId",
+          "vehiclePlate",
+          "driverName",
+          "volumes",
+          "grossWeight",
+          "plannedDate",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "deliveryAddress": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "carrierPartyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "vehiclePlate": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "driverName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "volumes": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "grossWeight": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "plannedDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShipmentLineInput"
+            }
+          },
+          "version": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "uint32"
+          }
+        }
+      },
+      "ShipmentLineInput": {
+        "required": [
+          "itemId",
+          "locationId",
+          "lotId",
+          "quantity",
+          "serialIds"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lotId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "serialIds": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "fromGeneralStock": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "ShipmentLineView": {
+        "required": [
+          "id",
+          "sequence",
+          "itemId",
+          "itemCode",
+          "itemName",
+          "unitCode",
+          "quantity",
+          "locationId",
+          "locationName",
+          "lotId",
+          "lotNumber",
+          "fromGeneralStock",
+          "serials",
+          "movementId"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "locationName": {
+            "type": "string"
+          },
+          "lotId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "lotNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "fromGeneralStock": {
+            "type": "boolean"
+          },
+          "serials": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShipmentSerialView"
+            }
+          },
+          "movementId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "ShipmentNext": {
+        "required": [
+          "canConfirm",
+          "confirmBlocker",
+          "canConfirmStock",
+          "confirmStockBlocker",
+          "installationOrderId",
+          "installationOrderNumber",
+          "projectDelivered",
+          "projectStatus"
+        ],
+        "type": "object",
+        "properties": {
+          "canConfirm": {
+            "type": "boolean"
+          },
+          "confirmBlocker": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "canConfirmStock": {
+            "type": "boolean"
+          },
+          "confirmStockBlocker": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "installationOrderId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "installationOrderNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "projectDelivered": {
+            "type": "boolean"
+          },
+          "projectStatus": {
+            "type": "string"
+          }
+        }
+      },
+      "ShipmentPage": {
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize",
+          "awaitingMine"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShipmentRow"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "awaitingMine": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ShipmentReasonInput": {
+        "required": [
+          "reason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "ShipmentRow": {
+        "required": [
+          "id",
+          "number",
+          "status",
+          "projectId",
+          "projectNumber",
+          "partyName",
+          "lines",
+          "units",
+          "plannedDate",
+          "shippedAt",
+          "createdAt",
+          "hasGeneralStock"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ShipmentState"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": "string"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "lines": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "units": {
+            "type": "number",
+            "format": "double"
+          },
+          "plannedDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "shippedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "hasGeneralStock": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ShipmentSerialView": {
+        "required": [
+          "id",
+          "serialNumber",
+          "productionOrderId",
+          "openShipmentNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "serialNumber": {
+            "type": "string"
+          },
+          "productionOrderId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "openShipmentNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ShipmentState": {
+        "enum": [
+          "Draft",
+          "AwaitingStockApproval",
+          "Shipped",
+          "Cancelled",
+          "Reversed"
+        ]
       },
       "ShopfloorActionResult": {
         "required": [
@@ -45656,6 +51147,670 @@
             "format": "int32"
           },
           "includesBackfill": {
+            "type": "boolean"
+          }
+        }
+      },
+      "StockAdjustmentDecisionInput": {
+        "required": [
+          "comment",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "comment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "StockAdjustmentDetail": {
+        "required": [
+          "id",
+          "number",
+          "locationId",
+          "locationCode",
+          "locationName",
+          "mode",
+          "origin",
+          "originId",
+          "originNumber",
+          "originLink",
+          "reason",
+          "reasonLabel",
+          "reasonDetail",
+          "status",
+          "requestedBy",
+          "requestedByName",
+          "requestedAt",
+          "decidedByName",
+          "decidedAt",
+          "decisionComment",
+          "selfApproved",
+          "cancelReason",
+          "reversedAt",
+          "reversedByName",
+          "reversalReason",
+          "reversalSelfApproved",
+          "itemCount",
+          "surplusValue",
+          "shortageValue",
+          "differenceValue",
+          "lines",
+          "impact",
+          "canDecide",
+          "canCancel",
+          "canReverse",
+          "decideBlockedReason",
+          "reverseBlockedReason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "locationCode": {
+            "type": "string"
+          },
+          "locationName": {
+            "type": "string"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/StockAdjustmentMode"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/StockAdjustmentOrigin"
+          },
+          "originId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "originNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "originLink": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reason": {
+            "$ref": "#/components/schemas/StockAdjustmentReason"
+          },
+          "reasonLabel": {
+            "type": "string"
+          },
+          "reasonDetail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/StockAdjustmentStatus"
+          },
+          "requestedBy": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "requestedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "requestedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "decidedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "decidedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "decisionComment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "selfApproved": {
+            "type": "boolean"
+          },
+          "cancelReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reversedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "reversedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reversalReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reversalSelfApproved": {
+            "type": "boolean"
+          },
+          "itemCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "surplusValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "shortageValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "differenceValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockAdjustmentLineView"
+            }
+          },
+          "impact": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/StockAdjustmentImpact"
+              }
+            ]
+          },
+          "canDecide": {
+            "type": "boolean"
+          },
+          "canCancel": {
+            "type": "boolean"
+          },
+          "canReverse": {
+            "type": "boolean"
+          },
+          "decideBlockedReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reverseBlockedReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "StockAdjustmentImpact": {
+        "required": [
+          "changedSinceRequest",
+          "surplus",
+          "shortage",
+          "refusal",
+          "refusalItemId"
+        ],
+        "type": "object",
+        "properties": {
+          "changedSinceRequest": {
+            "type": "boolean"
+          },
+          "surplus": {
+            "type": "number",
+            "format": "double"
+          },
+          "shortage": {
+            "type": "number",
+            "format": "double"
+          },
+          "refusal": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "refusalItemId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "StockAdjustmentInput": {
+        "required": [
+          "locationId",
+          "mode",
+          "reason",
+          "reasonDetail",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/StockAdjustmentMode"
+          },
+          "reason": {
+            "$ref": "#/components/schemas/StockAdjustmentReason"
+          },
+          "reasonDetail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lines": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/StockAdjustmentLineInput"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "StockAdjustmentLineInput": {
+        "required": [
+          "itemId",
+          "lotId",
+          "quantity",
+          "unitId"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lotId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "StockAdjustmentLineView": {
+        "required": [
+          "id",
+          "sequence",
+          "itemId",
+          "itemCode",
+          "itemName",
+          "unitCode",
+          "tracksLot",
+          "lotId",
+          "lotNumber",
+          "systemQtyAtRequest",
+          "countedQty",
+          "deltaQty",
+          "enteredQuantity",
+          "enteredUnitCode",
+          "unitCostEstimate",
+          "estimatedValue",
+          "onHand",
+          "reserved",
+          "available",
+          "systemQtyNow",
+          "deltaNow",
+          "valueNow",
+          "onHandAfter",
+          "changed",
+          "refusal",
+          "systemQtyAtApproval",
+          "appliedDeltaQty",
+          "unitCost",
+          "movementId",
+          "movementNumber",
+          "belowMinimum"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "tracksLot": {
+            "type": "boolean"
+          },
+          "lotId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "lotNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "systemQtyAtRequest": {
+            "type": "number",
+            "format": "double"
+          },
+          "countedQty": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "deltaQty": {
+            "type": "number",
+            "format": "double"
+          },
+          "enteredQuantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "enteredUnitCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "unitCostEstimate": {
+            "type": "number",
+            "format": "double"
+          },
+          "estimatedValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "onHand": {
+            "type": "number",
+            "format": "double"
+          },
+          "reserved": {
+            "type": "number",
+            "format": "double"
+          },
+          "available": {
+            "type": "number",
+            "format": "double"
+          },
+          "systemQtyNow": {
+            "type": "number",
+            "format": "double"
+          },
+          "deltaNow": {
+            "type": "number",
+            "format": "double"
+          },
+          "valueNow": {
+            "type": "number",
+            "format": "double"
+          },
+          "onHandAfter": {
+            "type": "number",
+            "format": "double"
+          },
+          "changed": {
+            "type": "boolean"
+          },
+          "refusal": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "systemQtyAtApproval": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "appliedDeltaQty": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "unitCost": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "movementId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "movementNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "belowMinimum": {
+            "type": "boolean"
+          }
+        }
+      },
+      "StockAdjustmentMode": {
+        "enum": [
+          "Counted",
+          "Delta"
+        ]
+      },
+      "StockAdjustmentOrigin": {
+        "enum": [
+          "Manual",
+          "InventoryCount"
+        ]
+      },
+      "StockAdjustmentReason": {
+        "enum": [
+          "Loss",
+          "EntryError",
+          "Surplus",
+          "Count",
+          "Other"
+        ]
+      },
+      "StockAdjustmentReasonInput": {
+        "required": [
+          "reason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "StockAdjustmentStatus": {
+        "enum": [
+          "Pending",
+          "Approved",
+          "Rejected",
+          "Cancelled"
+        ]
+      },
+      "StockAdjustmentSummary": {
+        "required": [
+          "id",
+          "number",
+          "locationId",
+          "locationName",
+          "mode",
+          "origin",
+          "status",
+          "reversed",
+          "requestedByName",
+          "requestedAt",
+          "itemCount",
+          "surplusValue",
+          "shortageValue",
+          "differenceValue",
+          "selfApproved",
+          "awaitingMe"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "locationName": {
+            "type": "string"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/StockAdjustmentMode"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/StockAdjustmentOrigin"
+          },
+          "status": {
+            "$ref": "#/components/schemas/StockAdjustmentStatus"
+          },
+          "reversed": {
+            "type": "boolean"
+          },
+          "requestedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "requestedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "itemCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "surplusValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "shortageValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "differenceValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "selfApproved": {
+            "type": "boolean"
+          },
+          "awaitingMe": {
             "type": "boolean"
           }
         }

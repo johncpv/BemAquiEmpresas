@@ -135,7 +135,7 @@ public sealed partial class PurchaseRequestService
 
         var rows = await (from l in open
                           join r in db.PurchaseRequests.AsNoTracking() on l.RequestId equals r.Id
-                          select new { l.ItemId, l.Quantity, l.NeededBy, l.ProjectId, l.ProductionOrderId, r.Id, r.Number, r.Origin }).ToListAsync(cancellationToken);
+                          select new { LineId = l.Id, l.ItemId, l.Quantity, l.NeededBy, l.ProjectId, l.ProductionOrderId, r.Id, r.Number, r.Origin }).ToListAsync(cancellationToken);
         var itemInfo = (await items.FindAsync(rows.Select(r => r.ItemId).Distinct().ToList(), cancellationToken)).ToDictionary(i => i.Id);
         var projectIds = rows.Select(r => r.ProjectId).OfType<Guid>().Distinct().ToList();
         Dictionary<Guid, string> projectNumbers = projectIds.Count == 0 ? [] : (await projects.FindManyAsync(projectIds, cancellationToken)).ToDictionary(p => p.Id, p => p.Number);
@@ -148,7 +148,7 @@ public sealed partial class PurchaseRequestService
                 var item = itemInfo.GetValueOrDefault(g.Key);
                 var requests = g.OrderBy(r => r.NeededBy).ThenBy(r => r.Number, StringComparer.Ordinal)
                     .Select(r => new PurchaseItemRequest(r.Id, r.Number, r.Origin, r.Quantity, r.NeededBy, r.ProjectId is { } p ? projectNumbers.GetValueOrDefault(p) : null,
-                        r.ProductionOrderId is { } o ? orderNumbers.GetValueOrDefault(o) : null)).ToList();
+                        r.ProductionOrderId is { } o ? orderNumbers.GetValueOrDefault(o) : null, r.LineId)).ToList();
                 return new PurchaseItemRow(g.Key, item?.Code ?? string.Empty, item?.Name ?? "Item removido", item?.UnitCode ?? string.Empty, g.Sum(r => r.Quantity), g.Min(r => r.NeededBy),
                     requests.Select(r => r.RequestId).Distinct().Count(), requests);
             })

@@ -5,6 +5,7 @@ import type { CostType, PurchasingParametersView } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { Field, FormSection } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
+import { MoneyInput } from '@/components/form/inputs'
 import { RecordHistory } from '@/components/history/RecordHistory'
 import { notifySuccess } from '@/components/ui/messages'
 import { Skeleton } from '@/components/ui/states'
@@ -13,7 +14,7 @@ import { Dica } from '@/help/Dica'
 import { COST_SECTIONS } from '@/pages/quotes/quotes'
 import { useCan } from '@/pages/use-can'
 
-import { accountingPending, costTypeLabel, FREIGHT_DICA, PAYABLE_DICA, parseTolerance, PENDING_LABEL, purchasingChanged, TOLERANCE_DICA } from './purchasing-parameters'
+import { accountingPending, ATTACHMENT_DICA, costTypeLabel, FREIGHT_DICA, PAYABLE_DICA, parseTolerance, PENDING_LABEL, purchasingChanged, TOLERANCE_DICA } from './purchasing-parameters'
 
 const LEAD_DICA = 'Quantos dias antes da necessidade a compra precisa ser feita. A falta da BOM pede o material para a data prometida do projeto menos este prazo; a solicitação manual e a do estoque mínimo sugerem hoje mais este prazo.'
 
@@ -29,7 +30,7 @@ export function PurchasingParametersSection({ canEdit }: { canEdit: boolean }) {
   if (query.isPending) return <Skeleton className="h-24" />
   if (query.isError || !query.data.accounts) return null
   const p = query.data
-  return <PurchasingForm key={[p.defaultLeadDays, p.payableAccountCode, p.payableCostType, p.freightAccountCode, p.freightCostType, p.accountingConfirmed, p.receiptTolerancePct].join('|')} params={p} canEdit={canEdit} />
+  return <PurchasingForm key={[p.defaultLeadDays, p.payableAccountCode, p.payableCostType, p.freightAccountCode, p.freightCostType, p.accountingConfirmed, p.receiptTolerancePct, p.quoteAttachmentAmount].join('|')} params={p} canEdit={canEdit} />
 }
 
 function PurchasingForm({ params, canEdit }: { params: PurchasingParametersView; canEdit: boolean }) {
@@ -41,6 +42,7 @@ function PurchasingForm({ params, canEdit }: { params: PurchasingParametersView;
   const [freightCostType, setFreightCostType] = useState<CostType>(params.freightCostType)
   const [confirmed, setConfirmed] = useState(params.accountingConfirmed)
   const [tolerance, setTolerance] = useState(String(params.receiptTolerancePct ?? 0).replace('.', ','))
+  const [attachment, setAttachment] = useState<string | null>(params.quoteAttachmentAmount == null ? null : String(params.quoteAttachmentAmount))
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [error, setError] = useState<string | undefined>()
   const value = Number(days)
@@ -49,12 +51,13 @@ function PurchasingForm({ params, canEdit }: { params: PurchasingParametersView;
   const toleranceInvalid = tolerancePct === null ? 'Informe a tolerância de 0% a 50%, com até 2 casas.' : undefined
   const changed = purchasingChanged(params, {
     defaultLeadDays: value, payableAccountCode: account, payableCostType: costType, freightAccountCode: freightAccount, freightCostType, accountingConfirmed: confirmed, receiptTolerancePct: tolerancePct ?? undefined,
+    quoteAttachmentAmount: attachment === null ? undefined : Number(attachment),
   })
   const save = async () => {
     try {
       const saved = await updatePurchasingParameters({
         defaultLeadDays: value, payableAccountCode: account, payableCostType: costType, freightAccountCode: freightAccount, freightCostType, accountingConfirmed: confirmed,
-        receiptTolerancePct: tolerancePct ?? 0,
+        receiptTolerancePct: tolerancePct ?? 0, quoteAttachmentAmount: attachment === null ? null : Number(attachment),
       })
       client.setQueryData(getGetPurchasingParametersQueryKey(), saved)
       void client.invalidateQueries({ predicate: (q) => String(q.queryKey[0]).startsWith('/api/v1/audit/PurchasingParameter/') })
@@ -88,6 +91,9 @@ function PurchasingForm({ params, canEdit }: { params: PurchasingParametersView;
         </Field>
         <Field label="Tolerância do recebimento (%)" dica={TOLERANCE_DICA} error={toleranceInvalid ?? errors.receiptTolerancePct} hint="Padrão 0%: o recebimento não passa do pedido.">
           {(p) => <input {...p} inputMode="decimal" maxLength={5} value={tolerance} onChange={(e) => setTolerance(e.target.value.replace(/[^0-9,.]/g, ''))} className={inputClass + ' tabular-nums'} />}
+        </Field>
+        <Field label="Anexo da proposta obrigatório acima de" dica={ATTACHMENT_DICA} error={errors.quoteAttachmentAmount} hint="Padrão R$ 5.000,00 no custo total da resposta.">
+          {(p) => <MoneyInput {...p} value={attachment} onChange={setAttachment} />}
         </Field>
         <div role="group" aria-label="Títulos do pedido de compra" className="space-y-3 rounded-md border border-border p-3">
           <p className="flex flex-wrap items-center gap-2 text-sm font-semibold">Títulos do pedido de compra<Dica nome="Títulos do pedido de compra" texto={PAYABLE_DICA} />{pending}</p>

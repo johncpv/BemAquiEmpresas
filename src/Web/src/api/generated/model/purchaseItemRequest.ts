@@ -16,4 +16,5 @@ export interface PurchaseItemRequest {
   projectNumber: string | null;
   /** @nullable */
   orderNumber: string | null;
+  lineId: string;
 }

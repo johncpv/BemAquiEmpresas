@@ -49,40 +49,15 @@ public sealed partial class PurchaseOrderService(
     public async Task<Result<PurchaseOrderDetail>> CreateAsync(PurchaseOrderInput input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
-        if (input.RfqId is not null && input.QuotesCount is not > 0)
-        {
-            return Invalid("quotesCount", "Informe quantas respostas a cotação recebeu.");
-        }
-
-        if (input.LeadDays is < PurchaseRequestRules.MinLeadDays or > PurchaseRequestRules.MaxLeadDays)
-        {
-            return Invalid("leadDays", "O prazo vai de 0 a 365 dias.");
-        }
-
-        var expected = input.ExpectedDate ?? PurchaseOrderRules.DefaultExpectedDate(Today, input.LeadDays ?? await parameters.LeadDaysAsync(cancellationToken));
-        var prepared = await PrepareAsync(new Draft(input.PartyId, input.ProjectId, input.PaymentTermId, expected, input.Freight, input.IpiPct, input.Notes, input.Lines), null, [], cancellationToken);
+        var prepared = await PrepareInputAsync(input, null, cancellationToken);
         if (prepared.IsFailure)
         {
             return prepared.Error!;
         }
 
-        var p = prepared.Value;
         var now = clock.GetUtcNow();
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
-        var order = new PurchaseOrder
-        {
-            Number = await numbers.NextAsync(PurchaseOrderRules.DocType, cancellationToken), RfqId = input.RfqId, QuotesCount = input.RfqId is null ? null : input.QuotesCount,
-            RequestedBy = currentUser.UserId, CreatedAt = now, UpdatedAt = now,
-        };
-        Apply(order, p, now);
-        db.PurchaseOrders.Add(order);
-        var sequence = 0;
-        foreach (var line in p.Lines)
-        {
-            db.PurchaseOrderLines.Add(NewLine(order.Id, ++sequence, line));
-        }
-
-        var touched = LinkRequests(p.Lines.SelectMany(l => l.RequestLines), now);
+        var (order, touched) = await AddAsync(input, prepared.Value, now, cancellationToken);
         // A situação da SC é derivada das linhas gravadas: grava as linhas antes de recalcular (a mesma transação).
         if (await SaveAsync(cancellationToken) is { } linesConflict)
         {
@@ -97,6 +72,58 @@ public sealed partial class PurchaseOrderService(
 
         await transaction.CommitAsync(cancellationToken);
         return await DetailAsync(order.Id, cancellationToken);
+    }
+
+    /// <summary>
+    /// Pedido do vencedor da cotação (CMP-02 CA 9): as mesmas validações e a mesma criação do "Novo pedido", sem transação nem gravação
+    /// próprias, para a cotação gerar os pedidos de todos os vencedores numa transação só. As linhas de SC da cotação
+    /// (<paramref name="rfqRequestLines"/>) podem estar <c>Quoting</c>; passam a <c>Ordered</c>. Devolve as SC tocadas.
+    /// </summary>
+    internal async Task<Result<(PurchaseOrder Order, List<Guid> Touched)>> AddFromRfqAsync(PurchaseOrderInput input, IReadOnlySet<Guid> rfqRequestLines, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        var prepared = await PrepareInputAsync(input, rfqRequestLines, cancellationToken);
+        if (prepared.IsFailure)
+        {
+            return prepared.Error!;
+        }
+
+        return await AddAsync(input, prepared.Value, clock.GetUtcNow(), cancellationToken);
+    }
+
+    private async Task<Result<Prepared>> PrepareInputAsync(PurchaseOrderInput input, IReadOnlySet<Guid>? rfqRequestLines, CancellationToken ct)
+    {
+        if (input.RfqId is not null && input.QuotesCount is not > 0)
+        {
+            return Invalid("quotesCount", "Informe quantas respostas a cotação recebeu.");
+        }
+
+        if (input.LeadDays is < PurchaseRequestRules.MinLeadDays or > PurchaseRequestRules.MaxLeadDays)
+        {
+            return Invalid("leadDays", "O prazo vai de 0 a 365 dias.");
+        }
+
+        var expected = input.ExpectedDate ?? PurchaseOrderRules.DefaultExpectedDate(Today, input.LeadDays ?? await parameters.LeadDaysAsync(ct));
+        return await PrepareAsync(new Draft(input.PartyId, input.ProjectId, input.PaymentTermId, expected, input.Freight, input.IpiPct, input.Notes, input.Lines), null, [], ct, rfqRequestLines);
+    }
+
+    /// <summary>Pedido novo em rascunho com o número <c>PC</c> (na transação de quem chama) e as linhas de SC em <c>Ordered</c>.</summary>
+    private async Task<(PurchaseOrder Order, List<Guid> Touched)> AddAsync(PurchaseOrderInput input, Prepared p, DateTimeOffset now, CancellationToken ct)
+    {
+        var order = new PurchaseOrder
+        {
+            Number = await numbers.NextAsync(PurchaseOrderRules.DocType, ct), RfqId = input.RfqId, QuotesCount = input.RfqId is null ? null : input.QuotesCount,
+            RequestedBy = currentUser.UserId, CreatedAt = now, UpdatedAt = now,
+        };
+        Apply(order, p, now);
+        db.PurchaseOrders.Add(order);
+        var sequence = 0;
+        foreach (var line in p.Lines)
+        {
+            db.PurchaseOrderLines.Add(NewLine(order.Id, ++sequence, line));
+        }
+
+        return (order, LinkRequests(p.Lines.SelectMany(l => l.RequestLines), now));
     }
 
     /// <summary>

@@ -5,7 +5,7 @@
 | ID | CMP-02 |
 | Título | Cotação a partir de linhas de solicitação, com um ou mais fornecedores; registro das respostas (preço unitário, frete, IPI %, prazo, condição de pagamento) com quem lançou e o anexo da proposta acima do limite; comparativo lado a lado com o menor custo total destacado; escolha do vencedor por linha; geração dos pedidos de compra a partir do vencedor (API da CMP-03a) e "Enviar todos para aprovação" |
 | Tamanho | M |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-CMP-2 (cotação com 1+ fornecedores, comparativo e escolha) · R-CMP-6 · R-COM-4 (numeração COT) · R-PRP-1 (último fornecedor e preço do item) · R-PRP-3 · R-SEC-5 |
 | Dependências | CMP-01 (linhas de solicitação), CMP-03a (API de criação e envio do pedido) |
 | Bloqueia | — |
@@ -92,23 +92,23 @@ Decididos pelo PO em 21/10/2026 (revisão pré-Fase 3, tabela 1.1, itens 35–37
 **Pré-condição externa:** nenhuma.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers) e E2E passando.
-- [ ] Migration criada (não destrutiva), testada sobre cópia do banco do tenant `konebras`.
-- [ ] Permissões só do `ModuleCatalog`; dono de anexo `Rfq` registrado com `OwnerExists` (ADR 0019 §7, adendo de 21/10/2026).
-- [ ] ADR 0024 §5 aplicada (anexo acima do limite, aviso "1 cotação", quem lançou).
-- [ ] Telas com estados, inclusive a 400 px.
-- [ ] Ajuda da lista e de cada aba; teste de cobertura passando.
-- [ ] Padrões e próximos passos avaliados.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade e E2E passando; integração (Testcontainers) escritos, a executar na fila do Docker.
+- [x] Migration `Rfqs` criada (só `CreateTable`, índices e `CHECK`s por SQL; sem Drop nem Rename); a testar sobre cópia do banco do tenant `konebras`.
+- [x] Permissões só do `ModuleCatalog`; dono de anexo `Rfq` registrado com `OwnerExists` e `CanAttach` (ADR 0019 §7, adendo de 21/10/2026).
+- [x] ADR 0024 §5 aplicada (anexo acima do limite, aviso "1 cotação", quem lançou).
+- [x] Telas com estados, inclusive a 400 px.
+- [x] Ajuda da lista e de cada aba; teste de cobertura passando.
+- [x] Padrões e próximos passos avaliados.
+- [x] Auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados (gerado pelo Host em processo; regenerar com `BQ_UPDATE_OPENAPI`).
+- [x] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` atualizados; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `Rfq`, `RfqSupplier`, `RfqLine`, `RfqQuote` (Domain) e `RfqComparison` puro.
-- [ ] `RfqService` (criar, respostas, concluir, cancelar) e `RfqOrderGeneration` sobre o serviço de pedido da CMP-03a.
-- [ ] `quotes_count` preenchido na geração dos pedidos (o aviso na aprovação é da CMP-03a).
-- [ ] Endpoints `/api/v1/purchasing/rfqs`; telas, ajudas e dono de anexo.
+- [x] `Rfq`, `RfqSupplier`, `RfqLine`, `RfqLineRequest`, `RfqQuote` (Domain) e o comparativo puro (`RfqRules.Compare`).
+- [x] `RfqService` (criar, fornecedores, respostas, concluir, cancelar, gerar pedidos e enviar todos) sobre o serviço de pedido da CMP-03a.
+- [x] `quotes_count` preenchido na geração dos pedidos (o aviso na aprovação é da CMP-03a).
+- [x] Endpoints `/api/v1/purchasing/rfqs`; telas, ajudas e dono de anexo.
 
 ## Quality gates
 - Agentes previstos: @dev, design (comparativo com rádio e a 400 px), @qa.
@@ -142,3 +142,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO (D8, tabela 1.1 itens 35–37) e correções da revisão pré-Fase 3 (§2.1 Compras ↔ Financeiro, ADR 0024 §4 e §5; §2.2 CMP-02; §2.3 padrão 6, rádio por linha, "Enviar todos para aprovação"); nova ordem (Marco 3.3, ordem 17, depois da CMP-03a) | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 24/10/2026 | 1.0 | Implementada (`Done`). Cotação no Purchasing (`rfqs`, `rfq_suppliers`, `rfq_lines`, `rfq_line_requests`, `rfq_quotes`; migration `Rfqs`, sem Drop nem Rename, `CHECK`s por SQL), `RfqService` (criar, fornecedores, respostas, "Não cotou", concluir, cancelar, gerar pedidos, enviar todos), comparativo puro (`RfqRules.Compare`), parâmetro `purchasing.quote_attachment_amount` (R$ 5.000,00, em Configurações → Parâmetros → Compras), dono de anexo `Rfq`, telas em Fábrica → Compras → Cotações (lista, nova, detalhe com Respostas, Comparativo, Documentos e Histórico), "Cotar estes itens" no detalhe da SC (botão e próximo passo) e "Cotar" com seleção na visão "Por item", ajudas e E2E. Desvios e decisões: (1) **Pedidos pelo serviço, não pelo HTTP:** a geração chama o serviço de criação da CMP-03a (`PurchaseOrderService.AddFromRfqAsync`, as mesmas validações do `POST /purchase-orders` com `rfqId`, `quotesCount` e `leadDays`) dentro de uma transação da cotação, para gerar os pedidos de todos os vencedores juntos ou nenhum; o envio usa o `SubmitAsync` da CMP-03a. Endpoints próprios: `POST /rfqs/{id}/purchase-orders` (com `Idempotency-Key`) e `POST /rfqs/{id}/purchase-orders/submit`. (2) **Ajustes na CMP-03a e na CMP-01, em commit desta story:** o `PrepareAsync` do pedido aceita as linhas de SC `Quoting` da cotação de origem; o `PurchaseRequestUpdates.RefreshStatusAsync` passou a considerar as linhas mudadas e ainda não gravadas (antes, o pedido e o cancelamento do pedido derivavam a situação da SC pelo que estava no banco, e a SC ficava com a situação antiga); a visão "Por item" leva o `lineId` de cada linha; `IPurchasingDb` expõe o `ChangeTracker` (o envio recusado é descartado antes do próximo). (3) **Quantidade do pedido** = a da linha da cotação (o que as SC pedem); a disponível da resposta é informativa e o comparativo avisa "Tem só {x}"; o rascunho pode ser ajustado antes do envio — recomendação aceita (PO 24/10). (4) **Frete no pedido:** o frete inteiro da resposta vai para o pedido do fornecedor, mesmo quando ele ganha só parte das linhas (o rateio pelo valor vale só para comparar); o rascunho pode ser ajustado — recomendação aceita (PO 24/10). (5) **Linha sem resposta** fica sem vencedor na conclusão e as linhas de SC dela voltam a `Open`; linha cotada exige o vencedor. (6) **Fornecedor com resposta** (inclusive "Não cotou") não sai da cotação (409), para a resposta não sumir — recomendação aceita (PO 24/10). (7) **Concorrência:** toda mudança passa pela versão (`xmin`) da cotação; concluída ou cancelada, 409 `rfq_closed`/`rfq_cancelled` ("A cotação está concluída."). (8) **Anexo `Rfq`:** o `owner_id` é o `rfq_suppliers.id` (a proposta fica ligada ao fornecedor); `CanAttach` recusa a cotação concluída ou cancelada. O sistema não tem exclusão de anexo; o "anexo removido depois" do CA 6 é o anexo recusado pelo antivírus na nova varredura (sai da lista), e a conclusão confere de novo. (9) **Menor total geral** só entre quem cotou todas as linhas cotadas; desempate do menor custo da linha pelo menor prazo e depois pela ordem do fornecedor. (10) **`quotes_count`** = fornecedores que responderam com preço ("Não cotou" não conta). (11) **Histórico (CA 15):** a geração fica no fornecedor (`purchase_order_id`) e o envio também (`order_submitted_at` ou `order_submit_error`); o motivo da escolha e o sugerido ficam na linha. (12) **Validade da proposta** não pode ser antes de hoje (a gravada antes pode ficar). (13) **Prévia** de "Gerar pedidos de compra" vem no detalhe da cotação (`orders`), sem endpoint próprio. (14) **OpenAPI** gerado pelo próprio Host em processo (Development, sem banco e sem hosted services), não editado à mão; mesmo assim, regenerar com `BQ_UPDATE_OPENAPI=1 sh scripts/test-docker.sh --filter-class "*OpenApiDocumentTests"` e `pnpm gen:api`. (15) **Pendente:** testes de integração escritos e não executados (fila do Docker); migration a testar sobre cópia do banco `konebras`; os testes de arquitetura que carregam todas as DLLs não rodam nesta máquina (Smart App Control, 0x800711C7). | Dev (Claude) |

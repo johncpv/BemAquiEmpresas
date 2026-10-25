@@ -42,8 +42,11 @@ export function PurchaseRequestPage() {
   const query = useGetPurchaseRequest(id)
   const canOrder = useCan('purchasing.create')
   const order = (lineIds: string[]) => void navigate({ to: '/app/compras/pedidos/novo', search: { sc: lineIds.join(',') } } as never)
+  // CMP-02: "Cotar estes itens" abre a nova cotação com as linhas em aberto (os últimos fornecedores dos itens já vêm escolhidos).
+  const quote = (lineIds: string[]) => void navigate({ to: '/app/compras/cotacoes/nova', search: { sc: lineIds.join(',') } } as never)
+  const openLines = () => query.data?.lines.filter((l) => l.status === 'Open').map((l) => l.id) ?? []
   const [steps, setSteps] = useState<Step[]>(() => (criada ? [
-    ...(canOrder ? [{ label: 'Pedir direto ao último fornecedor', onSelect: () => order(query.data?.lines.filter((l) => l.status === 'Open').map((l) => l.id) ?? []) }] : []),
+    ...(canOrder ? [{ label: 'Cotar estes itens', onSelect: () => quote(openLines()) }, { label: 'Pedir direto ao último fornecedor', onSelect: () => order(openLines()) }] : []),
     { label: 'Nova solicitação', onSelect: () => void navigate({ to: '/app/compras/solicitacoes/nova' } as never) },
     { label: 'Ver solicitações', onSelect: () => void navigate({ to: '/app/compras/solicitacoes' } as never) },
   ] : []))
@@ -73,9 +76,14 @@ export function PurchaseRequestPage() {
           </p>
           <span className="flex flex-wrap gap-2">
           {canOrder && r.lines.some((l) => l.status === 'Open') ? (
-            <button type="button" onClick={() => order(r.lines.filter((l) => l.status === 'Open').map((l) => l.id))} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">
-              Pedir direto ao último fornecedor
-            </button>
+            <>
+              <button type="button" onClick={() => quote(r.lines.filter((l) => l.status === 'Open').map((l) => l.id))} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">
+                Cotar estes itens
+              </button>
+              <button type="button" onClick={() => order(r.lines.filter((l) => l.status === 'Open').map((l) => l.id))} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">
+                Pedir direto ao último fornecedor
+              </button>
+            </>
           ) : null}
           {r.canCancel ? (
             <ConfirmDialog destructive verb="Cancelar solicitação" done="Solicitação cancelada" title={`Cancelar a ${r.number}?`}

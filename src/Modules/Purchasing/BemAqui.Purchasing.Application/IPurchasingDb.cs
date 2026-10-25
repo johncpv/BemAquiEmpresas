@@ -28,6 +28,19 @@ public interface IPurchasingDb
 
     DbSet<GoodsReceiptLine> GoodsReceiptLines { get; }
 
+    DbSet<Rfq> Rfqs { get; }
+
+    DbSet<RfqSupplier> RfqSuppliers { get; }
+
+    DbSet<RfqLine> RfqLines { get; }
+
+    DbSet<RfqLineRequest> RfqLineRequests { get; }
+
+    DbSet<RfqQuote> RfqQuotes { get; }
+
+    /// <summary>"Enviar todos para aprovação" (CMP-02 CA 10): um envio recusado não deixa nada pendente para o envio seguinte.</summary>
+    ChangeTracker ChangeTracker { get; }
+
     /// <summary>Transação da SC e do pedido com o número, a trava por OS da recomposição e os títulos previstos da aprovação.</summary>
     DatabaseFacade Database { get; }
 
