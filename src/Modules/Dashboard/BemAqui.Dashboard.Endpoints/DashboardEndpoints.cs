@@ -41,8 +41,9 @@ internal static class DashboardEndpoints
             .RequireModule("finance").RequirePermission("finance.view").WithName("GetDashboardOverdue").Produces<OverdueCard>();
         cards.MapGet("/commercial", async (DashboardService service, CancellationToken ct) => Results.Ok(await service.CommercialAsync(ct)))
             .RequireModule("quotes").RequirePermission("quotes.view").WithName("GetDashboardCommercial").Produces<CommercialCard>();
-        // Cada item da pauta já vem filtrado pela permissão própria (DSH-04): o card só exige o painel.
+        // Quem decide algo da pauta (uma das ações de decisão); cada item já vem filtrado pela permissão própria (DSH-04).
         cards.MapGet("/decisions", async (DashboardService service, CancellationToken ct) => Results.Ok(await service.DecisionsAsync(ct)))
+            .RequireAnyPermissionOf("finance.approve", "projects.approve", "production.approve_quality", "purchasing.approve", "hr.approve")
             .WithName("GetDashboardDecisions").Produces<DecisionsCard>();
         return api;
     }

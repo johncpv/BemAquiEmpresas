@@ -50,7 +50,7 @@ public sealed class DashboardService(
     {
         var effective = await EffectiveAsync(cancellationToken);
         return DashboardCards.All
-            .Where(c => c.OwnerModule is null || (IsReleased(c.OwnerModule) && c.OwnerPermission is not null && effective.Has(c.OwnerPermission)))
+            .Where(c => c.Permissions.Any(p => IsReleased(CardRule.ModuleOf(p)) && effective.Has(p)))
             .Select(c => c.Code).ToList();
     }
 
