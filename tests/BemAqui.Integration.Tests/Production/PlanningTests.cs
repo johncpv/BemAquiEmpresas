@@ -434,4 +434,62 @@ public class PlanningTests(TenancyFixture tenancy) : IClassFixture<TenancyFixtur
         many.Run!.OrdersCount.Should().BeGreaterThanOrEqualTo(300);
         watch.ElapsedMilliseconds.Should().BeLessThan(5000, "CA 17: 300 OS");
     }
+
+    [Fact]
+    public async Task Fila_de_50_projetos_e_300_OS_abre_em_menos_de_1_s_e_a_previa_em_menos_de_2_s()
+    {
+        // PLN-02 CA 10: 50 projetos com 6 OS de 5 etapas cada, em 6 centros.
+        var centers = new List<Guid>();
+        for (var i = 0; i < 6; i++)
+        {
+            centers.Add(await CenterAsync("Fila " + i));
+        }
+
+        var projects = Enumerable.Range(0, 50).Select(_ => Guid.CreateVersion7()).ToList();
+        await WithDbAsync(async db =>
+        {
+            for (var p = 0; p < projects.Count; p++)
+            {
+                for (var o = 0; o < 6; o++)
+                {
+                    var order = new ProductionOrder
+                    {
+                        Number = "OS-FILA-" + p.ToString("D2", System.Globalization.CultureInfo.InvariantCulture) + o + Guid.NewGuid().ToString("N")[..4], Type = ProductionOrderType.Fabrication,
+                        ProjectId = projects[p], ContractId = Guid.CreateVersion7(), ProjectItemId = Guid.CreateVersion7(), Quantity = 1m, CreatedAt = DateTimeOffset.UtcNow,
+                    };
+                    db.ProductionOrders.Add(order);
+                    for (var k = 0; k < 5; k++)
+                    {
+                        db.ProductionOrderSteps.Add(new ProductionOrderStep
+                        {
+                            OrderId = order.Id, Sequence = k + 1, Name = "Etapa " + k, Code = ((char)('A' + k)).ToString(), WorkCenterId = centers[(p + o + k) % 6], StandardHours = 2m + k,
+                            Status = k == 0 ? ProductionStepStatus.Ready : ProductionStepStatus.Waiting,
+                        });
+                    }
+                }
+            }
+
+            return await db.SaveChangesAsync();
+        });
+        (await RecalculateAsync()).Run!.Status.Should().Be(ScheduleRunStatus.Succeeded, "o recálculo também monta a fila");
+
+        var owner = await ActorAsync("owner");
+        const string queue = "/api/v1/production/planning/queue";
+        (await owner.GetAsync(queue)).StatusCode.Should().Be(HttpStatusCode.OK); // aquece
+        var watch = Stopwatch.StartNew();
+        var opened = await owner.GetAsync(queue);
+        watch.Stop();
+        opened.StatusCode.Should().Be(HttpStatusCode.OK);
+        watch.ElapsedMilliseconds.Should().BeLessThan(1000, "CA 10: a fila abre em menos de 1 s");
+        var order = (await JsonAsync(opened)).GetProperty("rows").EnumerateArray().Select(r => r.GetProperty("projectId").GetGuid()).ToList();
+        order.Should().Contain(projects);
+
+        var reversed = Enumerable.Reverse(order).ToList();
+        watch.Restart();
+        var preview = await owner.PostAsJsonAsync(queue + "/preview", new { order = reversed });
+        watch.Stop();
+        preview.StatusCode.Should().Be(HttpStatusCode.OK, await preview.Content.ReadAsStringAsync());
+        watch.ElapsedMilliseconds.Should().BeLessThan(2000, "CA 10: a prévia chega em menos de 2 s");
+        (await JsonAsync(preview)).GetProperty("rows").GetArrayLength().Should().Be(order.Count);
+    }
 }
