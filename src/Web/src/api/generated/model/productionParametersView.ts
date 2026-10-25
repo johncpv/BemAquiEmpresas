@@ -12,4 +12,8 @@ export interface ProductionParametersView {
   showLaborEntryCostId: string | null;
   /** @nullable */
   openLaborAlertHoursId: string | null;
+  installationDays?: number;
+  installationDaysConfirmed?: boolean;
+  /** @nullable */
+  installationDaysId?: string | null;
 }

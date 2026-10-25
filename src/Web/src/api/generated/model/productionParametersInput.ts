@@ -8,4 +8,8 @@
 export interface ProductionParametersInput {
   showLaborEntryCost: boolean;
   openLaborAlertHours: number;
+  /** @nullable */
+  installationDays?: number | null;
+  /** @nullable */
+  installationDaysConfirmed?: boolean | null;
 }
