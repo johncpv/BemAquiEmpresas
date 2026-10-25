@@ -15,7 +15,7 @@ public sealed record CapacityReference(
 /// Item inativo, excluído ou sem conversão: <c>Warning</c> e "não calculado" (os campos do cálculo nulos).
 /// </summary>
 public sealed record CapacityLine(
-    Guid BomLineId, Guid ItemId, string ItemCode, string ItemName, string UnitCode, decimal? PerUnit, decimal OnHand, decimal Reserved, decimal Available,
+    Guid BomLineId, Guid ItemId, string ItemCode, string ItemName, Guid? UnitId, string UnitCode, decimal? PerUnit, decimal OnHand, decimal Reserved, decimal Available,
     decimal? Possible, decimal? Required, decimal? Shortage, decimal? OpenQuantity, decimal? EstimatedShortageCost, bool Limiting, string? Warning);
 
 /// <summary>

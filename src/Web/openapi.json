@@ -53572,6 +53572,7 @@
           "itemId",
           "itemCode",
           "itemName",
+          "unitId",
           "unitCode",
           "perUnit",
           "onHand",
@@ -53600,6 +53601,13 @@
           },
           "itemName": {
             "type": "string"
+          },
+          "unitId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           },
           "unitCode": {
             "type": "string"

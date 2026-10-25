@@ -10,6 +10,8 @@ export interface CapacityLine {
   itemId: string;
   itemCode: string;
   itemName: string;
+  /** @nullable */
+  unitId: string | null;
   unitCode: string;
   /** @nullable */
   perUnit: number | null;

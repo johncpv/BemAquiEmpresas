@@ -116,7 +116,7 @@ public sealed class ProductionCapacityService(
             var position = positions.GetValueOrDefault(p.Line.ItemId);
             var r = result.Lines[i];
             return new CapacityLine(p.Line.BomLineId, p.Line.ItemId, p.Item?.Code ?? "—", p.Item?.Name ?? "Item não encontrado",
-                p.Item is { } item ? codes.GetValueOrDefault(item.UnitId, "?") : "?", p.PerUnit, position.OnHand, position.Reserved, position.Available,
+                p.Item?.UnitId, p.Item is { } item ? codes.GetValueOrDefault(item.UnitId, "?") : "?", p.PerUnit, position.OnHand, position.Reserved, position.Available,
                 r.Possible, r.Required, r.Shortage, open is null ? null : open.GetValueOrDefault(p.Line.ItemId), showCost ? r.ShortageCost : null, r.Limiting, p.Warning);
         }).ToList();
         var limitingLine = result.LimitingIndex is { } index ? lines[index] : null;
