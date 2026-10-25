@@ -8,5 +8,6 @@
     <ProjectReference Include="..\BemAqui.Identity.Contracts\BemAqui.Identity.Contracts.csproj" />
     <ProjectReference Include="..\..\Platform\BemAqui.Platform.Contracts\BemAqui.Platform.Contracts.csproj" />
     <ProjectReference Include="..\..\HR\BemAqui.HR.Contracts\BemAqui.HR.Contracts.csproj" />
+    <ProjectReference Include="..\..\Production\BemAqui.Production.Contracts\BemAqui.Production.Contracts.csproj" />
   </ItemGroup>
 </Project>

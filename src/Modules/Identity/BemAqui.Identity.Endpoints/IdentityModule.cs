@@ -29,6 +29,7 @@ public sealed class IdentityModule : IModule
         endpoints.MapHelpEndpoints();
         endpoints.MapCompanySettingsEndpoints();
         endpoints.MapShopfloorDeviceEndpoints();
+        endpoints.MapKioskEndpoints();
 
         // Sessão atual: identidade, nome e e-mail (permissões em /me/permissions).
         endpoints.MapGet("/me", async (ClaimsPrincipal user, Profile profile, CancellationToken ct) =>

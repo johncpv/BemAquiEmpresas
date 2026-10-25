@@ -23,6 +23,9 @@ public sealed class AuthRateLimitOptions
 
     /// <summary>Logo público do tenant (CAD-06 CA 7), por IP + tenant.</summary>
     public int LogoPerMinute { get; set; } = 60;
+
+    /// <summary>Troca do token da TV pelo cookie (PNL-01a CA 8, política nomeada <c>kiosk-session</c>), por IP + tenant.</summary>
+    public int KioskSessionPerMinute { get; set; } = 10;
 }
 
 /// <summary>
@@ -67,6 +70,14 @@ public static class AuthRateLimiting
             o.AddPolicy(PlanningQueueService.SimulatePolicy, http => RateLimitPartition.GetFixedWindowLimiter(
                 "plan-sim|" + TenantKey(http) + "|" + (http.RequestServices.GetService<ICurrentUser>()?.UserId?.ToString() ?? http.Connection.RemoteIpAddress?.ToString() ?? "-"),
                 _ => new FixedWindowRateLimiterOptions { PermitLimit = PlanningQueueService.SimulatePerMinute, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
+            // Política nomeada do quiosque (ADR 0030 §1): 10 trocas de token por minuto por IP e tenant; o 401 já tem tempo uniforme.
+            o.AddPolicy(BemAqui.BuildingBlocks.Web.KioskEndpoints.SessionRateLimitPolicy, http =>
+                RateLimitPartition.GetFixedWindowLimiter("kiosk|" + TenantKey(http) + "|" + (http.Connection.RemoteIpAddress?.ToString() ?? "-"), _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = options.KioskSessionPerMinute,
+                    Window = TimeSpan.FromMinutes(1),
+                    QueueLimit = 0,
+                }));
             o.OnRejected = async (context, cancellationToken) =>
             {
                 var retryAfter = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var wait) ? wait : TimeSpan.FromMinutes(1);
