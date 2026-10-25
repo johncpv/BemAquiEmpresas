@@ -372,7 +372,7 @@ _MIG-01d (saldos iniciais de estoque) não entra aqui: cancelada pelo PO em 18/1
 - Requisitos: R-EST-9, R-EST-6, R-EST-5, R-PRP-7, R-SEC-5.
 - CA: numeração `INV`; contagem cega também no celular (kit chão de fábrica), sem custo no DTO do contador; recontador diferente do primeiro, conferido no servidor; ajuste Delta pela EST-01b sobre o saldo da aprovação; ajuste e estorno manual bloqueados no local durante a contagem (liga o bloqueio da EST-01b); contagem abaixo do reservado reduz primeiro as reservas das OS com a BOM liberada mais recentemente, gera a falta e avisa quem tem `inventory.approve` (PO, 23/10/2026).
 
-**EST-06 [ ] Capacidade de produzir (P)** — D, desejável; pode ir à Fase 4 — 3.4, ordem 24 — [story](stories/EST-06-capacidade-de-produzir.md)
+**EST-06 [x] Capacidade de produzir (P)** — D, desejável; pode ir à Fase 4 — 3.4, ordem 24 — [story](stories/EST-06-capacidade-de-produzir.md)
 - Requisitos: R-EST-10, R-PRP-2, R-CMP-1.
 - CA: para uma BOM, quantas unidades o disponível permite, o item que limita e a falta; linha informativa "Com os pedidos em aberto: {n}" só com `purchasing.view` (pelo `OpenQuantityByItemAsync`), sem mudar o total; atalho para a solicitação preenchida, sem gravar sem confirmação.
 

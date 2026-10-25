@@ -5,7 +5,7 @@
 | ID | EST-06 |
 | Título | Para uma BOM (de uma OS ou copiada de outra), quantas unidades o disponível de hoje permite produzir e o que falta, item a item, para uma quantidade desejada, com a linha informativa "Com os pedidos em aberto"; atalho para gerar a solicitação de compra do que falta |
 | Tamanho | P (D, desejável; pode ir à Fase 4) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-EST-10 (capacidade de produzir: quantas unidades o disponível permite e o que falta, **D**) · R-PRP-2 · R-CMP-1 |
 | Dependências | ENG-02 (`IBoms`), EST-02 (`IStockBalances` com reservado), CMP-01 (solicitação manual) |
 | Bloqueia | — |
@@ -65,19 +65,19 @@ Decididos pelo PO em 21/10/2026 (revisão pré-Fase 3, tabela 1.1, item 92):
 **Pré-condição externa:** nenhuma.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers) e E2E passando.
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Tela com estados e 400 px.
-- [ ] Ajuda escrita; teste de cobertura passando.
-- [ ] Próximo passo (solicitação) aplicado, sem gravar sem confirmação.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] Story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers) e E2E passando. (Integração escrita; roda na fila do Docker, ver Change Log 1.0.)
+- [x] Permissões só do `ModuleCatalog`.
+- [x] Tela com estados e 400 px.
+- [x] Ajuda escrita; teste de cobertura passando.
+- [x] Próximo passo (solicitação) aplicado, sem gravar sem confirmação.
+- [x] OpenAPI e cliente Orval regenerados. (Gerado pelo Host em processo; regenerar oficialmente com `BQ_UPDATE_OPENAPI`.)
+- [x] Story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `ProductionCapacityCalculator` puro; endpoint `/api/v1/inventory/production-capacity`.
-- [ ] Leitura dos pedidos em aberto pelo `Purchasing.Contracts`.
-- [ ] Tela, atalho para a CMP-01 e ajuda.
+- [x] `ProductionCapacityCalculator` puro; endpoint `/api/v1/inventory/production-capacity`.
+- [x] Leitura dos pedidos em aberto pelo `Purchasing.Contracts`.
+- [x] Tela, atalho para a CMP-01 e ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, @qa.
@@ -111,3 +111,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO (tabela 1.1 item 92) e correções da revisão pré-Fase 3 (§2.1 disponível pela posição agregada, ADR 0023 §2; §2.3 padrões 6, 8, 9); nova ordem (Marco 3.4, ordem 24) | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 25/10/2026 | 1.0 | Implementada (`Done`). Backend: `ProductionCapacityCalculator` (puro) e `ProductionCapacityService` (só leitura) no Inventory; rotas `GET /api/v1/inventory/production-capacity` e `/references` no grupo com `RequireModule("inventory")`, mais `RequireModule("engineering")`, `perm:inventory.view` e `perm:engineering.view` em cada rota; sem migration, sem tabela, sem evento e sem auditoria (nada é gravado). Front: Estoque → Operação → **Capacidade de produzir** (`/app/estoque/capacidade`, produto, OS e quantidade na URL), total possível, "Limita", "Com os pedidos em aberto", faltas, valor da falta, estados e 400 px (padrão 8); atalho para a nova solicitação da CMP-01 preenchida; ajuda `Ajuda/estoque-capacidade.md` e ajuda da nova solicitação atualizada. Desvios e decisões: (1) **Contrato da BOM:** o `BomRequirement` ganha `QuantityPerUnit`, `UnitId` e `ScrapPct` (parâmetros opcionais, compatível) e o `IBoms` ganha `ReleasedAsync(take)` (as BOMs liberadas vigentes, a mais nova primeiro, inclusive de OS concluída) para a BOM de referência e a sugerida. A necessidade por unidade é refeita no Inventory com as conversões do item, o que permite o "não calculado" do CA 5; linha sem quantidade por unidade (mensagem antiga) usa a necessidade da OS ÷ quantidade da OS. (2) **BOM de referência:** a escolha é por produto (a mais nova dele, "Sugerido") ou por OS, entre as 200 BOMs liberadas mais novas; produto sem BOM liberada responde 404 `capacity_reference_not_found`, OS sem BOM liberada 404 `bom_not_released`. Recomendação aceita (PO 24/10). (3) **Quantidade desejada:** maior que zero, até 99.999, com até 4 casas (400 fora disso). (4) **Empate no item que limita:** todos os itens com o menor possível ganham o chip "Limita"; o cabeçalho cita o primeiro da BOM. (5) **Atalho (CA 4):** as faltas vão no estado da navegação (`history.state`), não na URL; a solicitação leva até 50 linhas (limite da CMP-01) e avisa quantas ficaram para uma segunda; a observação vem preenchida com a origem; destino "Estoque geral" editável. Recomendação aceita (PO 24/10). (6) **Pedidos em aberto:** só com `purchasing.view` **e** o módulo `purchasing` liberado; sem isso a linha e a coluna somem e o resto funciona. (7) **Valor da falta:** com `projects.view_cost`, pelo custo médio de hoje, em 2 casas, nunca gravado. (8) **Teste de arquitetura da EST-04:** `Inventory_nao_le_o_Purchasing` exigia o csproj sem "Purchasing", mas a CMP-01 já referencia o `Purchasing.Contracts`; passou a exigir só o Contracts (sem Application, Domain ou Infrastructure) e a rastreabilidade sem ler Compras. Testes: unidade da calculadora (`ProductionCapacityRulesTests`, tabela de casos com perda e conversão, total, empate, não calculado, pedidos em aberto sem mudar o total, valor da falta, quantidade), arquitetura (`CapacityRulesTests`: só lê, uma chamada por contrato, rotas com os dois módulos e os dois `perm:`), Vitest (`capacity.test.ts`) e E2E (`capacity.spec.ts`: vazio, calcular, aumentar a quantidade, abrir a solicitação preenchida sem POST, trocar a BOM, 400 px e axe). Integração escrita e **não executada** (`ProductionCapacityTests`: disponível sem o reservado com reserva real da EST-02, sugerida pelo produto, pedidos em aberto com e sem `purchasing.view` e com o módulo não liberado, item inativo e sem conversão, valor da falta, três camadas, desempenho com 100 itens). OpenAPI gerado pelo Host em processo e juntado sem reordenar (o `unitId` da linha foi acrescentado à mão no mesmo formato); regenerar oficialmente com `BQ_UPDATE_OPENAPI` | Dex (dev) |
