@@ -96,6 +96,13 @@ public static class ProductionInfrastructure
             OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IProductionDb>().ProductionOrders.AnyAsync(o => o.Id == id, ct),
             ReadAction: "view", WriteAction: "edit", CheckFile: CheckOrderFileAsync));
 
+        // Planejamento finito (PLN-01a, ADR 0029): motor puro, escritor único do plano (fora da auditoria), leitura e simulação pelo
+        // IProductionSchedule e o recálculo manual e de hora em hora.
+        services.TryAddScoped<ScheduleInputBuilder>();
+        services.TryAddScoped<ScheduleService>();
+        services.TryAddScoped<IProductionSchedule, ProductionScheduleContract>();
+        services.TryAddScoped<PlanningService>();
+
         // Expedição (PRD-06b): romaneio, a saída síncrona pelo IStockMovements e o contrato IShipments (Commercial, Fase 5 e EST-04).
         services.TryAddScoped<ShipmentService>();
         services.TryAddScoped<IShipments, ShipmentsContract>();

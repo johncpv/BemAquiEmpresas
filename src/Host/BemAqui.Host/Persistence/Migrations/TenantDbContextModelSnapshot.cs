@@ -8493,6 +8493,174 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("quality_decisions", "production");
                 });
 
+            modelBuilder.Entity("BemAqui.Production.Domain.ScheduleAllocation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date")
+                        .HasColumnName("date");
+
+                    b.Property<decimal>("Hours")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("hours");
+
+                    b.Property<Guid>("ProductionOrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("production_order_id");
+
+                    b.Property<Guid>("StepId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("step_id");
+
+                    b.Property<Guid>("WorkCenterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("work_center_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_schedule_allocations");
+
+                    b.HasIndex("ProductionOrderId")
+                        .HasDatabaseName("ix_schedule_allocations_production_order_id");
+
+                    b.HasIndex("StepId")
+                        .HasDatabaseName("ix_schedule_allocations_step_id");
+
+                    b.HasIndex("Date", "WorkCenterId")
+                        .HasDatabaseName("ix_schedule_allocations_date_work_center_id");
+
+                    b.ToTable("schedule_allocations", "production", t =>
+                        {
+                            t.HasCheckConstraint("ck_schedule_allocations_hours", "hours > 0");
+                        });
+                });
+
+            modelBuilder.Entity("BemAqui.Production.Domain.ScheduleRun", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("ChangedOrdersCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("changed_orders_count");
+
+                    b.Property<int>("DurationMs")
+                        .HasColumnType("integer")
+                        .HasColumnName("duration_ms");
+
+                    b.Property<string>("Error")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("error");
+
+                    b.Property<DateTimeOffset?>("FinishedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("finished_at");
+
+                    b.Property<int>("OrdersCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("orders_count");
+
+                    b.Property<DateTimeOffset>("RequestedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("requested_at");
+
+                    b.Property<Guid?>("RequestedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("requested_by");
+
+                    b.Property<DateTimeOffset?>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.Property<int>("StepsCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("steps_count");
+
+                    b.Property<string>("Trigger")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("trigger");
+
+                    b.Property<int>("WithoutForecastCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("without_forecast_count");
+
+                    b.HasKey("Id")
+                        .HasName("pk_schedule_runs");
+
+                    b.HasIndex("FinishedAt")
+                        .HasDatabaseName("ix_schedule_runs_finished_at");
+
+                    b.HasIndex("Status")
+                        .IsUnique()
+                        .HasDatabaseName("ux_schedule_runs_pending")
+                        .HasFilter("status = 'Pending'");
+
+                    b.ToTable("schedule_runs", "production");
+                });
+
+            modelBuilder.Entity("BemAqui.Production.Domain.ScheduleStepForecast", b =>
+                {
+                    b.Property<Guid>("StepId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("step_id");
+
+                    b.Property<decimal>("Hours")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("hours");
+
+                    b.Property<string>("NoForecastReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("no_forecast_reason");
+
+                    b.Property<DateOnly?>("PlannedEnd")
+                        .HasColumnType("date")
+                        .HasColumnName("planned_end");
+
+                    b.Property<DateOnly?>("PlannedStart")
+                        .HasColumnType("date")
+                        .HasColumnName("planned_start");
+
+                    b.Property<Guid>("ProductionOrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("production_order_id");
+
+                    b.Property<Guid>("RunId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("run_id");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.HasKey("StepId")
+                        .HasName("pk_schedule_step_forecasts");
+
+                    b.HasIndex("ProductionOrderId")
+                        .HasDatabaseName("ix_schedule_step_forecasts_production_order_id");
+
+                    b.ToTable("schedule_step_forecasts", "production", t =>
+                        {
+                            t.HasCheckConstraint("ck_schedule_step_forecasts_dates", "planned_end IS NULL OR planned_end >= planned_start");
+                        });
+                });
+
             modelBuilder.Entity("BemAqui.Production.Domain.Shipment", b =>
                 {
                     b.Property<Guid>("Id")

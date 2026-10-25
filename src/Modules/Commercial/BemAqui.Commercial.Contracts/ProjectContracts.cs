@@ -5,9 +5,12 @@ namespace BemAqui.Commercial.Contracts;
 
 /// <summary>
 /// Projeto visto pelos outros módulos (COM-04a CA 21): Finance (COM-04b), Production (COM-06, PRD-01). <c>PromisedDate</c> é a
-/// data prometida ao cliente (PRD-01 CA 22: atraso da OS de fabricação).
+/// data prometida ao cliente (PRD-01 CA 22: atraso da OS de fabricação); <c>SignedAt</c> é a assinatura do contrato (PLN-01a CA 2: ordem
+/// da fila antes da PLN-02, depois da data prometida).
 /// </summary>
-public sealed record ProjectSummary(Guid Id, string Number, string Name, Guid PartyId, Guid ContractId, string Status, Guid? SiteAddressId, Guid? ManagerUserId = null, DateOnly? PromisedDate = null);
+public sealed record ProjectSummary(
+    Guid Id, string Number, string Name, Guid PartyId, Guid ContractId, string Status, Guid? SiteAddressId, Guid? ManagerUserId = null, DateOnly? PromisedDate = null,
+    DateOnly? SignedAt = null);
 
 public interface IProjects
 {

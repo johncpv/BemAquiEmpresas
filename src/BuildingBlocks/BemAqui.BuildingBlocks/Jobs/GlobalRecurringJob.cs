@@ -17,12 +17,23 @@ public abstract class GlobalRecurringJob<TJob, TArgs>(ITenantDirectory directory
     /// <summary>Argumentos da execução de cada tenant.</summary>
     protected abstract TArgs ArgsFor(TenantInfo tenant);
 
+    /// <summary>
+    /// Filtro opcional antes de enfileirar (ex.: só tenants com o módulo liberado, PLN-01a CA 13). O job do tenant confere de novo no
+    /// início, porque a liberação pode mudar entre o enfileiramento e a execução.
+    /// </summary>
+    protected virtual Task<bool> ShouldEnqueueAsync(TenantInfo tenant, CancellationToken cancellationToken) => Task.FromResult(true);
+
     public async Task<int> ExecuteAsync(CancellationToken cancellationToken)
     {
         var tenants = await directory.GetActiveAsync(cancellationToken);
         var enqueued = 0;
         foreach (var tenant in tenants.Where(t => t.Status == TenantStatus.Active))
         {
+            if (!await ShouldEnqueueAsync(tenant, cancellationToken))
+            {
+                continue;
+            }
+
             var args = ArgsFor(tenant);
             var tenantId = tenant.Id;
             jobs.Create<TJob>(j => j.ExecuteAsync(tenantId, args, CancellationToken.None), new EnqueuedState(Queue));
