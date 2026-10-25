@@ -18,7 +18,7 @@ const toDraft = (l: LocationDetail | null): Draft => ({ code: l?.code ?? '', nam
 /** Faixa "Inventário {número} em contagem neste local" (EST-05 CA 6), com o link para o inventário. */
 function CountingBanner({ locationId, onClose }: { locationId: string; onClose: () => void }) {
   const counting = useListInventoryCounts({ status: 'Counting', locationId })
-  const count = counting.data?.items[0]
+  const count = counting.data?.items?.[0]
   if (!count) return null
   return (
     <p role="note" className="mb-3 rounded-md border border-warn-soft bg-warn-soft px-3 py-2 text-sm text-warn-ink">

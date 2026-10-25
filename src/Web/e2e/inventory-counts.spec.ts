@@ -1,0 +1,120 @@
+import AxeBuilder from '@axe-core/playwright'
+import { expect, test } from '@playwright/test'
+import { ownerPermissions, warehousePermissions } from './adjustments-api'
+import { inventoryCountsApi } from './inventory-counts-api'
+import { json, mockApi } from './mock-api'
+
+test.describe('Estoque: inventário por local (EST-05)', () => {
+  test('abre o inventário com o local sugerido e cai na contagem, com o local bloqueado (CA 1 e 6)', async ({ page }) => {
+    const { api, calls } = inventoryCountsApi()
+    await mockApi(page, { ...api, 'GET /api/v1/me/permissions': (r) => json(r, ownerPermissions()) })
+    await page.goto('/app/estoque/inventarios')
+    await expect(page.getByText('Nenhum inventário. Conte um local para acertar o saldo.')).toBeVisible()
+    await page.getByRole('button', { name: 'Novo inventário' }).first().click()
+    const dialog = page.getByRole('alertdialog')
+    await expect(dialog.getByText('Sugerido')).toBeVisible()
+    await expect(dialog.getByRole('radio', { name: 'Itens com saldo no local' })).toBeChecked()
+    await dialog.getByRole('button', { name: 'Abrir inventário' }).click()
+    await expect(page).toHaveURL(/\/app\/estoque\/inventarios\/c1$/)
+    expect(calls[0].body).toEqual({ locationId: 'alm', scope: { includeZeroWithMovement: false, categoryId: null, itemType: null } })
+    await expect(page.getByRole('heading', { name: /INV-2026-0001/ })).toBeVisible()
+    await expect(page.getByRole('note').filter({ hasText: 'ajustes e estornos manuais' })).toBeVisible()
+    await expect(page.getByText('1 de 2 itens contados').first()).toBeVisible()
+    await expect(page.getByRole('list', { name: 'Itens da contagem' })).not.toContainText('Sistema')
+  })
+
+  test('conta no celular a 400 px com o kit chão de fábrica, sem o saldo do sistema (CA 3 e 4)', async ({ page }) => {
+    await page.setViewportSize({ width: 400, height: 800 })
+    const { api, calls } = inventoryCountsApi({ me: 'bruno', opened: true })
+    await mockApi(page, { ...api, 'GET /api/v1/me/permissions': (r) => json(r, warehousePermissions()) })
+    await page.goto('/app/estoque/inventarios/c1/contagem')
+    await expect(page.getByText('Contagem INV-2026-0001')).toBeVisible()
+    await expect(page.getByRole('navigation', { name: 'Navegação principal' })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Ajuda desta tela' })).toBeVisible()
+    const items = page.getByRole('list', { name: 'Itens para contar' })
+    await expect(items.getByRole('button').first()).toContainText('MP-002', { useInnerText: true })
+    await expect(items).toContainText('Falta contar')
+    await expect(items).not.toContainText('Sistema')
+
+    const target = await items.getByRole('button').first().boundingBox()
+    expect(target!.height).toBeGreaterThanOrEqual(56)
+    await items.getByRole('button', { name: /MP-002/ }).click()
+    const sheet = page.getByRole('dialog')
+    await expect(sheet.getByText('Polia 400 · lote L-77')).toBeVisible()
+    for (const key of ['3', 'Vírgula', '5']) await sheet.getByRole('button', { name: key, exact: true }).click()
+    await expect(sheet.getByRole('status', { name: /Quantidade contada/ })).toContainText('3,5')
+    const key = await sheet.getByRole('button', { name: '5', exact: true }).boundingBox()
+    expect(key!.height).toBeGreaterThanOrEqual(56)
+    expect(key!.width).toBeGreaterThanOrEqual(56)
+    await sheet.getByRole('button', { name: 'Salvar contagem' }).click()
+    await expect(page.getByRole('status').filter({ hasText: 'Contagem salva: MP-002 3,5 UN' })).toBeVisible()
+    expect(calls.find((c) => c.method === 'PUT')?.body).toEqual({ quantity: 3.5, unitId: null, version: 1 })
+    await expect(page.getByText('2 de 2 itens contados')).toBeVisible()
+    const results = await new AxeBuilder({ page }).analyze()
+    expect(results.violations.filter((v) => v.impact === 'critical' || v.impact === 'serious')).toEqual([])
+  })
+
+  test('pede a recontagem e só outra pessoa reconta (CA 7 e 8)', async ({ browser }) => {
+    const owner = await browser.newPage()
+    const { api, calls, state } = inventoryCountsApi({ opened: true })
+    await mockApi(owner, { ...api, 'GET /api/v1/me/permissions': (r) => json(r, ownerPermissions()) })
+    await owner.goto('/app/estoque/inventarios/c1?aba=divergencias')
+    const list = owner.getByRole('list', { name: 'Divergências' })
+    await expect(list).toContainText('MP-001')
+    await expect(list).toContainText('Teve movimento durante a contagem')
+    await list.getByRole('checkbox', { name: 'Recontar MP-001' }).check()
+    await owner.getByRole('button', { name: 'Pedir recontagem' }).click()
+    await expect(owner.getByRole('status').filter({ hasText: 'Linha enviada para a recontagem' }).first()).toBeVisible()
+    expect(calls.find((c) => c.url.endsWith('/recount'))?.body).toEqual({ lineIds: ['l1'], version: 1 })
+    await owner.close()
+
+    const first = await browser.newPage()
+    const firstApi = inventoryCountsApi({ me: 'bruno', opened: true })
+    firstApi.state.lines = state.lines
+    await mockApi(first, { ...firstApi.api, 'GET /api/v1/me/permissions': (r) => json(r, warehousePermissions()) })
+    await first.goto('/app/estoque/inventarios/c1/contagem')
+    await expect(first.getByRole('list', { name: 'Itens para contar' })).not.toContainText('MP-001')
+    await first.close()
+
+    const second = await browser.newPage()
+    const secondApi = inventoryCountsApi({ me: 'carla', opened: true })
+    secondApi.state.lines = state.lines
+    await mockApi(second, { ...secondApi.api, 'GET /api/v1/me/permissions': (r) => json(r, warehousePermissions()) })
+    await second.goto('/app/estoque/inventarios/c1/contagem')
+    const recount = second.getByRole('list', { name: 'Itens para contar' }).getByRole('button', { name: /MP-001/ })
+    await expect(recount).toContainText('Recontagem')
+    await second.close()
+  })
+
+  test('fecha com a escolha dos não contados e o impacto, e outro usuário aprova o ajuste (CA 9 a 11)', async ({ page }) => {
+    const { api, calls } = inventoryCountsApi({ opened: true })
+    await mockApi(page, { ...api, 'GET /api/v1/me/permissions': (r) => json(r, ownerPermissions()) })
+    await page.goto('/app/estoque/inventarios/c1')
+    await page.getByRole('button', { name: 'Fechar inventário' }).click()
+    const dialog = page.getByRole('alertdialog')
+    await expect(dialog.getByText('Considerar 1 item não contado como zero?')).toBeVisible()
+    await expect(dialog.getByRole('button', { name: 'Fechar inventário' })).toBeDisabled()
+    await dialog.getByRole('radio', { name: 'Considerar como zero' }).check()
+    const impact = dialog.getByRole('group', { name: 'Impacto' })
+    await expect(impact).toContainText('MP-002 — Polia 400 · lote L-77: 4 → 0 UN (−4)')
+    await expect(impact).toContainText('Faltas R$ 132,50')
+    await dialog.getByRole('button', { name: 'Fechar inventário' }).click()
+    await expect(page.getByRole('status').filter({ hasText: 'Inventário fechado. Ajuste enviado para aprovação' }).first()).toBeVisible()
+    expect(calls.find((c) => c.url.endsWith('/close'))?.body).toEqual({ uncountedPolicy: 'Zero', version: 1 })
+    await expect(page.getByText('Ajuste AJ-2026-0009 aguardando aprovação')).toBeVisible()
+
+    // Terceiro usuário (Carla, com inventory.approve) aprova o ajuste gerado.
+    const approver = await page.context().newPage()
+    const approverApi = inventoryCountsApi({ me: 'carla', opened: true })
+    approverApi.state.status = 'Closed'
+    approverApi.state.adjustment = 'Pending'
+    await mockApi(approver, { ...approverApi.api, 'GET /api/v1/me/permissions': (r) => json(r, ownerPermissions()) })
+    await approver.goto('/app/estoque/ajustes/a9')
+    await approver.getByRole('button', { name: 'Aprovar ajuste' }).click()
+    const approve = approver.getByRole('alertdialog')
+    await expect(approve.getByRole('group', { name: 'Impacto' })).toContainText('reduz 3,0000 UN das reservas')
+    await approve.getByRole('button', { name: 'Aprovar ajuste' }).click()
+    await expect(approver.getByRole('status').filter({ hasText: 'Ajuste aprovado' }).first()).toBeVisible()
+    expect(approverApi.calls.find((c) => c.url.endsWith('/approve'))).toBeTruthy()
+  })
+})

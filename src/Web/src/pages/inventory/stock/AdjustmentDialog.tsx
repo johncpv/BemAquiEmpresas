@@ -53,7 +53,7 @@ export function AdjustmentDialog({ onClose, onDone, locationId: initialLocation 
   const locationId = location || suggested
   // EST-05 CA 6: com inventário em contagem no local, o ajuste é recusado; a faixa avisa antes e leva ao inventário.
   const counting = useListInventoryCounts({ status: 'Counting', locationId: locationId || undefined }, { query: { enabled: !!locationId } })
-  const blockingCount = locationId ? counting.data?.items[0] : undefined
+  const blockingCount = locationId ? counting.data?.items?.[0] : undefined
   const previews = previewRows(mode, rows)
   const totals = totalsOf(previews)
   const update = (key: string, change: Partial<AdjustmentRow>) => setRows((all) => all.map((r) => (r.key === key ? { ...r, ...change } : r)))
