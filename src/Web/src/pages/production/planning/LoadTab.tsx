@@ -20,7 +20,7 @@ import { forecastText, hoursText } from './planning'
 const primary = 'inline-flex min-h-[44px] items-center justify-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-60'
 const action = 'inline-flex min-h-[44px] items-center rounded-md border border-border px-3 text-sm font-semibold text-primary'
 const select = 'min-h-[44px] w-full rounded-md border border-input bg-background px-2 text-sm sm:w-auto'
-const iconButton = 'inline-flex size-11 shrink-0 items-center justify-center rounded-md border border-border bg-card disabled:opacity-40'
+const iconButton = 'inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-md border border-border bg-card disabled:opacity-40'
 
 interface Props {
   canEdit: boolean
