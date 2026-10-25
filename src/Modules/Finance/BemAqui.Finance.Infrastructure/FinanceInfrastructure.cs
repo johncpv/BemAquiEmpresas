@@ -63,6 +63,8 @@ public static class FinanceInfrastructure
         services.TryAddScoped<OpeningService>();
         // Fluxo de caixa base (FIN-05).
         services.TryAddScoped<CashFlowService>();
+        // Resumo do caixa projetado, base e ajustado, para o painel do dono (FIN-07 CA 14).
+        services.TryAddScoped<ICashForecast>(sp => sp.GetRequiredService<CashFlowService>());
         // Inadimplência e aviso dos vencidos (FIN-06a).
         services.TryAddScoped<AgingService>();
         // Ordens de pagamento (FIN-03a): comprovante só em OP paga, lido com finance.view e gravado com finance.pay.

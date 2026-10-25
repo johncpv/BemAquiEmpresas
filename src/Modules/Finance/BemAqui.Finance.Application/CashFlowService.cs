@@ -11,7 +11,7 @@ namespace BemAqui.Finance.Application;
 /// títulos em aberto (pelo saldo, no vencimento original; vencidos entram hoje) e pelas recorrentes ainda sem título.
 /// Só leitura, consultas do EF com parâmetros e agregação no banco.
 /// </summary>
-public sealed partial class CashFlowService(IFinanceDb db, IParties parties, TimeProvider clock)
+public sealed partial class CashFlowService(IFinanceDb db, IParties parties, ICustomerPaymentStats paymentStats, IFinanceParameters parameters, TimeProvider clock)
 {
     public const int MaxDays = 365;
 
@@ -32,6 +32,12 @@ public sealed partial class CashFlowService(IFinanceDb db, IParties parties, Tim
         if (query.Days is < 1 or > MaxDays)
         {
             return ReceivableService.Invalid("days", $"Escolha um horizonte de 1 a {MaxDays} dias.");
+        }
+
+        var scenario = query.Scenario ?? ScenarioBoth;
+        if (!Scenarios.Contains(scenario))
+        {
+            return ReceivableService.Invalid("scenario", "Escolha o cenário: os dois, base ou ajustado.");
         }
 
         var from = query.From ?? new DateOnly(today.Year, today.Month, 1);
@@ -62,7 +68,9 @@ public sealed partial class CashFlowService(IFinanceDb db, IParties parties, Tim
         var (lowest, negative) = CashFlowSeries.Highlights(days);
         var undated = await db.Receivables.AsNoTracking().Where(r => r.Status == ReceivableStatus.Planned && r.DueDate == null)
             .GroupBy(_ => 1).Select(g => new CashFlowUndated(g.Count(), g.Sum(r => r.Amount))).FirstOrDefaultAsync(cancellationToken);
-        return new CashFlowResult(today, from, consolidated ? to : today, view, query.BankAccountId, current, consolidated, CashFlowSeries.Aggregate(days, view), lowest, negative, undated ?? new CashFlowUndated(0, 0));
+        // FIN-07: o ajustado só no consolidado (CA 10), sobre os mesmos totais da base.
+        var adjusted = consolidated && scenario != ScenarioBase ? await AdjustedAsync(totals, from, today, to, balance, view, lowest, cancellationToken) : null;
+        return new CashFlowResult(today, from, consolidated ? to : today, view, query.BankAccountId, current, consolidated, CashFlowSeries.Aggregate(days, view), lowest, negative, undated ?? new CashFlowUndated(0, 0), adjusted);
     }
 
     /// <summary>

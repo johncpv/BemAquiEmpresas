@@ -65,7 +65,7 @@ public sealed partial class AgingService(
             _ => rows.OrderByDescending(r => r.Total),
         };
         var list = sorted.ThenBy(r => r.PartyName, StringComparer.CurrentCulture).ToList();
-        var punctuality = await stats.ForPartiesAsync(list.Select(r => r.PartyId).ToList(), cancellationToken);
+        var punctuality = await stats.PunctualityAsync(list.Select(r => r.PartyId).ToList(), cancellationToken);
         list = list.Select(r => punctuality.TryGetValue(r.PartyId, out var p) ? r with { AvgDelayDays = p.AvgDelay, PctPaidLate = p.PctLate } : r).ToList();
         var buckets = Labels.Select((label, i) =>
         {

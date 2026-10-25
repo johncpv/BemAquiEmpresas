@@ -103,7 +103,8 @@ public sealed record CancellationLine(Guid ReceivableId, string Number, string P
 public sealed record DiscountsAndCancellations(DateOnly From, DateOnly To, IReadOnlyList<DiscountLine> Discounts, IReadOnlyList<CancellationLine> Cancellations, decimal TotalDiscount, decimal TotalCancelled);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record FinanceLimitsInput(decimal DiscountApprovalPct, decimal DiscountApprovalAmount, decimal CancelApprovalAmount, int BackdateDays, bool OwnerCanApproveOwn = false, decimal PaymentTolerance = 0, decimal TransferNotifyAmount = 10_000);
+public sealed record FinanceLimitsInput(decimal DiscountApprovalPct, decimal DiscountApprovalAmount, decimal CancelApprovalAmount, int BackdateDays, bool OwnerCanApproveOwn = false, decimal PaymentTolerance = 0, decimal TransferNotifyAmount = 10_000,
+    decimal? AdjustedDefaultThresholdPct = null);
 
 /// <summary>Cliente para o seletor do título (CA 2): só PJ mostra o documento (CPF não aparece em lista, D9).</summary>
 public sealed record CustomerOption(Guid Id, string Name, string? Document, Guid? DefaultPaymentTermId);
