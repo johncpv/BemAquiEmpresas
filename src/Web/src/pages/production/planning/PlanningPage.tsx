@@ -12,8 +12,8 @@ import { PageHeading } from '@/shell/PageHeading'
 import { ProductionTabs } from '../ProductionTabs'
 import { failedLine, PLANNING_DICAS, runLine, warningAction } from './planning'
 
-const primary = 'inline-flex min-h-11 items-center justify-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-60'
-const action = 'inline-flex min-h-11 items-center rounded-md border border-border px-3 text-sm font-semibold text-primary'
+const primary = 'inline-flex min-h-[44px] items-center justify-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-60'
+const action = 'inline-flex min-h-[44px] items-center rounded-md border border-border px-3 text-sm font-semibold text-primary'
 
 /**
  * Fábrica → Produção → Planejamento (PLN-01a): o cabeçalho com a última execução do plano, "Recalcular agora" (production.edit) e as OS
