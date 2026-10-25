@@ -60,7 +60,7 @@ internal static partial class ProductionEndpoints
             .RequirePermission("production.edit").WithName("ConfirmShipment").Produces<ShipmentDetail>();
         shipments.MapPost("/{id:guid}/confirm-stock", async (Guid id, ShipmentDecisionInput input, ShipmentService service, CancellationToken ct) =>
                 (await service.ConfirmStockAsync(id, input, ct)).ToHttpResult())
-            .RequirePermission("inventory.approve").WithName("ConfirmShipmentGeneralStock").Produces<ShipmentDetail>();
+            .RequirePermission("production.view").RequirePermission("inventory.approve").WithName("ConfirmShipmentGeneralStock").Produces<ShipmentDetail>();
         shipments.MapPost("/{id:guid}/cancel", async (Guid id, ShipmentReasonInput input, ShipmentService service, CancellationToken ct) => (await service.CancelAsync(id, input, ct)).ToHttpResult())
             .RequirePermission("production.edit").WithName("CancelShipment").Produces<ShipmentDetail>();
         shipments.MapPost("/{id:guid}/reverse", async (Guid id, ShipmentReasonInput input, ShipmentService service, CancellationToken ct) => (await service.ReverseAsync(id, input, ct)).ToHttpResult())
