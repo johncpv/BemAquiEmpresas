@@ -111,6 +111,9 @@ public static class ProductionInfrastructure
         services.TryAddScoped<PlanningQueueService>();
         services.AddAuditableEntity<PlanningQueueEntry>("production");
         services.AddAuditableEntity<PlanningQueueState>("production");
+        // PLN-04: ocupação da fábrica por semana e centro (lê o plano gravado e a capacidade agora); IFactoryLoad para os painéis (DSH-01b, DSH-03).
+        services.TryAddScoped<FactoryLoadService>();
+        services.TryAddScoped<IFactoryLoad>(sp => sp.GetRequiredService<FactoryLoadService>());
 
         // Expedição (PRD-06b): romaneio, a saída síncrona pelo IStockMovements e o contrato IShipments (Commercial, Fase 5 e EST-04).
         services.TryAddScoped<ShipmentService>();
