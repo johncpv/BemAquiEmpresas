@@ -15,4 +15,5 @@ export interface DecisionItem {
   /** @nullable */
   dueDate: string | null;
   url: string;
+  count?: number;
 }

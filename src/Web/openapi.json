@@ -22083,6 +22083,13 @@
               "type": "string",
               "format": "date"
             }
+          },
+          {
+            "name": "scenario",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -22125,6 +22132,13 @@
           },
           {
             "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scenario",
             "in": "query",
             "schema": {
               "type": "string"
@@ -23194,6 +23208,269 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProjectCostEntries"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/revenue-targets/{year}": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetRevenueTargets",
+        "parameters": [
+          {
+            "name": "year",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevenueTargetsYear"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "SaveRevenueTargets",
+        "parameters": [
+          {
+            "name": "year",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RevenueTargetsInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevenueTargetsYear"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/cash-flow/summary": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetCashForecastSummary",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CashForecastSummary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard": {
+      "get": {
+        "tags": [
+          "Painel do propriet\u00E1rio"
+        ],
+        "operationId": "GetDashboardOverview",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardOverview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/refresh": {
+      "post": {
+        "tags": [
+          "Painel do propriet\u00E1rio"
+        ],
+        "operationId": "RefreshDashboard",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/cards/balances": {
+      "get": {
+        "tags": [
+          "Painel do propriet\u00E1rio"
+        ],
+        "operationId": "GetDashboardBalances",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BalancesCard"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/cards/cash-forecast": {
+      "get": {
+        "tags": [
+          "Painel do propriet\u00E1rio"
+        ],
+        "operationId": "GetDashboardCashForecast",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CashForecastCard"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/cards/revenue": {
+      "get": {
+        "tags": [
+          "Painel do propriet\u00E1rio"
+        ],
+        "operationId": "GetDashboardRevenue",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevenueCard"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/cards/overdue": {
+      "get": {
+        "tags": [
+          "Painel do propriet\u00E1rio"
+        ],
+        "operationId": "GetDashboardOverdue",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OverdueCard"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/cards/commercial": {
+      "get": {
+        "tags": [
+          "Painel do propriet\u00E1rio"
+        ],
+        "operationId": "GetDashboardCommercial",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommercialCard"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/cards/decisions": {
+      "get": {
+        "tags": [
+          "Painel do propriet\u00E1rio"
+        ],
+        "operationId": "GetDashboardDecisions",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DecisionsCard"
                 }
               }
             }
@@ -27236,6 +27513,15 @@
             "items": {
               "$ref": "#/components/schemas/CashFlowItem"
             }
+          },
+          "scenario": {
+            "type": "string",
+            "default": "base"
+          },
+          "total": {
+            "type": "number",
+            "format": "double",
+            "default": 0
           }
         }
       },
@@ -27298,6 +27584,30 @@
               "null",
               "string"
             ]
+          },
+          "adjustedDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "shiftedOut": {
+            "type": "boolean",
+            "default": false
+          },
+          "originalAmount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },
@@ -27441,6 +27751,16 @@
           },
           "undatedReceivables": {
             "$ref": "#/components/schemas/CashFlowUndated"
+          },
+          "adjusted": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CashFlowAdjusted"
+              }
+            ]
           }
         }
       },
@@ -31508,6 +31828,11 @@
             "type": "number",
             "format": "double",
             "default": 10000
+          },
+          "adjustedDefaultThresholdPct": {
+            "type": "number",
+            "format": "double",
+            "default": 20
           }
         }
       },
@@ -31549,6 +31874,13 @@
             "type": "number",
             "format": "double",
             "default": 10000
+          },
+          "adjustedDefaultThresholdPct": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         },
         "additionalProperties": false
@@ -57498,6 +57830,969 @@
           "Budgeted",
           "Invoices"
         ]
+      },
+      "AttentionAlert": {
+        "required": [
+          "code",
+          "tone",
+          "title",
+          "detail",
+          "url"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "tone": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        }
+      },
+      "BalanceAccountItem": {
+        "required": [
+          "id",
+          "name",
+          "balance"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "balance": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "BalancesCard": {
+        "required": [
+          "date",
+          "consolidated",
+          "accounts",
+          "openingMissing",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "consolidated": {
+            "type": "number",
+            "format": "double"
+          },
+          "accounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BalanceAccountItem"
+            }
+          },
+          "openingMissing": {
+            "type": "boolean"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CashFlowAdjusted": {
+        "required": [
+          "periods",
+          "lowest",
+          "firstNegative",
+          "lowestDifference",
+          "shiftedBeyond",
+          "atRiskTotal",
+          "atRisk",
+          "tenantHasHistory",
+          "tenantAvgDelayDays",
+          "thresholdPct"
+        ],
+        "type": "object",
+        "properties": {
+          "periods": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CashFlowPeriod"
+            }
+          },
+          "lowest": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CashFlowPoint"
+              }
+            ]
+          },
+          "firstNegative": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CashFlowPoint"
+              }
+            ]
+          },
+          "lowestDifference": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "shiftedBeyond": {
+            "$ref": "#/components/schemas/CashFlowShifted"
+          },
+          "atRiskTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "atRisk": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CashFlowRiskCustomer"
+            }
+          },
+          "tenantHasHistory": {
+            "type": "boolean"
+          },
+          "tenantAvgDelayDays": {
+            "type": "number",
+            "format": "double"
+          },
+          "thresholdPct": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "CashFlowRiskCustomer": {
+        "required": [
+          "partyId",
+          "name",
+          "defaultPct",
+          "atRisk",
+          "count"
+        ],
+        "type": "object",
+        "properties": {
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "defaultPct": {
+            "type": "number",
+            "format": "double"
+          },
+          "atRisk": {
+            "type": "number",
+            "format": "double"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "CashFlowShifted": {
+        "required": [
+          "count",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "CashForecastCard": {
+        "required": [
+          "available",
+          "currentBalance",
+          "weeks",
+          "horizons",
+          "lowestBase",
+          "lowestAdjusted",
+          "difference",
+          "firstAdjustedNegative",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "available": {
+            "type": "boolean"
+          },
+          "currentBalance": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "weeks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CashWeekItem"
+            }
+          },
+          "horizons": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CashHorizonItem"
+            }
+          },
+          "lowestBase": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CashPointItem"
+              }
+            ]
+          },
+          "lowestAdjusted": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CashPointItem"
+              }
+            ]
+          },
+          "difference": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "firstAdjustedNegative": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CashPointItem"
+              }
+            ]
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CashForecastScenario": {
+        "required": [
+          "endBalance",
+          "lowestDate",
+          "lowestBalance"
+        ],
+        "type": "object",
+        "properties": {
+          "endBalance": {
+            "type": "number",
+            "format": "double"
+          },
+          "lowestDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "lowestBalance": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "CashForecastSummary": {
+        "required": [
+          "today",
+          "horizonDays",
+          "currentBalance",
+          "base",
+          "adjusted",
+          "lowestDifference"
+        ],
+        "type": "object",
+        "properties": {
+          "today": {
+            "type": "string",
+            "format": "date"
+          },
+          "horizonDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "currentBalance": {
+            "type": "number",
+            "format": "double"
+          },
+          "base": {
+            "$ref": "#/components/schemas/CashForecastScenario"
+          },
+          "adjusted": {
+            "$ref": "#/components/schemas/CashForecastScenario"
+          },
+          "lowestDifference": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "CashHorizonItem": {
+        "required": [
+          "days",
+          "baseBalance",
+          "adjustedBalance"
+        ],
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "baseBalance": {
+            "type": "number",
+            "format": "double"
+          },
+          "adjustedBalance": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "CashPointItem": {
+        "required": [
+          "date",
+          "balance"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "balance": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "CashWeekItem": {
+        "required": [
+          "weekEnd",
+          "baseBalance",
+          "adjustedBalance"
+        ],
+        "type": "object",
+        "properties": {
+          "weekEnd": {
+            "type": "string",
+            "format": "date"
+          },
+          "baseBalance": {
+            "type": "number",
+            "format": "double"
+          },
+          "adjustedBalance": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "CommercialCard": {
+        "required": [
+          "from",
+          "to",
+          "openCount",
+          "openAmount",
+          "conversionByCount",
+          "conversionByAmount",
+          "decided",
+          "expiringCount",
+          "expiringAmount",
+          "stages",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "openCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "openAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "conversionByCount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "conversionByAmount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "decided": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "expiringCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "expiringAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "stages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FunnelStageItem"
+            }
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "DashboardOverview": {
+        "required": [
+          "greeting",
+          "firstName",
+          "today",
+          "summary",
+          "attention",
+          "cards",
+          "generatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "greeting": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "today": {
+            "type": "string",
+            "format": "date"
+          },
+          "summary": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "attention": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttentionAlert"
+            }
+          },
+          "cards": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "DecisionItem": {
+        "required": [
+          "kind",
+          "title",
+          "detail",
+          "amount",
+          "dueDate",
+          "url"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "amount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "url": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32",
+            "default": 1
+          }
+        }
+      },
+      "DecisionsCard": {
+        "required": [
+          "available",
+          "total",
+          "totalAmount",
+          "firstDue",
+          "items",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "available": {
+            "type": "boolean"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "firstDue": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DecisionItem"
+            }
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "FunnelStageItem": {
+        "required": [
+          "status",
+          "situation",
+          "count",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "situation": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "OverdueBucketItem": {
+        "required": [
+          "label",
+          "fromDays",
+          "toDays",
+          "total",
+          "count"
+        ],
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "fromDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "toDays": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "OverdueCard": {
+        "required": [
+          "today",
+          "total",
+          "count",
+          "customers",
+          "buckets",
+          "topCustomers",
+          "maxDaysLate",
+          "largest",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "today": {
+            "type": "string",
+            "format": "date"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "customers": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "buckets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OverdueBucketItem"
+            }
+          },
+          "topCustomers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OverdueCustomerItem"
+            }
+          },
+          "maxDaysLate": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "largest": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/OverdueLargestItem"
+              }
+            ]
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "OverdueCustomerItem": {
+        "required": [
+          "partyId",
+          "partyName",
+          "total",
+          "maxDaysLate",
+          "avgDelayDays"
+        ],
+        "type": "object",
+        "properties": {
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxDaysLate": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "avgDelayDays": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "OverdueLargestItem": {
+        "required": [
+          "receivableId",
+          "number",
+          "partyId",
+          "partyName",
+          "balance",
+          "daysLate",
+          "customerAvgDelayDays"
+        ],
+        "type": "object",
+        "properties": {
+          "receivableId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "balance": {
+            "type": "number",
+            "format": "double"
+          },
+          "daysLate": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "customerAvgDelayDays": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "RevenueCard": {
+        "required": [
+          "year",
+          "month",
+          "available",
+          "monthAmount",
+          "yearAmount",
+          "monthTarget",
+          "yearTarget",
+          "monthPct",
+          "yearPct",
+          "provisional",
+          "workingDaysLeft",
+          "canEditTargets",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "year": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "month": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "available": {
+            "type": "boolean"
+          },
+          "monthAmount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "yearAmount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "monthTarget": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "yearTarget": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "monthPct": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "yearPct": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "provisional": {
+            "type": "boolean"
+          },
+          "workingDaysLeft": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "canEditTargets": {
+            "type": "boolean"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "RevenueTargetMonth": {
+        "required": [
+          "month",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "month": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "amount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "RevenueTargetsInput": {
+        "required": [
+          "months"
+        ],
+        "type": "object",
+        "properties": {
+          "months": {
+            "type": "array",
+            "items": {
+              "type": [
+                "null",
+                "number"
+              ],
+              "format": "double"
+            }
+          }
+        }
+      },
+      "RevenueTargetsYear": {
+        "required": [
+          "year",
+          "months",
+          "yearTotal"
+        ],
+        "type": "object",
+        "properties": {
+          "year": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "months": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RevenueTargetMonth"
+            }
+          },
+          "yearTotal": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
       }
     }
   },
@@ -57567,6 +58862,9 @@
     },
     {
       "name": "Financeiro"
+    },
+    {
+      "name": "Painel do propriet\u00E1rio"
     }
   ]
 }
