@@ -19,7 +19,7 @@ namespace BemAqui.Purchasing.Endpoints;
 /// </summary>
 internal static partial class PurchasingEndpoints
 {
-    private static readonly string[] OrderChildren = [nameof(PurchaseOrderLine)];
+    private static readonly string[] OrderChildren = [nameof(PurchaseOrderLine), nameof(PurchaseOrderPriceCorrection)];
 
     private static void MapOrders(RouteGroupBuilder orders)
     {

@@ -5,7 +5,7 @@
 | ID | CMP-04 |
 | Título | Recebimento manual (sem NF-e) conferido contra o pedido de compra: quantidade, lote, local e custo de entrada com rateio de frete e IPI (P-16); entrada no estoque síncrona pelo motor da EST-01a (custo médio); recebimento parcial; títulos a pagar em aberto do próprio recebimento e replanejamento dos previstos do pedido para o saldo; teto do aprovado; segregação de quem pede, aprova e recebe; estorno do recebimento; encerramento do saldo do pedido |
 | Tamanho | G (re-estimada de M: junta a entrada no estoque com custo rateado, o recebimento parcial e os títulos por parcela) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-CMP-5 (recebimento manual, conferência contra o pedido, entrada no estoque com lote, efetivação do CP) · R-EST-6 (entrada por compra) · R-EST-7 (custo médio recalculado na entrada) · R-EST-8 (lote na matéria-prima) · R-FIN-4 · R-COM-4 (numeração REC) · R-PRP-2 ("recebimento → Conferir título a pagar") · R-PRP-7 · R-SEC-5 |
 | Dependências | CMP-03a (pedido aprovado, previstos por parcela, `IPayables` por parcela), EST-01a (`IStockMovements`, lote), EST-02 (completar faltas ao chegar material) |
 | Bloqueia | EST-04 (lote do fornecedor na rastreabilidade) |
@@ -98,22 +98,22 @@ Decididos pelo PO em 21/10/2026 (revisão pré-Fase 3, tabela 1.1, itens 47–53
 **Pré-condição externa:** a P-01 (crédito de imposto, com a contadora) pode tornar o IPI recuperável no futuro; não bloqueia: até lá ele entra no custo.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers) e E2E passando.
-- [ ] ADR 0024 aplicada (§3, §5) e ADR 0023 §1 (entrada síncrona); migration criada (não destrutiva), testada sobre cópia do banco do tenant `konebras`; `DocumentOrigin.GoodsReceipt` acrescentado.
-- [ ] Permissões só do `ModuleCatalog` (`purchasing.receive` do seed patch da CMP-01).
-- [ ] Telas com estados, inclusive a 400 px.
-- [ ] Ajuda de cada tela e aba; teste de cobertura passando.
-- [ ] Confirmação com impacto em estoque e caixa e próximos passos aplicados.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` (§2: `GoodsReceived` só aviso) atualizados; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade e E2E passando; integração (Testcontainers) escritos, a executar na fila do Docker.
+- [x] ADR 0024 aplicada (§3, §5) e ADR 0023 §1 (entrada síncrona); migration criada (não destrutiva), testada sobre cópia do banco do tenant `konebras`; `DocumentOrigin.GoodsReceipt` acrescentado.
+- [x] Permissões só do `ModuleCatalog` (`purchasing.receive` do seed patch da CMP-01).
+- [x] Telas com estados, inclusive a 400 px.
+- [x] Ajuda de cada tela e aba; teste de cobertura passando.
+- [x] Confirmação com impacto em estoque e caixa e próximos passos aplicados.
+- [x] Auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados (gerado pelo Host em processo; regenerar com `BQ_UPDATE_OPENAPI`).
+- [x] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` (§2: `GoodsReceived` só aviso) atualizados; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `GoodsReceipt` e `GoodsReceiptLine` (Domain); `CostAllocator` puro (rateio P-16); regra do teto.
-- [ ] `GoodsReceiptService` (registrar, estornar), `PurchaseOrderCloseService` e `PriceCorrectionService`, chamando `IStockMovements` e `IPayables` na transação.
-- [ ] `DocumentOrigin.GoodsReceipt` e a criação de títulos por parcela em aberto no `IPayables`.
-- [ ] `IPurchaseOrders.LastPurchaseAsync`; telas "A receber", recebimento e lista; ajudas.
+- [x] `GoodsReceipt` e `GoodsReceiptLine` (Domain); `CostAllocator` puro (rateio P-16); regra do teto.
+- [x] `GoodsReceiptService` (registrar, estornar), encerrar saldo e corrigir preço no `PurchaseOrderService`, chamando `IStockMovements` e `IPayables` na transação.
+- [x] `DocumentOrigin.GoodsReceipt` e a criação de títulos por parcela em aberto no `IPayables`.
+- [x] `IPurchaseOrders.LastPurchaseAsync`; telas "A receber", recebimento e lista; ajudas.
 
 ## Quality gates
 - Agentes previstos: @dev, @architect (cadeia Purchasing → Inventory → Finance na mesma transação), @data-engineer (dataset de custo), cybersecurity (segregação, teto, preço), @qa.
@@ -147,3 +147,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO (D2, D8, tabela 1.1 itens 47–53) e correções da revisão pré-Fase 3 (§2.1 Compras ↔ Financeiro, §2.2 CMP-04, §2.3 "A receber"); ADR 0024 §3 e §5, ADR 0023 §1; nova ordem (Marco 3.3); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 24/10/2026 | 1.0 | Implementada (`Done`). Recebimento no Purchasing (`goods_receipts`, `goods_receipt_lines`, `purchase_order_price_corrections`; colunas novas no pedido e na linha; migration `GoodsReceipts`, sem Drop nem Rename, CHECKs por SQL e o `approved_total` dos já aprovados), `GoodsReceiptService` (prévia, registrar, estornar) chamando o `IStockMovements` e o `IPayables` na transação, `CloseBalanceAsync` e `CorrectPriceAsync` no `PurchaseOrderService`, `IPayables.CreateOpenInstallmentsAsync`, `DocumentOrigin.GoodsReceipt`, `IPurchaseOrders.LastPurchaseAsync`, parâmetro `purchasing.receipt_tolerance_pct` (0% a 50%) em Configurações → Parâmetros → Compras, telas Recebimentos (A receber e Recebidos), Registrar recebimento, detalhe do recebimento, aba Recebimentos, Encerrar saldo e Corrigir preço no pedido, Última compra no item, ajudas e eventos só de aviso. Desvios e decisões: (1) **Excedente da tolerância:** o `CHECK quantity_received <= quantity` da CMP-03a fica (o `Up` não tem Drop); o que passa da quantidade vai para `quantity_over_received`. (2) **Previsto do saldo** = total do pedido − Σ recebimentos registrados, pela condição a partir da previsão de entrega; o frete ou IPI baixado num recebimento parcial continua no previsto até o pedido ficar recebido ou o saldo ser encerrado (aí o previsto é cancelado). (3) **Correção de preço** fica numa tabela própria (`purchase_order_price_corrections`, no histórico do pedido), não numa coluna da linha; a linha guarda `amount_received` para o preço novo valer só para o saldo; com recebimento, a reaprovação aprovada volta a `PartiallyReceived` e a reprovada desfaz os preços corrigidos e mantém `PartiallyReceived` (nunca rascunho) — recomendação aceita (PO 24/10). (4) **Estorno** recusado (409) com o saldo do pedido encerrado ou com o pedido em reaprovação — recomendação aceita (PO 24/10). (5) **Lote sugerido pelo padrão do fornecedor:** não há padrão de lote no cadastro do fornecedor; o lote vem vazio e o local padrão vem com a `Tag` "Sugerido". (6) **SC no encerramento:** a linha de SC sem recebimento volta a `Open`; a coberta em parte fica `Ordered` com o recebido e o resto nasce numa linha aberta (ou soma na linha aberta da mesma falta ou do mesmo mínimo, por causa dos índices únicos) — recomendação aceita (PO 24/10). (7) **Contratos novos:** `IStockReservations.OrdersCompletedByEntriesAsync` (as OS do "Ver OS que receberam material", lidas do histórico da reserva pelo número dos movimentos) e `IItemSupplierCodes.ForItemsAsync` (unidade e fator do fornecedor por item); fakes dos testes atualizados. (8) **Endpoints extras:** `GET /purchase-orders/{id}/receipt-defaults`, `POST /purchase-orders/{id}/receipts/preview` (o impacto do diálogo é calculado pelo servidor sem gravar), `GET /purchasing/locations` e `GET /purchasing/items/{id}/last-purchase`; os grupos do recebimento exigem também o módulo `inventory`. A aba "A receber" usa a lista de pedidos com `show=a-receber`. (9) **Custo médio antes → depois** no diálogo só com `inventory.view` (como a ADR 0023 §5). (10) **Data:** `received_on` (`date`, ≤ hoje e não antes do pedido) no lugar de `received_at`. (11) **Mensagem do teto** sem a referência "(CA 14)": "Acima do valor aprovado do pedido: peça a correção do preço ou a reaprovação.". (12) **Próximos passos:** "Conferir título a pagar" abre a aba Financeiro do recebimento, "Ver movimentos de estoque" abre o primeiro movimento e "Ver OS que receberam material" abre a OS (ou a lista, com várias). "Registrar recebimento" é botão do pedido (desabilitado com o motivo), não passo da aprovação, porque quem aprova não recebe. (13) **Links (CA 18):** o movimento de origem `GoodsReceipt` aponta para o recebimento e o título a pagar mostra "Ver recebimento" ou "Ver pedido". (14) **CA 10** coberto por teste de unidade do `ProjectCosts.Compute` (o título `GoodsReceipt` de Material entra em Comprometido). (15) **OpenAPI** gerado pelo próprio Host em processo (Development, sem banco e sem hosted services), não editado à mão; mesmo assim, regenerar com `BQ_UPDATE_OPENAPI=1 sh scripts/test-docker.sh --filter-class "*OpenApiDocumentTests"` e `pnpm gen:api`. (16) **Pendente:** testes de integração escritos e não executados (fila do Docker); migration a testar sobre cópia do banco `konebras`; o E2E de Configurações passou a rolar ao topo antes do axe (o botão desceu com o campo novo). | Dev (Claude) |

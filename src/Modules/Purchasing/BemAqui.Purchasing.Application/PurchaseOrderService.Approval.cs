@@ -130,7 +130,16 @@ public sealed partial class PurchaseOrderService
                 other.Status = PurchaseLevelStatus.Closed;
             }
 
-            order.Status = PurchaseOrderStatus.Draft;
+            // Reaprovação de pedido com recebimento (CMP-04 CA 14): os preços corrigidos voltam e o pedido segue parcialmente recebido.
+            if (order.ApprovedTotal is not null && await db.PurchaseOrderLines.AnyAsync(l => l.OrderId == order.Id && l.QuantityReceived > 0m, ct))
+            {
+                await RevertCorrectionsAsync(order, ct);
+            }
+            else
+            {
+                order.Status = PurchaseOrderStatus.Draft;
+            }
+
             order.RejectionComment = comment;
             if (order.RequestedBy is { } requester)
             {
@@ -156,9 +165,12 @@ public sealed partial class PurchaseOrderService
         }
 
         // Último nível (CA 12, ADR 0024 §1): pedido aprovado e títulos previstos por parcela na mesma transação; falha do IPayables desfaz tudo.
+        // Com recebimento (reaprovação da correção de preço, CMP-04 CA 14), o pedido volta a parcialmente recebido e o previsto é o saldo.
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
-        order.Status = PurchaseOrderStatus.Approved;
+        var received = await db.PurchaseOrderLines.AnyAsync(l => l.OrderId == order.Id && l.QuantityReceived > 0m, ct);
+        order.Status = received ? PurchaseOrderStatus.PartiallyReceived : PurchaseOrderStatus.Approved;
         order.ApprovedAt = now;
+        order.ApprovedTotal = order.Total;
         order.RejectionComment = null;
         var planned = await PlanPayablesAsync(order, ct);
         if (planned.IsFailure)
@@ -290,45 +302,13 @@ public sealed partial class PurchaseOrderService
     }
 
     /// <summary>
-    /// Títulos previstos da aprovação (CA 12, 15): um por parcela da condição sobre o total, a partir da data prevista de entrega, com a
-    /// conta e a natureza dos parâmetros; na reaprovação, troca os previstos de antes (<see cref="IPayables.ReplacePlannedAsync"/>).
+    /// Títulos previstos da aprovação (CA 12, 15): um por parcela da condição sobre o total (ou, com recebimento, sobre o saldo a receber,
+    /// CMP-04), a partir da data prevista de entrega, com a conta e a natureza dos parâmetros; na reaprovação, troca os previstos de antes
+    /// (<see cref="IPayables.ReplacePlannedAsync"/>).
     /// </summary>
-    private async Task<Result> PlanPayablesAsync(PurchaseOrder order, CancellationToken ct)
-    {
-        var dues = await terms.SplitAsync(order.PaymentTermId, order.Total, order.ExpectedDate, ct);
-        if (dues is null || dues.Count == 0)
-        {
-            return Invalid("paymentTermId", "A condição de pagamento do pedido não existe mais. Edite o pedido e escolha outra.");
-        }
-
-        Guid accountId;
-        if (order.AccountId is { } stored)
-        {
-            accountId = stored;
-        }
-        else
-        {
-            var account = await AccountIdAsync(ct);
-            if (account.IsFailure)
-            {
-                return account.Error!;
-            }
-
-            accountId = account.Value;
-        }
-
-        var defaults = await parameters.PayableDefaultsAsync(ct);
-        var plan = new PlannedPayables(order.PartyId, order.ProjectId, accountId, defaults.CostType,
-            dues.Select(d => new PlannedInstallment((short)d.Number, d.Amount, d.DueDate, PurchaseOrderRules.InstallmentDescription(order.Number, d.Number, dues.Count))).ToList());
-        var existing = await payables.ListByOriginAsync(DocumentOrigin.Purchase, order.Id, ct);
-        var result = existing.Any(p => p.Status != PayableStatus.Cancelled)
-            ? await payables.ReplacePlannedAsync(DocumentOrigin.Purchase, order.Id, plan, ct)
-            : await payables.CreatePlannedInstallmentsAsync(DocumentOrigin.Purchase, order.Id, plan, ct);
-        return result.IsFailure ? result.Error! : Result.Success();
-    }
-
+    private Task<Result> PlanPayablesAsync(PurchaseOrder order, CancellationToken ct) => ReplanAsync(order, $"pedido {order.Number} reaprovado", ct);
     /// <summary>Conta dos títulos do pedido (CA 19): o código de <c>purchasing.parameters</c> ("2.1"), conta analítica ativa; senão "3.9".</summary>
-    private async Task<Result<Guid>> AccountIdAsync(CancellationToken ct)
+    internal async Task<Result<Guid>> AccountIdAsync(CancellationToken ct)
     {
         var defaults = await parameters.PayableDefaultsAsync(ct);
         var postable = await chart.PostableAsync(null, ct);

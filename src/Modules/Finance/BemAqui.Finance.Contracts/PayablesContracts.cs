@@ -80,6 +80,12 @@ public interface IPayables
     /// <summary>Cancela todos os títulos em aberto da origem; 409 <c>payable_in_payment_order</c> se algum está numa OP e <c>payable_paid</c> se algum teve pagamento.</summary>
     Task<Result> CancelAllFromOriginAsync(DocumentOrigin origin, Guid originId, string reason, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Cria os títulos já em aberto (<c>Open</c>, sem a marca "Estimado") por parcela (ADR 0024 §3: os títulos do recebimento), na transação
+    /// do chamador; idempotente por parcela (a parcela que já tem título não cancelado não nasce de novo). Conta e natureza vêm do chamador.
+    /// </summary>
+    Task<Result<IReadOnlyList<PayableRef>>> CreateOpenInstallmentsAsync(DocumentOrigin origin, Guid originId, OpenPayables plan, CancellationToken cancellationToken = default);
+
     /// <summary>Títulos da origem em todas as parcelas e situações (aba Financeiro do pedido), pela parcela.</summary>
     Task<IReadOnlyList<PayableRef>> ListByOriginAsync(DocumentOrigin origin, Guid originId, CancellationToken cancellationToken = default);
 
@@ -95,6 +101,15 @@ public sealed record PlannedInstallment(short Number, decimal Amount, DateOnly E
 /// vêm do chamador (o pedido de compra usa os padrões de <c>purchasing.parameters</c>).
 /// </summary>
 public sealed record PlannedPayables(Guid PartyId, Guid? ProjectId, Guid AccountId, CostType? CostType, IReadOnlyList<PlannedInstallment> Installments);
+
+/// <summary>Parcela em aberto de uma origem (ADR 0024 §3): número da parcela, valor, vencimento e a descrição do título.</summary>
+public sealed record OpenInstallment(short Number, decimal Amount, DateOnly DueDate, string Description);
+
+/// <summary>
+/// Títulos em aberto de uma origem por parcela (CMP-04 CA 8): fornecedor, projeto, conta do plano e natureza vêm do chamador (o recebimento
+/// usa os do pedido).
+/// </summary>
+public sealed record OpenPayables(Guid PartyId, Guid? ProjectId, Guid AccountId, CostType? CostType, IReadOnlyList<OpenInstallment> Installments);
 
 /// <summary>Título a pagar do projeto (COM-05), sem dado de pagamento.</summary>
 public sealed record ProjectPayable(Guid Id, string Number, Guid PartyId, DocumentOrigin Origin, CostType? CostType, DateOnly? DueDate, decimal Amount, decimal Balance, PayableStatus Status, DateTimeOffset CreatedAt);

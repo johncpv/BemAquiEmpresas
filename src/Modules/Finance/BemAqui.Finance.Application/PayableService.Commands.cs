@@ -367,6 +367,7 @@ public sealed partial class PayableService
     {
         DocumentOrigin.Installer => "OS de instalação",
         DocumentOrigin.Purchase => "pedido de compra",
+        DocumentOrigin.GoodsReceipt => "recebimento de compra",
         DocumentOrigin.Payroll => "folha",
         DocumentOrigin.Maintenance => "manutenção",
         DocumentOrigin.Recurring => "despesa recorrente",

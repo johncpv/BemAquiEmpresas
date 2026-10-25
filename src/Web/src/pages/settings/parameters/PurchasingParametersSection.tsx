@@ -13,7 +13,7 @@ import { Dica } from '@/help/Dica'
 import { COST_SECTIONS } from '@/pages/quotes/quotes'
 import { useCan } from '@/pages/use-can'
 
-import { accountingPending, costTypeLabel, FREIGHT_DICA, PAYABLE_DICA, PENDING_LABEL, purchasingChanged } from './purchasing-parameters'
+import { accountingPending, costTypeLabel, FREIGHT_DICA, PAYABLE_DICA, parseTolerance, PENDING_LABEL, purchasingChanged, TOLERANCE_DICA } from './purchasing-parameters'
 
 const LEAD_DICA = 'Quantos dias antes da necessidade a compra precisa ser feita. A falta da BOM pede o material para a data prometida do projeto menos este prazo; a solicitação manual e a do estoque mínimo sugerem hoje mais este prazo.'
 
@@ -29,7 +29,7 @@ export function PurchasingParametersSection({ canEdit }: { canEdit: boolean }) {
   if (query.isPending) return <Skeleton className="h-24" />
   if (query.isError || !query.data.accounts) return null
   const p = query.data
-  return <PurchasingForm key={[p.defaultLeadDays, p.payableAccountCode, p.payableCostType, p.freightAccountCode, p.freightCostType, p.accountingConfirmed].join('|')} params={p} canEdit={canEdit} />
+  return <PurchasingForm key={[p.defaultLeadDays, p.payableAccountCode, p.payableCostType, p.freightAccountCode, p.freightCostType, p.accountingConfirmed, p.receiptTolerancePct].join('|')} params={p} canEdit={canEdit} />
 }
 
 function PurchasingForm({ params, canEdit }: { params: PurchasingParametersView; canEdit: boolean }) {
@@ -40,17 +40,21 @@ function PurchasingForm({ params, canEdit }: { params: PurchasingParametersView;
   const [freightAccount, setFreightAccount] = useState(params.freightAccountCode)
   const [freightCostType, setFreightCostType] = useState<CostType>(params.freightCostType)
   const [confirmed, setConfirmed] = useState(params.accountingConfirmed)
+  const [tolerance, setTolerance] = useState(String(params.receiptTolerancePct ?? 0).replace('.', ','))
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [error, setError] = useState<string | undefined>()
   const value = Number(days)
   const invalid = days === '' || value < 0 || value > 365 ? 'Informe de 0 a 365 dias.' : undefined
+  const tolerancePct = parseTolerance(tolerance)
+  const toleranceInvalid = tolerancePct === null ? 'Informe a tolerância de 0% a 50%, com até 2 casas.' : undefined
   const changed = purchasingChanged(params, {
-    defaultLeadDays: value, payableAccountCode: account, payableCostType: costType, freightAccountCode: freightAccount, freightCostType, accountingConfirmed: confirmed,
+    defaultLeadDays: value, payableAccountCode: account, payableCostType: costType, freightAccountCode: freightAccount, freightCostType, accountingConfirmed: confirmed, receiptTolerancePct: tolerancePct ?? undefined,
   })
   const save = async () => {
     try {
       const saved = await updatePurchasingParameters({
         defaultLeadDays: value, payableAccountCode: account, payableCostType: costType, freightAccountCode: freightAccount, freightCostType, accountingConfirmed: confirmed,
+        receiptTolerancePct: tolerancePct ?? 0,
       })
       client.setQueryData(getGetPurchasingParametersQueryKey(), saved)
       void client.invalidateQueries({ predicate: (q) => String(q.queryKey[0]).startsWith('/api/v1/audit/PurchasingParameter/') })
@@ -77,10 +81,13 @@ function PurchasingForm({ params, canEdit }: { params: PurchasingParametersView;
   const pending = accountingPending(params) ? <StatusChip tone="warn">{PENDING_LABEL}</StatusChip> : null
 
   return (
-    <FormSection title="Compras" description="Prazo usado para calcular quando o material precisa estar comprado e a classificação dos títulos dos pedidos.">
+    <FormSection title="Compras" description="Prazo usado para calcular quando o material precisa estar comprado, a tolerância do recebimento e a classificação dos títulos dos pedidos.">
       <fieldset disabled={!canEdit} className="space-y-3 sm:col-span-2">
         <Field label="Prazo padrão de compra (dias)" dica={LEAD_DICA} error={invalid ?? errors.defaultLeadDays} hint="Padrão 15 dias.">
           {(p) => <input {...p} inputMode="numeric" maxLength={3} value={days} onChange={(e) => setDays(e.target.value.replace(/[^0-9]/g, ''))} className={inputClass + ' tabular-nums'} />}
+        </Field>
+        <Field label="Tolerância do recebimento (%)" dica={TOLERANCE_DICA} error={toleranceInvalid ?? errors.receiptTolerancePct} hint="Padrão 0%: o recebimento não passa do pedido.">
+          {(p) => <input {...p} inputMode="decimal" maxLength={5} value={tolerance} onChange={(e) => setTolerance(e.target.value.replace(/[^0-9,.]/g, ''))} className={inputClass + ' tabular-nums'} />}
         </Field>
         <div role="group" aria-label="Títulos do pedido de compra" className="space-y-3 rounded-md border border-border p-3">
           <p className="flex flex-wrap items-center gap-2 text-sm font-semibold">Títulos do pedido de compra<Dica nome="Títulos do pedido de compra" texto={PAYABLE_DICA} />{pending}</p>
@@ -99,7 +106,7 @@ function PurchasingForm({ params, canEdit }: { params: PurchasingParametersView;
           </label>
         </div>
         {error && Object.keys(errors).length === 0 ? <p role="alert" className="text-sm text-crit-ink">{error}</p> : null}
-        {canEdit ? <button type="button" disabled={!changed || !!invalid} onClick={() => void save()} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60">Salvar parâmetros de compras</button> : null}
+        {canEdit ? <button type="button" disabled={!changed || !!invalid || !!toleranceInvalid} onClick={() => void save()} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60">Salvar parâmetros de compras</button> : null}
       </fieldset>
       {params.defaultLeadDaysId ? (
         <details className="rounded-md border border-border bg-card px-3 py-2 text-sm sm:col-span-2">

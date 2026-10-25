@@ -161,6 +161,9 @@ public class BomRulesTests
         public Task<IReadOnlyList<StockShortageInfo>> OpenShortagesAsync(CancellationToken cancellationToken = default) => Task.FromResult<IReadOnlyList<StockShortageInfo>>([]);
 
         public Task ReleaseForOrderAsync(Guid productionOrderId, CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+        public Task<IReadOnlyList<Guid>> OrdersCompletedByEntriesAsync(IReadOnlyCollection<string> movementNumbers, CancellationToken cancellationToken = default) =>
+            Task.FromResult<IReadOnlyList<Guid>>([]);
     }
 
     private sealed class FakeCosts : IItemCosts

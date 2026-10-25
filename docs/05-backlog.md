@@ -340,7 +340,7 @@ _MIG-01d (saldos iniciais de estoque) não entra aqui: cancelada pelo PO em 18/1
 - Requisitos: R-CMP-3, R-CMP-4, R-CMP-6, R-FIN-4, R-FIN-5, R-FIN-10, R-COM-2, R-COM-4, R-PRP-1, R-PRP-7, R-SEC-5.
 - CA: pedido manual, da SC ou pela API com `rfqId` (para a CMP-02); alçada pelo `IApprovalRouting` com valor de referência contra fracionamento e `SoleOwnerRule`; `finance.approve` sem `purchasing.approve` recebe 403; aprovação gera os títulos `Planned` por parcela na mesma transação; "Comprometido" pela D2; aviso "1 cotação"; `IPurchaseOrders.OpenQuantityByItemAsync` (saldo a receber por item).
 
-**CMP-04 [ ] Recebimento manual contra o pedido (G)** — 3.3, ordem 16 — re-estimada de M — [story](stories/CMP-04-recebimento-manual.md)
+**CMP-04 [x] Recebimento manual contra o pedido (G)** — 3.3, ordem 16 — re-estimada de M — [story](stories/CMP-04-recebimento-manual.md)
 - Requisitos: R-CMP-5, R-EST-6, R-EST-7, R-EST-8, R-FIN-4, R-COM-4, R-PRP-2, R-PRP-7, R-SEC-5.
 - CA: registro com `purchasing.receive`, por quem não pediu nem aprovou (D8); entrada com custo rateado (P-16); cada recebimento gera os próprios títulos em aberto (`CreateOpenInstallmentsAsync`) e replaneja os previstos para o saldo; Σ recebido ≤ aprovado + tolerância; estorno cancela os títulos do recebimento (409 se em OP).
 

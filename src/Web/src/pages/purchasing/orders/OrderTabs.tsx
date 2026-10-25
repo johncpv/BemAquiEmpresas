@@ -2,11 +2,14 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { useRef, useState } from 'react'
 import {
-  getDownloadAttachmentUrl, getListAttachmentsQueryKey, uploadAttachment, useGetPurchaseOrderDecisions, useGetPurchaseOrderHistory, useListAttachments, useListPurchaseOrderPayables,
+  correctPurchaseOrderPrice, getDownloadAttachmentUrl, getListAttachmentsQueryKey, uploadAttachment, useGetPurchaseOrderDecisions, useGetPurchaseOrderHistory, useListAttachments,
+  useListPurchaseOrderPayables, useListPurchaseOrderReceipts,
 } from '@/api/generated/bemaqui'
-import type { PurchaseOrderDetail, PurchaseOrderLevelView } from '@/api/generated/model'
+import type { PurchaseOrderDetail, PurchaseOrderLevelView, PurchaseOrderLineView } from '@/api/generated/model'
 import { ApiError, apiDownload } from '@/api/http'
 import { FormError } from '@/components/form/form'
+import { inputClass } from '@/components/form/form-utils'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { describeChanges } from '@/components/history/describe-changes'
 import { notifySuccess } from '@/components/ui/messages'
 import { Money } from '@/components/ui/money'
@@ -17,12 +20,41 @@ import { Dica } from '@/help/Dica'
 import { formatDate, formatDateTime } from '@/lib/format'
 import { formatQuantity } from '@/pages/inventory/stock/stock'
 import { useCan } from '@/pages/use-can'
+import { RECEIPT_STATUS } from '../receipts/receipts'
 import { DECISION, LEVEL_STATUS, ORDER_DICAS } from './purchase-orders'
 
 const OWNER = 'PurchaseOrder'
 
-/** Aba Itens (CA 3): cada linha em cartão a 400 px, com as SC atendidas. */
-export function OrderItems({ order }: { order: PurchaseOrderDetail }) {
+/**
+ * "Corrigir preço" da linha (CMP-04 CA 14, purchasing.approve, motivo obrigatório): vale para o saldo a receber; acima do aprovado mais a
+ * tolerância, o pedido volta para a aprovação.
+ */
+function CorrectPrice({ order, line, set, refresh }: { order: PurchaseOrderDetail; line: PurchaseOrderLineView; set: (o: PurchaseOrderDetail) => void; refresh: () => Promise<unknown> }) {
+  const [price, setPrice] = useState('')
+  const [reason, setReason] = useState('')
+  const value = Number(price.trim().replace(',', '.'))
+  const valid = price.trim() !== '' && !Number.isNaN(value) && value > 0 && value !== line.unitPrice
+  return (
+    <ConfirmDialog verb="Corrigir preço" done="Preço corrigido" title={`Corrigir o preço de ${line.itemCode}?`}
+      description={<span className="inline-flex items-center">O preço novo vale para o saldo de {formatQuantity(line.quantityOpen ?? 0)} {line.unitCode}; o que já entrou fica com o preço de antes.<Dica nome="Corrigir preço" texto={ORDER_DICAS.corrigirPreco} /></span>}
+      impact={<p className="tabular-nums">Preço atual <Money value={line.unitPrice} />{valid ? <> → <Money value={value} className="font-semibold" /></> : null} · aprovado <Money value={order.approvedTotal ?? order.total} /></p>}
+      onOpen={() => { setPrice(''); setReason('') }} preconditions={[{ ok: valid, text: 'Preço novo, maior que zero e diferente do atual.' }, { ok: reason.trim().length > 0, text: 'Motivo escrito.' }]}
+      onConfirm={async () => { set(await correctPurchaseOrderPrice(order.id, line.id, { unitPrice: value, reason: reason.trim(), version: order.version })) }} onReload={refresh}
+      trigger={<button type="button" className="text-xs font-semibold text-primary">Corrigir preço</button>}>
+      <div className="space-y-1">
+        <label htmlFor={`preco-${line.id}`} className="text-sm font-medium">Preço novo</label>
+        <input id={`preco-${line.id}`} inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value.replace(/[^0-9,.]/g, ''))} className={inputClass + ' tabular-nums'} />
+      </div>
+      <div className="space-y-1">
+        <label htmlFor={`motivo-preco-${line.id}`} className="text-sm font-medium">Motivo</label>
+        <textarea id={`motivo-preco-${line.id}`} value={reason} maxLength={500} rows={3} onChange={(e) => setReason(e.target.value)} className={inputClass} />
+      </div>
+    </ConfirmDialog>
+  )
+}
+
+/** Aba Itens (CA 3): cada linha em cartão a 400 px, com as SC atendidas, o recebido e "Corrigir preço" (CMP-04). */
+export function OrderItems({ order, set, refresh }: { order: PurchaseOrderDetail; set?: (o: PurchaseOrderDetail) => void; refresh?: () => Promise<unknown> }) {
   return (
     <ul className="mt-3 divide-y divide-border rounded-md border border-border text-sm" aria-label="Itens do pedido">
       {order.lines.map((l) => (
@@ -38,7 +70,8 @@ export function OrderItems({ order }: { order: PurchaseOrderDetail }) {
           <span className="tabular-nums"><b>{formatQuantity(l.quantity)} {l.unitCode}</b>{l.enteredUnitCode && l.enteredQuantity !== null ? <span className="text-muted-foreground"> ({formatQuantity(l.enteredQuantity)} {l.enteredUnitCode})</span> : null}</span>
           <span className="tabular-nums text-muted-foreground">× <Money value={l.unitPrice} /></span>
           <Money value={l.lineTotal} className="font-semibold" />
-          {l.quantityReceived > 0 ? <span className="basis-full text-xs text-muted-foreground">Recebido {formatQuantity(l.quantityReceived)} {l.unitCode}</span> : null}
+          {l.quantityReceived > 0 ? <span className="basis-full text-xs text-muted-foreground">Recebido {formatQuantity(l.quantityReceived + (l.quantityOverReceived ?? 0))} {l.unitCode} · saldo {formatQuantity(l.quantityOpen ?? 0)} {l.unitCode}</span> : null}
+          {order.canCorrectPrice && set && refresh && (l.quantityOpen ?? 0) > 0 ? <span className="basis-full"><CorrectPrice order={order} line={l} set={set} refresh={refresh} /></span> : null}
         </li>
       ))}
       <li className="grid grid-cols-2 gap-2 p-3 tabular-nums sm:grid-cols-4">
@@ -136,6 +169,30 @@ export function OrderPayables({ orderId }: { orderId: string }) {
   )
 }
 
+/** Aba Recebimentos do pedido (CMP-04 CA 15): os recebimentos registrados e estornados, com o link para cada um. */
+export function OrderReceipts({ order }: { order: PurchaseOrderDetail }) {
+  const query = useListPurchaseOrderReceipts(order.id)
+  if (query.isPending) return <Skeleton className="h-24" />
+  if (query.isError) return <ErrorState title="Não foi possível carregar os recebimentos." onRetry={() => query.refetch()} />
+  if (query.data.length === 0) {
+    return <EmptyState title="Nenhum recebimento." description="Quando o material chegar, quem tem a permissão Registrar recebimento dá a entrada pelo botão Registrar recebimento." />
+  }
+
+  return (
+    <ul className="mt-3 divide-y divide-border rounded-md border border-border bg-card text-sm" aria-label="Recebimentos do pedido">
+      {query.data.map((r) => (
+        <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 p-3">
+          <span className="flex flex-wrap items-center gap-2">
+            <Link to={'/app/compras/recebimentos/$id' as never} params={{ id: r.id } as never} className="font-semibold tabular-nums text-primary">{r.number}</Link>
+            <span className="tabular-nums text-muted-foreground">{formatDate(r.receivedOn)}</span>
+            <span className="text-muted-foreground">{r.itemSummary}</span>
+          </span>
+          <span className="flex items-center gap-2"><Money value={r.amount} className="font-semibold" /><StatusChip tone={RECEIPT_STATUS[r.status].tone}>{RECEIPT_STATUS[r.status].label}</StatusChip></span>
+        </li>
+      ))}
+    </ul>
+  )
+}
 /** Aba Documentos (CA 21): anexos do dono PurchaseOrder; ler com purchasing.view, anexar com purchasing.edit (pdf, png, jpg até 10 MB). */
 export function OrderDocuments({ orderId }: { orderId: string }) {
   const list = useListAttachments(OWNER, orderId)
@@ -190,7 +247,7 @@ export function OrderDocuments({ orderId }: { orderId: string }) {
 }
 
 const ACTIONS: Record<string, string> = { Created: 'Criou', Updated: 'Alterou', Deleted: 'Removeu' }
-const ENTITY: Record<string, string> = { PurchaseOrder: 'o pedido', PurchaseOrderLine: 'uma linha' }
+const ENTITY: Record<string, string> = { PurchaseOrder: 'o pedido', PurchaseOrderLine: 'uma linha', PurchaseOrderPriceCorrection: 'o preço (correção)' }
 
 /** Aba Histórico de alterações (CA 23): antes e depois do pedido e das linhas, com usuário e data. */
 export function OrderHistory({ orderId }: { orderId: string }) {

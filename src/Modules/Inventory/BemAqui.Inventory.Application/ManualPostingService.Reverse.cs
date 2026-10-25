@@ -148,6 +148,8 @@ public sealed class ReversePolicy(IInventoryDb db, IPermissionChecker permission
     {
         StockSources.ManualPosting => ManualPostingService.Link + sourceId,
         StockSources.Adjustment => StockAdjustmentService.Link + sourceId,
+        // CMP-04 CA 18: a entrada do recebimento aponta para o recebimento.
+        StockSources.GoodsReceipt => "/app/compras/recebimentos/" + sourceId,
         _ => null,
     };
 }

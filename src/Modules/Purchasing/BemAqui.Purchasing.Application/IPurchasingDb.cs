@@ -22,6 +22,12 @@ public interface IPurchasingDb
 
     DbSet<PurchaseOrderApproval> PurchaseOrderApprovals { get; }
 
+    DbSet<PurchaseOrderPriceCorrection> PurchaseOrderPriceCorrections { get; }
+
+    DbSet<GoodsReceipt> GoodsReceipts { get; }
+
+    DbSet<GoodsReceiptLine> GoodsReceiptLines { get; }
+
     /// <summary>Transação da SC e do pedido com o número, a trava por OS da recomposição e os títulos previstos da aprovação.</summary>
     DatabaseFacade Database { get; }
 

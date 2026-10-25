@@ -13,7 +13,7 @@ namespace BemAqui.Purchasing.Endpoints;
 /// <summary>
 /// Solicitações de compra (CMP-01 CA 3, 4, 12 a 17). Módulo <c>purchasing</c> com as três camadas (403 <c>module_not_released</c> e
 /// <c>perm:</c>): ver com <c>purchasing.view</c>, enviar com <c>purchasing.create</c> (com <c>Idempotency-Key</c>), editar e cancelar com
-/// <c>purchasing.edit</c>. A linha é sempre lida pela SC da URL (IDOR). Nenhum endpoint usa <c>purchasing.receive</c> (é da CMP-04).
+/// <c>purchasing.edit</c>. A linha é sempre lida pela SC da URL (IDOR). O recebimento (CMP-04) usa <c>purchasing.receive</c>.
 /// </summary>
 internal static partial class PurchasingEndpoints
 {
@@ -23,7 +23,10 @@ internal static partial class PurchasingEndpoints
     {
         var purchasing = api.MapGroup("/purchasing").WithTags("Compras").RequireModule("purchasing");
         MapRequests(purchasing.MapGroup("/purchase-requests"));
-        MapOrders(purchasing.MapGroup("/purchase-orders"));
+        var orders = purchasing.MapGroup("/purchase-orders");
+        MapOrders(orders);
+        MapOrderBalance(orders);
+        MapReceipts(purchasing);
         MapOrderOptions(purchasing);
         purchasing.MapGet("/items", async (string? q, PurchaseRequestService service, CancellationToken ct) => Results.Ok(await service.ItemOptionsAsync(q, ct)))
             .RequirePermission("purchasing.create").WithName("ListPurchaseItemOptions").Produces<IReadOnlyList<PurchaseItemOption>>();

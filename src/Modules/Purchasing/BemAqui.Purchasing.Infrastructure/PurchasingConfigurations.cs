@@ -83,7 +83,11 @@ internal sealed class PurchaseOrderConfiguration : IEntityTypeConfiguration<Purc
         b.ToTable("purchase_orders", PurchasingSchema.Name);
         b.Property(e => e.Number).HasMaxLength(30);
         b.Property(e => e.Status).HasConversion<string>().HasMaxLength(20);
-        foreach (var money in new[] { nameof(PurchaseOrder.Subtotal), nameof(PurchaseOrder.Freight), nameof(PurchaseOrder.IpiAmount), nameof(PurchaseOrder.Total), nameof(PurchaseOrder.ReferenceAmount) })
+        foreach (var money in new[]
+                 {
+                     nameof(PurchaseOrder.Subtotal), nameof(PurchaseOrder.Freight), nameof(PurchaseOrder.IpiAmount), nameof(PurchaseOrder.Total), nameof(PurchaseOrder.ReferenceAmount),
+                     nameof(PurchaseOrder.ApprovedTotal), nameof(PurchaseOrder.ClosedBalanceAmount),
+                 })
         {
             b.Property(money).HasPrecision(18, 2);
         }
@@ -92,6 +96,7 @@ internal sealed class PurchaseOrderConfiguration : IEntityTypeConfiguration<Purc
         b.Property(e => e.Notes).HasMaxLength(PurchaseOrderRules.MaxNotes);
         b.Property(e => e.RejectionComment).HasMaxLength(PurchaseOrderRules.MaxComment);
         b.Property(e => e.CancelReason).HasMaxLength(PurchaseOrderRules.MaxReason);
+        b.Property(e => e.CloseReason).HasMaxLength(GoodsReceiptRules.MaxReason);
         b.HasIndex(e => e.Number).IsUnique().HasDatabaseName("ux_purchase_orders_number");
         b.HasIndex(e => e.Status).HasDatabaseName("ix_purchase_orders_status");
         b.HasIndex(e => new { e.PartyId, e.SubmittedAt }).HasDatabaseName("ix_purchase_orders_party_submitted");
@@ -109,6 +114,8 @@ internal sealed class PurchaseOrderLineConfiguration : IEntityTypeConfiguration<
         b.Property(e => e.Quantity).HasPrecision(18, 4);
         b.Property(e => e.EnteredQuantity).HasPrecision(18, 4);
         b.Property(e => e.QuantityReceived).HasPrecision(18, 4);
+        b.Property(e => e.QuantityOverReceived).HasPrecision(18, 4);
+        b.Property(e => e.AmountReceived).HasPrecision(18, 2);
         b.Property(e => e.UnitPrice).HasPrecision(18, 6);
         b.Property(e => e.LineTotal).HasPrecision(18, 2);
         b.Property(e => e.CostType).HasConversion<string>().HasMaxLength(16);
@@ -145,5 +152,72 @@ internal sealed class PurchaseOrderApprovalConfiguration : IEntityTypeConfigurat
         b.Property(e => e.Comment).HasMaxLength(PurchaseOrderRules.MaxComment);
         b.HasOne<PurchaseOrder>().WithMany().HasForeignKey(e => e.OrderId).OnDelete(DeleteBehavior.Restrict);
         b.HasIndex(e => new { e.OrderId, e.Attempt }).HasDatabaseName("ix_purchase_order_approvals_order_attempt");
+    }
+}
+
+/// <summary>
+/// Recebimento (CMP-04): número único; pedido do próprio módulo (FK); fornecedor, projeto e nota de entrada de outros módulos (só o id,
+/// ADR 0006). Os <c>CHECK</c>s entram por SQL na migration <c>GoodsReceipts</c>.
+/// </summary>
+internal sealed class GoodsReceiptConfiguration : IEntityTypeConfiguration<GoodsReceipt>
+{
+    public void Configure(EntityTypeBuilder<GoodsReceipt> b)
+    {
+        b.ToTable("goods_receipts", PurchasingSchema.Name);
+        b.Property(e => e.Number).HasMaxLength(30);
+        b.Property(e => e.Status).HasConversion<string>().HasMaxLength(12);
+        b.Property(e => e.OrderStatusBefore).HasConversion<string>().HasMaxLength(20);
+        foreach (var money in new[] { nameof(GoodsReceipt.Subtotal), nameof(GoodsReceipt.Freight), nameof(GoodsReceipt.IpiAmount), nameof(GoodsReceipt.Amount) })
+        {
+            b.Property(money).HasPrecision(18, 2);
+        }
+
+        b.Property(e => e.Notes).HasMaxLength(GoodsReceiptRules.MaxNotes);
+        b.Property(e => e.ReversalReason).HasMaxLength(GoodsReceiptRules.MaxReason);
+        b.HasOne<PurchaseOrder>().WithMany().HasForeignKey(e => e.PurchaseOrderId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => e.Number).IsUnique().HasDatabaseName("ux_goods_receipts_number");
+        b.HasIndex(e => e.PurchaseOrderId).HasDatabaseName("ix_goods_receipts_purchase_order_id");
+        b.HasIndex(e => new { e.Status, e.ReceivedOn }).HasDatabaseName("ix_goods_receipts_status_received_on");
+    }
+}
+
+/// <summary>Linha do recebimento: uma por linha do pedido e recebimento; o item, o lote, o local e o movimento são do Inventory (só o id).</summary>
+internal sealed class GoodsReceiptLineConfiguration : IEntityTypeConfiguration<GoodsReceiptLine>
+{
+    public void Configure(EntityTypeBuilder<GoodsReceiptLine> b)
+    {
+        b.ToTable("goods_receipt_lines", PurchasingSchema.Name);
+        b.Property(e => e.Quantity).HasPrecision(18, 4);
+        b.Property(e => e.SupplierQuantity).HasPrecision(18, 4);
+        b.Property(e => e.SupplierUnit).HasMaxLength(20);
+        b.Property(e => e.LotNumber).HasMaxLength(GoodsReceiptRules.MaxLotNumber);
+        b.Property(e => e.UnitPrice).HasPrecision(18, 6);
+        b.Property(e => e.LineAmount).HasPrecision(18, 2);
+        b.Property(e => e.FreightShare).HasPrecision(18, 2);
+        b.Property(e => e.IpiShare).HasPrecision(18, 2);
+        b.Property(e => e.UnitCost).HasPrecision(18, 6);
+        b.Property(e => e.MovementNumber).HasMaxLength(30);
+        b.HasOne<GoodsReceipt>().WithMany().HasForeignKey(e => e.ReceiptId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne<PurchaseOrderLine>().WithMany().HasForeignKey(e => e.PoLineId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => new { e.ReceiptId, e.Sequence }).IsUnique().HasDatabaseName("ux_goods_receipt_lines_receipt_sequence");
+        b.HasIndex(e => new { e.ReceiptId, e.PoLineId }).IsUnique().HasDatabaseName("ux_goods_receipt_lines_receipt_po_line");
+        b.HasIndex(e => e.PoLineId).HasDatabaseName("ix_goods_receipt_lines_po_line_id");
+        b.HasIndex(e => e.ItemId).HasDatabaseName("ix_goods_receipt_lines_item_id");
+    }
+}
+
+/// <summary>Correções de preço da linha do pedido (CA 14): imutáveis, lidas no histórico e na segregação.</summary>
+internal sealed class PurchaseOrderPriceCorrectionConfiguration : IEntityTypeConfiguration<PurchaseOrderPriceCorrection>
+{
+    public void Configure(EntityTypeBuilder<PurchaseOrderPriceCorrection> b)
+    {
+        b.ToTable("purchase_order_price_corrections", PurchasingSchema.Name);
+        b.Property(e => e.PreviousPrice).HasPrecision(18, 6);
+        b.Property(e => e.NewPrice).HasPrecision(18, 6);
+        b.Property(e => e.Reason).HasMaxLength(GoodsReceiptRules.MaxReason);
+        b.HasOne<PurchaseOrder>().WithMany().HasForeignKey(e => e.OrderId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne<PurchaseOrderLine>().WithMany().HasForeignKey(e => e.PoLineId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => e.OrderId).HasDatabaseName("ix_purchase_order_price_corrections_order_id");
+        b.HasIndex(e => e.PoLineId).HasDatabaseName("ix_purchase_order_price_corrections_po_line_id");
     }
 }

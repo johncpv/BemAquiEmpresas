@@ -210,6 +210,9 @@ public partial class PurchaseRequestTests(TenancyFixture tenancy) : IClassFixtur
             Task.FromResult<IReadOnlyList<StockShortageInfo>>(Shortages.Values.OrderBy(s => s.BomReleasedAt).ToList());
 
         public Task ReleaseForOrderAsync(Guid productionOrderId, CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+        public Task<IReadOnlyList<Guid>> OrdersCompletedByEntriesAsync(IReadOnlyCollection<string> movementNumbers, CancellationToken cancellationToken = default) =>
+            Task.FromResult<IReadOnlyList<Guid>>([]);
     }
 
     private sealed class FakeBalances : IStockBalances

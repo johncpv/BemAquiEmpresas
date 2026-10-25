@@ -181,12 +181,19 @@ test.describe('configurações da empresa (CAD-06)', () => {
     await expect(page.getByRole('button', { name: 'Salvar parâmetros de compras' })).toBeDisabled()
     await group.getByRole('combobox', { name: 'Conta do pedido' }).selectOption('1.3')
     await group.getByRole('checkbox', { name: 'Conferido com a contadora' }).check()
+    // CMP-04 (D8): a tolerância do recebimento começa em 0% e aceita até 50%, com até 2 casas.
+    const tolerance = page.getByRole('textbox', { name: /^Tolerância do recebimento/ })
+    await expect(tolerance).toHaveValue('0')
+    await tolerance.fill('2,5')
     await page.getByRole('button', { name: 'Salvar parâmetros de compras' }).click()
     await expect(page.getByText('Parâmetros de compras salvos')).toBeVisible()
     expect(calls.find((c) => c.path === '/api/v1/purchasing/parameters')?.body).toEqual({
       defaultLeadDays: 15, payableAccountCode: '1.3', payableCostType: 'Material', freightAccountCode: '2.4', freightCostType: 'Freight', accountingConfirmed: true,
+      receiptTolerancePct: 2.5,
     })
     await expect(group.getByText('A confirmar com a contadora')).toHaveCount(0)
+    // Com a tolerância (CMP-04) o botão desceu: volta ao topo para o axe não ler as abas por baixo da mensagem fixa.
+    await page.evaluate(() => window.scrollTo(0, 0))
     await noSeriousViolations(page)
   })
 

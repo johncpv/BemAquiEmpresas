@@ -95,6 +95,19 @@ public sealed class StockReservationService(
         return rows.Select(Info).ToList();
     }
 
+    public async Task<IReadOnlyList<Guid>> OrdersCompletedByEntriesAsync(IReadOnlyCollection<string> movementNumbers, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(movementNumbers);
+        if (movementNumbers.Count == 0)
+        {
+            return [];
+        }
+
+        var origins = movementNumbers.Distinct().Select(ReservationOrigins.Entry).ToList();
+        return await db.ReservationChanges.AsNoTracking().Where(c => c.Kind == ReservationChangeKind.Completed && c.QuantityDelta > 0 && origins.Contains(c.Origin))
+            .Select(c => c.ProductionOrderId).Distinct().ToListAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<StockShortageInfo>> OpenShortagesAsync(CancellationToken cancellationToken = default)
     {
         var rows = await ShortRowsAsync(cancellationToken);

@@ -76,4 +76,19 @@ export interface PurchaseOrderDetail {
   /** @nullable */
   decideBlocker: string | null;
   version: number;
+  /** @nullable */
+  approvedTotal?: number | null;
+  /** @nullable */
+  closedBalanceAmount?: number | null;
+  /** @nullable */
+  closeReason?: string | null;
+  /** @nullable */
+  closedAt?: string | null;
+  amountReceived?: number;
+  receiptsCount?: number;
+  canReceive?: boolean;
+  /** @nullable */
+  receiveBlocker?: string | null;
+  canClose?: boolean;
+  canCorrectPrice?: boolean;
 }

@@ -16,4 +16,6 @@ export interface PurchasingParametersInput {
   freightCostType?: null | CostType;
   /** @nullable */
   accountingConfirmed?: boolean | null;
+  /** @nullable */
+  receiptTolerancePct?: number | null;
 }

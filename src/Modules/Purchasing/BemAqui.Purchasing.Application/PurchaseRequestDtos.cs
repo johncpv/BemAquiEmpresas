@@ -67,15 +67,15 @@ public sealed record PurchaseRequestDefaults(
 /// <summary>Parâmetros de Compras na tela Configurações → Parâmetros (o id leva ao histórico).</summary>
 /// <summary>
 /// Parâmetros de Compras (CMP-01; CMP-03a): o prazo padrão e a conta e a natureza dos títulos do pedido e do frete (padrão 2.1/Material e
-/// 2.4/Freight), com a marca de conferido com a contadora e as contas analíticas para o seletor.
+/// 2.4/Freight), com a marca de conferido com a contadora e as contas analíticas para o seletor; e a tolerância do recebimento (CMP-04, D8).
 /// </summary>
 public sealed record PurchasingParametersView(
     int DefaultLeadDays, Guid? DefaultLeadDaysId, string PayableAccountCode, BemAqui.SharedKernel.CostType PayableCostType, string FreightAccountCode,
-    BemAqui.SharedKernel.CostType FreightCostType, bool AccountingConfirmed, IReadOnlyList<PurchasingAccountOption> Accounts);
+    BemAqui.SharedKernel.CostType FreightCostType, bool AccountingConfirmed, IReadOnlyList<PurchasingAccountOption> Accounts, decimal ReceiptTolerancePct = 0m);
 
 public sealed record PurchasingAccountOption(string Code, string Name);
 
 /// <summary>Campos nulos ficam como estão (a tela de Configurações manda todos).</summary>
 public sealed record PurchasingParametersInput(
     int DefaultLeadDays, string? PayableAccountCode = null, BemAqui.SharedKernel.CostType? PayableCostType = null, string? FreightAccountCode = null,
-    BemAqui.SharedKernel.CostType? FreightCostType = null, bool? AccountingConfirmed = null);
+    BemAqui.SharedKernel.CostType? FreightCostType = null, bool? AccountingConfirmed = null, decimal? ReceiptTolerancePct = null);

@@ -32,4 +32,7 @@ public enum DocumentOrigin
 
     /// <summary>Manutenção de patrimônio (Fase 3).</summary>
     Maintenance,
+
+    /// <summary>Recebimento de compra (CMP-04, ADR 0024 §3): os títulos em aberto do próprio recebimento, um por parcela da condição do pedido.</summary>
+    GoodsReceipt,
 }

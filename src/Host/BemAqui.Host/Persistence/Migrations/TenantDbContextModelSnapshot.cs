@@ -8526,6 +8526,236 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("work_centers", "production");
                 });
 
+            modelBuilder.Entity("BemAqui.Purchasing.Domain.GoodsReceipt", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<decimal>("Freight")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("freight");
+
+                    b.Property<Guid?>("IncomingInvoiceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("incoming_invoice_id");
+
+                    b.Property<decimal>("IpiAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("ipi_amount");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("notes");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("number");
+
+                    b.Property<string>("OrderStatusBefore")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("order_status_before");
+
+                    b.Property<Guid>("PartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("party_id");
+
+                    b.Property<Guid?>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<Guid>("PurchaseOrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("purchase_order_id");
+
+                    b.Property<Guid?>("ReceivedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("received_by");
+
+                    b.Property<DateOnly>("ReceivedOn")
+                        .HasColumnType("date")
+                        .HasColumnName("received_on");
+
+                    b.Property<string>("ReversalReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("reversal_reason");
+
+                    b.Property<DateTimeOffset?>("ReversedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reversed_at");
+
+                    b.Property<Guid?>("ReversedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reversed_by");
+
+                    b.Property<bool>("SoleOwner")
+                        .HasColumnType("boolean")
+                        .HasColumnName("sole_owner");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)")
+                        .HasColumnName("status");
+
+                    b.Property<decimal>("Subtotal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("subtotal");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_goods_receipts");
+
+                    b.HasIndex("Number")
+                        .IsUnique()
+                        .HasDatabaseName("ux_goods_receipts_number");
+
+                    b.HasIndex("PurchaseOrderId")
+                        .HasDatabaseName("ix_goods_receipts_purchase_order_id");
+
+                    b.HasIndex("Status", "ReceivedOn")
+                        .HasDatabaseName("ix_goods_receipts_status_received_on");
+
+                    b.ToTable("goods_receipts", "purchasing");
+                });
+
+            modelBuilder.Entity("BemAqui.Purchasing.Domain.GoodsReceiptLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("FreightShare")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("freight_share");
+
+                    b.Property<decimal>("IpiShare")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("ipi_share");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_id");
+
+                    b.Property<decimal>("LineAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("line_amount");
+
+                    b.Property<Guid>("LocationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("location_id");
+
+                    b.Property<DateOnly?>("LotExpiry")
+                        .HasColumnType("date")
+                        .HasColumnName("lot_expiry");
+
+                    b.Property<Guid?>("LotId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("lot_id");
+
+                    b.Property<string>("LotNumber")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("lot_number");
+
+                    b.Property<Guid?>("MovementId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("movement_id");
+
+                    b.Property<string>("MovementNumber")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("movement_number");
+
+                    b.Property<Guid>("PoLineId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("po_line_id");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("quantity");
+
+                    b.Property<Guid>("ReceiptId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("receipt_id");
+
+                    b.Property<Guid?>("ReversalMovementId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reversal_movement_id");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.Property<decimal?>("SupplierQuantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("supplier_quantity");
+
+                    b.Property<string>("SupplierUnit")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("supplier_unit");
+
+                    b.Property<decimal>("UnitCost")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)")
+                        .HasColumnName("unit_cost");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)")
+                        .HasColumnName("unit_price");
+
+                    b.HasKey("Id")
+                        .HasName("pk_goods_receipt_lines");
+
+                    b.HasIndex("ItemId")
+                        .HasDatabaseName("ix_goods_receipt_lines_item_id");
+
+                    b.HasIndex("PoLineId")
+                        .HasDatabaseName("ix_goods_receipt_lines_po_line_id");
+
+                    b.HasIndex("ReceiptId", "PoLineId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_goods_receipt_lines_receipt_po_line");
+
+                    b.HasIndex("ReceiptId", "Sequence")
+                        .IsUnique()
+                        .HasDatabaseName("ux_goods_receipt_lines_receipt_sequence");
+
+                    b.ToTable("goods_receipt_lines", "purchasing");
+                });
+
             modelBuilder.Entity("BemAqui.Purchasing.Domain.PurchaseOrder", b =>
                 {
                     b.Property<Guid>("Id")
@@ -8540,6 +8770,11 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<DateTimeOffset?>("ApprovedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("approved_at");
+
+                    b.Property<decimal?>("ApprovedTotal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("approved_total");
 
                     b.Property<int>("Attempt")
                         .HasColumnType("integer")
@@ -8561,6 +8796,24 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<bool>("ChangedAfterSent")
                         .HasColumnType("boolean")
                         .HasColumnName("changed_after_sent");
+
+                    b.Property<string>("CloseReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("close_reason");
+
+                    b.Property<DateTimeOffset?>("ClosedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("closed_at");
+
+                    b.Property<decimal?>("ClosedBalanceAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("closed_balance_amount");
+
+                    b.Property<Guid?>("ClosedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("closed_by");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -8810,6 +9063,11 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<decimal>("AmountReceived")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount_received");
+
                     b.Property<string>("CostType")
                         .IsRequired()
                         .HasMaxLength(16)
@@ -8843,6 +9101,11 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("numeric(18,4)")
                         .HasColumnName("quantity");
 
+                    b.Property<decimal>("QuantityOverReceived")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("quantity_over_received");
+
                     b.Property<decimal>("QuantityReceived")
                         .HasPrecision(18, 4)
                         .HasColumnType("numeric(18,4)")
@@ -8872,6 +9135,61 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDatabaseName("ix_purchase_order_lines_order_id");
 
                     b.ToTable("purchase_order_lines", "purchasing");
+                });
+
+            modelBuilder.Entity("BemAqui.Purchasing.Domain.PurchaseOrderPriceCorrection", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CorrectedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("corrected_at");
+
+                    b.Property<Guid?>("CorrectedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("corrected_by");
+
+                    b.Property<decimal>("NewPrice")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)")
+                        .HasColumnName("new_price");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("order_id");
+
+                    b.Property<Guid>("PoLineId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("po_line_id");
+
+                    b.Property<decimal>("PreviousPrice")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)")
+                        .HasColumnName("previous_price");
+
+                    b.Property<bool>("Reapproval")
+                        .HasColumnType("boolean")
+                        .HasColumnName("reapproval");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("reason");
+
+                    b.HasKey("Id")
+                        .HasName("pk_purchase_order_price_corrections");
+
+                    b.HasIndex("OrderId")
+                        .HasDatabaseName("ix_purchase_order_price_corrections_order_id");
+
+                    b.HasIndex("PoLineId")
+                        .HasDatabaseName("ix_purchase_order_price_corrections_po_line_id");
+
+                    b.ToTable("purchase_order_price_corrections", "purchasing");
                 });
 
             modelBuilder.Entity("BemAqui.Purchasing.Domain.PurchaseRequest", b =>
@@ -10048,6 +10366,33 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasConstraintName("fk_work_centers_calendars_calendar_id");
                 });
 
+            modelBuilder.Entity("BemAqui.Purchasing.Domain.GoodsReceipt", b =>
+                {
+                    b.HasOne("BemAqui.Purchasing.Domain.PurchaseOrder", null)
+                        .WithMany()
+                        .HasForeignKey("PurchaseOrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_goods_receipts_purchase_orders_purchase_order_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Purchasing.Domain.GoodsReceiptLine", b =>
+                {
+                    b.HasOne("BemAqui.Purchasing.Domain.PurchaseOrderLine", null)
+                        .WithMany()
+                        .HasForeignKey("PoLineId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_goods_receipt_lines_purchase_order_lines_po_line_id");
+
+                    b.HasOne("BemAqui.Purchasing.Domain.GoodsReceipt", null)
+                        .WithMany()
+                        .HasForeignKey("ReceiptId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_goods_receipt_lines_goods_receipts_receipt_id");
+                });
+
             modelBuilder.Entity("BemAqui.Purchasing.Domain.PurchaseOrderApproval", b =>
                 {
                     b.HasOne("BemAqui.Purchasing.Domain.PurchaseOrder", null)
@@ -10076,6 +10421,23 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_purchase_order_lines_purchase_orders_order_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Purchasing.Domain.PurchaseOrderPriceCorrection", b =>
+                {
+                    b.HasOne("BemAqui.Purchasing.Domain.PurchaseOrder", null)
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_purchase_order_price_corrections_purchase_orders_order_id");
+
+                    b.HasOne("BemAqui.Purchasing.Domain.PurchaseOrderLine", null)
+                        .WithMany()
+                        .HasForeignKey("PoLineId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_purchase_order_price_corrections_purchase_order_lines_po_li");
                 });
 
             modelBuilder.Entity("BemAqui.Purchasing.Domain.PurchaseRequestLine", b =>

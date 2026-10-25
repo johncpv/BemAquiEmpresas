@@ -16,6 +16,7 @@ import { useUrlTab } from '@/components/ui/url-tab'
 import { UrlTabs } from '@/components/ui/url-tabs'
 import { Can } from '@/pages/ModuleGate'
 import { useCan } from '@/pages/use-can'
+import { LastPurchase } from '@/pages/purchasing/receipts/LastPurchase'
 import { PageHeading } from '@/shell/PageHeading'
 import { TYPE_LABELS } from './item-labels'
 import { ItemConversions } from './ItemConversions'
@@ -86,6 +87,7 @@ export function ItemPage() {
           </div>
         </div>
       </PageHeading>
+      <LastPurchase itemId={item.id} />
       {steps && canEdit ? (
         <div className="mb-4">
           <NextSteps onDismiss={() => setSteps(false)} steps={[

@@ -69,6 +69,9 @@ public class PurchaseOrderRollbackTests(TenancyFixture tenancy) : PurchaseOrderT
         public Task<Result> CancelAllFromOriginAsync(DocumentOrigin origin, Guid originId, string reason, CancellationToken cancellationToken = default) =>
             inner.CancelAllFromOriginAsync(origin, originId, reason, cancellationToken);
 
+        public Task<Result<IReadOnlyList<PayableRef>>> CreateOpenInstallmentsAsync(DocumentOrigin origin, Guid originId, OpenPayables plan, CancellationToken cancellationToken = default) =>
+            inner.CreateOpenInstallmentsAsync(origin, originId, plan, cancellationToken);
+
         public Task<IReadOnlyList<PayableRef>> ListByOriginAsync(DocumentOrigin origin, Guid originId, CancellationToken cancellationToken = default) =>
             inner.ListByOriginAsync(origin, originId, cancellationToken);
 

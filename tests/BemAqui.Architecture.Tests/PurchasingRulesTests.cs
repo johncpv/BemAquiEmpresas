@@ -9,8 +9,8 @@ namespace BemAqui.Architecture.Tests;
 
 /// <summary>
 /// CMP-01 e CMP-03a (ADR 0006, ADR 0023 §6, ADR 0024): o Purchasing só conversa com o Estoque, o Comercial, a Produção, o Financeiro e
-/// os Terceiros pelos Contracts e nunca lê tabela do Finance; a ação <c>purchasing.receive</c> está no catálogo e nenhum endpoint desta
-/// fase a usa; o aviso <see cref="StockShortageChanged"/> tem o consumidor do Purchasing; a SC e o pedido exigem <c>Idempotency-Key</c>;
+/// os Terceiros pelos Contracts e nunca lê tabela do Finance; a ação <c>purchasing.receive</c> está no catálogo e é a do recebimento
+/// (CMP-04); o aviso <see cref="StockShortageChanged"/> tem o consumidor do Purchasing; a SC e o pedido exigem <c>Idempotency-Key</c>;
 /// os eventos do pedido são só aviso (nenhum consumidor cria título).
 /// </summary>
 public class PurchasingRulesTests
@@ -80,9 +80,40 @@ public class PurchasingRulesTests
         }
     }
 
+    /// <summary>
+    /// CMP-04 CA 16 (D8, ADR 0024 §5): registrar o recebimento exige <c>purchasing.receive</c> (nunca <c>purchasing.create</c>) e
+    /// <c>Idempotency-Key</c>; estornar e corrigir preço exigem <c>purchasing.approve</c>; encerrar o saldo, <c>purchasing.edit</c>; os grupos
+    /// do recebimento exigem também o módulo <c>inventory</c>.
+    /// </summary>
     [Fact]
-    public void Nenhum_endpoint_desta_fase_usa_purchasing_receive() =>
-        EndpointsText.Should().NotContain("\"purchasing.receive\"", "o recebimento é da CMP-04");
+    public void Recebimento_usa_purchasing_receive_e_as_acoes_certas()
+    {
+        var statements = EndpointsText.Split(';').Where(s => s.Contains(".WithName(\"", StringComparison.Ordinal)).ToList();
+        string Of(string name) => statements.Single(s => s.Contains($".WithName(\"{name}\")", StringComparison.Ordinal));
+        Of("RegisterGoodsReceipt").Should().Contain("\"purchasing.receive\"").And.Contain(".RequireIdempotencyKey()").And.NotContain("purchasing.create");
+        Of("PreviewGoodsReceipt").Should().Contain("\"purchasing.receive\"");
+        Of("GetGoodsReceiptDefaults").Should().Contain("\"purchasing.receive\"");
+        Of("ReverseGoodsReceipt").Should().Contain("\"purchasing.approve\"");
+        Of("CorrectPurchaseOrderPrice").Should().Contain("\"purchasing.approve\"");
+        Of("ClosePurchaseOrderBalance").Should().Contain("\"purchasing.edit\"");
+        var receipts = File.ReadAllText(Path.Combine(EndpointsDir, "PurchasingEndpoints.Receipts.cs"));
+        receipts.Should().Contain("purchasing.MapGroup(\"/purchase-orders\").RequireModule(\"inventory\")").And.Contain("purchasing.MapGroup(\"/goods-receipts\").RequireModule(\"inventory\")");
+    }
+
+    /// <summary>
+    /// CMP-04 CA 5, 8, 9 e 12 (ADR 0023 §1, ADR 0024 §3): a entrada no estoque e os títulos são chamadas síncronas na transação do
+    /// recebimento, pelo motor e pelo <c>IPayables</c>; o estorno cancela os títulos antes de mexer no estoque.
+    /// </summary>
+    [Fact]
+    public void Recebimento_chama_o_motor_e_o_IPayables_na_transacao()
+    {
+        var source = File.ReadAllText(Path.Combine(Solution.RootDirectory, "src", "Modules", "Purchasing", "BemAqui.Purchasing.Application", "GoodsReceiptService.cs"));
+        source.Should().Contain("BeginTransactionAsync").And.Contain("stock.PostManyAsync(").And.Contain("payables.CreateOpenInstallmentsAsync(DocumentOrigin.GoodsReceipt")
+            .And.Contain("orders.ReplanAsync(").And.Contain("stock.ReverseAsync(");
+        var reverse = source[source.IndexOf("public async Task<Result<GoodsReceiptDetail>> ReverseAsync", StringComparison.Ordinal)..];
+        reverse.IndexOf("payables.CancelAllFromOriginAsync(DocumentOrigin.GoodsReceipt", StringComparison.Ordinal).Should()
+            .BeLessThan(reverse.IndexOf("stock.ReverseAsync(", StringComparison.Ordinal), "os títulos são cancelados antes do estoque (CA 12)");
+    }
 
     [Fact]
     public void Criar_exige_Idempotency_Key_e_todo_endpoint_tem_permissao()
@@ -121,6 +152,10 @@ public class PurchasingRulesTests
     [InlineData(typeof(PurchaseOrderRejected))]
     [InlineData(typeof(PurchaseOrderChanged))]
     [InlineData(typeof(PurchaseOrderCancelled))]
+    [InlineData(typeof(GoodsReceived))]
+    [InlineData(typeof(GoodsReceiptReversed))]
+    [InlineData(typeof(PurchaseOrderClosed))]
+    [InlineData(typeof(PurchaseOrderPriceCorrected))]
     public void Eventos_do_pedido_sao_so_aviso(Type eventType)
     {
         var registry = new IntegrationEventRegistry();

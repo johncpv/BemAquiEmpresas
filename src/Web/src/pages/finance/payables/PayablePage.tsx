@@ -20,7 +20,7 @@ import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { PayableDataForm } from './PayableDataForm'
 import { PayableMethodTab } from './PayableMethodTab'
-import { ORIGIN_LABELS, payableSituation } from './payables'
+import { ORIGIN_LABELS, ORIGIN_LINKS, payableSituation } from './payables'
 
 /** Título a pagar (FIN-02, detalhe com abas): Dados (com retenções), Forma de pagamento e Histórico; faixa de modo leitura em OP. */
 export function PayablePage() {
@@ -61,6 +61,7 @@ export function PayablePage() {
           <div className="flex flex-wrap items-center gap-1.5">
             <StatusChip tone={s.tone}>{s.label}</StatusChip>
             {ORIGIN_LABELS[p.origin] ? <Tag>{ORIGIN_LABELS[p.origin]}</Tag> : null}
+            {p.originId && ORIGIN_LINKS[p.origin] ? <Link to={(ORIGIN_LINKS[p.origin]! + p.originId) as never} className="text-sm font-semibold text-primary">{p.origin === 'GoodsReceipt' ? 'Ver recebimento' : 'Ver pedido'}</Link> : null}
             <span className="text-sm text-muted-foreground">{p.description}</span>
             <Link to="/app/financeiro/pagar" className="ml-2 text-sm font-semibold text-primary">Voltar à lista</Link>
           </div>

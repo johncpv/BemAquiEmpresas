@@ -82,6 +82,23 @@ public sealed class ItemSupplierCodeService(IInventoryDb db, IParties parties, T
                       select new SupplierCodeMatch(i.Id, i.Code, i.Name, i.UnitId, c.SupplierUnit, c.ConversionFactor)).FirstOrDefaultAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyDictionary<Guid, SupplierCodeMatch>> ForItemsAsync(Guid partyId, IReadOnlyCollection<Guid> itemIds, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(itemIds);
+        var party = itemIds.Count == 0 ? null : await parties.FindAsync(partyId, cancellationToken);
+        if (party is null || party.IsDeleted)
+        {
+            return new Dictionary<Guid, SupplierCodeMatch>();
+        }
+
+        var rows = await (from c in db.ItemSupplierCodes.AsNoTracking()
+                          join i in db.Items.AsNoTracking() on c.ItemId equals i.Id
+                          where c.PartyId == partyId && itemIds.Contains(c.ItemId)
+                          orderby c.CreatedAt
+                          select new SupplierCodeMatch(i.Id, i.Code, i.Name, i.UnitId, c.SupplierUnit, c.ConversionFactor)).ToListAsync(cancellationToken);
+        return rows.GroupBy(r => r.ItemId).ToDictionary(g => g.Key, g => g.First());
+    }
+
     /// <summary>Terceiro com código de fornecedor não é excluído, só inativado (CAD-01a CA 20).</summary>
     public async Task<string?> UsageAsync(Guid partyId, CancellationToken cancellationToken = default) =>
         await db.ItemSupplierCodes.AnyAsync(c => c.PartyId == partyId, cancellationToken) ? "códigos de fornecedor dos itens" : null;

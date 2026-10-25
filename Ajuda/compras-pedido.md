@@ -7,7 +7,7 @@ modulo: purchasing
 ---
 
 ## Para que serve
-Ver o pedido inteiro e fazer o próximo passo: enviar para aprovação, aprovar, reprovar, editar ou cancelar.
+Ver o pedido inteiro e fazer o próximo passo: enviar para aprovação, aprovar, reprovar, editar, cancelar, registrar o recebimento, corrigir o preço ou encerrar o saldo.
 
 ## Como usar
 - O cabeçalho mostra o número, a situação, o fornecedor e o destino. A faixa de fatos traz o total, a previsão de entrega, a condição de pagamento e o que já foi recebido.
@@ -15,7 +15,10 @@ Ver o pedido inteiro e fazer o próximo passo: enviar para aprovação, aprovar,
 - **Enviar para aprovação** resolve a alçada pelo **valor de referência**: o maior entre o total e a soma dos pedidos do mesmo fornecedor nos últimos 30 dias. Sem aprovador possível, o sistema recusa e diz o motivo; ajuste as alçadas em Financeiro → Alçadas.
 - **Aprovar pedido** abre o impacto no caixa: as parcelas, as datas estimadas e, para quem vê o Financeiro, o saldo projetado no dia de cada parcela. Aparecem também o aviso de fracionamento e o aviso **1 cotação**, que não bloqueiam. No último nível, a mensagem é "Pedido aprovado. Previsão lançada no caixa.".
 - **Reprovar pedido** pede o motivo e volta o pedido para rascunho. Quem pediu recebe o aviso.
-- **Cancelar pedido** pede o motivo e mostra quantos títulos previstos saem do caixa. Pedido com recebimento não é cancelado.
+- **Cancelar pedido** pede o motivo e mostra quantos títulos previstos saem do caixa. Pedido com recebimento não é cancelado: encerre o saldo.
+- **Registrar recebimento** abre a entrada do material que chegou. O botão fica desabilitado, com o motivo ao lado, para quem pediu ou aprovou o pedido e enquanto o pedido está em reaprovação.
+- **Corrigir preço** (na linha, permissão Aprovar em Compras) pede o preço novo e o motivo. Ele vale só para o saldo a receber; acima do valor aprovado mais a tolerância, o pedido volta para a aprovação.
+- **Encerrar saldo do pedido** aparece no pedido parcialmente recebido: o pedido fica recebido com a marca **Encerrado com saldo de {valor}**.
 
 ## Perguntas frequentes
 **Por que não consigo aprovar?** O pedido não está na sua alçada, você já aprovou outro nível dele ou foi você quem pediu. A mensagem na faixa diz qual é o caso.
