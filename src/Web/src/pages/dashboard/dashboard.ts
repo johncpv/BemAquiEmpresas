@@ -1,16 +1,6 @@
 import type { CashWeekItem } from '@/api/generated/model'
 import { formatDate } from '@/lib/format'
 
-/** Cards do painel (DSH-01a CA 5): o código do servidor e o nome usado nas mensagens ("Não foi possível carregar {card}."). */
-export const CARD_NAMES: Record<string, string> = {
-  balances: 'o saldo em contas',
-  'cash-forecast': 'o caixa projetado',
-  decisions: 'as decisões',
-  revenue: 'o faturamento',
-  overdue: 'o a receber vencido',
-  commercial: 'o comercial',
-}
-
 /**
  * Ordem a 400 px (Telas e estados): Saldo → Caixa → Aguardando sua decisão → Faturamento → Vencido → Comercial. No desktop a
  * ordem é a do HTML (linha de KPIs, depois caixa e decisões, depois o comercial).
@@ -49,9 +39,18 @@ export const scenarioOf = (value: unknown): Scenario => (value === 'base' ? 'bas
 
 export const scenarioParam = (scenario: Scenario) => (scenario === 'both' ? undefined : scenario === 'base' ? 'base' : 'ajustado')
 
-/** Fluxo de caixa no cenário escolhido (drill-down do card, CA 7): semanal, 90 dias; "Os dois" abre no ajustado. */
+/** Fluxo de caixa no cenário escolhido (drill-down do card, CA 7): semanal, 90 dias, com o cenário da tela da FIN-07. */
 export function cashFlowHref(scenario: Scenario) {
-  return `/app/financeiro/fluxo-de-caixa?visao=semanal&horizonte=90&cenario=${scenario === 'base' ? 'base' : 'ajustado'}`
+  return `/app/financeiro/fluxo-de-caixa?visao=semanal&horizonte=90&cenario=${scenario === 'base' ? 'base' : scenario === 'adjusted' ? 'ajustado' : 'os-dois'}`
+}
+
+/** DRE gerencial (FIN-08), onde está a linha Receita bruta do mês do card. */
+export const REVENUE_ORIGIN = '/app/financeiro/dre'
+
+/** Link com busca ("/app/x?a=1#h") nas partes que o navigate do TanStack Router pede. */
+export function linkParts(href: string): { to: string; search: Record<string, string>; hash?: string } {
+  const url = new URL(href, 'http://local')
+  return { to: url.pathname, search: Object.fromEntries(url.searchParams), hash: url.hash ? url.hash.slice(1) : undefined }
 }
 
 /** Pontos do gráfico de caixa: semana a semana, só as séries do cenário escolhido. */
@@ -64,7 +63,6 @@ export function cashPoints(weeks: readonly CashWeekItem[], scenario: Scenario) {
 }
 
 const longDate = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' })
-const time = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })
 const monthName = new Intl.DateTimeFormat('pt-BR', { month: 'long', timeZone: 'UTC' })
 
 /** "Sexta-feira, 16 de outubro" a partir da data de negócio (sem converter fuso). */
@@ -77,8 +75,6 @@ export function longDateOf(iso: string) {
 /** "outubro" para o mês 10. */
 export const monthOf = (month: number) => monthName.format(new Date(Date.UTC(2026, month - 1, 15)))
 
-/** "Atualizado às 14:05" (CA 12), no horário de Brasília. */
-export const updatedLabel = (instant: string) => `Atualizado às ${time.format(new Date(instant))}`
 
 /** "Bom dia, John" ou só "Bom dia" sem nome. */
 export const greetingOf = (greeting: string, firstName: string) => (firstName ? `${greeting}, ${firstName}` : greeting)

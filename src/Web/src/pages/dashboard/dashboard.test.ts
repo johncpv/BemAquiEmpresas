@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { homeRouteFor, hasReturn } from '@/auth/home-route'
 import { repeatForYear, sumOf } from '@/pages/settings/parameters/revenue-targets'
-import { cashFlowHref, cashPoints, greetingOf, longDateOf, meterWidth, MOBILE_ORDER, scenarioOf, scenarioParam, workingDaysLabel } from './dashboard'
+import { cashFlowHref, cashPoints, linkParts, greetingOf, longDateOf, meterWidth, MOBILE_ORDER, scenarioOf, scenarioParam, workingDaysLabel } from './dashboard'
 
 const modules = (dashboard: { released?: boolean; enabled?: boolean; actions?: string[] } = {}) => [
   { code: 'dashboard', released: dashboard.released ?? true, enabled: dashboard.enabled ?? true, actions: dashboard.actions ?? ['view'] },
@@ -39,7 +39,9 @@ describe('painel (DSH-01a)', () => {
     expect(scenarioParam('both')).toBeUndefined()
     expect(scenarioParam('adjusted')).toBe('ajustado')
     expect(cashFlowHref('base')).toContain('cenario=base')
-    expect(cashFlowHref('both')).toContain('cenario=ajustado')
+    expect(cashFlowHref('both')).toContain('cenario=os-dois')
+    expect(cashFlowHref('adjusted')).toContain('cenario=ajustado')
+    expect(linkParts('/app/x?a=1&b=2#h')).toEqual({ to: '/app/x', search: { a: '1', b: '2' }, hash: 'h' })
   })
 
   it('gráfico só com as séries do cenário', () => {

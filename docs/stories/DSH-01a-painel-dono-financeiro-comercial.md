@@ -160,6 +160,16 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D4, D9, D18, tabela 3.1 pontos 18–22, §4.3, §4.4 padrões 1 e 2; ADR 0028); ordem mantida (Marco 4.2, ordem 5); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
 | 25/10/2026 | 1.0 | Implementada, `Done`. Desvios e pontos de ligação abaixo | Dex (dev) |
+| 25/10/2026 | 1.1 | Rebase no lote 4 (FIN-07 → DSH-02 → DSH-04 → FIN-08) e portas ligadas; ver "Ligação (1.1)" | Dex (dev) |
+
+**Ligação (1.1, 25/10/2026)**
+- **Portas ligadas** (`Dashboard.Application/Ports.cs`): `CashForecastSource` sobre o `ICashForecast` da FIN-07 (série semanal pelo método novo `WeeksAsync`, a visão semanal da tela do fluxo nos dois cenários, e o saldo final de 30/60/90 dias pelo `SummaryAsync`); `RevenueSource` sobre o `IRevenueSummary.GrossRevenueAsync` da FIN-08 (janeiro até o mês, com o provisório); `DecisionAgenda` sobre o `IAgendaService` da DSH-04 (só as categorias de nível 1, um item por categoria com a contagem). As implementações desligadas e as mensagens "ainda não disponível nesta versão" saíram.
+- **"Ver origem"** do faturamento vai ao DRE (`/app/financeiro/dre`); o do caixa vai ao fluxo semanal de 90 dias com o cenário da tela (`cenario=os-dois|base|ajustado`).
+- **Front:** o painel usa o `Kpi` e o `DashboardCard` da DSH-02 e o `Chart`/`ChartFrame` da FIN-07 (com "Saldo zero" em y); os locais foram apagados.
+- **Página inicial:** uma regra só, `homeRouteFor`/`landingAfterLogin` em `src/Web/src/auth/home-route.ts`, usada no login, no 2FA e no convite: o Proprietário com o painel vai a `/app/painel`, os demais ao Início com a pauta, e a `volta` vale quando houver. O `PageHeading` tem a `count` da DSH-04 e o `documentTitle` desta story.
+- **Migration** `FinanceRevenueTargets` refeita depois da `FinanceDre` (mesmo `Up`/`Down`, snapshot da FIN-08).
+- **Testes:** unidade dos adaptadores (`DashboardAdaptersTests`) e integração do CA 6 para caixa e faturamento (`DashboardTests`, escrita, não executada). O E2E da pauta passou a dizer que o usuário do "entrar sem rota de volta" não é Proprietário.
+- **Pendências:** OpenAPI e cliente gerados localmente (regenerar oficialmente); `CapacityRulesTests.Rotas_da_capacidade_tem_os_dois_modulos_e_as_duas_permissoes` já falha na base (a rota de capacidade do estoque sem `RequireModule("engineering")`), fora desta story.
 
 **Entrega (1.0, 25/10/2026)**
 - **Módulo `Dashboard`** (CA 1): `src/Modules/Dashboard/` com `BemAqui.Dashboard.Application` e `BemAqui.Dashboard.Endpoints`, no `ModuleRegistry`; sem seeder (o `dashboard.view` já vinha do `ModuleCatalog` e do `GroupSeeder`), então fora do `CliCommand.Modules`. Teste `CompositionRulesTests` (camadas, referências, `DbSet`/Dapper/`TenantDbContext`/migration/schema, DTOs sem custo) e `SolutionArchitectureTests` com 15 módulos (o `Dashboard` com a exceção das 5 camadas).

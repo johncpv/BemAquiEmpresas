@@ -23,7 +23,7 @@ const CARDS: Record<string, unknown> = {
     { kind: 'payment_order', title: 'OP-2026-0007 · Gama Aços', detail: 'Chapas de aço', amount: 30_000, dueDate: iso(4), url: '/app/financeiro/ordens-de-pagamento/op7' },
     { kind: 'payment_order', title: 'OP-2026-0008 · Frete', detail: null, amount: 8_420, dueDate: null, url: '/app/financeiro/ordens-de-pagamento/op8' },
   ] },
-  revenue: { year: 2026, month: 10, available: false, monthAmount: null, yearAmount: null, monthTarget: null, yearTarget: null, monthPct: null, yearPct: null, provisional: false, workingDaysLeft: 5, canEditTargets: true, updatedAt: at },
+  revenue: { year: 2026, month: 10, available: true, monthAmount: 312_600, yearAmount: 2_900_000, monthTarget: null, yearTarget: null, monthPct: null, yearPct: null, provisional: false, workingDaysLeft: 5, canEditTargets: true, updatedAt: at },
   overdue: { today: iso(0), total: 82_870, count: 3, customers: 2, maxDaysLate: 21, updatedAt: at, largest: null,
     buckets: [{ label: '0–30', fromDays: 1, toDays: 30, total: 82_870, count: 3 }, { label: '31–60', fromDays: 31, toDays: 60, total: 0, count: 0 }, { label: '61–90', fromDays: 61, toDays: 90, total: 0, count: 0 }, { label: '90+', fromDays: 91, toDays: null, total: 0, count: 0 }],
     topCustomers: [{ partyId: 'c1', partyName: 'Hospital São Lucas', total: 74_670, maxDaysLate: 9, avgDelayDays: 11 }, { partyId: 'c2', partyName: 'Ed. Monte Castelo', total: 8_200, maxDaysLate: 21, avgDelayDays: null }] },
@@ -73,9 +73,12 @@ test.describe('Painel do proprietário (DSH-01a)', () => {
     const cash = main.getByRole('region', { name: /Caixa projetado/ })
     await cash.getByRole('radio', { name: 'Base' }).click()
     await expect(page).toHaveURL(/cenario=base/)
-    await expect(cash.getByRole('link', { name: /Ver origem: fluxo de caixa base/ })).toHaveAttribute('href', /cenario=base/)
+    await cash.getByRole('button', { name: 'Ver origem' }).click()
+    await expect(page).toHaveURL(/fluxo-de-caixa.*cenario=base/)
+    await page.goBack()
+    await expect(page).toHaveURL(/painel.*cenario=base/)
 
-    await main.getByRole('link', { name: /Saldo em contas: ver origem/ }).click()
+    await main.getByRole('button', { name: /Saldo em contas: ver origem/ }).click()
     await expect(page).toHaveURL(/\/app\/financeiro\/contas/)
     await page.goBack()
     await expect(page).toHaveURL(/\/app\/painel/)
@@ -103,8 +106,8 @@ test.describe('Painel do proprietário (DSH-01a)', () => {
     }))
     await page.goto('/app/painel')
     const main = page.getByRole('main')
-    await expect(main.getByText('Não foi possível carregar o comercial.')).toBeVisible()
-    await expect(main.getByRole('region', { name: /Saldo em contas/ }).getByRole('link', { name: /Saldo em contas: ver origem/ })).toBeVisible()
+    await expect(main.getByText('Não foi possível carregar comercial.')).toBeVisible()
+    await expect(main.getByRole('region', { name: /Saldo em contas/ }).getByRole('button', { name: /Saldo em contas: ver origem/ })).toBeVisible()
     failing = false
     await main.getByRole('button', { name: 'Tentar de novo' }).click()
     await expect(main.getByRole('region', { name: /Comercial/ }).getByText('Em aberto', { exact: true })).toBeVisible()
