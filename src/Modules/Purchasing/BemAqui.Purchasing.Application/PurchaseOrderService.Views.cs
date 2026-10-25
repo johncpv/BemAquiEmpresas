@@ -173,8 +173,8 @@ public sealed partial class PurchaseOrderService
         return new PagedList<PurchaseOrderSummary>(rows, result.Page, result.PageSize, result.Total);
     }
 
-    /// <summary>Pedidos aguardando aprovação cujo nível atual o usuário pode decidir agora ("Aguardando você", CA 20).</summary>
-    private async Task<List<Guid>> AwaitingAsync(Guid me, CancellationToken ct)
+    /// <summary>Pedidos aguardando aprovação cujo nível atual o usuário pode decidir agora ("Aguardando você", CA 20; também a Minha pauta, DSH-04).</summary>
+    internal async Task<List<Guid>> AwaitingAsync(Guid me, CancellationToken ct)
     {
         var pending = await db.PurchaseOrders.AsNoTracking().Where(o => o.Status == PurchaseOrderStatus.PendingApproval).ToListAsync(ct);
         var result = new List<Guid>();

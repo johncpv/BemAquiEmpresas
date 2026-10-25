@@ -72,6 +72,10 @@ public static class ProductionInfrastructure
         // Qualidade e não conformidade (PRD-05): fila e decisão separadas da supervisão (ADR 0026 §4), NC com anexos.
         services.TryAddScoped<QualityService>();
         services.TryAddScoped<NonConformityService>();
+
+        // Minha pauta (DSH-04): qualidade para decidir, OS atrasadas e NC sob responsabilidade; o "Sem custo-hora" por cargo para o RH.
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Agenda.IAgendaSource, ProductionAgendaSource>());
+        services.TryAddScoped<ILaborCostGaps, LaborCostGapsContract>();
         services.AddAuditableEntity<NonConformity>("production");
         services.AddAuditableEntity<QualityDecision>("production");
 

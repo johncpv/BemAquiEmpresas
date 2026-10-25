@@ -43,6 +43,8 @@ public static class HrInfrastructure
     {
         services.TryAddSingleton(TimeProvider.System);
         services.TryAddScoped<PositionService>();
+        // Minha pauta (DSH-04): cargo com apontamento "Sem custo-hora" (os apontamentos pelo ILaborCostGaps da Produção).
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Agenda.IAgendaSource, HrAgendaSource>());
         services.TryAddScoped<IHourlyCost>(sp => sp.GetRequiredService<PositionService>());
         services.TryAddScoped<IPositions, PositionsContract>();
         services.TryAddScoped<ScheduleService>();

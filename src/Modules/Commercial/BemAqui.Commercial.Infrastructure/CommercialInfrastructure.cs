@@ -39,6 +39,9 @@ public static class CommercialInfrastructure
         // EST-03 CA 11: recomposição do custo de material das saídas com projeto anteriores ao consumidor (D3).
         services.TryAddScoped<MaterialCostBackfill>();
         services.TryAddScoped<AmendmentService>();
+        // Minha pauta (DSH-04): aditivo aguardando aprovação (projects) e orçamentos vencendo (quotes).
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Agenda.IAgendaSource, ProjectsAgendaSource>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Agenda.IAgendaSource, QuotesAgendaSource>());
         services.TryAddScoped<IProjects>(sp => sp.GetRequiredService<ProjectService>());
         services.TryAddScoped<IContracts>(sp => sp.GetRequiredService<ProjectService>());
         services.TryAddScoped<CommercialUsage>();

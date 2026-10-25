@@ -1,3 +1,4 @@
+using BemAqui.BuildingBlocks.Agenda;
 using BemAqui.BuildingBlocks.Attachments;
 using BemAqui.BuildingBlocks.Email;
 using BemAqui.BuildingBlocks.Identity;
@@ -96,6 +97,7 @@ try
     builder.Services.AddBemAquiEmail(builder.Configuration);
     builder.Services.AddBemAquiLookups(builder.Configuration);
     builder.Services.AddBemAquiMessaging(builder.Configuration, HostEvents.Register);
+    builder.Services.AddBemAquiAgenda(builder.Configuration); // Minha pauta (DSH-04): o agregador; as fontes vêm dos módulos
 
     // Endurecimento HTTP (FND-02b): proxy confiável, JWT preso ao tenant e ao host, SignalR. Sem CORS (mesma origem).
     builder.Services.Configure<ReverseProxyOptions>(builder.Configuration.GetSection(ReverseProxyOptions.Section));
@@ -157,6 +159,7 @@ try
     api.MapAuditEndpoints();
     api.MapAttachmentEndpoints();
     api.MapNotificationEndpoints();
+    api.MapAgendaEndpoints();
     api.MapModuleEndpoints();
     foreach (var module in ModuleRegistry.All)
     {
