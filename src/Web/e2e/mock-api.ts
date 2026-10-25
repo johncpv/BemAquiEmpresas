@@ -17,6 +17,7 @@ export async function mockApi(page: Page, overrides: Record<string, Handler> = {
     'GET /api/v1/me/preferences': (r) => json(r, { theme: 'system' }),
     'PUT /api/v1/me/preferences': (r) => json(r, { theme: 'system' }),
     'GET /api/v1/notifications/': (r) => json(r, { page: { items: [], page: 1, pageSize: 10, total: 0 }, unread: 0 }),
+    'GET /api/v1/me/agenda': (r) => json(r, { items: [], failures: [], total: 0 }),
     'POST /api/v1/auth/logout': (r) => r.fulfill({ status: 204 }),
     'GET /api/v1/identity/groups': (r) => json(r, []),
     'GET /api/v1/ajuda': (r) => json(r, []),

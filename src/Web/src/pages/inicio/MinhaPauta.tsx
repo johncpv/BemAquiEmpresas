@@ -52,14 +52,14 @@ function Card({ item }: { item: AgendaItem }) {
               </p>
             </div>
             <AppLink link={e.link} label={`${item.action}: ${e.title}`}
-              className="inline-flex min-h-11 flex-none items-center rounded-md border border-border px-3 text-sm font-semibold hover:border-primary sm:min-h-9">
+              className="inline-flex min-h-[44px] flex-none items-center rounded-md border border-border px-3 text-sm font-semibold hover:border-primary sm:min-h-9">
               {item.action}
             </AppLink>
           </li>
         ))}
       </ul>
       {item.link ? (
-        <AppLink link={item.link} className="mt-2 inline-flex min-h-11 items-center gap-1 self-start text-sm font-semibold text-primary sm:min-h-0">
+        <AppLink link={item.link} className="mt-2 inline-flex min-h-[44px] items-center gap-1 self-start text-sm font-semibold text-primary sm:min-h-0">
           Ver todos ({item.count}) <ChevronRight aria-hidden="true" className="size-4" />
         </AppLink>
       ) : null}
@@ -74,7 +74,7 @@ function FailureCard({ failure, onRetry }: { failure: AgendaFailure; onRetry: ()
         <AlertTriangle aria-hidden="true" className="size-4 text-crit-ink" />
         {failure.message}
       </p>
-      <button type="button" onClick={onRetry} className="inline-flex min-h-11 items-center self-start rounded-md border border-border px-3 text-sm font-semibold sm:min-h-9">
+      <button type="button" onClick={onRetry} className="inline-flex min-h-[44px] items-center self-start rounded-md border border-border px-3 text-sm font-semibold sm:min-h-9">
         Tentar de novo
       </button>
     </article>
