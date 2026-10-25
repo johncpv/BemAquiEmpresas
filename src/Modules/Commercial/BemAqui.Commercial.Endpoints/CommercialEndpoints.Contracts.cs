@@ -48,7 +48,8 @@ internal static partial class CommercialEndpoints
             .RequirePermission("projects.edit").WithName("UpdateProject").Produces<ProjectDetail>();
         projects.MapGet("/{id:guid}/financial", async (Guid id, ProjectService service, CancellationToken ct) => (await service.FinancialAsync(id, ct)).ToHttpResult())
             .RequirePermission("projects.view").WithName("GetProjectFinancial").Produces<ProjectFinancial>();
-        projects.MapGet("/{id:guid}/costs", async (Guid id, ProjectService service, CancellationToken ct) => (await service.CostsAsync(id, ct)).ToHttpResult())
+        MapMargins(projects);
+        projects.MapGet("/{id:guid}/costs", async (Guid id, ProjectMarginService service, CancellationToken ct) => (await service.CostsAsync(id, ct)).ToHttpResult())
             .RequirePermission("projects.view_cost").WithName("GetProjectCosts").Produces<ProjectCostView>();
         projects.MapGet("/{id:guid}/timeline", async (Guid id, ProjectService service, CancellationToken ct) => (await service.TimelineAsync(id, ct)).ToHttpResult())
             .RequirePermission("projects.view").WithName("GetProjectTimeline").Produces<IReadOnlyList<ProjectTimelineEntry>>();

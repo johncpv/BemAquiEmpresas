@@ -83,6 +83,6 @@ public class ProjectCostsRegressionTests
         (after.Total.Realized, after.Total.Committed, after.Total.Projected).Should().Be((2_200m, 16_500m, 116_500m));
         var installation = after.Lines.Single(l => l.CostType == CostType.Installation);
         (installation.Realized, installation.Committed, installation.Projected).Should().Be((0m, 16_500m, 18_000m));
-        after.ProjectedMarginPct.Should().Be(35.3m);
+        after.ProjectedMarginPct.Should().Be(35.2778m);
     }
 }

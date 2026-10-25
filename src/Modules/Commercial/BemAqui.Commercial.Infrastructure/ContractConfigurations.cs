@@ -90,6 +90,7 @@ internal sealed class ProjectCostConfiguration : IEntityTypeConfiguration<Projec
         b.Property(e => e.CostType).HasConversion<string>().HasMaxLength(16);
         b.Property(e => e.Source).HasConversion<string>().HasMaxLength(24);
         b.Property(e => e.Amount).HasPrecision(18, 2);
+        b.Property(e => e.InvoiceAmount).HasPrecision(18, 2);
         b.HasOne<Project>().WithMany().HasForeignKey(e => e.ProjectId).OnDelete(DeleteBehavior.Restrict);
         b.HasIndex(e => new { e.Source, e.SourceId, e.Seq }).IsUnique();
         b.HasIndex(e => new { e.ProjectId, e.CostType });

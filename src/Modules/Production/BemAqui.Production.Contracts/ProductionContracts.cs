@@ -253,3 +253,26 @@ public sealed record ShipmentDispatched(Guid ShipmentId, Guid ProjectId, IReadOn
 
 /// <summary>Expedição estornada (PRD-06b CA 11): as entradas inversas e as séries de volta ao estoque já foram gravadas; só aviso e projeção.</summary>
 public sealed record ShipmentReversed(Guid ShipmentId, Guid ProjectId, DateOnly ReversedOn) : BemAqui.SharedKernel.IIntegrationEvent;
+
+/// <summary>Apontamento visto pelo drill-down de horas do projeto (DSH-02 CA 14), sem nome nem custo-hora: OS, centro de trabalho e minutos.</summary>
+public sealed record LaborEntryCostInfo(Guid LaborEntryId, Guid OrderId, string OrderNumber, Guid? WorkCenterId, string? WorkCenterName, int Minutes);
+
+/// <summary>Quem trabalhou no apontamento e o custo-hora do snapshot (DSH-02 CA 14): só com <c>projects.view_cost</c> e <c>hr.view_sensitive</c>.</summary>
+public sealed record LaborEntryWorkerInfo(Guid LaborEntryId, string WorkerName, decimal? HourlyCostSnapshot);
+
+/// <summary>Não conformidades das OS do projeto (DSH-02 CA 12): quantidade e custo estimado, só informativo (fora de qualquer coluna de custo).</summary>
+public sealed record ProjectNonConformityCost(int Count, decimal EstimatedCost);
+
+/// <summary>
+/// Detalhe do custo de produção do projeto para o Commercial (DSH-02 CA 12 e 14). O valor das horas vem da razão do Commercial; aqui só o que
+/// explica a linha (OS, centro, minutos). O chamador confere <c>projects.view_cost</c> e, para <see cref="LaborWorkersAsync"/>, também
+/// <c>hr.view_sensitive</c>.
+/// </summary>
+public interface IProjectProductionCosts
+{
+    Task<IReadOnlyList<LaborEntryCostInfo>> LaborEntriesAsync(IReadOnlyCollection<Guid> laborEntryIds, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<LaborEntryWorkerInfo>> LaborWorkersAsync(IReadOnlyCollection<Guid> laborEntryIds, CancellationToken cancellationToken = default);
+
+    Task<ProjectNonConformityCost> NonConformitiesAsync(Guid projectId, CancellationToken cancellationToken = default);
+}

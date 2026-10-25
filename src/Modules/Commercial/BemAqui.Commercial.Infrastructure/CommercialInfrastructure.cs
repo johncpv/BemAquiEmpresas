@@ -33,6 +33,9 @@ public static class CommercialInfrastructure
         services.TryAddScoped<QuoteApprovalService>();
         services.TryAddScoped<ContractService>();
         services.TryAddScoped<ProjectService>();
+        // Orçado × realizado e margem (DSH-02): um cálculo só para a aba Custos, o relatório e o painel do dono.
+        services.TryAddScoped<ProjectMarginService>();
+        services.TryAddScoped<IProjectMargins>(sp => sp.GetRequiredService<ProjectMarginService>());
         // EST-03 CA 11: recomposição do custo de material das saídas com projeto anteriores ao consumidor (D3).
         services.TryAddScoped<MaterialCostBackfill>();
         services.TryAddScoped<AmendmentService>();

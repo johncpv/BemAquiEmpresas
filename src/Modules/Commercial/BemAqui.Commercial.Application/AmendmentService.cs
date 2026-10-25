@@ -84,7 +84,7 @@ public sealed partial class AmendmentService(
 
     private ValueTask<bool> CanCostAsync(CancellationToken ct) => permissions.HasPermissionAsync("projects", "view_cost", ct);
 
-    private static Dictionary<CostType, decimal> Deltas(string json) => JsonSerializer.Deserialize<Dictionary<CostType, decimal>>(json, Json) ?? [];
+    internal static Dictionary<CostType, decimal> Deltas(string json) => JsonSerializer.Deserialize<Dictionary<CostType, decimal>>(json, Json) ?? [];
 
     private static string Serialize(Dictionary<CostType, decimal> deltas) => JsonSerializer.Serialize(deltas, Json);
 

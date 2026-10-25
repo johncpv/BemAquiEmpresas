@@ -1021,6 +1021,11 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("character varying(16)")
                         .HasColumnName("cost_type");
 
+                    b.Property<decimal?>("InvoiceAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("invoice_amount");
+
                     b.Property<bool>("IsBackfill")
                         .HasColumnType("boolean")
                         .HasColumnName("is_backfill");

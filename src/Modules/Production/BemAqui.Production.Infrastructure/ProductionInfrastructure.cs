@@ -57,6 +57,8 @@ public static class ProductionInfrastructure
         services.TryAddScoped<LaborCosting>();
         services.TryAddScoped<LaborCostService>();
         services.TryAddScoped<LaborCostBackfill>();
+        // Drill-down de horas e NC do projeto para o Commercial (DSH-02 CA 12 e 14).
+        services.TryAddScoped<IProjectProductionCosts, ProjectProductionCostsContract>();
         // Parâmetros da Produção (decisões do PO de 22/10/2026): custo-hora por apontamento e limite do apontamento aberto.
         services.TryAddScoped<ProductionParametersService>();
         services.AddAuditableEntity<ProductionParameter>("settings");

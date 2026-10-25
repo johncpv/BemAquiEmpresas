@@ -4,8 +4,10 @@ using BemAqui.SharedKernel;
 namespace BemAqui.Commercial.Domain;
 
 /// <summary>
-/// Fonte de uma linha da razão de custo do projeto (ADR 0025 §2): horas apontadas (PRD-04) e, na EST-03, a baixa e a devolução de
-/// material para a OS. Os movimentos <c>Production</c> e <c>Shipment</c> nunca entram (§1).
+/// Fonte de uma linha da razão de custo do projeto (ADR 0025 §2): horas apontadas (PRD-04), a baixa e a devolução de material para a
+/// OS (EST-03) e, pelo adendo de 21/10/2026 (D8), o imposto da nota autorizada (<c>InvoiceTax</c>) e o estorno dele no cancelamento
+/// (<c>InvoiceTaxReversal</c>), gravados pela FIS-03a e pela FIS-06 a partir da data de corte. Os movimentos <c>Production</c> e
+/// <c>Shipment</c> nunca entram (§1).
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter<ProjectCostSource>))]
 public enum ProjectCostSource
@@ -14,6 +16,8 @@ public enum ProjectCostSource
     StockReturn,
     Labor,
     LaborCorrection,
+    InvoiceTax,
+    InvoiceTaxReversal,
 }
 
 /// <summary>
@@ -45,4 +49,10 @@ public sealed class ProjectCost : Entity
 
     /// <summary>Recomposição do que foi publicado antes do consumidor (D3): marca "Calculado na implantação".</summary>
     public bool IsBackfill { get; init; }
+
+    /// <summary>
+    /// Valor da nota (<c>numeric(18,2)</c>, com sinal: positivo na nota, negativo no estorno), só nas fontes <c>InvoiceTax</c> e
+    /// <c>InvoiceTaxReversal</c>: a parte já faturada da receita, para o imposto projetado (DSH-02 CA 5).
+    /// </summary>
+    public decimal? InvoiceAmount { get; init; }
 }
