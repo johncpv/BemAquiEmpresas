@@ -115,6 +115,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BankEntry> BankEntries => Set<BankEntry>();
 
+    public DbSet<DreViewMark> DreViewMarks => Set<DreViewMark>();
+
     public DbSet<BemAqui.Commercial.Domain.Quote> Quotes => Set<BemAqui.Commercial.Domain.Quote>();
 
     public DbSet<BemAqui.Commercial.Domain.QuoteItem> QuoteItems => Set<BemAqui.Commercial.Domain.QuoteItem>();

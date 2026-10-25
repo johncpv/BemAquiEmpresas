@@ -191,12 +191,49 @@ public sealed class FinancialTransaction : Entity, IAuditable
     public Guid? CreatedBy { get; init; }
 }
 
-/// <summary>Parâmetro do Finance (<c>finance.parameters</c>, ADR 0016 adendo M6): chave e valor numérico, com auditoria.</summary>
+/// <summary>
+/// Parâmetro do Finance (<c>finance.parameters</c>, ADR 0016 adendo M6): chave e valor numérico (ou <see cref="Text"/>, como o
+/// id de uma conta do plano), com auditoria. Os valores que dependem da contadora (ADR 0042) levam a marca de conferência:
+/// <see cref="ReviewState"/>, quem e quando; trocar o valor volta para "A confirmar".
+/// </summary>
 public sealed class FinanceParameter : Entity, IAuditable
 {
     public string Key { get; init; } = string.Empty;
 
     public decimal Value { get; set; }
 
+    /// <summary>Valor em texto (FIN-08: id da conta do plano dos parâmetros do DRE).</summary>
+    public string? Text { get; set; }
+
+    /// <summary>Nulo nos parâmetros que não dependem da contadora.</summary>
+    public ParameterReviewState? ReviewState { get; set; }
+
+    public Guid? ReviewedBy { get; set; }
+
+    public DateTimeOffset? ReviewedAt { get; set; }
+
     public DateTimeOffset UpdatedAt { get; set; }
+
+    /// <summary>Valor novo: a conferência valia para o valor de antes (ADR 0042 §1).</summary>
+    public void ResetReview()
+    {
+        ReviewState = ParameterReviewState.ToConfirm;
+        ReviewedBy = null;
+        ReviewedAt = null;
+    }
+
+    public void Confirm(Guid? by, DateTimeOffset at)
+    {
+        ReviewState = ParameterReviewState.Confirmed;
+        ReviewedBy = by;
+        ReviewedAt = at;
+    }
+}
+
+/// <summary>Conferência de um valor pré-configurado (ADR 0042): "A confirmar com a contadora" até alguém marcar como conferido.</summary>
+[JsonConverter(typeof(JsonStringEnumConverter<ParameterReviewState>))]
+public enum ParameterReviewState
+{
+    ToConfirm,
+    Confirmed,
 }

@@ -2275,6 +2275,31 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("cost_centers", "finance");
                 });
 
+            modelBuilder.Entity("BemAqui.Finance.Domain.DreViewMark", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.Property<DateTimeOffset>("ViewedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("viewed_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_dre_view_marks");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_dre_view_marks_user_id");
+
+                    b.ToTable("dre_view_marks", "finance");
+                });
+
             modelBuilder.Entity("BemAqui.Finance.Domain.FinanceParameter", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2287,6 +2312,24 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)")
                         .HasColumnName("key");
+
+                    b.Property<string>("ReviewState")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("review_state");
+
+                    b.Property<DateTimeOffset?>("ReviewedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reviewed_at");
+
+                    b.Property<Guid?>("ReviewedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reviewed_by");
+
+                    b.Property<string>("Text")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("text");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -2628,6 +2671,10 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_payables");
 
+                    b.HasIndex("Competence")
+                        .HasDatabaseName("ix_payables_competence")
+                        .HasFilter("competence IS NOT NULL");
+
                     b.HasIndex("InstallmentGroupId")
                         .HasDatabaseName("ix_payables_installment_group_id");
 
@@ -2640,6 +2687,11 @@ namespace BemAqui.Host.Persistence.Migrations
 
                     b.HasIndex("ProjectId")
                         .HasDatabaseName("ix_payables_project_id");
+
+                    b.HasIndex("IssueDate", "AccountId")
+                        .HasDatabaseName("ix_payables_issue_date");
+
+                    NpgsqlIndexBuilderExtensions.IncludeProperties(b.HasIndex("IssueDate", "AccountId"), new[] { "Amount" });
 
                     b.HasIndex("RecurringExpenseId", "Competence")
                         .IsUnique()
@@ -3248,6 +3300,11 @@ namespace BemAqui.Host.Persistence.Migrations
 
                     b.HasIndex("ProjectId")
                         .HasDatabaseName("ix_receivables_project_id");
+
+                    b.HasIndex("IssueDate", "AccountId")
+                        .HasDatabaseName("ix_receivables_issue_date");
+
+                    NpgsqlIndexBuilderExtensions.IncludeProperties(b.HasIndex("IssueDate", "AccountId"), new[] { "Amount" });
 
                     b.HasIndex("Origin", "OriginId")
                         .HasDatabaseName("ix_receivables_origin_origin_id");
