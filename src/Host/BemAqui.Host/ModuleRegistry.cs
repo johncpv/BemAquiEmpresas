@@ -1,6 +1,7 @@
 using BemAqui.Assets.Endpoints;
 using BemAqui.BuildingBlocks.Modules;
 using BemAqui.Commercial.Endpoints;
+using BemAqui.Dashboard.Endpoints;
 using BemAqui.Engineering.Endpoints;
 using BemAqui.Finance.Endpoints;
 using BemAqui.Fiscal.Endpoints;
@@ -35,5 +36,7 @@ public static class ModuleRegistry
         new AssetsModule(),
         new PortalModule(),
         new MigrationModule(),
+        // DSH-01a (ADR 0028 §1): módulo de composição, só Application e Endpoints, sem tabela nem seeder.
+        new DashboardModule(),
     ];
 }

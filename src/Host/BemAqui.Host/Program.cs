@@ -128,8 +128,9 @@ try
     app.UseExceptionHandler();
     app.UseStatusCodePages();
     app.UseMiddleware<TenantResolutionMiddleware>();
-    app.UseRateLimiter();
+    // Depois da autenticação: a política "dashboard-refresh" (DSH-01a CA 13) é por usuário; as de /auth são por IP e tenant.
     app.UseAuthentication();
+    app.UseRateLimiter();
     app.UseMiddleware<PinSessionScopeMiddleware>(); // sessão por PIN: aparelho e sessão a cada request, só a lista permitida (ADR 0026)
     app.UseRequestLogContext();
     app.UseBemAquiRequestLogging();

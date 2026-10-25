@@ -8,17 +8,22 @@ public class SolutionArchitectureTests
 {
     private static readonly string[] DomainForbiddenNamespaces = ["Microsoft.EntityFrameworkCore", "Microsoft.AspNetCore", "Npgsql"];
 
+    /// <summary>
+    /// 15 módulos: 14 com as 5 camadas e o <c>Dashboard</c>, módulo de composição só com Application e Endpoints (ADR 0028 §1,
+    /// DSH-01a CA 1; as regras dele estão em <see cref="CompositionRulesTests"/>).
+    /// </summary>
     [Fact]
-    public void Existem_os_14_modulos_cada_um_com_as_5_camadas()
+    public void Existem_os_15_modulos_com_as_5_camadas_e_o_Dashboard_so_de_composicao()
     {
         Solution.ModuleNames.Should().BeEquivalentTo(
             "Platform", "Identity", "Parties", "HR", "Commercial", "Engineering", "Production",
-            "Inventory", "Purchasing", "Finance", "Fiscal", "Assets", "Portal", "Migrations");
+            "Inventory", "Purchasing", "Finance", "Fiscal", "Assets", "Portal", "Migrations", "Dashboard");
 
         foreach (var module in Solution.ModuleNames)
         {
+            var expected = Solution.CompositionModules.Contains(module) ? Solution.CompositionLayers : Solution.ModuleLayers;
             Solution.Projects.Where(p => p.Module == module).Select(p => p.Layer)
-                .Should().BeEquivalentTo(Solution.ModuleLayers, $"o módulo {module} deve ter as 5 camadas");
+                .Should().BeEquivalentTo(expected, $"o módulo {module} deve ter as camadas {string.Join(", ", expected)}");
         }
     }
 
@@ -52,7 +57,7 @@ public class SolutionArchitectureTests
     public void Tipos_do_Domain_nao_dependem_de_infraestrutura()
     {
         var domains = Solution.Assemblies.Where(a => a.GetName().Name!.EndsWith(".Domain", StringComparison.Ordinal)).ToArray();
-        domains.Should().HaveCount(Solution.ModuleNames.Count);
+        domains.Should().HaveCount(Solution.ModuleNames.Count - Solution.CompositionModules.Count);
 
         var result = Types.InAssemblies(domains).ShouldNot().HaveDependencyOnAny(DomainForbiddenNamespaces).GetResult();
 

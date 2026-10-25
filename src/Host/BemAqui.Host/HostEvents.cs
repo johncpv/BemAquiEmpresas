@@ -83,5 +83,14 @@ public static class HostEvents
             .AddEvent<BemAqui.Purchasing.Contracts.GoodsReceiptReversed>()
             .AddEvent<BemAqui.Purchasing.Contracts.PurchaseOrderClosed>()
             .AddEvent<BemAqui.Purchasing.Contracts.PurchaseOrderPriceCorrected>();
+
+            // DSH-01a CA 12 (ADR 0028 §3): os eventos que mudam os números sobem o contador de geração do painel do tenant.
+            .AddHandler<BemAqui.Finance.Contracts.ReceivableSettled, BemAqui.Dashboard.Application.DashboardGenerationConsumer>()
+            .AddHandler<BemAqui.Finance.Contracts.PaymentOrderSubmitted, BemAqui.Dashboard.Application.DashboardGenerationConsumer>()
+            .AddHandler<BemAqui.Finance.Contracts.PaymentOrderApproved, BemAqui.Dashboard.Application.DashboardGenerationConsumer>()
+            .AddHandler<BemAqui.Finance.Contracts.PaymentOrderPaid, BemAqui.Dashboard.Application.DashboardGenerationConsumer>()
+            .AddHandler<BemAqui.Commercial.Contracts.ContractSigned, BemAqui.Dashboard.Application.DashboardGenerationConsumer>()
+            .AddHandler<BemAqui.Commercial.Contracts.ContractAmended, BemAqui.Dashboard.Application.DashboardGenerationConsumer>()
+            .AddHandler<BemAqui.Commercial.Contracts.QuoteApproved, BemAqui.Dashboard.Application.DashboardGenerationConsumer>();
     }
 }
