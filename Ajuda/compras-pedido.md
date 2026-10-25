@@ -7,7 +7,7 @@ modulo: purchasing
 ---
 
 ## Para que serve
-Ver o pedido inteiro e fazer o próximo passo: enviar para aprovação, aprovar, reprovar, editar, cancelar, registrar o recebimento, corrigir o preço ou encerrar o saldo.
+Ver o pedido inteiro e fazer o próximo passo: enviar para aprovação, aprovar, reprovar, editar, cancelar, mandar ao fornecedor, baixar o PDF, registrar o recebimento, corrigir o preço ou encerrar o saldo.
 
 ## Como usar
 - O cabeçalho mostra o número, a situação, o fornecedor e o destino. A faixa de fatos traz o total, a previsão de entrega, a condição de pagamento e o que já foi recebido.
@@ -18,6 +18,9 @@ Ver o pedido inteiro e fazer o próximo passo: enviar para aprovação, aprovar,
 - **Cancelar pedido** pede o motivo e mostra quantos títulos previstos saem do caixa. Pedido com recebimento não é cancelado: encerre o saldo.
 - **Registrar recebimento** abre a entrada do material que chegou. O botão fica desabilitado, com o motivo ao lado, para quem pediu ou aprovou o pedido e enquanto o pedido está em reaprovação.
 - **Corrigir preço** (na linha, permissão Aprovar em Compras) pede o preço novo e o motivo. Ele vale só para o saldo a receber; acima do valor aprovado mais a tolerância, o pedido volta para a aprovação.
+- **Enviar ao fornecedor** aparece no pedido aprovado (e vira o primeiro próximo passo depois da aprovação). Ele manda o PDF do pedido por e-mail ao contato do fornecedor e o pedido passa a **Enviado**. Veja a aba **Documentos**.
+- **Baixar PDF** gera o PDF do pedido na hora, do aprovado em diante, sem mandar nada.
+- A faixa **Alterado depois do envio: reenvie ao fornecedor.** aparece quando o pedido mudou depois de enviado. Depois de reaprovado, clique em **Reenviar** na faixa: o fornecedor recebe o PDF novo e a faixa some.
 - **Encerrar saldo do pedido** aparece no pedido parcialmente recebido: o pedido fica recebido com a marca **Encerrado com saldo de {valor}**.
 
 ## Perguntas frequentes

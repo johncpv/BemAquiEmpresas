@@ -18,7 +18,7 @@ public interface IEmailSender
 
 public sealed record EmailRequest(
     string Template, string To, IReadOnlyDictionary<string, object?> Model, string? RelatedType = null, Guid? RelatedId = null, IReadOnlyList<Guid>? AttachmentIds = null,
-    IReadOnlyList<string>? Cc = null, string? ReplyTo = null, string? FromName = null);
+    IReadOnlyList<string>? Cc = null, string? ReplyTo = null, string? FromName = null, Guid? RequestedBy = null);
 
 public sealed class OutboxEmailSender(BemAquiDbContext db, IEventPublisher events, TimeProvider clock) : IEmailSender
 {
@@ -46,6 +46,7 @@ public sealed class OutboxEmailSender(BemAquiDbContext db, IEventPublisher event
             Cc = request.Cc is { Count: > 0 } cc ? string.Join(",", cc) : null,
             ReplyTo = request.ReplyTo,
             FromName = request.FromName,
+            RequestedBy = request.RequestedBy,
             CreatedAt = clock.GetUtcNow(),
         };
         db.EmailLogs.Add(log);

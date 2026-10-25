@@ -49,11 +49,15 @@ public partial class QuoteDocumentTests
         mail.ReplyTo.Should().EndWith("@teste.com");
         (await JsonAsync(await owner.GetAsync($"{Base}/{id}/documents"))).GetProperty("dispatches")[0].GetProperty("status").GetString().Should().Be("Sent");
 
-        // CA 11: 50 envios no dia, o 51º é recusado.
-        await WithDbAsync(db => db.Database.ExecuteSqlAsync($"INSERT INTO commercial.quote_dispatches (id, quote_id, email_log_id, attachment_id, \"to\", created_at) SELECT gen_random_uuid(), {id}, gen_random_uuid(), gen_random_uuid(), 'x@y.com', now() FROM generate_series(1, 49)"));
+        // CA 11 (contagem em shared.email_logs desde a CMP-03b, somada com os pedidos de compra): 50 envios no dia, o 51º é recusado.
+        await WithDbAsync(async db =>
+        {
+            db.EmailLogs.AddRange(Enumerable.Range(0, 49).Select(_ => new EmailLog { To = "x@y.com", Template = "quote-sent", Model = "{}", Status = EmailStatus.Sent, CreatedAt = DateTimeOffset.UtcNow }));
+            return await db.SaveChangesAsync();
+        });
         var current = await JsonAsync(await owner.GetAsync($"{Base}/{id}"));
         var blocked = await owner.SendAsync(Post($"{Base}/{id}/email", Send("marta@aurora.com.br", Version(current))));
         blocked.StatusCode.Should().Be(HttpStatusCode.TooManyRequests);
-        (await blocked.Content.ReadAsStringAsync()).Should().Contain("Limite diário de envios de orçamento atingido");
+        (await blocked.Content.ReadAsStringAsync()).Should().Contain("Limite diário de envios atingido. Tente amanhã ou baixe o PDF.");
     }
 }

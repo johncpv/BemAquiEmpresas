@@ -1,17 +1,12 @@
-import { useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import {
-  correctPurchaseOrderPrice, getDownloadAttachmentUrl, getListAttachmentsQueryKey, uploadAttachment, useGetPurchaseOrderDecisions, useGetPurchaseOrderHistory, useListAttachments,
-  useListPurchaseOrderPayables, useListPurchaseOrderReceipts,
+  correctPurchaseOrderPrice, useGetPurchaseOrderDecisions, useGetPurchaseOrderHistory, useListPurchaseOrderPayables, useListPurchaseOrderReceipts,
 } from '@/api/generated/bemaqui'
 import type { PurchaseOrderDetail, PurchaseOrderLevelView, PurchaseOrderLineView } from '@/api/generated/model'
-import { ApiError, apiDownload } from '@/api/http'
-import { FormError } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { describeChanges } from '@/components/history/describe-changes'
-import { notifySuccess } from '@/components/ui/messages'
 import { Money } from '@/components/ui/money'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
@@ -19,11 +14,8 @@ import { Tag } from '@/components/ui/tag'
 import { Dica } from '@/help/Dica'
 import { formatDate, formatDateTime } from '@/lib/format'
 import { formatQuantity } from '@/pages/inventory/stock/stock'
-import { useCan } from '@/pages/use-can'
 import { RECEIPT_STATUS } from '../receipts/receipts'
 import { DECISION, LEVEL_STATUS, ORDER_DICAS } from './purchase-orders'
-
-const OWNER = 'PurchaseOrder'
 
 /**
  * "Corrigir preço" da linha (CMP-04 CA 14, purchasing.approve, motivo obrigatório): vale para o saldo a receber; acima do aprovado mais a
@@ -193,61 +185,9 @@ export function OrderReceipts({ order }: { order: PurchaseOrderDetail }) {
     </ul>
   )
 }
-/** Aba Documentos (CA 21): anexos do dono PurchaseOrder; ler com purchasing.view, anexar com purchasing.edit (pdf, png, jpg até 10 MB). */
-export function OrderDocuments({ orderId }: { orderId: string }) {
-  const list = useListAttachments(OWNER, orderId)
-  const client = useQueryClient()
-  const canEdit = useCan('purchasing.edit')
-  const input = useRef<HTMLInputElement>(null)
-  const [error, setError] = useState<string | undefined>()
-  const [sending, setSending] = useState(false)
-  const upload = async (file: File) => {
-    setSending(true)
-    setError(undefined)
-    try {
-      await uploadAttachment(OWNER, orderId, { file })
-      notifySuccess('Documento anexado')
-      await client.invalidateQueries({ queryKey: getListAttachmentsQueryKey(OWNER, orderId) })
-    } catch (e) {
-      setError(e instanceof ApiError ? e.message : 'Não foi possível anexar o documento.')
-    } finally {
-      setSending(false)
-      if (input.current) input.current.value = ''
-    }
-  }
-
-  const action = canEdit ? (
-    <>
-      <input ref={input} id="documento-pedido" type="file" accept=".pdf,.png,.jpg,.jpeg" className="sr-only" onChange={(e) => { const f = e.target.files?.[0]; if (f) void upload(f) }} />
-      <label htmlFor="documento-pedido" className="inline-block cursor-pointer rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">{sending ? 'Enviando…' : 'Anexar documento'}</label>
-    </>
-  ) : null
-
-  let body
-  if (list.isPending) body = <Skeleton className="h-24" />
-  else if (list.isError) body = <ErrorState onRetry={() => list.refetch()} />
-  else if (list.data.length === 0) body = <EmptyState title="Nenhum documento." description="Anexe a proposta do fornecedor ou outro documento do pedido (PDF, PNG ou JPG até 10 MB)." action={action} />
-  else {
-    body = (
-      <>
-        <ul className="divide-y divide-border rounded-md border border-border bg-card text-sm">
-          {list.data.map((a) => (
-            <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 p-3">
-              <button type="button" onClick={() => void apiDownload(getDownloadAttachmentUrl(a.id), a.fileName)} className="font-semibold text-primary hover:underline">{a.fileName}</button>
-              <span className="flex items-center gap-2 text-xs text-muted-foreground">{a.scanStatus === 1 ? null : <StatusChip tone="info">Em verificação</StatusChip>}{formatDateTime(a.createdAt)}</span>
-            </li>
-          ))}
-        </ul>
-        <div className="mt-3">{action}</div>
-      </>
-    )
-  }
-
-  return <div className="mt-3 space-y-2"><FormError message={error} />{body}</div>
-}
 
 const ACTIONS: Record<string, string> = { Created: 'Criou', Updated: 'Alterou', Deleted: 'Removeu' }
-const ENTITY: Record<string, string> = { PurchaseOrder: 'o pedido', PurchaseOrderLine: 'uma linha', PurchaseOrderPriceCorrection: 'o preço (correção)' }
+const ENTITY: Record<string, string> = { PurchaseOrder: 'o pedido', PurchaseOrderLine: 'uma linha', PurchaseOrderPriceCorrection: 'o preço (correção)', PurchaseOrderDispatch: 'um envio ao fornecedor' }
 
 /** Aba Histórico de alterações (CA 23): antes e depois do pedido e das linhas, com usuário e data. */
 export function OrderHistory({ orderId }: { orderId: string }) {

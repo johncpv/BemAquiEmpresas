@@ -20,4 +20,10 @@ public interface ITenantParameters
     Task<decimal> PayrollChargesPctAsync(CancellationToken cancellationToken = default);
 
     Task<PricingMode> PricingModeAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Envios de documento por e-mail por usuário por dia (CMP-03b CA 5, <c>email.dispatch_max_per_user_day</c>): orçamentos e pedidos de
+    /// compra somados; padrão 20, de 1 a 50 (o teto do tenant).
+    /// </summary>
+    Task<int> EmailDispatchMaxPerUserDayAsync(CancellationToken cancellationToken = default);
 }

@@ -69,6 +69,37 @@ export const lateLabel = (daysLate: number | null | undefined) => (daysLate && d
 export const orderDestination = (projectNumber: string | null | undefined, projectName?: string | null) =>
   projectNumber ? `${projectNumber}${projectName ? ` — ${projectName}` : ''}` : 'Estoque geral'
 
+/** Reenvio (CMP-03b CA 4): o pedido já foi enviado, ou foi alterado depois do envio e reaprovado. */
+export const isResend = (o: { status: PurchaseOrderStatus; sentAt?: string | null; changedAfterSent: boolean }) => o.status === 'Sent' || !!o.sentAt || o.changedAfterSent
+
+/** Verbo e confirmação do envio (padrão 4 da Fase 3): "Enviar ao fornecedor" ou "Reenviar", com a mensagem da fila. */
+export const dispatchVerb = (resend: boolean) => resend
+  ? { verb: 'Reenviar', done: 'Pedido reenviado para a fila de e-mail', title: 'Reenviar o pedido ao fornecedor' }
+  : { verb: 'Enviar ao fornecedor', done: 'Pedido enviado para a fila de e-mail', title: 'Enviar o pedido ao fornecedor' }
+
+/** Cópias digitadas (CA 2): separadas por vírgula, ponto e vírgula ou espaço; o servidor confere cada uma. */
+export const parseCc = (text: string) => text.split(/[,;\s]+/).map((c) => c.trim()).filter(Boolean)
+
+/** Algum endereço fora dos contatos do fornecedor (CA 6): exige "Confirmo o destinatário". */
+export const hasStranger = (addresses: string[], known: string[]) => {
+  const set = new Set(known.map((k) => k.trim().toLowerCase()))
+  return addresses.some((a) => a.trim() && !set.has(a.trim().toLowerCase()))
+}
+
+/** Situação do e-mail do envio (CA 3 e estados da story). */
+export function dispatchStatus(d: { status: string; error?: string | null; waitingScan: boolean }): { label: string; tone: StatusTone } {
+  if (d.status === 'Queued') return d.waitingScan ? { label: 'Aguardando verificação do anexo', tone: 'info' } : { label: 'Na fila', tone: 'info' }
+  if (d.status === 'Sent') return { label: 'Enviado', tone: 'ok' }
+  if (d.status === 'Failed') return { label: `Falhou: ${d.error ?? 'motivo não informado'}`, tone: 'crit' }
+  return { label: 'Não enviado', tone: 'neutral' }
+}
+
+export const DISPATCH_DICAS = {
+  copia: 'Cópia: até 3 endereços que recebem o mesmo e-mail, por exemplo o vendedor do fornecedor. Só o endereço, sem nome.',
+  confirmar: 'O endereço não está nos contatos do fornecedor. Confira antes de enviar: o pedido tem preços e condições. Para não ver o aviso de novo, cadastre o contato no fornecedor.',
+  limite: 'Há um limite diário de envios por e-mail (orçamentos e pedidos somados), no total da empresa e por usuário. Passou do limite, baixe o PDF e mande por fora.',
+}
+
 /**
  * Saldo projetado do caixa no dia de cada parcela (impacto do diálogo de aprovação): o saldo daquele dia no fluxo de caixa menos as
  * parcelas deste pedido até ele (o pedido ainda não está no caixa).

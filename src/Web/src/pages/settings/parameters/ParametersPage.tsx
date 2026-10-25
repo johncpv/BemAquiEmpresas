@@ -1,10 +1,11 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { getGetTenantParametersQueryKey, savePayrollCharges, savePricingMode, useGetPositionsSummary, useGetTenantParameters } from '@/api/generated/bemaqui'
+import { getGetTenantParametersQueryKey, saveEmailDispatchLimit, savePayrollCharges, savePricingMode, useGetPositionsSummary, useGetTenantParameters } from '@/api/generated/bemaqui'
 import { PricingMode, type TenantParametersDto } from '@/api/generated/model'
 import { RecordHistory } from '@/components/history/RecordHistory'
 import { ToggleGroup } from '@/components/form/choice'
 import { Field, FormSection } from '@/components/form/form'
+import { inputClass } from '@/components/form/form-utils'
 import { PercentInput } from '@/components/form/inputs'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { ErrorState, Skeleton } from '@/components/ui/states'
@@ -39,6 +40,7 @@ export function ParametersPage() {
           <FinanceLimitsSection canEdit={canEdit} />
           <ProductionParametersSection canEdit={canEdit} />
           <PurchasingParametersSection canEdit={canEdit} />
+          <EmailDispatchSection key={`e${query.data.emailDispatchMaxPerUserDay}`} params={query.data} canEdit={canEdit} />
         </div>
       )}
     </>
@@ -100,6 +102,33 @@ function PricingSection({ params, canEdit }: { params: TenantParametersDto; canE
         </div>
       ) : null}
       {params.pricingSettingId ? <History id={params.pricingSettingId} /> : null}
+    </FormSection>
+  )
+}
+
+const DISPATCH_DICA = 'Quantos orçamentos e pedidos de compra cada usuário pode mandar por e-mail por dia, somados. A empresa tem também o teto de 50 por dia. Passou do limite, o usuário baixa o PDF e manda por fora.'
+
+/** Envios por e-mail (CMP-03b CA 5, email.dispatch_max_per_user_day): por usuário por dia, de 1 a 50 (padrão 20). */
+function EmailDispatchSection({ params, canEdit }: { params: TenantParametersDto; canEdit: boolean }) {
+  const current = params.emailDispatchMaxPerUserDay ?? 20
+  const [value, setValue] = useState(String(current))
+  const saved = useSaved()
+  const max = Number(value)
+  const error = value.trim() === '' || !Number.isInteger(max) || max < 1 || max > 50 ? 'Informe de 1 a 50 envios por dia.' : undefined
+  return (
+    <FormSection title="Envios por e-mail" description="Limite diário de envios de orçamento e de pedido de compra por e-mail. O total da empresa é 50 por dia.">
+      <Field label="Envios por usuário por dia" required error={error} dica={DISPATCH_DICA}>
+        {(p) => <input {...p} inputMode="numeric" value={value} onChange={(e) => setValue(e.target.value.replace(/[^0-9]/g, ''))} disabled={!canEdit} className={inputClass + ' max-w-32 tabular-nums'} />}
+      </Field>
+      {canEdit ? (
+        <div className="flex justify-end">
+          <ConfirmDialog verb="Salvar limite de envios" done="Limite de envios salvo" title="Salvar limite de envios?"
+            description={`Cada usuário poderá mandar até ${max} orçamentos e pedidos por e-mail por dia, somados. Vale a partir de agora.`}
+            onConfirm={async () => saved(await saveEmailDispatchLimit({ maxPerUserDay: max }))}
+            trigger={<button type="button" disabled={max === current || !!error} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60">Salvar limite de envios</button>} />
+        </div>
+      ) : null}
+      {params.emailDispatchSettingId ? <History id={params.emailDispatchSettingId} /> : null}
     </FormSection>
   )
 }

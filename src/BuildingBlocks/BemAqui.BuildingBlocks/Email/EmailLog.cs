@@ -52,6 +52,9 @@ public sealed class EmailLog : Entity
     /// <summary>Vezes que o envio esperou a varredura do anexo (até 10, a cada 1 min), sem gastar tentativa.</summary>
     public int ScanWaits { get; set; }
 
+    /// <summary>Quem pediu o envio (CMP-03b CA 5): base do limite diário por usuário dos envios de documento.</summary>
+    public Guid? RequestedBy { get; init; }
+
     public DateTimeOffset CreatedAt { get; init; }
 
     public DateTimeOffset? SentAt { get; set; }

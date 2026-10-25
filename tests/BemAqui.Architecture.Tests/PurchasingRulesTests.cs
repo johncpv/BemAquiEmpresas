@@ -39,7 +39,38 @@ public class PurchasingRulesTests
             .ToList();
         others.Should().BeEquivalentTo([
             "BemAqui.Inventory.Contracts", "BemAqui.Commercial.Contracts", "BemAqui.Production.Contracts", "BemAqui.Finance.Contracts", "BemAqui.Parties.Contracts",
+            "BemAqui.Identity.Contracts", // CMP-03b: dados da empresa para o PDF (ICompanyIdentity) e o limite por usuário (ITenantParameters)
         ]);
+    }
+
+    /// <summary>CMP-03b (ADR 0022): só o layout <c>PurchaseOrderPdfDocument</c> conhece o QuestPDF no Purchasing.</summary>
+    [Fact]
+    public void So_o_layout_do_pedido_referencia_QuestPDF()
+    {
+        PurchasingSources().Where(s => s.Text.Contains("QuestPDF", StringComparison.Ordinal)).Select(s => Path.GetFileName(s.File))
+            .Should().Equal("PurchaseOrderPdfDocument.cs");
+    }
+
+    /// <summary>
+    /// CMP-03b CA 1, 2, 4 e 10: baixar o PDF, ver os documentos e um envio com <c>purchasing.view</c>; o diálogo e o envio com
+    /// <c>purchasing.edit</c>; o envio com <c>Idempotency-Key</c>; o envio é lido pelo pedido da URL (IDOR); o e-mail é o do limite somado.
+    /// </summary>
+    [Fact]
+    public void Envio_ao_fornecedor_usa_as_acoes_certas_e_o_limite_somado()
+    {
+        var statements = EndpointsText.Split(';').Where(s => s.Contains(".WithName(\"", StringComparison.Ordinal)).ToList();
+        string Of(string name) => statements.Single(s => s.Contains($".WithName(\"{name}\")", StringComparison.Ordinal));
+        Of("DownloadPurchaseOrderPdf").Should().Contain("\"purchasing.view\"");
+        Of("GetPurchaseOrderDocuments").Should().Contain("\"purchasing.view\"");
+        Of("GetPurchaseOrderDispatch").Should().Contain("\"purchasing.view\"").And.Contain("/{id:guid}/dispatches/{dispatchId:guid}");
+        Of("GetPurchaseOrderDispatchDraft").Should().Contain("\"purchasing.edit\"");
+        Of("DispatchPurchaseOrder").Should().Contain("\"purchasing.edit\"").And.Contain(".RequireIdempotencyKey()");
+        var service = string.Join("\n", Directory.GetFiles(Path.Combine(Solution.RootDirectory, "src", "Modules", "Purchasing", "BemAqui.Purchasing.Application", "Documents"),
+            "PurchaseOrderDispatchService*.cs").Select(File.ReadAllText));
+        service.Should().Contain("limiter.CheckAsync(").And.Contain("BeginTransactionAsync").And.Contain("attachments.StoreGeneratedAsync(PurchaseOrderService.AttachmentOwner")
+            .And.Contain("EmailDispatchLimiter.PurchaseOrderTemplate").And.Contain("d.Id == dispatchId && d.OrderId == id");
+        var quotes = File.ReadAllText(Path.Combine(Solution.RootDirectory, "src", "Modules", "Commercial", "BemAqui.Commercial.Application", "Documents", "QuoteDocumentService.Send.cs"));
+        quotes.Should().Contain("limiter.CheckAsync(").And.NotContain("QuoteDispatches.CountAsync", "a COM-03 conta pela mesma consulta somada (CMP-03b)");
     }
 
     /// <summary>CMP-03a (ADR 0024 §4): o Purchasing guarda os próprios níveis e decisões; nada lê <c>finance.*</c> nem o banco do Finance.</summary>

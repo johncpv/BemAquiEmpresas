@@ -17,6 +17,7 @@ public static class EmailServiceCollectionExtensions
         services.TryAddScoped<TenantLinks>();
         services.TryAddScoped<IEmailSender, OutboxEmailSender>();
         services.TryAddScoped<EmailLogReader>();
+        services.TryAddScoped<EmailDispatchLimiter>();
         services.TryAddTransient<SendEmailJob>();
         return services;
     }

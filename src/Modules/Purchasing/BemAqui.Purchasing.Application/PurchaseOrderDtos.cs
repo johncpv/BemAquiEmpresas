@@ -78,7 +78,8 @@ public sealed record PurchaseOrderDetail(
     DateTimeOffset? CancelledAt, string? CancelledByName, decimal QuantityReceived, IReadOnlyList<PurchaseOrderLineView> Lines, IReadOnlyList<PurchaseOrderLevelView> Levels,
     IReadOnlyList<PurchaseOrderInstallmentPreview> Installments, bool IsRequester, bool CanEdit, bool CanSubmit, bool CanDecide, bool CanCancel, string? DecideBlocker, uint Version,
     decimal? ApprovedTotal = null, decimal? ClosedBalanceAmount = null, string? CloseReason = null, DateTimeOffset? ClosedAt = null, decimal AmountReceived = 0m, int ReceiptsCount = 0,
-    bool CanReceive = false, string? ReceiveBlocker = null, bool CanClose = false, bool CanCorrectPrice = false);
+    bool CanReceive = false, string? ReceiveBlocker = null, bool CanClose = false, bool CanCorrectPrice = false, bool CanDispatch = false, bool CanDownloadPdf = false,
+    DateTimeOffset? SentAt = null);
 
 /// <summary>Linha da lista "Pedidos" (CA 20).</summary>
 public sealed record PurchaseOrderSummary(

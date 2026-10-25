@@ -135,6 +135,7 @@ public abstract class BemAquiDbContext(DbContextOptions options) : DbContext(opt
             b.Property(e => e.RelatedType).HasMaxLength(64);
             b.HasIndex(e => new { e.Status, e.CreatedAt });
             b.HasIndex(e => new { e.RelatedType, e.RelatedId });
+            b.HasIndex(e => new { e.Template, e.CreatedAt });
         });
 
         ConfigureModules(modelBuilder);

@@ -11,6 +11,7 @@ Ver tudo o que mudou no pedido e nas linhas: o valor antes e depois, quem mudou 
 
 ## Como usar
 - Cada registro diz o que foi feito (criou, alterou, removeu), no pedido ou numa linha, e os campos que mudaram.
+- Cada envio ao fornecedor aparece como **um envio ao fornecedor**, com a passagem do pedido a Enviado, quem mandou e quando, e se o destinatário fora dos contatos foi confirmado. Os endereços de e-mail aparecem mascarados.
 - As aprovações e reprovações ficam na aba **Decisões**, com a regra e o valor de referência.
 
 ## Perguntas frequentes

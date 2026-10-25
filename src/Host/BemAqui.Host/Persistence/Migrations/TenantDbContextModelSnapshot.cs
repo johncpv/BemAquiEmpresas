@@ -153,6 +153,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("reply_to");
 
+                    b.Property<Guid?>("RequestedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("requested_by");
+
                     b.Property<int>("ScanWaits")
                         .HasColumnType("integer")
                         .HasColumnName("scan_waits");
@@ -193,6 +197,9 @@ namespace BemAqui.Host.Persistence.Migrations
 
                     b.HasIndex("Status", "CreatedAt")
                         .HasDatabaseName("ix_email_logs_status_created_at");
+
+                    b.HasIndex("Template", "CreatedAt")
+                        .HasDatabaseName("ix_email_logs_template_created_at");
 
                     b.ToTable("email_logs", "shared");
                 });
@@ -9105,6 +9112,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("self_approved");
 
+                    b.Property<DateTimeOffset?>("SentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("sent_at");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -9217,6 +9228,64 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDatabaseName("ix_purchase_order_approvals_order_attempt");
 
                     b.ToTable("purchase_order_approvals", "purchasing");
+                });
+
+            modelBuilder.Entity("BemAqui.Purchasing.Domain.PurchaseOrderDispatch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AttachmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("attachment_id");
+
+                    b.Property<string>("Cc")
+                        .HasMaxLength(800)
+                        .HasColumnType("character varying(800)")
+                        .HasColumnName("cc");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("EmailLogId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("email_log_id");
+
+                    b.Property<bool>("IsResend")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_resend");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("purchase_order_id");
+
+                    b.Property<bool>("RecipientConfirmed")
+                        .HasColumnType("boolean")
+                        .HasColumnName("recipient_confirmed");
+
+                    b.Property<Guid?>("SentBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sent_by");
+
+                    b.Property<string>("To")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)")
+                        .HasColumnName("to");
+
+                    b.HasKey("Id")
+                        .HasName("pk_purchase_order_dispatches");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_purchase_order_dispatches_created_at");
+
+                    b.HasIndex("OrderId")
+                        .HasDatabaseName("ix_purchase_order_dispatches_purchase_order_id");
+
+                    b.ToTable("purchase_order_dispatches", "purchasing");
                 });
 
             modelBuilder.Entity("BemAqui.Purchasing.Domain.PurchaseOrderLevel", b =>
@@ -10976,6 +11045,16 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_purchase_order_approvals_purchase_orders_order_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Purchasing.Domain.PurchaseOrderDispatch", b =>
+                {
+                    b.HasOne("BemAqui.Purchasing.Domain.PurchaseOrder", null)
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_purchase_order_dispatches_purchase_orders_purchase_order_id");
                 });
 
             modelBuilder.Entity("BemAqui.Purchasing.Domain.PurchaseOrderLevel", b =>

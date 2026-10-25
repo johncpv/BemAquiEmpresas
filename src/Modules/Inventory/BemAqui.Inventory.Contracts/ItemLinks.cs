@@ -13,7 +13,7 @@ public interface IUnitConversion
 }
 
 /// <summary>Item que um fornecedor chama pelo código dele (CA 11): unidade de estoque e fator da unidade do fornecedor.</summary>
-public sealed record SupplierCodeMatch(Guid ItemId, string ItemCode, string ItemName, Guid UnitId, string? SupplierUnit, decimal ConversionFactor);
+public sealed record SupplierCodeMatch(Guid ItemId, string ItemCode, string ItemName, Guid UnitId, string? SupplierUnit, decimal ConversionFactor, string? SupplierCode = null);
 
 /// <summary>De-para do fornecedor para a nota de entrada e o recebimento (FIS-04, CMP-04). Fornecedor excluído não casa (CA 12).</summary>
 public interface IItemSupplierCodes

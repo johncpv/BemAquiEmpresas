@@ -9,9 +9,14 @@ using Microsoft.EntityFrameworkCore;
 namespace BemAqui.Identity.Application;
 
 /// <param name="ChargesSettingId">Id da linha em <c>tenant_settings</c>, para o "Histórico de alterações" (CA 16 e 18).</param>
-public sealed record TenantParametersDto(decimal PayrollChargesPct, PricingMode PricingMode, Guid? ChargesSettingId, Guid? PricingSettingId);
+/// <param name="EmailDispatchMaxPerUserDay">Envios de documento por e-mail por usuário por dia (CMP-03b CA 5).</param>
+public sealed record TenantParametersDto(
+    decimal PayrollChargesPct, PricingMode PricingMode, Guid? ChargesSettingId, Guid? PricingSettingId, int EmailDispatchMaxPerUserDay = TenantParametersService.DefaultEmailDispatch,
+    Guid? EmailDispatchSettingId = null);
 
 public sealed record PayrollChargesInput(decimal Pct);
+
+public sealed record EmailDispatchLimitInput(int MaxPerUserDay);
 
 public sealed record PricingModeInput(PricingMode Mode);
 
@@ -25,13 +30,41 @@ public sealed class TenantParametersService(IIdentityDb db, IEventPublisher even
     public const string PricingKey = "pricing.mode";
     public const decimal DefaultCharges = 80.00m;
 
+    /// <summary>Limite diário de envios por usuário (CMP-03b CA 5): padrão 20, de 1 a 50.</summary>
+    public const string EmailDispatchKey = "email.dispatch_max_per_user_day";
+    public const int DefaultEmailDispatch = 20;
+    public const int MaxEmailDispatch = 50;
+
     public async Task<TenantParametersDto> GetAsync(CancellationToken cancellationToken = default)
     {
-        var rows = await db.TenantSettings.AsNoTracking().Where(s => s.Key == ChargesKey || s.Key == PricingKey).ToListAsync(cancellationToken);
+        var rows = await db.TenantSettings.AsNoTracking().Where(s => s.Key == ChargesKey || s.Key == PricingKey || s.Key == EmailDispatchKey).ToListAsync(cancellationToken);
         var charges = rows.FirstOrDefault(r => r.Key == ChargesKey);
         var pricing = rows.FirstOrDefault(r => r.Key == PricingKey);
-        return new TenantParametersDto(ParseCharges(charges?.Value), ParsePricing(pricing?.Value), charges?.Id, pricing?.Id);
+        var dispatch = rows.FirstOrDefault(r => r.Key == EmailDispatchKey);
+        return new TenantParametersDto(ParseCharges(charges?.Value), ParsePricing(pricing?.Value), charges?.Id, pricing?.Id, ParseDispatch(dispatch?.Value), dispatch?.Id);
     }
+
+    /// <summary>Configurações → Parâmetros → Envios por e-mail (CMP-03b CA 5): de 1 a 50 por usuário por dia, auditado.</summary>
+    public async Task<Result<TenantParametersDto>> SaveEmailDispatchLimitAsync(int maxPerUserDay, CancellationToken cancellationToken = default)
+    {
+        if (maxPerUserDay is < 1 or > MaxEmailDispatch)
+        {
+            const string message = "Informe de 1 a 50 envios por dia.";
+            return Error.Validation("validation", message, new Dictionary<string, string[]> { ["maxPerUserDay"] = [message] });
+        }
+
+        var row = await RowAsync(EmailDispatchKey, cancellationToken);
+        row.Value = maxPerUserDay.ToString(CultureInfo.InvariantCulture);
+        row.UpdatedAt = clock.GetUtcNow();
+        await db.SaveChangesAsync(cancellationToken);
+        return await GetAsync(cancellationToken);
+    }
+
+    public async Task<int> EmailDispatchMaxPerUserDayAsync(CancellationToken cancellationToken = default) =>
+        ParseDispatch(await db.TenantSettings.AsNoTracking().Where(s => s.Key == EmailDispatchKey).Select(s => s.Value).FirstOrDefaultAsync(cancellationToken));
+
+    private static int ParseDispatch(string? value) =>
+        int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var max) && max is >= 1 and <= MaxEmailDispatch ? max : DefaultEmailDispatch;
 
     public async Task<Result<TenantParametersDto>> SaveChargesAsync(decimal pct, CancellationToken cancellationToken = default)
     {

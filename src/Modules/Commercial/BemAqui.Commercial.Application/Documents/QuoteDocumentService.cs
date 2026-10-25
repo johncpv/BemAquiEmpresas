@@ -19,11 +19,14 @@ namespace BemAqui.Commercial.Application.Documents;
 /// </summary>
 public sealed partial class QuoteDocumentService(
     ICommercialDb db, QuoteService quotes, IParties parties, IItems items, ICompanyIdentity company, IFileStorage storage, IPdfRenderer renderer, AttachmentService attachments,
-    IEmailSender email, EmailLogReader emailLogs, IUserDirectory users, ICurrentUser currentUser, IEventPublisher events, TimeProvider clock)
+    IEmailSender email, EmailLogReader emailLogs, EmailDispatchLimiter limiter, ITenantParameters tenantParameters, IUserDirectory users, ICurrentUser currentUser,
+    IEventPublisher events, TimeProvider clock)
 {
     public const string OwnerType = "Quote";
     public const int MaxItems = 300;
-    public const int DailyLimit = 50;
+
+    /// <summary>Limite do tenant, somado com os pedidos de compra (CMP-03b CA 5, <see cref="EmailDispatchLimiter"/>).</summary>
+    public const int DailyLimit = EmailDispatchLimiter.TenantDailyLimit;
 
     /// <summary>Gerar PDF (CA 1 a 5): 422 acima de 300 itens ou observações acima de 2.000 caracteres, antes de gerar.</summary>
     public async Task<Result<AttachmentDto>> GeneratePdfAsync(Guid id, CancellationToken cancellationToken = default)

@@ -50,6 +50,9 @@ internal static class CompanySettingsEndpoints
         settings.MapPut("/parameters/pricing-mode", async (PricingModeInput input, TenantParametersService parameters, CancellationToken ct) =>
                 (await parameters.SavePricingAsync(input.Mode, ct)).ToHttpResult())
             .RequirePermission("settings.edit").WithName("SavePricingMode").Produces<TenantParametersDto>();
+        settings.MapPut("/parameters/email-dispatch-limit", async (EmailDispatchLimitInput input, TenantParametersService parameters, CancellationToken ct) =>
+                (await parameters.SaveEmailDispatchLimitAsync(input.MaxPerUserDay, ct)).ToHttpResult())
+            .RequirePermission("settings.edit").WithName("SaveEmailDispatchLimit").Produces<TenantParametersDto>();
 
         // Rota anônima da ADR 0016: o logo publicado do tenant do host, nunca outro anexo, com cache por ETag.
         api.MapGet(PublicLogoPath, async (HttpContext http, CompanySettings company, IFileStorage storage, CancellationToken ct) =>

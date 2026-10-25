@@ -48,6 +48,9 @@ public static class PurchasingInfrastructure
         services.AddAuditableEntity<PurchaseOrderPriceCorrection>("purchasing");
         services.AddAuditableEntity<GoodsReceipt>("purchasing");
         services.AddAuditableEntity<GoodsReceiptLine>("purchasing");
+        // PDF e envio do pedido ao fornecedor (CMP-03b): o serviço e a auditoria dos envios (no histórico do pedido).
+        services.TryAddScoped<BemAqui.Purchasing.Application.Documents.PurchaseOrderDispatchService>();
+        services.AddAuditableEntity<PurchaseOrderDispatch>("purchasing");
         // Cotação (CMP-02): serviço, auditoria da cotação, dos fornecedores e respostas, das linhas e vencedores, dos vínculos com a SC e dos preços.
         services.TryAddScoped<RfqService>();
         services.AddAuditableEntity<Rfq>("purchasing");

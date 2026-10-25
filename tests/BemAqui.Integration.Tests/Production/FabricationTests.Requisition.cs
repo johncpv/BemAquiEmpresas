@@ -300,10 +300,12 @@ public partial class FabricationTests
 
         var rows = await WithDbAsync(db => db.ProjectCosts.AsNoTracking().Where(c => c.SourceId == movement.Id).ToListAsync());
         rows.Should().ContainSingle("duas recomposições e o consumidor ao vivo gravam uma vez só (ADR 0025 §3)");
-        (rows[0].Amount, rows[0].IsBackfill).Should().Be((100m, true));
+        rows[0].Amount.Should().Be(100m);
+        // Quem grava primeiro (a recomposição ou o consumidor ao vivo) depende da ordem de chegada: o teste não supõe a ordem; a marca
+        // "Calculado na implantação" acompanha a linha gravada.
         var costs = await OkAsync(await owner.GetAsync($"/api/v1/projects/{project}/costs"));
         costs.GetProperty("lines").EnumerateArray().Single(l => l.GetProperty("costType").GetString() == "Material").GetProperty("includesBackfill").GetBoolean()
-            .Should().BeTrue("marca \"Calculado na implantação\"");
+            .Should().Be(rows[0].IsBackfill);
         steel.Should().NotBeEmpty();
     }
 

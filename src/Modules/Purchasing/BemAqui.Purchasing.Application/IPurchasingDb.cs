@@ -38,6 +38,9 @@ public interface IPurchasingDb
 
     DbSet<RfqQuote> RfqQuotes { get; }
 
+    /// <summary>Envios do pedido ao fornecedor (CMP-03b).</summary>
+    DbSet<PurchaseOrderDispatch> PurchaseOrderDispatches { get; }
+
     /// <summary>"Enviar todos para aprovação" (CMP-02 CA 10): um envio recusado não deixa nada pendente para o envio seguinte.</summary>
     ChangeTracker ChangeTracker { get; }
 

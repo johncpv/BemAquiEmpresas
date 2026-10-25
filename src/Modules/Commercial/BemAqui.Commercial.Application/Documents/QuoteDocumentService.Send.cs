@@ -45,6 +45,13 @@ public sealed partial class QuoteDocumentService
         }
 
         var cc = Cc(input);
+        // Limite diário somado com os pedidos de compra (CMP-03b CA 5): a trava do tenant vale até o commit desta transação.
+        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+        if (await limiter.CheckAsync(currentUser.UserId, await tenantParameters.EmailDispatchMaxPerUserDayAsync(cancellationToken), cancellationToken) is { } limit)
+        {
+            return limit;
+        }
+
         var pdf = await CurrentPdfAsync(quote.Id, cancellationToken);
         if (pdf is null)
         {
@@ -67,6 +74,7 @@ public sealed partial class QuoteDocumentService
 
         events.Publish(new QuoteSent(quote.Id, quote.Revision, clock.GetUtcNow()));
         await db.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
         return await DocumentsAsync(quote.Id, cancellationToken);
     }
 
@@ -124,12 +132,6 @@ public sealed partial class QuoteDocumentService
         {
             var party = await parties.FindAsync(quote.PartyId, ct);
             return QuoteService.Invalid("confirmRecipient", $"Este e-mail não está nos contatos de {party?.TradeName ?? party?.LegalName}. Confirme o destinatário.");
-        }
-
-        var since = BusinessTime.StartOfDayUtc(today);
-        if (await db.QuoteDispatches.CountAsync(d => d.CreatedAt >= since, ct) >= DailyLimit)
-        {
-            return Error.TooManyRequests("quote_send_limit", "Limite diário de envios de orçamento atingido. Tente amanhã ou baixe o PDF.");
         }
 
         return quote.Status == QuoteStatus.Draft && !await db.QuoteItems.AnyAsync(i => i.QuoteId == quote.Id && i.UnitPrice > 0 && i.Quantity > 0, ct)

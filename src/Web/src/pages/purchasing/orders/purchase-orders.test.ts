@@ -1,5 +1,29 @@
 import { describe, expect, it } from 'vitest'
-import { lateLabel, lineTotal, orderDestination, orderTotals, projectedAfter } from './purchase-orders'
+import { dispatchStatus, dispatchVerb, hasStranger, isResend, lateLabel, lineTotal, orderDestination, orderTotals, parseCc, projectedAfter } from './purchase-orders'
+
+describe('envio ao fornecedor (CMP-03b)', () => {
+  it('reenvio quando já foi enviado ou alterado depois do envio', () => {
+    expect(isResend({ status: 'Approved', sentAt: null, changedAfterSent: false })).toBe(false)
+    expect(isResend({ status: 'Sent', sentAt: '2026-10-24T10:00:00Z', changedAfterSent: false })).toBe(true)
+    expect(isResend({ status: 'Approved', sentAt: '2026-10-24T10:00:00Z', changedAfterSent: true })).toBe(true)
+    expect(dispatchVerb(false)).toMatchObject({ verb: 'Enviar ao fornecedor', done: 'Pedido enviado para a fila de e-mail' })
+    expect(dispatchVerb(true)).toMatchObject({ verb: 'Reenviar', done: 'Pedido reenviado para a fila de e-mail' })
+  })
+
+  it('cópias e destinatário fora dos contatos', () => {
+    expect(parseCc('a@x.com, b@x.com;c@x.com  d@x.com')).toEqual(['a@x.com', 'b@x.com', 'c@x.com', 'd@x.com'])
+    expect(parseCc('')).toEqual([])
+    expect(hasStranger(['Compras@Gama.com.br'], ['compras@gama.com.br'])).toBe(false)
+    expect(hasStranger(['compras@gama.com.br', 'dono@gmail.com'], ['compras@gama.com.br'])).toBe(true)
+  })
+
+  it('situação do e-mail', () => {
+    expect(dispatchStatus({ status: 'Queued', waitingScan: true }).label).toBe('Aguardando verificação do anexo')
+    expect(dispatchStatus({ status: 'Queued', waitingScan: false }).label).toBe('Na fila')
+    expect(dispatchStatus({ status: 'Sent', waitingScan: false })).toEqual({ label: 'Enviado', tone: 'ok' })
+    expect(dispatchStatus({ status: 'Failed', error: 'O antivírus recusou.', waitingScan: false })).toEqual({ label: 'Falhou: O antivírus recusou.', tone: 'crit' })
+  })
+})
 
 describe('rodapé do pedido (CMP-03a CA 3)', () => {
   it('linha com 2 casas, metade para longe do zero, como o servidor', () => {
