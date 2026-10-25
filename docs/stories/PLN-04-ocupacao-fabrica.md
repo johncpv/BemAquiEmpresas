@@ -5,7 +5,7 @@
 | ID | PLN-04 |
 | Título | Horas comprometidas pelo plano ÷ capacidade, por semana e por centro de trabalho, com o consolidado da fábrica (até 100% no plano finito), o quadro "Depois de {data}" com a carga que ficou para frente, "Acima da capacidade" só quando a capacidade cai depois do plano, o drill-down até as etapas e o resumo das próximas semanas para o painel do dono e do supervisor |
 | Tamanho | M |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-PLN-6 (ocupação da fábrica por semana: horas comprometidas ÷ capacidade) · R-PLN-1 · PRD §5.14 (Produção: ocupação da semana atual e das próximas 4) · PRD §6 |
 | Dependências | PLN-01a (`schedule_allocations`, `IProductionSchedule`), CAD-03 (`IWorkCenterCapacity`), DSH-02 (`ColumnChart`), FIN-08 (`TreeTable` com coluna fixa e navegação por célula) |
 | Bloqueia | DSH-01b (card Produção), DSH-03 (bloco Capacidade) |
@@ -81,19 +81,19 @@ Decisões da revisão aplicadas: D18 (`ColumnChart` da DSH-02 e `TreeTable` da F
 **Pré-condição externa:** nenhuma.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers), front (Vitest), desempenho e E2E passando.
-- [ ] Índice de apoio, se a medição pedir.
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Tela com estados, gráfico acessível e 400 px; sem cor literal.
-- [ ] Ajuda da aba; teste de cobertura passando.
-- [ ] Drill-down e "Acima da capacidade" acionáveis.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] Story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, arquitetura, front (Vitest) e E2E passando; integração (Testcontainers) e desempenho escritos, a rodar na suíte em container antes do merge.
+- [x] Índice de apoio, se a medição pedir: nenhum novo; o `(date, work_center_id)` da PLN-01a já atende a consulta (confirmar o CA 11 na suíte em container).
+- [x] Permissões só do `ModuleCatalog` (`production.view` e `production.edit`, já existentes).
+- [x] Tela com estados, gráfico acessível e 400 px; sem cor literal.
+- [x] Ajuda da aba; teste de cobertura passando.
+- [x] Drill-down e "Acima da capacidade" acionáveis.
+- [x] OpenAPI e cliente Orval regenerados (OpenAPI gerado pelo Host em processo; regenerar oficialmente com `BQ_UPDATE_OPENAPI`).
+- [x] Story marcada no backlog; `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` (§3.4 item 7) atualizados.
 
 ## Tarefas técnicas sugeridas
-- [ ] `FactoryLoadQuery` e `IFactoryLoad`; endpoint `/api/v1/production/planning/load`.
-- [ ] Aba Ocupação com a `TreeTable` e o `ColumnChart`; ajuda.
+- [x] `FactoryLoadQuery` e `IFactoryLoad`; endpoint `/api/v1/production/planning/load`.
+- [x] Aba Ocupação com a tabela (coluna fixa, navegação por célula) e o gráfico; ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, @qa, design (tabela analítica e gráfico).
@@ -127,3 +127,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D10, D18, tabela 3.1 pontos 40–41, §4.4 padrões 1 e 3; ADR 0029); ordem mantida (Marco 4.3, ordem 9); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 25/10/2026 | 1.0 | Implementada (`Done`), sobre a PLN-02 (branch `feat/pln-02-fila`, com a PLN-01b e a PLN-01a, ainda fora da main). `FactoryLoadCalculator` puro no Domain (semanas ISO, só os dias a partir de hoje na semana atual, Σ comprometidas, Σ capacidade, % com 1 casa, faixas, "Fábrica" = Σ ÷ Σ); `FactoryLoadService` lê o plano gravado (`schedule_allocations` agregadas no banco por centro e dia; horas depois e último dia por centro numa consulta) e a capacidade de cada centro ativo uma vez pelo `IWorkCenterCapacity`, sem recalcular nem gravar; `IFactoryLoad.WeeklyAsync(weeks = 5, workCenterIds?)` no `Production.Contracts`, com a mesma conta da tela; endpoints `GET /production/planning/load` e `GET /production/planning/load/cell` (`production.view`, no grupo do `RequireModule`); aba Ocupação do Planejamento com "Plano de {hh:mm}", tabela, gráfico, "Depois de {data}", faixa "Acima da capacidade" com "Recalcular agora", painel da célula, filtros na URL e 400 px; ajuda `producao-planejamento-ocupacao.md`. Sem migration. **Desvios:** (1) CA 8: o `ColumnChart` (DSH-02) e o `ChartFrame` (FIN-07) estão em outras branches, fora da main: o gráfico usa o `Chart` (linhas) da main, que ganhou duas props opcionais, `yReferences` (a referência "Capacidade (100%)", com o eixo sempre incluindo 100) e `valueLabels` (rótulo direto do percentual em cada ponto); **trocar pelo `ColumnChart` dentro do `ChartFrame` depois do merge** (um ponto por semana vira uma barra). (2) CA 7: a `TreeTable` com coluna fixa e navegação por célula (FIN-08) também está fora da main: a tabela é o `OccupancyGrid` local da aba (role `grid`, coluna do centro `sticky`, foco móvel, setas, Home/End, Ctrl+Home/End, Enter ou Espaço abre o painel); **trocar pela `TreeTable` da FIN-08 depois do merge**. Não foi criado componente compartilhado. (3) Índice: nenhum novo; o `(date, work_center_id)` da PLN-01a já foi criado para esta consulta (intervalo de datas com `work_center_id = ANY`); o CA 11 fica a confirmar na suíte em container. (4) CA 11: a agregação no banco é por centro e **dia** (no máximo 182 linhas por centro), e a soma por semana é feita na memória pelo calculador puro; somar por semana ISO no SQL dependeria de função de data do PostgreSQL. (5) CA 9: a linha e o número de semanas vão para a API; o **centro** filtra no cliente (a tabela mostra só ele e o gráfico passa a ser dele), para o seletor manter todos os centros; a API também aceita `workCenterIds` (até 50) para os painéis. Com filtro de linha, a linha "Fábrica" vira "Total de {linha}"; com um centro escolhido, não há linha de total. Na tela a 400 px, a semana escolhida também vai para a URL (`?semana=`). (6) CA 4: além da célula em tom crítico, uma faixa acima da tabela conta as semanas "Acima da capacidade" e traz "Recalcular agora" (o mesmo recálculo do cabeçalho, PLN-01a); o painel da célula também traz o botão. Capacidade 0 com horas planejadas (feriado novo num dia já planejado) dá "Acima da capacidade" com "—" no percentual. (7) CA 6: a faixa é decidida pela razão sem arredondar (94,96% aparece como 95,0%, sem destaque), a opção mais segura (recomendação aceita, PO 24/10). (8) CA 5: o drill-down é `GET /production/planning/load/cell?workCenterId=&weekStart=` (sem `workCenterId` = linha "Fábrica", com os mesmos filtros); a semana precisa começar numa segunda, da atual até 25 semanas à frente (422 `planning_load.week`), centro inativo ou inexistente dá 404, e a lista vai até 500 etapas (o total soma todas). (9) CA 12: allowlist com 422 `planning_load.weeks` (1 a 26), `planning_load.centers` (até 50) e `planning_load.line` (até 120); id ou data mal formados dão 400 do próprio Minimal API. (10) "Plano de {hh:mm}" mostra também a data quando o último cálculo não é de hoje. (11) A tela de 400 px troca a tabela pela lista de uma semana abaixo de 768 px (`md`). (12) Testes: unidade (`FactoryLoadCalculatorTests`, com o cenário fixo rodado pelo motor) e arquitetura (`PlanningLoadRulesTests`) passando; integração (`FactoryLoadTests`: números do CA 2 com o relógio fixo em 30/10/2026, "Depois de", exceção nova, drill-down, `IFactoryLoad` × tela, desempenho e três camadas) escrita e não executada nesta máquina; ela grava as tabelas do plano direto, como o `ScheduleService` faria, para fixar o "hoje". 9 testes de arquitetura de outras stories não rodam no Windows com Smart App Control (bloqueio das DLLs). (13) OpenAPI gerado pelo Host em processo, sem banco: regenerar oficialmente com `BQ_UPDATE_OPENAPI`. Sem decisão pendente do PO. | Dex (dev) |
