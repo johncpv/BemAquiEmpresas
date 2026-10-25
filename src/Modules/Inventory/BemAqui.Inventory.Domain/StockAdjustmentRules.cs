@@ -46,10 +46,13 @@ public static class StockAdjustmentRules
     /// <summary>
     /// Conta das linhas sobre os saldos dados (o do envio ou o de agora): a diferença de cada uma, o lote depois dela e a posição do item
     /// depois de todas as linhas do mesmo item. A primeira linha que deixaria o lote negativo, ou a posição abaixo do reservado, é a
-    /// recusa (CA 4): "O saldo ficaria {x}, abaixo do reservado ({y}) para OS.".
+    /// recusa (CA 4): "O saldo ficaria {x}, abaixo do reservado ({y}) para OS.". Com <paramref name="releasesReservations"/> (o ajuste
+    /// do inventário, EST-05), ficar abaixo do reservado não é recusa: a aprovação reduz antes as reservas das OS (decisão do PO de
+    /// 23/10/2026); o lote negativo continua recusado.
     /// </summary>
     public static (IReadOnlyList<AdjustmentLineResult> Lines, AdjustmentRefusal? Refusal) Evaluate(
-        StockAdjustmentMode mode, IReadOnlyList<AdjustmentLineInput> lines, IReadOnlyList<AdjustmentBalance> balances, IReadOnlyList<string> units)
+        StockAdjustmentMode mode, IReadOnlyList<AdjustmentLineInput> lines, IReadOnlyList<AdjustmentBalance> balances, IReadOnlyList<string> units,
+        bool releasesReservations = false)
     {
         ArgumentNullException.ThrowIfNull(lines);
         ArgumentNullException.ThrowIfNull(balances);
@@ -86,7 +89,7 @@ public static class StockAdjustmentRules
             {
                 refusal = new AdjustmentRefusal(i, $"O saldo do lote ficaria {Quantity(r.LotAfter, units[i])}, abaixo de zero.", r.LotAfter, r.Reserved);
             }
-            else if (r.PositionAfter < r.Reserved)
+            else if (!releasesReservations && r.PositionAfter < r.Reserved)
             {
                 refusal = new AdjustmentRefusal(i, $"O saldo ficaria {Quantity(r.PositionAfter, units[i])}, abaixo do reservado ({Quantity(r.Reserved, units[i])}) para OS.", r.PositionAfter, r.Reserved);
             }
@@ -120,6 +123,22 @@ public static class StockAdjustmentRules
     /// chamador avalia e passa em <paramref name="decidingAlone"/>).
     /// </summary>
     public static bool MayDecide(Guid? author, Guid actor, bool decidingAlone) => author != actor || decidingAlone;
+
+    /// <summary>
+    /// Quem decide com os envolvidos (EST-05 CA 11): no ajuste do inventário, além do autor, quem abriu, contou ou recontou não aprova
+    /// nem estorna, salvo o Proprietário único.
+    /// </summary>
+    public static bool MayDecide(IReadOnlyCollection<Guid> involved, Guid actor, bool decidingAlone)
+    {
+        ArgumentNullException.ThrowIfNull(involved);
+        return !involved.Contains(actor) || decidingAlone;
+    }
+
+    /// <summary>
+    /// Quanto reduzir das reservas do item no local para o ajuste do inventário caber (decisão do PO de 23/10/2026): o reservado − o
+    /// físico depois de todas as linhas do item, quando positivo.
+    /// </summary>
+    public static decimal ReservationExcess(decimal positionAfter, decimal reserved) => positionAfter < reserved ? Round(reserved - Math.Max(0m, positionAfter)) : 0m;
 
     public static string ReasonLabel(StockAdjustmentReason reason) => reason switch
     {

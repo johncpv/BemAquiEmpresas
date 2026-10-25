@@ -87,12 +87,15 @@ public static class InventoryInfrastructure
         // Rastreabilidade (EST-04): série → origem, lote → destino e exportação auditada; aba Lotes e correção do lote (auditada pelo Lot).
         services.TryAddScoped<TraceabilityService>();
         services.TryAddScoped<LotService>();
-        // Ajuste de estoque (EST-01b): todo ajuste com aprovação por outra pessoa; o efeito é síncrono pelo motor na aprovação. O bloqueio
-        // do local por inventário nunca bloqueia até a EST-05 registrar a implementação real (CA 18).
-        services.TryAddScoped<ILocationCountLock, NoLocationCountLock>();
+        // Ajuste de estoque (EST-01b): todo ajuste com aprovação por outra pessoa; o efeito é síncrono pelo motor na aprovação.
         services.TryAddScoped<StockAdjustmentService>();
         services.AddAuditableEntity<StockAdjustment>("inventory");
         services.AddAuditableEntity<StockAdjustmentLine>("inventory");
+        // Inventário por local (EST-05): o bloqueio real do local (ajuste e estorno manual) e o fechamento que gera o ajuste em modo Delta.
+        services.TryAddScoped<ILocationCountLock, InventoryCountLock>();
+        services.TryAddScoped<InventoryCountService>();
+        services.AddAuditableEntity<InventoryCount>("inventory");
+        services.AddAuditableEntity<InventoryCountLine>("inventory");
         return services;
     }
 }

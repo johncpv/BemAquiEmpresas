@@ -228,6 +228,20 @@ public static class ReservationPlanner
             .Select(o => o.OrderId).ToList();
     }
 
+    /// <summary>
+    /// Ordem de redução das reservas quando o inventário conta abaixo do reservado (EST-05, decisão do PO de 23/10/2026): primeiro a
+    /// BOM liberada mais recentemente, a sem data por último (recomposição antiga), e por fim o id da OS (estável).
+    /// </summary>
+    public static IReadOnlyList<Guid> ReductionOrder(IEnumerable<(Guid OrderId, DateTimeOffset? ReleasedAt)> orders)
+    {
+        ArgumentNullException.ThrowIfNull(orders);
+        return orders.GroupBy(o => o.OrderId).Select(g => (OrderId: g.Key, ReleasedAt: g.Max(x => x.ReleasedAt)))
+            .OrderBy(o => o.ReleasedAt is null ? 1 : 0)
+            .ThenByDescending(o => o.ReleasedAt)
+            .ThenBy(o => o.OrderId)
+            .Select(o => o.OrderId).ToList();
+    }
+
     /// <summary>Alvo por item da BOM liberada (CA 1): a soma das linhas do item; 0 para a OS cancelada ou concluída.</summary>
     public static IReadOnlyDictionary<Guid, decimal> Targets(IEnumerable<(Guid ItemId, decimal RequiredQty)> lines, bool orderClosed)
     {

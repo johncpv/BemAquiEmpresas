@@ -32,11 +32,13 @@ public sealed partial class StockAdjustmentService
         var adjustment = pending.Value;
         var me = currentUser.UserId;
         var self = false;
-        if (me is { } actor && adjustment.RequestedBy == actor)
+        var involved = await InvolvedAsync(adjustment, cancellationToken);
+        if (me is { } actor && involved.Contains(actor))
         {
-            if (!StockAdjustmentRules.MayDecide(adjustment.RequestedBy, actor, await IsDecidingAloneAsync(actor, cancellationToken)))
+            // EST-05 CA 11: no ajuste do inventário, quem abriu ou contou também é envolvido (SoleOwnerRule com todos eles).
+            if (!StockAdjustmentRules.MayDecide(involved, actor, await IsDecidingAloneAsync(actor, involved, cancellationToken)))
             {
-                return Error.Forbidden("own_stock_adjustment", "Quem lança o ajuste não o aprova.");
+                return Error.Forbidden("own_stock_adjustment", OwnMessage(adjustment, actor, "aprova"));
             }
 
             self = true;
@@ -66,6 +68,29 @@ public sealed partial class StockAdjustmentService
 
         var balances = await BalancesAsync(adjustment.LocationId, lines.Select(l => (l.ItemId, l.LotId)).ToList(), cancellationToken);
         var units = await UnitCodesAsync(lines.Select(l => l.ItemId), cancellationToken);
+        var reductions = new List<(Guid ItemId, ReservationReduction Reduction)>();
+        if (adjustment.Origin == StockAdjustmentOrigin.InventoryCount)
+        {
+            // Decisão do PO de 23/10/2026 (EST-02 e EST-05): a contagem abaixo do reservado reduz primeiro as reservas das OS com a BOM
+            // liberada mais recentemente, gera a falta e avisa quem aprova, na mesma transação do ajuste.
+            foreach (var group in Enumerable.Range(0, lines.Count).GroupBy(i => lines[i].ItemId))
+            {
+                var first = group.First();
+                var after = StockAdjustmentRules.Round(balances[first].PositionOnHand + group.Sum(i => lines[i].DeltaQty));
+                var excess = StockAdjustmentRules.ReservationExcess(after, balances[first].PositionReserved);
+                if (excess > 0)
+                {
+                    var origin = $"Inventário {adjustment.OriginNumber} · ajuste {adjustment.Number}";
+                    reductions.AddRange((await allocator.ReduceForCountAsync(group.Key, adjustment.LocationId, excess, origin, cancellationToken)).Select(r => (group.Key, r)));
+                }
+            }
+
+            if (reductions.Count > 0)
+            {
+                await db.SaveChangesAsync(cancellationToken);
+                balances = await BalancesAsync(adjustment.LocationId, lines.Select(l => (l.ItemId, l.LotId)).ToList(), cancellationToken);
+            }
+        }
         var inputs = lines.Select(l => new AdjustmentLineInput(l.ItemId, l.LotId, l.CountedQty, l.DeltaQty)).ToList();
         var (results, refusal) = StockAdjustmentRules.Evaluate(adjustment.Mode, inputs, balances, lines.Select(l => units.GetValueOrDefault(l.ItemId) ?? string.Empty).ToList());
         if (refusal is not null)
@@ -106,6 +131,11 @@ public sealed partial class StockAdjustmentService
         }
 
         (adjustment.SurplusValue, adjustment.ShortageValue) = StockAdjustmentRules.Totals(lines.Select(l => (l.AppliedDeltaQty ?? 0m, l.UnitCost ?? 0m)));
+        if (reductions.Count > 0)
+        {
+            await NotifyReductionsAsync(adjustment, reductions, units, cancellationToken);
+        }
+
         if (self)
         {
             await NotifySelfApprovedAsync($"aprovou o próprio ajuste {adjustment.Number}", Link + adjustment.Id, cancellationToken);
@@ -229,11 +259,12 @@ public sealed partial class StockAdjustmentService
 
         var me = currentUser.UserId;
         var self = false;
-        if (me is { } actor && adjustment.RequestedBy == actor)
+        var involved = await InvolvedAsync(adjustment, cancellationToken);
+        if (me is { } actor && involved.Contains(actor))
         {
-            if (!StockAdjustmentRules.MayDecide(adjustment.RequestedBy, actor, await IsDecidingAloneAsync(actor, cancellationToken)))
+            if (!StockAdjustmentRules.MayDecide(involved, actor, await IsDecidingAloneAsync(actor, involved, cancellationToken)))
             {
-                return Error.Forbidden("own_stock_adjustment", "Quem lança o ajuste não o estorna.");
+                return Error.Forbidden("own_stock_adjustment", OwnMessage(adjustment, actor, "estorna"));
             }
 
             self = true;
@@ -342,6 +373,23 @@ public sealed partial class StockAdjustmentService
                       join u in db.Units.IgnoreQueryFilters() on i.UnitId equals u.Id
                       where ids.Contains(i.Id)
                       select new { i.Id, u.Code }).ToDictionaryAsync(x => x.Id, x => x.Code, ct);
+    }
+
+    /// <summary>
+    /// Aviso a quem tem <c>inventory.approve</c> (decisão do PO de 23/10/2026): o ajuste do inventário reduziu reservas de OS e gerou falta.
+    /// </summary>
+    private async Task NotifyReductionsAsync(StockAdjustment adjustment, List<(Guid ItemId, ReservationReduction Reduction)> reductions, Dictionary<Guid, string> units, CancellationToken ct)
+    {
+        var itemIds = reductions.Select(r => r.ItemId).Distinct().ToList();
+        var codes = await db.Items.IgnoreQueryFilters().AsNoTracking().Where(i => itemIds.Contains(i.Id)).ToDictionaryAsync(i => i.Id, i => i.Code, ct);
+        var parts = reductions.GroupBy(r => r.ItemId).Select(g =>
+            $"{codes.GetValueOrDefault(g.Key) ?? "item"} {StockAdjustmentRules.Quantity(g.Sum(r => r.Reduction.Quantity), units.GetValueOrDefault(g.Key) ?? string.Empty)}");
+        var orders = reductions.Select(r => r.Reduction.ProductionOrderId).Distinct().Count();
+        var title = $"Inventário {adjustment.OriginNumber}: o ajuste {adjustment.Number} reduziu as reservas de {(orders == 1 ? "1 OS" : $"{orders} OS")} ({string.Join("; ", parts)}) e gerou a falta.";
+        foreach (var user in await users.UsersWithPermissionAsync(StockAdjustmentRules.ApproverPermission, ct))
+        {
+            notifications.Notify(user, ReservationsReducedType, Cut(title, 300), Link + adjustment.Id);
+        }
     }
 
     private static string Cut(string text, int max) => text.Length <= max ? text : text[..(max - 1)] + "…";

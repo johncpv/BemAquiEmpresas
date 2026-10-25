@@ -56,8 +56,11 @@ public sealed record StockAdjustmentLineView(
     decimal OnHand, decimal Reserved, decimal Available, decimal SystemQtyNow, decimal DeltaNow, decimal ValueNow, decimal OnHandAfter, bool Changed, string? Refusal,
     decimal? SystemQtyAtApproval, decimal? AppliedDeltaQty, decimal? UnitCost, Guid? MovementId, string? MovementNumber, bool BelowMinimum);
 
-/// <summary>Impacto da aprovação calculado agora (CA 5 e 7): sobras e faltas em R$, se o saldo mudou desde o envio e a recusa.</summary>
-public sealed record StockAdjustmentImpact(bool ChangedSinceRequest, decimal Surplus, decimal Shortage, string? Refusal, Guid? RefusalItemId);
+/// <summary>
+/// Impacto da aprovação calculado agora (CA 5 e 7): sobras e faltas em R$, se o saldo mudou desde o envio e a recusa. No ajuste do
+/// inventário (EST-05), <c>ReservationNote</c> avisa quando a aprovação vai reduzir reservas de OS e gerar falta.
+/// </summary>
+public sealed record StockAdjustmentImpact(bool ChangedSinceRequest, decimal Surplus, decimal Shortage, string? Refusal, Guid? RefusalItemId, string? ReservationNote = null);
 
 public sealed record StockAdjustmentDetail(
     Guid Id, string Number, Guid LocationId, string LocationCode, string LocationName, StockAdjustmentMode Mode, StockAdjustmentOrigin Origin, Guid? OriginId, string? OriginNumber,

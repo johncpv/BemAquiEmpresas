@@ -57,6 +57,6 @@ public class AdjustmentRulesTests
         service.Should().NotContainAny(["StockPositions.Update", "StockBalances.Update", "ApplyOnHand", "ExecuteSql"], "o ajuste não escreve saldo");
         service.Split("locks.CheckAsync(").Length.Should().Be(4, "CA 18: lançar, aprovar e estornar consultam o bloqueio do local");
         Read("BemAqui.Inventory.Application", "ManualPostingService.Reverse.cs").Should().Contain("locks.CheckAsync(", "CA 18: o estorno de movimento manual também");
-        Read("BemAqui.Inventory.Infrastructure", "InventoryInfrastructure.cs").Should().Contain("TryAddScoped<ILocationCountLock, NoLocationCountLock>()", "até a EST-05 nunca bloqueia");
+        Read("BemAqui.Inventory.Infrastructure", "InventoryInfrastructure.cs").Should().Contain("TryAddScoped<ILocationCountLock, InventoryCountLock>()", "EST-05 CA 6: o bloqueio real do local");
     }
 }
