@@ -396,7 +396,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-4--planejamento-p
 - Requisitos: R-PRJ-5, PRD §5.14 (Margem), PRD §1.1 e §1.2, R-PRP-5, PRD §6.
 - CA: um cálculo só (`IProjectMargins`) para o Projeto 360, o relatório e o painel; comprometido de material por saldo com fonte única nos títulos (ADR 0025 adendo); imposto realizado só pela nota (`InvoiceTax`/`InvoiceTaxReversal`), até lá o orçado; custo da NC informativo; margem do consolidado ponderada pela receita; `Kpi`, `DashboardCard` e `ColumnChart`; tudo só com `projects.view_cost`; 5 mil projetos e 200 mil custos em menos de 1 s.
 
-**FIN-08 [ ] DRE gerencial mensal (G)** — 4.1, ordem 3 — re-estimada de M — `Ready (pré-condição externa)` — [story](stories/FIN-08-dre-gerencial.md)
+**FIN-08 [x] DRE gerencial mensal (G)** — 4.1, ordem 3 — re-estimada de M — `Done` (parâmetros da contadora pré-configurados, a confirmar) — [story](stories/FIN-08-dre-gerencial.md)
 - Requisitos: R-FIN-13, R-FIN-1, R-PRP-5, PRD §5.14 (Faturamento), PRD §6.
 - CA: DRE pelos grupos do plano de contas; receita pela data da nota (antes do go-live, `issue_date` do título com o rótulo "provisório"; sinal como adiantamento); compra para estoque na 2.1 pela data do documento; juros, multa e desconto em contas pré-configuradas "a confirmar"; sinal no rótulo e "Δ mês anterior"; `TreeTable` com drill-down por célula (salário com nome só com `hr.view_sensitive`); aviso "Mudou desde a última consulta"; `IRevenueSummary`; 24 meses em menos de 2 s.
 
