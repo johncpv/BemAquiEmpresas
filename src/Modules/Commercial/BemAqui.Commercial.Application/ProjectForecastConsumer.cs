@@ -87,8 +87,11 @@ public sealed class ProjectForecastConsumer(ICommercialDb db, IUserDirectory use
         return string.Create(culture, $"{project} vai atrasar {days} {(days == 1 ? "dia" : "dias")}: previsão {forecast:dd/MM/yyyy}, prometido ao cliente {promised:dd/MM/yyyy}.");
     }
 
-    /// <summary>Até o Cronograma do projeto (PLN-03), o aviso leva ao Projeto 360, onde estão a entrega prevista e a folga.</summary>
-    public static string Link(Guid projectId) => "/app/projetos/" + projectId;
+    /// <summary>
+    /// O aviso abre o Cronograma do projeto no Projeto 360 (PLN-03), com a etapa que define a entrega; sem <c>production.view</c>, a aba não
+    /// existe e o Projeto 360 abre no Resumo, com a entrega prevista e a folga.
+    /// </summary>
+    public static string Link(Guid projectId) => "/app/projetos/" + projectId + "?aba=cronograma";
 
     public static string DedupKey(Guid projectId, DateOnly forecast) => string.Create(CultureInfo.InvariantCulture, $"project-at-risk:{projectId}:{forecast:yyyy-MM-dd}");
 }
