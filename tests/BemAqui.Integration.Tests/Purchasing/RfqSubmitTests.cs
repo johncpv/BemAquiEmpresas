@@ -72,7 +72,8 @@ public class RfqSubmitTests(TenancyFixture tenancy) : RfqTestBase(tenancy), ICla
         var saved = await WithDbAsync(db => db.PurchaseOrders.AsNoTracking().Where(o => o.RfqId == Id(rfq)).ToListAsync());
         saved.Single(o => o.PartyId == alfa).Status.Should().Be(PurchaseOrderStatus.PendingApproval);
         saved.Single(o => o.PartyId == beta).Status.Should().Be(PurchaseOrderStatus.Draft, "o recusado continua rascunho, de forma independente");
-        (await WithDbAsync(db => db.PurchaseOrderLevels.CountAsync(l => l.OrderId == saved.Single(o => o.PartyId == beta).Id))).Should().Be(0, "nada do envio recusado ficou gravado");
+        var betaOrder = saved.Single(o => o.PartyId == beta).Id;
+        (await WithDbAsync(db => db.PurchaseOrderLevels.CountAsync(l => l.OrderId == betaOrder))).Should().Be(0, "nada do envio recusado ficou gravado");
 
         // CA 15: o histórico da cotação guarda a geração (pedido no fornecedor) e o envio (data ou motivo).
         var rows = await WithDbAsync(db => db.RfqSuppliers.AsNoTracking().Where(s => s.RfqId == Id(rfq)).ToListAsync());

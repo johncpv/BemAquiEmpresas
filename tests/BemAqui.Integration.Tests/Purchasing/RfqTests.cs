@@ -323,10 +323,11 @@ public class RfqTests(TenancyFixture tenancy) : RfqTestBase(tenancy), IClassFixt
         var cancelled = await buyer.PostAsJsonAsync($"{Rfqs}/{Id(rfq)}/cancel", new { reason = "Comprado no balcão", version = Version(rfq) });
         cancelled.StatusCode.Should().Be(HttpStatusCode.OK, await cancelled.Content.ReadAsStringAsync());
 
-        (await JsonAsync(cancelled)).GetProperty("status").GetString().Should().Be("Cancelled");
+        var cancelledBody = await JsonAsync(cancelled);
+        cancelledBody.GetProperty("status").GetString().Should().Be("Cancelled");
         (await RequestLineAsync(requestLine)).Status.Should().Be(PurchaseRequestStatus.Open);
         (await WithDbAsync(db => db.PurchaseRequests.AsNoTracking().SingleAsync(r => r.Id == requestId))).Status.Should().Be(PurchaseRequestStatus.Open);
-        var again = await buyer.PostAsJsonAsync($"{Rfqs}/{Id(rfq)}/cancel", new { reason = "De novo", version = Version(await JsonAsync(cancelled)) });
+        var again = await buyer.PostAsJsonAsync($"{Rfqs}/{Id(rfq)}/cancel", new { reason = "De novo", version = Version(cancelledBody) });
         again.StatusCode.Should().Be(HttpStatusCode.Conflict);
     }
 
