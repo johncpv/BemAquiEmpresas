@@ -69,6 +69,15 @@ public static class FinanceInfrastructure
         services.TryAddScoped<ICashForecast>(sp => sp.GetRequiredService<CashFlowService>());
         // Inadimplência e aviso dos vencidos (FIN-06a).
         services.TryAddScoped<AgingService>();
+        // DRE gerencial (FIN-08): regra da receita pelo título (a FIS-03a acrescenta a pela nota e a data de corte; a PRD-06b, o
+        // romaneio), parâmetros "A confirmar com a contadora" e o resumo da receita para o painel do dono.
+        services.TryAddScoped<DreParametersService>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IRevenueRecognition, TitleRevenueRecognition>());
+        services.TryAddScoped<IRevenueCutover, NoRevenueCutover>();
+        services.TryAddScoped<IProjectShipments, NoProjectShipments>();
+        services.TryAddScoped<RevenueRecognitionRouter>();
+        services.TryAddScoped<DreService>();
+        services.TryAddScoped<IRevenueSummary, RevenueSummaryContract>();
         // Ordens de pagamento (FIN-03a): comprovante só em OP paga, lido com finance.view e gravado com finance.pay.
         services.TryAddScoped<PaymentOrderService>();
         // Minha pauta (DSH-04): OP aguardando, OP para pagar, recebíveis vencidos e títulos a pagar vencendo sem OP.
