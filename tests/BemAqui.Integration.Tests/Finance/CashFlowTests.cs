@@ -23,9 +23,9 @@ public partial class CashFlowTests(TenancyFixture tenancy) : IClassFixture<Tenan
     private const string Host = "a.localhost";
     private const string Base = "/api/v1/finance/cash-flow";
 
-    private static DateOnly Today => BusinessTime.Today(TimeProvider.System);
+    internal static DateOnly Today => BusinessTime.Today(TimeProvider.System);
 
-    private static string Iso(DateOnly d) => d.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+    internal static string Iso(DateOnly d) => d.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
 
     private static async Task<JsonElement> JsonAsync(HttpResponseMessage response) => await response.Content.ReadFromJsonAsync<JsonElement>();
 
@@ -54,9 +54,9 @@ public partial class CashFlowTests(TenancyFixture tenancy) : IClassFixture<Tenan
         return client;
     }
 
-    private sealed record Dataset(Guid BankA, Guid BankB, Guid Overdue, Guid Estimate);
+    internal sealed record Dataset(Guid BankA, Guid BankB, Guid Overdue, Guid Estimate);
 
-    private static Receivable Rec(Guid party, Guid account, string number, decimal amount, DateOnly? due, ReceivableStatus status = ReceivableStatus.Open, DocumentOrigin origin = DocumentOrigin.Manual) => new()
+    internal static Receivable Rec(Guid party, Guid account, string number, decimal amount, DateOnly? due, ReceivableStatus status = ReceivableStatus.Open, DocumentOrigin origin = DocumentOrigin.Manual) => new()
     {
         Number = number, PartyId = party, AccountId = account, Description = "Venda " + number, Amount = amount, IssueDate = Today.AddDays(-60), DueDate = due, Status = status, Origin = origin, CreatedAt = DateTimeOffset.UtcNow,
     };
@@ -71,8 +71,13 @@ public partial class CashFlowTests(TenancyFixture tenancy) : IClassFixture<Tenan
         BankAccountId = bank, Date = Today.AddDays(day), Amount = amount, Type = amount > 0 ? TransactionType.Receipt : TransactionType.BankEntry, Description = "Movimento " + day, CreatedAt = DateTimeOffset.UtcNow,
     };
 
-    /// <summary>2 contas, 6 transações (1 futura), 5 a receber em aberto, 1 cancelado, 1 sem data; 5 a pagar, 1 estimado, 1 sem data; 1 recorrente.</summary>
-    private Task<Dataset> SeedAsync() => WithDbAsync(async db =>
+    private Task<Dataset> SeedAsync() => WithDbAsync(SeedFin05Async);
+
+    /// <summary>
+    /// 2 contas, 6 transações (1 futura), 5 a receber em aberto, 1 cancelado, 1 sem data; 5 a pagar, 1 estimado, 1 sem data; 1
+    /// recorrente. A FIN-07 reaproveita (dataset da FIN-05 mais 3 clientes).
+    /// </summary>
+    internal static async Task<Dataset> SeedFin05Async(TenantDbContext db)
     {
         var party = Guid.CreateVersion7();
         var revenue = await db.Accounts.Where(a => a.Code == "1.1").Select(a => a.Id).SingleAsync();
@@ -104,9 +109,9 @@ public partial class CashFlowTests(TenancyFixture tenancy) : IClassFixture<Tenan
             Pay(party, expense, "T-P7", 777m, null, PayableStatus.Planned));
         await db.SaveChangesAsync();
         return new Dataset(a.Id, b.Id, overdue.Id, estimate.Id);
-    });
+    }
 
-    private static DateOnly NextTenth()
+    internal static DateOnly NextTenth()
     {
         var d = Today;
         while (d.Day != 10)
