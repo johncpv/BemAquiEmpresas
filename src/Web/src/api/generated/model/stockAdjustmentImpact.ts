@@ -13,4 +13,6 @@ export interface StockAdjustmentImpact {
   refusal: string | null;
   /** @nullable */
   refusalItemId: string | null;
+  /** @nullable */
+  reservationNote?: string | null;
 }
