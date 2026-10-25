@@ -1,6 +1,7 @@
 using BemAqui.BuildingBlocks.Time;
 using BemAqui.Production.Application;
 using BemAqui.Production.Domain;
+using BemAqui.SharedKernel;
 using FluentAssertions;
 
 namespace BemAqui.Integration.Tests.Production;
@@ -59,35 +60,41 @@ public class ProductionBoardRulesTests
         columns.Single().Name.Should().Be("Mecânica");
     }
 
+    /// <summary>PLN-01b CA 9: atrasado = prometido antes de hoje; em risco = previsão depois da prometida, sem tolerância (a janela de 7 dias saiu).</summary>
     [Theory]
-    [InlineData(-3, ProductionOrderStatus.InProgress, false, DeliveryRisk.Late, 3)]
-    [InlineData(-1, ProductionOrderStatus.Open, true, DeliveryRisk.Late, 1)]
-    [InlineData(-5, ProductionOrderStatus.Completed, false, DeliveryRisk.None, null)]
-    [InlineData(-5, ProductionOrderStatus.Cancelled, false, DeliveryRisk.None, null)]
-    [InlineData(0, ProductionOrderStatus.InProgress, false, DeliveryRisk.AtRisk, null)]
-    [InlineData(7, ProductionOrderStatus.Open, false, DeliveryRisk.AtRisk, null)]
-    [InlineData(8, ProductionOrderStatus.Open, false, DeliveryRisk.None, null)]
-    [InlineData(3, ProductionOrderStatus.InProgress, true, DeliveryRisk.None, null)]
-    [InlineData(0, ProductionOrderStatus.Quality, true, DeliveryRisk.None, null)]
-    public void Atraso_e_risco_pela_funcao_unica(int days, ProductionOrderStatus status, bool atLastStep, DeliveryRisk expected, int? delay)
+    [InlineData(-3, null, ProductionOrderStatus.InProgress, DeliveryRisk.Late, 3)]
+    [InlineData(-1, 5, ProductionOrderStatus.Open, DeliveryRisk.Late, 1)]
+    [InlineData(-5, null, ProductionOrderStatus.Completed, DeliveryRisk.None, null)]
+    [InlineData(-5, 2, ProductionOrderStatus.Cancelled, DeliveryRisk.None, null)]
+    [InlineData(0, 1, ProductionOrderStatus.InProgress, DeliveryRisk.AtRisk, null)]
+    [InlineData(10, 11, ProductionOrderStatus.Open, DeliveryRisk.AtRisk, null)]
+    [InlineData(10, 10, ProductionOrderStatus.Open, DeliveryRisk.None, null)]
+    [InlineData(3, null, ProductionOrderStatus.InProgress, DeliveryRisk.None, null)]
+    [InlineData(0, -2, ProductionOrderStatus.Quality, DeliveryRisk.None, null)]
+    public void Atraso_e_risco_pela_funcao_unica(int promisedIn, int? forecastIn, ProductionOrderStatus status, DeliveryRisk expected, int? delay)
     {
-        var result = ProductionOrderRisk.Evaluate(Today.AddDays(days), Today, status, atLastStep);
+        DateOnly? forecast = forecastIn is { } f ? Today.AddDays(f) : null;
+        var result = ProductionOrderRisk.Evaluate(Today.AddDays(promisedIn), forecast, Today, status);
 
         result.Risk.Should().Be(expected);
         result.DelayDays.Should().Be(delay);
     }
 
     [Fact]
-    public void Sem_data_prometida_nao_ha_risco() =>
-        ProductionOrderRisk.Evaluate(null, Today, ProductionOrderStatus.Open, false).Should().Be(DeliveryAssessment.None);
+    public void Prometido_em_poucos_dias_sem_previsao_atrasada_nao_e_mais_risco() =>
+        ProductionOrderRisk.Evaluate(Today.AddDays(3), Today.AddDays(2), Today, ProductionOrderStatus.Open).Should().Be(DeliveryAssessment.None);
 
     [Fact]
-    public void Ultima_etapa_inclui_pronta_para_concluir_e_sem_etapas_nao_conta()
+    public void Sem_data_prometida_nao_ha_risco() =>
+        ProductionOrderRisk.Evaluate(null, Today.AddDays(30), Today, ProductionOrderStatus.Open).Should().Be(DeliveryAssessment.None);
+
+    [Fact]
+    public void Folga_em_dias_corridos()
     {
-        ProductionOrderRisk.IsAtLastStep([ProductionStepStatus.Done, ProductionStepStatus.Ready]).Should().BeTrue();
-        ProductionOrderRisk.IsAtLastStep([ProductionStepStatus.Done, ProductionStepStatus.Done]).Should().BeTrue();
-        ProductionOrderRisk.IsAtLastStep([ProductionStepStatus.Ready, ProductionStepStatus.Waiting]).Should().BeFalse();
-        ProductionOrderRisk.IsAtLastStep([]).Should().BeFalse();
+        DeliveryRiskRules.SlackDays(new DateOnly(2026, 11, 28), new DateOnly(2026, 12, 5)).Should().Be(-7);
+        DeliveryRiskRules.SlackDays(new DateOnly(2026, 11, 28), new DateOnly(2026, 11, 25)).Should().Be(3);
+        DeliveryRiskRules.SlackDays(null, new DateOnly(2026, 11, 25)).Should().BeNull();
+        DeliveryRiskRules.SlackDays(new DateOnly(2026, 11, 28), null).Should().BeNull();
     }
 
     [Fact]
@@ -98,8 +105,8 @@ public class ProductionBoardRulesTests
         var morning = new FixedClock(new DateTimeOffset(2026, 10, 23, 3, 30, 0, TimeSpan.Zero));
         var promised = new DateOnly(2026, 10, 22);
 
-        ProductionOrderRisk.Evaluate(promised, BusinessTime.Today(lateNight), ProductionOrderStatus.InProgress, false).Risk.Should().Be(DeliveryRisk.AtRisk);
-        ProductionOrderRisk.Evaluate(promised, BusinessTime.Today(morning), ProductionOrderStatus.InProgress, false).Should().Be(new DeliveryAssessment(DeliveryRisk.Late, 1));
+        ProductionOrderRisk.Evaluate(promised, promised.AddDays(1), BusinessTime.Today(lateNight), ProductionOrderStatus.InProgress).Risk.Should().Be(DeliveryRisk.AtRisk);
+        ProductionOrderRisk.Evaluate(promised, null, BusinessTime.Today(morning), ProductionOrderStatus.InProgress).Should().Be(new DeliveryAssessment(DeliveryRisk.Late, 1));
     }
 
     [Fact]
