@@ -94,10 +94,14 @@ public sealed partial class ScheduleService(
     public async Task<bool> TryMarkPendingAsync(ScheduleTrigger trigger, CancellationToken cancellationToken = default) =>
         await MarkPendingAsync(trigger, null, cancellationToken);
 
-    /// <summary>As marcas que chegaram durante o cálculo rodam em seguida, uma de cada vez (a marca é uma só, por mais pedidos que cheguem).</summary>
+    /// <summary>
+    /// As marcas que chegaram durante o cálculo rodam em seguida, uma de cada vez (a marca é uma só, por mais pedidos que cheguem). No
+    /// "Recalcular agora" roda no máximo uma, para o request não esperar a fábrica inteira; as outras ficam com o job delas.
+    /// </summary>
     private async Task FollowUpsAsync(ScheduleTrigger trigger, CancellationToken ct)
     {
-        for (var i = 0; i < MaxFollowUps; i++)
+        var limit = trigger == ScheduleTrigger.Manual ? 1 : MaxFollowUps;
+        for (var i = 0; i < limit; i++)
         {
             var (state, _) = await TryRunAsync(trigger, null, onlyIfPending: true, ct);
             if (state != Attempt.Ran)

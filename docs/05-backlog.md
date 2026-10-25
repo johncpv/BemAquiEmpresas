@@ -412,7 +412,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-4--planejamento-p
 - Requisitos: R-PLN-3, R-PLN-1, R-SEC-5, PRD §6 (Desempenho).
 - CA: algoritmo do `04-fluxos` §3.4: fila de projetos pela data prometida e depois a assinatura, etapa em andamento primeiro com mínimo de 10% do padrão, etapa seguinte no dia útil seguinte, retrabalho com as horas padrão; datas só nas tabelas do plano (`schedule_runs`, `schedule_allocations`, `schedule_step_forecasts`, ADR 0029), um escritor, fora da auditoria; cenário fixo batendo as datas; 50 OS em menos de 2 s.
 
-**PLN-01b [ ] Recálculo por evento, data prevista do projeto e risco de atraso (M)** — 4.3, ordem 7 — `Ready (pré-condição externa)` — [story](stories/PLN-01b-recalculo-previsao-risco.md)
+**PLN-01b [x] Recálculo por evento, data prevista do projeto e risco de atraso (M)** — 4.3, ordem 7 — `Done` — [story](stories/PLN-01b-recalculo-previsao-risco.md)
 - Requisitos: R-PLN-3, R-PLN-4, R-COM-2, R-PRP-5, PRD §1.2, PRD §6.
 - CA: o plano se refaz a cada evento, com pedidos agrupados (1 rodando, 1 pendente), em até 10 s; data prevista do projeto em `commercial.project_forecasts` = fim da fabricação + prazo de instalação (5 dias úteis, parâmetro); `ProjectForecastChanged` com `computedAt`; prevista > prometida avisa o responsável e `production.approve`, sem tolerância.
 
