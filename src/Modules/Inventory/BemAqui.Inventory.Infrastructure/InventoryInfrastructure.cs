@@ -87,6 +87,8 @@ public static class InventoryInfrastructure
         // Rastreabilidade (EST-04): série → origem, lote → destino e exportação auditada; aba Lotes e correção do lote (auditada pelo Lot).
         services.TryAddScoped<TraceabilityService>();
         services.TryAddScoped<LotService>();
+        // Capacidade de produzir (EST-06): só leitura sobre o IBoms, a posição agregada e o saldo a receber das compras; nada gravado.
+        services.TryAddScoped<ProductionCapacityService>();
         // Ajuste de estoque (EST-01b): todo ajuste com aprovação por outra pessoa; o efeito é síncrono pelo motor na aprovação.
         services.TryAddScoped<StockAdjustmentService>();
         services.AddAuditableEntity<StockAdjustment>("inventory");

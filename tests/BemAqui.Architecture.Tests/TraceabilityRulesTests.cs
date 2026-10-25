@@ -49,7 +49,7 @@ public class TraceabilityRulesTests
     public void Inventory_nao_le_o_Purchasing()
     {
         var application = Path.Combine(Inventory, "BemAqui.Inventory.Application");
-        // CMP-01 (aviso de falta) lê Compras só pelo Purchasing.Contracts; a rastreabilidade não lê Compras.
+        // CMP-01 (aviso de falta) e EST-06 (saldo a receber) leem Compras só pelo Purchasing.Contracts; a rastreabilidade não lê Compras.
         File.ReadAllText(Path.Combine(application, "BemAqui.Inventory.Application.csproj")).Should()
             .NotContainAny(["Purchasing.Application", "Purchasing.Domain", "Purchasing.Infrastructure"], "ADR 0006: só o Purchasing.Contracts");
         File.ReadAllText(Path.Combine(application, "TraceabilityService.cs")).Should().NotContain("Purchasing", "o recebimento entra pelo movimento (número REC), sem ler a tabela de Compras");

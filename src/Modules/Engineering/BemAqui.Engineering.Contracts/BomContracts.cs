@@ -2,8 +2,15 @@ using BemAqui.SharedKernel;
 
 namespace BemAqui.Engineering.Contracts;
 
-/// <summary>Linha da BOM liberada para os outros módulos: a necessidade da OS já na unidade de estoque (4 casas).</summary>
-public sealed record BomRequirement(Guid BomLineId, Guid ItemId, decimal RequiredQty);
+/// <summary>
+/// Linha da BOM liberada para os outros módulos: a necessidade da OS já na unidade de estoque (4 casas). EST-06: também a quantidade
+/// <b>por unidade do produto</b> na unidade da linha, a unidade e a perda %, para a capacidade de produzir converter no Estoque (item
+/// sem conversão vira "não calculado", CA 5). Parâmetros opcionais: quem só usa a necessidade não muda.
+/// </summary>
+public sealed record BomRequirement(Guid BomLineId, Guid ItemId, decimal RequiredQty, decimal QuantityPerUnit = 0m, Guid UnitId = default, decimal ScrapPct = 0m);
+
+/// <summary>BOM liberada vigente de uma OS para a escolha da BOM de referência (EST-06 CA 1): sem as linhas, com quantas são.</summary>
+public sealed record ReleasedBomReference(Guid BomId, Guid ProductionOrderId, int Revision, DateTimeOffset ReleasedAt, int LineCount);
 
 /// <summary>Revisão liberada vigente da OS (ENG-02 CA 18): número, quando foi liberada e as linhas com a necessidade.</summary>
 public sealed record ReleasedBomInfo(Guid BomId, Guid ProductionOrderId, int Revision, DateTimeOffset ReleasedAt, IReadOnlyList<BomRequirement> Lines);
@@ -19,6 +26,12 @@ public interface IBoms
 
     /// <summary>A OS tem BOM liberada (bloqueio das etapas depois da primeira, D12, CA 16).</summary>
     Task<bool> IsReleasedAsync(Guid productionOrderId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// BOMs liberadas vigentes (uma por OS), a mais nova primeiro, até <paramref name="take"/> (1 a 500), para a BOM de referência da
+    /// EST-06 (CA 1). Inclui as OS concluídas: "quantos iguais a um já feito".
+    /// </summary>
+    Task<IReadOnlyList<ReleasedBomReference>> ReleasedAsync(int take, CancellationToken cancellationToken = default);
 }
 
 /// <summary>Linha do <see cref="BomReleased"/>: só ids e a necessidade na unidade de estoque.</summary>
