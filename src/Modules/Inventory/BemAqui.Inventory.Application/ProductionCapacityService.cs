@@ -27,6 +27,13 @@ public sealed class ProductionCapacityService(
 
     public const int MaxReferences = 50;
 
+    /// <summary>
+    /// O grupo da rota exige só o módulo <c>inventory</c>; a capacidade lê a BOM, então o módulo <c>engineering</c> precisa estar liberado no
+    /// tenant (403 <c>module_not_released</c>), conferido aqui (CA 6). A permissão <c>engineering.view</c> fica na rota.
+    /// </summary>
+    public Error? EngineeringNotReleased() =>
+        tenant.Resolved?.IsReleased("engineering") == true ? null : Error.Forbidden(Error.Codes.ModuleNotReleased, "Funcionalidade não liberada nessa versão do sistema.");
+
     /// <summary>BOMs de referência (CA 1): as liberadas vigentes, a mais nova primeiro; "Sugerido" na última de cada produto.</summary>
     public async Task<IReadOnlyList<CapacityReference>> ReferencesAsync(string? q, Guid? productId, CancellationToken cancellationToken = default)
     {
@@ -52,6 +59,11 @@ public sealed class ProductionCapacityService(
     /// </summary>
     public async Task<Result<ProductionCapacityView>> CalculateAsync(Guid? productionOrderId, Guid? productId, decimal? quantity, CancellationToken cancellationToken = default)
     {
+        if (EngineeringNotReleased() is { } notReleased)
+        {
+            return notReleased;
+        }
+
         var wanted = quantity ?? 1m;
         if (ProductionCapacityCalculator.ValidateQuantity(wanted) is { } invalid)
         {

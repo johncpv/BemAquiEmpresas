@@ -249,7 +249,7 @@ public class ProductionCapacityTests(TenancyFixture tenancy) : IClassFixture<Ten
         var withoutBom = await viewer.GetAsync($"{Url}?productionOrderId={noBom}");
         withoutBom.StatusCode.Should().Be(HttpStatusCode.NotFound, "CA 6: a BOM é validada pelo IBoms");
         (await CodeAsync(withoutBom)).Should().Be("bom_not_released");
-        (await viewer.GetAsync($"{Url}?productionOrderId={latest}&quantity=0")).StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        (await viewer.GetAsync($"{Url}?productionOrderId={latest}&quantity=0")).StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity, "validação é 422");
     }
 
     [Fact]
@@ -362,7 +362,7 @@ public class ProductionCapacityTests(TenancyFixture tenancy) : IClassFixture<Ten
         endpoints.Should().HaveCount(2);
         foreach (var endpoint in endpoints)
         {
-            endpoint.Metadata.GetOrderedMetadata<RequiresModuleMetadata>().Select(m => m.ModuleCode).Should().BeEquivalentTo(new[] { "inventory", "engineering" });
+            endpoint.Metadata.GetOrderedMetadata<RequiresModuleMetadata>().Select(m => m.ModuleCode).Should().Equal("inventory"); // o engineering é conferido pela perm: e pelo serviço
             endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>().Select(a => a.Policy).Should().Contain("perm:inventory.view").And.Contain("perm:engineering.view");
         }
     }
