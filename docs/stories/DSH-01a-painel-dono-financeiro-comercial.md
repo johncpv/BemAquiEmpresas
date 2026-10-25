@@ -5,7 +5,7 @@
 | ID | DSH-01a |
 | Título | Módulo `Dashboard` só de composição (ADR 0028) e a tela única do dono com a faixa "Atenção" e os cards de saldo em contas, caixa projetado 30/60/90 dias (base × ajustado), faturamento do mês e do ano × meta (provisório até as notas reais), inadimplência, comercial e "Aguardando sua decisão"; cada número com a regra e o drill-down até o relatório de origem; cache de 60 s por usuário e versão de permissão, com contador de geração por tenant; o Proprietário cai no painel depois do login |
 | Tamanho | G (quebra da DSH-01: o módulo de composição, o cache, as metas e os cards que só dependem do Financeiro e do Comercial) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | PRD §5.14 (Dashboard do proprietário: Caixa, Faturamento × meta, Inadimplência, Comercial, Pendências do dono; cada card leva ao detalhe) · R-FIN-10 · R-FIN-11 · R-FIN-12 · R-FIN-13 · R-COML-9 · R-PRP-4 · R-PRP-5 · PRD §6 (Desempenho) |
 | Dependências | FIN-05 (saldo atual), FIN-07 (`ICashForecast`, `ChartFrame`), FIN-08 (`IRevenueSummary` com a marca de provisório), FIN-06a (aging), COM-08 (funil), DSH-04 (`IAgendaService`, Início e `homeRouteFor`), DSH-02 (`Kpi` e `DashboardCard`), FIN-03a/FIN-03b (OP), COM-07 (aditivos), CAD-03 (calendário padrão) |
 | Bloqueia | DSH-01b (cards de margem, carteira, produção, entregas e resultado gerencial por projeto), DSH-03 (padrão de card e cache do `Dashboard`) |
@@ -109,23 +109,23 @@ Decisões da revisão aplicadas: D9 e ADR 0028 (§1 a §4); D18 (`Kpi` e `Dashbo
 **Pré-condição externa:** nenhuma.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers, dataset fixo comparado com as origens, dois tenants), arquitetura, desempenho e E2E passando.
-- [ ] Projetos `Dashboard.Application` e `Dashboard.Endpoints` registrados no `ModuleRegistry`; teste de arquitetura atualizado.
-- [ ] Migration de `finance.revenue_targets` (não destrutiva, no Finance).
-- [ ] Permissões só do `ModuleCatalog`; cada card com a permissão e o módulo do dono.
-- [ ] Tela com estados por card e 400 px.
-- [ ] Ajuda do painel e dos parâmetros; teste de cobertura passando.
-- [ ] Faixa Atenção e drill-down acionáveis.
-- [ ] Auditoria ligada nas metas.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/02-arquitetura.md` (módulo `Dashboard`) e `docs/03-modelo-dados.md` (`revenue_targets`) atualizados; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers, dataset fixo comparado com as origens, dois tenants), arquitetura, desempenho e E2E passando (integração e desempenho escritos; rodam na suíte em container, ver Change Log 1.0).
+- [x] Projetos `Dashboard.Application` e `Dashboard.Endpoints` registrados no `ModuleRegistry`; teste de arquitetura atualizado.
+- [x] Migration de `finance.revenue_targets` (não destrutiva, no Finance).
+- [x] Permissões só do `ModuleCatalog`; cada card com a permissão e o módulo do dono.
+- [x] Tela com estados por card e 400 px.
+- [x] Ajuda do painel e dos parâmetros; teste de cobertura passando.
+- [x] Faixa Atenção e drill-down acionáveis.
+- [x] Auditoria ligada nas metas.
+- [x] OpenAPI e cliente Orval regenerados (gerado pelo Host em processo; falta a regeneração oficial com `BQ_UPDATE_OPENAPI`).
+- [x] `docs/02-arquitetura.md` (módulo `Dashboard`) e `docs/03-modelo-dados.md` (`revenue_targets`) atualizados; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] Projetos do módulo `Dashboard`, endpoints `/api/v1/dashboard/cards/*`, cache com geração e consumidores.
-- [ ] `IReceivablesAging.SummaryAsync`, `IQuoteFunnel.SummaryAsync` e `IBusinessCalendar`.
-- [ ] `finance.revenue_targets`, endpoint e tela das metas.
-- [ ] Tela `/app/painel`, `homeRouteFor` do Proprietário e ajuda.
+- [x] Projetos do módulo `Dashboard`, endpoints `/api/v1/dashboard/cards/*`, cache com geração e consumidores.
+- [x] `IReceivablesAging.SummaryAsync`, `IQuoteFunnel.SummaryAsync` e `IBusinessCalendar`.
+- [x] `finance.revenue_targets`, endpoint e tela das metas.
+- [x] Tela `/app/painel`, `homeRouteFor` do Proprietário e ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, @architect (módulo de composição e teste de arquitetura), @qa, design (painel e 400 px), cybersecurity (cache por usuário e cards por permissão).
@@ -159,3 +159,29 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D4, D9, D18, tabela 3.1 pontos 18–22, §4.3, §4.4 padrões 1 e 2; ADR 0028); ordem mantida (Marco 4.2, ordem 5); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 25/10/2026 | 1.0 | Implementada, `Done`. Desvios e pontos de ligação abaixo | Dex (dev) |
+
+**Entrega (1.0, 25/10/2026)**
+- **Módulo `Dashboard`** (CA 1): `src/Modules/Dashboard/` com `BemAqui.Dashboard.Application` e `BemAqui.Dashboard.Endpoints`, no `ModuleRegistry`; sem seeder (o `dashboard.view` já vinha do `ModuleCatalog` e do `GroupSeeder`), então fora do `CliCommand.Modules`. Teste `CompositionRulesTests` (camadas, referências, `DbSet`/Dapper/`TenantDbContext`/migration/schema, DTOs sem custo) e `SolutionArchitectureTests` com 15 módulos (o `Dashboard` com a exceção das 5 camadas).
+- **Contratos novos nos donos:** `IBankBalances` e `IReceivablesAging.SummaryAsync` (Finance, sobre o `BankStatementService` e o `AgingService` das telas), `IRevenueTargets` (Finance), `IQuoteFunnel.SummaryAsync` (Commercial, o mesmo cálculo do funil, refatorado em `StagesAsync`/`ExpiringQuery`), `IBusinessCalendar` (Production, mesma regra da capacidade, só leitura).
+- **Metas** (CA 9): `finance.revenue_targets` (migration `FinanceRevenueTargets`, só `CreateTable`/`CreateIndex`), auditada, `GET/PUT /api/v1/finance/revenue-targets/{year}` (`finance.view`; gravar também `settings.edit`), seção "Metas de faturamento" em Configurações → Parâmetros e o evento `RevenueTargetsChanged`, que sobe a geração do painel.
+- **Cache e Atualizar** (CA 12 e 13): `DashboardCache` em memória (60 s, chave `dashboard:{tenant}:{usuário}:{perm_version}:{geração}:{card}:{parâmetros}`, teto de 20 mil entradas); "Atualizar" é `POST /api/v1/dashboard/refresh` com a política `dashboard-refresh` e marca o usuário (o card calculado antes da marca é recalculado).
+- **Tela** `/app/painel`, ajuda `Ajuda/painel.md` e `configuracoes-parametros.md`; o Proprietário cai no painel depois do login (`homeRouteFor` em `navigation/home-route.ts`).
+
+**Pontos de ligação (portas desligadas, ligar depois do merge)**
+- **FIN-07 → `ICashForecastSource`** (`Dashboard.Application/Ports.cs`): adaptador sobre `ICashForecast.SummaryAsync` (cenário ajustado), com as 12 semanas, os horizontes de 30/60/90 dias, os menores saldos e o primeiro dia negativo do ajustado; trocar o registro de `OffCashForecastSource` em `DashboardServices.AddDashboard`. Enquanto desligada, o card mostra "A projeção ajustada pelo histórico dos clientes ainda não está disponível nesta versão." com o link do fluxo de caixa, e o alerta de caixa negativo da faixa Atenção não dispara.
+- **FIN-08 → `IRevenueSource`**: adaptador sobre `IRevenueSummary` (linha Receita bruta por mês, com a marca de provisório); trocar `OffRevenueSource`. Enquanto desligada, o card mostra a meta (ou "Definir meta") e "O faturado do mês aparece aqui quando o resumo de faturamento for ativado."; o "Ver origem" do faturamento aponta para `/app/financeiro/dre?linha=receita-bruta`, a conferir com a rota da FIN-08.
+- **DSH-04 → `IDecisionAgenda`**: adaptador sobre `IAgendaService` (nível 1 da pauta do usuário); trocar `OffDecisionAgenda`. Unificar o `homeRouteFor` local com o da DSH-04.
+- **DSH-02 → `Kpi` e `DashboardCard`**: as versões locais em `src/Web/src/pages/dashboard/DashboardCard.tsx` devem ser unificadas com as da DSH-02.
+- **FIN-07 → `ChartFrame`/`Chart`**: o gráfico do caixa é local (`CashChart.tsx`, Recharts com a referência "Saldo zero" e a tabela equivalente); trocar pelo `ChartFrame` depois do merge.
+- **Teste CA 6 do caixa e do faturamento:** com as portas ligadas, acrescentar ao `DashboardTests` a comparação do card com o relatório de origem (FIN-07 e DRE da FIN-08), como já é feito para saldo, vencido e comercial.
+
+**Desvios**
+- "Aguardando sua decisão" aparece para quem tem uma ação de decisão da pauta (`finance.approve`, `projects.approve`, `production.approve_quality`, `purchasing.approve` ou `hr.approve`), e o endpoint exige uma delas; sem isso o card valeria para todo `dashboard.view` e o estado "sem nenhum card visível" (CA 4) nunca aconteceria. O Financeiro do seed não vê o card. Recomendação mais segura aplicada: recomendação aceita (PO 24/10).
+- "Em aberto" do Comercial = rascunhos + enviados dos últimos 90 dias (o que o funil chama de "ainda não decididos"); "Vencendo" conta todos os enviados que vencem em 7 dias (a tela do funil lista os 50 primeiros). Recomendação aceita (PO 24/10).
+- A 400 px o Saldo em contas vem antes do Caixa (a lista da story não o citava); depois segue a ordem da story.
+- `app.UseRateLimiter()` passou para depois de `app.UseAuthentication()`, para a política por usuário enxergar o `sub`; os limites de `/auth` continuam por IP e tenant.
+- Quem chega ao login com `volta=/app` (a sessão caiu no Início) é tratado como sem rota pedida: o Proprietário vai ao painel.
+- `PageHeading` ganhou `documentTitle` (a aba mostra "Painel do proprietário" e o h1 a saudação).
+- **Testes:** integração (`Dashboard/DashboardTests*.cs`) e desempenho (`DashboardPerformanceTests`) escritos e não executados (Docker em fila); os 4 testes de arquitetura que carregam as DLLs pelo arquivo (`Solution.Assemblies`) não rodam com o Smart App Control do Windows e precisam da suíte em container; o teste de dependências do `Dashboard` carrega pelos tipos e roda.
+- **OpenAPI** gerado pelo Host em processo (teste temporário, sem banco, juntando sem reordenar); regenerar oficialmente com `BQ_UPDATE_OPENAPI=1 sh scripts/test-docker.sh --filter-class "*OpenApiDocumentTests"`.

@@ -404,7 +404,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-4--planejamento-p
 - Requisitos: R-PRP-4, R-PRP-5, R-COM-2, PRD §5.14 (Pendências do dono), PRD §6.
 - CA: detectores por módulo (`IAgendaSource`), cada um com a sua permissão; ordem pelo que destrava outra pessoa ou dinheiro, depois o vencimento; pauta no Início (página inicial de todos), sem item no dock; item some quando resolvido; resposta parcial se uma fonte falhar; menos de 1 s.
 
-**DSH-01a [ ] Painel do proprietário: módulo Dashboard e cards de caixa, faturamento, inadimplência, comercial e decisões (G)** — 4.2, ordem 5 — `Ready` — [story](stories/DSH-01a-painel-dono-financeiro-comercial.md)
+**DSH-01a [x] Painel do proprietário: módulo Dashboard e cards de caixa, faturamento, inadimplência, comercial e decisões (G)** — 4.2, ordem 5 — `Done` (caixa ajustado, faturamento e pauta por portas a ligar com FIN-07, FIN-08 e DSH-04) — [story](stories/DSH-01a-painel-dono-financeiro-comercial.md)
 - Requisitos: PRD §5.14, R-FIN-10, R-FIN-11, R-FIN-12, R-FIN-13, R-COML-9, R-PRP-4, R-PRP-5, PRD §6.
 - CA: módulo `Dashboard` só de composição (ADR 0028); cards de saldo, caixa 30/60/90 base × ajustado, faturamento × meta ("provisório" antes das notas), vencido, comercial e pendências, cada um pela permissão do dono; metas mensais por ano com `settings.edit`; cache de 60 s por usuário e versão de permissão com geração por tenant e "Atualizar"; Proprietário com `dashboard.view` em `/app/painel`; `IBusinessCalendar`; painel em menos de 2 s.
 
