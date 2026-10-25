@@ -77,6 +77,7 @@ import type {
   CalendarExceptionDetail,
   CalendarExceptionInput,
   CalendarInput,
+  CarrierOption,
   CashFlowDay,
   CashFlowResult,
   CategoryDetail,
@@ -167,6 +168,9 @@ import type {
   GetRfqDefaultsParams,
   GetRfqHistoryParams,
   GetRoutingTemplateHistoryParams,
+  GetShipmentFormParams,
+  GetShipmentHistoryParams,
+  GetStockAdjustmentHistoryParams,
   GoodsReceiptDefaults,
   GoodsReceiptDetail,
   GoodsReceiptInput,
@@ -274,6 +278,10 @@ import type {
   ListRfqsParams,
   ListRoutingProductOptionsParams,
   ListRoutingTemplatesParams,
+  ListShipmentCarriersParams,
+  ListShipmentGeneralStockParams,
+  ListShipmentsParams,
+  ListStockAdjustmentsParams,
   ListStockBalancesParams,
   ListStockMovementsParams,
   ListStockShortagesParams,
@@ -355,6 +363,7 @@ import type {
   PagedListOfRfqSummary,
   PagedListOfRoutingTemplateSummary,
   PagedListOfShortageRow,
+  PagedListOfStockAdjustmentSummary,
   PagedListOfTenantRow,
   PagedListOfWorkCenterDetail,
   PartyAddressInfo,
@@ -471,6 +480,8 @@ import type {
   QuoteSendDraft,
   QuoteSendInput,
   QuoteTermOption,
+  ReadyToShipLine,
+  ReadyToShipProject,
   ReasonInput,
   ReceiptLocationOption,
   ReceivableDetail,
@@ -533,6 +544,14 @@ import type {
   SettlementInput,
   SettlementView,
   Shift,
+  ShipmentDecisionInput,
+  ShipmentDetail,
+  ShipmentForm,
+  ShipmentImpact,
+  ShipmentInput,
+  ShipmentLineView,
+  ShipmentPage,
+  ShipmentReasonInput,
   ShopfloorActionResult,
   ShopfloorAttachment,
   ShopfloorChecklistInput,
@@ -550,6 +569,11 @@ import type {
   SplitPreviewInput,
   SplitPreviewRequest,
   StatementResult,
+  StockAdjustmentDecisionInput,
+  StockAdjustmentDetail,
+  StockAdjustmentInput,
+  StockAdjustmentLineView,
+  StockAdjustmentReasonInput,
   StockItemContext,
   StockOpeningStatus,
   StockProjectOption,
@@ -28970,6 +28994,1504 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getCancelInstallationMutationOptions(options), queryClient);
     }
 
+export const getListShipmentsUrl = (params?: ListShipmentsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/production/shipments?${stringifiedParams}` : `/api/v1/production/shipments`
+}
+
+export const listShipments = async (params?: ListShipmentsParams, options?: Parameters<typeof apiFetch>[1]): Promise<ShipmentPage> => {
+
+  return apiFetch<ShipmentPage>(getListShipmentsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListShipmentsQueryKey = (params?: ListShipmentsParams,) => {
+    return [
+    `/api/v1/production/shipments`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListShipmentsQueryOptions = <TData = Awaited<ReturnType<typeof listShipments>>, TError = unknown>(params?: ListShipmentsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShipments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListShipmentsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listShipments>>> = ({ signal }) => listShipments(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listShipments>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListShipmentsQueryResult = NonNullable<Awaited<ReturnType<typeof listShipments>>>
+export type ListShipmentsQueryError = unknown
+
+
+export function useListShipments<TData = Awaited<ReturnType<typeof listShipments>>, TError = unknown>(
+ params: undefined |  ListShipmentsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShipments>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listShipments>>,
+          TError,
+          Awaited<ReturnType<typeof listShipments>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListShipments<TData = Awaited<ReturnType<typeof listShipments>>, TError = unknown>(
+ params?: ListShipmentsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShipments>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listShipments>>,
+          TError,
+          Awaited<ReturnType<typeof listShipments>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListShipments<TData = Awaited<ReturnType<typeof listShipments>>, TError = unknown>(
+ params?: ListShipmentsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShipments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListShipments<TData = Awaited<ReturnType<typeof listShipments>>, TError = unknown>(
+ params?: ListShipmentsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShipments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListShipmentsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateShipmentUrl = () => {
+
+
+
+
+  return `/api/v1/production/shipments`
+}
+
+export const createShipment = async (shipmentInput: ShipmentInput, options?: Parameters<typeof apiFetch>[1]): Promise<ShipmentDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ShipmentDetail>(getCreateShipmentUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(shipmentInput)
+  }
+);}
+
+
+
+
+
+export const getCreateShipmentMutationKey = () => ['createShipment'] as const;
+
+export const getCreateShipmentMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createShipment>>, TError,CreateShipmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createShipment>>, TError,CreateShipmentMutationVariables, TContext> => {
+
+const mutationKey = getCreateShipmentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createShipment>>, CreateShipmentMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createShipment(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateShipmentMutationResult = NonNullable<Awaited<ReturnType<typeof createShipment>>>
+    export type CreateShipmentMutationBody = ShipmentInput
+    export type CreateShipmentMutationError = unknown
+    export type CreateShipmentMutationVariables = {data: ShipmentInput}
+
+    export const useCreateShipment = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createShipment>>, TError,CreateShipmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createShipment>>,
+        TError,
+        CreateShipmentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateShipmentMutationOptions(options), queryClient);
+    }
+
+export const getListReadyToShipUrl = () => {
+
+
+
+
+  return `/api/v1/production/shipments/ready`
+}
+
+export const listReadyToShip = async ( options?: Parameters<typeof apiFetch>[1]): Promise<ReadyToShipProject[]> => {
+
+  return apiFetch<ReadyToShipProject[]>(getListReadyToShipUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListReadyToShipQueryKey = () => {
+    return [
+    `/api/v1/production/shipments/ready`
+    ] as const;
+    }
+
+
+export const getListReadyToShipQueryOptions = <TData = Awaited<ReturnType<typeof listReadyToShip>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listReadyToShip>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListReadyToShipQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listReadyToShip>>> = ({ signal }) => listReadyToShip({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listReadyToShip>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListReadyToShipQueryResult = NonNullable<Awaited<ReturnType<typeof listReadyToShip>>>
+export type ListReadyToShipQueryError = unknown
+
+
+export function useListReadyToShip<TData = Awaited<ReturnType<typeof listReadyToShip>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listReadyToShip>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listReadyToShip>>,
+          TError,
+          Awaited<ReturnType<typeof listReadyToShip>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListReadyToShip<TData = Awaited<ReturnType<typeof listReadyToShip>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listReadyToShip>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listReadyToShip>>,
+          TError,
+          Awaited<ReturnType<typeof listReadyToShip>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListReadyToShip<TData = Awaited<ReturnType<typeof listReadyToShip>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listReadyToShip>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListReadyToShip<TData = Awaited<ReturnType<typeof listReadyToShip>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listReadyToShip>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListReadyToShipQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetShipmentFormUrl = (params: GetShipmentFormParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/production/shipments/form?${stringifiedParams}` : `/api/v1/production/shipments/form`
+}
+
+export const getShipmentForm = async (params: GetShipmentFormParams, options?: Parameters<typeof apiFetch>[1]): Promise<ShipmentForm> => {
+
+  return apiFetch<ShipmentForm>(getGetShipmentFormUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetShipmentFormQueryKey = (params?: GetShipmentFormParams,) => {
+    return [
+    `/api/v1/production/shipments/form`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetShipmentFormQueryOptions = <TData = Awaited<ReturnType<typeof getShipmentForm>>, TError = unknown>(params: GetShipmentFormParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShipmentForm>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetShipmentFormQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getShipmentForm>>> = ({ signal }) => getShipmentForm(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getShipmentForm>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetShipmentFormQueryResult = NonNullable<Awaited<ReturnType<typeof getShipmentForm>>>
+export type GetShipmentFormQueryError = unknown
+
+
+export function useGetShipmentForm<TData = Awaited<ReturnType<typeof getShipmentForm>>, TError = unknown>(
+ params: GetShipmentFormParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShipmentForm>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getShipmentForm>>,
+          TError,
+          Awaited<ReturnType<typeof getShipmentForm>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetShipmentForm<TData = Awaited<ReturnType<typeof getShipmentForm>>, TError = unknown>(
+ params: GetShipmentFormParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShipmentForm>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getShipmentForm>>,
+          TError,
+          Awaited<ReturnType<typeof getShipmentForm>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetShipmentForm<TData = Awaited<ReturnType<typeof getShipmentForm>>, TError = unknown>(
+ params: GetShipmentFormParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShipmentForm>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetShipmentForm<TData = Awaited<ReturnType<typeof getShipmentForm>>, TError = unknown>(
+ params: GetShipmentFormParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShipmentForm>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetShipmentFormQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListShipmentGeneralStockUrl = (params?: ListShipmentGeneralStockParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/production/shipments/general-stock?${stringifiedParams}` : `/api/v1/production/shipments/general-stock`
+}
+
+export const listShipmentGeneralStock = async (params?: ListShipmentGeneralStockParams, options?: Parameters<typeof apiFetch>[1]): Promise<ReadyToShipLine[]> => {
+
+  return apiFetch<ReadyToShipLine[]>(getListShipmentGeneralStockUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListShipmentGeneralStockQueryKey = (params?: ListShipmentGeneralStockParams,) => {
+    return [
+    `/api/v1/production/shipments/general-stock`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListShipmentGeneralStockQueryOptions = <TData = Awaited<ReturnType<typeof listShipmentGeneralStock>>, TError = unknown>(params?: ListShipmentGeneralStockParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShipmentGeneralStock>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListShipmentGeneralStockQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listShipmentGeneralStock>>> = ({ signal }) => listShipmentGeneralStock(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listShipmentGeneralStock>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListShipmentGeneralStockQueryResult = NonNullable<Awaited<ReturnType<typeof listShipmentGeneralStock>>>
+export type ListShipmentGeneralStockQueryError = unknown
+
+
+export function useListShipmentGeneralStock<TData = Awaited<ReturnType<typeof listShipmentGeneralStock>>, TError = unknown>(
+ params: undefined |  ListShipmentGeneralStockParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShipmentGeneralStock>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listShipmentGeneralStock>>,
+          TError,
+          Awaited<ReturnType<typeof listShipmentGeneralStock>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListShipmentGeneralStock<TData = Awaited<ReturnType<typeof listShipmentGeneralStock>>, TError = unknown>(
+ params?: ListShipmentGeneralStockParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShipmentGeneralStock>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listShipmentGeneralStock>>,
+          TError,
+          Awaited<ReturnType<typeof listShipmentGeneralStock>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListShipmentGeneralStock<TData = Awaited<ReturnType<typeof listShipmentGeneralStock>>, TError = unknown>(
+ params?: ListShipmentGeneralStockParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShipmentGeneralStock>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListShipmentGeneralStock<TData = Awaited<ReturnType<typeof listShipmentGeneralStock>>, TError = unknown>(
+ params?: ListShipmentGeneralStockParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShipmentGeneralStock>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListShipmentGeneralStockQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListShipmentCarriersUrl = (params?: ListShipmentCarriersParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/production/shipments/carriers?${stringifiedParams}` : `/api/v1/production/shipments/carriers`
+}
+
+export const listShipmentCarriers = async (params?: ListShipmentCarriersParams, options?: Parameters<typeof apiFetch>[1]): Promise<CarrierOption[]> => {
+
+  return apiFetch<CarrierOption[]>(getListShipmentCarriersUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListShipmentCarriersQueryKey = (params?: ListShipmentCarriersParams,) => {
+    return [
+    `/api/v1/production/shipments/carriers`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListShipmentCarriersQueryOptions = <TData = Awaited<ReturnType<typeof listShipmentCarriers>>, TError = unknown>(params?: ListShipmentCarriersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShipmentCarriers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListShipmentCarriersQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listShipmentCarriers>>> = ({ signal }) => listShipmentCarriers(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listShipmentCarriers>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListShipmentCarriersQueryResult = NonNullable<Awaited<ReturnType<typeof listShipmentCarriers>>>
+export type ListShipmentCarriersQueryError = unknown
+
+
+export function useListShipmentCarriers<TData = Awaited<ReturnType<typeof listShipmentCarriers>>, TError = unknown>(
+ params: undefined |  ListShipmentCarriersParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShipmentCarriers>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listShipmentCarriers>>,
+          TError,
+          Awaited<ReturnType<typeof listShipmentCarriers>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListShipmentCarriers<TData = Awaited<ReturnType<typeof listShipmentCarriers>>, TError = unknown>(
+ params?: ListShipmentCarriersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShipmentCarriers>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listShipmentCarriers>>,
+          TError,
+          Awaited<ReturnType<typeof listShipmentCarriers>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListShipmentCarriers<TData = Awaited<ReturnType<typeof listShipmentCarriers>>, TError = unknown>(
+ params?: ListShipmentCarriersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShipmentCarriers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListShipmentCarriers<TData = Awaited<ReturnType<typeof listShipmentCarriers>>, TError = unknown>(
+ params?: ListShipmentCarriersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShipmentCarriers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListShipmentCarriersQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetShipmentUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/shipments/${id}`
+}
+
+export const getShipment = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<ShipmentDetail> => {
+
+  return apiFetch<ShipmentDetail>(getGetShipmentUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetShipmentQueryKey = (id: string,) => {
+    return [
+    `/api/v1/production/shipments/${id}`
+    ] as const;
+    }
+
+
+export const getGetShipmentQueryOptions = <TData = Awaited<ReturnType<typeof getShipment>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShipment>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetShipmentQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getShipment>>> = ({ signal }) => getShipment(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getShipment>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetShipmentQueryResult = NonNullable<Awaited<ReturnType<typeof getShipment>>>
+export type GetShipmentQueryError = unknown
+
+
+export function useGetShipment<TData = Awaited<ReturnType<typeof getShipment>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShipment>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getShipment>>,
+          TError,
+          Awaited<ReturnType<typeof getShipment>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetShipment<TData = Awaited<ReturnType<typeof getShipment>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShipment>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getShipment>>,
+          TError,
+          Awaited<ReturnType<typeof getShipment>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetShipment<TData = Awaited<ReturnType<typeof getShipment>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShipment>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetShipment<TData = Awaited<ReturnType<typeof getShipment>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShipment>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetShipmentQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateShipmentUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/shipments/${id}`
+}
+
+export const updateShipment = async (id: string,
+    shipmentInput: ShipmentInput, options?: Parameters<typeof apiFetch>[1]): Promise<ShipmentDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ShipmentDetail>(getUpdateShipmentUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(shipmentInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateShipmentMutationKey = () => ['updateShipment'] as const;
+
+export const getUpdateShipmentMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateShipment>>, TError,UpdateShipmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateShipment>>, TError,UpdateShipmentMutationVariables, TContext> => {
+
+const mutationKey = getUpdateShipmentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateShipment>>, UpdateShipmentMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateShipment(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateShipmentMutationResult = NonNullable<Awaited<ReturnType<typeof updateShipment>>>
+    export type UpdateShipmentMutationBody = ShipmentInput
+    export type UpdateShipmentMutationError = unknown
+    export type UpdateShipmentMutationVariables = {id: string;data: ShipmentInput}
+
+    export const useUpdateShipment = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateShipment>>, TError,UpdateShipmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateShipment>>,
+        TError,
+        UpdateShipmentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateShipmentMutationOptions(options), queryClient);
+    }
+
+export const getGetShipmentLineUrl = (id: string,
+    lineId: string,) => {
+
+
+
+
+  return `/api/v1/production/shipments/${id}/lines/${lineId}`
+}
+
+export const getShipmentLine = async (id: string,
+    lineId: string, options?: Parameters<typeof apiFetch>[1]): Promise<ShipmentLineView> => {
+
+  return apiFetch<ShipmentLineView>(getGetShipmentLineUrl(id,lineId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetShipmentLineQueryKey = (id: string,
+    lineId: string,) => {
+    return [
+    `/api/v1/production/shipments/${id}/lines/${lineId}`
+    ] as const;
+    }
+
+
+export const getGetShipmentLineQueryOptions = <TData = Awaited<ReturnType<typeof getShipmentLine>>, TError = unknown>(id: string,
+    lineId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShipmentLine>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetShipmentLineQueryKey(id,lineId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getShipmentLine>>> = ({ signal }) => getShipmentLine(id,lineId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && lineId !== null && lineId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getShipmentLine>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetShipmentLineQueryResult = NonNullable<Awaited<ReturnType<typeof getShipmentLine>>>
+export type GetShipmentLineQueryError = unknown
+
+
+export function useGetShipmentLine<TData = Awaited<ReturnType<typeof getShipmentLine>>, TError = unknown>(
+ id: string,
+    lineId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShipmentLine>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getShipmentLine>>,
+          TError,
+          Awaited<ReturnType<typeof getShipmentLine>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetShipmentLine<TData = Awaited<ReturnType<typeof getShipmentLine>>, TError = unknown>(
+ id: string,
+    lineId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShipmentLine>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getShipmentLine>>,
+          TError,
+          Awaited<ReturnType<typeof getShipmentLine>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetShipmentLine<TData = Awaited<ReturnType<typeof getShipmentLine>>, TError = unknown>(
+ id: string,
+    lineId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShipmentLine>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetShipmentLine<TData = Awaited<ReturnType<typeof getShipmentLine>>, TError = unknown>(
+ id: string,
+    lineId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShipmentLine>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetShipmentLineQueryOptions(id,lineId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetShipmentImpactUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/shipments/${id}/impact`
+}
+
+export const getShipmentImpact = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<ShipmentImpact> => {
+
+  return apiFetch<ShipmentImpact>(getGetShipmentImpactUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetShipmentImpactQueryKey = (id: string,) => {
+    return [
+    `/api/v1/production/shipments/${id}/impact`
+    ] as const;
+    }
+
+
+export const getGetShipmentImpactQueryOptions = <TData = Awaited<ReturnType<typeof getShipmentImpact>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShipmentImpact>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetShipmentImpactQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getShipmentImpact>>> = ({ signal }) => getShipmentImpact(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getShipmentImpact>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetShipmentImpactQueryResult = NonNullable<Awaited<ReturnType<typeof getShipmentImpact>>>
+export type GetShipmentImpactQueryError = unknown
+
+
+export function useGetShipmentImpact<TData = Awaited<ReturnType<typeof getShipmentImpact>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShipmentImpact>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getShipmentImpact>>,
+          TError,
+          Awaited<ReturnType<typeof getShipmentImpact>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetShipmentImpact<TData = Awaited<ReturnType<typeof getShipmentImpact>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShipmentImpact>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getShipmentImpact>>,
+          TError,
+          Awaited<ReturnType<typeof getShipmentImpact>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetShipmentImpact<TData = Awaited<ReturnType<typeof getShipmentImpact>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShipmentImpact>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetShipmentImpact<TData = Awaited<ReturnType<typeof getShipmentImpact>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShipmentImpact>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetShipmentImpactQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getDownloadShipmentPdfUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/shipments/${id}/pdf`
+}
+
+export const downloadShipmentPdf = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDownloadShipmentPdfUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadShipmentPdfQueryKey = (id: string,) => {
+    return [
+    `/api/v1/production/shipments/${id}/pdf`
+    ] as const;
+    }
+
+
+export const getDownloadShipmentPdfQueryOptions = <TData = Awaited<ReturnType<typeof downloadShipmentPdf>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadShipmentPdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadShipmentPdfQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadShipmentPdf>>> = ({ signal }) => downloadShipmentPdf(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadShipmentPdf>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DownloadShipmentPdfQueryResult = NonNullable<Awaited<ReturnType<typeof downloadShipmentPdf>>>
+export type DownloadShipmentPdfQueryError = unknown
+
+
+export function useDownloadShipmentPdf<TData = Awaited<ReturnType<typeof downloadShipmentPdf>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadShipmentPdf>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadShipmentPdf>>,
+          TError,
+          Awaited<ReturnType<typeof downloadShipmentPdf>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadShipmentPdf<TData = Awaited<ReturnType<typeof downloadShipmentPdf>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadShipmentPdf>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadShipmentPdf>>,
+          TError,
+          Awaited<ReturnType<typeof downloadShipmentPdf>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadShipmentPdf<TData = Awaited<ReturnType<typeof downloadShipmentPdf>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadShipmentPdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useDownloadShipmentPdf<TData = Awaited<ReturnType<typeof downloadShipmentPdf>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadShipmentPdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDownloadShipmentPdfQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getConfirmShipmentUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/shipments/${id}/confirm`
+}
+
+export const confirmShipment = async (id: string,
+    shipmentDecisionInput: ShipmentDecisionInput, options?: Parameters<typeof apiFetch>[1]): Promise<ShipmentDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ShipmentDetail>(getConfirmShipmentUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(shipmentDecisionInput)
+  }
+);}
+
+
+
+
+
+export const getConfirmShipmentMutationKey = () => ['confirmShipment'] as const;
+
+export const getConfirmShipmentMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmShipment>>, TError,ConfirmShipmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof confirmShipment>>, TError,ConfirmShipmentMutationVariables, TContext> => {
+
+const mutationKey = getConfirmShipmentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof confirmShipment>>, ConfirmShipmentMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  confirmShipment(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConfirmShipmentMutationResult = NonNullable<Awaited<ReturnType<typeof confirmShipment>>>
+    export type ConfirmShipmentMutationBody = ShipmentDecisionInput
+    export type ConfirmShipmentMutationError = unknown
+    export type ConfirmShipmentMutationVariables = {id: string;data: ShipmentDecisionInput}
+
+    export const useConfirmShipment = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmShipment>>, TError,ConfirmShipmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof confirmShipment>>,
+        TError,
+        ConfirmShipmentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getConfirmShipmentMutationOptions(options), queryClient);
+    }
+
+export const getConfirmShipmentGeneralStockUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/shipments/${id}/confirm-stock`
+}
+
+export const confirmShipmentGeneralStock = async (id: string,
+    shipmentDecisionInput: ShipmentDecisionInput, options?: Parameters<typeof apiFetch>[1]): Promise<ShipmentDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ShipmentDetail>(getConfirmShipmentGeneralStockUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(shipmentDecisionInput)
+  }
+);}
+
+
+
+
+
+export const getConfirmShipmentGeneralStockMutationKey = () => ['confirmShipmentGeneralStock'] as const;
+
+export const getConfirmShipmentGeneralStockMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmShipmentGeneralStock>>, TError,ConfirmShipmentGeneralStockMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof confirmShipmentGeneralStock>>, TError,ConfirmShipmentGeneralStockMutationVariables, TContext> => {
+
+const mutationKey = getConfirmShipmentGeneralStockMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof confirmShipmentGeneralStock>>, ConfirmShipmentGeneralStockMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  confirmShipmentGeneralStock(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConfirmShipmentGeneralStockMutationResult = NonNullable<Awaited<ReturnType<typeof confirmShipmentGeneralStock>>>
+    export type ConfirmShipmentGeneralStockMutationBody = ShipmentDecisionInput
+    export type ConfirmShipmentGeneralStockMutationError = unknown
+    export type ConfirmShipmentGeneralStockMutationVariables = {id: string;data: ShipmentDecisionInput}
+
+    export const useConfirmShipmentGeneralStock = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmShipmentGeneralStock>>, TError,ConfirmShipmentGeneralStockMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof confirmShipmentGeneralStock>>,
+        TError,
+        ConfirmShipmentGeneralStockMutationVariables,
+        TContext
+      > => {
+      return useMutation(getConfirmShipmentGeneralStockMutationOptions(options), queryClient);
+    }
+
+export const getCancelShipmentUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/shipments/${id}/cancel`
+}
+
+export const cancelShipment = async (id: string,
+    shipmentReasonInput: ShipmentReasonInput, options?: Parameters<typeof apiFetch>[1]): Promise<ShipmentDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ShipmentDetail>(getCancelShipmentUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(shipmentReasonInput)
+  }
+);}
+
+
+
+
+
+export const getCancelShipmentMutationKey = () => ['cancelShipment'] as const;
+
+export const getCancelShipmentMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelShipment>>, TError,CancelShipmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelShipment>>, TError,CancelShipmentMutationVariables, TContext> => {
+
+const mutationKey = getCancelShipmentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelShipment>>, CancelShipmentMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  cancelShipment(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelShipmentMutationResult = NonNullable<Awaited<ReturnType<typeof cancelShipment>>>
+    export type CancelShipmentMutationBody = ShipmentReasonInput
+    export type CancelShipmentMutationError = unknown
+    export type CancelShipmentMutationVariables = {id: string;data: ShipmentReasonInput}
+
+    export const useCancelShipment = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelShipment>>, TError,CancelShipmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof cancelShipment>>,
+        TError,
+        CancelShipmentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCancelShipmentMutationOptions(options), queryClient);
+    }
+
+export const getReverseShipmentUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/shipments/${id}/reverse`
+}
+
+export const reverseShipment = async (id: string,
+    shipmentReasonInput: ShipmentReasonInput, options?: Parameters<typeof apiFetch>[1]): Promise<ShipmentDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ShipmentDetail>(getReverseShipmentUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(shipmentReasonInput)
+  }
+);}
+
+
+
+
+
+export const getReverseShipmentMutationKey = () => ['reverseShipment'] as const;
+
+export const getReverseShipmentMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reverseShipment>>, TError,ReverseShipmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reverseShipment>>, TError,ReverseShipmentMutationVariables, TContext> => {
+
+const mutationKey = getReverseShipmentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reverseShipment>>, ReverseShipmentMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  reverseShipment(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReverseShipmentMutationResult = NonNullable<Awaited<ReturnType<typeof reverseShipment>>>
+    export type ReverseShipmentMutationBody = ShipmentReasonInput
+    export type ReverseShipmentMutationError = unknown
+    export type ReverseShipmentMutationVariables = {id: string;data: ShipmentReasonInput}
+
+    export const useReverseShipment = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reverseShipment>>, TError,ReverseShipmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reverseShipment>>,
+        TError,
+        ReverseShipmentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReverseShipmentMutationOptions(options), queryClient);
+    }
+
+export const getGetShipmentHistoryUrl = (id: string,
+    params?: GetShipmentHistoryParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/production/shipments/${id}/history?${stringifiedParams}` : `/api/v1/production/shipments/${id}/history`
+}
+
+export const getShipmentHistory = async (id: string,
+    params?: GetShipmentHistoryParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfRelatedAuditEntryDto> => {
+
+  return apiFetch<PagedListOfRelatedAuditEntryDto>(getGetShipmentHistoryUrl(id,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetShipmentHistoryQueryKey = (id: string,
+    params?: GetShipmentHistoryParams,) => {
+    return [
+    `/api/v1/production/shipments/${id}/history`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetShipmentHistoryQueryOptions = <TData = Awaited<ReturnType<typeof getShipmentHistory>>, TError = unknown>(id: string,
+    params?: GetShipmentHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShipmentHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetShipmentHistoryQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getShipmentHistory>>> = ({ signal }) => getShipmentHistory(id,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getShipmentHistory>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetShipmentHistoryQueryResult = NonNullable<Awaited<ReturnType<typeof getShipmentHistory>>>
+export type GetShipmentHistoryQueryError = unknown
+
+
+export function useGetShipmentHistory<TData = Awaited<ReturnType<typeof getShipmentHistory>>, TError = unknown>(
+ id: string,
+    params: undefined |  GetShipmentHistoryParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShipmentHistory>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getShipmentHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getShipmentHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetShipmentHistory<TData = Awaited<ReturnType<typeof getShipmentHistory>>, TError = unknown>(
+ id: string,
+    params?: GetShipmentHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShipmentHistory>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getShipmentHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getShipmentHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetShipmentHistory<TData = Awaited<ReturnType<typeof getShipmentHistory>>, TError = unknown>(
+ id: string,
+    params?: GetShipmentHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShipmentHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetShipmentHistory<TData = Awaited<ReturnType<typeof getShipmentHistory>>, TError = unknown>(
+ id: string,
+    params?: GetShipmentHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getShipmentHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetShipmentHistoryQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getGetInstallationTemplateUrl = () => {
 
 
@@ -34202,700 +35724,6 @@ export function useSearchStockProjects<TData = Awaited<ReturnType<typeof searchS
 
 
 
-export const getListItemLotsUrl = (itemId: string,) => {
-
-
-
-
-  return `/api/v1/inventory/items/${itemId}/lots`
-}
-
-export const listItemLots = async (itemId: string, options?: Parameters<typeof apiFetch>[1]): Promise<ItemLotRow[]> => {
-
-  return apiFetch<ItemLotRow[]>(getListItemLotsUrl(itemId),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getListItemLotsQueryKey = (itemId: string,) => {
-    return [
-    `/api/v1/inventory/items/${itemId}/lots`
-    ] as const;
-    }
-
-
-export const getListItemLotsQueryOptions = <TData = Awaited<ReturnType<typeof listItemLots>>, TError = unknown>(itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listItemLots>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getListItemLotsQueryKey(itemId);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listItemLots>>> = ({ signal }) => listItemLots(itemId, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: itemId !== null && itemId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listItemLots>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ListItemLotsQueryResult = NonNullable<Awaited<ReturnType<typeof listItemLots>>>
-export type ListItemLotsQueryError = unknown
-
-
-export function useListItemLots<TData = Awaited<ReturnType<typeof listItemLots>>, TError = unknown>(
- itemId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listItemLots>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listItemLots>>,
-          TError,
-          Awaited<ReturnType<typeof listItemLots>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListItemLots<TData = Awaited<ReturnType<typeof listItemLots>>, TError = unknown>(
- itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listItemLots>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listItemLots>>,
-          TError,
-          Awaited<ReturnType<typeof listItemLots>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListItemLots<TData = Awaited<ReturnType<typeof listItemLots>>, TError = unknown>(
- itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listItemLots>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useListItemLots<TData = Awaited<ReturnType<typeof listItemLots>>, TError = unknown>(
- itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listItemLots>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getListItemLotsQueryOptions(itemId,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getGetItemLotUrl = (itemId: string,
-    lotId: string,) => {
-
-
-
-
-  return `/api/v1/inventory/items/${itemId}/lots/${lotId}`
-}
-
-export const getItemLot = async (itemId: string,
-    lotId: string, options?: Parameters<typeof apiFetch>[1]): Promise<ItemLotRow> => {
-
-  return apiFetch<ItemLotRow>(getGetItemLotUrl(itemId,lotId),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getGetItemLotQueryKey = (itemId: string,
-    lotId: string,) => {
-    return [
-    `/api/v1/inventory/items/${itemId}/lots/${lotId}`
-    ] as const;
-    }
-
-
-export const getGetItemLotQueryOptions = <TData = Awaited<ReturnType<typeof getItemLot>>, TError = unknown>(itemId: string,
-    lotId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemLot>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetItemLotQueryKey(itemId,lotId);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getItemLot>>> = ({ signal }) => getItemLot(itemId,lotId, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: itemId !== null && itemId !== undefined && lotId !== null && lotId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getItemLot>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetItemLotQueryResult = NonNullable<Awaited<ReturnType<typeof getItemLot>>>
-export type GetItemLotQueryError = unknown
-
-
-export function useGetItemLot<TData = Awaited<ReturnType<typeof getItemLot>>, TError = unknown>(
- itemId: string,
-    lotId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemLot>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getItemLot>>,
-          TError,
-          Awaited<ReturnType<typeof getItemLot>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetItemLot<TData = Awaited<ReturnType<typeof getItemLot>>, TError = unknown>(
- itemId: string,
-    lotId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemLot>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getItemLot>>,
-          TError,
-          Awaited<ReturnType<typeof getItemLot>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetItemLot<TData = Awaited<ReturnType<typeof getItemLot>>, TError = unknown>(
- itemId: string,
-    lotId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemLot>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useGetItemLot<TData = Awaited<ReturnType<typeof getItemLot>>, TError = unknown>(
- itemId: string,
-    lotId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemLot>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetItemLotQueryOptions(itemId,lotId,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getCorrectItemLotUrl = (itemId: string,
-    lotId: string,) => {
-
-
-
-
-  return `/api/v1/inventory/items/${itemId}/lots/${lotId}`
-}
-
-export const correctItemLot = async (itemId: string,
-    lotId: string,
-    lotCorrectionInput: LotCorrectionInput, options?: Parameters<typeof apiFetch>[1]): Promise<ItemLotRow> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return apiFetch<ItemLotRow>(getCorrectItemLotUrl(itemId,lotId),
-  {
-    ...options,
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(lotCorrectionInput)
-  }
-);}
-
-
-
-
-
-export const getCorrectItemLotMutationKey = () => ['correctItemLot'] as const;
-
-export const getCorrectItemLotMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof correctItemLot>>, TError,CorrectItemLotMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof correctItemLot>>, TError,CorrectItemLotMutationVariables, TContext> => {
-
-const mutationKey = getCorrectItemLotMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof correctItemLot>>, CorrectItemLotMutationVariables> = (props) => {
-          const {itemId,lotId,data} = props ?? {};
-
-          return  correctItemLot(itemId,lotId,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type CorrectItemLotMutationResult = NonNullable<Awaited<ReturnType<typeof correctItemLot>>>
-    export type CorrectItemLotMutationBody = LotCorrectionInput
-    export type CorrectItemLotMutationError = unknown
-    export type CorrectItemLotMutationVariables = {itemId: string;lotId: string;data: LotCorrectionInput}
-
-    export const useCorrectItemLot = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof correctItemLot>>, TError,CorrectItemLotMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof correctItemLot>>,
-        TError,
-        CorrectItemLotMutationVariables,
-        TContext
-      > => {
-      return useMutation(getCorrectItemLotMutationOptions(options), queryClient);
-    }
-
-export const getGetLotTraceUrl = (itemId: string,
-    lotId: string,) => {
-
-
-
-
-  return `/api/v1/inventory/items/${itemId}/lots/${lotId}/trace`
-}
-
-export const getLotTrace = async (itemId: string,
-    lotId: string, options?: Parameters<typeof apiFetch>[1]): Promise<LotTrace> => {
-
-  return apiFetch<LotTrace>(getGetLotTraceUrl(itemId,lotId),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getGetLotTraceQueryKey = (itemId: string,
-    lotId: string,) => {
-    return [
-    `/api/v1/inventory/items/${itemId}/lots/${lotId}/trace`
-    ] as const;
-    }
-
-
-export const getGetLotTraceQueryOptions = <TData = Awaited<ReturnType<typeof getLotTrace>>, TError = unknown>(itemId: string,
-    lotId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLotTrace>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetLotTraceQueryKey(itemId,lotId);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLotTrace>>> = ({ signal }) => getLotTrace(itemId,lotId, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: itemId !== null && itemId !== undefined && lotId !== null && lotId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLotTrace>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetLotTraceQueryResult = NonNullable<Awaited<ReturnType<typeof getLotTrace>>>
-export type GetLotTraceQueryError = unknown
-
-
-export function useGetLotTrace<TData = Awaited<ReturnType<typeof getLotTrace>>, TError = unknown>(
- itemId: string,
-    lotId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLotTrace>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getLotTrace>>,
-          TError,
-          Awaited<ReturnType<typeof getLotTrace>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetLotTrace<TData = Awaited<ReturnType<typeof getLotTrace>>, TError = unknown>(
- itemId: string,
-    lotId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLotTrace>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getLotTrace>>,
-          TError,
-          Awaited<ReturnType<typeof getLotTrace>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetLotTrace<TData = Awaited<ReturnType<typeof getLotTrace>>, TError = unknown>(
- itemId: string,
-    lotId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLotTrace>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useGetLotTrace<TData = Awaited<ReturnType<typeof getLotTrace>>, TError = unknown>(
- itemId: string,
-    lotId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLotTrace>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetLotTraceQueryOptions(itemId,lotId,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getExportLotTraceUrl = (itemId: string,
-    lotId: string,) => {
-
-
-
-
-  return `/api/v1/inventory/items/${itemId}/lots/${lotId}/trace/export`
-}
-
-export const exportLotTrace = async (itemId: string,
-    lotId: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
-
-  return apiFetch<void>(getExportLotTraceUrl(itemId,lotId),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getExportLotTraceQueryKey = (itemId: string,
-    lotId: string,) => {
-    return [
-    `/api/v1/inventory/items/${itemId}/lots/${lotId}/trace/export`
-    ] as const;
-    }
-
-
-export const getExportLotTraceQueryOptions = <TData = Awaited<ReturnType<typeof exportLotTrace>>, TError = unknown>(itemId: string,
-    lotId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportLotTrace>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getExportLotTraceQueryKey(itemId,lotId);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportLotTrace>>> = ({ signal }) => exportLotTrace(itemId,lotId, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: itemId !== null && itemId !== undefined && lotId !== null && lotId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof exportLotTrace>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ExportLotTraceQueryResult = NonNullable<Awaited<ReturnType<typeof exportLotTrace>>>
-export type ExportLotTraceQueryError = unknown
-
-
-export function useExportLotTrace<TData = Awaited<ReturnType<typeof exportLotTrace>>, TError = unknown>(
- itemId: string,
-    lotId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportLotTrace>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof exportLotTrace>>,
-          TError,
-          Awaited<ReturnType<typeof exportLotTrace>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useExportLotTrace<TData = Awaited<ReturnType<typeof exportLotTrace>>, TError = unknown>(
- itemId: string,
-    lotId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportLotTrace>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof exportLotTrace>>,
-          TError,
-          Awaited<ReturnType<typeof exportLotTrace>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useExportLotTrace<TData = Awaited<ReturnType<typeof exportLotTrace>>, TError = unknown>(
- itemId: string,
-    lotId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportLotTrace>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useExportLotTrace<TData = Awaited<ReturnType<typeof exportLotTrace>>, TError = unknown>(
- itemId: string,
-    lotId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportLotTrace>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getExportLotTraceQueryOptions(itemId,lotId,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getGetSerialTraceUrl = (itemId: string,
-    serialId: string,) => {
-
-
-
-
-  return `/api/v1/inventory/items/${itemId}/serials/${serialId}/trace`
-}
-
-export const getSerialTrace = async (itemId: string,
-    serialId: string, options?: Parameters<typeof apiFetch>[1]): Promise<SerialTrace> => {
-
-  return apiFetch<SerialTrace>(getGetSerialTraceUrl(itemId,serialId),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getGetSerialTraceQueryKey = (itemId: string,
-    serialId: string,) => {
-    return [
-    `/api/v1/inventory/items/${itemId}/serials/${serialId}/trace`
-    ] as const;
-    }
-
-
-export const getGetSerialTraceQueryOptions = <TData = Awaited<ReturnType<typeof getSerialTrace>>, TError = unknown>(itemId: string,
-    serialId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSerialTrace>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetSerialTraceQueryKey(itemId,serialId);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSerialTrace>>> = ({ signal }) => getSerialTrace(itemId,serialId, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: itemId !== null && itemId !== undefined && serialId !== null && serialId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSerialTrace>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetSerialTraceQueryResult = NonNullable<Awaited<ReturnType<typeof getSerialTrace>>>
-export type GetSerialTraceQueryError = unknown
-
-
-export function useGetSerialTrace<TData = Awaited<ReturnType<typeof getSerialTrace>>, TError = unknown>(
- itemId: string,
-    serialId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSerialTrace>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getSerialTrace>>,
-          TError,
-          Awaited<ReturnType<typeof getSerialTrace>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetSerialTrace<TData = Awaited<ReturnType<typeof getSerialTrace>>, TError = unknown>(
- itemId: string,
-    serialId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSerialTrace>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getSerialTrace>>,
-          TError,
-          Awaited<ReturnType<typeof getSerialTrace>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetSerialTrace<TData = Awaited<ReturnType<typeof getSerialTrace>>, TError = unknown>(
- itemId: string,
-    serialId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSerialTrace>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useGetSerialTrace<TData = Awaited<ReturnType<typeof getSerialTrace>>, TError = unknown>(
- itemId: string,
-    serialId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSerialTrace>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetSerialTraceQueryOptions(itemId,serialId,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getSearchTraceabilityUrl = (params?: SearchTraceabilityParams,) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : String(value))
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `/api/v1/inventory/traceability?${stringifiedParams}` : `/api/v1/inventory/traceability`
-}
-
-export const searchTraceability = async (params?: SearchTraceabilityParams, options?: Parameters<typeof apiFetch>[1]): Promise<TraceSearchResult> => {
-
-  return apiFetch<TraceSearchResult>(getSearchTraceabilityUrl(params),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getSearchTraceabilityQueryKey = (params?: SearchTraceabilityParams,) => {
-    return [
-    `/api/v1/inventory/traceability`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-
-export const getSearchTraceabilityQueryOptions = <TData = Awaited<ReturnType<typeof searchTraceability>>, TError = unknown>(params?: SearchTraceabilityParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchTraceability>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getSearchTraceabilityQueryKey(params);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchTraceability>>> = ({ signal }) => searchTraceability(params, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof searchTraceability>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type SearchTraceabilityQueryResult = NonNullable<Awaited<ReturnType<typeof searchTraceability>>>
-export type SearchTraceabilityQueryError = unknown
-
-
-export function useSearchTraceability<TData = Awaited<ReturnType<typeof searchTraceability>>, TError = unknown>(
- params: undefined |  SearchTraceabilityParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchTraceability>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof searchTraceability>>,
-          TError,
-          Awaited<ReturnType<typeof searchTraceability>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useSearchTraceability<TData = Awaited<ReturnType<typeof searchTraceability>>, TError = unknown>(
- params?: SearchTraceabilityParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchTraceability>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof searchTraceability>>,
-          TError,
-          Awaited<ReturnType<typeof searchTraceability>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useSearchTraceability<TData = Awaited<ReturnType<typeof searchTraceability>>, TError = unknown>(
- params?: SearchTraceabilityParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchTraceability>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useSearchTraceability<TData = Awaited<ReturnType<typeof searchTraceability>>, TError = unknown>(
- params?: SearchTraceabilityParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchTraceability>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getSearchTraceabilityQueryOptions(params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
 export const getListStockMovementsUrl = (params?: ListStockMovementsParams,) => {
   const normalizedParams = new URLSearchParams();
 
@@ -38642,6 +39470,1592 @@ export function useListItemSerials<TData = Awaited<ReturnType<typeof listItemSer
 
 
 
+
+export const getSearchTraceabilityUrl = (params?: SearchTraceabilityParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/inventory/traceability?${stringifiedParams}` : `/api/v1/inventory/traceability`
+}
+
+export const searchTraceability = async (params?: SearchTraceabilityParams, options?: Parameters<typeof apiFetch>[1]): Promise<TraceSearchResult> => {
+
+  return apiFetch<TraceSearchResult>(getSearchTraceabilityUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getSearchTraceabilityQueryKey = (params?: SearchTraceabilityParams,) => {
+    return [
+    `/api/v1/inventory/traceability`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getSearchTraceabilityQueryOptions = <TData = Awaited<ReturnType<typeof searchTraceability>>, TError = unknown>(params?: SearchTraceabilityParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchTraceability>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSearchTraceabilityQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchTraceability>>> = ({ signal }) => searchTraceability(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof searchTraceability>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type SearchTraceabilityQueryResult = NonNullable<Awaited<ReturnType<typeof searchTraceability>>>
+export type SearchTraceabilityQueryError = unknown
+
+
+export function useSearchTraceability<TData = Awaited<ReturnType<typeof searchTraceability>>, TError = unknown>(
+ params: undefined |  SearchTraceabilityParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchTraceability>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof searchTraceability>>,
+          TError,
+          Awaited<ReturnType<typeof searchTraceability>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSearchTraceability<TData = Awaited<ReturnType<typeof searchTraceability>>, TError = unknown>(
+ params?: SearchTraceabilityParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchTraceability>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof searchTraceability>>,
+          TError,
+          Awaited<ReturnType<typeof searchTraceability>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSearchTraceability<TData = Awaited<ReturnType<typeof searchTraceability>>, TError = unknown>(
+ params?: SearchTraceabilityParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchTraceability>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useSearchTraceability<TData = Awaited<ReturnType<typeof searchTraceability>>, TError = unknown>(
+ params?: SearchTraceabilityParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchTraceability>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getSearchTraceabilityQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetSerialTraceUrl = (itemId: string,
+    serialId: string,) => {
+
+
+
+
+  return `/api/v1/inventory/items/${itemId}/serials/${serialId}/trace`
+}
+
+export const getSerialTrace = async (itemId: string,
+    serialId: string, options?: Parameters<typeof apiFetch>[1]): Promise<SerialTrace> => {
+
+  return apiFetch<SerialTrace>(getGetSerialTraceUrl(itemId,serialId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSerialTraceQueryKey = (itemId: string,
+    serialId: string,) => {
+    return [
+    `/api/v1/inventory/items/${itemId}/serials/${serialId}/trace`
+    ] as const;
+    }
+
+
+export const getGetSerialTraceQueryOptions = <TData = Awaited<ReturnType<typeof getSerialTrace>>, TError = unknown>(itemId: string,
+    serialId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSerialTrace>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSerialTraceQueryKey(itemId,serialId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSerialTrace>>> = ({ signal }) => getSerialTrace(itemId,serialId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: itemId !== null && itemId !== undefined && serialId !== null && serialId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSerialTrace>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetSerialTraceQueryResult = NonNullable<Awaited<ReturnType<typeof getSerialTrace>>>
+export type GetSerialTraceQueryError = unknown
+
+
+export function useGetSerialTrace<TData = Awaited<ReturnType<typeof getSerialTrace>>, TError = unknown>(
+ itemId: string,
+    serialId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSerialTrace>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSerialTrace>>,
+          TError,
+          Awaited<ReturnType<typeof getSerialTrace>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSerialTrace<TData = Awaited<ReturnType<typeof getSerialTrace>>, TError = unknown>(
+ itemId: string,
+    serialId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSerialTrace>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSerialTrace>>,
+          TError,
+          Awaited<ReturnType<typeof getSerialTrace>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSerialTrace<TData = Awaited<ReturnType<typeof getSerialTrace>>, TError = unknown>(
+ itemId: string,
+    serialId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSerialTrace>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetSerialTrace<TData = Awaited<ReturnType<typeof getSerialTrace>>, TError = unknown>(
+ itemId: string,
+    serialId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSerialTrace>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSerialTraceQueryOptions(itemId,serialId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListItemLotsUrl = (itemId: string,) => {
+
+
+
+
+  return `/api/v1/inventory/items/${itemId}/lots`
+}
+
+export const listItemLots = async (itemId: string, options?: Parameters<typeof apiFetch>[1]): Promise<ItemLotRow[]> => {
+
+  return apiFetch<ItemLotRow[]>(getListItemLotsUrl(itemId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListItemLotsQueryKey = (itemId: string,) => {
+    return [
+    `/api/v1/inventory/items/${itemId}/lots`
+    ] as const;
+    }
+
+
+export const getListItemLotsQueryOptions = <TData = Awaited<ReturnType<typeof listItemLots>>, TError = unknown>(itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listItemLots>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListItemLotsQueryKey(itemId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listItemLots>>> = ({ signal }) => listItemLots(itemId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: itemId !== null && itemId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listItemLots>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListItemLotsQueryResult = NonNullable<Awaited<ReturnType<typeof listItemLots>>>
+export type ListItemLotsQueryError = unknown
+
+
+export function useListItemLots<TData = Awaited<ReturnType<typeof listItemLots>>, TError = unknown>(
+ itemId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listItemLots>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listItemLots>>,
+          TError,
+          Awaited<ReturnType<typeof listItemLots>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListItemLots<TData = Awaited<ReturnType<typeof listItemLots>>, TError = unknown>(
+ itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listItemLots>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listItemLots>>,
+          TError,
+          Awaited<ReturnType<typeof listItemLots>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListItemLots<TData = Awaited<ReturnType<typeof listItemLots>>, TError = unknown>(
+ itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listItemLots>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListItemLots<TData = Awaited<ReturnType<typeof listItemLots>>, TError = unknown>(
+ itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listItemLots>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListItemLotsQueryOptions(itemId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetItemLotUrl = (itemId: string,
+    lotId: string,) => {
+
+
+
+
+  return `/api/v1/inventory/items/${itemId}/lots/${lotId}`
+}
+
+export const getItemLot = async (itemId: string,
+    lotId: string, options?: Parameters<typeof apiFetch>[1]): Promise<ItemLotRow> => {
+
+  return apiFetch<ItemLotRow>(getGetItemLotUrl(itemId,lotId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetItemLotQueryKey = (itemId: string,
+    lotId: string,) => {
+    return [
+    `/api/v1/inventory/items/${itemId}/lots/${lotId}`
+    ] as const;
+    }
+
+
+export const getGetItemLotQueryOptions = <TData = Awaited<ReturnType<typeof getItemLot>>, TError = unknown>(itemId: string,
+    lotId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemLot>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetItemLotQueryKey(itemId,lotId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getItemLot>>> = ({ signal }) => getItemLot(itemId,lotId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: itemId !== null && itemId !== undefined && lotId !== null && lotId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getItemLot>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetItemLotQueryResult = NonNullable<Awaited<ReturnType<typeof getItemLot>>>
+export type GetItemLotQueryError = unknown
+
+
+export function useGetItemLot<TData = Awaited<ReturnType<typeof getItemLot>>, TError = unknown>(
+ itemId: string,
+    lotId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemLot>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getItemLot>>,
+          TError,
+          Awaited<ReturnType<typeof getItemLot>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetItemLot<TData = Awaited<ReturnType<typeof getItemLot>>, TError = unknown>(
+ itemId: string,
+    lotId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemLot>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getItemLot>>,
+          TError,
+          Awaited<ReturnType<typeof getItemLot>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetItemLot<TData = Awaited<ReturnType<typeof getItemLot>>, TError = unknown>(
+ itemId: string,
+    lotId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemLot>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetItemLot<TData = Awaited<ReturnType<typeof getItemLot>>, TError = unknown>(
+ itemId: string,
+    lotId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemLot>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetItemLotQueryOptions(itemId,lotId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCorrectItemLotUrl = (itemId: string,
+    lotId: string,) => {
+
+
+
+
+  return `/api/v1/inventory/items/${itemId}/lots/${lotId}`
+}
+
+export const correctItemLot = async (itemId: string,
+    lotId: string,
+    lotCorrectionInput: LotCorrectionInput, options?: Parameters<typeof apiFetch>[1]): Promise<ItemLotRow> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ItemLotRow>(getCorrectItemLotUrl(itemId,lotId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(lotCorrectionInput)
+  }
+);}
+
+
+
+
+
+export const getCorrectItemLotMutationKey = () => ['correctItemLot'] as const;
+
+export const getCorrectItemLotMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof correctItemLot>>, TError,CorrectItemLotMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof correctItemLot>>, TError,CorrectItemLotMutationVariables, TContext> => {
+
+const mutationKey = getCorrectItemLotMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof correctItemLot>>, CorrectItemLotMutationVariables> = (props) => {
+          const {itemId,lotId,data} = props ?? {};
+
+          return  correctItemLot(itemId,lotId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CorrectItemLotMutationResult = NonNullable<Awaited<ReturnType<typeof correctItemLot>>>
+    export type CorrectItemLotMutationBody = LotCorrectionInput
+    export type CorrectItemLotMutationError = unknown
+    export type CorrectItemLotMutationVariables = {itemId: string;lotId: string;data: LotCorrectionInput}
+
+    export const useCorrectItemLot = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof correctItemLot>>, TError,CorrectItemLotMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof correctItemLot>>,
+        TError,
+        CorrectItemLotMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCorrectItemLotMutationOptions(options), queryClient);
+    }
+
+export const getGetLotTraceUrl = (itemId: string,
+    lotId: string,) => {
+
+
+
+
+  return `/api/v1/inventory/items/${itemId}/lots/${lotId}/trace`
+}
+
+export const getLotTrace = async (itemId: string,
+    lotId: string, options?: Parameters<typeof apiFetch>[1]): Promise<LotTrace> => {
+
+  return apiFetch<LotTrace>(getGetLotTraceUrl(itemId,lotId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLotTraceQueryKey = (itemId: string,
+    lotId: string,) => {
+    return [
+    `/api/v1/inventory/items/${itemId}/lots/${lotId}/trace`
+    ] as const;
+    }
+
+
+export const getGetLotTraceQueryOptions = <TData = Awaited<ReturnType<typeof getLotTrace>>, TError = unknown>(itemId: string,
+    lotId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLotTrace>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLotTraceQueryKey(itemId,lotId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLotTrace>>> = ({ signal }) => getLotTrace(itemId,lotId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: itemId !== null && itemId !== undefined && lotId !== null && lotId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLotTrace>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetLotTraceQueryResult = NonNullable<Awaited<ReturnType<typeof getLotTrace>>>
+export type GetLotTraceQueryError = unknown
+
+
+export function useGetLotTrace<TData = Awaited<ReturnType<typeof getLotTrace>>, TError = unknown>(
+ itemId: string,
+    lotId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLotTrace>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLotTrace>>,
+          TError,
+          Awaited<ReturnType<typeof getLotTrace>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLotTrace<TData = Awaited<ReturnType<typeof getLotTrace>>, TError = unknown>(
+ itemId: string,
+    lotId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLotTrace>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLotTrace>>,
+          TError,
+          Awaited<ReturnType<typeof getLotTrace>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLotTrace<TData = Awaited<ReturnType<typeof getLotTrace>>, TError = unknown>(
+ itemId: string,
+    lotId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLotTrace>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetLotTrace<TData = Awaited<ReturnType<typeof getLotTrace>>, TError = unknown>(
+ itemId: string,
+    lotId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLotTrace>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetLotTraceQueryOptions(itemId,lotId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getExportLotTraceUrl = (itemId: string,
+    lotId: string,) => {
+
+
+
+
+  return `/api/v1/inventory/items/${itemId}/lots/${lotId}/trace/export`
+}
+
+export const exportLotTrace = async (itemId: string,
+    lotId: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getExportLotTraceUrl(itemId,lotId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getExportLotTraceQueryKey = (itemId: string,
+    lotId: string,) => {
+    return [
+    `/api/v1/inventory/items/${itemId}/lots/${lotId}/trace/export`
+    ] as const;
+    }
+
+
+export const getExportLotTraceQueryOptions = <TData = Awaited<ReturnType<typeof exportLotTrace>>, TError = unknown>(itemId: string,
+    lotId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportLotTrace>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getExportLotTraceQueryKey(itemId,lotId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportLotTrace>>> = ({ signal }) => exportLotTrace(itemId,lotId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: itemId !== null && itemId !== undefined && lotId !== null && lotId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof exportLotTrace>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ExportLotTraceQueryResult = NonNullable<Awaited<ReturnType<typeof exportLotTrace>>>
+export type ExportLotTraceQueryError = unknown
+
+
+export function useExportLotTrace<TData = Awaited<ReturnType<typeof exportLotTrace>>, TError = unknown>(
+ itemId: string,
+    lotId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportLotTrace>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof exportLotTrace>>,
+          TError,
+          Awaited<ReturnType<typeof exportLotTrace>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useExportLotTrace<TData = Awaited<ReturnType<typeof exportLotTrace>>, TError = unknown>(
+ itemId: string,
+    lotId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportLotTrace>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof exportLotTrace>>,
+          TError,
+          Awaited<ReturnType<typeof exportLotTrace>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useExportLotTrace<TData = Awaited<ReturnType<typeof exportLotTrace>>, TError = unknown>(
+ itemId: string,
+    lotId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportLotTrace>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useExportLotTrace<TData = Awaited<ReturnType<typeof exportLotTrace>>, TError = unknown>(
+ itemId: string,
+    lotId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportLotTrace>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getExportLotTraceQueryOptions(itemId,lotId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListStockAdjustmentsUrl = (params?: ListStockAdjustmentsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/inventory/adjustments?${stringifiedParams}` : `/api/v1/inventory/adjustments`
+}
+
+export const listStockAdjustments = async (params?: ListStockAdjustmentsParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfStockAdjustmentSummary> => {
+
+  return apiFetch<PagedListOfStockAdjustmentSummary>(getListStockAdjustmentsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListStockAdjustmentsQueryKey = (params?: ListStockAdjustmentsParams,) => {
+    return [
+    `/api/v1/inventory/adjustments`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListStockAdjustmentsQueryOptions = <TData = Awaited<ReturnType<typeof listStockAdjustments>>, TError = unknown>(params?: ListStockAdjustmentsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStockAdjustments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListStockAdjustmentsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listStockAdjustments>>> = ({ signal }) => listStockAdjustments(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listStockAdjustments>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListStockAdjustmentsQueryResult = NonNullable<Awaited<ReturnType<typeof listStockAdjustments>>>
+export type ListStockAdjustmentsQueryError = unknown
+
+
+export function useListStockAdjustments<TData = Awaited<ReturnType<typeof listStockAdjustments>>, TError = unknown>(
+ params: undefined |  ListStockAdjustmentsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStockAdjustments>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStockAdjustments>>,
+          TError,
+          Awaited<ReturnType<typeof listStockAdjustments>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStockAdjustments<TData = Awaited<ReturnType<typeof listStockAdjustments>>, TError = unknown>(
+ params?: ListStockAdjustmentsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStockAdjustments>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStockAdjustments>>,
+          TError,
+          Awaited<ReturnType<typeof listStockAdjustments>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStockAdjustments<TData = Awaited<ReturnType<typeof listStockAdjustments>>, TError = unknown>(
+ params?: ListStockAdjustmentsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStockAdjustments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListStockAdjustments<TData = Awaited<ReturnType<typeof listStockAdjustments>>, TError = unknown>(
+ params?: ListStockAdjustmentsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStockAdjustments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListStockAdjustmentsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateStockAdjustmentUrl = () => {
+
+
+
+
+  return `/api/v1/inventory/adjustments`
+}
+
+export const createStockAdjustment = async (stockAdjustmentInput: StockAdjustmentInput, options?: Parameters<typeof apiFetch>[1]): Promise<StockAdjustmentDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<StockAdjustmentDetail>(getCreateStockAdjustmentUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(stockAdjustmentInput)
+  }
+);}
+
+
+
+
+
+export const getCreateStockAdjustmentMutationKey = () => ['createStockAdjustment'] as const;
+
+export const getCreateStockAdjustmentMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createStockAdjustment>>, TError,CreateStockAdjustmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createStockAdjustment>>, TError,CreateStockAdjustmentMutationVariables, TContext> => {
+
+const mutationKey = getCreateStockAdjustmentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createStockAdjustment>>, CreateStockAdjustmentMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createStockAdjustment(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateStockAdjustmentMutationResult = NonNullable<Awaited<ReturnType<typeof createStockAdjustment>>>
+    export type CreateStockAdjustmentMutationBody = StockAdjustmentInput
+    export type CreateStockAdjustmentMutationError = unknown
+    export type CreateStockAdjustmentMutationVariables = {data: StockAdjustmentInput}
+
+    export const useCreateStockAdjustment = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createStockAdjustment>>, TError,CreateStockAdjustmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createStockAdjustment>>,
+        TError,
+        CreateStockAdjustmentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateStockAdjustmentMutationOptions(options), queryClient);
+    }
+
+export const getGetStockAdjustmentUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/adjustments/${id}`
+}
+
+export const getStockAdjustment = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<StockAdjustmentDetail> => {
+
+  return apiFetch<StockAdjustmentDetail>(getGetStockAdjustmentUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetStockAdjustmentQueryKey = (id: string,) => {
+    return [
+    `/api/v1/inventory/adjustments/${id}`
+    ] as const;
+    }
+
+
+export const getGetStockAdjustmentQueryOptions = <TData = Awaited<ReturnType<typeof getStockAdjustment>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStockAdjustment>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetStockAdjustmentQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStockAdjustment>>> = ({ signal }) => getStockAdjustment(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getStockAdjustment>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetStockAdjustmentQueryResult = NonNullable<Awaited<ReturnType<typeof getStockAdjustment>>>
+export type GetStockAdjustmentQueryError = unknown
+
+
+export function useGetStockAdjustment<TData = Awaited<ReturnType<typeof getStockAdjustment>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStockAdjustment>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStockAdjustment>>,
+          TError,
+          Awaited<ReturnType<typeof getStockAdjustment>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStockAdjustment<TData = Awaited<ReturnType<typeof getStockAdjustment>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStockAdjustment>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStockAdjustment>>,
+          TError,
+          Awaited<ReturnType<typeof getStockAdjustment>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStockAdjustment<TData = Awaited<ReturnType<typeof getStockAdjustment>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStockAdjustment>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetStockAdjustment<TData = Awaited<ReturnType<typeof getStockAdjustment>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStockAdjustment>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetStockAdjustmentQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateStockAdjustmentUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/adjustments/${id}`
+}
+
+export const updateStockAdjustment = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<unknown> => {
+
+  return apiFetch<unknown>(getUpdateStockAdjustmentUrl(id),
+  {
+    ...options,
+    method: 'PUT'
+
+
+  }
+);}
+
+
+
+
+
+export const getUpdateStockAdjustmentMutationKey = () => ['updateStockAdjustment'] as const;
+
+export const getUpdateStockAdjustmentMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateStockAdjustment>>, TError,UpdateStockAdjustmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateStockAdjustment>>, TError,UpdateStockAdjustmentMutationVariables, TContext> => {
+
+const mutationKey = getUpdateStockAdjustmentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateStockAdjustment>>, UpdateStockAdjustmentMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  updateStockAdjustment(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateStockAdjustmentMutationResult = NonNullable<Awaited<ReturnType<typeof updateStockAdjustment>>>
+
+    export type UpdateStockAdjustmentMutationError = ProblemDetails
+    export type UpdateStockAdjustmentMutationVariables = {id: string}
+
+    export const useUpdateStockAdjustment = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateStockAdjustment>>, TError,UpdateStockAdjustmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateStockAdjustment>>,
+        TError,
+        UpdateStockAdjustmentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateStockAdjustmentMutationOptions(options), queryClient);
+    }
+
+export const getGetStockAdjustmentLineUrl = (id: string,
+    lineId: string,) => {
+
+
+
+
+  return `/api/v1/inventory/adjustments/${id}/lines/${lineId}`
+}
+
+export const getStockAdjustmentLine = async (id: string,
+    lineId: string, options?: Parameters<typeof apiFetch>[1]): Promise<StockAdjustmentLineView> => {
+
+  return apiFetch<StockAdjustmentLineView>(getGetStockAdjustmentLineUrl(id,lineId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetStockAdjustmentLineQueryKey = (id: string,
+    lineId: string,) => {
+    return [
+    `/api/v1/inventory/adjustments/${id}/lines/${lineId}`
+    ] as const;
+    }
+
+
+export const getGetStockAdjustmentLineQueryOptions = <TData = Awaited<ReturnType<typeof getStockAdjustmentLine>>, TError = unknown>(id: string,
+    lineId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStockAdjustmentLine>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetStockAdjustmentLineQueryKey(id,lineId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStockAdjustmentLine>>> = ({ signal }) => getStockAdjustmentLine(id,lineId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && lineId !== null && lineId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getStockAdjustmentLine>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetStockAdjustmentLineQueryResult = NonNullable<Awaited<ReturnType<typeof getStockAdjustmentLine>>>
+export type GetStockAdjustmentLineQueryError = unknown
+
+
+export function useGetStockAdjustmentLine<TData = Awaited<ReturnType<typeof getStockAdjustmentLine>>, TError = unknown>(
+ id: string,
+    lineId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStockAdjustmentLine>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStockAdjustmentLine>>,
+          TError,
+          Awaited<ReturnType<typeof getStockAdjustmentLine>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStockAdjustmentLine<TData = Awaited<ReturnType<typeof getStockAdjustmentLine>>, TError = unknown>(
+ id: string,
+    lineId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStockAdjustmentLine>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStockAdjustmentLine>>,
+          TError,
+          Awaited<ReturnType<typeof getStockAdjustmentLine>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStockAdjustmentLine<TData = Awaited<ReturnType<typeof getStockAdjustmentLine>>, TError = unknown>(
+ id: string,
+    lineId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStockAdjustmentLine>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetStockAdjustmentLine<TData = Awaited<ReturnType<typeof getStockAdjustmentLine>>, TError = unknown>(
+ id: string,
+    lineId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStockAdjustmentLine>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetStockAdjustmentLineQueryOptions(id,lineId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetStockAdjustmentHistoryUrl = (id: string,
+    params?: GetStockAdjustmentHistoryParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/inventory/adjustments/${id}/history?${stringifiedParams}` : `/api/v1/inventory/adjustments/${id}/history`
+}
+
+export const getStockAdjustmentHistory = async (id: string,
+    params?: GetStockAdjustmentHistoryParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfRelatedAuditEntryDto> => {
+
+  return apiFetch<PagedListOfRelatedAuditEntryDto>(getGetStockAdjustmentHistoryUrl(id,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetStockAdjustmentHistoryQueryKey = (id: string,
+    params?: GetStockAdjustmentHistoryParams,) => {
+    return [
+    `/api/v1/inventory/adjustments/${id}/history`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetStockAdjustmentHistoryQueryOptions = <TData = Awaited<ReturnType<typeof getStockAdjustmentHistory>>, TError = unknown>(id: string,
+    params?: GetStockAdjustmentHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStockAdjustmentHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetStockAdjustmentHistoryQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStockAdjustmentHistory>>> = ({ signal }) => getStockAdjustmentHistory(id,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getStockAdjustmentHistory>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetStockAdjustmentHistoryQueryResult = NonNullable<Awaited<ReturnType<typeof getStockAdjustmentHistory>>>
+export type GetStockAdjustmentHistoryQueryError = unknown
+
+
+export function useGetStockAdjustmentHistory<TData = Awaited<ReturnType<typeof getStockAdjustmentHistory>>, TError = unknown>(
+ id: string,
+    params: undefined |  GetStockAdjustmentHistoryParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStockAdjustmentHistory>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStockAdjustmentHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getStockAdjustmentHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStockAdjustmentHistory<TData = Awaited<ReturnType<typeof getStockAdjustmentHistory>>, TError = unknown>(
+ id: string,
+    params?: GetStockAdjustmentHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStockAdjustmentHistory>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStockAdjustmentHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getStockAdjustmentHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStockAdjustmentHistory<TData = Awaited<ReturnType<typeof getStockAdjustmentHistory>>, TError = unknown>(
+ id: string,
+    params?: GetStockAdjustmentHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStockAdjustmentHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetStockAdjustmentHistory<TData = Awaited<ReturnType<typeof getStockAdjustmentHistory>>, TError = unknown>(
+ id: string,
+    params?: GetStockAdjustmentHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStockAdjustmentHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetStockAdjustmentHistoryQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getApproveStockAdjustmentUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/adjustments/${id}/approve`
+}
+
+export const approveStockAdjustment = async (id: string,
+    stockAdjustmentDecisionInput: StockAdjustmentDecisionInput, options?: Parameters<typeof apiFetch>[1]): Promise<StockAdjustmentDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<StockAdjustmentDetail>(getApproveStockAdjustmentUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(stockAdjustmentDecisionInput)
+  }
+);}
+
+
+
+
+
+export const getApproveStockAdjustmentMutationKey = () => ['approveStockAdjustment'] as const;
+
+export const getApproveStockAdjustmentMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof approveStockAdjustment>>, TError,ApproveStockAdjustmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof approveStockAdjustment>>, TError,ApproveStockAdjustmentMutationVariables, TContext> => {
+
+const mutationKey = getApproveStockAdjustmentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof approveStockAdjustment>>, ApproveStockAdjustmentMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  approveStockAdjustment(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ApproveStockAdjustmentMutationResult = NonNullable<Awaited<ReturnType<typeof approveStockAdjustment>>>
+    export type ApproveStockAdjustmentMutationBody = StockAdjustmentDecisionInput
+    export type ApproveStockAdjustmentMutationError = unknown
+    export type ApproveStockAdjustmentMutationVariables = {id: string;data: StockAdjustmentDecisionInput}
+
+    export const useApproveStockAdjustment = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof approveStockAdjustment>>, TError,ApproveStockAdjustmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof approveStockAdjustment>>,
+        TError,
+        ApproveStockAdjustmentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getApproveStockAdjustmentMutationOptions(options), queryClient);
+    }
+
+export const getRejectStockAdjustmentUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/adjustments/${id}/reject`
+}
+
+export const rejectStockAdjustment = async (id: string,
+    stockAdjustmentDecisionInput: StockAdjustmentDecisionInput, options?: Parameters<typeof apiFetch>[1]): Promise<StockAdjustmentDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<StockAdjustmentDetail>(getRejectStockAdjustmentUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(stockAdjustmentDecisionInput)
+  }
+);}
+
+
+
+
+
+export const getRejectStockAdjustmentMutationKey = () => ['rejectStockAdjustment'] as const;
+
+export const getRejectStockAdjustmentMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rejectStockAdjustment>>, TError,RejectStockAdjustmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof rejectStockAdjustment>>, TError,RejectStockAdjustmentMutationVariables, TContext> => {
+
+const mutationKey = getRejectStockAdjustmentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof rejectStockAdjustment>>, RejectStockAdjustmentMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  rejectStockAdjustment(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RejectStockAdjustmentMutationResult = NonNullable<Awaited<ReturnType<typeof rejectStockAdjustment>>>
+    export type RejectStockAdjustmentMutationBody = StockAdjustmentDecisionInput
+    export type RejectStockAdjustmentMutationError = unknown
+    export type RejectStockAdjustmentMutationVariables = {id: string;data: StockAdjustmentDecisionInput}
+
+    export const useRejectStockAdjustment = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rejectStockAdjustment>>, TError,RejectStockAdjustmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof rejectStockAdjustment>>,
+        TError,
+        RejectStockAdjustmentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRejectStockAdjustmentMutationOptions(options), queryClient);
+    }
+
+export const getCancelStockAdjustmentUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/adjustments/${id}/cancel`
+}
+
+export const cancelStockAdjustment = async (id: string,
+    stockAdjustmentReasonInput: StockAdjustmentReasonInput, options?: Parameters<typeof apiFetch>[1]): Promise<StockAdjustmentDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<StockAdjustmentDetail>(getCancelStockAdjustmentUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(stockAdjustmentReasonInput)
+  }
+);}
+
+
+
+
+
+export const getCancelStockAdjustmentMutationKey = () => ['cancelStockAdjustment'] as const;
+
+export const getCancelStockAdjustmentMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelStockAdjustment>>, TError,CancelStockAdjustmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelStockAdjustment>>, TError,CancelStockAdjustmentMutationVariables, TContext> => {
+
+const mutationKey = getCancelStockAdjustmentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelStockAdjustment>>, CancelStockAdjustmentMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  cancelStockAdjustment(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelStockAdjustmentMutationResult = NonNullable<Awaited<ReturnType<typeof cancelStockAdjustment>>>
+    export type CancelStockAdjustmentMutationBody = StockAdjustmentReasonInput
+    export type CancelStockAdjustmentMutationError = unknown
+    export type CancelStockAdjustmentMutationVariables = {id: string;data: StockAdjustmentReasonInput}
+
+    export const useCancelStockAdjustment = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelStockAdjustment>>, TError,CancelStockAdjustmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof cancelStockAdjustment>>,
+        TError,
+        CancelStockAdjustmentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCancelStockAdjustmentMutationOptions(options), queryClient);
+    }
+
+export const getReverseStockAdjustmentUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/adjustments/${id}/reverse`
+}
+
+export const reverseStockAdjustment = async (id: string,
+    stockAdjustmentReasonInput: StockAdjustmentReasonInput, options?: Parameters<typeof apiFetch>[1]): Promise<StockAdjustmentDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<StockAdjustmentDetail>(getReverseStockAdjustmentUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(stockAdjustmentReasonInput)
+  }
+);}
+
+
+
+
+
+export const getReverseStockAdjustmentMutationKey = () => ['reverseStockAdjustment'] as const;
+
+export const getReverseStockAdjustmentMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reverseStockAdjustment>>, TError,ReverseStockAdjustmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reverseStockAdjustment>>, TError,ReverseStockAdjustmentMutationVariables, TContext> => {
+
+const mutationKey = getReverseStockAdjustmentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reverseStockAdjustment>>, ReverseStockAdjustmentMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  reverseStockAdjustment(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReverseStockAdjustmentMutationResult = NonNullable<Awaited<ReturnType<typeof reverseStockAdjustment>>>
+    export type ReverseStockAdjustmentMutationBody = StockAdjustmentReasonInput
+    export type ReverseStockAdjustmentMutationError = unknown
+    export type ReverseStockAdjustmentMutationVariables = {id: string;data: StockAdjustmentReasonInput}
+
+    export const useReverseStockAdjustment = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reverseStockAdjustment>>, TError,ReverseStockAdjustmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reverseStockAdjustment>>,
+        TError,
+        ReverseStockAdjustmentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReverseStockAdjustmentMutationOptions(options), queryClient);
+    }
 
 export const getListPurchaseRequestsUrl = (params?: ListPurchaseRequestsParams,) => {
   const normalizedParams = new URLSearchParams();
