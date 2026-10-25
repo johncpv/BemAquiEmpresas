@@ -38,6 +38,19 @@ public sealed partial class CashFlowService : ICashForecast
         return new CashForecastSummary(today, horizonDays, flow.CurrentBalance, Of(flow.Periods, flow.Lowest), Of(adjusted.Periods, adjusted.Lowest), adjusted.LowestDifference ?? 0);
     }
 
+    /// <summary>A visão semanal da tela (mesmo <c>BuildAsync</c>), base e ajustado, para o gráfico do painel do dono (DSH-01a).</summary>
+    public async Task<CashForecastWeeks> WeeksAsync(int horizonDays, CancellationToken cancellationToken = default)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(horizonDays, 1);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(horizonDays, MaxDays);
+        var today = BusinessTime.Today(clock);
+        var flow = (await BuildAsync(new CashFlowQuery(CashFlowSeries.Weekly, horizonDays, null, today, ScenarioBoth), cancellationToken)).Value;
+        var adjusted = flow.Adjusted!;
+        static CashForecastDay? Day(CashFlowPoint? p) => p is null ? null : new CashForecastDay(p.Date, p.Balance);
+        var weeks = flow.Periods.Zip(adjusted.Periods, (b, a) => new CashForecastWeekBalance(b.Start, b.End, b.Balance, a.Balance)).ToList();
+        return new CashForecastWeeks(today, horizonDays, flow.CurrentBalance, weeks, Day(flow.Lowest), Day(adjusted.Lowest), Day(adjusted.FirstNegative), adjusted.LowestDifference ?? 0);
+    }
+
     /// <summary>Recebíveis projetados até <paramref name="to"/> (pelo saldo) passados pelo calculador, com o limite do parâmetro.</summary>
     private async Task<(AdjustedCashFlow Flow, IReadOnlyDictionary<Guid, CustomerDefaultStats> Stats, decimal Threshold)> CalculateAdjustedAsync(DateOnly today, DateOnly to, CancellationToken ct)
     {

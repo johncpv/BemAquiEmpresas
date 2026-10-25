@@ -66,17 +66,11 @@ public sealed class DashboardService(
         CachedAsync(DashboardCards.CashForecast, "weeks=" + DashboardCards.ForecastWeeks, async ct =>
         {
             var forecast = await cashForecast.SummaryAsync(DashboardCards.ForecastWeeks, ct);
-            if (forecast is null)
-            {
-                return new CashForecastCard(false, null, [], [], null, null, null, null, clock.GetUtcNow());
-            }
-
+            static CashPointItem? Point(CashForecastPoint? p) => p is null ? null : new CashPointItem(p.Date, p.Balance);
             return new CashForecastCard(true, forecast.CurrentBalance,
                 forecast.Weeks.Select(w => new CashWeekItem(w.WeekEnd, w.BaseBalance, w.AdjustedBalance)).ToList(),
                 forecast.Horizons.Select(h => new CashHorizonItem(h.Days, h.BaseBalance, h.AdjustedBalance)).ToList(),
-                new CashPointItem(forecast.LowestBase.Date, forecast.LowestBase.Balance), new CashPointItem(forecast.LowestAdjusted.Date, forecast.LowestAdjusted.Balance),
-                forecast.LowestBase.Balance - forecast.LowestAdjusted.Balance,
-                forecast.FirstAdjustedNegative is { } n ? new CashPointItem(n.Date, n.Balance) : null, clock.GetUtcNow());
+                Point(forecast.LowestBase), Point(forecast.LowestAdjusted), forecast.Difference, Point(forecast.FirstAdjustedNegative), clock.GetUtcNow());
         }, cancellationToken);
 
     public Task<RevenueCard> RevenueAsync(CancellationToken cancellationToken = default) =>
@@ -84,16 +78,16 @@ public sealed class DashboardService(
         {
             var today = BusinessTime.Today(clock);
             var year = await targets.ForYearAsync(today.Year, ct);
-            var sales = await revenue.YearAsync(today.Year, ct);
+            var sales = await revenue.YearToDateAsync(today, ct);
             var monthTarget = year.Months.FirstOrDefault(m => m.Month == today.Month)?.Amount;
-            var toDate = sales?.Months.Where(m => m.Month <= today.Month).ToList();
-            decimal? monthAmount = toDate is null ? null : toDate.Where(m => m.Month == today.Month).Sum(m => m.Amount);
-            decimal? yearAmount = toDate?.Sum(m => m.Amount);
+            var toDate = sales.Months.Where(m => m.Month <= today.Month).ToList();
+            decimal? monthAmount = toDate.Where(m => m.Month == today.Month).Sum(m => m.Amount);
+            decimal? yearAmount = toDate.Sum(m => m.Amount);
             var endOfMonth = new DateOnly(today.Year, today.Month, DateTime.DaysInMonth(today.Year, today.Month));
             var left = await calendar.WorkingDaysAsync(today, endOfMonth, ct);
             var canEdit = IsReleased("settings") && (await EffectiveAsync(ct)).Has("settings.edit");
-            return new RevenueCard(today.Year, today.Month, sales is not null, monthAmount, yearAmount, monthTarget, year.YearTotal,
-                DashboardRules.Pct(monthAmount, monthTarget), DashboardRules.Pct(yearAmount, year.YearTotal), toDate?.Any(m => m.Provisional) ?? false, left, canEdit,
+            return new RevenueCard(today.Year, today.Month, true, monthAmount, yearAmount, monthTarget, year.YearTotal,
+                DashboardRules.Pct(monthAmount, monthTarget), DashboardRules.Pct(yearAmount, year.YearTotal), toDate.Any(m => m.Provisional), left, canEdit,
                 clock.GetUtcNow());
         }, cancellationToken);
 
@@ -119,13 +113,8 @@ public sealed class DashboardService(
     public Task<DecisionsCard> DecisionsAsync(CancellationToken cancellationToken = default) =>
         CachedAsync(DashboardCards.Decisions, string.Empty, async ct =>
         {
-            var items = await agenda.PendingForAsync(UserId, ct);
-            if (items is null)
-            {
-                return new DecisionsCard(false, 0, 0, null, [], clock.GetUtcNow());
-            }
-
-            return new DecisionsCard(true, items.Count, items.Sum(i => i.Amount ?? 0), items.Where(i => i.DueDate is not null).Min(i => i.DueDate), items, clock.GetUtcNow());
+            var items = await agenda.PendingAsync(ct);
+            return new DecisionsCard(true, items.Sum(i => i.Count), items.Sum(i => i.Amount ?? 0), items.Where(i => i.DueDate is not null).Min(i => i.DueDate), items, clock.GetUtcNow());
         }, cancellationToken);
 
     /// <summary>"Atualizar" (CA 13): os próximos pedidos deste usuário ignoram o que está no cache.</summary>

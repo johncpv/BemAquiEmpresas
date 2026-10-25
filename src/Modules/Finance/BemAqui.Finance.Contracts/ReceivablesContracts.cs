@@ -106,8 +106,24 @@ public sealed record CashForecastScenario(decimal EndBalance, DateOnly? LowestDa
 /// </summary>
 public sealed record CashForecastSummary(DateOnly Today, int HorizonDays, decimal CurrentBalance, CashForecastScenario Base, CashForecastScenario Adjusted, decimal LowestDifference);
 
+/// <summary>Saldo no fim de uma semana (calendário, segunda a domingo) nos dois cenários.</summary>
+public sealed record CashForecastWeekBalance(DateOnly WeekStart, DateOnly WeekEnd, decimal BaseBalance, decimal AdjustedBalance);
+
+public sealed record CashForecastDay(DateOnly Date, decimal Balance);
+
+/// <summary>
+/// Série semanal do caixa projetado para o gráfico do painel do dono (DSH-01a CA 5): a visão semanal da tela do fluxo de caixa a
+/// partir de hoje, base e ajustado, com o menor saldo diário de cada cenário e o primeiro dia negativo do ajustado.
+/// </summary>
+public sealed record CashForecastWeeks(
+    DateOnly Today, int HorizonDays, decimal CurrentBalance, IReadOnlyList<CashForecastWeekBalance> Weeks, CashForecastDay? BaseLowest, CashForecastDay? AdjustedLowest,
+    CashForecastDay? AdjustedFirstNegative, decimal LowestDifference);
+
 public interface ICashForecast
 {
     /// <summary>Horizonte de 30, 60 ou 90 dias (até 365).</summary>
     Task<CashForecastSummary> SummaryAsync(int horizonDays, CancellationToken cancellationToken = default);
+
+    /// <summary>Visão semanal do fluxo de <paramref name="horizonDays"/> dias a partir de hoje, nos dois cenários (DSH-01a).</summary>
+    Task<CashForecastWeeks> WeeksAsync(int horizonDays, CancellationToken cancellationToken = default);
 }

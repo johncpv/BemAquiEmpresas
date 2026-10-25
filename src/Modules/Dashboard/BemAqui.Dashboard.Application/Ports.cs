@@ -1,8 +1,10 @@
+using BemAqui.BuildingBlocks.Agenda;
+using BemAqui.Finance.Contracts;
+
 namespace BemAqui.Dashboard.Application;
 
-// Portas para contratos de stories que ainda não estão na main (DSH-01a, Change Log): cada uma tem uma implementação
-// "desligada", que devolve nulo, e o card mostra "ainda não disponível". O ponto de ligação de cada porta é um adaptador no
-// Dashboard que chama o contrato do dono e troca o registro em DashboardServices.AddDashboard; nada muda nos cards.
+// Portas do painel sobre os contratos dos donos (DSH-01a): o caixa projetado da FIN-07, a receita bruta da FIN-08 e a pauta da
+// DSH-04. Cada adaptador só traduz o contrato para o formato do card; nenhum número é recalculado aqui (ADR 0028 §1).
 
 /// <summary>Saldo projetado no fim de uma semana, nos dois cenários.</summary>
 public sealed record CashForecastWeek(DateOnly WeekEnd, decimal BaseBalance, decimal AdjustedBalance);
@@ -13,19 +15,14 @@ public sealed record CashForecastHorizon(int Days, decimal BaseBalance, decimal 
 /// <summary>Um dia e o saldo previsto nele (menor saldo, primeiro dia negativo).</summary>
 public sealed record CashForecastPoint(DateOnly Date, decimal Balance);
 
-/// <summary>Projeção base × ajustada das próximas semanas, como a FIN-07 devolve no <c>ICashForecast.SummaryAsync</c>.</summary>
+/// <summary>Projeção base × ajustada das próximas semanas, com os horizontes e a diferença causada pelos atrasos.</summary>
 public sealed record CashForecastSnapshot(
-    decimal CurrentBalance, IReadOnlyList<CashForecastWeek> Weeks, IReadOnlyList<CashForecastHorizon> Horizons, CashForecastPoint LowestBase,
-    CashForecastPoint LowestAdjusted, CashForecastPoint? FirstAdjustedNegative);
+    decimal CurrentBalance, IReadOnlyList<CashForecastWeek> Weeks, IReadOnlyList<CashForecastHorizon> Horizons, CashForecastPoint? LowestBase,
+    CashForecastPoint? LowestAdjusted, decimal Difference, CashForecastPoint? FirstAdjustedNegative);
 
-/// <summary>
-/// Caixa projetado (FIN-07). Ligação: adaptador sobre <c>ICashForecast.SummaryAsync</c> (cenário ajustado) do
-/// <c>Finance.Contracts</c>, com as 12 semanas e os horizontes de 30, 60 e 90 dias.
-/// </summary>
 public interface ICashForecastSource
 {
-    /// <summary>Nulo enquanto a projeção ajustada não está ligada.</summary>
-    Task<CashForecastSnapshot?> SummaryAsync(int weeks, CancellationToken cancellationToken = default);
+    Task<CashForecastSnapshot> SummaryAsync(int weeks, CancellationToken cancellationToken = default);
 }
 
 /// <summary>Receita bruta de um mês; <see cref="Provisional"/> quando vem dos títulos emitidos, antes das notas reais (D4).</summary>
@@ -33,43 +30,69 @@ public sealed record RevenueMonth(int Month, decimal Amount, bool Provisional);
 
 public sealed record RevenueSnapshot(int Year, IReadOnlyList<RevenueMonth> Months);
 
-/// <summary>
-/// Receita bruta por mês (FIN-08). Ligação: adaptador sobre <c>IRevenueSummary</c> do <c>Finance.Contracts</c>, a mesma linha
-/// "Receita bruta" do DRE, com a marca de provisório.
-/// </summary>
 public interface IRevenueSource
 {
-    /// <summary>Nulo enquanto o resumo do faturamento não está ligado.</summary>
-    Task<RevenueSnapshot?> YearAsync(int year, CancellationToken cancellationToken = default);
+    /// <summary>Receita bruta de janeiro até o mês de <paramref name="until"/>.</summary>
+    Task<RevenueSnapshot> YearToDateAsync(DateOnly until, CancellationToken cancellationToken = default);
 }
 
-/// <summary>Item do nível 1 da pauta: o que espera a decisão do usuário, com o link do documento.</summary>
-public sealed record DecisionItem(string Kind, string Title, string? Detail, decimal? Amount, DateOnly? DueDate, string Url);
+/// <summary>Item do nível 1 da pauta: a categoria, quantos documentos esperam a decisão, o total e o link da ação.</summary>
+public sealed record DecisionItem(string Kind, string Title, string? Detail, decimal? Amount, DateOnly? DueDate, string Url, int Count = 1);
 
-/// <summary>
-/// "Aguardando sua decisão" (DSH-04). Ligação: adaptador sobre <c>IAgendaService</c>, só os itens do nível 1 do usuário, cada
-/// um já filtrado pela permissão própria (OP, aditivos, qualidade, pedidos, ajustes).
-/// </summary>
 public interface IDecisionAgenda
 {
-    /// <summary>Nulo enquanto a pauta não está ligada.</summary>
-    Task<IReadOnlyList<DecisionItem>?> PendingForAsync(Guid userId, CancellationToken cancellationToken = default);
+    /// <summary>O nível 1 ("destrava outra pessoa ou dinheiro") da pauta do usuário do request, na ordem da pauta.</summary>
+    Task<IReadOnlyList<DecisionItem>> PendingAsync(CancellationToken cancellationToken = default);
 }
 
-/// <summary>Desligada até o merge da FIN-07.</summary>
-public sealed class OffCashForecastSource : ICashForecastSource
+/// <summary>
+/// Caixa projetado pela FIN-07: a série semanal da tela do fluxo (<see cref="ICashForecast.WeeksAsync"/>) e o saldo final em 30, 60
+/// e 90 dias pelo <see cref="ICashForecast.SummaryAsync"/>, o mesmo número do fluxo de caixa nesses horizontes.
+/// </summary>
+public sealed class CashForecastSource(ICashForecast forecast) : ICashForecastSource
 {
-    public Task<CashForecastSnapshot?> SummaryAsync(int weeks, CancellationToken cancellationToken = default) => Task.FromResult<CashForecastSnapshot?>(null);
+    public static readonly int[] HorizonDays = [30, 60, 90];
+
+    public async Task<CashForecastSnapshot> SummaryAsync(int weeks, CancellationToken cancellationToken = default)
+    {
+        var series = await forecast.WeeksAsync(weeks * 7, cancellationToken);
+        var horizons = new List<CashForecastHorizon>(HorizonDays.Length);
+        foreach (var days in HorizonDays)
+        {
+            var s = await forecast.SummaryAsync(days, cancellationToken);
+            horizons.Add(new CashForecastHorizon(days, s.Base.EndBalance, s.Adjusted.EndBalance));
+        }
+
+        static CashForecastPoint? Point(CashForecastDay? d) => d is null ? null : new CashForecastPoint(d.Date, d.Balance);
+        return new CashForecastSnapshot(series.CurrentBalance, series.Weeks.Select(w => new CashForecastWeek(w.WeekEnd, w.BaseBalance, w.AdjustedBalance)).ToList(), horizons,
+            Point(series.BaseLowest), Point(series.AdjustedLowest), series.LowestDifference, Point(series.AdjustedFirstNegative));
+    }
 }
 
-/// <summary>Desligada até o merge da FIN-08.</summary>
-public sealed class OffRevenueSource : IRevenueSource
+/// <summary>Receita bruta pela FIN-08: a linha "Receita bruta" do DRE, mês a mês, com a marca de provisório.</summary>
+public sealed class RevenueSource(IRevenueSummary revenue) : IRevenueSource
 {
-    public Task<RevenueSnapshot?> YearAsync(int year, CancellationToken cancellationToken = default) => Task.FromResult<RevenueSnapshot?>(null);
+    public async Task<RevenueSnapshot> YearToDateAsync(DateOnly until, CancellationToken cancellationToken = default)
+    {
+        var months = await revenue.GrossRevenueAsync(new DateOnly(until.Year, 1, 1), new DateOnly(until.Year, until.Month, DateTime.DaysInMonth(until.Year, until.Month)), cancellationToken);
+        return new RevenueSnapshot(until.Year, months.Where(m => m.Year == until.Year).Select(m => new RevenueMonth(m.Month, m.Amount, m.IsProvisional)).ToList());
+    }
 }
 
-/// <summary>Desligada até o merge da DSH-04.</summary>
-public sealed class OffDecisionAgenda : IDecisionAgenda
+/// <summary>"Aguardando sua decisão" pela DSH-04: as categorias de nível 1 da Minha pauta, com as mesmas regras e a mesma ordem.</summary>
+public sealed class DecisionAgenda(IAgendaService agenda) : IDecisionAgenda
 {
-    public Task<IReadOnlyList<DecisionItem>?> PendingForAsync(Guid userId, CancellationToken cancellationToken = default) => Task.FromResult<IReadOnlyList<DecisionItem>?>(null);
+    public async Task<IReadOnlyList<DecisionItem>> PendingAsync(CancellationToken cancellationToken = default)
+    {
+        var level1 = agenda.Registered.Where(c => c.Tier == AgendaTier.Unblocks).Select(c => c.Code).ToList();
+        if (level1.Count == 0)
+        {
+            return [];
+        }
+
+        var view = await agenda.ForUserAsync(level1, cancellationToken);
+        return view.Items.Where(i => i.Tier == AgendaTier.Unblocks && i.Count > 0)
+            .Select(i => new DecisionItem(i.Category, i.Title, i.Why, i.Amount, i.DueDate, i.Link ?? (i.Entries.Count > 0 ? i.Entries[0].Link : "/app"), i.Count)).ToList();
+    }
 }
+

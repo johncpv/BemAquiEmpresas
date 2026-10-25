@@ -209,6 +209,46 @@ public partial class DashboardTests(TenancyFixture tenancy) : IClassFixture<Tena
     }
 
     [Fact]
+    public async Task Caixa_projetado_e_faturamento_sao_os_numeros_da_FIN_07_e_da_FIN_08()
+    {
+        var (ownerId, owner) = await ActorAsync(Group.OwnerSeedKey);
+        await DatasetAsync(owner, ownerId);
+        await owner.PostAsync(Base + "/refresh", null);
+
+        // Caixa projetado (CA 6): a série semanal e os horizontes são os do ICashForecast, a mesma conta do fluxo de caixa.
+        var cash = await OkAsync(owner, Base + "/cards/cash-forecast");
+        await using (var scope = await ScopeAsync())
+        {
+            var forecast = scope.ServiceProvider.GetRequiredService<ICashForecast>();
+            var weeks = await forecast.WeeksAsync(84);
+            cash.GetProperty("available").GetBoolean().Should().BeTrue();
+            cash.GetProperty("currentBalance").GetDecimal().Should().Be(weeks.CurrentBalance);
+            cash.GetProperty("weeks").EnumerateArray().Select(w => (w.GetProperty("baseBalance").GetDecimal(), w.GetProperty("adjustedBalance").GetDecimal()))
+                .Should().Equal(weeks.Weeks.Select(w => (w.BaseBalance, w.AdjustedBalance)));
+            cash.GetProperty("difference").GetDecimal().Should().Be(weeks.LowestDifference);
+            if (weeks.AdjustedLowest is { } lowest)
+            {
+                cash.GetProperty("lowestAdjusted").GetProperty("balance").GetDecimal().Should().Be(lowest.Balance);
+            }
+
+            foreach (var horizon in cash.GetProperty("horizons").EnumerateArray())
+            {
+                var summary = await forecast.SummaryAsync(horizon.GetProperty("days").GetInt32());
+                horizon.GetProperty("baseBalance").GetDecimal().Should().Be(summary.Base.EndBalance);
+                horizon.GetProperty("adjustedBalance").GetDecimal().Should().Be(summary.Adjusted.EndBalance);
+            }
+
+            // Faturamento (CA 6): a linha Receita bruta do DRE pelo IRevenueSummary, mês e ano até o mês, com o provisório.
+            var revenue = await OkAsync(owner, Base + "/cards/revenue");
+            var end = new DateOnly(Today.Year, Today.Month, DateTime.DaysInMonth(Today.Year, Today.Month));
+            var months = await scope.ServiceProvider.GetRequiredService<IRevenueSummary>().GrossRevenueAsync(new DateOnly(Today.Year, 1, 1), end);
+            revenue.GetProperty("monthAmount").GetDecimal().Should().Be(months.Where(m => m.Month == Today.Month).Sum(m => m.Amount));
+            revenue.GetProperty("yearAmount").GetDecimal().Should().Be(months.Sum(m => m.Amount));
+            revenue.GetProperty("provisional").GetBoolean().Should().Be(months.Any(m => m.IsProvisional));
+        }
+    }
+
+    [Fact]
     public async Task Card_de_faturamento_mostra_a_meta_os_dias_uteis_e_o_link_so_para_quem_tem_settings_edit()
     {
         var (_, owner) = await ActorAsync(Group.OwnerSeedKey);
@@ -221,7 +261,7 @@ public partial class DashboardTests(TenancyFixture tenancy) : IClassFixture<Tena
         revenue.GetProperty("monthTarget").GetDecimal().Should().Be(380_000m);
         revenue.GetProperty("yearTarget").GetDecimal().Should().Be(4_560_000m);
         revenue.GetProperty("canEditTargets").GetBoolean().Should().BeTrue();
-        revenue.GetProperty("available").GetBoolean().Should().BeFalse("o faturamento (FIN-08) entra pela porta, ainda desligada");
+        revenue.GetProperty("available").GetBoolean().Should().BeTrue();
         var end = new DateOnly(Today.Year, Today.Month, DateTime.DaysInMonth(Today.Year, Today.Month));
         var expected = 0;
         for (var d = Today; d <= end; d = d.AddDays(1))
