@@ -246,6 +246,13 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     IQueryable<ScheduleStepForecast> IProductionDb.ScheduleStepForecastsView => Set<ScheduleStepForecast>().AsNoTracking();
 
+    // Previsão de entrega por projeto (PLN-01b): escrita pelo ScheduleService; a cópia do Commercial é a project_forecasts.
+    public DbSet<ScheduleProjectForecast> ScheduleProjectForecasts => Set<ScheduleProjectForecast>();
+
+    IQueryable<ScheduleProjectForecast> IProductionDb.ScheduleProjectForecastsView => Set<ScheduleProjectForecast>().AsNoTracking();
+
+    public DbSet<BemAqui.Commercial.Domain.ProjectForecast> ProjectForecasts => Set<BemAqui.Commercial.Domain.ProjectForecast>();
+
     public DbSet<BemAqui.Engineering.Domain.RoutingTemplate> RoutingTemplates => Set<BemAqui.Engineering.Domain.RoutingTemplate>();
 
     public DbSet<BemAqui.Engineering.Domain.RoutingTemplateStep> RoutingTemplateSteps => Set<BemAqui.Engineering.Domain.RoutingTemplateStep>();

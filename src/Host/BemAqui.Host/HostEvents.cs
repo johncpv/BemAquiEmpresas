@@ -32,6 +32,11 @@ public static class HostEvents
             .AddHandler<BemAqui.Commercial.Contracts.ContractCancelled, BemAqui.Production.Application.InstallationContractCancelledConsumer>()
             // PRD-01 CA 18: handler próprio da fabricação; CA 16: a EST-02 consome o cancelamento da OS.
             .AddHandler<BemAqui.Commercial.Contracts.ContractCancelled, BemAqui.Production.Application.FabricationContractCancelledConsumer>()
+            // PLN-01b CA 2: o aditivo (prazo) e o cancelamento do contrato pedem o recálculo do plano; CA 7 e 10: a previsão do projeto vai
+            // ao Commercial (commercial.project_forecasts, só o computedAt mais novo) com o aviso de risco.
+            .AddHandler<BemAqui.Commercial.Contracts.ContractAmended, BemAqui.Production.Application.PlanningContractConsumers>()
+            .AddHandler<BemAqui.Commercial.Contracts.ContractCancelled, BemAqui.Production.Application.PlanningContractConsumers>()
+            .AddHandler<BemAqui.Production.Contracts.ProjectForecastChanged, BemAqui.Commercial.Application.ProjectForecastConsumer>()
             // ENG-02 CA 8 e 13 e EST-02 CA 1 e 2: BOM liberada e revisada; o Inventory reconcilia as reservas a partir do IBoms (ADR 0023 §6).
             .AddHandler<BemAqui.Engineering.Contracts.BomReleased, BemAqui.Inventory.Application.ReservationConsumers>()
             .AddHandler<BemAqui.Engineering.Contracts.BomRevised, BemAqui.Inventory.Application.ReservationConsumers>()

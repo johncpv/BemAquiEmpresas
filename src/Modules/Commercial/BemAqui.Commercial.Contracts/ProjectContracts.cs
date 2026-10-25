@@ -43,7 +43,45 @@ public interface IProjects
     /// confere <c>finance.view</c> antes de mostrar valor e vencimento.
     /// </summary>
     Task<ProjectFabricationInfo?> FabricationAsync(Guid projectId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Projetos cuja data prevista o plano recalcula (PLN-01b CA 5 e 6): <c>Planned</c> e <c>InProgress</c>, com contrato não cancelado. A partir de
+    /// <c>Fabricated</c> a previsão fica como estava e o risco passa a ser só da instalação.
+    /// </summary>
+    Task<IReadOnlyList<ProjectSummary>> PlanningCandidatesAsync(CancellationToken cancellationToken = default) =>
+        Task.FromResult<IReadOnlyList<ProjectSummary>>([]);
+
+    /// <summary>Orçado de uma natureza para vários projetos de uma vez (PLN-01b CA 5, caso b: custo de instalação no orçamento); sem custo na tela.</summary>
+    async Task<IReadOnlyDictionary<Guid, decimal>> BudgetedManyAsync(IReadOnlyCollection<Guid> projectIds, CostType costType, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(projectIds);
+        var result = new Dictionary<Guid, decimal>();
+        foreach (var id in projectIds)
+        {
+            if (await BudgetedAsync(id, costType, cancellationToken) is { } amount)
+            {
+                result[id] = amount;
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Previsão de entrega, folga e risco dos projetos pedidos (PLN-01b CA 11: o painel do dono na DSH-01b), lidos de
+    /// <c>commercial.project_forecasts</c> e avaliados pela função única de risco.
+    /// </summary>
+    Task<IReadOnlyList<ProjectForecastSummary>> ForecastsAsync(IReadOnlyCollection<Guid> projectIds, CancellationToken cancellationToken = default) =>
+        Task.FromResult<IReadOnlyList<ProjectForecastSummary>>([]);
 }
+
+/// <summary>
+/// Previsão do projeto vista pelos outros módulos (PLN-01b CA 11): prometido, entrega prevista, fim da fabricação, motivo (código) da
+/// previsão vazia, folga em dias corridos (prometido − previsto), risco e atraso pela função única, e quando foi calculada.
+/// </summary>
+public sealed record ProjectForecastSummary(
+    Guid ProjectId, DateOnly? PromisedDate, DateOnly? ForecastDate, DateOnly? FabricationEnd, string? Reason, int? SlackDays, DeliveryRisk Risk, int? DelayDays,
+    DateTimeOffset? ComputedAt);
 
 /// <summary>Parcela "fabricação concluída" do contrato (PRD-06a1 CA 2 e 11): o marco, o valor, o prazo e o título, se já existe.</summary>
 public sealed record FabricationMilestoneInfo(

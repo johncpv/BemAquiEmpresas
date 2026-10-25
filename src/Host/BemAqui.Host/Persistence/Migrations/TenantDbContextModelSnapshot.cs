@@ -1080,6 +1080,43 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("project_costs", "commercial");
                 });
 
+            modelBuilder.Entity("BemAqui.Commercial.Domain.ProjectForecast", b =>
+                {
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<DateTimeOffset>("ComputedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("computed_at");
+
+                    b.Property<DateOnly?>("FabricationEnd")
+                        .HasColumnType("date")
+                        .HasColumnName("fabrication_end");
+
+                    b.Property<DateOnly?>("ForecastDate")
+                        .HasColumnType("date")
+                        .HasColumnName("forecast_date");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("reason");
+
+                    b.Property<Guid?>("ReasonOrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reason_order_id");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("ProjectId")
+                        .HasName("pk_project_forecasts");
+
+                    b.ToTable("project_forecasts", "commercial");
+                });
+
             modelBuilder.Entity("BemAqui.Commercial.Domain.ProjectItem", b =>
                 {
                     b.Property<Guid>("Id")
@@ -8539,6 +8576,43 @@ namespace BemAqui.Host.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("BemAqui.Production.Domain.ScheduleProjectForecast", b =>
+                {
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<DateTimeOffset>("ComputedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("computed_at");
+
+                    b.Property<DateOnly?>("FabricationEnd")
+                        .HasColumnType("date")
+                        .HasColumnName("fabrication_end");
+
+                    b.Property<DateOnly?>("ForecastDate")
+                        .HasColumnType("date")
+                        .HasColumnName("forecast_date");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("reason");
+
+                    b.Property<Guid?>("ReasonOrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reason_order_id");
+
+                    b.Property<Guid>("RunId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("run_id");
+
+                    b.HasKey("ProjectId")
+                        .HasName("pk_schedule_project_forecasts");
+
+                    b.ToTable("schedule_project_forecasts", "production");
+                });
+
             modelBuilder.Entity("BemAqui.Production.Domain.ScheduleRun", b =>
                 {
                     b.Property<Guid>("Id")
@@ -10407,6 +10481,16 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_project_costs_projects_project_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.ProjectForecast", b =>
+                {
+                    b.HasOne("BemAqui.Commercial.Domain.Project", null)
+                        .WithOne()
+                        .HasForeignKey("BemAqui.Commercial.Domain.ProjectForecast", "ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_project_forecasts_projects_project_id");
                 });
 
             modelBuilder.Entity("BemAqui.Commercial.Domain.ProjectItem", b =>

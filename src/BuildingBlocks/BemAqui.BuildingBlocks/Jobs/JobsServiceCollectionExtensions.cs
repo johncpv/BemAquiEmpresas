@@ -15,6 +15,12 @@ public sealed class JobsOptions
     public bool ServerEnabled { get; set; } = true;
 
     public int WorkerCount { get; set; } = 2;
+
+    /// <summary>
+    /// Intervalo de busca da fila sem job (segundos; padrão do Hangfire.PostgreSql: 15). PLN-01b CA 4: o recálculo pedido por evento chega à
+    /// tela em até 10 s, então a fila é olhada a cada 2 s.
+    /// </summary>
+    public int QueuePollSeconds { get; set; } = 2;
 }
 
 public static class JobsServiceCollectionExtensions
@@ -34,7 +40,10 @@ public static class JobsServiceCollectionExtensions
             .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
             .UseSimpleAssemblyNameTypeSerializer()
             .UseRecommendedSerializerSettings()
-            .UsePostgreSqlStorage(o => o.UseNpgsqlConnection(catalog), new PostgreSqlStorageOptions { SchemaName = Schema, PrepareSchemaIfNecessary = true })
+            .UsePostgreSqlStorage(o => o.UseNpgsqlConnection(catalog), new PostgreSqlStorageOptions
+            {
+                SchemaName = Schema, PrepareSchemaIfNecessary = true, QueuePollInterval = TimeSpan.FromSeconds(Math.Clamp(options.QueuePollSeconds, 1, 15)),
+            })
             .UseFilter(new JobLogContextFilter())
             .UseFilter(new JobFailureAlertFilter(sp.GetRequiredService<Observability.IAlertSink>(), sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<Observability.AlertOptions>>().Value)));
 

@@ -74,17 +74,20 @@ public sealed partial class FabricationOrderService(
         var steps = (await db.ProductionOrderSteps.AsNoTracking().Where(s => ids.Contains(s.OrderId)).OrderBy(s => s.Sequence)
             .Select(s => new { s.OrderId, s.Code, s.Name, s.Status }).ToListAsync(cancellationToken)).ToLookup(s => s.OrderId);
         var context = await ContextAsync(rows, cancellationToken);
+        // PLN-01b CA 9: risco na lista pela mesma função do Kanban (previsão de entrega do projeto depois da prometida).
+        var forecasts = await ProductionBoardService.ForecastsAsync(db, [.. rows.Select(o => o.ProjectId).Distinct()], cancellationToken);
         return new FabricationOrderPage(rows.Select(o =>
         {
             var project = context.Projects.GetValueOrDefault(o.ProjectId);
             var item = context.Items.GetValueOrDefault(o.ProjectItemId.GetValueOrDefault());
             var mine = steps[o.Id].ToList();
+            var assessment = ProductionOrderRisk.Evaluate(project?.PromisedDate, forecasts.GetValueOrDefault(o.ProjectId), Today, o.Status);
             return new FabricationOrderSummary(
                 o.Id, o.Number, o.Status, o.ProjectId, project?.Number ?? string.Empty, project?.Name ?? string.Empty, project?.PartyId ?? Guid.Empty,
                 project is null ? string.Empty : context.Parties.GetValueOrDefault(project.PartyId, string.Empty), o.ProjectItemId.GetValueOrDefault(), item?.Description ?? string.Empty,
                 o.ProductId is { } product ? context.Products.GetValueOrDefault(product)?.Name : null, o.Quantity.GetValueOrDefault(), project?.PromisedDate,
-                DelayDays(o.Status, project?.PromisedDate), mine.Select(s => s.Code ?? string.Empty).ToList(), mine.Select(s => s.Name).ToList(),
-                FabricationRules.CurrentIndex(mine.Select(s => s.Status).ToList()), mine.Count == 0);
+                assessment.DelayDays, mine.Select(s => s.Code ?? string.Empty).ToList(), mine.Select(s => s.Name).ToList(),
+                FabricationRules.CurrentIndex(mine.Select(s => s.Status).ToList()), mine.Count == 0, assessment.Risk);
         }).ToList(), page.Page, page.PageSize, total);
     }
 
@@ -145,7 +148,7 @@ public sealed partial class FabricationOrderService(
     }
 
     /// <summary>Dias de atraso pela regra única do Kanban (PRD-02 CA 4).</summary>
-    private int? DelayDays(ProductionOrderStatus status, DateOnly? promised) => ProductionOrderRisk.Evaluate(promised, Today, status, atLastStep: true).DelayDays;
+    private int? DelayDays(ProductionOrderStatus status, DateOnly? promised) => ProductionOrderRisk.Evaluate(promised, null, Today, status).DelayDays;
 
     private static IQueryable<ProductionOrder> Fabrication(IQueryable<ProductionOrder> orders) => orders.Where(o => o.Type == ProductionOrderType.Fabrication);
 

@@ -52,11 +52,16 @@ public sealed partial class ProjectService
             managers[userId] = await users.DisplayNameAsync(userId, cancellationToken);
         }
 
-        var today = BusinessTime.Today(clock);
-        return new ProjectListPage(rows.Select(r => new ProjectListRow(
-            r.Project.Id, r.Project.Number, r.Project.Name, r.Project.PartyId, names.GetValueOrDefault(r.Project.PartyId, string.Empty), r.Project.Status, r.Project.PromisedDate,
-            Delay(r.Project, today), r.TotalValue, r.Project.ManagerUserId, r.Project.ManagerUserId is { } m ? managers.GetValueOrDefault(m) : null, r.Project.ContractId)).ToList(),
-            page.Page, page.PageSize, total);
+        // PLN-01b CA 8 e 9: entrega prevista, folga e risco pela mesma função do Projeto 360 e do Kanban.
+        var forecasts = await ForecastViewsAsync([.. rows.Select(r => (r.Project.Id, r.Project.Status, r.Project.PromisedDate))], cancellationToken);
+        return new ProjectListPage(rows.Select(r =>
+        {
+            var f = forecasts[r.Project.Id];
+            return new ProjectListRow(
+                r.Project.Id, r.Project.Number, r.Project.Name, r.Project.PartyId, names.GetValueOrDefault(r.Project.PartyId, string.Empty), r.Project.Status, r.Project.PromisedDate,
+                f.DelayDays, r.TotalValue, r.Project.ManagerUserId, r.Project.ManagerUserId is { } m ? managers.GetValueOrDefault(m) : null, r.Project.ContractId,
+                f.ForecastDate, f.SlackDays, f.Risk, f.Reason);
+        }).ToList(), page.Page, page.PageSize, total);
     }
 
     /// <summary>Margem orçada dos projetos da página (CA 1), com <c>projects.view_cost</c>.</summary>
@@ -93,11 +98,6 @@ public sealed partial class ProjectService
 
         return list;
     }
-
-    private static int? Delay(Project p, DateOnly today) =>
-        p.PromisedDate is { } promised && promised < today && p.Status is not (ProjectStatus.Delivered or ProjectStatus.Closed or ProjectStatus.Cancelled)
-            ? today.DayNumber - promised.DayNumber
-            : null;
 
     private static Error NoCost() => Error.Forbidden(Error.Codes.Forbidden, "Custo e margem do projeto são restritos. Fale com o administrador.");
 }

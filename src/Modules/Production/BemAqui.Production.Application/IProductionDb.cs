@@ -49,6 +49,9 @@ public interface IProductionDb
 
     IQueryable<ScheduleStepForecast> ScheduleStepForecastsView { get; }
 
+    /// <summary>Previsão de entrega de cada projeto (PLN-01b): o risco do Kanban e da lista de OS e o <c>IProductionSchedule</c>.</summary>
+    IQueryable<ScheduleProjectForecast> ScheduleProjectForecastsView { get; }
+
     DatabaseFacade Database { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);

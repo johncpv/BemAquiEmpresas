@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using BemAqui.Commercial.Contracts;
 using BemAqui.Production.Domain;
+using BemAqui.SharedKernel;
 
 namespace BemAqui.Production.Application;
 
@@ -58,7 +59,7 @@ public sealed record FabricationOrderDetail(
 public sealed record FabricationOrderSummary(
     Guid Id, string Number, ProductionOrderStatus Status, Guid ProjectId, string ProjectNumber, string ProjectName, Guid PartyId, string PartyName, Guid ProjectItemId,
     string ItemDescription, string? ProductName, decimal Quantity, DateOnly? PromisedDate, int? DelayDays, IReadOnlyList<string> Codes, IReadOnlyList<string> StepNames,
-    int CurrentStepIndex, bool NoRouting);
+    int CurrentStepIndex, bool NoRouting, DeliveryRisk Risk = DeliveryRisk.None);
 
 public sealed record FabricationOrderPage(IReadOnlyList<FabricationOrderSummary> Items, int Page, int PageSize, int Total);
 

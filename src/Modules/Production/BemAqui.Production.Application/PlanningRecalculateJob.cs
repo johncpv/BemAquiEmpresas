@@ -12,7 +12,8 @@ public sealed record PlanningRecalculateArgs(ScheduleTrigger Trigger = ScheduleT
 
 /// <summary>
 /// Recálculo do plano no tenant (PLN-01a CA 13): confere de novo, no início, o módulo <c>production</c> liberado (sem ele, termina sem
-/// calcular) e chama o escritor único. Idempotente: rodar duas vezes substitui o plano pelo mesmo resultado, sem duplicar linhas.
+/// calcular) e chama o escritor único. Idempotente: rodar duas vezes substitui o plano pelo mesmo resultado, sem duplicar linhas. PLN-01b:
+/// com o gatilho <c>Event</c> (pedido depois do commit de um comando ou consumidor), roda só a marca "pendente" do tenant (CA 3, 13 e 14).
 /// </summary>
 public sealed class PlanningRecalculateJob(ITenantDirectory directory, ITenantScopeFactory scopes, ILogger<PlanningRecalculateJob> logger)
     : TenantJob<PlanningRecalculateArgs>(directory, scopes, logger)
@@ -25,7 +26,15 @@ public sealed class PlanningRecalculateJob(ITenantDirectory directory, ITenantSc
             return;
         }
 
-        await services.GetRequiredService<ScheduleService>().RecalculateAsync(args.Trigger, null, cancellationToken);
+        // PLN-01b CA 3: o job do pedido por evento só roda se a marca "pendente" ainda está lá (quem estava calculando pode tê-la assumido).
+        var writer = services.GetRequiredService<ScheduleService>();
+        if (args.Trigger == ScheduleTrigger.Event)
+        {
+            await writer.RunPendingAsync(cancellationToken);
+            return;
+        }
+
+        await writer.RecalculateAsync(args.Trigger, null, cancellationToken);
     }
 }
 

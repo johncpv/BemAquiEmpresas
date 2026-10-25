@@ -73,6 +73,18 @@ public sealed class ProductionScheduleContract(IProductionDb db, ScheduleInputBu
         return new ScheduleSimulation(orders, [.. result.Projects.Select(p => new ProjectFabricationForecast(p.ProjectId, p.FabricationEnd, p.NoForecastReason))]);
     }
 
+    public async Task<IReadOnlyList<ProjectDeliveryForecast>> ProjectForecastsAsync(IReadOnlyCollection<Guid> projectIds, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(projectIds);
+        if (projectIds.Count == 0)
+        {
+            return [];
+        }
+
+        return await db.ScheduleProjectForecastsView.Where(f => projectIds.Contains(f.ProjectId))
+            .Select(f => new ProjectDeliveryForecast(f.ProjectId, f.ForecastDate, f.FabricationEnd, f.Reason, f.ReasonOrderId, f.ComputedAt)).ToListAsync(cancellationToken);
+    }
+
     /// <summary>O projeto virtual entra na fila com as OS e etapas dele (ids novos); os centros que ainda não estavam na entrada são lidos.</summary>
     private async Task<ScheduleInput> WithVirtualAsync(ScheduleInput input, SimulatedProject extra, CancellationToken ct)
     {

@@ -10,9 +10,10 @@ namespace BemAqui.Production.Application;
 
 /// <summary>
 /// Calendário padrão do tenant e as exceções (CAD-03 CA 8 a 11). Toda rota de exceção confere que ela é do calendário da URL
-/// (IDOR pai/filho, CA 11); a sugestão de feriados nacionais não grava nada sem "Adicionar feriados" (CA 10, R-PRP-7).
+/// (IDOR pai/filho, CA 11); a sugestão de feriados nacionais não grava nada sem "Adicionar feriados" (CA 10, R-PRP-7). PLN-01b CA 1:
+/// salvar o calendário ou uma exceção pede o recálculo do plano depois do commit (a mudança de calendário não publica evento, ADR 0016).
 /// </summary>
-public sealed class CalendarService(IProductionDb db, TimeProvider clock)
+public sealed class CalendarService(IProductionDb db, TimeProvider clock, IScheduleTrigger trigger)
 {
     public const string DateIndex = "ix_calendar_exceptions_date";
     public const string DefaultName = "Calendário padrão";
@@ -53,6 +54,7 @@ public sealed class CalendarService(IProductionDb db, TimeProvider clock)
         }
 
         calendar.WorkingDays = days;
+        await trigger.RequestAsync("calendário", cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         return ToDetail(calendar);
     }
@@ -117,6 +119,7 @@ public sealed class CalendarService(IProductionDb db, TimeProvider clock)
         }
 
         db.CalendarExceptions.Remove(exception);
+        await trigger.RequestAsync("calendário", cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }
@@ -175,6 +178,7 @@ public sealed class CalendarService(IProductionDb db, TimeProvider clock)
             added++;
         }
 
+        await trigger.RequestAsync("calendário", cancellationToken);
         try
         {
             await db.SaveChangesAsync(cancellationToken);
@@ -227,6 +231,7 @@ public sealed class CalendarService(IProductionDb db, TimeProvider clock)
             return Duplicate(exception.Date);
         }
 
+        await trigger.RequestAsync("calendário", cancellationToken);
         try
         {
             await db.SaveChangesAsync(cancellationToken);

@@ -76,3 +76,27 @@ public sealed class ScheduleStepForecast
 
     public Guid RunId { get; init; }
 }
+
+/// <summary>
+/// Última previsão publicada de cada projeto (<c>production.schedule_project_forecasts</c>, PLN-01b CA 7): a execução compara com ela para
+/// publicar o <c>ProjectForecastChanged</c> só dos projetos que mudaram e o Kanban lê dela o risco. Tabela do plano (ADR 0029): escrita só
+/// pelo <c>ScheduleService</c>, fora da auditoria. A cópia do Commercial é a <c>commercial.project_forecasts</c>.
+/// </summary>
+public sealed class ScheduleProjectForecast
+{
+    public Guid ProjectId { get; init; }
+
+    public DateOnly? ForecastDate { get; set; }
+
+    public DateOnly? FabricationEnd { get; set; }
+
+    /// <summary>Código do motivo (<see cref="ProjectForecastReasons"/>), sem texto livre.</summary>
+    public string? Reason { get; set; }
+
+    /// <summary>OS que impede a data (sem roteiro, sem centro, sem capacidade).</summary>
+    public Guid? ReasonOrderId { get; set; }
+
+    public DateTimeOffset ComputedAt { get; set; }
+
+    public Guid RunId { get; set; }
+}

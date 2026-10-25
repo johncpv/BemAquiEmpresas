@@ -100,6 +100,9 @@ public static class ProductionInfrastructure
         // IProductionSchedule e o recálculo manual e de hora em hora.
         services.TryAddScoped<ScheduleInputBuilder>();
         services.TryAddScoped<ScheduleService>();
+        // PLN-01b: pedido de recálculo por evento (depois do commit, agrupado pela marca "pendente") e a previsão de entrega de cada projeto.
+        services.TryAddScoped<IScheduleTrigger, ScheduleRecalculationTrigger>();
+        services.TryAddScoped<ProjectForecastBuilder>();
         services.TryAddScoped<IProductionSchedule, ProductionScheduleContract>();
         services.TryAddScoped<PlanningService>();
 

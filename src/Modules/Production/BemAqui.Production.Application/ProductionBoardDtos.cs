@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using BemAqui.Production.Domain;
+using BemAqui.SharedKernel;
 
 namespace BemAqui.Production.Application;
 
