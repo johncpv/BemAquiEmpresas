@@ -26,4 +26,8 @@ Ver um ajuste de estoque, o que cada item mudaria (ou mudou) no saldo, e decidir
 
 **Por que a diferença na aprovação é outra?** No modo **Quantidade contada**, o contado vale sobre o saldo do momento da aprovação. Se entrou ou saiu material depois do envio, a diferença é recalculada.
 
+**O ajuste veio do inventário e a contagem ficou abaixo do reservado.** No ajuste do inventário isso não é recusa: ao aprovar, o sistema reduz primeiro as reservas das OS com a BOM liberada mais recentemente, gera a falta delas e avisa quem aprova no Estoque. O diálogo de aprovação mostra quanto será reduzido.
+
+**Quem abriu ou contou o inventário pode aprovar o ajuste dele?** Não, como quem lançou. A exceção é o Proprietário único, com a marca **Autoaprovado**.
+
 **Há um inventário em contagem neste local.** Enquanto o inventário conta o local, ajustes e estornos manuais ficam bloqueados. Feche ou cancele o inventário antes.

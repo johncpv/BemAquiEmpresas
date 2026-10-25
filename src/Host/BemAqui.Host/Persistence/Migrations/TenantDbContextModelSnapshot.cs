@@ -4934,6 +4934,224 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("user_preferences", "identity");
                 });
 
+            modelBuilder.Entity("BemAqui.Inventory.Domain.InventoryCount", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("AdjustmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("adjustment_id");
+
+                    b.Property<string>("AdjustmentNumber")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("adjustment_number");
+
+                    b.Property<string>("CancelReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("cancel_reason");
+
+                    b.Property<DateTimeOffset?>("CancelledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("cancelled_at");
+
+                    b.Property<Guid?>("CancelledBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cancelled_by");
+
+                    b.Property<DateTimeOffset?>("ClosedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("closed_at");
+
+                    b.Property<Guid?>("ClosedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("closed_by");
+
+                    b.Property<Guid>("LocationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("location_id");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("number");
+
+                    b.Property<Guid?>("OpenedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("opened_by");
+
+                    b.Property<int>("ReopenCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("reopen_count");
+
+                    b.Property<string>("Scope")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("scope");
+
+                    b.Property<DateTimeOffset>("SnapshotAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("snapshot_at");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<string>("UncountedPolicy")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("uncounted_policy");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_inventory_counts");
+
+                    b.HasIndex("AdjustmentId")
+                        .HasDatabaseName("ix_inventory_counts_adjustment_id")
+                        .HasFilter("adjustment_id IS NOT NULL");
+
+                    b.HasIndex("LocationId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_inventory_counts_location_counting")
+                        .HasFilter("status = 'Counting'");
+
+                    b.HasIndex("Number")
+                        .IsUnique()
+                        .HasDatabaseName("ux_inventory_counts_number");
+
+                    b.HasIndex("Status", "SnapshotAt")
+                        .HasDatabaseName("ix_inventory_counts_status_snapshot_at");
+
+                    b.ToTable("inventory_counts", "inventory");
+                });
+
+            modelBuilder.Entity("BemAqui.Inventory.Domain.InventoryCountLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("AddedDuringCount")
+                        .HasColumnType("boolean")
+                        .HasColumnName("added_during_count");
+
+                    b.Property<Guid>("CountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("count_id");
+
+                    b.Property<DateTimeOffset?>("CountedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("counted_at");
+
+                    b.Property<Guid?>("CountedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("counted_by");
+
+                    b.Property<decimal?>("CountedQty")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("counted_qty");
+
+                    b.Property<decimal?>("Difference")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("difference");
+
+                    b.Property<decimal?>("EnteredQuantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("entered_quantity");
+
+                    b.Property<Guid?>("EnteredUnitId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("entered_unit_id");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_id");
+
+                    b.Property<Guid?>("LotId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("lot_id");
+
+                    b.Property<decimal?>("MovementDelta")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("movement_delta");
+
+                    b.Property<Guid?>("RecountOfLineId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recount_of_line_id");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.Property<bool>("Superseded")
+                        .HasColumnType("boolean")
+                        .HasColumnName("superseded");
+
+                    b.Property<decimal>("SystemQty")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("system_qty");
+
+                    b.Property<decimal?>("SystemQtyAtCount")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("system_qty_at_count");
+
+                    b.Property<decimal?>("UnitCost")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)")
+                        .HasColumnName("unit_cost");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_inventory_count_lines");
+
+                    b.HasIndex("ItemId")
+                        .HasDatabaseName("ix_inventory_count_lines_item_id");
+
+                    b.HasIndex("LotId")
+                        .HasDatabaseName("ix_inventory_count_lines_lot_id");
+
+                    b.HasIndex("RecountOfLineId")
+                        .HasDatabaseName("ix_inventory_count_lines_recount_of_line_id")
+                        .HasFilter("recount_of_line_id IS NOT NULL");
+
+                    b.HasIndex("CountId", "Sequence")
+                        .IsUnique()
+                        .HasDatabaseName("ux_inventory_count_lines_count_sequence");
+
+                    b.HasIndex("CountId", "ItemId", "LotId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_inventory_count_lines_count_item_lot")
+                        .HasFilter("superseded = false");
+
+                    NpgsqlIndexBuilderExtensions.AreNullsDistinct(b.HasIndex("CountId", "ItemId", "LotId"), false);
+
+                    b.ToTable("inventory_count_lines", "inventory");
+                });
+
             modelBuilder.Entity("BemAqui.Inventory.Domain.InventoryParameters", b =>
                 {
                     b.Property<Guid>("Id")
@@ -10139,6 +10357,45 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_user_preferences_users_user_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Inventory.Domain.InventoryCount", b =>
+                {
+                    b.HasOne("BemAqui.Inventory.Domain.Location", null)
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_inventory_counts_locations_location_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Inventory.Domain.InventoryCountLine", b =>
+                {
+                    b.HasOne("BemAqui.Inventory.Domain.InventoryCount", null)
+                        .WithMany()
+                        .HasForeignKey("CountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_inventory_count_lines_inventory_counts_count_id");
+
+                    b.HasOne("BemAqui.Inventory.Domain.Item", null)
+                        .WithMany()
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_inventory_count_lines_items_item_id");
+
+                    b.HasOne("BemAqui.Inventory.Domain.Lot", null)
+                        .WithMany()
+                        .HasForeignKey("LotId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_inventory_count_lines_lots_lot_id");
+
+                    b.HasOne("BemAqui.Inventory.Domain.InventoryCountLine", null)
+                        .WithMany()
+                        .HasForeignKey("RecountOfLineId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_inventory_count_lines_inventory_count_lines_recount_of_line");
                 });
 
             modelBuilder.Entity("BemAqui.Inventory.Domain.Item", b =>

@@ -25,6 +25,7 @@ public sealed partial class StockAdjustmentService(
     public const string ApprovalType = "inventory.adjustment_pending";
     public const string DecisionType = "inventory.adjustment_decided";
     public const string SelfApprovedType = "inventory.self_approved";
+    public const string ReservationsReducedType = "inventory.count_reservations_reduced";
     public const string ReservationsRecovery = "Ver reservas do item";
 
     /// <summary>"Enviar para aprovação" (CA 2 a 4 e 18): o ajuste nasce <c>Pending</c>, com o número AJ, e o saldo não muda.</summary>
@@ -83,7 +84,7 @@ public sealed partial class StockAdjustmentService(
         }
 
         var lines = await ValidateLinesAsync(
-            StockAdjustmentMode.Delta, input.Lines.Select(l => new StockAdjustmentLineInput(l.ItemId, l.LotId, l.DeltaQuantity, null)).ToList(), cancellationToken);
+            StockAdjustmentMode.Delta, input.Lines.Select(l => new StockAdjustmentLineInput(l.ItemId, l.LotId, l.DeltaQuantity, null)).ToList(), cancellationToken, InventoryCountRules.MaxLines);
         if (lines.IsFailure)
         {
             return lines.Error!;
@@ -101,7 +102,8 @@ public sealed partial class StockAdjustmentService(
         IReadOnlyList<ValidLine> lines, CancellationToken ct)
     {
         var balances = await BalancesAsync(location.Id, lines.Select(l => (l.Item.Id, l.LotId)).ToList(), ct);
-        var (results, refusal) = StockAdjustmentRules.Evaluate(mode, Inputs(mode, lines), balances, lines.Select(l => l.UnitCode).ToList());
+        // O ajuste do inventário pode ficar abaixo do reservado: a aprovação reduz antes as reservas (decisão do PO de 23/10/2026).
+        var (results, refusal) = StockAdjustmentRules.Evaluate(mode, Inputs(mode, lines), balances, lines.Select(l => l.UnitCode).ToList(), origin == StockAdjustmentOrigin.InventoryCount);
         for (var i = 0; i < results.Count; i++)
         {
             if (results[i].Delta == 0)
@@ -160,16 +162,17 @@ public sealed partial class StockAdjustmentService(
     /// ajuste (contada ≥ 0, diferença ≠ 0), a conversão de unidade e item e lote sem repetição. Campo a mais na linha: 422 (o modo é do
     /// ajuste inteiro).
     /// </summary>
-    private async Task<Result<List<ValidLine>>> ValidateLinesAsync(StockAdjustmentMode mode, IReadOnlyList<StockAdjustmentLineInput>? input, CancellationToken ct)
+    private async Task<Result<List<ValidLine>>> ValidateLinesAsync(
+        StockAdjustmentMode mode, IReadOnlyList<StockAdjustmentLineInput>? input, CancellationToken ct, int maxLines = StockAdjustmentRules.MaxLines)
     {
         if (input is not { Count: > 0 })
         {
             return Invalid("lines", "Inclua ao menos uma linha no ajuste.");
         }
 
-        if (input.Count > StockAdjustmentRules.MaxLines)
+        if (input.Count > maxLines)
         {
-            return Invalid("lines", $"Use até {StockAdjustmentRules.MaxLines} linhas por ajuste.");
+            return Invalid("lines", $"Use até {maxLines} linhas por ajuste.");
         }
 
         var itemIds = input.Select(l => l.ItemId).Distinct().ToList();
@@ -304,8 +307,38 @@ public sealed partial class StockAdjustmentService(
         return location.IsActive ? location : Invalid("locationId", "Local inativo não recebe ajuste.");
     }
 
-    private async Task<bool> IsDecidingAloneAsync(Guid me, CancellationToken ct) =>
-        await SoleOwnerRule.NoOtherEligibleAsync(users, StockAdjustmentRules.ApproverPermission, me, [me], ct);
+    private async Task<bool> IsDecidingAloneAsync(Guid me, IReadOnlyCollection<Guid> involved, CancellationToken ct) =>
+        await SoleOwnerRule.NoOtherEligibleAsync(users, StockAdjustmentRules.ApproverPermission, me, involved, ct);
+
+    /// <summary>
+    /// Envolvidos no ajuste (CA 8 e EST-05 CA 11): quem lançou e, no ajuste do inventário, quem abriu e quem contou ou recontou
+    /// alguma linha (inclusive a contagem substituída pela recontagem).
+    /// </summary>
+    private async Task<IReadOnlyCollection<Guid>> InvolvedAsync(StockAdjustment adjustment, CancellationToken ct)
+    {
+        var involved = new HashSet<Guid>();
+        if (adjustment.RequestedBy is { } author)
+        {
+            involved.Add(author);
+        }
+
+        if (adjustment.Origin == StockAdjustmentOrigin.InventoryCount && adjustment.OriginId is { } countId)
+        {
+            var opener = await db.InventoryCounts.AsNoTracking().Where(c => c.Id == countId).Select(c => c.OpenedBy).FirstOrDefaultAsync(ct);
+            if (opener is { } o)
+            {
+                involved.Add(o);
+            }
+
+            involved.UnionWith(await db.InventoryCountLines.AsNoTracking().Where(l => l.CountId == countId && l.CountedBy != null).Select(l => l.CountedBy!.Value).Distinct().ToListAsync(ct));
+        }
+
+        return involved;
+    }
+
+    /// <summary>Recusa de quem está envolvido (CA 8 e EST-05 CA 11), com o motivo de cada caso.</summary>
+    private static string OwnMessage(StockAdjustment adjustment, Guid actor, string verb) =>
+        adjustment.RequestedBy == actor ? $"Quem lança o ajuste não o {verb}." : $"Quem abriu ou contou o inventário não {verb} o ajuste dele.";
 
     private async Task NotifySelfApprovedAsync(string what, string link, CancellationToken ct)
     {

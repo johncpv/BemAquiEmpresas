@@ -58,6 +58,11 @@ public interface IInventoryDb
 
     DbSet<StockAdjustmentLine> StockAdjustmentLines { get; }
 
+    /// <summary>Inventários por local e as linhas (EST-05): nunca mexem no saldo; o fechamento gera o ajuste.</summary>
+    DbSet<InventoryCount> InventoryCounts { get; }
+
+    DbSet<InventoryCountLine> InventoryCountLines { get; }
+
     /// <summary>Para trocar o local padrão em dois passos numa transação (o índice único parcial é checado a cada comando).</summary>
     DatabaseFacade Database { get; }
 

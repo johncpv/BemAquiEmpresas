@@ -1,4 +1,6 @@
+using BemAqui.Inventory.Domain;
 using BemAqui.SharedKernel;
+using Microsoft.EntityFrameworkCore;
 
 namespace BemAqui.Inventory.Application;
 
@@ -6,10 +8,10 @@ namespace BemAqui.Inventory.Application;
 public sealed record LocationCountBlock(Guid LocationId, string LocationName, Guid CountId, string CountNumber);
 
 /// <summary>
-/// Ponto de bloqueio do local por inventário (EST-01b CA 18, ponto 91), interno do Inventory: o ajuste manual (lançar, aprovar e
-/// estornar) e o estorno de movimento manual (EST-01a CA 20) consultam antes de gravar. Nesta story a implementação nunca bloqueia
-/// (<see cref="NoLocationCountLock"/>); a EST-05 registra a real (EST-05 CA 6). O ajuste de origem <c>InventoryCount</c> não passa por aqui
-/// ao nascer.
+/// Ponto de bloqueio do local por inventário (EST-01b CA 18, EST-05 CA 6, ponto 91), interno do Inventory: o ajuste manual (lançar,
+/// aprovar e estornar) e o estorno de movimento manual (EST-01a CA 20) consultam antes de gravar. A implementação é o
+/// <see cref="InventoryCountLock"/>; o <see cref="NoLocationCountLock"/> fica para os testes que não têm inventário. O ajuste de
+/// origem <c>InventoryCount</c> não passa por aqui ao nascer.
 /// </summary>
 public interface ILocationCountLock
 {
@@ -17,10 +19,34 @@ public interface ILocationCountLock
     Task<LocationCountBlock?> FindAsync(IReadOnlyCollection<Guid> locationIds, CancellationToken cancellationToken = default);
 }
 
-/// <summary>Até a EST-05: nenhum local fica bloqueado.</summary>
+/// <summary>Nenhum local bloqueado (dublê dos testes; até a EST-05 era o registrado).</summary>
 public sealed class NoLocationCountLock : ILocationCountLock
 {
     public Task<LocationCountBlock?> FindAsync(IReadOnlyCollection<Guid> locationIds, CancellationToken cancellationToken = default) => Task.FromResult<LocationCountBlock?>(null);
+}
+
+/// <summary>
+/// Bloqueio real (EST-05 CA 6): o local tem um inventário <c>Counting</c> (no máximo um, pelo índice único parcial
+/// <c>ux_inventory_counts_location_counting</c>). Entradas, saídas, requisições, recebimentos e romaneios não consultam (ponto 91).
+/// </summary>
+public sealed class InventoryCountLock(IInventoryDb db) : ILocationCountLock
+{
+    public async Task<LocationCountBlock?> FindAsync(IReadOnlyCollection<Guid> locationIds, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(locationIds);
+        if (locationIds.Count == 0)
+        {
+            return null;
+        }
+
+        var ids = locationIds.Distinct().ToList();
+        var found = await (from c in db.InventoryCounts.AsNoTracking()
+                           join l in db.Locations.IgnoreQueryFilters() on c.LocationId equals l.Id
+                           where c.Status == InventoryCountStatus.Counting && ids.Contains(c.LocationId)
+                           orderby c.Number
+                           select new { c.LocationId, l.Name, c.Id, c.Number }).FirstOrDefaultAsync(cancellationToken);
+        return found is null ? null : new LocationCountBlock(found.LocationId, found.Name, found.Id, found.Number);
+    }
 }
 
 public static class LocationCountLocks

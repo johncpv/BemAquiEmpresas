@@ -368,7 +368,7 @@ _MIG-01d (saldos iniciais de estoque) não entra aqui: cancelada pelo PO em 18/1
 - Requisitos: R-EST-6, R-EST-5, R-EST-7, R-COM-2, R-PRP-5, R-PRP-7, R-SEC-5, R-SEC-10.
 - CA: numeração `AJ`; um modo por ajuste; todo ajuste aprovado por outra pessoa com `inventory.approve`, que decide sem editar (`SoleOwnerRule`); saldo abaixo do reservado recusado; modo Delta de origem `InventoryCount` para a EST-05; ponto de bloqueio do local (`ILocationCountLock`): com contagem aberta, lançar, aprovar e estornar recebem 409; seed patch `inventory-adjust-warehouse`.
 
-**EST-05 [ ] Inventário (contagem por local) (M)** — 3.4, ordem 23 — [story](stories/EST-05-inventario.md)
+**EST-05 [x] Inventário (contagem por local) (M)** — 3.4, ordem 23 — [story](stories/EST-05-inventario.md)
 - Requisitos: R-EST-9, R-EST-6, R-EST-5, R-PRP-7, R-SEC-5.
 - CA: numeração `INV`; contagem cega também no celular (kit chão de fábrica), sem custo no DTO do contador; recontador diferente do primeiro, conferido no servidor; ajuste Delta pela EST-01b sobre o saldo da aprovação; ajuste e estorno manual bloqueados no local durante a contagem (liga o bloqueio da EST-01b); contagem abaixo do reservado reduz primeiro as reservas das OS com a BOM liberada mais recentemente, gera a falta e avisa quem tem `inventory.approve` (PO, 23/10/2026).
 

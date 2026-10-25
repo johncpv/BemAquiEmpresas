@@ -70,20 +70,22 @@ public sealed partial class StockAdjustmentService
         var me = currentUser.UserId;
         var canApprove = await permissions.HasPermissionAsync("inventory", "approve", cancellationToken);
         var canAdjust = await permissions.HasPermissionAsync("inventory", "adjust", cancellationToken);
-        var mine = me is not null && adjustment.RequestedBy == me;
+        var involved = await InvolvedAsync(adjustment, cancellationToken);
+        var mine = me is { } actor && involved.Contains(actor);
         var approved = adjustment.Status == StockAdjustmentStatus.Approved && adjustment.ReversedAt is null;
-        var alone = mine && canApprove && (pending || approved) && await IsDecidingAloneAsync(me!.Value, cancellationToken);
+        var alone = mine && canApprove && (pending || approved) && await IsDecidingAloneAsync(me!.Value, involved, cancellationToken);
         var canDecide = pending && canApprove && (!mine || alone);
         var canReverse = approved && canApprove && (!mine || alone);
-        string? decideBlocked = !pending ? null : !canApprove ? "Quem decide o ajuste é quem aprova no Estoque." : mine && !alone ? "Quem lança o ajuste não o aprova." : null;
-        string? reverseBlocked = !approved ? null : !canApprove ? "Quem estorna o ajuste é quem aprova no Estoque." : mine && !alone ? "Quem lança o ajuste não o estorna." : null;
+        string? decideBlocked = !pending ? null : !canApprove ? "Quem decide o ajuste é quem aprova no Estoque." : mine && !alone ? OwnMessage(adjustment, me!.Value, "aprova") : null;
+        string? reverseBlocked = !approved ? null : !canApprove ? "Quem estorna o ajuste é quem aprova no Estoque." : mine && !alone ? OwnMessage(adjustment, me!.Value, "estorna") : null;
+        var authored = me is not null && adjustment.RequestedBy == me;
         var originLink = adjustment.Origin == StockAdjustmentOrigin.InventoryCount && adjustment.OriginId is { } count ? LocationCountLocks.Link + count : null;
         return new StockAdjustmentDetail(
             adjustment.Id, adjustment.Number, adjustment.LocationId, location.Code, location.Name, adjustment.Mode, adjustment.Origin, adjustment.OriginId, adjustment.OriginNumber, originLink,
             adjustment.Reason, StockAdjustmentRules.ReasonLabel(adjustment.Reason), adjustment.ReasonDetail, adjustment.Status, adjustment.RequestedBy, Name(names, adjustment.RequestedBy),
             adjustment.RequestedAt, Name(names, adjustment.DecidedBy), adjustment.DecidedAt, adjustment.DecisionComment, adjustment.SelfApproved, adjustment.CancelReason, adjustment.ReversedAt,
             Name(names, adjustment.ReversedBy), adjustment.ReversalReason, adjustment.ReversalSelfApproved, lines.Select(l => l.ItemId).Distinct().Count(), adjustment.SurplusValue,
-            adjustment.ShortageValue, adjustment.SurplusValue + adjustment.ShortageValue, lines, pending ? impact : null, canDecide, pending && mine && canAdjust, canReverse, decideBlocked,
+            adjustment.ShortageValue, adjustment.SurplusValue + adjustment.ShortageValue, lines, pending ? impact : null, canDecide, pending && authored && canAdjust, canReverse, decideBlocked,
             reverseBlocked, adjustment.Version);
     }
 
@@ -115,7 +117,15 @@ public sealed partial class StockAdjustmentService
                           }).ToListAsync(ct);
         var balances = await BalancesAsync(adjustment.LocationId, rows.Select(r => (r.Line.ItemId, r.Line.LotId)).ToList(), ct);
         var inputs = rows.Select(r => new AdjustmentLineInput(r.Line.ItemId, r.Line.LotId, r.Line.CountedQty, r.Line.DeltaQty)).ToList();
-        var (now, refusal) = StockAdjustmentRules.Evaluate(adjustment.Mode, inputs, balances, rows.Select(r => r.UnitCode).ToList());
+        var fromCount = adjustment.Origin == StockAdjustmentOrigin.InventoryCount;
+        var (now, refusal) = StockAdjustmentRules.Evaluate(adjustment.Mode, inputs, balances, rows.Select(r => r.UnitCode).ToList(), fromCount);
+        // EST-05: a contagem abaixo do reservado não é recusa; a aprovação reduz as reservas mais recentes e gera a falta.
+        var reservationNote = !fromCount ? null : string.Join(" ", rows.Select((r, i) => (r, i)).GroupBy(x => x.r.Line.ItemId).Select(g =>
+        {
+            var (r, i) = g.First();
+            var excess = StockAdjustmentRules.ReservationExcess(now[i].PositionAfter, balances[i].PositionReserved);
+            return excess > 0 ? $"{r.ItemCode}: a contagem ficou abaixo do reservado; a aprovação reduz {StockAdjustmentRules.Quantity(excess, r.UnitCode)} das reservas das OS com a BOM liberada mais recentemente e gera a falta." : null;
+        }).Where(t => t is not null));
         var itemIds = rows.Select(r => r.Line.ItemId).Distinct().ToList();
         var available = await db.StockPositions.AsNoTracking().Where(p => itemIds.Contains(p.ItemId)).GroupBy(p => p.ItemId)
             .Select(g => new { ItemId = g.Key, Available = g.Sum(p => p.QuantityOnHand - p.QuantityReserved) }).ToDictionaryAsync(x => x.ItemId, x => x.Available, ct);
@@ -127,7 +137,8 @@ public sealed partial class StockAdjustmentService
             refusal?.Index == i ? refusal.Message : null, r.Line.SystemQtyAtApproval, r.Line.AppliedDeltaQty, r.Line.UnitCost, r.Line.MovementId, r.MovementNumber,
             r.MinStock > 0 && available.GetValueOrDefault(r.Line.ItemId) < r.MinStock)).ToList();
         var (surplus, shortage) = StockAdjustmentRules.Totals(views.Select((v, i) => (v.DeltaNow, rows[i].AverageCost)));
-        var impact = new StockAdjustmentImpact(views.Any(v => v.Changed), surplus, shortage, refusal?.Message, refusal is null ? null : rows[refusal.Index].Line.ItemId);
+        var impact = new StockAdjustmentImpact(views.Any(v => v.Changed), surplus, shortage, refusal?.Message, refusal is null ? null : rows[refusal.Index].Line.ItemId,
+            string.IsNullOrEmpty(reservationNote) ? null : reservationNote);
         return (views, impact);
     }
 

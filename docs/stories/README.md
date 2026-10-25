@@ -461,7 +461,7 @@ Stories detalhadas da Fase 3, uma por arquivo, escritas pelo @sm (River) e valid
 | 20 (3.4) | PRD-06b | Expedição: romaneio e saída do produto acabado | M | Done | R-PRD-8, R-EST-6, R-EST-8 | PRD-06a2, COM-03 | [PRD-06b](PRD-06b-expedicao-romaneio.md) |
 | 21 (3.4) | EST-04 | Lote, série e rastreabilidade | M | Done | R-EST-8, R-PRD-7, R-PRJ-4 | CMP-04, EST-03, PRD-06a2, PRD-06b | [EST-04](EST-04-lote-serie-rastreabilidade.md) |
 | 22 (3.4) | EST-01b | Ajuste de estoque com motivo e aprovação | M | Done | R-EST-6, R-EST-5, R-EST-7, R-SEC-10 | EST-01a, EST-02 | [EST-01b](EST-01b-ajuste-estoque-aprovacao.md) |
-| 23 (3.4) | EST-05 | Inventário (contagem por local) | M | Ready | R-EST-9, R-EST-6 | EST-01b, EST-02 | [EST-05](EST-05-inventario.md) |
+| 23 (3.4) | EST-05 | Inventário (contagem por local) | M | Done | R-EST-9, R-EST-6 | EST-01b, EST-02 | [EST-05](EST-05-inventario.md) |
 | 24 (3.4) | EST-06 | Capacidade de produzir (D, desejável; pode ir à Fase 4) | P | Ready | R-EST-10 | ENG-02, EST-02, CMP-01 | [EST-06](EST-06-capacidade-de-produzir.md) |
 | Fase 6 | CAD-04c2 | Funcionários: dependentes, banco/Pix, adicionais, vale-transporte e documentos | M | Ready | R-RH-1, PRD §6 LGPD | CAD-04c1 | [CAD-04c2](CAD-04c2-funcionarios-complemento.md) |
 

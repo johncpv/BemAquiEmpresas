@@ -20,6 +20,9 @@ public sealed record ReservationContext(string Origin, bool IsBackfill = false, 
 /// <summary>Parte da baixa da requisição num local (EST-03): quanto sai do reservado da OS e o total baixado (reservado + excedente).</summary>
 public sealed record ReservationIssue(Guid LocationId, decimal FromReserved, decimal Total);
 
+/// <summary>Reserva reduzida pelo inventário abaixo do reservado (EST-05): a OS, o projeto e quanto saiu do reservado (virou falta).</summary>
+public sealed record ReservationReduction(Guid ProductionOrderId, Guid ProjectId, decimal Quantity);
+
 /// <summary>
 /// Quem escreve a reserva e o reservado da posição (EST-02, ADR 0023 §2, §3 e §6). O chamador já travou a linha do item
 /// (<see cref="LockItemAsync"/>, a mesma trava do motor, em ordem crescente de <c>item_id</c>); aqui a posição do item é travada
@@ -129,6 +132,54 @@ public sealed class ReservationAllocator(IInventoryDb db, IEventPublisher events
         }
 
         PublishShortage(order, itemId, rows, before);
+    }
+
+    /// <summary>
+    /// Inventário abaixo do reservado (EST-05, decisão do PO de 23/10/2026): o chamador já travou o item; aqui a posição é travada e o
+    /// reservado do item no local desce em <paramref name="excess"/>, primeiro nas OS com a BOM liberada mais recentemente
+    /// (<see cref="ReservationPlanner.ReductionOrder"/>). A necessidade fica: a diferença vira falta da OS (histórico <c>Released</c> com a
+    /// origem e o aviso <see cref="StockShortageChanged"/>). Devolve o que saiu de cada OS, para o aviso a quem aprova.
+    /// </summary>
+    public async Task<IReadOnlyList<ReservationReduction>> ReduceForCountAsync(Guid itemId, Guid locationId, decimal excess, string origin, CancellationToken cancellationToken = default)
+    {
+        var positions = await LockPositionsAsync(itemId, cancellationToken);
+        var position = positions.FirstOrDefault(p => p.LocationId == locationId);
+        var left = Math.Min(ReservationPlanner.Round(excess), position?.QuantityReserved ?? 0m);
+        if (position is null || left <= 0)
+        {
+            return [];
+        }
+
+        var candidates = await db.Reservations.AsNoTracking().Where(r => r.ItemId == itemId && r.LocationId == locationId && r.Quantity > 0)
+            .Select(r => new { r.ProductionOrderId, r.BomReleasedAt }).ToListAsync(cancellationToken);
+        var now = clock.GetUtcNow();
+        var reductions = new List<ReservationReduction>();
+        foreach (var orderId in ReservationPlanner.ReductionOrder(candidates.Select(c => (c.ProductionOrderId, c.BomReleasedAt))))
+        {
+            if (left <= 0)
+            {
+                break;
+            }
+
+            var rows = await RowsAsync(itemId, orderId, cancellationToken);
+            var row = rows.FirstOrDefault(r => r.LocationId == locationId && r.Quantity > 0);
+            if (row is null)
+            {
+                continue;
+            }
+
+            var before = rows.Sum(r => r.Shortage);
+            var take = Math.Min(row.Quantity, left);
+            row.Quantity -= take;
+            position.ApplyReserved(-take);
+            left -= take;
+            var order = new ReservationOrder(orderId, row.ProjectId);
+            Record(order, itemId, row, ReservationChangeKind.Released, -take, origin, now);
+            PublishShortage(order, itemId, rows, before);
+            reductions.Add(new ReservationReduction(orderId, row.ProjectId, take));
+        }
+
+        return reductions;
     }
 
     private Reservation AddRow(ReservationOrder order, Guid itemId, Guid locationId, string origin, DateTimeOffset now, List<Reservation> rows)
