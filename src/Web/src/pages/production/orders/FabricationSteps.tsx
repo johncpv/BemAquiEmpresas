@@ -1,5 +1,5 @@
 import { saveFabricationOrderSteps, useListWorkCenters } from '@/api/generated/bemaqui'
-import type { FabricationOrderDetail } from '@/api/generated/model'
+import type { FabricationOrderDetail, OrderForecastInfo, StepForecastInfo } from '@/api/generated/model'
 import { notifySuccess } from '@/components/ui/messages'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
@@ -9,12 +9,25 @@ import { useCan } from '@/pages/use-can'
 import { RoutingEditor } from '../../engineering/routings/RoutingEditor'
 import { type RoutingDraft, toDraftSteps, toStepsInput } from '../../engineering/routings/routings'
 import { canChangeSteps, FABRICATION_DICAS, hours, STEP_STATUS } from './fabrication'
+import { forecastText, hoursText, PLANNING_DICAS, stepForecast } from '../planning/planning'
+
+/** PLN-01a CA 16: "Previsto {início} → {fim}" e as horas restantes da etapa, lidos do plano; sem data, "Sem previsão: {motivo}". */
+function StepForecastLine({ forecast }: { forecast?: StepForecastInfo }) {
+  if (!forecast) return null
+  const blocked = !forecast.plannedStart || !!forecast.noForecastReason
+  return (
+    <p className={`mt-1 flex flex-wrap items-center gap-x-3 text-xs ${blocked ? 'font-semibold text-warn-ink' : 'text-muted-foreground'}`}>
+      <span className="inline-flex items-center tabular-nums">{forecastText(forecast)}<Dica nome={blocked ? 'Sem previsão' : 'Previsto'} texto={blocked ? PLANNING_DICAS.semPrevisao : PLANNING_DICAS.previsto} /></span>
+      {!blocked ? <span className="inline-flex items-center tabular-nums">Horas restantes {hoursText(forecast.hours)}<Dica nome="Horas restantes" texto={PLANNING_DICAS.horasRestantes} /></span> : null}
+    </p>
+  )
+}
 
 /**
  * Aba Etapas (CA 7 e 8): com production.edit e a OS aberta sem etapa iniciada, o editor do roteiro só com as etapas (mesmas
  * regras da ENG-01, "Salvar etapas"); senão, as etapas em cartões, só leitura.
  */
-export function FabricationSteps({ order: o, onSaved }: { order: FabricationOrderDetail; onSaved: () => Promise<void> }) {
+export function FabricationSteps({ order: o, onSaved, forecast }: { order: FabricationOrderDetail; onSaved: () => Promise<void>; forecast?: OrderForecastInfo }) {
   const canEdit = useCan('production.edit')
   const editable = canEdit && canChangeSteps(o)
   const centers = useListWorkCenters({ pageSize: 100 }, { query: { enabled: editable } })
@@ -35,6 +48,13 @@ export function FabricationSteps({ order: o, onSaved }: { order: FabricationOrde
     return (
       <div className="space-y-3">
         <p className="text-sm text-muted-foreground">As mudanças valem só para esta OS. O roteiro não muda.</p>
+        {forecast && forecast.steps.length > 0 ? (
+          <ul aria-label="Previsão das etapas" className="space-y-0.5 rounded-md border border-border bg-card p-3">
+            {o.steps.map((s) => stepForecast(forecast, s.id) ? (
+              <li key={s.id} className="text-sm"><b className="font-semibold">{s.code} · {s.name}</b><StepForecastLine forecast={stepForecast(forecast, s.id)} /></li>
+            ) : null)}
+          </ul>
+        ) : null}
         <RoutingEditor initial={initial} centers={options} suggestions={[]} productTypes={[]} canEdit stepsOnly={{ saveLabel: 'Salvar etapas' }}
           onSubmit={submit} onReload={onSaved} />
       </div>
@@ -60,6 +80,7 @@ export function FabricationSteps({ order: o, onSaved }: { order: FabricationOrde
             {s.isQualityStep ? <span className="inline-flex items-center"><Tag>Qualidade</Tag><Dica nome="Etapa de qualidade" texto={FABRICATION_DICAS.qualidade} /></span> : null}
             {s.requiresApproval ? <Tag>Exige aprovação</Tag> : null}
           </p>
+          <StepForecastLine forecast={stepForecast(forecast, s.id)} />
           {s.checklist.length > 0 ? <ul aria-label={`Checklist da etapa ${s.name}`} className="mt-2 list-disc pl-5">{s.checklist.map((t, n) => <li key={n}>{t}</li>)}</ul> : null}
         </li>
       ))}

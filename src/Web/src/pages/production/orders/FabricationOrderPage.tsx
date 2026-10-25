@@ -30,6 +30,8 @@ import { OrderQualityTab } from '../quality/OrderQualityTab'
 import { QUALITY_DICAS } from '../quality/quality'
 import { canChangeSteps, delayLabel, FABRICATION_DICAS, FABRICATION_STATUS, FINISHED_GOODS, hours, quantity } from './fabrication'
 import { SerialsTab } from './SerialsTab'
+import { orderEndText, PLANNING_DICAS } from '../planning/planning'
+import { useOrderForecasts } from '../planning/use-forecasts'
 
 /**
  * OS de fabricação (PRD-01 CA 10): OrderHeader e FactsBar comuns com a OS de instalação; abas na ordem do padrão 10 (as das
@@ -50,6 +52,7 @@ export function FabricationOrderPage() {
   const [completeOpen, setCompleteOpen] = useState(false)
   const [readyDismissed, setReadyDismissed] = useState(false)
   const query = useGetFabricationOrder(id)
+  const forecast = useOrderForecasts([id]).get(id)
   // EST-02 CA 14: aba Material e o total de faltas no cabeçalho, com o módulo Estoque liberado (a aba aceita production.view).
   const { all } = useNavigation()
   const stockReleased = all.some((m) => m.code === 'inventory' && !m.locked)
@@ -146,12 +149,16 @@ export function FabricationOrderPage() {
       {o.started && o.status !== 'Cancelled' ? <p role="note" className="mb-4 rounded-md border border-border bg-muted px-3 py-2 text-sm">A OS já começou. As etapas seguem o roteiro gravado.</p> : null}
       <FactsBar facts={[
         { label: 'Prometido', dica: FABRICATION_DICAS.prometido, value: <span className="tabular-nums">{o.promisedDate ? formatDate(o.promisedDate) : '—'}{delayLabel(o.delayDays) ? <span className="block text-xs font-semibold text-crit-ink">{delayLabel(o.delayDays)}</span> : null}</span> },
+        // PLN-01a CA 16: "Fim previsto" lido do plano (nunca das colunas da OS); sem data, o motivo.
+        ...(o.status !== 'Completed' && o.status !== 'Cancelled' ? [{ label: 'Fim previsto', dica: PLANNING_DICAS.previsto, value: forecast?.plannedEnd
+          ? <span className="tabular-nums">{formatDate(forecast.plannedEnd)}</span>
+          : forecast ? <span className="text-xs font-semibold text-warn-ink">{orderEndText(forecast)}</span> : '—' }] : []),
         { label: 'Horas padrão', dica: FABRICATION_DICAS.horas, value: <span className="tabular-nums">{hours(o.totalStandardHours)} h</span> },
         { label: 'Etapa atual', value: current ? `${current.code} · ${current.name}` : '—' },
         { label: 'Roteiro', value: o.routingTemplateName ?? (noRouting ? 'Sem roteiro' : 'Roteiro excluído') },
       ]} />
       <UrlTabs label="Seções da OS" fallback="etapas" tabs={[
-        { id: 'etapas', label: 'Etapas', content: <FabricationSteps key={o.version} order={o} onSaved={refresh} /> },
+        { id: 'etapas', label: 'Etapas', content: <FabricationSteps key={o.version} order={o} onSaved={refresh} forecast={forecast} /> },
         // ENG-02 (padrão 10): a aba BOM vem depois de Etapas, só com engineering.view.
         ...(canSeeBom ? [{ id: 'bom', label: 'BOM', content: <BomTab orderId={id} /> }] : []),
         // EST-02 CA 14: necessidade, reservado, baixado e falta por linha da BOM.
