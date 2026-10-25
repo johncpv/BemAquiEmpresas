@@ -66,8 +66,7 @@ public static class KioskRules
         var result = new List<string>();
         foreach (var item in items)
         {
-            var text = item.Contains('/', StringComparison.Ordinal) ? item : IPAddress.TryParse(item, out var single) ? item + "/" + (single.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6 ? 128 : 32) : item;
-            if (!IPNetwork.TryParse(text, out var network) || network.PrefixLength == 0)
+            if (TryParseNetwork(item) is not { } network || network.PrefixLength == 0)
             {
                 return ([], $"A rede {item} não é válida. Use o formato 192.168.10.0/24.");
             }
@@ -80,6 +79,32 @@ public static class KioskRules
         }
 
         return ([.. result], null);
+    }
+
+    /// <summary>CIDR ou IP único; os bits de host do endereço são zerados (192.168.10.7/24 vira 192.168.10.0/24).</summary>
+    private static IPNetwork? TryParseNetwork(string text)
+    {
+        var slash = text.IndexOf('/', StringComparison.Ordinal);
+        if (!IPAddress.TryParse(slash < 0 ? text : text[..slash], out var address))
+        {
+            return null;
+        }
+
+        var bytes = address.GetAddressBytes();
+        var bits = bytes.Length * 8;
+        var prefix = bits;
+        if (slash >= 0 && (!int.TryParse(text[(slash + 1)..], System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out prefix) || prefix > bits))
+        {
+            return null;
+        }
+
+        for (var i = 0; i < bytes.Length; i++)
+        {
+            var keep = Math.Clamp(prefix - (i * 8), 0, 8);
+            bytes[i] &= (byte)(0xFF << (8 - keep));
+        }
+
+        return new IPNetwork(new IPAddress(bytes), prefix);
     }
 
     /// <summary>IP real (do proxy confiável) dentro de alguma rede permitida; lista vazia = qualquer rede.</summary>

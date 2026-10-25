@@ -33,6 +33,7 @@ public class EndpointAuthorizationTests(TenancyFixture tenancy) : IClassFixture<
         ["/api/v1/auth/invites/accept"] = "convite: aceite pelo token",
         ["/api/v1/auth/pin"] = "entrar por PIN, só com o cookie do aparelho registrado válido; sem ele, 404 (ADR 0009 adendo de 21/10/2026, ADR 0026)",
         ["/api/v1/auth/pin/users"] = "nomes de quem tem PIN no aparelho, só com o cookie do aparelho válido; sem ele, 404 (ADR 0009 adendo, ADR 0026)",
+        ["/api/v1/kiosk/session"] = "Painel da TV: troca o token de uso único (do fragmento /tv#token, no corpo) pelo cookie __Host-bq_kiosk; Origin e X-CSRF, rate limit kiosk-session, 401 uniforme (ADR 0009 adendo de 21/10/2026, ADR 0030)",
         ["/api/v1/public/tenant-context"] = "nome e logo para a tela de login (ADR 0009)",
         ["/api/v1/public/tenant-logo"] = "imagem do logo da tela de login (complemento do tenant-context)",
         ["/api/v1/platform/auth/login"] = "login do super admin (sessão própria da plataforma)",
@@ -111,6 +112,27 @@ public class EndpointAuthorizationTests(TenancyFixture tenancy) : IClassFixture<
             && a.Policy[(BemAqui.Host.Realtime.HubAccess.PolicyPrefix.Length + module.Length + 1)..].Split('|').All(BemAqui.BuildingBlocks.Modules.ModuleCatalog.IsKnownPermission));
     }
 
+    /// <summary>
+    /// Painel da TV (ADR 0030 §2, ADR 0009 adendo de 21/10/2026): só o principal de quiosque (policy <c>kiosk</c>, esquema <c>Kiosk</c>),
+    /// em <c>GET /api/v1/kiosk/*</c> e no hub <c>/hubs/kiosk</c>; nenhum outro endpoint usa a policy.
+    /// </summary>
+    private static bool IsKiosk(RouteEndpoint e) =>
+        e.Metadata.GetMetadata<KioskEndpointAttribute>() is not null
+        && e.Metadata.GetOrderedMetadata<IAuthorizeData>().Any(a => a.Policy == BemAqui.BuildingBlocks.Security.KioskClaims.Policy)
+        && (e.RoutePattern.RawText!.StartsWith(KioskEndpoints.HubPath, StringComparison.Ordinal)
+            || (e.RoutePattern.RawText.StartsWith(KioskEndpoints.PathPrefix + "/", StringComparison.Ordinal)
+                && e.Metadata.GetMetadata<Microsoft.AspNetCore.Routing.HttpMethodMetadata>()?.HttpMethods.SequenceEqual(["GET"]) == true));
+
+    [Fact]
+    public void Policy_do_quiosque_so_nos_endpoints_do_painel()
+    {
+        var kiosk = Endpoints().Where(e => e.Metadata.GetOrderedMetadata<IAuthorizeData>().Any(a => a.Policy == BemAqui.BuildingBlocks.Security.KioskClaims.Policy)).ToList();
+
+        kiosk.Should().NotBeEmpty();
+        kiosk.Should().OnlyContain(e => IsKiosk(e), "só GET /api/v1/kiosk/* e o /hubs/kiosk");
+        kiosk.Should().OnlyContain(e => !HasPermission(e), "endpoint do painel não é de usuário");
+    }
+
     /// <summary>Super admin: sessão própria da plataforma (esquema e policy <c>platform</c>), fora do tenant (FND-13).</summary>
     private static bool IsPlatform(RouteEndpoint e) =>
         e.Metadata.GetOrderedMetadata<IAuthorizeData>().Any(a => a.Policy == PlatformSessionAuthenticationHandler.Policy);
@@ -131,7 +153,7 @@ public class EndpointAuthorizationTests(TenancyFixture tenancy) : IClassFixture<
                     problems.Add("anônima fora da lista: " + key + " (" + endpoint.DisplayName + ")");
                 }
             }
-            else if (!HasPermission(endpoint) && !HasHubAccess(endpoint) && !IsPlatform(endpoint) && !AuthenticatedOnly.ContainsKey(key))
+            else if (!HasPermission(endpoint) && !HasHubAccess(endpoint) && !IsKiosk(endpoint) && !IsPlatform(endpoint) && !AuthenticatedOnly.ContainsKey(key))
             {
                 problems.Add("só autenticado, sem RequirePermission: " + key + " (" + endpoint.DisplayName + ")");
             }
