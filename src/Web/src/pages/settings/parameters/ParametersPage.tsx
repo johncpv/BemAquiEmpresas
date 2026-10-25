@@ -17,6 +17,7 @@ import { DreParametersSection } from './DreParametersSection'
 import { FinanceLimitsSection } from './FinanceLimitsSection'
 import { ProductionParametersSection } from './ProductionParametersSection'
 import { PurchasingParametersSection } from './PurchasingParametersSection'
+import { RevenueTargetsSection } from './RevenueTargetsSection'
 import { useCanSettings } from '../use-can-settings'
 
 const CHARGES_DICA = 'Custo-hora do cargo = salário × (1 + % de encargos) ÷ horas do mês. Valor sugerido. Confirme com a contadora.'
@@ -40,6 +41,7 @@ export function ParametersPage() {
           <CommercialPricingSection canEdit={canEdit} />
           <FinanceLimitsSection canEdit={canEdit} />
           <DreParametersSection canEdit={canEdit} />
+          <RevenueTargetsSection canEdit={canEdit} />
           <ProductionParametersSection canEdit={canEdit} />
           <PurchasingParametersSection canEdit={canEdit} />
           <EmailDispatchSection key={`e${query.data.emailDispatchMaxPerUserDay}`} params={query.data} canEdit={canEdit} />

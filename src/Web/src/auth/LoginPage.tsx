@@ -5,6 +5,7 @@ import { markEphemeralSession, setAccessToken } from '@/api/session'
 import { Field, FormError } from '@/components/form/form'
 import { applyServerErrors, inputClass, useZodForm } from '@/components/form/form-utils'
 import { z } from '@/lib/zod'
+import { landingAfterLogin } from './home-route'
 import { AuthLayout } from './AuthLayout'
 import { pendingChallenge, safeReturn } from './pending-challenge'
 import { linkClass, primaryButton } from './styles'
@@ -30,7 +31,7 @@ export function LoginPage() {
       if (result.accessToken) {
         setAccessToken(result.accessToken)
         markEphemeralSession(ephemeral)
-        await navigate({ to: volta })
+        await navigate({ to: await landingAfterLogin(volta) })
       } else if (result.twoFactor) {
         pendingChallenge.set({ ...result.twoFactor, purpose: result.twoFactor.purpose === 'setup' ? 'setup' : 'verify', volta, ephemeral })
         await navigate({ to: result.twoFactor.purpose === 'setup' ? '/entrar/configurar-2fa' : '/entrar/verificacao' })

@@ -8,7 +8,7 @@ import { applyServerErrors, inputClass, useZodForm } from '@/components/form/for
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { z } from '@/lib/zod'
 import { AuthLayout } from './AuthLayout'
-import { homeRouteFor } from './home-route'
+import { landingAfterLogin } from './home-route'
 import { newPasswordSchema } from './password-schema'
 import { pendingChallenge } from './pending-challenge'
 import { linkClass, primaryButton } from './styles'
@@ -31,7 +31,7 @@ export function InvitePage() {
     try {
       const result = await acceptInvite({ token, name, password })
       if (result.twoFactor) {
-        pendingChallenge.set({ ...result.twoFactor, purpose: 'setup', volta: homeRouteFor() })
+        pendingChallenge.set({ ...result.twoFactor, purpose: 'setup' }) // sem volta: a página inicial de quem entrou
         await navigate({ to: '/entrar/configurar-2fa' })
         return
       }
@@ -52,7 +52,7 @@ export function InvitePage() {
         <div className="space-y-4">
           <p className="text-sm">Tudo pronto. Para proteger a conta, ative a verificação em duas etapas: leva um minuto.</p>
           {done.offerTwoFactor ? <Link to="/app/conta/seguranca" className={primaryButton + ' block text-center'}>Configurar verificação em duas etapas</Link> : null}
-          <Link to="/app" className={linkClass + ' block text-center'}>Fazer depois</Link>
+          <button type="button" onClick={() => void landingAfterLogin(undefined).then((to) => navigate({ to }))} className={linkClass + ' block w-full text-center'}>Fazer depois</button>
         </div>
       </AuthLayout>
     )
