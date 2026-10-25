@@ -13,4 +13,6 @@ export interface FinanceLimitsInput {
   ownerCanApproveOwn?: boolean;
   paymentTolerance?: number;
   transferNotifyAmount?: number;
+  /** @nullable */
+  adjustedDefaultThresholdPct?: number | null;
 }

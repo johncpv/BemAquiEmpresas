@@ -20,4 +20,11 @@ export interface CashFlowItem {
   estimate: boolean;
   /** @nullable */
   link: string | null;
+  /** @nullable */
+  adjustedDate?: string | null;
+  /** @nullable */
+  reason?: string | null;
+  shiftedOut?: boolean;
+  /** @nullable */
+  originalAmount?: number | null;
 }

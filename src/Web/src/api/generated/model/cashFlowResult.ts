@@ -4,6 +4,7 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { CashFlowAdjusted } from './cashFlowAdjusted';
 import type { CashFlowPeriod } from './cashFlowPeriod';
 import type { CashFlowPoint } from './cashFlowPoint';
 import type { CashFlowUndated } from './cashFlowUndated';
@@ -21,4 +22,5 @@ export interface CashFlowResult {
   lowest: null | CashFlowPoint;
   firstNegative: null | CashFlowPoint;
   undatedReceivables: CashFlowUndated;
+  adjusted?: null | CashFlowAdjusted;
 }
