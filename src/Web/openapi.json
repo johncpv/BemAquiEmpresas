@@ -2451,6 +2451,233 @@
         }
       }
     },
+    "/api/v1/kiosk-screens": {
+      "get": {
+        "tags": [
+          "Painel da TV"
+        ],
+        "operationId": "ListKioskScreens",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KioskScreenList"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Painel da TV"
+        ],
+        "operationId": "CreateKioskScreen",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KioskScreenInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KioskScreenLink"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/kiosk-screens/{id}": {
+      "put": {
+        "tags": [
+          "Painel da TV"
+        ],
+        "operationId": "UpdateKioskScreen",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KioskScreenInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KioskScreenRow"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/kiosk-screens/{id}/new-link": {
+      "post": {
+        "tags": [
+          "Painel da TV"
+        ],
+        "operationId": "RegenerateKioskScreenLink",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KioskVersionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KioskScreenLink"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/kiosk-screens/{id}/revoke": {
+      "post": {
+        "tags": [
+          "Painel da TV"
+        ],
+        "operationId": "RevokeKioskScreen",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KioskVersionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KioskScreenRow"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/kiosk/session": {
+      "post": {
+        "tags": [
+          "Painel da TV"
+        ],
+        "operationId": "OpenKioskSession",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/KioskSessionRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KioskSessionOpened"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/kiosk/screen": {
+      "get": {
+        "tags": [
+          "Painel da TV"
+        ],
+        "operationId": "GetKioskScreen",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KioskScreenContext"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/parties": {
       "get": {
         "tags": [
@@ -37515,6 +37742,271 @@
           }
         }
       },
+      "KioskScreenContext": {
+        "required": [
+          "name",
+          "line",
+          "views",
+          "rotationSeconds",
+          "companyName",
+          "serverNow"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "line": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "views": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "rotationSeconds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "companyName": {
+            "type": "string"
+          },
+          "serverNow": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "KioskScreenInput": {
+        "required": [
+          "name",
+          "line",
+          "views",
+          "rotationSeconds",
+          "allowedNetworks"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "line": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "views": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "rotationSeconds": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "allowedNetworks": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "version": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "uint32"
+          }
+        }
+      },
+      "KioskScreenLink": {
+        "required": [
+          "screen",
+          "link"
+        ],
+        "type": "object",
+        "properties": {
+          "screen": {
+            "$ref": "#/components/schemas/KioskScreenRow"
+          },
+          "link": {
+            "type": "string"
+          }
+        }
+      },
+      "KioskScreenList": {
+        "required": [
+          "screens",
+          "lines",
+          "views"
+        ],
+        "type": "object",
+        "properties": {
+          "screens": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KioskScreenRow"
+            }
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "views": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "KioskScreenRow": {
+        "required": [
+          "id",
+          "name",
+          "line",
+          "views",
+          "rotationSeconds",
+          "allowedNetworks",
+          "tokenPrefix",
+          "createdByName",
+          "createdAt",
+          "lastSeenAt",
+          "activeSessions",
+          "status",
+          "needsNewLink",
+          "revokedAt",
+          "revokedByName",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "line": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "views": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "rotationSeconds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "allowedNetworks": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tokenPrefix": {
+            "type": "string"
+          },
+          "createdByName": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastSeenAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "activeSessions": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "type": "string"
+          },
+          "needsNewLink": {
+            "type": "boolean"
+          },
+          "revokedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "revokedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "KioskSessionOpened": {
+        "required": [
+          "screenName"
+        ],
+        "type": "object",
+        "properties": {
+          "screenName": {
+            "type": "string"
+          }
+        }
+      },
+      "KioskSessionRequest": {
+        "required": [
+          "token"
+        ],
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          }
+        }
+      },
+      "KioskVersionInput": {
+        "required": [
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
       "LaborCloseKind": {
         "enum": [
           "Operator",
@@ -61006,6 +61498,9 @@
     },
     {
       "name": "App do operador"
+    },
+    {
+      "name": "Painel da TV"
     },
     {
       "name": "Terceiros"
