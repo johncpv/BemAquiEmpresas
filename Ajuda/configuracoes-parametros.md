@@ -7,7 +7,7 @@ modulo: settings
 ---
 
 ## Para que serve
-Guardar os números que o sistema usa para calcular custo e preço: o percentual de encargos sobre a folha, o modo de precificação dos orçamentos, os limites do financeiro e os parâmetros da produção.
+Guardar os números que o sistema usa para calcular custo e preço: o percentual de encargos sobre a folha, o modo de precificação dos orçamentos, os limites do financeiro, os parâmetros da produção e de compras e o limite de envios por e-mail.
 
 ## Como usar
 - **% de encargos estimados:** o sistema começa com 80,00%, um valor sugerido. Confirme com a contadora, ajuste e clique em **Salvar % de encargos**. Os cargos com custo-hora calculado são recalculados.
@@ -16,6 +16,7 @@ Guardar os números que o sistema usa para calcular custo e preço: o percentual
 - **Limites do financeiro** (aparece para quem vê o Financeiro): desconto acima de um % do saldo ou de um valor, e cancelamento de título com saldo acima de um valor, só são confirmados por quem aprova em Caixa e pagamentos. Baixa com data mais antiga que os dias informados pede motivo e avisa o Proprietário. **Tolerância no pagamento** é quanto o pagamento da ordem pode passar do aprovado sem nova aprovação (padrão R$ 0,00). **Aviso de transferência acima de** avisa o Proprietário de toda transferência maior que o valor (padrão R$ 10.000,00). **Proprietário aprova a própria ordem**, quando há mais de um Proprietário, deixa quem pediu a ordem aprová-la; a troca avisa todos os Proprietários. Clique em **Salvar limites**.
 - **Produção:** **Exibir custo-hora em cada apontamento** começa desligado. Desligado, as abas Apontamentos e Custos da OS mostram só o total de mão de obra por etapa e por OS; ligado, quem vê custo do projeto vê também o custo-hora do cargo e o custo de cada apontamento. **Apontamento aberto vira alerta depois de** (12 h no começo, de 1 a 72) é o limite da tela Apontamentos abertos. Clique em **Salvar parâmetros da produção**.
 - **Compras** (aparece para quem vê Compras): **Prazo padrão de compra** (15 dias no começo, de 0 a 365) é quantos dias antes da necessidade a compra precisa ser feita. A falta da BOM pede o material para a data prometida do projeto menos este prazo; a solicitação manual e a do estoque mínimo sugerem hoje mais este prazo. **Tolerância do recebimento** (0% no começo, de 0% a 50%) é quanto o recebimento pode passar da quantidade de cada linha e do total aprovado do pedido. **Anexo da proposta obrigatório acima de** (R$ 5.000,00 no começo) vale para a cotação: a resposta de um fornecedor com custo total (itens + frete + IPI) acima deste valor só é salva com a proposta dele anexada. Em **Títulos do pedido de compra**, a **conta** e a **natureza** dos títulos previstos que o pedido aprovado lança no caixa já vêm preenchidas com 2.1 Materiais e Material; em **Frete de outro fornecedor**, com 2.4 Fretes e Frete. Elas ficam com o selo **A confirmar com a contadora** até alguém marcar **Conferido com a contadora**. Clique em **Salvar parâmetros de compras**. A mudança vale para os próximos pedidos enviados para aprovação.
+- **Envios por e-mail:** **Envios por usuário por dia** (20 no começo, de 1 a 50) é quantos orçamentos e pedidos de compra cada usuário pode mandar por e-mail por dia, somados. A empresa tem também o teto de 50 envios por dia, somando todos os usuários. Passou de um dos limites, o envio é recusado e o usuário pode baixar o PDF e mandar por fora. Clique em **Salvar limite de envios**.
 - Abra **Histórico de alterações** para ver o valor anterior, o novo, quem mudou e quando.
 
 ## Perguntas frequentes
@@ -30,3 +31,5 @@ Guardar os números que o sistema usa para calcular custo e preço: o percentual
 **Que valores o % de encargos aceita?** De 0 a 200, com até 2 casas decimais.
 
 **Quais são os limites de desconto, cancelamento e data retroativa no começo?** Desconto acima de 5,00% do saldo ou de R$ 500,00; cancelamento de título com saldo acima de R$ 1.000,00; data de baixa mais de 7 dias no passado. Ajuste conforme a rotina da empresa.
+
+**Por que existe limite de envios por e-mail?** Para proteger a reputação do e-mail da empresa: muitos envios num dia, por engano ou por uma conta invadida, fazem os provedores marcarem as mensagens como spam. O dia conta pelo horário de Brasília.

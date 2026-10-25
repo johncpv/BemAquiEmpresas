@@ -10,8 +10,9 @@ import { formatDate } from '@/lib/format'
 import { useCan } from '@/pages/use-can'
 import { daysUntil, todayIso } from '../purchasing'
 import { RECEIPT_DICAS } from '../receipts/receipts'
-import { ORDER_DICAS, projectedAfter } from './purchase-orders'
+import { dispatchVerb, isResend, ORDER_DICAS, projectedAfter } from './purchase-orders'
 import { OrderLevels } from './OrderTabs'
+import { downloadOrderPdf } from './order-pdf'
 
 interface Props {
   order: PurchaseOrderDetail
@@ -20,6 +21,24 @@ interface Props {
   onApproved: (last: boolean) => void
   onSubmitted: () => void
   onClosed?: () => void
+  /** Abre o diálogo "Enviar ao fornecedor" / "Reenviar" (CMP-03b). */
+  onDispatch?: () => void
+}
+
+/** "Baixar PDF" (CMP-03b CA 1): do aprovado em diante; o erro do servidor (ex.: limite de linhas) aparece abaixo do botão. */
+function DownloadPdf({ order }: { order: PurchaseOrderDetail }) {
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  return (
+    <span className="inline-flex flex-col">
+      <button type="button" disabled={busy} onClick={() => {
+        setBusy(true)
+        setError(null)
+        void downloadOrderPdf(order).catch((e: unknown) => setError(e instanceof Error && e.message ? e.message : 'Não foi possível gerar o PDF. Tente de novo.')).finally(() => setBusy(false))
+      }} className="rounded-md border border-border px-3 py-2 text-sm font-semibold disabled:opacity-60">{busy ? 'Gerando PDF…' : 'Baixar PDF'}</button>
+      {error ? <span role="alert" className="mt-1 max-w-64 text-xs text-crit-ink">{error}</span> : null}
+    </span>
+  )
 }
 
 const button = (text: string, primary = false) => (
@@ -72,7 +91,7 @@ function CashImpact({ order, enabled }: { order: PurchaseOrderDetail; enabled: b
  * Ações do pedido pela situação e pela permissão (CA 5, 9, 11, 12, 14, 16): enviar para aprovação, aprovar (diálogo grande com o impacto
  * no caixa, o fracionamento e o aviso "1 cotação"), reprovar com o motivo e cancelar com o impacto nos títulos previstos.
  */
-export function OrderActions({ order, set, refresh, onApproved, onSubmitted, onClosed }: Props) {
+export function OrderActions({ order, set, refresh, onApproved, onSubmitted, onClosed, onDispatch }: Props) {
   const { acao } = useSearch({ strict: false }) as { acao?: string }
   const navigate = useNavigate()
   const canFinance = useCan('finance.view')
@@ -99,7 +118,11 @@ export function OrderActions({ order, set, refresh, onApproved, onSubmitted, onC
 
   return (
     <div className="flex flex-wrap gap-2">
+      {order.canDispatch && onDispatch ? (
+        <button type="button" onClick={onDispatch} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">{dispatchVerb(isResend(order)).verb}</button>
+      ) : null}
       {receive}
+      {order.canDownloadPdf ? <DownloadPdf order={order} /> : null}
       {order.canSubmit ? (
         <ConfirmDialog verb="Enviar para aprovação" done="Pedido enviado para aprovação" title={`Enviar o ${order.number} para aprovação?`}
           description="A alçada é resolvida pelo valor de referência (o pedido e os do mesmo fornecedor em 30 dias). Os aprovadores do nível 1 recebem o aviso."

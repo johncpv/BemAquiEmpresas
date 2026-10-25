@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
-import { getGetPurchaseOrderQueryKey, useGetPurchaseOrder } from '@/api/generated/bemaqui'
+import { getGetPurchaseOrderDocumentsQueryKey, getGetPurchaseOrderQueryKey, useGetPurchaseOrder } from '@/api/generated/bemaqui'
 import type { PurchaseOrderDetail } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { FactsBar } from '@/components/ui/facts-bar'
@@ -16,7 +16,9 @@ import { formatQuantity } from '@/pages/inventory/stock/stock'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { OrderActions } from './OrderActions'
-import { OrderDecisions, OrderDocuments, OrderHistory, OrderItems, OrderLevels, OrderPayables, OrderReceipts } from './OrderTabs'
+import { OrderDocuments } from './OrderDocuments'
+import { OrderDecisions, OrderHistory, OrderItems, OrderLevels, OrderPayables, OrderReceipts } from './OrderTabs'
+import { SendOrderDialog } from './SendOrderDialog'
 import { closedLabel, lateLabel, ORDER_DICAS, ORDER_STATUS, orderDestination } from './purchase-orders'
 
 /** Faixa do estado em modo leitura (padrão de tela da Fase 3). */
@@ -37,6 +39,8 @@ export function PurchaseOrderPage() {
   const navigate = useNavigate()
   const client = useQueryClient()
   const canFinance = useCan('finance.view')
+  const canEdit = useCan('purchasing.edit')
+  const [sendOpen, setSendOpen] = useState(false)
   const query = useGetPurchaseOrder(id)
   const [steps, setSteps] = useState<Step[]>([])
   const [createdShown, setCreatedShown] = useState(!!criado)
@@ -69,8 +73,10 @@ export function PurchaseOrderPage() {
             <Link to={'/app/compras/pedidos' as never} className="font-semibold text-primary">Voltar aos pedidos</Link>
           </p>
           <OrderActions order={o} set={set} refresh={refresh} onSubmitted={() => { setCreatedShown(false); setSteps([]) }}
+            onDispatch={() => setSendOpen(true)}
             onApproved={(last) => setSteps(last
               ? [
+                ...(canEdit ? [{ label: 'Enviar ao fornecedor', onSelect: () => setSendOpen(true) }] : []),
                 ...(canFinance ? [{ label: 'Ver previsão no fluxo de caixa', onSelect: go('/app/financeiro/fluxo-de-caixa') }] : []),
                 { label: 'Próximo pedido aguardando você', onSelect: go('/app/compras/pedidos', { filtro: 'aguardando-voce' }) },
               ]
@@ -80,7 +86,7 @@ export function PurchaseOrderPage() {
       </PageHeading>
       {shown.length ? <div className="mb-3"><NextSteps steps={shown} onDismiss={() => { setSteps([]); setCreatedShown(false) }} /></div> : null}
       {createdShown && o.status === 'Draft' && o.canSubmit ? <p role="status" className="mb-3 text-sm">Pedido criado em rascunho. Confira e clique em <b>Enviar para aprovação</b>.</p> : null}
-      {o.changedAfterSent && o.status !== 'Cancelled' ? <p role="note" className="mb-3 rounded-md border border-l-4 border-warn-soft border-l-warn bg-warn-soft px-3 py-2 text-sm text-warn-ink">Alterado depois do envio: reenvie ao fornecedor.</p> : null}
+      {o.changedAfterSent && o.status !== 'Cancelled' ? <p role="note" className="mb-3 flex flex-wrap items-center gap-2 rounded-md border border-l-4 border-warn-soft border-l-warn bg-warn-soft px-3 py-2 text-sm text-warn-ink">Alterado depois do envio: reenvie ao fornecedor.{o.canDispatch ? <button type="button" onClick={() => setSendOpen(true)} className="font-semibold underline">Reenviar</button> : null}</p> : null}
       {o.status === 'Draft' && o.rejectionComment ? <p role="note" className="mb-3 rounded-md border border-l-4 border-crit-soft border-l-crit bg-crit-soft px-3 py-2 text-sm text-crit-ink">Reprovado: {o.rejectionComment} Ajuste e envie de novo para aprovação.</p> : null}
       {o.status === 'PendingApproval' && o.splitWarning ? <p role="note" className="mb-3 rounded-md border border-warn-soft bg-warn-soft px-3 py-2 text-sm text-warn-ink">{o.splitWarning}</p> : null}
       {o.singleQuoteWarning && o.status === 'PendingApproval' ? <p role="note" className="mb-3 rounded-md border border-warn-soft bg-warn-soft px-3 py-2 text-sm text-warn-ink">{o.singleQuoteWarning}</p> : null}
@@ -101,9 +107,19 @@ export function PurchaseOrderPage() {
         { id: 'decisoes', label: 'Decisões', content: <OrderDecisions orderId={o.id} /> },
         { id: 'recebimentos', label: 'Recebimentos', content: <OrderReceipts order={o} /> },
         { id: 'financeiro', label: 'Financeiro', disabled: !canFinance, content: <OrderPayables orderId={o.id} /> },
-        { id: 'documentos', label: 'Documentos', content: <OrderDocuments orderId={o.id} /> },
+        { id: 'documentos', label: 'Documentos', content: <OrderDocuments order={o} onDispatch={() => setSendOpen(true)} /> },
         { id: 'historico', label: 'Histórico de alterações', content: <OrderHistory orderId={o.id} /> },
       ]} />
+      {o.canDispatch ? (
+        <SendOrderDialog order={o} open={sendOpen} onOpenChange={setSendOpen} onSent={(saved) => {
+          set(saved)
+          void client.invalidateQueries({ queryKey: getGetPurchaseOrderDocumentsQueryKey(id) })
+          setSteps([
+            { label: 'Ver o envio em Documentos', onSelect: go('/app/compras/pedidos/' + id, { aba: 'documentos' }) },
+            { label: 'Voltar aos pedidos', onSelect: go('/app/compras/pedidos') },
+          ])
+        }} />
+      ) : null}
       <p className="mt-3 text-xs text-muted-foreground">Pedido por {o.requestedByName ?? '—'} em {formatDateTime(o.createdAt)}{o.approvedAt ? ` · aprovado em ${formatDateTime(o.approvedAt)}` : ''}</p>
     </>
   )
