@@ -27,6 +27,8 @@ export interface Tab {
   label: string
   /** Grupo da aba quando o módulo agrupa as sub-telas (Financeiro, FND-09e CA 12). */
   group?: string
+  /** Ação do módulo exigida para a aba aparecer no menu e na busca (ex.: "view_cost" em "Orçado × realizado", DSH-02 CA 19). */
+  action?: string
 }
 
 /** Parte de tela de cada módulo do ModuleCatalog: rota, ícone e sub-telas (abas na topbar, CA 8). */
@@ -48,7 +50,8 @@ const STOCK_SETUP = 'Cadastros'
 export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
   dashboard: { slug: 'painel', icon: LayoutDashboard },
   quotes: { slug: 'orcamentos', icon: FileText, tabs: [{ slug: 'funil', label: 'Funil' }] },
-  projects: { slug: 'projetos', aliases: ['contratos'], icon: FolderKanban },
+  // DSH-02: "Orçado × realizado" (/app/projetos/margens), só com projects.view_cost.
+  projects: { slug: 'projetos', aliases: ['contratos'], icon: FolderKanban, tabs: [{ slug: 'margens', label: 'Orçado × realizado', action: 'view_cost' }] },
   parties: { slug: 'cadastros', icon: Contact, tabs: [{ slug: 'terceiros', label: 'Terceiros' }] },
   engineering: { slug: 'engenharia', icon: DraftingCompass, tabs: [{ slug: 'roteiros', label: 'Roteiros' }, { slug: 'boms', label: 'BOMs' }] },
   production: { slug: 'producao', icon: Factory, tabs: [{ slug: 'os', label: 'OS de fabricação' }, { slug: 'kanban', label: 'Kanban' }, { slug: 'apontamentos-abertos', label: 'Apontamentos abertos' }, { slug: 'expedicao', label: 'Expedição' }, { slug: 'instalacoes', label: 'Instalações' }, { slug: 'centros-de-trabalho', label: 'Centros de trabalho' }, { slug: 'calendario', label: 'Calendário' }, { slug: 'modelo-instalacao', label: 'Modelo da OS de instalação' }] },
@@ -128,7 +131,8 @@ export interface Navigation {
 
 const toNav = (m: PermissionModule): NavModule | null => {
   const ui = MODULE_UI[m.code]
-  return ui ? { ...m, slug: ui.slug, aliases: ui.aliases ?? [], path: ui.href ?? `/app/${ui.slug}`, icon: ui.icon, tabs: ui.tabs ?? [], locked: !m.released } : null
+  const tabs = (ui?.tabs ?? []).filter((t) => !t.action || m.actions.includes(t.action))
+  return ui ? { ...m, slug: ui.slug, aliases: ui.aliases ?? [], path: ui.href ?? `/app/${ui.slug}`, icon: ui.icon, tabs, locked: !m.released } : null
 }
 
 /** Visível no menu: liberado com acesso, ou não liberado (com cadeado). Liberado sem acesso fica oculto (CA 3). */

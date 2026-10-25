@@ -4,14 +4,26 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
-import type { ProjectCostLine } from './projectCostLine';
+import type { ProjectMarginLine } from './projectMarginLine';
+import type { ProjectTaxBasis } from './projectTaxBasis';
 
 export interface ProjectCostView {
-  lines: ProjectCostLine[];
-  total: ProjectCostLine;
+  lines: ProjectMarginLine[];
+  total: ProjectMarginLine;
   revenue: number;
   /** @nullable */
   budgetedMarginPct: number | null;
   /** @nullable */
   projectedMarginPct: number | null;
+  budgetedMargin: number;
+  realizedMargin: number;
+  /** @nullable */
+  realizedMarginPct: number | null;
+  projectedMargin: number;
+  /** @nullable */
+  marginDeviationPp: number | null;
+  taxBasis: ProjectTaxBasis;
+  taxGuides: number;
+  nonConformityCount: number;
+  nonConformityCost: number;
 }
