@@ -35,7 +35,7 @@ public class CapacityRulesTests
     }
 
     [Fact]
-    public void Rotas_da_capacidade_tem_os_dois_modulos_e_as_duas_permissoes()
+    public void Rotas_da_capacidade_tem_o_modulo_do_grupo_e_as_duas_permissoes()
     {
         var endpoints = Read("BemAqui.Inventory.Endpoints", "CapacityEndpoints.cs");
         endpoints.Should().Contain("MapGroup(\"/inventory/production-capacity\").WithTags(\"Estoque\").RequireModule(\"inventory\")", "RequireModule no grupo de rotas");
@@ -43,7 +43,7 @@ public class CapacityRulesTests
         routes.Should().HaveCount(2);
         foreach (var route in routes)
         {
-            route.Should().Contain(".RequireModule(\"engineering\")").And.Contain(".RequirePermission(\"inventory.view\")").And.Contain(".RequirePermission(\"engineering.view\")");
+            route.Should().NotContain(".RequireModule(", "um RequireModule só, no grupo; o engineering é conferido no serviço").And.Contain(".RequirePermission(\"inventory.view\")").And.Contain(".RequirePermission(\"engineering.view\")");
             route.Should().NotContain("MapPost").And.NotContain("MapPut").And.NotContain("MapDelete");
         }
     }
