@@ -454,7 +454,7 @@ Stories detalhadas da Fase 3, uma por arquivo, escritas pelo @sm (River) e valid
 | 13 (3.2) | EST-03 | Requisição de material para a OS e devolução | M | Done | R-PRD-5, R-EST-4, R-EST-6, R-PRJ-5 | EST-02, PRD-03a, PRD-04 | [EST-03](EST-03-requisicao-material-os.md) |
 | 14 (3.3) | CMP-01 | Solicitação de compra | M | Done | R-CMP-1, R-CMP-6, R-COM-2, R-COM-4 | EST-02 | [CMP-01](CMP-01-solicitacao-compra.md) |
 | 15 (3.3) | CMP-03a | Pedido de compra: criação, aprovação por alçada e CP previsto | G | Done | R-CMP-3, R-CMP-4, R-CMP-6, R-FIN-4, R-FIN-5, R-FIN-10 | CMP-01, FIN-03b, FIN-02, FIN-05; ADR 0024 | [CMP-03a](CMP-03a-pedido-compra-alcada-cp.md) |
-| 16 (3.3) | CMP-04 | Recebimento manual contra o pedido | G | Ready (pré-condição externa) | R-CMP-5, R-EST-6, R-EST-7, R-EST-8, R-FIN-4 | CMP-03a, EST-01a, EST-02 | [CMP-04](CMP-04-recebimento-manual.md) |
+| 16 (3.3) | CMP-04 | Recebimento manual contra o pedido | G | Done | R-CMP-5, R-EST-6, R-EST-7, R-EST-8, R-FIN-4 | CMP-03a, EST-01a, EST-02 | [CMP-04](CMP-04-recebimento-manual.md) |
 | 17 (3.3) | CMP-02 | Cotação | M | Done | R-CMP-2, R-CMP-6, R-COM-4, R-PRP-1 | CMP-01, CMP-03a | [CMP-02](CMP-02-cotacao.md) |
 | 18 (3.3) | CMP-03b | PDF e envio do pedido de compra ao fornecedor | P | Ready | R-CMP-3, R-COM-1, R-COM-3 | CMP-03a, COM-03 | [CMP-03b](CMP-03b-pdf-envio-pedido.md) |
 | 19 (3.4) | PRD-06a2 | Produto acabado: entrada no estoque, séries e lotes consumidos | M | Done | R-PRD-7, R-EST-8, R-EST-7 | PRD-06a1, EST-03, EST-02, EST-01a | [PRD-06a2](PRD-06a2-produto-acabado.md) |
@@ -462,10 +462,8 @@ Stories detalhadas da Fase 3, uma por arquivo, escritas pelo @sm (River) e valid
 | 21 (3.4) | EST-04 | Lote, série e rastreabilidade | M | Done | R-EST-8, R-PRD-7, R-PRJ-4 | CMP-04, EST-03, PRD-06a2, PRD-06b | [EST-04](EST-04-lote-serie-rastreabilidade.md) |
 | 22 (3.4) | EST-01b | Ajuste de estoque com motivo e aprovação | M | Done | R-EST-6, R-EST-5, R-EST-7, R-SEC-10 | EST-01a, EST-02 | [EST-01b](EST-01b-ajuste-estoque-aprovacao.md) |
 | 23 (3.4) | EST-05 | Inventário (contagem por local) | M | Done | R-EST-9, R-EST-6 | EST-01b, EST-02 | [EST-05](EST-05-inventario.md) |
-| 24 (3.4) | EST-06 | Capacidade de produzir (D, desejável; pode ir à Fase 4) | P | Ready | R-EST-10 | ENG-02, EST-02, CMP-01 | [EST-06](EST-06-capacidade-de-produzir.md) |
-
-| 23 (3.4) | EST-05 | Inventário (contagem por local) | M | Ready | R-EST-9, R-EST-6 | EST-01b, EST-02 | [EST-05](EST-05-inventario.md) |
 | 24 (3.4) | EST-06 | Capacidade de produzir (D, desejável; pode ir à Fase 4) | P | Done | R-EST-10 | ENG-02, EST-02, CMP-01 | [EST-06](EST-06-capacidade-de-produzir.md) |
+
 | Fase 6 | CAD-04c2 | Funcionários: dependentes, banco/Pix, adicionais, vale-transporte e documentos | M | Ready | R-RH-1, PRD §6 LGPD | CAD-04c1 | [CAD-04c2](CAD-04c2-funcionarios-complemento.md) |
 
 Total da Fase 3: 24 stories (P: 4 · M: 15 · G: 5), todas `Ready`; cinco com pré-condição externa explícita que não bloqueia (PRD-03b, EST-01a, CMP-03a, CMP-04, PRD-06a2). A CAD-04c2 (M, `Ready`) foi movida para a Fase 6.
