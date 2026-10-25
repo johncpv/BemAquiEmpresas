@@ -21,6 +21,7 @@ internal static partial class ProductionEndpoints
         MapSchedule(production.MapGroup("/schedule"));
         MapPlanningQueue(production.MapGroup("/planning/queue"));
         MapPlanningLoad(production.MapGroup("/planning/load"));
+        MapPlanningGantt(production.MapGroup("/planning"));
         MapLabor(production);
         MapQuality(production);
         MapInstallations(production.MapGroup("/installations"));
