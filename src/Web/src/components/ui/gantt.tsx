@@ -153,6 +153,8 @@ export function Gantt({ title, summary, rows, from, to, today, scale, rowHeader,
   const barRefs = useRef(new Map<string, SVGGElement>())
   const [view, setView] = useState({ top: 0, height: maxHeight })
   const [showTable, setShowTable] = useState(false)
+  // A tabela só é montada na primeira vez que abre (1.500 linhas escondidas pesariam na abertura, CA 13); a descrição fica sempre ligada.
+  const [tableMounted, setTableMounted] = useState(false)
   const [active, setActive] = useState<string | null>(null)
   const [tip, setTip] = useState<{ bar: GanttBar; row: GanttRow; touch: boolean } | null>(null)
   const pendingFocus = useRef<string | null>(null)
@@ -421,10 +423,10 @@ export function Gantt({ title, summary, rows, from, to, today, scale, rowHeader,
       </figcaption>
 
       <div>
-        <button type="button" aria-expanded={showTable} aria-controls={tableId} onClick={() => setShowTable((s) => !s)} className="inline-flex min-h-[44px] items-center text-sm font-semibold text-primary">
+        <button type="button" aria-expanded={showTable} aria-controls={tableId} onClick={() => { setTableMounted(true); setShowTable((s) => !s) }} className="inline-flex min-h-[44px] items-center text-sm font-semibold text-primary">
           {showTable ? 'Ocultar a tabela' : 'Ver como tabela'}
         </button>
-        <div id={tableId} hidden={!showTable} className="mt-2">{table}</div>
+        <div id={tableId} hidden={!showTable} className="mt-2">{tableMounted ? table : <p>{summary} As mesmas linhas, com as datas em texto, estão em “Ver como tabela”.</p>}</div>
       </div>
     </figure>
   )

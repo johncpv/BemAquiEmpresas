@@ -21,7 +21,7 @@ export const PERIOD_LABEL: Record<GanttPeriodo, string> = { '12s': '12 semanas',
 /** Acima disto, os projetos abrem recolhidos (CA 13). */
 export const COLLAPSE_ABOVE = 50
 
-/** Filtros do cronograma na URL (CA 6 e 9): ?visao=, ?escala=, ?periodo=, ?projeto=, ?cliente=, ?linha=, ?centro= e ?risco=1. */
+/** Filtros do cronograma na URL (CA 6 e 9): ?visao=, ?escala=, ?periodo=, ?projeto=, ?cliente=, ?linha=, ?centro= e ?risco=sim. */
 export interface GanttFilters {
   view: GanttVisao
   scale: GanttScale
@@ -39,7 +39,7 @@ export function parseGanttFilters(search: Record<string, unknown>): GanttFilters
   const period = search.periodo === '6m' || search.periodo === '12m' ? search.periodo : '12s'
   return {
     view: search.visao === 'centro' ? 'centro' : 'projeto', scale, period, project: text(search.projeto), party: text(search.cliente), line: text(search.linha),
-    center: text(search.centro), atRisk: search.risco === '1' || search.risco === 1 || search.risco === true,
+    center: text(search.centro), atRisk: search.risco === 'sim' || search.risco === '1' || search.risco === 1 || search.risco === true,
   }
 }
 
@@ -47,7 +47,7 @@ export function parseGanttFilters(search: Record<string, unknown>): GanttFilters
 export function ganttFiltersToSearch(f: GanttFilters): Record<string, string | undefined> {
   return {
     visao: f.view, escala: f.scale === 'semana' ? undefined : f.scale, periodo: f.period === '12s' ? undefined : f.period, projeto: f.project, cliente: f.party,
-    linha: f.line, centro: f.center, risco: f.atRisk ? '1' : undefined,
+    linha: f.line, centro: f.center, risco: f.atRisk ? 'sim' : undefined,
   }
 }
 

@@ -11,6 +11,7 @@ import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
 import { type TreeColumn, type TreeNode, TreeTable } from '@/components/ui/tree-table'
 import { Dica } from '@/help/Dica'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { formatDate } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { useProductionLive } from '../kanban/useBoardLive'
@@ -22,6 +23,8 @@ import { planLine } from './load'
 
 const action = 'inline-flex min-h-[44px] items-center rounded-md border border-border px-3 text-sm font-semibold text-primary'
 const select = 'min-h-[44px] w-full rounded-md border border-input bg-background px-2 text-sm sm:w-auto'
+/** A partir daqui o Gantt; abaixo, a lista (400 px). Só um dos dois é montado (CA 13). */
+const WIDE = '(min-width: 768px)'
 const iconButton = 'inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-md border border-border bg-card disabled:opacity-40'
 
 /** CA 12: o sinal do hub recarrega o cronograma aberto, agrupado a cada 5 s (sem piscar: a tela fica com os dados até chegar a resposta). */
@@ -247,6 +250,7 @@ function ProjectsContent({ view, filters, title, single = false, onScale, onPeri
   view: GanttProjectsView; filters: GanttFilters; title: string; single?: boolean; onScale: (s: GanttScale) => void; onPeriod?: (p: GanttPeriodo) => void
 }) {
   const navigate = useNavigate()
+  const wide = useMediaQuery(WIDE)
   const ref = useRef<GanttHandle>(null)
   const ids = view.projects.map((p) => p.projectId).join(',')
   const [open, setOpen] = useState<{ key: string; set: Set<string> }>(() => ({ key: ids, set: defaultOpen(view) }))
@@ -269,19 +273,19 @@ function ProjectsContent({ view, filters, title, single = false, onScale, onPeri
   return (
     <div className="space-y-3">
       <ScaleBar scale={filters.scale} period={single ? undefined : filters.period} onScale={onScale} onPeriod={onPeriod} onToday={() => ref.current?.scrollToToday()} plan={view.planComputedAt} today={view.today} />
-      <div className="hidden md:block">
+      {wide ? (
         <Gantt handle={ref} title={title} summary={summaryLine(view.projects)} rows={rows} from={view.from} to={view.to} today={view.today} scale={filters.scale}
           rowHeader="Projeto / OS / Etapa" legend={PROJECT_LEGEND} onToggle={toggle} onActivate={activate}
           table={<TreeTable nodes={nodes} label="Cronograma em tabela" nameHeader="Projeto / OS / Etapa" columns={PROJECT_COLUMNS}
             renderLabel={(n) => (n.orderId ? <Link to={(n.installation ? '/app/producao/instalacoes/$id' : '/app/producao/os/$id') as never} params={{ id: n.orderId } as never} className="font-semibold text-primary tabular-nums hover:underline">{n.label}</Link> : <span className="tabular-nums">{n.label}</span>)} />} />
-      </div>
+      ) : null}
       {noForecast > 0 ? (
         <p className="rounded-md border border-l-4 border-border border-l-warn bg-card px-3 py-2 text-sm">
           {noForecast === 1 ? '1 etapa sem previsão' : `${noForecast} etapas sem previsão`}: o plano não conseguiu datar.{' '}
           <Link to={'/app/producao/planejamento' as never} search={{ aba: 'sem-previsao' } as never} className="font-semibold text-primary underline">Ver o motivo</Link>
         </p>
       ) : null}
-      <ProjectList view={view} />
+      {wide ? null : <ProjectList view={view} />}
     </div>
   )
 }
@@ -407,6 +411,7 @@ function centerNodes(centers: GanttCenterRow[]): CenterNode[] {
 
 function CentersContent({ view, filters, setFilters }: { view: GanttCentersView; filters: GanttFilters; setFilters: (f: Partial<GanttFilters>) => void }) {
   const navigate = useNavigate()
+  const wide = useMediaQuery(WIDE)
   const ref = useRef<GanttHandle>(null)
   const rows = useMemo(() => centerRows(view.centers), [view.centers])
   const nodes = useMemo(() => centerNodes(view.centers), [view.centers])
@@ -435,13 +440,13 @@ function CentersContent({ view, filters, setFilters }: { view: GanttCentersView;
           action={<Link to={'/app/producao/planejamento' as never} search={{ aba: 'fila' } as never} className={action}>Ver a fila</Link>} />
       ) : (
         <>
-          <div className="hidden md:block">
+          {wide ? (
             <Gantt handle={ref} title="Cronograma por centro de trabalho" summary={centersSummary(view.centers)} rows={rows} from={view.from} to={view.to} today={view.today}
               scale={filters.scale} rowHeader="Centro de trabalho" legend={CENTER_LEGEND} onActivate={activate}
               table={<TreeTable nodes={nodes} label="Cronograma por centro em tabela" nameHeader="Centro / Etapa" columns={CENTER_COLUMNS}
                 renderLabel={(n) => (n.orderId ? <Link to={'/app/producao/os/$id' as never} params={{ id: n.orderId } as never} className="font-semibold text-primary tabular-nums hover:underline">{n.label}</Link> : <span>{n.label}</span>)} />} />
-          </div>
-          {center ? (
+          ) : null}
+          {!wide && center ? (
             <section aria-label="Cronograma do centro" className="space-y-2 md:hidden">
               <p className="text-sm tabular-nums">{centersSummary(view.centers)}</p>
               <div className="flex items-center gap-2">

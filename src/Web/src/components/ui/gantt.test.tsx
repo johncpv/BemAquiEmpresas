@@ -25,11 +25,12 @@ describe('Gantt (PLN-03 CA 2, 8 e 10, ADR 0033)', () => {
     const img = screen.getByRole('img', { name: 'Cronograma de teste' })
     expect(img.tagName.toLowerCase()).toBe('svg')
     const table = document.getElementById(img.getAttribute('aria-describedby')!)!
-    expect(table.textContent).toContain('Tabela equivalente')
     expect(table.hidden).toBe(true)
+    expect(table.textContent).toContain('Ver como tabela')
     expect(screen.getByTestId('gantt-resumo').textContent).toBe('3 projetos no período; nenhum em risco.')
     fireEvent.click(screen.getByRole('button', { name: 'Ver como tabela' }))
     expect(table.hidden).toBe(false)
+    expect(table.textContent).toContain('Tabela equivalente')
     expect(screen.getByRole('button', { name: 'Ocultar a tabela' }).getAttribute('aria-expanded')).toBe('true')
   })
 
