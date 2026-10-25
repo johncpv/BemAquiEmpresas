@@ -59,6 +59,35 @@
         }
       }
     },
+    "/api/v1/me/agenda": {
+      "get": {
+        "tags": [
+          "Minha pauta"
+        ],
+        "operationId": "GetMyAgenda",
+        "parameters": [
+          {
+            "name": "categories",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgendaView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/modules": {
       "get": {
         "tags": [
@@ -23270,6 +23299,168 @@
           "Delivery",
           "Site"
         ]
+      },
+      "AgendaEntry": {
+        "required": [
+          "title",
+          "detail",
+          "link",
+          "dueDate",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "link": {
+            "type": "string"
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "amount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "badge": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "AgendaFailure": {
+        "required": [
+          "category",
+          "label",
+          "tier",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "tier": {
+            "$ref": "#/components/schemas/AgendaTier"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "AgendaItem": {
+        "required": [
+          "category",
+          "title",
+          "why",
+          "link",
+          "dueDate",
+          "amount",
+          "tier",
+          "count",
+          "action",
+          "entries"
+        ],
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "why": {
+            "type": "string"
+          },
+          "link": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "amount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "tier": {
+            "$ref": "#/components/schemas/AgendaTier"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "action": {
+            "type": "string"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AgendaEntry"
+            }
+          }
+        }
+      },
+      "AgendaTier": {
+        "enum": [
+          "Unblocks",
+          "Overdue",
+          "DueSoon"
+        ]
+      },
+      "AgendaView": {
+        "required": [
+          "items",
+          "failures",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AgendaItem"
+            }
+          },
+          "failures": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AgendaFailure"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
       },
       "AgingBucket": {
         "required": [
@@ -56435,6 +56626,9 @@
   "tags": [
     {
       "name": "Auditoria"
+    },
+    {
+      "name": "Minha pauta"
     },
     {
       "name": "M\u00F3dulos"

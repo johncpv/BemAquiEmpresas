@@ -34,6 +34,7 @@ import type {
   AddHolidaysResult,
   AddressData,
   AddressInput,
+  AgendaView,
   AgingProjectReport,
   AgingReport,
   AiSettingsDto,
@@ -165,6 +166,7 @@ import type {
   GetManualPostingHistoryParams,
   GetMaterialRequisitionHistoryParams,
   GetMissingLaborCostsParams,
+  GetMyAgendaParams,
   GetNonConformityHistoryParams,
   GetOrderBomHistoryParams,
   GetOrderReservationHistoryParams,
@@ -767,6 +769,108 @@ export function useGetAuditHistory<TData = Awaited<ReturnType<typeof getAuditHis
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetAuditHistoryQueryOptions(entity,id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetMyAgendaUrl = (params?: GetMyAgendaParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/me/agenda?${stringifiedParams}` : `/api/v1/me/agenda`
+}
+
+export const getMyAgenda = async (params?: GetMyAgendaParams, options?: Parameters<typeof apiFetch>[1]): Promise<AgendaView> => {
+
+  return apiFetch<AgendaView>(getGetMyAgendaUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMyAgendaQueryKey = (params?: GetMyAgendaParams,) => {
+    return [
+    `/api/v1/me/agenda`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetMyAgendaQueryOptions = <TData = Awaited<ReturnType<typeof getMyAgenda>>, TError = unknown>(params?: GetMyAgendaParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyAgenda>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMyAgendaQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMyAgenda>>> = ({ signal }) => getMyAgenda(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMyAgenda>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetMyAgendaQueryResult = NonNullable<Awaited<ReturnType<typeof getMyAgenda>>>
+export type GetMyAgendaQueryError = unknown
+
+
+export function useGetMyAgenda<TData = Awaited<ReturnType<typeof getMyAgenda>>, TError = unknown>(
+ params: undefined |  GetMyAgendaParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyAgenda>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMyAgenda>>,
+          TError,
+          Awaited<ReturnType<typeof getMyAgenda>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMyAgenda<TData = Awaited<ReturnType<typeof getMyAgenda>>, TError = unknown>(
+ params?: GetMyAgendaParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyAgenda>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMyAgenda>>,
+          TError,
+          Awaited<ReturnType<typeof getMyAgenda>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMyAgenda<TData = Awaited<ReturnType<typeof getMyAgenda>>, TError = unknown>(
+ params?: GetMyAgendaParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyAgenda>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetMyAgenda<TData = Awaited<ReturnType<typeof getMyAgenda>>, TError = unknown>(
+ params?: GetMyAgendaParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyAgenda>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetMyAgendaQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
