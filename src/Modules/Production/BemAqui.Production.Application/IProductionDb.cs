@@ -42,7 +42,7 @@ public interface IProductionDb
 
     DbSet<ShipmentLineSerial> ShipmentLineSerials { get; }
 
-    /// <summary>Plano (PLN-01a, ADR 0029) só para leitura e sem rastreamento: o único escritor é o <see cref="ScheduleService"/> (<see cref="IProductionPlanDb"/>).</summary>
+    /// <summary>Plano (PLN-01a, ADR 0029) só para leitura e sem rastreamento: o único escritor é o <see cref="ScheduleService"/>.</summary>
     IQueryable<ScheduleRun> ScheduleRunsView { get; }
 
     IQueryable<ScheduleAllocation> ScheduleAllocationsView { get; }
