@@ -78,6 +78,12 @@ public sealed class SeedPatchSeeder : ITenantSeeder
             ("warehouse", "purchasing", ["view", "receive"]),
             ("finance", "purchasing", ["view"]),
         ]),
+        // EST-01b CA 1 (PO 21/10/2026, revisão pré-Fase 3 item 17): o Almoxarifado lança o ajuste de estoque; aprovar continua só com o
+        // Proprietário (inventory.approve é reservada, ADR 0008).
+        new("inventory-adjust-warehouse",
+        [
+            ("warehouse", "inventory", ["adjust"]),
+        ]),
     ];
 
     public int Order => 25;

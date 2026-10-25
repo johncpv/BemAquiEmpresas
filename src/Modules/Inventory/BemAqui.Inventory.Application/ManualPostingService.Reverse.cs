@@ -50,7 +50,13 @@ public sealed partial class ManualPostingService
                 break;
         }
 
-        var legs = new[] { line!.InMovementId, line.MovementId }.Where(m => m is not null).Select(m => m!.Value).ToList();
+        // EST-01b CA 18: com inventário em contagem no local (origem ou destino da transferência), o estorno manual fica bloqueado.
+        if (await locks.CheckAsync(new[] { line!.LocationId, line.ToLocationId ?? line.LocationId }.Distinct().ToList(), cancellationToken) is { } blocked)
+        {
+            return blocked;
+        }
+
+        var legs = new[] { line.InMovementId, line.MovementId }.Where(m => m is not null).Select(m => m!.Value).ToList();
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
         string? number = null;
         foreach (var leg in legs)
@@ -138,6 +144,10 @@ public sealed class ReversePolicy(IInventoryDb db, IPermissionChecker permission
     };
 
     /// <summary>Link do documento de origem; os documentos das próximas stories ganham rota quando nascerem.</summary>
-    public static string? SourceLink(string sourceType, Guid sourceId) =>
-        sourceType == StockSources.ManualPosting ? ManualPostingService.Link + sourceId : null;
+    public static string? SourceLink(string sourceType, Guid sourceId) => sourceType switch
+    {
+        StockSources.ManualPosting => ManualPostingService.Link + sourceId,
+        StockSources.Adjustment => StockAdjustmentService.Link + sourceId,
+        _ => null,
+    };
 }

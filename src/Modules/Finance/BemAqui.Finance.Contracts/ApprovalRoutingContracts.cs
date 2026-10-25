@@ -11,6 +11,12 @@ public static class ApprovalDocumentTypes
     public const string PaymentOrder = "PaymentOrder";
     public const string PurchaseOrder = "PurchaseOrder";
 
+    /// <summary>
+    /// Ajuste de estoque (EST-01b CA 14): declarado só no mapa tipo → permissão (<c>inventory.approve</c>). Todo ajuste é aprovado por
+    /// quem tem a ação, sem faixa de valor; não entra em <see cref="All"/> nem na tela de Alçadas enquanto não houver regra para ele.
+    /// </summary>
+    public const string StockAdjustment = "StockAdjustment";
+
     public static IReadOnlyList<string> All { get; } = [PaymentOrder, PurchaseOrder];
 
     public static bool IsKnown(string? documentType) => documentType is PaymentOrder or PurchaseOrder;
@@ -20,6 +26,7 @@ public static class ApprovalDocumentTypes
     {
         PaymentOrder => "finance.approve",
         PurchaseOrder => "purchasing.approve",
+        StockAdjustment => "inventory.approve",
         _ => throw new ArgumentOutOfRangeException(nameof(documentType), documentType, "Tipo de documento sem alçada."),
     };
 }

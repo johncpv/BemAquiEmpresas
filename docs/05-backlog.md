@@ -364,7 +364,7 @@ _MIG-01d (saldos iniciais de estoque) não entra aqui: cancelada pelo PO em 18/1
 - Requisitos: R-EST-8, R-PRD-7, R-PRJ-4, R-SEC-5, PRD §6 (Desempenho, LGPD).
 - CA: série → OS, projeto, cliente, romaneio e lotes (a série herda os lotes da OS inteira); lote → OS, séries e clientes; cliente PF por iniciais para quem não tem `parties.view` (tela, DTO e CSV); OS concluída antes da PRD-06a2 aparece "Sem série"; lote em 200 OS em menos de 1 s.
 
-**EST-01b [ ] Ajuste de estoque com motivo e aprovação (M)** — 3.4, ordem 22 — quebra da EST-01 — [story](stories/EST-01b-ajuste-estoque-aprovacao.md)
+**EST-01b [x] Ajuste de estoque com motivo e aprovação (M)** — 3.4, ordem 22 — quebra da EST-01 — [story](stories/EST-01b-ajuste-estoque-aprovacao.md)
 - Requisitos: R-EST-6, R-EST-5, R-EST-7, R-COM-2, R-PRP-5, R-PRP-7, R-SEC-5, R-SEC-10.
 - CA: numeração `AJ`; um modo por ajuste; todo ajuste aprovado por outra pessoa com `inventory.approve`, que decide sem editar (`SoleOwnerRule`); saldo abaixo do reservado recusado; modo Delta de origem `InventoryCount` para a EST-05; ponto de bloqueio do local (`ILocationCountLock`): com contagem aberta, lançar, aprovar e estornar recebem 409; seed patch `inventory-adjust-warehouse`.
 

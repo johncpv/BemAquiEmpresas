@@ -174,11 +174,11 @@ public sealed partial class ManualPostingService
     private Task<bool> HasMovementAsync(Guid itemId, Guid locationId, Guid? exceptSource, CancellationToken ct) =>
         db.StockMovements.AnyAsync(m => m.ItemId == itemId && m.LocationId == locationId && (exceptSource == null || m.SourceId != exceptSource), ct);
 
-    /// <summary>CA 2: 409 com o caminho para corrigir ("Lançar entrada" até a EST-01b trazer o ajuste).</summary>
+    /// <summary>CA 2: 409 com o caminho para corrigir ("Lançar ajuste", EST-01b).</summary>
     private static Error HasMovement() =>
         Error.Conflict(HasMovementCode, "Este item já tem movimentos neste local. Use um ajuste de estoque.") with
         {
-            Data = new Dictionary<string, object?> { ["recovery"] = "Lançar entrada", ["recoveryAction"] = "receipt" },
+            Data = new Dictionary<string, object?> { ["recovery"] = "Lançar ajuste", ["recoveryAction"] = "adjustment" },
         };
 
     /// <summary>CA 3: a janela do saldo inicial fechou.</summary>

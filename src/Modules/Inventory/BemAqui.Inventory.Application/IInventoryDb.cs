@@ -53,6 +53,11 @@ public interface IInventoryDb
 
     DbSet<SerialSequence> SerialSequences { get; }
 
+    /// <summary>Ajustes de estoque e as linhas deles (EST-01b): o saldo só muda pela aprovação, pelo motor.</summary>
+    DbSet<StockAdjustment> StockAdjustments { get; }
+
+    DbSet<StockAdjustmentLine> StockAdjustmentLines { get; }
+
     /// <summary>Para trocar o local padrão em dois passos numa transação (o índice único parcial é checado a cada comando).</summary>
     DatabaseFacade Database { get; }
 
