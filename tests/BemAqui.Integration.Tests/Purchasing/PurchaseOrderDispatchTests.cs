@@ -83,7 +83,7 @@ public class PurchaseOrderDispatchTests(TenancyFixture tenancy) : PurchaseOrderD
         detail.GetProperty("status").GetString().Should().Be("Sent");
         detail.GetProperty("sentAt").ValueKind.Should().NotBe(JsonValueKind.Null);
 
-        var logs = await WithDbAsync(db => db.EmailLogs.AsNoTracking().Where(l => l.RelatedId == Id(order)).ToListAsync());
+        var logs = await WithDbAsync(db => db.EmailLogs.AsNoTracking().Where(l => l.Template == EmailDispatchLimiter.PurchaseOrderTemplate && l.RelatedId == Id(order)).ToListAsync());
         var log = logs.Should().ContainSingle().Subject;
         log.Template.Should().Be("purchase-order-sent");
         log.RelatedType.Should().Be("PurchaseOrder");
@@ -126,7 +126,7 @@ public class PurchaseOrderDispatchTests(TenancyFixture tenancy) : PurchaseOrderD
             Scanner.Verdict = ScanVerdict.Clean;
         }
 
-        var log = await WithDbAsync(db => db.EmailLogs.AsNoTracking().SingleAsync(l => l.RelatedId == Id(order)));
+        var log = await WithDbAsync(db => db.EmailLogs.AsNoTracking().SingleAsync(l => l.Template == EmailDispatchLimiter.PurchaseOrderTemplate && l.RelatedId == Id(order)));
         await RunJobAsync(log.Id);
         var waiting = await WithDbAsync(db => db.EmailLogs.AsNoTracking().SingleAsync(l => l.Id == log.Id));
         (waiting.Status, waiting.ScanWaits).Should().Be((EmailStatus.Queued, 1), "espera a varredura sem gastar tentativa");
@@ -210,7 +210,7 @@ public class PurchaseOrderDispatchTests(TenancyFixture tenancy) : PurchaseOrderD
         (await JsonAsync(pdf)).GetProperty("errors").TryGetProperty("lines", out _).Should().BeTrue();
         var current = await GetAsync(buyer, Id(order));
         (await SendAsync(buyer, current, Dispatch(current, "compras@gama.com.br"))).StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
-        (await WithDbAsync(db => db.EmailLogs.CountAsync(l => l.RelatedId == Id(order)))).Should().Be(0, "nada é enfileirado");
+        (await WithDbAsync(db => db.EmailLogs.CountAsync(l => l.Template == EmailDispatchLimiter.PurchaseOrderTemplate && l.RelatedId == Id(order)))).Should().Be(0, "nada é enfileirado");
     }
 
     [Fact]
@@ -222,7 +222,7 @@ public class PurchaseOrderDispatchTests(TenancyFixture tenancy) : PurchaseOrderD
         (await SendAsync(buyer, order, Dispatch(order, "compras@gama.com.br", ["dono@gmail.com"], confirm: true))).StatusCode.Should().Be(HttpStatusCode.OK);
         var history = await JsonAsync(await buyer.GetAsync($"{Base}/{Id(order)}/history?pageSize=50"));
         var entries = history.GetProperty("items").EnumerateArray().ToList();
-        entries.Should().Contain(e => e.GetProperty("entity").GetString() == "PurchaseOrder" && e.GetProperty("changes").GetRawText().Contains("\"Sent\"") && e.GetProperty("userId").ValueKind != JsonValueKind.Null);
+        entries.Should().Contain(e => e.GetProperty("entity").GetString() == "PurchaseOrder" && e.GetProperty("changes").GetString()!.Contains("\"Sent\"", StringComparison.Ordinal) && e.GetProperty("userId").ValueKind != JsonValueKind.Null);
         var dispatch = entries.Single(e => e.GetProperty("entity").GetString() == "PurchaseOrderDispatch");
         var changes = dispatch.GetProperty("changes").GetRawText();
         changes.Should().Contain("recipientConfirmed").And.NotContain("compras@gama.com.br").And.NotContain("dono@gmail.com");

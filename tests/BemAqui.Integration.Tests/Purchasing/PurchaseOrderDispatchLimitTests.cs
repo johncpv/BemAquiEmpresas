@@ -42,7 +42,7 @@ public class PurchaseOrderDispatchLimitTests(TenancyFixture tenancy) : PurchaseO
         var problem = await JsonAsync(refused);
         Code(problem).Should().Be("email_dispatch_user_limit");
         (await refused.Content.ReadAsStringAsync()).Should().Contain("Você atingiu o seu limite diário de envios. Tente amanhã ou baixe o PDF.");
-        (await WithDbAsync(db => db.EmailLogs.CountAsync(l => l.RelatedId == Id(mine)))).Should().Be(0);
+        (await WithDbAsync(db => db.EmailLogs.CountAsync(l => l.Template == EmailDispatchLimiter.PurchaseOrderTemplate && l.RelatedId == Id(mine)))).Should().Be(0);
         (await GetAsync(buyer, Id(mine))).GetProperty("status").GetString().Should().Be("Approved");
 
         // Do tenant: completa 49 com orçamentos de outros usuários; dois envios simultâneos no 50º: só um passa.
