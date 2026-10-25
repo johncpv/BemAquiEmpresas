@@ -21805,6 +21805,92 @@
           }
         }
       }
+    },
+    "/api/v1/inventory/production-capacity": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetProductionCapacity",
+        "parameters": [
+          {
+            "name": "productionOrderId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "productId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "quantity",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductionCapacityView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/production-capacity/references": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "ListProductionCapacityReferences",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "productId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CapacityReference"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -53479,6 +53565,251 @@
           }
         },
         "additionalProperties": false
+      },
+      "CapacityLine": {
+        "required": [
+          "bomLineId",
+          "itemId",
+          "itemCode",
+          "itemName",
+          "unitCode",
+          "perUnit",
+          "onHand",
+          "reserved",
+          "available",
+          "possible",
+          "required",
+          "shortage",
+          "openQuantity",
+          "estimatedShortageCost",
+          "limiting",
+          "warning"
+        ],
+        "type": "object",
+        "properties": {
+          "bomLineId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "perUnit": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "onHand": {
+            "type": "number",
+            "format": "double"
+          },
+          "reserved": {
+            "type": "number",
+            "format": "double"
+          },
+          "available": {
+            "type": "number",
+            "format": "double"
+          },
+          "possible": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "required": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "shortage": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "openQuantity": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "estimatedShortageCost": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "limiting": {
+            "type": "boolean"
+          },
+          "warning": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "CapacityReference": {
+        "required": [
+          "bomId",
+          "productionOrderId",
+          "orderNumber",
+          "revision",
+          "releasedAt",
+          "productId",
+          "productCode",
+          "productName",
+          "lineCount",
+          "suggested"
+        ],
+        "type": "object",
+        "properties": {
+          "bomId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "productionOrderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "releasedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "productId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "productCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "productName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lineCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "suggested": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ProductionCapacityView": {
+        "required": [
+          "reference",
+          "quantity",
+          "possible",
+          "limitingItemId",
+          "limitingItemName",
+          "shortageCount",
+          "notCalculatedCount",
+          "openOrdersShown",
+          "possibleWithOpenOrders",
+          "costShown",
+          "estimatedShortageCost",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "reference": {
+            "$ref": "#/components/schemas/CapacityReference"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "possible": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "limitingItemId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "limitingItemName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "shortageCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "notCalculatedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "openOrdersShown": {
+            "type": "boolean"
+          },
+          "possibleWithOpenOrders": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "costShown": {
+            "type": "boolean"
+          },
+          "estimatedShortageCost": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CapacityLine"
+            }
+          }
+        }
       }
     }
   },

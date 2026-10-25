@@ -77,6 +77,7 @@ import type {
   CalendarExceptionDetail,
   CalendarExceptionInput,
   CalendarInput,
+  CapacityReference,
   CarrierOption,
   CashFlowDay,
   CashFlowResult,
@@ -159,6 +160,7 @@ import type {
   GetOrderBomHistoryParams,
   GetOrderReservationHistoryParams,
   GetProductionBoardParams,
+  GetProductionCapacityParams,
   GetPurchaseOrderDefaultsParams,
   GetPurchaseOrderHistoryParams,
   GetPurchaseRequestDefaultsParams,
@@ -259,6 +261,7 @@ import type {
   ListPaymentTermsParams,
   ListPendingFabricationItemsParams,
   ListPositionsParams,
+  ListProductionCapacityReferencesParams,
   ListProjectMarginsParams,
   ListProjectReceivedParams,
   ListProjectsParams,
@@ -412,6 +415,7 @@ import type {
   PricingModeInput,
   ProblemDetails,
   ProductionBoard,
+  ProductionCapacityView,
   ProductionParametersInput,
   ProductionParametersView,
   ProjectBudgetLine,
@@ -54634,6 +54638,210 @@ export function useListImportPending<TData = Awaited<ReturnType<typeof listImpor
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getListImportPendingQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetProductionCapacityUrl = (params?: GetProductionCapacityParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/inventory/production-capacity?${stringifiedParams}` : `/api/v1/inventory/production-capacity`
+}
+
+export const getProductionCapacity = async (params?: GetProductionCapacityParams, options?: Parameters<typeof apiFetch>[1]): Promise<ProductionCapacityView> => {
+
+  return apiFetch<ProductionCapacityView>(getGetProductionCapacityUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetProductionCapacityQueryKey = (params?: GetProductionCapacityParams,) => {
+    return [
+    `/api/v1/inventory/production-capacity`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetProductionCapacityQueryOptions = <TData = Awaited<ReturnType<typeof getProductionCapacity>>, TError = unknown>(params?: GetProductionCapacityParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductionCapacity>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetProductionCapacityQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getProductionCapacity>>> = ({ signal }) => getProductionCapacity(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getProductionCapacity>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetProductionCapacityQueryResult = NonNullable<Awaited<ReturnType<typeof getProductionCapacity>>>
+export type GetProductionCapacityQueryError = unknown
+
+
+export function useGetProductionCapacity<TData = Awaited<ReturnType<typeof getProductionCapacity>>, TError = unknown>(
+ params: undefined |  GetProductionCapacityParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductionCapacity>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getProductionCapacity>>,
+          TError,
+          Awaited<ReturnType<typeof getProductionCapacity>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetProductionCapacity<TData = Awaited<ReturnType<typeof getProductionCapacity>>, TError = unknown>(
+ params?: GetProductionCapacityParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductionCapacity>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getProductionCapacity>>,
+          TError,
+          Awaited<ReturnType<typeof getProductionCapacity>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetProductionCapacity<TData = Awaited<ReturnType<typeof getProductionCapacity>>, TError = unknown>(
+ params?: GetProductionCapacityParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductionCapacity>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetProductionCapacity<TData = Awaited<ReturnType<typeof getProductionCapacity>>, TError = unknown>(
+ params?: GetProductionCapacityParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductionCapacity>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetProductionCapacityQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListProductionCapacityReferencesUrl = (params?: ListProductionCapacityReferencesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/inventory/production-capacity/references?${stringifiedParams}` : `/api/v1/inventory/production-capacity/references`
+}
+
+export const listProductionCapacityReferences = async (params?: ListProductionCapacityReferencesParams, options?: Parameters<typeof apiFetch>[1]): Promise<CapacityReference[]> => {
+
+  return apiFetch<CapacityReference[]>(getListProductionCapacityReferencesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListProductionCapacityReferencesQueryKey = (params?: ListProductionCapacityReferencesParams,) => {
+    return [
+    `/api/v1/inventory/production-capacity/references`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListProductionCapacityReferencesQueryOptions = <TData = Awaited<ReturnType<typeof listProductionCapacityReferences>>, TError = unknown>(params?: ListProductionCapacityReferencesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listProductionCapacityReferences>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListProductionCapacityReferencesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listProductionCapacityReferences>>> = ({ signal }) => listProductionCapacityReferences(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listProductionCapacityReferences>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListProductionCapacityReferencesQueryResult = NonNullable<Awaited<ReturnType<typeof listProductionCapacityReferences>>>
+export type ListProductionCapacityReferencesQueryError = unknown
+
+
+export function useListProductionCapacityReferences<TData = Awaited<ReturnType<typeof listProductionCapacityReferences>>, TError = unknown>(
+ params: undefined |  ListProductionCapacityReferencesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listProductionCapacityReferences>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listProductionCapacityReferences>>,
+          TError,
+          Awaited<ReturnType<typeof listProductionCapacityReferences>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListProductionCapacityReferences<TData = Awaited<ReturnType<typeof listProductionCapacityReferences>>, TError = unknown>(
+ params?: ListProductionCapacityReferencesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listProductionCapacityReferences>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listProductionCapacityReferences>>,
+          TError,
+          Awaited<ReturnType<typeof listProductionCapacityReferences>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListProductionCapacityReferences<TData = Awaited<ReturnType<typeof listProductionCapacityReferences>>, TError = unknown>(
+ params?: ListProductionCapacityReferencesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listProductionCapacityReferences>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListProductionCapacityReferences<TData = Awaited<ReturnType<typeof listProductionCapacityReferences>>, TError = unknown>(
+ params?: ListProductionCapacityReferencesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listProductionCapacityReferences>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListProductionCapacityReferencesQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
