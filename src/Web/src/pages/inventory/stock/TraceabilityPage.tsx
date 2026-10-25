@@ -36,7 +36,7 @@ function NodeLabel({ node }: { node: TraceNode }) {
 
 function Tree({ nodes, label, id }: { nodes: TraceNode[]; label: string; id: string }) {
   return (
-    <TreeTable key={id} nodes={nodes} label={label} nameHeader="Rastro" searchable={false} expandAll renderLabel={(n) => <NodeLabel node={n} />}
+    <TreeTable key={id} nodes={nodes} label={label} labelHeader="Rastro" searchable={false} defaultExpanded="all" renderLabel={(n) => <NodeLabel node={n} />}
       columns={[{ header: 'Quantidade', numeric: true, className: 'hidden sm:table-cell whitespace-nowrap', cell: (n) => n.quantity ?? '' }]} />
   )
 }
