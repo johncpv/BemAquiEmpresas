@@ -24,7 +24,7 @@ export function DreParametersSection({ canEdit }: { canEdit: boolean }) {
   const query = useGetDreParameters({ query: { enabled: canSee } })
   if (!canSee) return null
   if (query.isPending) return <Skeleton className="h-48" />
-  if (query.isError || !query.data) return null
+  if (query.isError || !query.data?.items) return null
   return <DreForm key={JSON.stringify(query.data.items.map((i) => [i.accountId, i.enabled, i.reviewState]))} view={query.data} canEdit={canEdit} />
 }
 
