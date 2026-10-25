@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
-import { createStockAdjustment, getItemStockContext, listItemConversions, searchItems, useListLocations } from '@/api/generated/bemaqui'
+import { createStockAdjustment, getItemStockContext, listItemConversions, searchItems, useListInventoryCounts, useListLocations } from '@/api/generated/bemaqui'
 import type { StockAdjustmentDetail, StockAdjustmentMode, StockAdjustmentReason } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { useIdempotencyKey } from '@/api/idempotency'
@@ -51,6 +51,9 @@ export function AdjustmentDialog({ onClose, onDone, locationId: initialLocation 
   const idempotency = useIdempotencyKey()
   const suggested = active.find((l) => l.isDefault)?.id ?? ''
   const locationId = location || suggested
+  // EST-05 CA 6: com inventário em contagem no local, o ajuste é recusado; a faixa avisa antes e leva ao inventário.
+  const counting = useListInventoryCounts({ status: 'Counting', locationId: locationId || undefined }, { query: { enabled: !!locationId } })
+  const blockingCount = locationId ? counting.data?.items[0] : undefined
   const previews = previewRows(mode, rows)
   const totals = totalsOf(previews)
   const update = (key: string, change: Partial<AdjustmentRow>) => setRows((all) => all.map((r) => (r.key === key ? { ...r, ...change } : r)))
@@ -93,7 +96,10 @@ export function AdjustmentDialog({ onClose, onDone, locationId: initialLocation 
   return (
     <ConfirmDialog open onOpenChange={(o) => { if (!o) onClose() }} size="lg" verb="Enviar para aprovação" done="Ajuste enviado para aprovação" title="Lançar ajuste de estoque"
       description="Sobra ou falta sem documento de origem. O saldo só muda quando outra pessoa com permissão de aprovar no Estoque aprovar."
-      preconditions={adjustmentProblems(mode, locationId, reason, detail, rows).map((text) => ({ ok: false, text }))} onConfirm={submit}
+      preconditions={[
+        ...(blockingCount ? [{ ok: false, text: `Inventário ${blockingCount.number} em contagem neste local: ajustes ficam bloqueados até fechar ou cancelar.` }] : []),
+        ...adjustmentProblems(mode, locationId, reason, detail, rows).map((text) => ({ ok: false, text })),
+      ]} onConfirm={submit}
       onFieldErrors={(e) => {
         const byLine: Record<number, { message: string; link?: string }> = {}
         for (const [field, messages] of Object.entries(e.fields)) {
@@ -109,6 +115,12 @@ export function AdjustmentDialog({ onClose, onDone, locationId: initialLocation 
           <p className="text-xs text-muted-foreground">Valor estimado pelo custo médio de agora. Nada muda no saldo até a aprovação.</p>
         </div>
       ) : null}>
+      {blockingCount ? (
+        <p role="note" className="rounded-md border border-warn-soft bg-warn-soft px-3 py-2 text-sm text-warn-ink">
+          Inventário {blockingCount.number} em contagem neste local.{' '}
+          <Link to={'/app/estoque/inventarios/$id' as never} params={{ id: blockingCount.id } as never} onClick={onClose} className="font-semibold underline">Ver inventário</Link>
+        </p>
+      ) : null}
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="Local" required>
           {(p) => (

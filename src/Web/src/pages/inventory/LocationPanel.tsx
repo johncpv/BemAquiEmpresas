@@ -1,5 +1,6 @@
+import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
-import { createLocation, deleteLocation, inactivateLocation, reactivateLocation, updateLocation } from '@/api/generated/bemaqui'
+import { createLocation, deleteLocation, inactivateLocation, reactivateLocation, updateLocation, useListInventoryCounts } from '@/api/generated/bemaqui'
 import type { LocationDetail } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { Field, FormError } from '@/components/form/form'
@@ -13,6 +14,19 @@ import { useCan } from '@/pages/use-can'
 
 type Draft = { code: string; name: string; isDefault: boolean }
 const toDraft = (l: LocationDetail | null): Draft => ({ code: l?.code ?? '', name: l?.name ?? '', isDefault: l?.isDefault ?? false })
+
+/** Faixa "Inventário {número} em contagem neste local" (EST-05 CA 6), com o link para o inventário. */
+function CountingBanner({ locationId, onClose }: { locationId: string; onClose: () => void }) {
+  const counting = useListInventoryCounts({ status: 'Counting', locationId })
+  const count = counting.data?.items[0]
+  if (!count) return null
+  return (
+    <p role="note" className="mb-3 rounded-md border border-warn-soft bg-warn-soft px-3 py-2 text-sm text-warn-ink">
+      Inventário {count.number} em contagem neste local: ajustes e estornos manuais ficam bloqueados até fechar ou cancelar.{' '}
+      <Link to={'/app/estoque/inventarios/$id' as never} params={{ id: count.id } as never} onClick={onClose} className="font-semibold underline">Ver inventário</Link>
+    </p>
+  )
+}
 
 /** Painel do local (CAD-03 CA 2 a 7): código e nome, "tornar padrão", inativar e excluir com a alternativa "Inativar". */
 export function LocationPanel({ location, onClose, onSaved }: { location: LocationDetail | null; onClose: () => void; onSaved: (created: boolean) => void }) {
@@ -46,6 +60,7 @@ export function LocationPanel({ location, onClose, onSaved }: { location: Locati
         </>
       )}
     >
+      {location ? <CountingBanner locationId={location.id} onClose={onClose} /> : null}
       <fieldset disabled={!canWrite} className="space-y-3">
         <FormError message={error && Object.keys(error.fields).length === 0 ? error.message : undefined} />
         <Field label="Código" required error={field('code')} hint="Curto e único, como ALM ou EXP. Até 20 letras, números ou hífen.">

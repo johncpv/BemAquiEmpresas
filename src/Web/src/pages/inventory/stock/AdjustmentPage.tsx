@@ -33,6 +33,7 @@ function Impact({ a, reverse = false }: { a: StockAdjustmentDetail; reverse?: bo
   const changed = !reverse && a.impact?.changedSinceRequest
   return (
     <div className="space-y-1">
+      {!reverse && a.impact?.reservationNote ? <p role="status" className="rounded border border-warn-soft bg-warn-soft px-2 py-1 text-xs text-warn-ink">{a.impact.reservationNote} Quem aprova no Estoque recebe o aviso.</p> : null}
       {changed ? <p role="status" className="rounded border border-warn-soft bg-warn-soft px-2 py-1 text-xs text-warn-ink">O saldo mudou desde o envio. Os valores abaixo já são os de agora{a.mode === 'Counted' ? ': a diferença foi recalculada sobre o saldo atual' : ': a diferença enviada se soma ao saldo atual'}.</p> : null}
       <ul className="space-y-1">
         {a.lines.map((l) => {

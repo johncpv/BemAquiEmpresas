@@ -93,6 +93,9 @@ import { UnitsPage } from '@/pages/inventory/UnitsPage'
 import { WarrantyPage } from '@/pages/inventory/WarrantyPage'
 import { AdjustmentPage } from '@/pages/inventory/stock/AdjustmentPage'
 import { AdjustmentsPage } from '@/pages/inventory/stock/AdjustmentsPage'
+import { CountingLayout, InventoryCountingPage } from '@/pages/inventory/stock/InventoryCountingPage'
+import { InventoryCountPage } from '@/pages/inventory/stock/InventoryCountPage'
+import { InventoryCountsPage } from '@/pages/inventory/stock/InventoryCountsPage'
 import { BalancesPage } from '@/pages/inventory/stock/BalancesPage'
 import { ManualPostingPage } from '@/pages/inventory/stock/ManualPostingPage'
 import { ManualPostingsPage } from '@/pages/inventory/stock/ManualPostingsPage'
@@ -216,6 +219,9 @@ const adjustmentRoute = createRoute({ getParentRoute: () => appRoute, path: 'est
 const goodsReceiptsRoute = createRoute({ getParentRoute: () => appRoute, path: 'compras/recebimentos', component: gated('purchasing', GoodsReceiptsPage) })
 const goodsReceiptRoute = createRoute({ getParentRoute: () => appRoute, path: 'compras/recebimentos/$id', component: gated('purchasing', GoodsReceiptPage) })
 const newGoodsReceiptRoute = createRoute({ getParentRoute: () => appRoute, path: 'compras/pedidos/$id/recebimento', component: gated('purchasing', NewGoodsReceiptPage) })
+// Inventários (EST-05), na "Operação" do Estoque: lista e detalhe com abas (Contagem, Divergências, Histórico) na URL.
+const inventoryCountsRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/inventarios', component: gated('inventory', InventoryCountsPage) })
+const inventoryCountRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/inventarios/$id', component: gated('inventory', InventoryCountPage) })
 const locationsRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/locais', component: gated('inventory', LocationsPage) })
 // Itens, unidades, categorias e garantia padrão (CAD-02a).
 const itemsRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/itens', component: gated('inventory', ItemsPage) })
@@ -351,6 +357,16 @@ const fabStepRoute = createRoute({ getParentRoute: () => fabRoute, path: 'etapa/
 // Qualidade no tablet (PRD-05): fila e inspeção com production.approve_quality (o layout confere o módulo production).
 const fabQualityRoute = createRoute({ getParentRoute: () => fabRoute, path: 'qualidade', component: FabQualityQueuePage })
 const fabQualityStepRoute = createRoute({ getParentRoute: () => fabRoute, path: 'qualidade/$stepId', component: FabQualityStepPage })
+// Contagem do inventário no celular (EST-05 CA 4): tela dedicada com o kit chão de fábrica, sem o dock, com a sessão do backoffice.
+const countingRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/estoque/inventarios/$id/contagem',
+  component: CountingLayout,
+  beforeLoad: async ({ location }) => {
+    if (!(await ensureSession())) throw redirect({ to: '/entrar', search: { volta: location.href } })
+  },
+})
+const countingIndexRoute = createRoute({ getParentRoute: () => countingRoute, path: '/', component: InventoryCountingPage })
 const tvRoute = createRoute({ getParentRoute: () => rootRoute, path: '/tv/$token', component: TvLayout })
 const galleryRoute = createRoute({ getParentRoute: () => rootRoute, path: '/dev/galeria', component: Gallery ?? NotFound })
 
@@ -364,13 +380,14 @@ export const routeTree = rootRoute.addChildren([
   inviteRoute,
   appRoute.addChildren([appIndexRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute,
     aiSettingsRoute, importRunsRoute, importRunRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute,
-    inventoryRootRoute, balancesRoute, movementsRoute, movementRoute, manualPostingsRoute, manualPostingRoute, shortagesRoute, requisitionsRoute, requisitionRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, bomsRoute, productionRootRoute, fabricationOrdersRoute, fabricationOrderRoute, kanbanRoute, openLaborRoute, operatorRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute, qualityRoute, qualityStepRoute, nonConformitiesRoute, nonConformityRoute, purchasingRootRoute, purchaseRequestsRoute, newPurchaseRequestRoute, purchaseRequestRoute, purchaseOrdersRoute, newPurchaseOrderRoute, purchaseOrderRoute, editPurchaseOrderRoute, shipmentsRoute, newShipmentRoute, shipmentRoute, traceabilityRoute, adjustmentsRoute, adjustmentRoute, goodsReceiptsRoute, goodsReceiptRoute, newGoodsReceiptRoute, rfqsRoute, newRfqRoute, rfqRoute,
+    inventoryRootRoute, balancesRoute, movementsRoute, movementRoute, manualPostingsRoute, manualPostingRoute, shortagesRoute, requisitionsRoute, requisitionRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, bomsRoute, productionRootRoute, fabricationOrdersRoute, fabricationOrderRoute, kanbanRoute, openLaborRoute, operatorRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute, qualityRoute, qualityStepRoute, nonConformitiesRoute, nonConformityRoute, purchasingRootRoute, purchaseRequestsRoute, newPurchaseRequestRoute, purchaseRequestRoute, purchaseOrdersRoute, newPurchaseOrderRoute, purchaseOrderRoute, editPurchaseOrderRoute, shipmentsRoute, newShipmentRoute, shipmentRoute, traceabilityRoute, adjustmentsRoute, adjustmentRoute, goodsReceiptsRoute, goodsReceiptRoute, newGoodsReceiptRoute, rfqsRoute, newRfqRoute, rfqRoute, inventoryCountsRoute, inventoryCountRoute,
     financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, payablesRoute, newPayableRoute, payableRoute, recurringRoute, approvalRulesRoute, openingRoute, cashFlowRoute, agingRoute, paymentOrdersRoute, newPaymentOrderRoute, paymentOrderRoute, statementRoute, quotesRoute, quoteFunnelRoute, quoteRoute, quoteCompareRoute, contractsRoute, contractRoute, amendmentRoute, projectsRoute, projectRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
   platformLoginRoute,
   platformPasswordRoute,
   platformRoute.addChildren([platformIndexRoute, tenantsRoute, tenantRoute]),
   fabEntryRoute,
   fabRoute.addChildren([fabQueueRoute, fabStepRoute, fabQualityRoute, fabQualityStepRoute]),
+  countingRoute.addChildren([countingIndexRoute]),
   tvRoute,
   galleryRoute,
 ])
