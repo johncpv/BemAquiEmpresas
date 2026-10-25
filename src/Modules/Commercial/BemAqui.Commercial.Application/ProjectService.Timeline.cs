@@ -61,6 +61,23 @@ public sealed partial class ProjectService
             }
         }
 
+        // PRD-06b CA 13: o romaneio expedido (unidades e séries) e o estorno da expedição, com quem e o motivo; sem valor.
+        foreach (var shipment in await shipments.ByProjectAsync(id, cancellationToken))
+        {
+            if (shipment.ShippedAt is { } shippedAt)
+            {
+                entries.Add(new(shippedAt, "shipment_dispatched",
+                    ShipmentText(shipment.Number, shipment.Lines.Sum(l => l.Quantity), shipment.Lines.SelectMany(l => l.SerialNumbers).ToList()),
+                    await WhoAsync(shipment.ShippedBy, cancellationToken), "/app/producao/expedicao/" + shipment.Id));
+            }
+
+            if (shipment.ReversedAt is { } reversedAt)
+            {
+                entries.Add(new(reversedAt, "shipment_reversed", $"Expedição do {shipment.Number} estornada: {shipment.ReversalReason}", await WhoAsync(shipment.ReversedBy, cancellationToken),
+                    "/app/producao/expedicao/" + shipment.Id + "?aba=historico"));
+            }
+        }
+
         // EST-03 CA 17: material baixado e devolvido por OS e dia, pela razão do próprio Commercial, só com projects.view_cost.
         if (await permissions.HasPermissionAsync("projects", "view_cost", cancellationToken))
         {
@@ -138,6 +155,24 @@ public sealed partial class ProjectService
         }
 
         return viewCost ? text + " · custo unitário R$ " + entry.UnitCost.ToString("N2", ptBr) : text;
+    }
+
+    /// <summary>
+    /// Romaneio expedido na linha do tempo (PRD-06b CA 13): "Romaneio ROM-2026-0001 expedido: 2 unidades (ELV-2026-00001, ELV-2026-00002)".
+    /// Até 5 séries; acima disso, "e mais {n}". Sem valor (o romaneio não é documento fiscal).
+    /// </summary>
+    public static string ShipmentText(string number, decimal units, IReadOnlyList<string> serialNumbers)
+    {
+        ArgumentNullException.ThrowIfNull(serialNumbers);
+        var ptBr = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
+        var text = $"Romaneio {number} expedido: {(units == 1 ? "1 unidade" : units.ToString("0.####", ptBr) + " unidades")}";
+        if (serialNumbers.Count == 0)
+        {
+            return text;
+        }
+
+        var shown = string.Join(", ", serialNumbers.Take(5));
+        return text + (serialNumbers.Count > 5 ? $" ({shown} e mais {serialNumbers.Count - 5})" : $" ({shown})");
     }
 
     /// <summary>Data de negócio às 00h de São Paulo, para ordenar junto com os instantes.</summary>

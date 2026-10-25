@@ -215,6 +215,12 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BemAqui.Production.Domain.QualityDecision> QualityDecisions => Set<BemAqui.Production.Domain.QualityDecision>();
 
+    public DbSet<BemAqui.Production.Domain.Shipment> Shipments => Set<BemAqui.Production.Domain.Shipment>();
+
+    public DbSet<BemAqui.Production.Domain.ShipmentLine> ShipmentLines => Set<BemAqui.Production.Domain.ShipmentLine>();
+
+    public DbSet<BemAqui.Production.Domain.ShipmentLineSerial> ShipmentLineSerials => Set<BemAqui.Production.Domain.ShipmentLineSerial>();
+
     public DbSet<BemAqui.Engineering.Domain.RoutingTemplate> RoutingTemplates => Set<BemAqui.Engineering.Domain.RoutingTemplate>();
 
     public DbSet<BemAqui.Engineering.Domain.RoutingTemplateStep> RoutingTemplateSteps => Set<BemAqui.Engineering.Domain.RoutingTemplateStep>();

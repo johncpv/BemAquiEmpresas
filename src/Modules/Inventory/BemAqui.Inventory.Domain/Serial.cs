@@ -30,6 +30,12 @@ public sealed class Serial : Entity, IAuditable, IConcurrencyVersioned
 
     public DateTimeOffset? CancelledAt { get; set; }
 
+    /// <summary>Quando a unidade saiu no romaneio confirmado (PRD-06b); volta a nulo no estorno da expedição.</summary>
+    public DateTimeOffset? ShippedAt { get; set; }
+
+    /// <summary>Romaneio que expediu a unidade (Produção, só o id, sem FK, ADR 0006); nulo no estoque.</summary>
+    public Guid? ShipmentId { get; set; }
+
     public uint Version { get; set; }
 }
 

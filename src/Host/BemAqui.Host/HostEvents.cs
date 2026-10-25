@@ -45,6 +45,9 @@ public static class HostEvents
             // PRD-05: decisões de qualidade no outbox para a DSH-03 e o PNL-01.
             .AddEvent<BemAqui.Production.Contracts.QualityApproved>()
             .AddEvent<BemAqui.Production.Contracts.QualityRejected>()
+            // PRD-06b CA 4 e 11: romaneio expedido e estornado, só avisos e painéis (a baixa e as séries já são síncronas, D4).
+            .AddEvent<BemAqui.Production.Contracts.ShipmentDispatched>()
+            .AddEvent<BemAqui.Production.Contracts.ShipmentReversed>()
             // PRD-02 CA 8: "Concluir etapa" tira a OS de Aberta; o Commercial passa o projeto a InProgress.
             .AddHandler<BemAqui.Production.Contracts.ProductionStepStarted, BemAqui.Commercial.Application.FabricationConsumers>()
             // PRD-06a1 CA 7 e 10: a última OS de fabricação concluída passa o projeto a Fabricated (ProjectFabricated libera a parcela); o

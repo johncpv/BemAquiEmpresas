@@ -17,7 +17,7 @@ public sealed record FinishedGoodsPosted(Guid MovementId, Guid ProductId, Guid L
 /// </summary>
 public sealed class FinishedGoods(
     IProductionDb db, IStockMovements stock, IStockSerials serials, IStockTraceability traceability, IStockReservations reservations, ILocations locations, IItems items,
-    TenantContextHolder tenant)
+    TenantContextHolder tenant, IFinishedGoodsStock finishedStock)
 {
     public const string InventoryModule = "inventory";
 
@@ -168,6 +168,12 @@ public sealed class FinishedGoods(
             return Result.Success();
         }
 
+        // PRD-06b: produto expedido (série ou quantidade do projeto) ou em romaneio aberto bloqueia o estorno.
+        if (await ShipmentBlockerAsync(order, ct) is { } blocked)
+        {
+            return Error.Conflict(blocked.Code, blocked.Message);
+        }
+
         var cancelled = await serials.CancelForOrderAsync(order.Id, ct);
         if (cancelled.IsFailure)
         {
@@ -183,6 +189,57 @@ public sealed class FinishedGoods(
         await traceability.ReverseOrderAsync(order.Id, ct);
         return Result.Success();
     }
+
+    /// <summary>
+    /// O que impede estornar a conclusão pelo lado da expedição (PRD-06a2 CA 10, ligado na PRD-06b): série da OS expedida, ou, sem série, o
+    /// que é do projeto no estoque já não cobre a entrada da OS (409 <c>serial_shipped</c> "O produto já foi expedido."); série ou quantidade
+    /// em romaneio aberto (409 <c>product_in_shipment</c>, cancele o romaneio antes). Null: pode estornar.
+    /// </summary>
+    public async Task<(string Code, string Message)?> ShipmentBlockerAsync(ProductionOrder order, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(order);
+        if (order.EntryMovementId is null)
+        {
+            return null;
+        }
+
+        var orderSerials = await serials.ForOrderAsync(order.Id, ct);
+        if (orderSerials.Any(s => s.Status == SerialState.Shipped))
+        {
+            return (ShippedCode, CompletionRules.ProductShipped);
+        }
+
+        var ids = orderSerials.Where(s => s.Status == SerialState.InStock).Select(s => s.Id).ToList();
+        if (ids.Count > 0)
+        {
+            var open = await (from ls in db.ShipmentLineSerials.AsNoTracking()
+                              join s in db.Shipments.AsNoTracking() on ls.ShipmentId equals s.Id
+                              where ls.ReleasedAt == null && ids.Contains(ls.SerialId)
+                              select s.Number).FirstOrDefaultAsync(ct);
+            return open is null ? null : (InShipmentCode, CompletionRules.InShipment(open));
+        }
+
+        if (orderSerials.Count > 0 || order.ProductId is not { } product || await serials.EntryAsync(order.Id, ct) is not { Reversed: false } entry)
+        {
+            return null;
+        }
+
+        var ofProject = (await finishedStock.ForProjectAsync(order.ProjectId, ct)).Where(l => l.ItemId == product && !l.TracksSerial).Sum(l => l.Quantity);
+        if (ofProject < entry.Quantity)
+        {
+            return (ShippedCode, CompletionRules.ProductShipped);
+        }
+
+        var inOpen = await (from l in db.ShipmentLines.AsNoTracking()
+                            join s in db.Shipments.AsNoTracking() on l.ShipmentId equals s.Id
+                            where s.ProjectId == order.ProjectId && l.ItemId == product && !l.FromGeneralStock
+                                && (s.Status == BemAqui.Production.Contracts.ShipmentState.Draft || s.Status == BemAqui.Production.Contracts.ShipmentState.AwaitingStockApproval)
+                            select new { l.Quantity, s.Number }).ToListAsync(ct);
+        return ofProject - inOpen.Sum(x => x.Quantity) < entry.Quantity ? (InShipmentCode, CompletionRules.InShipment(inOpen[0].Number)) : null;
+    }
+
+    public const string ShippedCode = "serial_shipped";
+    public const string InShipmentCode = "product_in_shipment";
 
     /// <summary>Itens que podem ser o produto da OS (CA 1): produto acabado ou componente ativo, pela busca.</summary>
     public async Task<IReadOnlyList<OrderProductOption>> ProductOptionsAsync(string? term, CancellationToken ct)

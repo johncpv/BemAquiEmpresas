@@ -77,11 +77,16 @@ function StockFields({ stock, locationId, onLocation, serials, onSerials }: {
  * concluída, o projeto Fabricado, as parcelas e, com o Estoque liberado, o que entra no estoque (quantidade, local sugerido, séries editáveis,
  * reservas liberadas), o custo apurado com projects.view_cost e o aviso âmbar do custo zerado, que pede a confirmação explícita (CA 7).
  */
-export function CompleteOrderDialog({ order: o, onDone }: { order: FabricationOrderDetail; onDone: (preview: OrderCompletionPreview | undefined) => Promise<void> }) {
+export function CompleteOrderDialog({ order: o, onDone, open: controlled, onOpenChange }: {
+  order: FabricationOrderDetail; onDone: (preview: OrderCompletionPreview | undefined) => Promise<void>; open?: boolean; onOpenChange?: (open: boolean) => void
+}) {
   const canApprove = useCan('production.approve')
   const canEdit = useCan('production.edit')
   const canSeeCost = useCan('projects.view_cost')
-  const [open, setOpen] = useState(false)
+  // PRD-06b CA 9: o próximo passo "Concluir OS" abre este diálogo de fora.
+  const [own, setOwn] = useState(false)
+  const open = controlled ?? own
+  const setOpen = (v: boolean) => { setOwn(v); onOpenChange?.(v) }
   const [choosing, setChoosing] = useState(false)
   const [locationId, setLocationId] = useState('')
   const [serials, setSerials] = useState<string[]>([])

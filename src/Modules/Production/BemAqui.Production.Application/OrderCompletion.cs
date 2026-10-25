@@ -72,6 +72,9 @@ public static class CompletionRules
     public const string ProductShipped = "O produto já foi expedido.";
     public const string CompletedBeforeStock ="Concluída antes do controle de estoque: o produto não entrou no estoque.";
 
+    /// <summary>PRD-06b: o produto da OS está num romaneio aberto (rascunho ou aguardando o estoque).</summary>
+    public static string InShipment(string shipmentNumber) => $"O produto está no romaneio {shipmentNumber}. Cancele o romaneio antes de estornar a conclusão.";
+
     /// <summary>
     /// Custo apurado da OS (CA 3, ADR 0025 §2): horas apontadas + material baixado − devolvido; o unitário é o total ÷ quantidade em 6 casas
     /// <c>AwayFromZero</c> (o total do movimento fica em 2 casas, no motor).

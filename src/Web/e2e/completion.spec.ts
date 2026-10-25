@@ -67,7 +67,7 @@ test.describe('Conclusão da OS (PRD-06a1)', () => {
     await page.goto('/app/producao/os/of1')
     await expect(page.getByRole('heading', { name: 'OS-2026-00041 — Aurora — Elevador' })).toBeVisible()
     await expect(page.getByText('Pronta para concluir').first()).toBeVisible()
-    await page.getByRole('button', { name: 'Concluir OS' }).click()
+    await page.getByRole('button', { name: 'Concluir OS' }).first().click()
     const dialog = page.getByRole('alertdialog')
     await expect(dialog.getByText('A OS-2026-00041 passa a Concluída.')).toBeVisible()
     await expect(dialog.getByText('O projeto PRJ-2026-0007 passa a Fabricado.')).toBeVisible()
@@ -105,7 +105,7 @@ test.describe('Conclusão da OS (PRD-06a1)', () => {
     })
 
     await page.goto('/app/producao/os/of1')
-    await expect(page.getByRole('button', { name: 'Concluir OS' })).toBeDisabled()
+    await expect(page.getByRole('button', { name: 'Concluir OS' }).first()).toBeDisabled()
     await expect(page.getByText('Falta aprovar a Qualidade.')).toBeVisible()
 
     current = order({ status: 'Completed', completedAt: '2026-10-22T14:30:00Z', completedByName: 'Rui Supervisor' })

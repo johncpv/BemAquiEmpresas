@@ -81,6 +81,8 @@ public static class InventoryInfrastructure
         services.TryAddScoped<IStockSerials>(sp => sp.GetRequiredService<StockSerialService>());
         services.TryAddScoped<IStockTraceability>(sp => sp.GetRequiredService<StockSerialService>());
         services.TryAddScoped<SerialQueryService>();
+        // Expedição (PRD-06b): o romaneio da Produção lê o produto acabado pronto para expedir; a saída é pelo motor e pelo IStockSerials.
+        services.TryAddScoped<IFinishedGoodsStock, FinishedGoodsStockService>();
         services.AddAuditableEntity<Serial>("inventory");
         return services;
     }

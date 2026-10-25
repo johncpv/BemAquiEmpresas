@@ -63,6 +63,9 @@ import { FabQualityQueuePage, FabQualityStepPage } from '@/pages/shopfloor/FabQu
 import { QualityQueuePage, QualityStepPage } from '@/pages/production/quality/QualityPages'
 import { NonConformitiesPage } from '@/pages/production/quality/NonConformitiesPage'
 import { NonConformityPage } from '@/pages/production/quality/NonConformityPage'
+import { NewShipmentPage } from '@/pages/production/shipments/NewShipmentPage'
+import { ShipmentPage } from '@/pages/production/shipments/ShipmentPage'
+import { ShipmentsPage } from '@/pages/production/shipments/ShipmentsPage'
 import { InstallationsPage } from '@/pages/production/installations/InstallationsPage'
 import { InstallationTemplatePage } from '@/pages/production/installations/InstallationTemplatePage'
 import { QuotesPage } from '@/pages/quotes/QuotesPage'
@@ -219,6 +222,10 @@ const qualityRoute = createRoute({ getParentRoute: () => appRoute, path: 'produc
 const qualityStepRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/qualidade/$stepId', component: gated('production', QualityStepPage) })
 const nonConformitiesRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/nao-conformidades', component: gated('production', NonConformitiesPage) })
 const nonConformityRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/nao-conformidades/$id', component: gated('production', NonConformityPage) })
+// Expedição (PRD-06b): prontos para expedir e romaneios, o novo romaneio (do projeto ou da OS) e o romaneio.
+const shipmentsRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/expedicao', component: gated('production', ShipmentsPage) })
+const newShipmentRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/expedicao/novo', component: gated('production', NewShipmentPage), validateSearch: (s: Record<string, unknown>): { projeto?: string; os?: string } => ({ projeto: text(s.projeto), os: text(s.os) }) })
+const shipmentRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/expedicao/$id', component: gated('production', ShipmentPage) })
 // "Operador" no dock leva ao app do operador (PRD-03a CA 27).
 const operatorRoute = createRoute({ getParentRoute: () => appRoute, path: 'operador', beforeLoad: () => { throw redirect({ to: '/fab' }) } })
 const workCentersRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/centros-de-trabalho', component: gated('production', WorkCentersPage) })
@@ -335,7 +342,7 @@ export const routeTree = rootRoute.addChildren([
   inviteRoute,
   appRoute.addChildren([appIndexRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute,
     aiSettingsRoute, importRunsRoute, importRunRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute,
-    inventoryRootRoute, balancesRoute, movementsRoute, movementRoute, manualPostingsRoute, manualPostingRoute, shortagesRoute, requisitionsRoute, requisitionRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, bomsRoute, productionRootRoute, fabricationOrdersRoute, fabricationOrderRoute, kanbanRoute, openLaborRoute, operatorRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute, qualityRoute, qualityStepRoute, nonConformitiesRoute, nonConformityRoute, purchasingRootRoute, purchaseRequestsRoute, newPurchaseRequestRoute, purchaseRequestRoute, purchaseOrdersRoute, newPurchaseOrderRoute, purchaseOrderRoute, editPurchaseOrderRoute,
+    inventoryRootRoute, balancesRoute, movementsRoute, movementRoute, manualPostingsRoute, manualPostingRoute, shortagesRoute, requisitionsRoute, requisitionRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, bomsRoute, productionRootRoute, fabricationOrdersRoute, fabricationOrderRoute, kanbanRoute, openLaborRoute, operatorRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute, qualityRoute, qualityStepRoute, nonConformitiesRoute, nonConformityRoute, purchasingRootRoute, purchaseRequestsRoute, newPurchaseRequestRoute, purchaseRequestRoute, purchaseOrdersRoute, newPurchaseOrderRoute, purchaseOrderRoute, editPurchaseOrderRoute, shipmentsRoute, newShipmentRoute, shipmentRoute,
     financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, payablesRoute, newPayableRoute, payableRoute, recurringRoute, approvalRulesRoute, openingRoute, cashFlowRoute, agingRoute, paymentOrdersRoute, newPaymentOrderRoute, paymentOrderRoute, statementRoute, quotesRoute, quoteFunnelRoute, quoteRoute, quoteCompareRoute, contractsRoute, contractRoute, amendmentRoute, projectsRoute, projectRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
   platformLoginRoute,
   platformPasswordRoute,

@@ -17,7 +17,7 @@ namespace BemAqui.Commercial.Application;
 public sealed partial class ProjectService(
     ICommercialDb db, IParties parties, IUserDirectory users, IPermissionChecker permissions, IEventPublisher events, IReceivables receivables, IPayables payables,
     BemAqui.Production.Contracts.IInstallationOrders installations, BemAqui.Production.Contracts.IProductionOrders productionOrders, TimeProvider clock,
-    BemAqui.Inventory.Contracts.IStockSerials serials)
+    BemAqui.Inventory.Contracts.IStockSerials serials, BemAqui.Production.Contracts.IShipments shipments)
     : IProjects, IContracts
 {
     public const string AttachmentOwner = "Project";
