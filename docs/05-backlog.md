@@ -388,7 +388,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-4--planejamento-p
 
 **Quebras:** PLN-01 → 01a/01b · PNL-01 → 01a/01b · DSH-01 → 01a/01b. **Re-estimadas (M → G):** FIN-08, DSH-02, DSH-01b. O "Resultado gerencial por projeto" saiu da FIN-08 para a DSH-01b.
 
-**FIN-07 [ ] Projeção de caixa ajustada pelo histórico do cliente (M)** — 4.1, ordem 1 — `Ready` — [story](stories/FIN-07-projecao-ajustada.md)
+**FIN-07 [x] Projeção de caixa ajustada pelo histórico do cliente (M)** — 4.1, ordem 1 — `Done` — [story](stories/FIN-07-projecao-ajustada.md)
 - Requisitos: R-FIN-11, R-FIN-10, R-TER-4, R-PRP-5, PRD §5.14 (Caixa), PRD §6 (Desempenho).
 - CA: recebível deslocado pelo atraso médio do cliente (sem histórico, a média do tenant), em dias corridos; ponderado pela inadimplência (vencido há mais de 30 dias ÷ faturado em 12 meses) acima do limite de 20%; vencido em aberto em max(hoje, vencimento + atraso médio); base × ajustado com o menor saldo de cada um; `ICashForecast` igual à tela; `ChartFrame` e a troca do `--chart-3`; 50 mil títulos em menos de 2 s.
 

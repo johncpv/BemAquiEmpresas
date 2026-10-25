@@ -662,7 +662,7 @@ Achados pontuais da §4.4 aplicados nas stories: conciliação com uma linha por
 ## Índice
 | Ordem | ID | Título | Tam. | Status | Requisitos | Depende de | Arquivo |
 |---|---|---|---|---|---|---|---|
-| 1 (4.1) | FIN-07 | Projeção de caixa ajustada pelo histórico do cliente | M | Ready | R-FIN-11, R-FIN-10, R-TER-4, R-PRP-5, PRD §5.14, PRD §6 | FIN-05, FIN-06b, FIN-00, FND-09e | [FIN-07](FIN-07-projecao-ajustada.md) |
+| 1 (4.1) | FIN-07 | Projeção de caixa ajustada pelo histórico do cliente | M | Done | R-FIN-11, R-FIN-10, R-TER-4, R-PRP-5, PRD §5.14, PRD §6 | FIN-05, FIN-06b, FIN-00, FND-09e | [FIN-07](FIN-07-projecao-ajustada.md) |
 | 2 (4.1) | DSH-02 | Orçado × realizado e margem, por projeto e consolidado | G (re-estimada de M) | Ready | R-PRJ-5, PRD §5.14, PRD §1.1, PRD §1.2, R-PRP-5, PRD §6 | FIN-07, COM-05, COM-07, PRD-04, ADR 0025, EST-03, COM-06 | [DSH-02](DSH-02-orcado-realizado-margem.md) |
 | 3 (4.1) | FIN-08 | DRE gerencial mensal | G (re-estimada de M) | Ready (pré-condição externa) | R-FIN-13, R-FIN-1, PRD §5.14, R-PRP-5, PRD §6 | CAD-05a, FIN-01, FIN-02, FIN-04, FIN-00, COM-01b, PRD-06b | [FIN-08](FIN-08-dre-gerencial.md) |
 | 4 (4.2) | DSH-04 | Minha pauta | M | Ready | R-PRP-4, R-PRP-5, R-COM-2, PRD §5.14, PRD §6 | FIN-03a, FIN-03b, FIN-01, FIN-02, FIN-05, FIN-07, COM-02 | [DSH-04](DSH-04-minha-pauta.md) |
