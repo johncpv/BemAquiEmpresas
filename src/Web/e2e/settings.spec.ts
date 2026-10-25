@@ -152,7 +152,7 @@ test.describe('configurações da empresa (CAD-06)', () => {
     await show.check()
     await page.getByRole('button', { name: 'Salvar parâmetros da produção' }).click()
     await expect(page.getByText('Parâmetros da produção salvos')).toBeVisible()
-    expect(calls.find((c) => c.path === '/api/v1/production/parameters')?.body).toEqual({ showLaborEntryCost: true, openLaborAlertHours: 8 })
+    expect(calls.find((c) => c.path === '/api/v1/production/parameters')?.body).toEqual({ showLaborEntryCost: true, openLaborAlertHours: 8, installationDays: 5, installationDaysConfirmed: false })
     await expect(page.getByText('Histórico de alterações').last()).toBeVisible()
   })
 

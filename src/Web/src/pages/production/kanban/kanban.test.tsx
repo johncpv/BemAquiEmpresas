@@ -45,12 +45,12 @@ describe('Cartão do Kanban (PRD-02 CA 3, 5 e 7)', () => {
     cleanup()
 
     const risk = await renderCard(card({ risk: 'AtRisk', promisedDate: '2026-10-25' }))
-    expect(within(risk.container).getByText('Em risco, previsto 25/10/2026')).toBeTruthy()
+    expect(within(risk.container).getByText('Em risco, prometido 25/10/2026')).toBeTruthy()
     expect(risk.container.querySelector('article')?.className).toContain('border-l-warn')
     cleanup()
 
     const fine = await renderCard(card())
-    expect(within(fine.container).getByText('Previsto 25/10/2026')).toBeTruthy()
+    expect(within(fine.container).getByText('Prometido 25/10/2026')).toBeTruthy()
     expect(fine.container.querySelector('article')?.className).not.toContain('border-l-4')
   })
 
