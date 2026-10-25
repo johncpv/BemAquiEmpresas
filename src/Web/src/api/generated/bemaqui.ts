@@ -77,6 +77,7 @@ import type {
   CalendarExceptionDetail,
   CalendarExceptionInput,
   CalendarInput,
+  CancelInventoryCountInput,
   CapacityReference,
   CarrierOption,
   CashFlowDay,
@@ -85,6 +86,7 @@ import type {
   CategoryInput,
   ChallengeRequest,
   CheckPartyDocumentParams,
+  CloseInventoryCountInput,
   CnpjLookupResult,
   CommercialParametersInput,
   CommercialParametersView,
@@ -108,6 +110,7 @@ import type {
   CostCenterInput,
   CostCenterSuggestion,
   CostRefreshPreview,
+  CountLineInput,
   CreatePartyRequest,
   CreatePinInput,
   CurrentSession,
@@ -143,6 +146,7 @@ import type {
   FinanceProjectOption,
   FinanceSupplierOption,
   ForgotPasswordRequest,
+  FoundLineInput,
   GetAgingParams,
   GetAuditHistoryParams,
   GetBankStatementParams,
@@ -152,6 +156,8 @@ import type {
   GetFabricationOrderHistoryParams,
   GetGoodsReceiptHistoryParams,
   GetInstallationDefaultsParams,
+  GetInventoryCountDivergencesParams,
+  GetInventoryCountHistoryParams,
   GetItemKardexParams,
   GetItemReservationHistoryParams,
   GetManualPostingHistoryParams,
@@ -205,6 +211,10 @@ import type {
   InstallationVersionInput,
   InstallerOption,
   InstallmentDue,
+  InventoryCountDetail,
+  InventoryCountingLine,
+  InventoryCountingView,
+  InventoryDivergences,
   InviteAcceptedResponse,
   InviteInfo,
   InviteTokenRequest,
@@ -249,6 +259,7 @@ import type {
   ListImportRunsParams,
   ListInstallationsParams,
   ListInstallersParams,
+  ListInventoryCountsParams,
   ListItemSerialsParams,
   ListItemsParams,
   ListLocationsParams,
@@ -322,6 +333,7 @@ import type {
   NotificationPage,
   NumberFormatInput,
   NumberFormatRow,
+  OpenInventoryCountInput,
   OpenLaborList,
   OpeningBalanceInput,
   OpeningBalancesInput,
@@ -350,6 +362,7 @@ import type {
   PagedListOfGoodsReceiptSummary,
   PagedListOfImportPendingItem,
   PagedListOfImportRunRow,
+  PagedListOfInventoryCountSummary,
   PagedListOfItemListItem,
   PagedListOfItemSerialRow,
   PagedListOfLocationDetail,
@@ -499,10 +512,12 @@ import type {
   ReceivablePage,
   ReceivableUpdateInput,
   ReceivablesCreated,
+  RecountInput,
   RecurringExpenseDetail,
   RecurringExpenseInput,
   RegisterDeviceInput,
   RemoveQuoteItemParams,
+  ReopenInventoryCountInput,
   RequisitionConfirmInput,
   RequisitionDecisionInput,
   RequisitionDeclineInput,
@@ -41148,6 +41163,1407 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getReverseStockAdjustmentMutationOptions(options), queryClient);
     }
 
+export const getListInventoryCountsUrl = (params?: ListInventoryCountsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/inventory/inventory-counts?${stringifiedParams}` : `/api/v1/inventory/inventory-counts`
+}
+
+export const listInventoryCounts = async (params?: ListInventoryCountsParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfInventoryCountSummary> => {
+
+  return apiFetch<PagedListOfInventoryCountSummary>(getListInventoryCountsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListInventoryCountsQueryKey = (params?: ListInventoryCountsParams,) => {
+    return [
+    `/api/v1/inventory/inventory-counts`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListInventoryCountsQueryOptions = <TData = Awaited<ReturnType<typeof listInventoryCounts>>, TError = unknown>(params?: ListInventoryCountsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInventoryCounts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListInventoryCountsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listInventoryCounts>>> = ({ signal }) => listInventoryCounts(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listInventoryCounts>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListInventoryCountsQueryResult = NonNullable<Awaited<ReturnType<typeof listInventoryCounts>>>
+export type ListInventoryCountsQueryError = unknown
+
+
+export function useListInventoryCounts<TData = Awaited<ReturnType<typeof listInventoryCounts>>, TError = unknown>(
+ params: undefined |  ListInventoryCountsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInventoryCounts>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listInventoryCounts>>,
+          TError,
+          Awaited<ReturnType<typeof listInventoryCounts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListInventoryCounts<TData = Awaited<ReturnType<typeof listInventoryCounts>>, TError = unknown>(
+ params?: ListInventoryCountsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInventoryCounts>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listInventoryCounts>>,
+          TError,
+          Awaited<ReturnType<typeof listInventoryCounts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListInventoryCounts<TData = Awaited<ReturnType<typeof listInventoryCounts>>, TError = unknown>(
+ params?: ListInventoryCountsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInventoryCounts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListInventoryCounts<TData = Awaited<ReturnType<typeof listInventoryCounts>>, TError = unknown>(
+ params?: ListInventoryCountsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInventoryCounts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListInventoryCountsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getOpenInventoryCountUrl = () => {
+
+
+
+
+  return `/api/v1/inventory/inventory-counts`
+}
+
+export const openInventoryCount = async (openInventoryCountInput: OpenInventoryCountInput, options?: Parameters<typeof apiFetch>[1]): Promise<InventoryCountDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<InventoryCountDetail>(getOpenInventoryCountUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(openInventoryCountInput)
+  }
+);}
+
+
+
+
+
+export const getOpenInventoryCountMutationKey = () => ['openInventoryCount'] as const;
+
+export const getOpenInventoryCountMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof openInventoryCount>>, TError,OpenInventoryCountMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof openInventoryCount>>, TError,OpenInventoryCountMutationVariables, TContext> => {
+
+const mutationKey = getOpenInventoryCountMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof openInventoryCount>>, OpenInventoryCountMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  openInventoryCount(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type OpenInventoryCountMutationResult = NonNullable<Awaited<ReturnType<typeof openInventoryCount>>>
+    export type OpenInventoryCountMutationBody = OpenInventoryCountInput
+    export type OpenInventoryCountMutationError = unknown
+    export type OpenInventoryCountMutationVariables = {data: OpenInventoryCountInput}
+
+    export const useOpenInventoryCount = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof openInventoryCount>>, TError,OpenInventoryCountMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof openInventoryCount>>,
+        TError,
+        OpenInventoryCountMutationVariables,
+        TContext
+      > => {
+      return useMutation(getOpenInventoryCountMutationOptions(options), queryClient);
+    }
+
+export const getGetInventoryCountUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/inventory-counts/${id}`
+}
+
+export const getInventoryCount = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<InventoryCountDetail> => {
+
+  return apiFetch<InventoryCountDetail>(getGetInventoryCountUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetInventoryCountQueryKey = (id: string,) => {
+    return [
+    `/api/v1/inventory/inventory-counts/${id}`
+    ] as const;
+    }
+
+
+export const getGetInventoryCountQueryOptions = <TData = Awaited<ReturnType<typeof getInventoryCount>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInventoryCount>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetInventoryCountQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getInventoryCount>>> = ({ signal }) => getInventoryCount(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getInventoryCount>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetInventoryCountQueryResult = NonNullable<Awaited<ReturnType<typeof getInventoryCount>>>
+export type GetInventoryCountQueryError = unknown
+
+
+export function useGetInventoryCount<TData = Awaited<ReturnType<typeof getInventoryCount>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInventoryCount>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getInventoryCount>>,
+          TError,
+          Awaited<ReturnType<typeof getInventoryCount>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetInventoryCount<TData = Awaited<ReturnType<typeof getInventoryCount>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInventoryCount>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getInventoryCount>>,
+          TError,
+          Awaited<ReturnType<typeof getInventoryCount>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetInventoryCount<TData = Awaited<ReturnType<typeof getInventoryCount>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInventoryCount>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetInventoryCount<TData = Awaited<ReturnType<typeof getInventoryCount>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInventoryCount>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetInventoryCountQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetInventoryCountingUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/inventory-counts/${id}/counting`
+}
+
+export const getInventoryCounting = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<InventoryCountingView> => {
+
+  return apiFetch<InventoryCountingView>(getGetInventoryCountingUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetInventoryCountingQueryKey = (id: string,) => {
+    return [
+    `/api/v1/inventory/inventory-counts/${id}/counting`
+    ] as const;
+    }
+
+
+export const getGetInventoryCountingQueryOptions = <TData = Awaited<ReturnType<typeof getInventoryCounting>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInventoryCounting>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetInventoryCountingQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getInventoryCounting>>> = ({ signal }) => getInventoryCounting(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getInventoryCounting>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetInventoryCountingQueryResult = NonNullable<Awaited<ReturnType<typeof getInventoryCounting>>>
+export type GetInventoryCountingQueryError = unknown
+
+
+export function useGetInventoryCounting<TData = Awaited<ReturnType<typeof getInventoryCounting>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInventoryCounting>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getInventoryCounting>>,
+          TError,
+          Awaited<ReturnType<typeof getInventoryCounting>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetInventoryCounting<TData = Awaited<ReturnType<typeof getInventoryCounting>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInventoryCounting>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getInventoryCounting>>,
+          TError,
+          Awaited<ReturnType<typeof getInventoryCounting>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetInventoryCounting<TData = Awaited<ReturnType<typeof getInventoryCounting>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInventoryCounting>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetInventoryCounting<TData = Awaited<ReturnType<typeof getInventoryCounting>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInventoryCounting>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetInventoryCountingQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetInventoryCountLineUrl = (id: string,
+    lineId: string,) => {
+
+
+
+
+  return `/api/v1/inventory/inventory-counts/${id}/lines/${lineId}`
+}
+
+export const getInventoryCountLine = async (id: string,
+    lineId: string, options?: Parameters<typeof apiFetch>[1]): Promise<InventoryCountingLine> => {
+
+  return apiFetch<InventoryCountingLine>(getGetInventoryCountLineUrl(id,lineId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetInventoryCountLineQueryKey = (id: string,
+    lineId: string,) => {
+    return [
+    `/api/v1/inventory/inventory-counts/${id}/lines/${lineId}`
+    ] as const;
+    }
+
+
+export const getGetInventoryCountLineQueryOptions = <TData = Awaited<ReturnType<typeof getInventoryCountLine>>, TError = unknown>(id: string,
+    lineId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInventoryCountLine>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetInventoryCountLineQueryKey(id,lineId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getInventoryCountLine>>> = ({ signal }) => getInventoryCountLine(id,lineId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && lineId !== null && lineId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getInventoryCountLine>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetInventoryCountLineQueryResult = NonNullable<Awaited<ReturnType<typeof getInventoryCountLine>>>
+export type GetInventoryCountLineQueryError = unknown
+
+
+export function useGetInventoryCountLine<TData = Awaited<ReturnType<typeof getInventoryCountLine>>, TError = unknown>(
+ id: string,
+    lineId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInventoryCountLine>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getInventoryCountLine>>,
+          TError,
+          Awaited<ReturnType<typeof getInventoryCountLine>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetInventoryCountLine<TData = Awaited<ReturnType<typeof getInventoryCountLine>>, TError = unknown>(
+ id: string,
+    lineId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInventoryCountLine>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getInventoryCountLine>>,
+          TError,
+          Awaited<ReturnType<typeof getInventoryCountLine>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetInventoryCountLine<TData = Awaited<ReturnType<typeof getInventoryCountLine>>, TError = unknown>(
+ id: string,
+    lineId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInventoryCountLine>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetInventoryCountLine<TData = Awaited<ReturnType<typeof getInventoryCountLine>>, TError = unknown>(
+ id: string,
+    lineId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInventoryCountLine>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetInventoryCountLineQueryOptions(id,lineId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCountInventoryLineUrl = (id: string,
+    lineId: string,) => {
+
+
+
+
+  return `/api/v1/inventory/inventory-counts/${id}/lines/${lineId}`
+}
+
+export const countInventoryLine = async (id: string,
+    lineId: string,
+    countLineInput: CountLineInput, options?: Parameters<typeof apiFetch>[1]): Promise<InventoryCountingLine> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<InventoryCountingLine>(getCountInventoryLineUrl(id,lineId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(countLineInput)
+  }
+);}
+
+
+
+
+
+export const getCountInventoryLineMutationKey = () => ['countInventoryLine'] as const;
+
+export const getCountInventoryLineMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof countInventoryLine>>, TError,CountInventoryLineMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof countInventoryLine>>, TError,CountInventoryLineMutationVariables, TContext> => {
+
+const mutationKey = getCountInventoryLineMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof countInventoryLine>>, CountInventoryLineMutationVariables> = (props) => {
+          const {id,lineId,data} = props ?? {};
+
+          return  countInventoryLine(id,lineId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CountInventoryLineMutationResult = NonNullable<Awaited<ReturnType<typeof countInventoryLine>>>
+    export type CountInventoryLineMutationBody = CountLineInput
+    export type CountInventoryLineMutationError = unknown
+    export type CountInventoryLineMutationVariables = {id: string;lineId: string;data: CountLineInput}
+
+    export const useCountInventoryLine = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof countInventoryLine>>, TError,CountInventoryLineMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof countInventoryLine>>,
+        TError,
+        CountInventoryLineMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCountInventoryLineMutationOptions(options), queryClient);
+    }
+
+export const getGetInventoryCountDivergencesUrl = (id: string,
+    params?: GetInventoryCountDivergencesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/inventory/inventory-counts/${id}/divergences?${stringifiedParams}` : `/api/v1/inventory/inventory-counts/${id}/divergences`
+}
+
+export const getInventoryCountDivergences = async (id: string,
+    params?: GetInventoryCountDivergencesParams, options?: Parameters<typeof apiFetch>[1]): Promise<InventoryDivergences> => {
+
+  return apiFetch<InventoryDivergences>(getGetInventoryCountDivergencesUrl(id,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetInventoryCountDivergencesQueryKey = (id: string,
+    params?: GetInventoryCountDivergencesParams,) => {
+    return [
+    `/api/v1/inventory/inventory-counts/${id}/divergences`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetInventoryCountDivergencesQueryOptions = <TData = Awaited<ReturnType<typeof getInventoryCountDivergences>>, TError = unknown>(id: string,
+    params?: GetInventoryCountDivergencesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInventoryCountDivergences>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetInventoryCountDivergencesQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getInventoryCountDivergences>>> = ({ signal }) => getInventoryCountDivergences(id,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getInventoryCountDivergences>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetInventoryCountDivergencesQueryResult = NonNullable<Awaited<ReturnType<typeof getInventoryCountDivergences>>>
+export type GetInventoryCountDivergencesQueryError = unknown
+
+
+export function useGetInventoryCountDivergences<TData = Awaited<ReturnType<typeof getInventoryCountDivergences>>, TError = unknown>(
+ id: string,
+    params: undefined |  GetInventoryCountDivergencesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInventoryCountDivergences>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getInventoryCountDivergences>>,
+          TError,
+          Awaited<ReturnType<typeof getInventoryCountDivergences>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetInventoryCountDivergences<TData = Awaited<ReturnType<typeof getInventoryCountDivergences>>, TError = unknown>(
+ id: string,
+    params?: GetInventoryCountDivergencesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInventoryCountDivergences>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getInventoryCountDivergences>>,
+          TError,
+          Awaited<ReturnType<typeof getInventoryCountDivergences>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetInventoryCountDivergences<TData = Awaited<ReturnType<typeof getInventoryCountDivergences>>, TError = unknown>(
+ id: string,
+    params?: GetInventoryCountDivergencesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInventoryCountDivergences>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetInventoryCountDivergences<TData = Awaited<ReturnType<typeof getInventoryCountDivergences>>, TError = unknown>(
+ id: string,
+    params?: GetInventoryCountDivergencesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInventoryCountDivergences>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetInventoryCountDivergencesQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetInventoryCountHistoryUrl = (id: string,
+    params?: GetInventoryCountHistoryParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/inventory/inventory-counts/${id}/history?${stringifiedParams}` : `/api/v1/inventory/inventory-counts/${id}/history`
+}
+
+export const getInventoryCountHistory = async (id: string,
+    params?: GetInventoryCountHistoryParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfRelatedAuditEntryDto> => {
+
+  return apiFetch<PagedListOfRelatedAuditEntryDto>(getGetInventoryCountHistoryUrl(id,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetInventoryCountHistoryQueryKey = (id: string,
+    params?: GetInventoryCountHistoryParams,) => {
+    return [
+    `/api/v1/inventory/inventory-counts/${id}/history`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetInventoryCountHistoryQueryOptions = <TData = Awaited<ReturnType<typeof getInventoryCountHistory>>, TError = unknown>(id: string,
+    params?: GetInventoryCountHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInventoryCountHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetInventoryCountHistoryQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getInventoryCountHistory>>> = ({ signal }) => getInventoryCountHistory(id,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getInventoryCountHistory>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetInventoryCountHistoryQueryResult = NonNullable<Awaited<ReturnType<typeof getInventoryCountHistory>>>
+export type GetInventoryCountHistoryQueryError = unknown
+
+
+export function useGetInventoryCountHistory<TData = Awaited<ReturnType<typeof getInventoryCountHistory>>, TError = unknown>(
+ id: string,
+    params: undefined |  GetInventoryCountHistoryParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInventoryCountHistory>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getInventoryCountHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getInventoryCountHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetInventoryCountHistory<TData = Awaited<ReturnType<typeof getInventoryCountHistory>>, TError = unknown>(
+ id: string,
+    params?: GetInventoryCountHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInventoryCountHistory>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getInventoryCountHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getInventoryCountHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetInventoryCountHistory<TData = Awaited<ReturnType<typeof getInventoryCountHistory>>, TError = unknown>(
+ id: string,
+    params?: GetInventoryCountHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInventoryCountHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetInventoryCountHistory<TData = Awaited<ReturnType<typeof getInventoryCountHistory>>, TError = unknown>(
+ id: string,
+    params?: GetInventoryCountHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInventoryCountHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetInventoryCountHistoryQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getAddInventoryCountLineUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/inventory-counts/${id}/lines`
+}
+
+export const addInventoryCountLine = async (id: string,
+    foundLineInput: FoundLineInput, options?: Parameters<typeof apiFetch>[1]): Promise<InventoryCountingLine> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<InventoryCountingLine>(getAddInventoryCountLineUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(foundLineInput)
+  }
+);}
+
+
+
+
+
+export const getAddInventoryCountLineMutationKey = () => ['addInventoryCountLine'] as const;
+
+export const getAddInventoryCountLineMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addInventoryCountLine>>, TError,AddInventoryCountLineMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addInventoryCountLine>>, TError,AddInventoryCountLineMutationVariables, TContext> => {
+
+const mutationKey = getAddInventoryCountLineMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addInventoryCountLine>>, AddInventoryCountLineMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  addInventoryCountLine(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddInventoryCountLineMutationResult = NonNullable<Awaited<ReturnType<typeof addInventoryCountLine>>>
+    export type AddInventoryCountLineMutationBody = FoundLineInput
+    export type AddInventoryCountLineMutationError = unknown
+    export type AddInventoryCountLineMutationVariables = {id: string;data: FoundLineInput}
+
+    export const useAddInventoryCountLine = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addInventoryCountLine>>, TError,AddInventoryCountLineMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof addInventoryCountLine>>,
+        TError,
+        AddInventoryCountLineMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAddInventoryCountLineMutationOptions(options), queryClient);
+    }
+
+export const getRecountInventoryLinesUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/inventory-counts/${id}/recount`
+}
+
+export const recountInventoryLines = async (id: string,
+    recountInput: RecountInput, options?: Parameters<typeof apiFetch>[1]): Promise<InventoryDivergences> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<InventoryDivergences>(getRecountInventoryLinesUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(recountInput)
+  }
+);}
+
+
+
+
+
+export const getRecountInventoryLinesMutationKey = () => ['recountInventoryLines'] as const;
+
+export const getRecountInventoryLinesMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recountInventoryLines>>, TError,RecountInventoryLinesMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof recountInventoryLines>>, TError,RecountInventoryLinesMutationVariables, TContext> => {
+
+const mutationKey = getRecountInventoryLinesMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof recountInventoryLines>>, RecountInventoryLinesMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  recountInventoryLines(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RecountInventoryLinesMutationResult = NonNullable<Awaited<ReturnType<typeof recountInventoryLines>>>
+    export type RecountInventoryLinesMutationBody = RecountInput
+    export type RecountInventoryLinesMutationError = unknown
+    export type RecountInventoryLinesMutationVariables = {id: string;data: RecountInput}
+
+    export const useRecountInventoryLines = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recountInventoryLines>>, TError,RecountInventoryLinesMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof recountInventoryLines>>,
+        TError,
+        RecountInventoryLinesMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRecountInventoryLinesMutationOptions(options), queryClient);
+    }
+
+export const getCloseInventoryCountUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/inventory-counts/${id}/close`
+}
+
+export const closeInventoryCount = async (id: string,
+    closeInventoryCountInput: CloseInventoryCountInput, options?: Parameters<typeof apiFetch>[1]): Promise<InventoryCountDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<InventoryCountDetail>(getCloseInventoryCountUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(closeInventoryCountInput)
+  }
+);}
+
+
+
+
+
+export const getCloseInventoryCountMutationKey = () => ['closeInventoryCount'] as const;
+
+export const getCloseInventoryCountMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof closeInventoryCount>>, TError,CloseInventoryCountMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof closeInventoryCount>>, TError,CloseInventoryCountMutationVariables, TContext> => {
+
+const mutationKey = getCloseInventoryCountMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof closeInventoryCount>>, CloseInventoryCountMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  closeInventoryCount(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CloseInventoryCountMutationResult = NonNullable<Awaited<ReturnType<typeof closeInventoryCount>>>
+    export type CloseInventoryCountMutationBody = CloseInventoryCountInput
+    export type CloseInventoryCountMutationError = unknown
+    export type CloseInventoryCountMutationVariables = {id: string;data: CloseInventoryCountInput}
+
+    export const useCloseInventoryCount = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof closeInventoryCount>>, TError,CloseInventoryCountMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof closeInventoryCount>>,
+        TError,
+        CloseInventoryCountMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCloseInventoryCountMutationOptions(options), queryClient);
+    }
+
+export const getCancelInventoryCountUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/inventory-counts/${id}/cancel`
+}
+
+export const cancelInventoryCount = async (id: string,
+    cancelInventoryCountInput: CancelInventoryCountInput, options?: Parameters<typeof apiFetch>[1]): Promise<InventoryCountDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<InventoryCountDetail>(getCancelInventoryCountUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(cancelInventoryCountInput)
+  }
+);}
+
+
+
+
+
+export const getCancelInventoryCountMutationKey = () => ['cancelInventoryCount'] as const;
+
+export const getCancelInventoryCountMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelInventoryCount>>, TError,CancelInventoryCountMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelInventoryCount>>, TError,CancelInventoryCountMutationVariables, TContext> => {
+
+const mutationKey = getCancelInventoryCountMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelInventoryCount>>, CancelInventoryCountMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  cancelInventoryCount(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelInventoryCountMutationResult = NonNullable<Awaited<ReturnType<typeof cancelInventoryCount>>>
+    export type CancelInventoryCountMutationBody = CancelInventoryCountInput
+    export type CancelInventoryCountMutationError = unknown
+    export type CancelInventoryCountMutationVariables = {id: string;data: CancelInventoryCountInput}
+
+    export const useCancelInventoryCount = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelInventoryCount>>, TError,CancelInventoryCountMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof cancelInventoryCount>>,
+        TError,
+        CancelInventoryCountMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCancelInventoryCountMutationOptions(options), queryClient);
+    }
+
+export const getReopenInventoryCountUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/inventory/inventory-counts/${id}/reopen`
+}
+
+export const reopenInventoryCount = async (id: string,
+    reopenInventoryCountInput: ReopenInventoryCountInput, options?: Parameters<typeof apiFetch>[1]): Promise<InventoryCountDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<InventoryCountDetail>(getReopenInventoryCountUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(reopenInventoryCountInput)
+  }
+);}
+
+
+
+
+
+export const getReopenInventoryCountMutationKey = () => ['reopenInventoryCount'] as const;
+
+export const getReopenInventoryCountMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reopenInventoryCount>>, TError,ReopenInventoryCountMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reopenInventoryCount>>, TError,ReopenInventoryCountMutationVariables, TContext> => {
+
+const mutationKey = getReopenInventoryCountMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reopenInventoryCount>>, ReopenInventoryCountMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  reopenInventoryCount(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReopenInventoryCountMutationResult = NonNullable<Awaited<ReturnType<typeof reopenInventoryCount>>>
+    export type ReopenInventoryCountMutationBody = ReopenInventoryCountInput
+    export type ReopenInventoryCountMutationError = unknown
+    export type ReopenInventoryCountMutationVariables = {id: string;data: ReopenInventoryCountInput}
+
+    export const useReopenInventoryCount = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reopenInventoryCount>>, TError,ReopenInventoryCountMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reopenInventoryCount>>,
+        TError,
+        ReopenInventoryCountMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReopenInventoryCountMutationOptions(options), queryClient);
+    }
+
+export const getGetProductionCapacityUrl = (params?: GetProductionCapacityParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/inventory/production-capacity?${stringifiedParams}` : `/api/v1/inventory/production-capacity`
+}
+
+export const getProductionCapacity = async (params?: GetProductionCapacityParams, options?: Parameters<typeof apiFetch>[1]): Promise<ProductionCapacityView> => {
+
+  return apiFetch<ProductionCapacityView>(getGetProductionCapacityUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetProductionCapacityQueryKey = (params?: GetProductionCapacityParams,) => {
+    return [
+    `/api/v1/inventory/production-capacity`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetProductionCapacityQueryOptions = <TData = Awaited<ReturnType<typeof getProductionCapacity>>, TError = unknown>(params?: GetProductionCapacityParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductionCapacity>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetProductionCapacityQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getProductionCapacity>>> = ({ signal }) => getProductionCapacity(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getProductionCapacity>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetProductionCapacityQueryResult = NonNullable<Awaited<ReturnType<typeof getProductionCapacity>>>
+export type GetProductionCapacityQueryError = unknown
+
+
+export function useGetProductionCapacity<TData = Awaited<ReturnType<typeof getProductionCapacity>>, TError = unknown>(
+ params: undefined |  GetProductionCapacityParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductionCapacity>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getProductionCapacity>>,
+          TError,
+          Awaited<ReturnType<typeof getProductionCapacity>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetProductionCapacity<TData = Awaited<ReturnType<typeof getProductionCapacity>>, TError = unknown>(
+ params?: GetProductionCapacityParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductionCapacity>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getProductionCapacity>>,
+          TError,
+          Awaited<ReturnType<typeof getProductionCapacity>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetProductionCapacity<TData = Awaited<ReturnType<typeof getProductionCapacity>>, TError = unknown>(
+ params?: GetProductionCapacityParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductionCapacity>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetProductionCapacity<TData = Awaited<ReturnType<typeof getProductionCapacity>>, TError = unknown>(
+ params?: GetProductionCapacityParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductionCapacity>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetProductionCapacityQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListProductionCapacityReferencesUrl = (params?: ListProductionCapacityReferencesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/inventory/production-capacity/references?${stringifiedParams}` : `/api/v1/inventory/production-capacity/references`
+}
+
+export const listProductionCapacityReferences = async (params?: ListProductionCapacityReferencesParams, options?: Parameters<typeof apiFetch>[1]): Promise<CapacityReference[]> => {
+
+  return apiFetch<CapacityReference[]>(getListProductionCapacityReferencesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListProductionCapacityReferencesQueryKey = (params?: ListProductionCapacityReferencesParams,) => {
+    return [
+    `/api/v1/inventory/production-capacity/references`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListProductionCapacityReferencesQueryOptions = <TData = Awaited<ReturnType<typeof listProductionCapacityReferences>>, TError = unknown>(params?: ListProductionCapacityReferencesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listProductionCapacityReferences>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListProductionCapacityReferencesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listProductionCapacityReferences>>> = ({ signal }) => listProductionCapacityReferences(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listProductionCapacityReferences>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListProductionCapacityReferencesQueryResult = NonNullable<Awaited<ReturnType<typeof listProductionCapacityReferences>>>
+export type ListProductionCapacityReferencesQueryError = unknown
+
+
+export function useListProductionCapacityReferences<TData = Awaited<ReturnType<typeof listProductionCapacityReferences>>, TError = unknown>(
+ params: undefined |  ListProductionCapacityReferencesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listProductionCapacityReferences>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listProductionCapacityReferences>>,
+          TError,
+          Awaited<ReturnType<typeof listProductionCapacityReferences>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListProductionCapacityReferences<TData = Awaited<ReturnType<typeof listProductionCapacityReferences>>, TError = unknown>(
+ params?: ListProductionCapacityReferencesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listProductionCapacityReferences>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listProductionCapacityReferences>>,
+          TError,
+          Awaited<ReturnType<typeof listProductionCapacityReferences>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListProductionCapacityReferences<TData = Awaited<ReturnType<typeof listProductionCapacityReferences>>, TError = unknown>(
+ params?: ListProductionCapacityReferencesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listProductionCapacityReferences>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListProductionCapacityReferences<TData = Awaited<ReturnType<typeof listProductionCapacityReferences>>, TError = unknown>(
+ params?: ListProductionCapacityReferencesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listProductionCapacityReferences>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListProductionCapacityReferencesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getListPurchaseRequestsUrl = (params?: ListPurchaseRequestsParams,) => {
   const normalizedParams = new URLSearchParams();
 
@@ -55196,210 +56612,6 @@ export function useListImportPending<TData = Awaited<ReturnType<typeof listImpor
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getListImportPendingQueryOptions(id,params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getGetProductionCapacityUrl = (params?: GetProductionCapacityParams,) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : String(value))
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `/api/v1/inventory/production-capacity?${stringifiedParams}` : `/api/v1/inventory/production-capacity`
-}
-
-export const getProductionCapacity = async (params?: GetProductionCapacityParams, options?: Parameters<typeof apiFetch>[1]): Promise<ProductionCapacityView> => {
-
-  return apiFetch<ProductionCapacityView>(getGetProductionCapacityUrl(params),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getGetProductionCapacityQueryKey = (params?: GetProductionCapacityParams,) => {
-    return [
-    `/api/v1/inventory/production-capacity`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-
-export const getGetProductionCapacityQueryOptions = <TData = Awaited<ReturnType<typeof getProductionCapacity>>, TError = unknown>(params?: GetProductionCapacityParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductionCapacity>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetProductionCapacityQueryKey(params);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getProductionCapacity>>> = ({ signal }) => getProductionCapacity(params, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getProductionCapacity>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetProductionCapacityQueryResult = NonNullable<Awaited<ReturnType<typeof getProductionCapacity>>>
-export type GetProductionCapacityQueryError = unknown
-
-
-export function useGetProductionCapacity<TData = Awaited<ReturnType<typeof getProductionCapacity>>, TError = unknown>(
- params: undefined |  GetProductionCapacityParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductionCapacity>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getProductionCapacity>>,
-          TError,
-          Awaited<ReturnType<typeof getProductionCapacity>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetProductionCapacity<TData = Awaited<ReturnType<typeof getProductionCapacity>>, TError = unknown>(
- params?: GetProductionCapacityParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductionCapacity>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getProductionCapacity>>,
-          TError,
-          Awaited<ReturnType<typeof getProductionCapacity>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetProductionCapacity<TData = Awaited<ReturnType<typeof getProductionCapacity>>, TError = unknown>(
- params?: GetProductionCapacityParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductionCapacity>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useGetProductionCapacity<TData = Awaited<ReturnType<typeof getProductionCapacity>>, TError = unknown>(
- params?: GetProductionCapacityParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductionCapacity>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetProductionCapacityQueryOptions(params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getListProductionCapacityReferencesUrl = (params?: ListProductionCapacityReferencesParams,) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : String(value))
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `/api/v1/inventory/production-capacity/references?${stringifiedParams}` : `/api/v1/inventory/production-capacity/references`
-}
-
-export const listProductionCapacityReferences = async (params?: ListProductionCapacityReferencesParams, options?: Parameters<typeof apiFetch>[1]): Promise<CapacityReference[]> => {
-
-  return apiFetch<CapacityReference[]>(getListProductionCapacityReferencesUrl(params),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getListProductionCapacityReferencesQueryKey = (params?: ListProductionCapacityReferencesParams,) => {
-    return [
-    `/api/v1/inventory/production-capacity/references`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-
-export const getListProductionCapacityReferencesQueryOptions = <TData = Awaited<ReturnType<typeof listProductionCapacityReferences>>, TError = unknown>(params?: ListProductionCapacityReferencesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listProductionCapacityReferences>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getListProductionCapacityReferencesQueryKey(params);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listProductionCapacityReferences>>> = ({ signal }) => listProductionCapacityReferences(params, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listProductionCapacityReferences>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ListProductionCapacityReferencesQueryResult = NonNullable<Awaited<ReturnType<typeof listProductionCapacityReferences>>>
-export type ListProductionCapacityReferencesQueryError = unknown
-
-
-export function useListProductionCapacityReferences<TData = Awaited<ReturnType<typeof listProductionCapacityReferences>>, TError = unknown>(
- params: undefined |  ListProductionCapacityReferencesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listProductionCapacityReferences>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listProductionCapacityReferences>>,
-          TError,
-          Awaited<ReturnType<typeof listProductionCapacityReferences>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListProductionCapacityReferences<TData = Awaited<ReturnType<typeof listProductionCapacityReferences>>, TError = unknown>(
- params?: ListProductionCapacityReferencesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listProductionCapacityReferences>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listProductionCapacityReferences>>,
-          TError,
-          Awaited<ReturnType<typeof listProductionCapacityReferences>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListProductionCapacityReferences<TData = Awaited<ReturnType<typeof listProductionCapacityReferences>>, TError = unknown>(
- params?: ListProductionCapacityReferencesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listProductionCapacityReferences>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useListProductionCapacityReferences<TData = Awaited<ReturnType<typeof listProductionCapacityReferences>>, TError = unknown>(
- params?: ListProductionCapacityReferencesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listProductionCapacityReferences>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getListProductionCapacityReferencesQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

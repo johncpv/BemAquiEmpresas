@@ -16191,6 +16191,613 @@
         }
       }
     },
+    "/api/v1/inventory/inventory-counts": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "ListInventoryCounts",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/InventoryCountStatus"
+            }
+          },
+          {
+            "name": "locationId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfInventoryCountSummary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "OpenInventoryCount",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenInventoryCountInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryCountDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/inventory-counts/{id}": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetInventoryCount",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryCountDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/inventory-counts/{id}/counting": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetInventoryCounting",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryCountingView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/inventory-counts/{id}/lines/{lineId}": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetInventoryCountLine",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "lineId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryCountingLine"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "CountInventoryLine",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "lineId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CountLineInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryCountingLine"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/inventory-counts/{id}/divergences": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetInventoryCountDivergences",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "uncountedPolicy",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/UncountedPolicy"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryDivergences"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/inventory-counts/{id}/history": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetInventoryCountHistory",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfRelatedAuditEntryDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/inventory-counts/{id}/lines": {
+      "post": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "AddInventoryCountLine",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FoundLineInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryCountingLine"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/inventory-counts/{id}/recount": {
+      "post": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "RecountInventoryLines",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecountInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryDivergences"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/inventory-counts/{id}/close": {
+      "post": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "CloseInventoryCount",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CloseInventoryCountInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryCountDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/inventory-counts/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "CancelInventoryCount",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelInventoryCountInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryCountDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/inventory-counts/{id}/reopen": {
+      "post": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "ReopenInventoryCount",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReopenInventoryCountInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryCountDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/production-capacity": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "GetProductionCapacity",
+        "parameters": [
+          {
+            "name": "productionOrderId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "productId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "quantity",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductionCapacityView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/production-capacity/references": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "ListProductionCapacityReferences",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "productId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CapacityReference"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/purchasing/purchase-requests": {
       "get": {
         "tags": [
@@ -22002,92 +22609,6 @@
           }
         }
       }
-    },
-    "/api/v1/inventory/production-capacity": {
-      "get": {
-        "tags": [
-          "Estoque"
-        ],
-        "operationId": "GetProductionCapacity",
-        "parameters": [
-          {
-            "name": "productionOrderId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "productId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "quantity",
-            "in": "query",
-            "schema": {
-              "type": "number",
-              "format": "double"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProductionCapacityView"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/inventory/production-capacity/references": {
-      "get": {
-        "tags": [
-          "Estoque"
-        ],
-        "operationId": "ListProductionCapacityReferences",
-        "parameters": [
-          {
-            "name": "q",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "productId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/CapacityReference"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
     }
   },
   "components": {
@@ -25683,6 +26204,26 @@
           }
         }
       },
+      "CancelInventoryCountInput": {
+        "required": [
+          "reason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
       "CancellationLine": {
         "required": [
           "receivableId",
@@ -25726,6 +26267,179 @@
           "isPayable": {
             "type": "boolean",
             "default": false
+          }
+        }
+      },
+      "CapacityLine": {
+        "required": [
+          "bomLineId",
+          "itemId",
+          "itemCode",
+          "itemName",
+          "unitId",
+          "unitCode",
+          "perUnit",
+          "onHand",
+          "reserved",
+          "available",
+          "possible",
+          "required",
+          "shortage",
+          "openQuantity",
+          "estimatedShortageCost",
+          "limiting",
+          "warning"
+        ],
+        "type": "object",
+        "properties": {
+          "bomLineId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unitId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "perUnit": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "onHand": {
+            "type": "number",
+            "format": "double"
+          },
+          "reserved": {
+            "type": "number",
+            "format": "double"
+          },
+          "available": {
+            "type": "number",
+            "format": "double"
+          },
+          "possible": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "required": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "shortage": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "openQuantity": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "estimatedShortageCost": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "limiting": {
+            "type": "boolean"
+          },
+          "warning": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "CapacityReference": {
+        "required": [
+          "bomId",
+          "productionOrderId",
+          "orderNumber",
+          "revision",
+          "releasedAt",
+          "productId",
+          "productCode",
+          "productName",
+          "lineCount",
+          "suggested"
+        ],
+        "type": "object",
+        "properties": {
+          "bomId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "productionOrderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "releasedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "productId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "productCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "productName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lineCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "suggested": {
+            "type": "boolean"
           }
         }
       },
@@ -26075,6 +26789,30 @@
           "NonConforming",
           null
         ]
+      },
+      "CloseInventoryCountInput": {
+        "required": [
+          "uncountedPolicy",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "uncountedPolicy": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/UncountedPolicy"
+              }
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
       },
       "CnpjAddress": {
         "required": [
@@ -27531,6 +28269,48 @@
           "Tax",
           "Other"
         ]
+      },
+      "CountLineInput": {
+        "required": [
+          "quantity",
+          "unitId",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CountUnitOption": {
+        "required": [
+          "id",
+          "code"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          }
+        }
       },
       "CreatePartyRequest": {
         "required": [
@@ -29492,6 +30272,40 @@
             "type": "string"
           }
         }
+      },
+      "FoundLineInput": {
+        "required": [
+          "itemId",
+          "lotId",
+          "quantity",
+          "unitId"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lotId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
       },
       "FunnelAuthor": {
         "required": [
@@ -31736,6 +32550,679 @@
           "amount": {
             "type": "number",
             "format": "double"
+          }
+        }
+      },
+      "InventoryCountDetail": {
+        "required": [
+          "id",
+          "number",
+          "locationId",
+          "locationCode",
+          "locationName",
+          "status",
+          "statusLabel",
+          "scopeLabel",
+          "snapshotAt",
+          "openedByName",
+          "closedByName",
+          "closedAt",
+          "uncountedPolicy",
+          "cancelReason",
+          "cancelledByName",
+          "cancelledAt",
+          "reopenCount",
+          "lineCount",
+          "countedCount",
+          "recountPending",
+          "progress",
+          "adjustmentId",
+          "adjustmentNumber",
+          "adjustmentStatus",
+          "adjustmentSituation",
+          "canCount",
+          "canManage",
+          "canCancel",
+          "canReopen",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "locationCode": {
+            "type": "string"
+          },
+          "locationName": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/InventoryCountStatus"
+          },
+          "statusLabel": {
+            "type": "string"
+          },
+          "scopeLabel": {
+            "type": "string"
+          },
+          "snapshotAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "openedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "closedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "closedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "uncountedPolicy": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/UncountedPolicy"
+              }
+            ]
+          },
+          "cancelReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cancelledByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cancelledAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "reopenCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lineCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "countedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "recountPending": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "progress": {
+            "type": "string"
+          },
+          "adjustmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "adjustmentNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "adjustmentStatus": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/StockAdjustmentStatus"
+              }
+            ]
+          },
+          "adjustmentSituation": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "canCount": {
+            "type": "boolean"
+          },
+          "canManage": {
+            "type": "boolean"
+          },
+          "canCancel": {
+            "type": "boolean"
+          },
+          "canReopen": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "InventoryCountingLine": {
+        "required": [
+          "id",
+          "sequence",
+          "itemId",
+          "itemCode",
+          "itemName",
+          "unitCode",
+          "stockUnitId",
+          "units",
+          "tracksLot",
+          "lotId",
+          "lotNumber",
+          "countedQty",
+          "enteredQuantity",
+          "enteredUnitCode",
+          "countedByName",
+          "countedAt",
+          "countedByMe",
+          "isRecount",
+          "addedDuringCount",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "stockUnitId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "units": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CountUnitOption"
+            }
+          },
+          "tracksLot": {
+            "type": "boolean"
+          },
+          "lotId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "lotNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "countedQty": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "enteredQuantity": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "enteredUnitCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "countedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "countedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "countedByMe": {
+            "type": "boolean"
+          },
+          "isRecount": {
+            "type": "boolean"
+          },
+          "addedDuringCount": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "InventoryCountingView": {
+        "required": [
+          "countId",
+          "number",
+          "locationId",
+          "locationName",
+          "status",
+          "lineCount",
+          "countedCount",
+          "progress",
+          "canCount",
+          "lines",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "countId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "locationName": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/InventoryCountStatus"
+          },
+          "lineCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "countedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "progress": {
+            "type": "string"
+          },
+          "canCount": {
+            "type": "boolean"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InventoryCountingLine"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "InventoryCountScopeInput": {
+        "required": [
+          "includeZeroWithMovement",
+          "categoryId",
+          "itemType"
+        ],
+        "type": "object",
+        "properties": {
+          "includeZeroWithMovement": {
+            "type": "boolean"
+          },
+          "categoryId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "itemType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ItemType"
+              }
+            ]
+          }
+        }
+      },
+      "InventoryCountStatus": {
+        "enum": [
+          "Counting",
+          "Closed",
+          "Cancelled"
+        ]
+      },
+      "InventoryCountSummary": {
+        "required": [
+          "id",
+          "number",
+          "locationId",
+          "locationName",
+          "status",
+          "snapshotAt",
+          "openedByName",
+          "lineCount",
+          "countedCount",
+          "adjustmentId",
+          "adjustmentNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "locationName": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/InventoryCountStatus"
+          },
+          "snapshotAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "openedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lineCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "countedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "adjustmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "adjustmentNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "InventoryDivergenceLine": {
+        "required": [
+          "id",
+          "sequence",
+          "itemId",
+          "itemCode",
+          "itemName",
+          "unitCode",
+          "lotId",
+          "lotNumber",
+          "systemQty",
+          "countedQty",
+          "counted",
+          "countedByName",
+          "countedAt",
+          "movementDelta",
+          "hadMovement",
+          "difference",
+          "unitCost",
+          "value",
+          "systemQtyNow",
+          "after",
+          "isRecount",
+          "previousCountedByName",
+          "previousCountedQty",
+          "recountPending",
+          "canRequestRecount"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "lotId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "lotNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "systemQty": {
+            "type": "number",
+            "format": "double"
+          },
+          "countedQty": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "counted": {
+            "type": "boolean"
+          },
+          "countedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "countedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "movementDelta": {
+            "type": "number",
+            "format": "double"
+          },
+          "hadMovement": {
+            "type": "boolean"
+          },
+          "difference": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitCost": {
+            "type": "number",
+            "format": "double"
+          },
+          "value": {
+            "type": "number",
+            "format": "double"
+          },
+          "systemQtyNow": {
+            "type": "number",
+            "format": "double"
+          },
+          "after": {
+            "type": "number",
+            "format": "double"
+          },
+          "isRecount": {
+            "type": "boolean"
+          },
+          "previousCountedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "previousCountedQty": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "recountPending": {
+            "type": "boolean"
+          },
+          "canRequestRecount": {
+            "type": "boolean"
+          }
+        }
+      },
+      "InventoryDivergences": {
+        "required": [
+          "countId",
+          "number",
+          "status",
+          "uncounted",
+          "uncountedQuestion",
+          "policy",
+          "surplus",
+          "shortage",
+          "net",
+          "lines",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "countId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/InventoryCountStatus"
+          },
+          "uncounted": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "uncountedQuestion": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "policy": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/UncountedPolicy"
+              }
+            ]
+          },
+          "surplus": {
+            "type": "number",
+            "format": "double"
+          },
+          "shortage": {
+            "type": "number",
+            "format": "double"
+          },
+          "net": {
+            "type": "number",
+            "format": "double"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InventoryDivergenceLine"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
           }
         }
       },
@@ -35615,6 +37102,30 @@
           }
         }
       },
+      "OpenInventoryCountInput": {
+        "required": [
+          "locationId",
+          "scope"
+        ],
+        "type": "object",
+        "properties": {
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "scope": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/InventoryCountScopeInput"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
       "OpenLaborEntry": {
         "required": [
           "id",
@@ -36763,6 +38274,35 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ImportRunRow"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PagedListOfInventoryCountSummary": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InventoryCountSummary"
             }
           },
           "page": {
@@ -39955,6 +41495,86 @@
             "type": "array",
             "items": {
               "type": "string"
+            }
+          }
+        }
+      },
+      "ProductionCapacityView": {
+        "required": [
+          "reference",
+          "quantity",
+          "possible",
+          "limitingItemId",
+          "limitingItemName",
+          "shortageCount",
+          "notCalculatedCount",
+          "openOrdersShown",
+          "possibleWithOpenOrders",
+          "costShown",
+          "estimatedShortageCost",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "reference": {
+            "$ref": "#/components/schemas/CapacityReference"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "possible": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "limitingItemId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "limitingItemName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "shortageCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "notCalculatedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "openOrdersShown": {
+            "type": "boolean"
+          },
+          "possibleWithOpenOrders": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "costShown": {
+            "type": "boolean"
+          },
+          "estimatedShortageCost": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CapacityLine"
             }
           }
         }
@@ -45699,6 +47319,30 @@
         },
         "additionalProperties": false
       },
+      "RecountInput": {
+        "required": [
+          "lineIds",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "lineIds": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
       "RecurringExpenseDetail": {
         "required": [
           "id",
@@ -45958,6 +47602,19 @@
             ]
           }
         }
+      },
+      "ReopenInventoryCountInput": {
+        "required": [
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
       },
       "RequisitionConfirmInput": {
         "required": [
@@ -51923,6 +53580,12 @@
               "string"
             ],
             "format": "uuid"
+          },
+          "reservationNote": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -53516,6 +55179,13 @@
           }
         }
       },
+      "UncountedPolicy": {
+        "enum": [
+          "Zero",
+          "KeepSystem",
+          null
+        ]
+      },
       "UnionDetail": {
         "required": [
           "id",
@@ -53985,259 +55655,6 @@
           }
         },
         "additionalProperties": false
-      },
-      "CapacityLine": {
-        "required": [
-          "bomLineId",
-          "itemId",
-          "itemCode",
-          "itemName",
-          "unitId",
-          "unitCode",
-          "perUnit",
-          "onHand",
-          "reserved",
-          "available",
-          "possible",
-          "required",
-          "shortage",
-          "openQuantity",
-          "estimatedShortageCost",
-          "limiting",
-          "warning"
-        ],
-        "type": "object",
-        "properties": {
-          "bomLineId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "itemId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "itemCode": {
-            "type": "string"
-          },
-          "itemName": {
-            "type": "string"
-          },
-          "unitId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "uuid"
-          },
-          "unitCode": {
-            "type": "string"
-          },
-          "perUnit": {
-            "type": [
-              "null",
-              "number"
-            ],
-            "format": "double"
-          },
-          "onHand": {
-            "type": "number",
-            "format": "double"
-          },
-          "reserved": {
-            "type": "number",
-            "format": "double"
-          },
-          "available": {
-            "type": "number",
-            "format": "double"
-          },
-          "possible": {
-            "type": [
-              "null",
-              "number"
-            ],
-            "format": "double"
-          },
-          "required": {
-            "type": [
-              "null",
-              "number"
-            ],
-            "format": "double"
-          },
-          "shortage": {
-            "type": [
-              "null",
-              "number"
-            ],
-            "format": "double"
-          },
-          "openQuantity": {
-            "type": [
-              "null",
-              "number"
-            ],
-            "format": "double"
-          },
-          "estimatedShortageCost": {
-            "type": [
-              "null",
-              "number"
-            ],
-            "format": "double"
-          },
-          "limiting": {
-            "type": "boolean"
-          },
-          "warning": {
-            "type": [
-              "null",
-              "string"
-            ]
-          }
-        }
-      },
-      "CapacityReference": {
-        "required": [
-          "bomId",
-          "productionOrderId",
-          "orderNumber",
-          "revision",
-          "releasedAt",
-          "productId",
-          "productCode",
-          "productName",
-          "lineCount",
-          "suggested"
-        ],
-        "type": "object",
-        "properties": {
-          "bomId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "productionOrderId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "orderNumber": {
-            "type": "string"
-          },
-          "revision": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "releasedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "productId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "uuid"
-          },
-          "productCode": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "productName": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "lineCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "suggested": {
-            "type": "boolean"
-          }
-        }
-      },
-      "ProductionCapacityView": {
-        "required": [
-          "reference",
-          "quantity",
-          "possible",
-          "limitingItemId",
-          "limitingItemName",
-          "shortageCount",
-          "notCalculatedCount",
-          "openOrdersShown",
-          "possibleWithOpenOrders",
-          "costShown",
-          "estimatedShortageCost",
-          "lines"
-        ],
-        "type": "object",
-        "properties": {
-          "reference": {
-            "$ref": "#/components/schemas/CapacityReference"
-          },
-          "quantity": {
-            "type": "number",
-            "format": "double"
-          },
-          "possible": {
-            "type": [
-              "null",
-              "number"
-            ],
-            "format": "double"
-          },
-          "limitingItemId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "uuid"
-          },
-          "limitingItemName": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "shortageCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "notCalculatedCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "openOrdersShown": {
-            "type": "boolean"
-          },
-          "possibleWithOpenOrders": {
-            "type": [
-              "null",
-              "number"
-            ],
-            "format": "double"
-          },
-          "costShown": {
-            "type": "boolean"
-          },
-          "estimatedShortageCost": {
-            "type": [
-              "null",
-              "number"
-            ],
-            "format": "double"
-          },
-          "lines": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CapacityLine"
-            }
-          }
-        }
       }
     }
   },
