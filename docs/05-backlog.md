@@ -348,7 +348,7 @@ _MIG-01d (saldos iniciais de estoque) não entra aqui: cancelada pelo PO em 18/1
 - Requisitos: R-CMP-2, R-CMP-6, R-COM-4, R-PRP-1, R-PRP-3, R-SEC-5.
 - CA: comparativo com rádio por linha e tag "Sugerido"; IPI % por fornecedor; quem lançou cada resposta; anexo da proposta obrigatório acima de R$ 5.000,00 (D8); "Gerar pedidos de compra" pela API da CMP-03a e "Enviar todos para aprovação".
 
-**CMP-03b [ ] PDF e envio do pedido de compra ao fornecedor (P)** — 3.3, ordem 18 — quebra da CMP-03 — [story](stories/CMP-03b-pdf-envio-pedido.md)
+**CMP-03b [x] PDF e envio do pedido de compra ao fornecedor (P)** — 3.3, ordem 18 — quebra da CMP-03 — [story](stories/CMP-03b-pdf-envio-pedido.md)
 - Requisitos: R-CMP-3, R-COM-1, R-COM-3, R-PRP-2, R-SEC-5.
 - CA: PDF pelo `IPdfRenderer` sem custo nem projeto; envio pela fila depois do `Clean`; confirmação de destinatário fora dos contatos do fornecedor; mensagem escapada, sem links; CR/LF recusado; pedido a `Sent`.
 
