@@ -23477,6 +23477,111 @@
           }
         }
       }
+    },
+    "/api/v1/production/planning/load": {
+      "get": {
+        "tags": [
+          "Produção"
+        ],
+        "operationId": "GetFactoryLoad",
+        "parameters": [
+          {
+            "name": "weeks",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "workCenterIds",
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          },
+          {
+            "name": "line",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FactoryLoadView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/planning/load/cell": {
+      "get": {
+        "tags": [
+          "Produção"
+        ],
+        "operationId": "GetFactoryLoadCell",
+        "parameters": [
+          {
+            "name": "workCenterId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "weekStart",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "workCenterIds",
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          },
+          {
+            "name": "line",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FactoryLoadCellDetail"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -32327,6 +32432,303 @@
           "selfInspection": {
             "type": "boolean",
             "default": false
+          }
+        }
+      },
+      "FactoryLoadBand": {
+        "enum": [
+          "NoCapacity",
+          "Idle",
+          "Normal",
+          "Full",
+          "Over"
+        ]
+      },
+      "FactoryLoadCell": {
+        "required": [
+          "weekStart",
+          "committedHours",
+          "capacityHours",
+          "percent",
+          "band"
+        ],
+        "type": "object",
+        "properties": {
+          "weekStart": {
+            "type": "string",
+            "format": "date"
+          },
+          "committedHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "capacityHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "percent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "band": {
+            "$ref": "#/components/schemas/FactoryLoadBand"
+          }
+        }
+      },
+      "FactoryLoadCellDetail": {
+        "required": [
+          "workCenterId",
+          "name",
+          "weekStart",
+          "from",
+          "to",
+          "totalHours",
+          "steps"
+        ],
+        "type": "object",
+        "properties": {
+          "workCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "weekStart": {
+            "type": "string",
+            "format": "date"
+          },
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "totalHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FactoryLoadCellStep"
+            }
+          }
+        }
+      },
+      "FactoryLoadCellStep": {
+        "required": [
+          "stepId",
+          "stepName",
+          "orderId",
+          "orderNumber",
+          "projectId",
+          "projectNumber",
+          "projectName",
+          "workCenterId",
+          "workCenterName",
+          "hours",
+          "plannedStart",
+          "plannedEnd"
+        ],
+        "type": "object",
+        "properties": {
+          "stepId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "stepName": {
+            "type": "string"
+          },
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "projectName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "workCenterId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "workCenterName": {
+            "type": "string"
+          },
+          "hours": {
+            "type": "number",
+            "format": "double"
+          },
+          "plannedStart": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "plannedEnd": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          }
+        }
+      },
+      "FactoryLoadRow": {
+        "required": [
+          "workCenterId",
+          "name",
+          "line",
+          "cells",
+          "hoursAfter",
+          "busyUntil"
+        ],
+        "type": "object",
+        "properties": {
+          "workCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "line": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cells": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FactoryLoadCell"
+            }
+          },
+          "hoursAfter": {
+            "type": "number",
+            "format": "double"
+          },
+          "busyUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          }
+        }
+      },
+      "FactoryLoadView": {
+        "required": [
+          "load",
+          "lines",
+          "activeCenters"
+        ],
+        "type": "object",
+        "properties": {
+          "load": {
+            "$ref": "#/components/schemas/FactoryLoadWeekly"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "activeCenters": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "FactoryLoadWeek": {
+        "required": [
+          "start",
+          "end",
+          "isoWeek",
+          "from"
+        ],
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "string",
+            "format": "date"
+          },
+          "end": {
+            "type": "string",
+            "format": "date"
+          },
+          "isoWeek": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "from": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "FactoryLoadWeekly": {
+        "required": [
+          "today",
+          "planComputedAt",
+          "weeks",
+          "centers",
+          "factory"
+        ],
+        "type": "object",
+        "properties": {
+          "today": {
+            "type": "string",
+            "format": "date"
+          },
+          "planComputedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "weeks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FactoryLoadWeek"
+            }
+          },
+          "centers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FactoryLoadRow"
+            }
+          },
+          "factory": {
+            "$ref": "#/components/schemas/FactoryLoadRow"
           }
         }
       },

@@ -153,6 +153,8 @@ import type {
   FabricationRoutingInput,
   FabricationRoutingOption,
   FabricationStepsInput,
+  FactoryLoadCellDetail,
+  FactoryLoadView,
   FinanceDeadLetter,
   FinanceLimits,
   FinanceLimitsInput,
@@ -171,6 +173,8 @@ import type {
   GetDreChangesParams,
   GetDreParams,
   GetFabricationOrderHistoryParams,
+  GetFactoryLoadCellParams,
+  GetFactoryLoadParams,
   GetGoodsReceiptHistoryParams,
   GetInstallationDefaultsParams,
   GetInventoryCountDivergencesParams,
@@ -58909,6 +58913,226 @@ export function useGetDashboardDecisions<TData = Awaited<ReturnType<typeof getDa
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetDashboardDecisionsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetFactoryLoadUrl = (params?: GetFactoryLoadParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    const explodeParameters = ["workCenterIds"];
+
+    if (Array.isArray(value) && explodeParameters.includes(key)) {
+      value.forEach((v) => {
+        normalizedParams.append(key, v === null ? 'null' : String(v));
+      });
+      return;
+    }
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/production/planning/load?${stringifiedParams}` : `/api/v1/production/planning/load`
+}
+
+export const getFactoryLoad = async (params?: GetFactoryLoadParams, options?: Parameters<typeof apiFetch>[1]): Promise<FactoryLoadView> => {
+
+  return apiFetch<FactoryLoadView>(getGetFactoryLoadUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetFactoryLoadQueryKey = (params?: GetFactoryLoadParams,) => {
+    return [
+    `/api/v1/production/planning/load`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetFactoryLoadQueryOptions = <TData = Awaited<ReturnType<typeof getFactoryLoad>>, TError = unknown>(params?: GetFactoryLoadParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFactoryLoad>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetFactoryLoadQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFactoryLoad>>> = ({ signal }) => getFactoryLoad(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFactoryLoad>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetFactoryLoadQueryResult = NonNullable<Awaited<ReturnType<typeof getFactoryLoad>>>
+export type GetFactoryLoadQueryError = unknown
+
+
+export function useGetFactoryLoad<TData = Awaited<ReturnType<typeof getFactoryLoad>>, TError = unknown>(
+ params: undefined |  GetFactoryLoadParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFactoryLoad>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getFactoryLoad>>,
+          TError,
+          Awaited<ReturnType<typeof getFactoryLoad>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetFactoryLoad<TData = Awaited<ReturnType<typeof getFactoryLoad>>, TError = unknown>(
+ params?: GetFactoryLoadParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFactoryLoad>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getFactoryLoad>>,
+          TError,
+          Awaited<ReturnType<typeof getFactoryLoad>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetFactoryLoad<TData = Awaited<ReturnType<typeof getFactoryLoad>>, TError = unknown>(
+ params?: GetFactoryLoadParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFactoryLoad>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetFactoryLoad<TData = Awaited<ReturnType<typeof getFactoryLoad>>, TError = unknown>(
+ params?: GetFactoryLoadParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFactoryLoad>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetFactoryLoadQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetFactoryLoadCellUrl = (params: GetFactoryLoadCellParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    const explodeParameters = ["workCenterIds"];
+
+    if (Array.isArray(value) && explodeParameters.includes(key)) {
+      value.forEach((v) => {
+        normalizedParams.append(key, v === null ? 'null' : String(v));
+      });
+      return;
+    }
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/production/planning/load/cell?${stringifiedParams}` : `/api/v1/production/planning/load/cell`
+}
+
+export const getFactoryLoadCell = async (params: GetFactoryLoadCellParams, options?: Parameters<typeof apiFetch>[1]): Promise<FactoryLoadCellDetail> => {
+
+  return apiFetch<FactoryLoadCellDetail>(getGetFactoryLoadCellUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetFactoryLoadCellQueryKey = (params?: GetFactoryLoadCellParams,) => {
+    return [
+    `/api/v1/production/planning/load/cell`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetFactoryLoadCellQueryOptions = <TData = Awaited<ReturnType<typeof getFactoryLoadCell>>, TError = unknown>(params: GetFactoryLoadCellParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFactoryLoadCell>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetFactoryLoadCellQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFactoryLoadCell>>> = ({ signal }) => getFactoryLoadCell(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFactoryLoadCell>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetFactoryLoadCellQueryResult = NonNullable<Awaited<ReturnType<typeof getFactoryLoadCell>>>
+export type GetFactoryLoadCellQueryError = unknown
+
+
+export function useGetFactoryLoadCell<TData = Awaited<ReturnType<typeof getFactoryLoadCell>>, TError = unknown>(
+ params: GetFactoryLoadCellParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFactoryLoadCell>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getFactoryLoadCell>>,
+          TError,
+          Awaited<ReturnType<typeof getFactoryLoadCell>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetFactoryLoadCell<TData = Awaited<ReturnType<typeof getFactoryLoadCell>>, TError = unknown>(
+ params: GetFactoryLoadCellParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFactoryLoadCell>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getFactoryLoadCell>>,
+          TError,
+          Awaited<ReturnType<typeof getFactoryLoadCell>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetFactoryLoadCell<TData = Awaited<ReturnType<typeof getFactoryLoadCell>>, TError = unknown>(
+ params: GetFactoryLoadCellParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFactoryLoadCell>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetFactoryLoadCell<TData = Awaited<ReturnType<typeof getFactoryLoadCell>>, TError = unknown>(
+ params: GetFactoryLoadCellParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFactoryLoadCell>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetFactoryLoadCellQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
