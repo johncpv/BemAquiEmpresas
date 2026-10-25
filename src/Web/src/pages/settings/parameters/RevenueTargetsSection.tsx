@@ -42,23 +42,23 @@ export function RevenueTargetsSection({ canEdit }: { canEdit: boolean }) {
           </select>
         </label>
         {query.isPending ? <Skeleton className="h-48" /> : query.isError || !query.data ? <ErrorState title="Não foi possível carregar as metas." onRetry={() => void query.refetch()} /> : (
-          <TargetsForm key={`${year}-${JSON.stringify(query.data.months)}`} year={query.data} canEdit={canEdit} />
+          <TargetsForm key={`${year}-${JSON.stringify(query.data.months ?? [])}`} targets={query.data} year={year} canEdit={canEdit} />
         )}
       </fieldset>
     </div>
   )
 }
 
-function TargetsForm({ year, canEdit }: { year: RevenueTargetsYear; canEdit: boolean }) {
+function TargetsForm({ targets, year, canEdit }: { targets: RevenueTargetsYear; year: number; canEdit: boolean }) {
   const client = useQueryClient()
-  const [values, setValues] = useState<(string | null)[]>(() => toInputs(year))
+  const [values, setValues] = useState<(string | null)[]>(() => toInputs(targets))
   const [error, setError] = useState<{ message: string; fields: Record<string, string[]> } | null>(null)
   const set = (index: number, value: string | null) => setValues((prev) => prev.map((v, i) => (i === index ? value : v)))
   const save = async () => {
     setError(null)
     try {
-      const saved = await saveRevenueTargets(year.year, { months: values.map((v) => (v === null || v === '' ? null : Number(v))) })
-      client.setQueryData(getGetRevenueTargetsQueryKey(year.year), saved)
+      const saved = await saveRevenueTargets(year, { months: values.map((v) => (v === null || v === '' ? null : Number(v))) })
+      client.setQueryData(getGetRevenueTargetsQueryKey(year), saved)
       void client.invalidateQueries({ predicate: (q) => String(q.queryKey[0]).startsWith('/api/v1/dashboard') })
       notifySuccess('Metas salvas')
     } catch (e) {
@@ -79,8 +79,8 @@ function TargetsForm({ year, canEdit }: { year: RevenueTargetsYear; canEdit: boo
       <p className="text-sm">Total do ano: <Money value={sumOf(values)} className="font-semibold" /></p>
       {canEdit ? (
         <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={() => setValues(repeatForYear(values))} className="min-h-11 rounded-md border border-border px-3 py-2 text-sm font-semibold sm:min-h-0">Repetir para o ano</button>
-          <button type="button" onClick={() => void save()} className="min-h-11 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground sm:min-h-0">Salvar metas</button>
+          <button type="button" onClick={() => setValues(repeatForYear(values))} className="min-h-[44px] rounded-md border border-border px-3 py-2 text-sm font-semibold sm:min-h-0">Repetir para o ano</button>
+          <button type="button" onClick={() => void save()} className="min-h-[44px] rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground sm:min-h-0">Salvar metas</button>
         </div>
       ) : <p className="text-xs text-muted-foreground">Só quem edita as Configurações muda as metas.</p>}
     </div>

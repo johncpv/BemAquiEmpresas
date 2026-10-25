@@ -34,10 +34,10 @@ export function DashboardCard<T extends { updatedAt: string }>({ code, title, de
     <section aria-labelledby={id} data-card={code} className={cn('flex min-w-0 flex-col rounded-md border border-border bg-card', compact ? 'p-4' : 'p-4 sm:p-5', className)}>
       <header className="mb-3 flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
-          <h2 id={id} className={cn('flex items-center font-semibold', compact ? 'text-sm text-muted-foreground' : 'text-base')}>
-            {title}
+          <div className="flex items-center">
+            <h2 id={id} className={cn('font-semibold', compact ? 'text-sm text-muted-foreground' : 'text-base')}>{title}</h2>
             <Dica nome={`Como calculamos: ${title}`} texto={how} />
-          </h2>
+          </div>
           {description ? <p className="text-xs text-muted-foreground">{description}</p> : null}
         </div>
         {action}
@@ -73,8 +73,9 @@ export function Kpi({ value, href, label, sub, chip, meter }: { value: ReactNode
     <div className="space-y-1.5">
       <p className="flex flex-wrap items-center gap-2">
         {href ? (
-          <Link to={href as never} aria-label={`${label}: ver origem`} className="text-[26px] font-bold leading-tight tracking-tight tabular-nums text-foreground hover:text-primary hover:underline focus-visible:outline-2 focus-visible:outline-ring">
+          <Link to={href as never} className="text-[26px] font-bold leading-tight tracking-tight tabular-nums text-foreground hover:text-primary hover:underline focus-visible:outline-2 focus-visible:outline-ring">
             {value}
+            <span className="sr-only"> ({label}: ver origem)</span>
           </Link>
         ) : (
           <span className="text-[26px] font-bold leading-tight tracking-tight tabular-nums">{value}</span>
@@ -94,7 +95,7 @@ export function Kpi({ value, href, label, sub, chip, meter }: { value: ReactNode
 /** "Ver origem" textual, com 44 px de alvo no celular. */
 export function OriginLink({ href, children = 'Ver origem' }: { href: string; children?: ReactNode }) {
   return (
-    <Link to={href as never} className="inline-flex min-h-11 items-center text-sm font-semibold text-primary hover:underline sm:min-h-0">
+    <Link to={href as never} className="inline-flex min-h-[44px] items-center text-sm font-semibold text-primary hover:underline sm:min-h-0">
       {children}
     </Link>
   )

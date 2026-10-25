@@ -15,7 +15,7 @@ import { CashChart } from './CashChart'
 import { DashboardCard, Kpi, OriginLink } from './DashboardCard'
 import { cashFlowHref, HOW, meterWidth, monthOf, plural, type Scenario, SCENARIOS, scenarioOf, scenarioParam, workingDaysLabel } from './dashboard'
 
-const primaryAction = 'inline-flex min-h-11 items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground sm:min-h-0'
+const primaryAction = 'inline-flex min-h-[44px] items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground sm:min-h-0'
 const BUCKETS = ['0–30 dias', '31–60 dias', '61–90 dias', 'Mais de 90 dias']
 
 function Empty({ title, description, action }: { title: string; description?: string; action?: ReactNode }) {
@@ -93,7 +93,7 @@ export function OverdueKpi({ className }: { className?: string }) {
             ))}
           </ul>
           <details className="text-sm">
-            <summary className="inline-flex min-h-11 cursor-pointer items-center font-semibold text-primary sm:min-h-0">{plural(card.topCustomers.length, 'maior cliente', 'maiores clientes')}</summary>
+            <summary className="inline-flex min-h-[44px] cursor-pointer items-center font-semibold text-primary sm:min-h-0">{plural(card.topCustomers.length, 'maior cliente', 'maiores clientes')}</summary>
             <ol className="mt-1 space-y-1">
               {card.topCustomers.map((c) => (
                 <li key={c.partyId} className="flex justify-between gap-2">
@@ -169,7 +169,7 @@ export function DecisionsPanel({ className }: { className?: string }) {
             <ul className="divide-y divide-border rounded-md border border-border">
               {card.items.map((item) => (
                 <li key={item.url + item.title}>
-                  <Link to={item.url as never} className="flex min-h-11 items-center justify-between gap-2 px-3 py-2 text-sm hover:bg-muted">
+                  <Link to={item.url as never} className="flex min-h-[44px] items-center justify-between gap-2 px-3 py-2 text-sm hover:bg-muted">
                     <span className="min-w-0"><b className="block truncate">{item.title}</b>{item.detail ? <span className="block truncate text-xs text-muted-foreground">{item.detail}</span> : null}</span>
                     <span className="flex-none text-right text-xs">{typeof item.amount === 'number' ? <Money value={item.amount} cents={false} className="block text-sm font-semibold" /> : null}{item.dueDate ? `vence ${formatDate(item.dueDate)}` : null}</span>
                   </Link>

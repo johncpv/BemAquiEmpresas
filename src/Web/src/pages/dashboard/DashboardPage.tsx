@@ -62,7 +62,7 @@ export function DashboardPage() {
         {data && data.cards.length > 0 ? (
           <div className="flex flex-col items-end gap-1">
             <button type="button" onClick={() => void refresh()} disabled={refreshing}
-              className="inline-flex min-h-11 items-center gap-2 rounded-md border border-border bg-card px-3 py-2 text-sm font-semibold disabled:opacity-60">
+              className="inline-flex min-h-[44px] items-center gap-2 rounded-md border border-border bg-card px-3 py-2 text-sm font-semibold disabled:opacity-60">
               <RefreshCw aria-hidden="true" className={cn('size-4', refreshing && 'animate-spin')} />
               {refreshing ? 'Atualizando…' : 'Atualizar'}
             </button>
@@ -104,7 +104,7 @@ function Attention({ alerts }: { alerts: AttentionAlert[] }) {
         {alerts.slice(0, 3).map((a) => (
           <li key={a.code}>
             <Link to={a.url as never} data-tone={a.tone}
-              className={cn('flex h-full min-h-11 gap-2 rounded-md border border-l-4 bg-card p-3 text-sm hover:bg-muted', a.tone === 'crit' ? 'border-crit-soft border-l-crit' : 'border-warn-soft border-l-warn')}>
+              className={cn('flex h-full min-h-[44px] gap-2 rounded-md border border-l-4 bg-card p-3 text-sm hover:bg-muted', a.tone === 'crit' ? 'border-crit-soft border-l-crit' : 'border-warn-soft border-l-warn')}>
               <AlertTriangle aria-hidden="true" className={cn('mt-0.5 size-4 flex-none', a.tone === 'crit' ? 'text-crit-ink' : 'text-warn-ink')} />
               <span><b className="block">{a.title}</b><span className="text-muted-foreground">{a.detail}</span></span>
             </Link>

@@ -42,7 +42,7 @@ export function CashChart({ weeks, scenario }: { weeks: readonly CashWeekItem[];
         ))}
       </figcaption>
       <details className="text-sm">
-        <summary className="inline-flex min-h-11 cursor-pointer items-center font-semibold text-primary sm:min-h-0">Ver os valores em tabela</summary>
+        <summary className="inline-flex min-h-[44px] cursor-pointer items-center font-semibold text-primary sm:min-h-0">Ver os valores em tabela</summary>
         <div className="mt-2 overflow-x-auto">
           <table id={tableId} className="w-full border-collapse text-sm">
             <caption className="sr-only">Saldo projetado por semana</caption>
