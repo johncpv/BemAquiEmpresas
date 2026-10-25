@@ -1,7 +1,9 @@
 import { Link } from '@tanstack/react-router'
 import { KeyRound, ShieldCheck, UserPlus } from 'lucide-react'
+import { useCallback, useState } from 'react'
 import { useNavigation } from '@/navigation/navigation-context'
 import { PageHeading } from '@/shell/PageHeading'
+import { MinhaPauta } from './inicio/MinhaPauta'
 
 const NEXT_STEPS = [
   { module: 'acessos', tab: 'usuarios', icon: UserPlus, title: 'Convidar a equipe', text: 'Cada pessoa entra com o próprio acesso e só vê o que o grupo dela permite.' },
@@ -9,19 +11,26 @@ const NEXT_STEPS = [
   { module: 'configuracoes', tab: 'seguranca', icon: ShieldCheck, title: 'Proteger as contas', text: 'Ative a verificação em duas etapas e, se quiser, exija para todos.' },
 ] as const
 
-/** Tela inicial da Fase 0 (ADR 0010 item 9): boas-vindas com os próximos passos e atalhos para os módulos com acesso. */
+/**
+ * Início, a página inicial de todos (ADR 0028 §4, DSH-04 CA 7): primeiro a Minha pauta, depois os próximos passos e os atalhos para os
+ * módulos com acesso (ADR 0010 item 9). A contagem da pauta vai para o título da aba ("(4) Início").
+ */
 export function Inicio() {
   const { areas, tenantName } = useNavigation()
   const modules = areas.flatMap((a) => a.modules.filter((m) => !m.locked && m.enabled))
+  const [count, setCount] = useState(0)
+  const onCount = useCallback((total: number) => setCount(total), [])
 
   return (
     <>
-      <PageHeading title="Início">
-        <p className="mt-1 text-muted-foreground">Boas-vindas ao BemAqui Empresas da {tenantName}. Comece por aqui:</p>
+      <PageHeading title="Início" count={count}>
+        <p className="mt-1 text-muted-foreground">Boas-vindas ao BemAqui Empresas da {tenantName}. Veja o que depende de você hoje:</p>
       </PageHeading>
 
+      <MinhaPauta onCount={onCount} />
+
       <section aria-labelledby="proximos" className="mb-8">
-        <h2 id="proximos" className="sr-only">Próximos passos</h2>
+        <h2 id="proximos" className="mb-3 text-[15px] font-semibold">Próximos passos</h2>
         <ul className="grid gap-3 sm:grid-cols-3">
           {NEXT_STEPS.map((s) => (
             <li key={s.tab}>

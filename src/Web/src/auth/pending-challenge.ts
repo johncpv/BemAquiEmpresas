@@ -1,3 +1,5 @@
+import { homeRouteFor } from './home-route'
+
 /** Passo de 2FA entre a senha e a sessão (FND-05): fica só em memória, nunca no armazenamento do navegador. */
 export interface PendingChallenge {
   challenge: string
@@ -17,7 +19,7 @@ export const pendingChallenge = {
   },
 }
 
-/** Rota segura para voltar depois de entrar: só caminhos internos do app (sem open redirect). */
+/** Rota segura para voltar depois de entrar: só caminhos internos do app (sem open redirect); sem volta, a página inicial (DSH-04 CA 8). */
 export function safeReturn(volta: string | undefined): string {
-  return volta && volta.startsWith('/') && !volta.startsWith('//') && !volta.startsWith('/entrar') ? volta : '/app'
+  return volta && volta.startsWith('/') && !volta.startsWith('//') && !volta.startsWith('/entrar') ? volta : homeRouteFor()
 }

@@ -6,6 +6,7 @@ import { markEphemeralSession, setAccessToken } from '@/api/session'
 import { inputClass } from '@/components/form/form-utils'
 import { InlineError } from '@/components/ui/states'
 import { AuthLayout } from './AuthLayout'
+import { homeRouteFor } from './home-route'
 import { pendingChallenge } from './pending-challenge'
 import { linkClass, primaryButton } from './styles'
 import { TwoFactorSetup } from './TwoFactorSetup'
@@ -28,7 +29,7 @@ export function TwoFactorVerifyPage() {
       setAccessToken(result.accessToken)
       markEphemeralSession(pending.ephemeral ?? false)
       pendingChallenge.set(null)
-      await navigate({ to: pending.volta ?? '/app' })
+      await navigate({ to: pending.volta ?? homeRouteFor() })
     } catch (e) {
       const api = e instanceof ApiError ? e : null
       setError({ message: api?.message ?? 'Não foi possível conferir o código.', ended: !!api?.code && ENDED.includes(api.code) })
@@ -88,7 +89,7 @@ export function RequiredTwoFactorSetupPage() {
         onActivated={(token) => { setAccessToken(token); markEphemeralSession(pending.ephemeral ?? false) }}
         onDone={() => {
           pendingChallenge.set(null)
-          void navigate({ to: pending.volta ?? '/app' })
+          void navigate({ to: pending.volta ?? homeRouteFor() })
         }}
       />
     </AuthLayout>
