@@ -17,8 +17,11 @@ public sealed class DashboardGenerationConsumer(DashboardCache cache, ITenantCon
       IIntegrationEventConsumer<PaymentOrderPaid>,
       IIntegrationEventConsumer<ContractSigned>,
       IIntegrationEventConsumer<ContractAmended>,
-      IIntegrationEventConsumer<QuoteApproved>
+      IIntegrationEventConsumer<QuoteApproved>,
+      IIntegrationEventConsumer<RevenueTargetsChanged>
 {
+    public Task HandleAsync(RevenueTargetsChanged integrationEvent, CancellationToken cancellationToken) => Bump();
+
     public Task HandleAsync(ReceivableSettled integrationEvent, CancellationToken cancellationToken) => Bump();
 
     public Task HandleAsync(PaymentOrderSubmitted integrationEvent, CancellationToken cancellationToken) => Bump();

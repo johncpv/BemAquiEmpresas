@@ -91,6 +91,7 @@ public static class HostEvents
             .AddHandler<BemAqui.Finance.Contracts.PaymentOrderPaid, BemAqui.Dashboard.Application.DashboardGenerationConsumer>()
             .AddHandler<BemAqui.Commercial.Contracts.ContractSigned, BemAqui.Dashboard.Application.DashboardGenerationConsumer>()
             .AddHandler<BemAqui.Commercial.Contracts.ContractAmended, BemAqui.Dashboard.Application.DashboardGenerationConsumer>()
-            .AddHandler<BemAqui.Commercial.Contracts.QuoteApproved, BemAqui.Dashboard.Application.DashboardGenerationConsumer>();
+            .AddHandler<BemAqui.Commercial.Contracts.QuoteApproved, BemAqui.Dashboard.Application.DashboardGenerationConsumer>()
+            .AddHandler<BemAqui.Finance.Contracts.RevenueTargetsChanged, BemAqui.Dashboard.Application.DashboardGenerationConsumer>();
     }
 }

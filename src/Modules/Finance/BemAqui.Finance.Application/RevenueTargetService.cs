@@ -1,4 +1,5 @@
 using BemAqui.BuildingBlocks.Authorization;
+using BemAqui.BuildingBlocks.Messaging;
 using BemAqui.BuildingBlocks.Persistence;
 using BemAqui.Finance.Contracts;
 using BemAqui.Finance.Domain;
@@ -14,7 +15,7 @@ public sealed record RevenueTargetsInput(IReadOnlyList<decimal?> Months);
 /// Metas de faturamento (DSH-01a CA 9, ADR 0028 §1 e ADR 0016 M6): <c>finance.revenue_targets</c>, lida pelo painel do
 /// proprietário e editada em Configurações → Parâmetros → Financeiro com <c>settings.edit</c>; a auditoria grava antes e depois.
 /// </summary>
-public sealed class RevenueTargetService(IFinanceDb db, IPermissionChecker permissions, TimeProvider clock) : IRevenueTargets
+public sealed class RevenueTargetService(IFinanceDb db, IPermissionChecker permissions, IEventPublisher events, TimeProvider clock) : IRevenueTargets
 {
     public const int MinYear = 2000;
     public const int MaxYear = 2100;
@@ -81,6 +82,7 @@ public sealed class RevenueTargetService(IFinanceDb db, IPermissionChecker permi
             }
         }
 
+        events.Publish(new RevenueTargetsChanged(year)); // o painel recalcula o faturamento (gravado junto, pelo outbox)
         try
         {
             await db.SaveChangesAsync(cancellationToken);

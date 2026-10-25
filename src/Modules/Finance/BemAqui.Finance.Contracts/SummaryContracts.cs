@@ -40,6 +40,9 @@ public sealed record RevenueTargetMonth(int Month, decimal? Amount);
 /// <summary>Metas dos 12 meses do ano; <see cref="YearTotal"/> é a soma dos meses com meta, nula se nenhum tem.</summary>
 public sealed record RevenueTargetsYear(int Year, IReadOnlyList<RevenueTargetMonth> Months, decimal? YearTotal);
 
+/// <summary>Metas de um ano gravadas (DSH-01a CA 9): o painel do proprietário recalcula o card de faturamento.</summary>
+public sealed record RevenueTargetsChanged(int Year) : BemAqui.SharedKernel.IIntegrationEvent;
+
 /// <summary>Metas de faturamento (DSH-01a CA 9, ADR 0028 §1), donas do Finance, editadas com <c>settings.edit</c>.</summary>
 public interface IRevenueTargets
 {
