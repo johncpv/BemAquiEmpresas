@@ -85,7 +85,7 @@ public partial class FabricationTests
 
         var (_, legacy, legacyProject, _, _) = await FinishedDatasetAsync(serial: false, issue: false);
         await IssueToOrderAsync(a.Item, a.Location, a.Lot, legacy, legacyProject, 8m);
-        await WithDbAsync(db => db.Database.ExecuteSqlAsync($"UPDATE production.production_orders SET status = 'Completed', completed_at = now() WHERE id = {legacy}"));
+        await WithDbAsync(db => db.Database.ExecuteSqlAsync($"UPDATE production.production_orders SET status = 'Completed', actual_end = now() WHERE id = {legacy}"));
 
         var shipment = await DraftShipmentAsync(owner, project);
         var shipped = await OkAsync(await ShipmentActionAsync(owner, shipment.GetProperty("id").GetGuid(), "confirm", Version(shipment)));
@@ -330,8 +330,10 @@ public partial class FabricationTests
     {
         var (_, owner) = await ActorAsync(Group.OwnerSeedKey);
         var result = await OkAsync(await owner.GetAsync($"{Inventory}/traceability?q={Uri.EscapeDataString(term)}"));
-        result.GetProperty("serials").EnumerateArray().Select(s => s.GetProperty("serialNumber").GetString()).Should().OnlyContain(s => s!.StartsWith(term, StringComparison.Ordinal), "CA 10: % e _ são texto, não curinga");
-        result.GetProperty("lots").EnumerateArray().Select(s => s.GetProperty("lotNumber").GetString()).Should().OnlyContain(s => s!.StartsWith(term, StringComparison.Ordinal));
+        // Lista vazia é o esperado (nenhuma série ou lote começa com o termo); o que vier precisa começar com ele, como texto.
+        result.GetProperty("serials").EnumerateArray().Select(s => s.GetProperty("serialNumber").GetString()).All(s => s!.StartsWith(term, StringComparison.Ordinal))
+            .Should().BeTrue("CA 10: % e _ são texto, não curinga");
+        result.GetProperty("lots").EnumerateArray().Select(s => s.GetProperty("lotNumber").GetString()).All(s => s!.StartsWith(term, StringComparison.Ordinal)).Should().BeTrue();
     }
 
     [Fact]
