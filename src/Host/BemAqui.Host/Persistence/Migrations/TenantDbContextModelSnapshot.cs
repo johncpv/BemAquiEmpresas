@@ -4431,6 +4431,149 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("group_modules", "identity");
                 });
 
+            modelBuilder.Entity("BemAqui.Identity.Domain.KioskScreen", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.PrimitiveCollection<string[]>("AllowedNetworks")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("allowed_networks");
+
+                    b.Property<DateTimeOffset?>("ConsumedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("consumed_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateTimeOffset?>("LastSeenAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_seen_at");
+
+                    b.Property<string>("Line")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("line");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("name");
+
+                    b.Property<DateTimeOffset?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revoked_at");
+
+                    b.Property<Guid?>("RevokedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("revoked_by");
+
+                    b.Property<int>("RotationSeconds")
+                        .HasColumnType("integer")
+                        .HasColumnName("rotation_seconds");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("token_hash");
+
+                    b.Property<string>("TokenPrefix")
+                        .IsRequired()
+                        .HasMaxLength(6)
+                        .HasColumnType("character varying(6)")
+                        .HasColumnName("token_prefix");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.PrimitiveCollection<string[]>("Views")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("views");
+
+                    b.HasKey("Id")
+                        .HasName("pk_kiosk_tokens");
+
+                    b.HasIndex("RevokedAt")
+                        .HasDatabaseName("ix_kiosk_tokens_revoked_at");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_kiosk_tokens_token_hash");
+
+                    b.ToTable("kiosk_tokens", "identity");
+                });
+
+            modelBuilder.Entity("BemAqui.Identity.Domain.KioskSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("AbsoluteExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("absolute_expires_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<string>("Ip")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("ip");
+
+                    b.Property<Guid>("KioskId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("kiosk_id");
+
+                    b.Property<DateTimeOffset>("LastSeenAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_seen_at");
+
+                    b.Property<DateTimeOffset?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revoked_at");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("token_hash");
+
+                    b.HasKey("Id")
+                        .HasName("pk_kiosk_sessions");
+
+                    b.HasIndex("KioskId")
+                        .HasDatabaseName("ix_kiosk_sessions_active")
+                        .HasFilter("revoked_at IS NULL");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_kiosk_sessions_token_hash");
+
+                    b.ToTable("kiosk_sessions", "identity");
+                });
+
             modelBuilder.Entity("BemAqui.Identity.Domain.PasswordReset", b =>
                 {
                     b.Property<Guid>("Id")
@@ -10794,6 +10937,16 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_group_modules_groups_group_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Identity.Domain.KioskSession", b =>
+                {
+                    b.HasOne("BemAqui.Identity.Domain.KioskScreen", null)
+                        .WithMany()
+                        .HasForeignKey("KioskId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_kiosk_sessions_kiosk_tokens_kiosk_id");
                 });
 
             modelBuilder.Entity("BemAqui.Identity.Domain.PasswordReset", b =>
