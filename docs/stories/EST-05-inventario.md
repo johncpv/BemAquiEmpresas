@@ -5,7 +5,7 @@
 | ID | EST-05 |
 | Título | Inventário por local: abertura com a foto do saldo, contagem cega por item e lote (inclusive no celular, com o kit chão de fábrica), recontagem das divergências por outra pessoa, e fechamento que gera um ajuste de estoque em modo Delta pelo fluxo de aprovação da EST-01b; ajuste e estorno manual bloqueados no local durante a contagem |
 | Tamanho | M |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-EST-9 (inventário: contagem por local, ajuste) · R-EST-6 (ajuste de inventário com motivo e aprovação) · R-EST-5 · R-PRP-7 · R-SEC-5 |
 | Dependências | EST-01b (ajuste com aprovação), EST-02 (reservado) |
 | Bloqueia | — |
@@ -92,23 +92,23 @@ Decididos pelo PO em 21/10/2026 (revisão pré-Fase 3, tabela 1.1, itens 89–91
 **Pré-condição externa:** nenhuma.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
+- [x] Critérios de aceite atendidos.
 - [ ] Testes de unidade, integração (Testcontainers) e E2E passando.
 - [ ] Migration criada (não destrutiva), testada sobre cópia do banco do tenant `konebras`.
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] ADR 0023 aplicada (ajuste em modo Delta pelo motor, segregação da §5, numeração da §7).
-- [ ] Telas com estados, inclusive a 400 px e a contagem com o kit chão de fábrica.
-- [ ] Ajudas da lista, das abas e da contagem; teste de cobertura passando.
-- [ ] Confirmação com impacto e próximo passo aplicados.
-- [ ] Auditoria ligada.
+- [x] Permissões só do `ModuleCatalog`.
+- [x] ADR 0023 aplicada (ajuste em modo Delta pelo motor, segregação da §5, numeração da §7).
+- [x] Telas com estados, inclusive a 400 px e a contagem com o kit chão de fábrica.
+- [x] Ajudas da lista, das abas e da contagem; teste de cobertura passando.
+- [x] Confirmação com impacto e próximo passo aplicados.
+- [x] Auditoria ligada.
 - [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
+- [x] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `InventoryCount` e `InventoryCountLine` (Domain); `CountDifferenceCalculator` puro.
-- [ ] `InventoryCountService` (abrir, contar, recontar, fechar, cancelar, reabrir) gerando o ajuste Delta da EST-01b.
-- [ ] `ILocationCountLock` interno do Inventory, consultado pelo ajuste (EST-01b) e pelo estorno manual (EST-01a).
-- [ ] Endpoints `/api/v1/inventory/inventory-counts`; telas, contagem com o kit chão de fábrica e ajudas.
+- [x] `InventoryCount` e `InventoryCountLine` (Domain); `CountDifferenceCalculator` puro.
+- [x] `InventoryCountService` (abrir, contar, recontar, fechar, cancelar, reabrir) gerando o ajuste Delta da EST-01b.
+- [x] `ILocationCountLock` interno do Inventory, consultado pelo ajuste (EST-01b) e pelo estorno manual (EST-01a).
+- [x] Endpoints `/api/v1/inventory/inventory-counts`; telas, contagem com o kit chão de fábrica e ajudas.
 
 ## Quality gates
 - Agentes previstos: @dev, design (contagem no celular), @qa.
@@ -142,3 +142,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO (D7, D15, tabela 1.1 itens 89–91) e correções da revisão pré-Fase 3 (§2.1 ajuste em modo Delta, ADR 0023 §1, §5 e §7; §2.2 EST-05; §2.3 padrões 1, 4, 9); nova ordem (Marco 3.4, ordem 23) | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 25/10/2026 | 1.0 | Implementada (`Done`), sobre a EST-01b (branch `feat/est-01b-ajuste`). Desvios e decisões de implementação: (1) **Contagem abaixo do reservado (decisão do PO de 23/10/2026; quando reduzir: recomendação mais segura aceita, PO 24/10):** a redução das reservas acontece na **aprovação** do ajuste do inventário, na mesma transação e sob a trava do item, e não no fechamento: até aprovar, nada muda no saldo nem nas reservas. O envio e a tela do ajuste não recusam pelo reservado (o lote negativo continua recusado) e o impacto da aprovação mostra quanto será reduzido (`impact.reservationNote`). `ReservationAllocator.ReduceForCountAsync` reduz primeiro a BOM liberada mais recentemente (a sem data por último, `ReservationPlanner.ReductionOrder`), mantém a necessidade (vira falta, histórico `Released`, `StockShortageChanged`) e todos com `inventory.approve` recebem `inventory.count_reservations_reduced`. (2) **Movimentos durante a contagem (CA 5):** em vez de somar os movimentos entre a foto e a contagem, a linha grava o saldo do sistema no momento em que é contada (`system_qty_at_count`, nunca mostrado a quem conta) e `movement_delta` = esse saldo − a foto; o resultado é o mesmo, sem depender da ordem de gravação dos movimentos. Não contada com "Considerar como zero": a diferença usa o saldo do fechamento. (3) **Colunas além das listadas:** `adjustment_number`, `cancel_reason`/`cancelled_by`/`cancelled_at`, `reopen_count`; nas linhas `sequence`, `entered_quantity`/`entered_unit_id`, `system_qty_at_count`, `difference` e `unit_cost` (gravados no fechamento), `superseded` e `added_during_count`; únicos (inventário, item, lote) `NULLS NOT DISTINCT` entre as linhas vigentes e (inventário, sequência). (4) **Recontagem (CA 7):** cada linha marcada vira uma linha nova com `recount_of_line_id`; a anterior fica `superseded` (fora da diferença, no histórico, com "Primeira contagem: …" na aba Divergências). (5) **Linha contada por outra pessoa (recomendação mais segura aceita, PO 24/10):** não se sobrescreve; responde 409 com a mensagem do CA 16 e "Recarregar"; para contar de novo, quem ajusta pede a recontagem. Assim o envolvimento de quem contou nunca se perde para o CA 11. (6) **"Encontrei outro item" (recomendação mais segura aceita, PO 24/10):** só item e lote já cadastrados (lote novo nasce pelo recebimento); a foto da linha incluída é o saldo − os movimentos desde a abertura. (7) **CA 11:** envolvidos = quem fechou (autor do ajuste), quem abriu e quem contou ou recontou alguma linha, inclusive a substituída; o `SoleOwnerRule` avalia com todos eles; vale também para o estorno. Mensagem: "Quem abriu ou contou o inventário não aprova o ajuste dele.". (8) **CA 12:** "Reabrir contagem" também com o ajuste cancelado por quem fechou; reabrir limpa o ajuste do inventário (o histórico guarda o anterior) e volta a bloquear o local (409 se outro inventário foi aberto no local). Sem divergência, o inventário fecha sem ajuste. (9) **Escopo:** sem linhas, 422; até 2.000 linhas por inventário (o ajuste gerado aceita o mesmo teto; os manuais seguem com 200); a categoria não inclui subcategorias. (10) **Permissões:** nenhuma ação nova no catálogo (`inventory.adjust`, `inventory.create` e `inventory.approve` já existiam); ver o detalhe e a contagem cega pede `inventory.view` (o DTO não tem saldo nem custo), contar pede `inventory.create`; divergências, recontagem, fechar, cancelar e reabrir pedem `inventory.adjust`. (11) **Contagem no celular:** rota `/app/estoque/inventarios/$id/contagem` com layout próprio (kit chão de fábrica, sem dock) e a sessão do backoffice; não há sessão por PIN nem rota nova no `ShopfloorPinTests.Allowed`. Teclado numérico próprio com vírgula (o `NumericKeypad` do kit só tem dígitos). (12) **Faixa "Inventário {número} em contagem neste local":** no detalhe do inventário, no painel do local e no diálogo "Lançar ajuste" (que fica bloqueado com a pendência). (13) **Numeração:** tipo `INV` (4 dígitos, por ano) no `NumberFormats`. (14) A foto é uma consulta só; um movimento gravado no mesmo instante da abertura pode ficar fora da foto e dos movimentos da linha (risco baixo, registrado). (15) **Testes:** unidade sem banco 92 nas classes de regras do Inventory (8 novos), arquitetura 130 de 139 (os 9 de sempre bloqueados pelo Smart App Control, `0x800711C7`; os 2 novos e o ajustado passaram), Vitest 252 (4 novos), E2E com mocks: inventário 8 (4 cenários), regressão de ajustes 7, saldos 11 e itens 10, todos passando. Os 13 testes de integração (Testcontainers) foram escritos e não rodaram nesta máquina (Docker em fila). (16) **OpenAPI:** gerado do Host em processo (sem banco, teste temporário apagado) e juntado ao `openapi.json` sem reordenar (11 caminhos e 18 schemas novos; `StockAdjustmentImpact` ganhou `reservationNote`); regenerar oficialmente com `BQ_UPDATE_OPENAPI`. (17) A migration `InventoryCounts` (só `CreateTable`, `CreateIndex` e `CHECK`s) não foi testada sobre a cópia do banco `konebras` | Dev |
