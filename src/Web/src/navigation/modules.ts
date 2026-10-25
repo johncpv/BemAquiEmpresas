@@ -59,6 +59,7 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
     { slug: 'ajustes', label: 'Ajustes', group: STOCK_OPERATION },
     { slug: 'inventarios', label: 'Inventários', group: STOCK_OPERATION },
     { slug: 'faltas', label: 'Faltas', group: STOCK_OPERATION },
+    { slug: 'capacidade', label: 'Capacidade de produzir', group: STOCK_OPERATION },
     { slug: 'requisicoes', label: 'Requisições', group: STOCK_OPERATION },
     { slug: 'rastreabilidade', label: 'Rastreabilidade', group: STOCK_OPERATION },
     { slug: 'itens', label: 'Itens', group: STOCK_SETUP },

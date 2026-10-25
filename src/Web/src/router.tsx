@@ -102,6 +102,7 @@ import { ManualPostingsPage } from '@/pages/inventory/stock/ManualPostingsPage'
 import { RequisitionPage } from '@/pages/inventory/stock/RequisitionPage'
 import { RequisitionsPage } from '@/pages/inventory/stock/RequisitionsPage'
 import { ShortagesPage } from '@/pages/inventory/stock/ShortagesPage'
+import { CapacityPage } from '@/pages/inventory/stock/CapacityPage'
 import { NewPurchaseRequestPage } from '@/pages/purchasing/NewPurchaseRequestPage'
 import { PurchaseRequestPage } from '@/pages/purchasing/PurchaseRequestPage'
 import { PurchaseRequestsPage } from '@/pages/purchasing/PurchaseRequestsPage'
@@ -193,6 +194,8 @@ const manualPostingsRoute = createRoute({ getParentRoute: () => appRoute, path: 
 const manualPostingRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/lancamentos/$id', component: gated('inventory', ManualPostingPage) })
 // Faltas das OS abertas (EST-02 CA 15), na "Operação" do Estoque; filtros na URL.
 const shortagesRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/faltas', component: gated('inventory', ShortagesPage) })
+// Capacidade de produzir (EST-06), na "Operação" do Estoque: produto, OS e quantidade na URL; nada é gravado.
+const capacityRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/capacidade', component: gated('inventory', CapacityPage) })
 // Requisições de material das OS (EST-03), na "Operação" do Estoque: "Aguardando você" é o filtro padrão; o detalhe tem as ações.
 const requisitionsRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/requisicoes', component: gated('inventory', RequisitionsPage) })
 const requisitionRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/requisicoes/$id', component: gated('inventory', RequisitionPage) })
@@ -380,7 +383,7 @@ export const routeTree = rootRoute.addChildren([
   inviteRoute,
   appRoute.addChildren([appIndexRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute,
     aiSettingsRoute, importRunsRoute, importRunRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute,
-    inventoryRootRoute, balancesRoute, movementsRoute, movementRoute, manualPostingsRoute, manualPostingRoute, shortagesRoute, requisitionsRoute, requisitionRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, bomsRoute, productionRootRoute, fabricationOrdersRoute, fabricationOrderRoute, kanbanRoute, openLaborRoute, operatorRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute, qualityRoute, qualityStepRoute, nonConformitiesRoute, nonConformityRoute, purchasingRootRoute, purchaseRequestsRoute, newPurchaseRequestRoute, purchaseRequestRoute, purchaseOrdersRoute, newPurchaseOrderRoute, purchaseOrderRoute, editPurchaseOrderRoute, shipmentsRoute, newShipmentRoute, shipmentRoute, traceabilityRoute, adjustmentsRoute, adjustmentRoute, goodsReceiptsRoute, goodsReceiptRoute, newGoodsReceiptRoute, rfqsRoute, newRfqRoute, rfqRoute, inventoryCountsRoute, inventoryCountRoute,
+    inventoryRootRoute, balancesRoute, movementsRoute, movementRoute, manualPostingsRoute, manualPostingRoute, shortagesRoute, requisitionsRoute, requisitionRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, bomsRoute, productionRootRoute, fabricationOrdersRoute, fabricationOrderRoute, kanbanRoute, openLaborRoute, operatorRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute, qualityRoute, qualityStepRoute, nonConformitiesRoute, nonConformityRoute, purchasingRootRoute, purchaseRequestsRoute, newPurchaseRequestRoute, purchaseRequestRoute, purchaseOrdersRoute, newPurchaseOrderRoute, purchaseOrderRoute, editPurchaseOrderRoute, shipmentsRoute, newShipmentRoute, shipmentRoute, traceabilityRoute, adjustmentsRoute, adjustmentRoute, goodsReceiptsRoute, goodsReceiptRoute, newGoodsReceiptRoute, rfqsRoute, newRfqRoute, rfqRoute, inventoryCountsRoute, inventoryCountRoute, capacityRoute,
     financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, payablesRoute, newPayableRoute, payableRoute, recurringRoute, approvalRulesRoute, openingRoute, cashFlowRoute, agingRoute, paymentOrdersRoute, newPaymentOrderRoute, paymentOrderRoute, statementRoute, quotesRoute, quoteFunnelRoute, quoteRoute, quoteCompareRoute, contractsRoute, contractRoute, amendmentRoute, projectsRoute, projectRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
   platformLoginRoute,
   platformPasswordRoute,

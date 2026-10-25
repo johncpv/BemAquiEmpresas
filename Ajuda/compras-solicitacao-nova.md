@@ -15,6 +15,7 @@ Pedir à mão o que precisa ser comprado: material para um projeto ou para o est
 - Escolha o **destino**: um projeto em andamento ou **Estoque geral**.
 - Clique em **Enviar solicitação**. A solicitação nasce aberta, com o número SC-AAAA-0001, e aparece para quem compra.
 - Vindo da falta de uma OS (**Gerar solicitação de compra** na aba Material ou na lista Faltas), o item, a quantidade que falta, o destino e a necessidade já chegam preenchidos.
+- Vindo da **Capacidade de produzir** (Estoque), chegam todos os itens em falta com as quantidades, destino **Estoque geral** (dá para trocar) e uma observação dizendo de onde veio. Nada é gravado até você enviar. A solicitação leva até 50 itens; se faltarem mais, a tela avisa quantos ficaram para uma segunda.
 
 ## Perguntas frequentes
 **Posso pedir um serviço?** Não. Serviço não entra na solicitação de compra: lance um título a pagar manual.

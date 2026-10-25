@@ -16,6 +16,7 @@ import { Dica } from '@/help/Dica'
 import { formatQuantity } from '@/pages/inventory/stock/stock'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
+import { MAX_REQUEST_LINES, type PurchasePrefill, readPrefill } from './purchase-prefill'
 import { PURCHASE_DICAS, todayIso } from './purchasing'
 
 interface Line {
@@ -29,14 +30,21 @@ interface Line {
 
 const label = (i: PurchaseItemOption) => `${i.code} — ${i.name}`
 
+/** Opções dos itens vindos preenchidos (EST-06): só a unidade de estoque, em que a falta foi calculada. */
+const prefillOptions = (prefill: PurchasePrefill): [string, PurchaseItemOption][] =>
+  prefill.lines.map((l) => [l.itemId, { id: l.itemId, code: l.code, name: l.name, type: 'RawMaterial', unitId: l.unitId, unitCode: l.unitCode, units: [{ unitId: l.unitId, code: l.unitCode, isStockUnit: true, toStock: 1 }] }])
+
 /**
  * Nova solicitação (CA 3, 4): linhas com item (só material ativo), quantidade na unidade de estoque ou noutra com conversão e a
  * necessidade, já preenchida com hoje + prazo padrão e a tag "Sugerido"; destino = projeto em andamento ou "Estoque geral". Vinda da
- * falta de uma OS (?os=&item=), o destino, o item, a quantidade que falta e a necessidade chegam preenchidos (propositivo).
+ * falta de uma OS (?os=&item=), o destino, o item, a quantidade que falta e a necessidade chegam preenchidos (propositivo). Vinda da
+ * Capacidade de produzir (EST-06 CA 4), as faltas chegam no estado da navegação, com o destino "Estoque geral" (editável).
  */
 export function NewPurchaseRequestPage() {
   const { os, item } = useSearch({ strict: false }) as { os?: string; item?: string }
-  const defaults = useGetPurchaseRequestDefaults({ productionOrderId: os, itemId: item })
+  // O estado da navegação fica no history.state (o TanStack Router guarda ali): lido uma vez, sobrevive ao recarregar a página.
+  const [prefill] = useState(readPrefill)
+  const defaults = useGetPurchaseRequestDefaults(prefill ? {} : { productionOrderId: os, itemId: item })
   return (
     <>
       <PageHeading title="Nova solicitação de compra">
@@ -44,24 +52,26 @@ export function NewPurchaseRequestPage() {
       </PageHeading>
       {defaults.isPending ? <Skeleton className="h-96 max-w-4xl" /> : defaults.isError || !defaults.data
         ? <ErrorState title="Não foi possível abrir a solicitação." message="Verifique a conexão e tente de novo. Se veio de uma OS, ela pode ter sido removida." onRetry={() => defaults.refetch()} />
-        : <PurchaseRequestForm defaults={defaults.data} />}
+        : <PurchaseRequestForm defaults={defaults.data} prefill={prefill} />}
     </>
   )
 }
 
-function PurchaseRequestForm({ defaults }: { defaults: PurchaseRequestDefaults }) {
+function PurchaseRequestForm({ defaults, prefill }: { defaults: PurchaseRequestDefaults; prefill?: PurchasePrefill }) {
   const navigate = useNavigate()
   const canCreate = useCan('purchasing.create')
   const idempotency = useIdempotencyKey()
-  const options = useRef(new Map<string, PurchaseItemOption>(defaults.item ? [[defaults.item.id, defaults.item]] : []))
+  const options = useRef(new Map<string, PurchaseItemOption>(prefill ? prefillOptions(prefill) : defaults.item ? [[defaults.item.id, defaults.item]] : []))
   const first: Line = {
     item: defaults.item ? { id: defaults.item.id, label: label(defaults.item) } : null, quantity: defaults.quantity ? String(defaults.quantity) : null,
     unitId: defaults.item?.unitId ?? '', neededBy: defaults.neededBy, suggested: true,
   }
-  const [lines, setLines] = useState<Line[]>([first])
+  const [lines, setLines] = useState<Line[]>(() => (prefill?.lines.length
+    ? prefill.lines.map((l) => ({ item: { id: l.itemId, label: `${l.code} — ${l.name}` }, quantity: String(l.quantity), unitId: l.unitId, neededBy: defaults.neededBy, suggested: true }))
+    : [first]))
   const [general, setGeneral] = useState(!defaults.projectId)
   const [project, setProject] = useState<ComboOption | null>(defaults.projectId ? { id: defaults.projectId, label: `${defaults.projectNumber ?? ''} — ${defaults.projectName ?? ''}` } : null)
-  const [notes, setNotes] = useState('')
+  const [notes, setNotes] = useState(prefill?.notes ?? '')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [failure, setFailure] = useState<string>()
   const [sending, setSending] = useState(false)
@@ -112,6 +122,12 @@ function PurchaseRequestForm({ defaults }: { defaults: PurchaseRequestDefaults }
 
   return (
     <div className="max-w-4xl space-y-6">
+      {prefill ? (
+        <p role="note" className="rounded-md border border-info-soft bg-info-soft px-3 py-2 text-sm text-info-ink">
+          {prefill.source}. Confira as quantidades e envie: nada foi gravado ainda.
+          {prefill.leftOut > 0 ? ` A solicitação leva até ${MAX_REQUEST_LINES} itens: ${prefill.leftOut} ${prefill.leftOut === 1 ? 'falta ficou' : 'faltas ficaram'} para uma segunda solicitação.` : ''}
+        </p>
+      ) : null}
       <FormSection title="Itens" description="Quantidade na unidade de estoque ou noutra com conversão cadastrada. Serviço não entra: lance um título a pagar.">
         <div className="sm:col-span-2">
         <RowsEditor<Line> noun="item" rows={lines} onChange={setLines} min={1} max={50} disabled={!canCreate}
