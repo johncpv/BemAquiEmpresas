@@ -21,6 +21,8 @@ public static class ProductionInfrastructure
         services.TryAddScoped<WorkCentersContract>();
         services.TryAddScoped<IWorkCenters>(sp => sp.GetRequiredService<WorkCentersContract>());
         services.TryAddScoped<IWorkCenterCapacity>(sp => sp.GetRequiredService<WorkCentersContract>());
+        // Dias úteis do calendário padrão para os outros módulos (DSH-01a CA 9; a RH-01c reaproveita).
+        services.TryAddScoped<IBusinessCalendar, BusinessCalendarContract>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ITenantSeeder, CalendarSeeder>());
         services.AddAuditableEntity<WorkCenter>("production");
         services.AddAuditableEntity<Calendar>("production");

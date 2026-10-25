@@ -97,6 +97,13 @@ public static class FinanceInfrastructure
             CanAttach: async (sp, id, ct) => await sp.GetRequiredService<IFinanceDb>().PaymentOrders.AnyAsync(o => o.Id == id && o.Status == PaymentOrderStatus.Paid, ct)
                 ? null
                 : Error.Conflict("attachment.owner_state", "Anexe o comprovante depois do pagamento.")));
+        // Painel do proprietário (DSH-01a, ADR 0028 §1): resumos com a mesma fonte dos relatórios e as metas de faturamento.
+        services.TryAddScoped<FinanceSummariesContract>();
+        services.TryAddScoped<IBankBalances>(sp => sp.GetRequiredService<FinanceSummariesContract>());
+        services.TryAddScoped<IReceivablesAging>(sp => sp.GetRequiredService<FinanceSummariesContract>());
+        services.TryAddScoped<RevenueTargetService>();
+        services.TryAddScoped<IRevenueTargets>(sp => sp.GetRequiredService<RevenueTargetService>());
+        services.AddAuditableEntity<RevenueTarget>("settings");
         services.AddAuditableEntity<OpeningSetup>("finance");
         services.AddAuditableEntity<OpeningBatch>("finance");
         services.AddAuditableEntity<Payable>("finance");

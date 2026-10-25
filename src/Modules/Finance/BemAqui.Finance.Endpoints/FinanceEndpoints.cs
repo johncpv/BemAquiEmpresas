@@ -43,6 +43,11 @@ internal static partial class FinanceEndpoints
         MapDreParameters(finance.MapGroup("/parameters/dre"));
         MapPaymentOrders(finance.MapGroup("/payment-orders"));
         MapBanking(finance);
+        // Metas de faturamento (DSH-01a CA 9): leitura com finance.view; gravação também com settings.edit (Configurações → Parâmetros).
+        finance.MapGet("/revenue-targets/{year:int}", async (int year, RevenueTargetService service, CancellationToken ct) => (await service.GetAsync(year, ct)).ToHttpResult())
+            .RequirePermission("finance.view").WithName("GetRevenueTargets").Produces<RevenueTargetsYear>();
+        finance.MapPut("/revenue-targets/{year:int}", async (int year, RevenueTargetsInput input, RevenueTargetService service, CancellationToken ct) => (await service.SaveAsync(year, input, ct)).ToHttpResult())
+            .RequirePermission("finance.view").RequirePermission("settings.edit").WithName("SaveRevenueTargets").Produces<RevenueTargetsYear>();
         finance.MapGet("/aging", async (string? sort, AgingService service, CancellationToken ct) => (await service.ReportAsync(sort, ct)).ToHttpResult())
             .RequirePermission("finance.view").WithName("GetAging").Produces<AgingReport>();
         finance.MapGet("/aging/projects", async (AgingService service, CancellationToken ct) => Results.Ok(await service.ProjectsAsync(ct)))

@@ -52,6 +52,8 @@ public interface IFinanceDb
 
     DbSet<DreViewMark> DreViewMarks { get; }
 
+    DbSet<RevenueTarget> RevenueTargets { get; }
+
     /// <summary>Para trocar a conta padrão em dois passos numa transação (o índice único parcial é checado a cada comando).</summary>
     DatabaseFacade Database { get; }
 
