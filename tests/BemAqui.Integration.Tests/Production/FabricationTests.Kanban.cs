@@ -138,19 +138,18 @@ public partial class FabricationTests
         Card(late, orders[0]).GetProperty("delayDays").GetInt32().Should().Be(2);
         (await GetOrderAsync(owner, orders[0])).GetProperty("delayDays").GetInt32().Should().Be(2, "a lista e o detalhe da PRD-01 usam a mesma função");
 
+        // PLN-01b CA 9: em risco = previsão de entrega do projeto (o plano) depois da prometida, sem tolerância.
         await SetPromisedAsync(project, Today.AddDays(3));
+        await RecalcNowAsync();
+        await SetForecastsAsync(project, Today.AddDays(4));
         var risk = await BoardAsync(owner, $"routingTemplateId={routing}");
         risk.GetProperty("atRiskCount").GetInt32().Should().Be(1);
         Card(risk, orders[0]).GetProperty("risk").GetString().Should().Be("AtRisk");
         (await BoardAsync(owner, $"routingTemplateId={routing}&late=true")).GetProperty("cards").GetArrayLength().Should().Be(0);
         (await BoardAsync(owner, $"routingTemplateId={routing}&atRisk=true")).GetProperty("cards").GetArrayLength().Should().Be(1);
 
-        // Na última etapa, prometido em 3 dias não é risco.
-        for (var s = 1; s <= 3; s++)
-        {
-            await MarkStepAsync(orders[0], s, ProductionStepStatus.Done);
-        }
-
+        // Prometido em 3 dias com a previsão no prazo não é mais risco (a janela de 7 dias da Fase 3 saiu).
+        await SetForecastsAsync(project, Today.AddDays(3));
         Card(await BoardAsync(owner, $"routingTemplateId={routing}"), orders[0]).GetProperty("risk").GetString().Should().Be("None");
     }
 
