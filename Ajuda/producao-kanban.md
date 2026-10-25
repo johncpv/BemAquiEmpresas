@@ -16,7 +16,8 @@ Ver todas as OS de fabricação abertas por etapa, num quadro que se atualiza so
 - **Pronta para concluir** junta as OS com todas as etapas concluídas: abra a OS para concluir.
 - A coluna da etapa de qualidade (Q) mostra as OS **Aguardando qualidade**; quem tem a ação de qualidade decide em **Produção → Qualidade**. O chip **NC aberta** avisa que a OS tem não conformidade ainda não encerrada, e **Autoinspeção** que a qualidade foi aprovada por quem fez parte do trabalho.
 - O cartão mostra a OS, o produto, o projeto e o cliente, a etapa atual, as horas apontadas contra o padrão (vermelho acima do padrão), a data prometida e o **Fim previsto** pelo Planejamento (ou **Sem previsão: {motivo}**).
-- Faixa vermelha com **Atrasada {n} d**: a data prometida já passou. Faixa âmbar com **Em risco, previsto {data}**: a data prometida está a até 7 dias e a OS ainda não chegou à última etapa.
+- Faixa vermelha com **Atrasada {n} d**: a data prometida já passou. Faixa âmbar com **Em risco, prometido {data}**: a entrega prevista do projeto (o plano mais o prazo de instalação) passou da data prometida ao cliente, mesmo que por um dia. Sem faixa, o cartão mostra **Prometido {data}**.
+- A data prevista se refaz sozinha a cada apontamento, etapa concluída, mudança de roteiro ou de calendário, em até 10 segundos; os cartões que mudaram de data se atualizam no quadro.
 
 ## Como a etapa avança
 - O quadro **não arrasta**. A etapa segue o roteiro, em ordem: ela avança pelo apontamento do operador no app do chão de fábrica.
@@ -38,5 +39,7 @@ Uma coluna por vez: escolha a etapa nas abas do topo. Os contadores de atraso e 
 
 ## Perguntas frequentes
 **Por que não consigo arrastar o cartão?** Porque a etapa só anda em ordem, pelo apontamento ou pelo "Concluir etapa". Assim o histórico mostra quem fez cada etapa.
+
+**Por que uma OS que vence daqui a 3 dias não está mais "em risco"?** Porque o risco agora vem do plano: só fica em risco quando a entrega prevista do projeto passa da prometida. A regra antiga (prometido em até 7 dias) saiu.
 
 **Quem recebe o aviso "OS atrasada"?** Todo dia de manhã, o responsável do projeto e quem aprova na produção recebem um aviso por OS atrasada, uma vez para cada data prometida.
