@@ -120,7 +120,7 @@ public sealed class PlanningQueueStore(IProductionDb db, IProjects projects, Tim
 
     /// <summary>Advisory lock da fila até o fim da transação (espera quem está gravando: a manutenção e o salvar são curtos).</summary>
     public async Task LockAsync(CancellationToken cancellationToken) =>
-        await db.Database.ExecuteSqlAsync($"SELECT pg_advisory_xact_lock(hashtextextended({LockKey}, 0))", cancellationToken);
+        await db.Database.SqlQuery<int>($"SELECT 1 AS \"Value\" FROM (SELECT pg_advisory_xact_lock(hashtextextended({LockKey}, 0))) AS l").ToListAsync(cancellationToken);
 
     /// <summary>Linha do histórico: <paramref name="userId"/> nulo = Sistema.</summary>
     public static PlanningQueueChange Change(DateTimeOffset at, PlanningQueueChangeKind kind, Guid? projectId, string reason, IReadOnlyList<QueueMove> moves, Guid? userId = null) =>
