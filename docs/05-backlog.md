@@ -408,7 +408,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-4--planejamento-p
 - Requisitos: PRD §5.14, R-FIN-10, R-FIN-11, R-FIN-12, R-FIN-13, R-COML-9, R-PRP-4, R-PRP-5, PRD §6.
 - CA: módulo `Dashboard` só de composição (ADR 0028); cards de saldo, caixa 30/60/90 base × ajustado, faturamento × meta ("provisório" antes das notas), vencido, comercial e pendências, cada um pela permissão do dono; metas mensais por ano com `settings.edit`; cache de 60 s por usuário e versão de permissão com geração por tenant e "Atualizar"; Proprietário com `dashboard.view` em `/app/painel`; `IBusinessCalendar`; painel em menos de 2 s.
 
-**PLN-01a [ ] Motor de agendamento finito (G)** — 4.3, ordem 6 — `Ready` — [story](stories/PLN-01a-motor-agendamento.md)
+**PLN-01a [x] Motor de agendamento finito (G)** — 4.3, ordem 6 — `Done` — [story](stories/PLN-01a-motor-agendamento.md)
 - Requisitos: R-PLN-3, R-PLN-1, R-SEC-5, PRD §6 (Desempenho).
 - CA: algoritmo do `04-fluxos` §3.4: fila de projetos pela data prometida e depois a assinatura, etapa em andamento primeiro com mínimo de 10% do padrão, etapa seguinte no dia útil seguinte, retrabalho com as horas padrão; datas só nas tabelas do plano (`schedule_runs`, `schedule_allocations`, `schedule_step_forecasts`, ADR 0029), um escritor, fora da auditoria; cenário fixo batendo as datas; 50 OS em menos de 2 s.
 

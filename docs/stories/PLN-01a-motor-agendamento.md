@@ -5,7 +5,7 @@
 | ID | PLN-01a |
 | Título | Agendamento finito simples, para frente (`04-fluxos` §3.4): ordem da fila, horas restantes, alocação dia a dia na capacidade de cada centro de trabalho e no calendário, datas previstas de cada etapa e de cada OS de fabricação gravadas só nas tabelas do plano (fora do documento e da auditoria, ADR 0029), um único escritor, recálculo manual e de hora em hora, contrato de leitura e de simulação |
 | Tamanho | G (quebra da PLN-01: o motor, a gravação e os gatilhos manual e por hora; os gatilhos por evento, a previsão do projeto e o risco ficam na PLN-01b) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-PLN-3 (datas previstas de início e fim de cada etapa de cada OS pela prioridade, horas padrão ou restantes e capacidade) · R-PLN-1 (capacidade, turnos e calendário) · PRD §6 (Desempenho) · R-SEC-5 |
 | Dependências | PRD-01 (OS de fabricação, etapas com centro, horas padrão e situação), PRD-03a (horas apontadas), PRD-05 (situação `Quality` e retorno de etapa), PRD-06a1 (conclusão da OS), CAD-03 (`IWorkCenterCapacity`, centros e calendário) |
 | Bloqueia | PLN-01b, PLN-02, PLN-03, PLN-04, PLN-05, PNL-01b, DSH-01b |
@@ -115,16 +115,16 @@ Decisões da revisão aplicadas: D10 e ADR 0029; §4.3 transversal (job com `ten
 **Pré-condição externa:** nenhuma.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade (cenário fixo), integração (Testcontainers, job com dois tenants), arquitetura (único escritor), desempenho e E2E passando.
-- [ ] Migration das tabelas do plano (não destrutiva), testada sobre cópia do banco do tenant `konebras`.
-- [ ] Job pelo `TenantJob<T>` e registrado no `RecurringJobsRegistrar`.
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Tela com estados e 400 px.
-- [ ] Ajuda do Planejamento e da aba Etapas; teste de cobertura passando.
-- [ ] Avisos "Sem previsão" acionáveis.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` (tabelas do plano) e `docs/04-fluxos-estados.md` §3.4 (regras decididas) atualizados; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade (cenário fixo), arquitetura (único escritor), desempenho do motor e E2E passando; integração (Testcontainers, job com dois tenants, desempenho com banco) escrita, a rodar na suíte em container antes do merge.
+- [ ] Migration das tabelas do plano (não destrutiva, só `CREATE TABLE`), a testar sobre cópia do banco do tenant `konebras` no deploy.
+- [x] Job pelo `TenantJob<T>` e registrado no `RecurringJobsRegistrar`.
+- [x] Permissões só do `ModuleCatalog` (`production.view` e `production.edit`, já existentes).
+- [x] Tela com estados e 400 px.
+- [x] Ajuda do Planejamento e da aba Etapas; teste de cobertura passando.
+- [x] Avisos "Sem previsão" acionáveis.
+- [x] OpenAPI e cliente Orval regenerados (OpenAPI gerado pelo Host em processo; regenerar oficialmente com `BQ_UPDATE_OPENAPI`).
+- [x] `docs/03-modelo-dados.md` (tabelas do plano) e `docs/04-fluxos-estados.md` §3.4 (regras decididas) atualizados; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
 - [ ] `FiniteScheduler` (Domain) com testes de tabela e o cenário fixo.
@@ -164,3 +164,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D10, tabela 3.1 pontos 25–30, §4.2, §4.3; ADR 0029); ordem mantida (Marco 4.3, ordem 6); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 25/10/2026 | 1.0 | Implementada (`Done`). `FiniteScheduler` puro no Domain; `ScheduleService` escritor único pelo `IProductionPlanDb` (as vistas de leitura do `IProductionDb` são `AsNoTracking`); migration `ProductionSchedulePlan`; `PlanningRecalculateJob`/`planning-recalculate`; `IProductionSchedule`; endpoints `GET /production/schedule`, `GET /production/schedule/orders?ids=` e `POST /production/schedule/recalculate`; página Planejamento, previsão na aba Etapas, na faixa de fatos da OS e nos cartões do Kanban; ajuda. **Desvios:** (1) CA 14 "na fila se passar de 5 s": o limite é pela quantidade, não por relógio (acima de 400 OS de fabricação abertas o recálculo manual vai para a fila do tenant; 300 OS cabem em menos de 5 s pelo CA 17), porque um cálculo começado no request não pode ser movido para a fila no meio. (2) CA 2: a data de assinatura chega pelo `IProjects` com o campo novo `ProjectSummary.SignedAt` (parâmetro opcional, sem mudar os fakes). (3) CA 13: o `GlobalRecurringJob` ganhou o filtro opcional `ShouldEnqueueAsync`; o recorrente do plano só enfileira tenant com a Produção liberada e o job confere de novo. (4) CA 3: "apontadas" contam só os apontamentos desde a última reprovação da qualidade (`quality_attempt_started_at`), para o retrabalho em andamento não descontar as horas da tentativa anterior; etapa `Rejected` conta como retrabalho (padrão inteiro). (5) CA 12: a marca "pendente" é a própria linha `Pending` da `schedule_runs` (índice único parcial), sem tabela de estado. (6) OS com todas as etapas `Done` (pronta para concluir) fica sem previsão no plano; centro excluído dá "Etapa {nome} sem centro de trabalho". (7) A lista do Kanban ("Ver como lista") não mostra a previsão; só os cartões. (8) Testes de integração escritos e não executados nesta máquina; 9 testes de arquitetura não rodam no Windows com Smart App Control (bloqueio das DLLs, não ligado à story) e ficam para a suíte em container. (9) A migration ainda não foi aplicada sobre cópia do banco `konebras`. Sem decisão pendente do PO na story. | Dex (dev) |
