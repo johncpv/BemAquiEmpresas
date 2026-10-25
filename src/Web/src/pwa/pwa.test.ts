@@ -30,6 +30,20 @@ describe('PWA do app do operador', () => {
     expect(allow.some((r) => r.test('/api/v1/me'))).toBe(false)
   })
 
+  it('PNL-01a CA 11: o service worker não guarda /tv nem /api/v1/kiosk', () => {
+    const workbox = pwaOptions.workbox!
+    const deny = workbox.navigateFallbackDenylist ?? []
+    const allow = workbox.navigateFallbackAllowlist ?? []
+    for (const path of ['/tv', '/tv/', '/tv/abc', '/api/v1/kiosk/screen', '/api/v1/kiosk/session', '/hubs/kiosk']) {
+      expect(deny.some((r) => r.test(path)), path).toBe(true)
+      expect(allow.some((r) => r.test(path)), path).toBe(false)
+    }
+
+    expect(workbox.runtimeCaching ?? []).toEqual([])
+    expect(workbox.globPatterns?.some((p) => p.includes('tv') || p.includes('kiosk'))).toBe(false)
+    expect(pwaOptions.scope).toBe(FAB_SCOPE)
+  })
+
   it('o registro é manual, só pelo /fab', () => {
     expect(pwaOptions.injectRegister).toBe(false)
   })

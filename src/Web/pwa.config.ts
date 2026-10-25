@@ -36,7 +36,8 @@ export const pwaOptions: Partial<VitePWAOptions> = {
     globPatterns: ['index.html', 'assets/*.{js,css}', 'assets/*.woff2', 'favicon.svg', 'fab-icon-*.png'],
     navigateFallback: '/index.html',
     navigateFallbackAllowlist: [/^\/fab(\/|$)/],
-    navigateFallbackDenylist: [/^\/api\//, /^\/hubs\//, /^\/health/, /^\/app(\/|$)/],
+    // PNL-01a CA 11 (ADR 0030 §2): o painel da TV (/tv) e a API do quiosque nunca passam pelo service worker.
+    navigateFallbackDenylist: [/^\/api\//, /^\/hubs\//, /^\/health/, /^\/app(\/|$)/, /^\/tv(\/|$)/],
     runtimeCaching: [],
     maximumFileSizeToCacheInBytes: 4 * 1024 * 1024, // o bundle do app passa de 2 MiB (padrão do Workbox)
     cleanupOutdatedCaches: true,

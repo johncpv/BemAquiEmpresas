@@ -78,9 +78,20 @@ describe('shell do backoffice (FND-09b)', () => {
   })
 
   it('/tv tem layout próprio, escuro e sem dock (CA 13)', async () => {
+    // PNL-01a CA 17: /tv/{token} é o link antigo, desligado, sem chamar a API.
     renderAt('/tv/abc')
-    const heading = await screen.findByRole('heading', { name: 'Painel da fábrica' })
-    expect(heading.closest('.theme-tv')).not.toBeNull()
+    const notice = await screen.findByText('Este link antigo foi desligado. Peça um novo link a quem cuida do painel.')
+    expect(notice.closest('.theme-tv')).not.toBeNull()
+    expect(screen.queryByRole('navigation', { name: 'Navegação principal' })).toBeNull()
+    expect(vi.mocked(fetch).mock.calls.some(([url]) => String(url).startsWith('/api/v1/kiosk'))).toBe(false)
+  })
+
+  it('/tv: Painel da TV escuro, sem dock nem barra do backoffice e sem Referer (PNL-01a CA 5 e 18)', async () => {
+    renderAt('/tv')
+    expect(await screen.findByRole('alert')).toBeTruthy()
+    const surface = document.querySelector('[data-surface="tv"]')!
+    expect(surface.classList.contains('theme-tv')).toBe(true)
+    expect(document.querySelector('meta[name="referrer"]')?.getAttribute('content')).toBe('no-referrer')
     expect(screen.queryByRole('navigation', { name: 'Navegação principal' })).toBeNull()
   })
 })

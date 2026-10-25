@@ -57,10 +57,14 @@ export function redirectToLogin(login = '/entrar'): void {
 
 const PLATFORM = '/api/v1/platform/'
 
+/** API do quiosque (TV): sem refresh nem login no 401; a TV mostra o estado da tela (ADR 0030). */
+export const isKioskUrl = (url: string) => url.startsWith('/api/v1/kiosk/')
+
 async function send(url: string, options: RequestInit): Promise<Response> {
   const headers = new Headers(options.headers)
   const token = getAccessToken()
-  if (token) headers.set('Authorization', 'Bearer ' + token)
+  // Painel da TV (PNL-01a): a sessão é o cookie __Host-bq_kiosk; o token de um usuário nunca vai para a API do quiosque.
+  if (token && !isKioskUrl(url)) headers.set('Authorization', 'Bearer ' + token)
   // As rotas do PIN (GET /auth/pin/users) também exigem o X-CSRF: o navegador não manda Origin num GET da mesma origem.
   if ((options.method && options.method !== 'GET') || url.startsWith('/api/v1/auth/')) headers.set('X-CSRF', '1')
   try {
@@ -80,7 +84,7 @@ export async function apiFetch<T>(url: string, options: RequestInit = {}): Promi
   // Plataforma (FND-13): a sessão é o cookie do super admin, sem refresh; 401 leva ao login da plataforma.
   if (response.status === 401 && url.startsWith(PLATFORM) && !url.startsWith(PLATFORM + 'auth/')) {
     redirectToLogin('/plataforma/entrar')
-  } else if (response.status === 401 && !url.startsWith('/api/v1/auth/') && !url.startsWith(PLATFORM)) {
+  } else if (response.status === 401 && !url.startsWith('/api/v1/auth/') && !url.startsWith(PLATFORM) && !isKioskUrl(url)) {
     if (await refreshSession()) {
       response = await send(url, options)
     }

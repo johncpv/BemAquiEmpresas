@@ -33,12 +33,14 @@ export function ShopfloorLayout() {
   )
 }
 
-/** Painel da TV (/tv/{token}): sempre escuro, fonte grande, sem login (esqueleto; Fase 4). */
+/**
+ * Painel da TV (/tv, PNL-01a CA 5 e 18, ADR 0030): sempre escuro (ignora o tema do perfil), sem dock nem barra do backoffice, letra de
+ * leitura a distância e nenhum Referer (o link da tela leva o token no fragmento). Uma coluna a 400 px; não é pensado para celular.
+ */
 export function TvLayout() {
   return (
-    <main id="conteudo" className="theme-tv min-h-dvh p-8">
-      <h1 className="text-[30px] font-extrabold font-wider">Painel da fábrica</h1>
-      <p className="mt-2 text-muted-foreground">Os painéis chegam na Fase 4.</p>
+    <main id="conteudo" data-surface="tv" className="theme-tv min-h-dvh overflow-x-hidden p-4 sm:p-8">
+      <meta name="referrer" content="no-referrer" />
       <Outlet />
     </main>
   )
