@@ -34,6 +34,11 @@ public sealed partial class AttachmentService
             return Error.Conflict("attachment.not_scanned", "O arquivo ainda está sendo verificado pelo antivírus. Tente de novo em alguns minutos.");
         }
 
+        if (await AuditReadAsync(owners.RulesOf(ownerType), attachment, cancellationToken) is { } missing)
+        {
+            return missing;
+        }
+
         return new AttachmentContent(await storage.OpenReadAsync(attachment.StoragePath, cancellationToken), attachment.ContentType, attachment.FileName);
     }
 }

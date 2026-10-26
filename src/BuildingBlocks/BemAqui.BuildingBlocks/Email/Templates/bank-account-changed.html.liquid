@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="pt-BR">
+<body style="margin:0;padding:24px;background:#e9edf1;font-family:Arial,sans-serif;color:#14202b">
+  <table role="presentation" width="100%" style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:10px">
+    <tr><td style="padding:24px">
+      {% if logo_cid %}<img src="cid:{{ logo_cid }}" alt="{{ tenant_name }}" style="max-height:48px"><br><br>{% endif %}
+      <h1 style="font-size:20px;margin:0 0 16px">A sua conta para receber o salário foi alterada</h1>
+      <p>Olá, {{ employee_name }}.</p>
+      <p>A sua conta para receber o salário foi alterada em <strong>{{ changed_on }}</strong>. Se não foi você, fale com o RH ou com a direção da empresa{% if tenant_name %} ({{ tenant_name }}){% endif %}.</p>
+      <p style="font-size:13px;color:#5a6774">Por segurança, este e-mail não traz o banco, a conta nem a chave Pix.</p>
+    </td></tr>
+  </table>
+</body>
+</html>

@@ -316,6 +316,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<EmployeeHistoryEntry> EmployeeHistory => Set<EmployeeHistoryEntry>();
 
+    public DbSet<EmployeeDependent> EmployeeDependents => Set<EmployeeDependent>();
+
     public DbSet<ImportRun> ImportRuns => Set<ImportRun>();
 
     public DbSet<ImportItem> ImportItems => Set<ImportItem>();

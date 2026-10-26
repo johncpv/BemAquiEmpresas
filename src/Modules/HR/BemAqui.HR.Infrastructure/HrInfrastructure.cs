@@ -1,3 +1,4 @@
+using BemAqui.BuildingBlocks.Attachments;
 using BemAqui.BuildingBlocks.Persistence.Auditing;
 using BemAqui.BuildingBlocks.Tenancy;
 using BemAqui.HR.Application;
@@ -58,6 +59,14 @@ public static class HrInfrastructure
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IUnionUsageProvider, EmployeesContract>());
         // Afastamentos (CAD-04c1): eventos do job diário.
         services.TryAddScoped<EmployeeLeaveEvents>();
+        // Complemento do cadastro (CAD-04c2): dependentes, conta para pagamento, adicionais e documentos. Os documentos digitalizados
+        // são do dono EmployeeDocument (ADR 0019 §7 adendo): ler e gravar com hr.view_sensitive, pdf, png e jpg até 10 MB, e cada
+        // download grava a leitura sensível (AuditReads).
+        services.TryAddScoped<EmployeeComplementService>();
+        services.AddAttachmentOwner(EmployeeComplementService.DocumentOwner, new AttachmentOwnerRules("hr", ["application/pdf", "image/png", "image/jpeg"], 10 * 1024 * 1024,
+            OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IHrDb>().Employees.AnyAsync(e => e.Id == id, ct),
+            ReadAction: PositionService.SensitiveAction, WriteAction: PositionService.SensitiveAction, AuditReads: true));
+        services.AddAuditableEntity<EmployeeDependent>("hr", PositionService.SensitiveAction);
         services.AddAuditableEntity<Employee>("hr", PositionService.SensitiveAction);
         services.AddAuditableEntity<EmployeeHistoryEntry>("hr", PositionService.SensitiveAction);
         services.AddAuditableEntity<JobPosition>("hr", PositionService.SensitiveAction);

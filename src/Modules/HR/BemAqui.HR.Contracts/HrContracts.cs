@@ -59,7 +59,28 @@ public interface IEmployees
     /// Data de nascimento, só para o Identity recusar PIN óbvio (PRD-03b CA 12); nunca exibida nem gravada fora do RH.
     /// </summary>
     Task<DateOnly?> BirthDateAsync(Guid employeeId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Situação da conta para pagamento (CAD-04c2 CA 7, ADR 0036), sem nenhum dado bancário: para a folha (RH-02c) tirar a conta em
+    /// quarentena do pagamento automático e mostrar "Conta alterada" ou "Novo na folha" no fechamento. Só os funcionários com conta.
+    /// </summary>
+    Task<IReadOnlyList<BankAccountStatus>> BankAccountStatusAsync(IReadOnlyCollection<Guid> employeeIds, CancellationToken cancellationToken = default);
 }
+
+/// <summary>
+/// Conta para pagamento do funcionário sem dado bancário (CAD-04c2 CA 7): <c>IsFirstAccount</c> é a primeira conta (sem quarentena,
+/// "Novo na folha"); <c>ChangedAt</c> é a data do registro ou da troca; <c>QuarantineUntil</c> é o fim da quarentena da troca;
+/// <c>InQuarantine</c> é hoje, sem revisão; <c>Version</c> sobe a cada troca (a RH-02c confere no pagamento).
+/// </summary>
+public sealed record BankAccountStatus(
+    Guid EmployeeId,
+    bool IsFirstAccount,
+    DateTimeOffset ChangedAt,
+    DateTimeOffset? QuarantineUntil,
+    bool InQuarantine,
+    DateTimeOffset? ReviewedAt,
+    bool SelfReviewed,
+    int Version);
 
 /// <summary>Desligamento registrado (CA 17), sem consumidor nesta fase.</summary>
 public sealed record EmployeeTerminated(Guid EmployeeId, DateOnly TerminationDate) : IIntegrationEvent;

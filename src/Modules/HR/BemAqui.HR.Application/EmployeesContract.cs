@@ -23,6 +23,16 @@ public sealed class EmployeesContract(IHrDb db, TimeProvider clock) : IEmployees
     public async Task<DateOnly?> BirthDateAsync(Guid employeeId, CancellationToken cancellationToken = default) =>
         await db.Employees.AsNoTracking().Where(e => e.Id == employeeId).Select(e => (DateOnly?)e.BirthDate).FirstOrDefaultAsync(cancellationToken);
 
+    public async Task<IReadOnlyList<BankAccountStatus>> BankAccountStatusAsync(IReadOnlyCollection<Guid> employeeIds, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(employeeIds);
+        var now = clock.GetUtcNow();
+        var rows = await db.Employees.IgnoreQueryFilters().AsNoTracking().Where(e => employeeIds.Contains(e.Id) && e.BankAccountVersion > 0)
+            .Select(e => new { e.Id, e.BankAccountVersion, e.BankChangedAt, e.BankQuarantineUntil, e.BankReviewedAt, e.BankSelfReviewed }).ToListAsync(cancellationToken);
+        return rows.Select(r => new BankAccountStatus(r.Id, r.BankAccountVersion == 1, r.BankChangedAt ?? DateTimeOffset.MinValue, r.BankQuarantineUntil,
+            EmployeeBankRules.InQuarantine(r.BankQuarantineUntil, r.BankReviewedAt, now), r.BankReviewedAt, r.BankSelfReviewed, r.BankAccountVersion)).ToList();
+    }
+
     public Task<bool> HasEmployeesAsync(Guid positionId, CancellationToken cancellationToken = default) =>
         db.Employees.AnyAsync(e => e.PositionId == positionId && e.Status == EmployeeStatus.Active, cancellationToken);
 

@@ -52,6 +52,13 @@ public sealed partial class EmployeeService
         e.City = Trim(input.City, 100);
         e.State = Trim(input.State, 2)?.ToUpperInvariant();
         e.Phone = Digits(input.Phone);
+        // O aviso de troca da conta (CAD-04c2 CA 6) vai também para o e-mail anterior nos 30 dias depois da troca do e-mail.
+        if (!string.Equals(e.Email, email, StringComparison.OrdinalIgnoreCase))
+        {
+            e.PreviousEmail = e.Email;
+            e.EmailChangedAt = clock.GetUtcNow();
+        }
+
         e.Email = email;
         await db.SaveChangesAsync(cancellationToken);
         return (await DetailsAsync([e], cancellationToken))[0];

@@ -3750,6 +3750,78 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("date")
                         .HasColumnName("admission_date");
 
+                    b.Property<string>("BankAccount")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("bank_account");
+
+                    b.Property<string>("BankAccountType")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("bank_account_type");
+
+                    b.Property<int>("BankAccountVersion")
+                        .HasColumnType("integer")
+                        .HasColumnName("bank_account_version");
+
+                    b.Property<string>("BankAgency")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("bank_agency");
+
+                    b.Property<DateTimeOffset?>("BankChangedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("bank_changed_at");
+
+                    b.Property<Guid?>("BankChangedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("bank_changed_by");
+
+                    b.Property<string>("BankCode")
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("bank_code");
+
+                    b.Property<string>("BankHolderCpf")
+                        .HasMaxLength(11)
+                        .HasColumnType("character varying(11)")
+                        .HasColumnName("bank_holder_cpf");
+
+                    b.Property<string>("BankHolderName")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("bank_holder_name");
+
+                    b.Property<string>("BankMismatchReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("bank_mismatch_reason");
+
+                    b.Property<bool>("BankOwnerMismatch")
+                        .HasColumnType("boolean")
+                        .HasColumnName("bank_owner_mismatch");
+
+                    b.Property<DateTimeOffset?>("BankQuarantineUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("bank_quarantine_until");
+
+                    b.Property<string>("BankReviewNote")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("bank_review_note");
+
+                    b.Property<DateTimeOffset?>("BankReviewedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("bank_reviewed_at");
+
+                    b.Property<Guid?>("BankReviewedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("bank_reviewed_by");
+
+                    b.Property<bool>("BankSelfReviewed")
+                        .HasColumnType("boolean")
+                        .HasColumnName("bank_self_reviewed");
+
                     b.Property<decimal>("BaseSalary")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
@@ -3763,6 +3835,20 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("city");
+
+                    b.Property<string>("CnhCategory")
+                        .HasMaxLength(5)
+                        .HasColumnType("character varying(5)")
+                        .HasColumnName("cnh_category");
+
+                    b.Property<DateOnly?>("CnhExpiry")
+                        .HasColumnType("date")
+                        .HasColumnName("cnh_expiry");
+
+                    b.Property<string>("CnhNumber")
+                        .HasMaxLength(11)
+                        .HasColumnType("character varying(11)")
+                        .HasColumnName("cnh_number");
 
                     b.Property<string>("Complement")
                         .HasMaxLength(100)
@@ -3803,9 +3889,26 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("character varying(150)")
                         .HasColumnName("email");
 
+                    b.Property<DateTimeOffset?>("EmailChangedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("email_changed_at");
+
+                    b.Property<bool>("HazardPay")
+                        .HasColumnType("boolean")
+                        .HasColumnName("hazard_pay");
+
+                    b.Property<int?>("InsalubrityPct")
+                        .HasColumnType("integer")
+                        .HasColumnName("insalubrity_pct");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
                         .HasColumnName("is_deleted");
+
+                    b.Property<string>("MilitaryCertificate")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("military_certificate");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -3828,9 +3931,24 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("character varying(11)")
                         .HasColumnName("pis");
 
+                    b.Property<string>("PixKey")
+                        .HasMaxLength(77)
+                        .HasColumnType("character varying(77)")
+                        .HasColumnName("pix_key");
+
+                    b.Property<string>("PixKeyType")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("pix_key_type");
+
                     b.Property<Guid>("PositionId")
                         .HasColumnType("uuid")
                         .HasColumnName("position_id");
+
+                    b.Property<string>("PreviousEmail")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("previous_email");
 
                     b.Property<string>("Registration")
                         .HasMaxLength(20)
@@ -3865,6 +3983,10 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<Guid?>("UnionId")
                         .HasColumnType("uuid")
                         .HasColumnName("union_id");
+
+                    b.Property<bool>("UsesTransportVoucher")
+                        .HasColumnType("boolean")
+                        .HasColumnName("uses_transport_voucher");
 
                     b.Property<uint>("Version")
                         .IsConcurrencyToken()
@@ -3909,6 +4031,78 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDatabaseName("ix_employees_work_schedule_id");
 
                     b.ToTable("employees", "hr");
+                });
+
+            modelBuilder.Entity("BemAqui.HR.Domain.EmployeeDependent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateOnly>("BirthDate")
+                        .HasColumnType("date")
+                        .HasColumnName("birth_date");
+
+                    b.Property<string>("Cpf")
+                        .HasMaxLength(11)
+                        .HasColumnType("character varying(11)")
+                        .HasColumnName("cpf");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("employee_id");
+
+                    b.Property<bool>("FamilyAllowance")
+                        .HasColumnType("boolean")
+                        .HasColumnName("family_allowance");
+
+                    b.Property<bool>("IrDependent")
+                        .HasColumnType("boolean")
+                        .HasColumnName("ir_dependent");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<string>("Kinship")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("kinship");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("name");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_employee_dependents");
+
+                    b.HasIndex("EmployeeId")
+                        .HasDatabaseName("ix_employee_dependents_employee");
+
+                    b.HasIndex("EmployeeId", "Cpf")
+                        .IsUnique()
+                        .HasDatabaseName("ix_employee_dependents_cpf")
+                        .HasFilter("NOT is_deleted AND cpf IS NOT NULL");
+
+                    b.ToTable("employee_dependents", "hr");
                 });
 
             modelBuilder.Entity("BemAqui.HR.Domain.EmployeeHistoryEntry", b =>
@@ -11063,6 +11257,16 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasForeignKey("WorkScheduleId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_employees_work_schedules_work_schedule_id");
+                });
+
+            modelBuilder.Entity("BemAqui.HR.Domain.EmployeeDependent", b =>
+                {
+                    b.HasOne("BemAqui.HR.Domain.Employee", null)
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_employee_dependents_employees_employee_id");
                 });
 
             modelBuilder.Entity("BemAqui.HR.Domain.EmployeeHistoryEntry", b =>
