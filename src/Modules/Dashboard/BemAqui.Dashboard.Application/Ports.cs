@@ -47,7 +47,7 @@ public interface IDecisionAgenda
 
 /// <summary>
 /// Caixa projetado pela FIN-07: a série semanal da tela do fluxo (<see cref="ICashForecast.WeeksAsync"/>) e o saldo final em 30, 60
-/// e 90 dias pelo <see cref="ICashForecast.SummaryAsync"/>, o mesmo número do fluxo de caixa nesses horizontes.
+/// e 90 dias da mesma montagem, iguais ao <see cref="ICashForecast.SummaryAsync"/> de cada horizonte.
 /// </summary>
 public sealed class CashForecastSource(ICashForecast forecast) : ICashForecastSource
 {
@@ -55,14 +55,9 @@ public sealed class CashForecastSource(ICashForecast forecast) : ICashForecastSo
 
     public async Task<CashForecastSnapshot> SummaryAsync(int weeks, CancellationToken cancellationToken = default)
     {
-        var series = await forecast.WeeksAsync(weeks * 7, cancellationToken);
-        var horizons = new List<CashForecastHorizon>(HorizonDays.Length);
-        foreach (var days in HorizonDays)
-        {
-            var s = await forecast.SummaryAsync(days, cancellationToken);
-            horizons.Add(new CashForecastHorizon(days, s.Base.EndBalance, s.Adjusted.EndBalance));
-        }
-
+        // Uma montagem só do fluxo (CA 14): a série das semanas e o saldo de 30, 60 e 90 dias saem dela.
+        var series = await forecast.WeeksAsync(weeks * 7, HorizonDays, cancellationToken);
+        var horizons = series.Horizons.Select(h => new CashForecastHorizon(h.Days, h.BaseBalance, h.AdjustedBalance)).ToList();
         static CashForecastPoint? Point(CashForecastDay? d) => d is null ? null : new CashForecastPoint(d.Date, d.Balance);
         return new CashForecastSnapshot(series.CurrentBalance, series.Weeks.Select(w => new CashForecastWeek(w.WeekEnd, w.BaseBalance, w.AdjustedBalance)).ToList(), horizons,
             Point(series.BaseLowest), Point(series.AdjustedLowest), series.LowestDifference, Point(series.AdjustedFirstNegative));

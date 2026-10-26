@@ -17,16 +17,20 @@ public class DashboardAdaptersTests
     {
         public List<int> Horizons { get; } = [];
 
-        public Task<CashForecastSummary> SummaryAsync(int horizonDays, CancellationToken cancellationToken = default)
-        {
-            Horizons.Add(horizonDays);
-            return Task.FromResult(new CashForecastSummary(Today, horizonDays, 1_000m, new CashForecastScenario(1_000m + horizonDays, null, null), new CashForecastScenario(900m + horizonDays, null, null), 0));
-        }
+        public int Builds { get; private set; }
 
-        public Task<CashForecastWeeks> WeeksAsync(int horizonDays, CancellationToken cancellationToken = default) =>
-            Task.FromResult(new CashForecastWeeks(Today, horizonDays, 1_000.55m,
+        public Task<CashForecastSummary> SummaryAsync(int horizonDays, CancellationToken cancellationToken = default) =>
+            throw new InvalidOperationException("o painel monta o fluxo uma vez só, pelo WeeksAsync");
+
+        public Task<CashForecastWeeks> WeeksAsync(int horizonDays, IReadOnlyCollection<int>? horizons = null, CancellationToken cancellationToken = default)
+        {
+            Builds++;
+            Horizons.AddRange(horizons ?? []);
+            return Task.FromResult(new CashForecastWeeks(Today, horizonDays, 1_000.55m,
                 [new CashForecastWeekBalance(Today, Today.AddDays(2), 1_100.10m, 1_050.20m), new CashForecastWeekBalance(Today.AddDays(3), Today.AddDays(9), 800m, -50.33m)],
-                new CashForecastDay(Today.AddDays(8), 790m), new CashForecastDay(Today.AddDays(8), -60m), new CashForecastDay(Today.AddDays(7), -10m), 850m));
+                new CashForecastDay(Today.AddDays(8), 790m), new CashForecastDay(Today.AddDays(8), -60m), new CashForecastDay(Today.AddDays(7), -10m), 850m,
+                [.. (horizons ?? []).Select(h => new CashForecastHorizonBalance(h, 1_000m + h, 900m + h))]));
+        }
     }
 
     private sealed class FakeRevenue : IRevenueSummary
@@ -70,6 +74,7 @@ public class DashboardAdaptersTests
         var forecast = new FakeForecast();
         var snapshot = await new CashForecastSource(forecast).SummaryAsync(12, TestContext.Current.CancellationToken);
 
+        forecast.Builds.Should().Be(1);
         forecast.Horizons.Should().Equal(30, 60, 90);
         snapshot.CurrentBalance.Should().Be(1_000.55m);
         snapshot.Weeks.Select(w => (w.WeekEnd, w.BaseBalance, w.AdjustedBalance)).Should().Equal((Today.AddDays(2), 1_100.10m, 1_050.20m), (Today.AddDays(9), 800m, -50.33m));

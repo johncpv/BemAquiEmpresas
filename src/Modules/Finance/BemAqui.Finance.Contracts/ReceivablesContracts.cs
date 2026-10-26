@@ -111,19 +111,26 @@ public sealed record CashForecastWeekBalance(DateOnly WeekStart, DateOnly WeekEn
 
 public sealed record CashForecastDay(DateOnly Date, decimal Balance);
 
+/// <summary>Saldo no fim do horizonte de <see cref="Days"/> dias nos dois cenários (o mesmo do <c>SummaryAsync</c> desse horizonte).</summary>
+public sealed record CashForecastHorizonBalance(int Days, decimal BaseBalance, decimal AdjustedBalance);
+
 /// <summary>
 /// Série semanal do caixa projetado para o gráfico do painel do dono (DSH-01a CA 5): a visão semanal da tela do fluxo de caixa a
-/// partir de hoje, base e ajustado, com o menor saldo diário de cada cenário e o primeiro dia negativo do ajustado.
+/// partir de hoje, base e ajustado, com o menor saldo diário de cada cenário, o primeiro dia negativo do ajustado e o saldo final dos
+/// horizontes pedidos. Uma montagem só do fluxo serve tudo (DSH-01a CA 14).
 /// </summary>
 public sealed record CashForecastWeeks(
     DateOnly Today, int HorizonDays, decimal CurrentBalance, IReadOnlyList<CashForecastWeekBalance> Weeks, CashForecastDay? BaseLowest, CashForecastDay? AdjustedLowest,
-    CashForecastDay? AdjustedFirstNegative, decimal LowestDifference);
+    CashForecastDay? AdjustedFirstNegative, decimal LowestDifference, IReadOnlyList<CashForecastHorizonBalance> Horizons);
 
 public interface ICashForecast
 {
     /// <summary>Horizonte de 30, 60 ou 90 dias (até 365).</summary>
     Task<CashForecastSummary> SummaryAsync(int horizonDays, CancellationToken cancellationToken = default);
 
-    /// <summary>Visão semanal do fluxo de <paramref name="horizonDays"/> dias a partir de hoje, nos dois cenários (DSH-01a).</summary>
-    Task<CashForecastWeeks> WeeksAsync(int horizonDays, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Visão semanal do fluxo de <paramref name="horizonDays"/> dias a partir de hoje, nos dois cenários, e o saldo final de cada um dos
+    /// <paramref name="horizons"/> (DSH-01a).
+    /// </summary>
+    Task<CashForecastWeeks> WeeksAsync(int horizonDays, IReadOnlyCollection<int>? horizons = null, CancellationToken cancellationToken = default);
 }
