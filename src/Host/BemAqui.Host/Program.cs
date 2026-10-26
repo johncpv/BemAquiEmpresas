@@ -19,6 +19,7 @@ using BemAqui.Host.Realtime;
 using BemAqui.Host.Security;
 using BemAqui.Host.Tenancy;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Serilog;
 
 // Modo CLI da imagem: migrate (antes da subida) e tenant provision (ADR 0006, FND-03a).
@@ -43,6 +44,13 @@ try
             lc.WriteTo.Sink(sink); // sinks extras registrados na DI (ex.: testes)
         }
     });
+    // ILogger do Microsoft.Extensions.Logging no logger do próprio host, não no estático global (o AddSerilog sem
+    // preserveStaticLogger lê o Log.Logger ao criar cada ILogger): com vários hosts no processo (testes de integração), o log ia
+    // para o último host criado, e os testes de "log sem segredo" passavam sem ver nada (FND-16 CA 13). O Log.Logger continua
+    // apontando para este logger (resolver o Serilog.ILogger o define), como antes.
+    builder.Services.RemoveAll<Microsoft.Extensions.Logging.ILoggerFactory>();
+    builder.Services.AddSingleton<Microsoft.Extensions.Logging.ILoggerFactory>(sp =>
+        new Serilog.Extensions.Logging.SerilogLoggerFactory(sp.GetRequiredService<Serilog.ILogger>(), dispose: true));
 
     builder.Services.AddProblemDetails();
     builder.Services.AddExceptionHandler<BemAqui.BuildingBlocks.Web.ConcurrencyExceptionHandler>();

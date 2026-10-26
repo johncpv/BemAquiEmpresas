@@ -213,7 +213,9 @@ public partial class WebhookTests
             logs = string.Join("\n", fixture.Logs.Events.Select(e => e.RenderMessage(System.Globalization.CultureInfo.InvariantCulture) + " " + string.Join(" ", e.Properties.Select(p => p.Value.ToString()))));
         }
 
-        logs.Should().Contain("Webhook test", "o log traz provedor, tenant, id, tipo, resultado e duração");
+        // O Serilog põe aspas no texto renderizado: Webhook "test" do tenant ...
+        logs.Should().Contain("Webhook \"test\" do tenant " + fixture.Tenancy.TenantA.Id, "o log traz provedor, tenant, id, tipo, resultado e duração")
+            .And.Contain("recusado em", "a recusa também é logada, sem dizer o motivo");
         foreach (var leaked in new[] { canary, secret, token, signature[7..], key })
         {
             logs.Should().NotContain(leaked);

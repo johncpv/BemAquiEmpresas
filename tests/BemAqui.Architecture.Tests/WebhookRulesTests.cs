@@ -28,9 +28,27 @@ public class WebhookRulesTests
     public void Regra_acusa_handler_fora_de_modulo() =>
         HandlersOutsideModules([typeof(LooseHandler)]).Should().ContainSingle();
 
+    /// <summary>Pastas que não são código C# da solução: a varredura não desce nelas (o node_modules do front estourava a memória).</summary>
+    private static readonly HashSet<string> SkippedDirectories = new(StringComparer.OrdinalIgnoreCase) { "node_modules", "bin", "obj", "dist", ".git" };
+
+    private static IEnumerable<string> CsFiles(string directory)
+    {
+        foreach (var file in Directory.EnumerateFiles(directory, "*.cs"))
+        {
+            yield return file;
+        }
+
+        foreach (var child in Directory.EnumerateDirectories(directory).Where(d => !SkippedDirectories.Contains(Path.GetFileName(d))))
+        {
+            foreach (var file in CsFiles(child))
+            {
+                yield return file;
+            }
+        }
+    }
+
     private static IEnumerable<(string File, string Content)> Sources() =>
-        Directory.GetFiles(Path.Combine(Solution.RootDirectory, "src"), "*.cs", SearchOption.AllDirectories)
-            .Where(f => !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
+        CsFiles(Path.Combine(Solution.RootDirectory, "src"))
             .Select(f => (Path.GetRelativePath(Solution.RootDirectory, f).Replace('\\', '/'), File.ReadAllText(f)));
 
     [Fact]

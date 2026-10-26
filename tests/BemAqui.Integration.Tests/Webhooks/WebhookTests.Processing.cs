@@ -155,8 +155,10 @@ public partial class WebhookTests
 
         var evt = await fixture.EventAsync(fixture.Tenancy.TenantA, id);
         evt.Requeues.Should().Be(WebhookStalledSweepJob.StalledAfter);
-        (await fixture.QueryAsync(fixture.Tenancy.TenantA, db => db.OutboxMessages.CountAsync(m => m.Type == IntegrationEventRegistry.NameOf(typeof(WebhookReceived)) && m.Payload.Contains(id.ToString()))))
-            .Should().BeGreaterThan(1, "mensagem nova a cada volta");
+        // Payload é jsonb: o filtro de texto fica na memória (LIKE em jsonb não existe no PostgreSQL).
+        var messages = await fixture.QueryAsync(fixture.Tenancy.TenantA, db => db.OutboxMessages.AsNoTracking()
+            .Where(m => m.Type == IntegrationEventRegistry.NameOf(typeof(WebhookReceived))).Select(m => m.Payload).ToListAsync());
+        messages.Count(p => p.Contains(id.ToString(), StringComparison.Ordinal)).Should().BeGreaterThan(1, "mensagem nova a cada volta");
         fixture.Alerts.Raised.Should().Contain(a => a.Kind == WebhookAlerts.Stalled && a.Tenant == fixture.Tenancy.TenantA.Key);
     }
 

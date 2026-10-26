@@ -30,7 +30,9 @@ public static partial class WebhookEndpoints
     public const string RateLimitPolicy = "webhooks";
 
     /// <summary>
-    /// <c>POST</c> (recepção) e <c>GET</c> (verificação, só para quem declara); outro método responde 405 pelo roteamento. A ordem
+    /// <c>POST</c> (recepção) e <c>GET</c> (verificação, só para quem declara); outro método responde 405 (CA 1) por um endpoint
+    /// anônimo sem método, que o roteamento só escolhe quando não há POST nem GET para o método (endpoint com método ganha). Sem ele,
+    /// o 405 do próprio roteamento não tem <c>AllowAnonymous</c> e a política padrão (autenticado) respondia 401 antes. A ordem
     /// das recusas segue o CA 8: 429 (rate limit, antes do endpoint), 415, 413 (antes de ler o corpo inteiro), e só então o banco
     /// do tenant. Toda recusa de origem é a mesma: 401 sem corpo.
     /// </summary>
@@ -46,7 +48,19 @@ public static partial class WebhookEndpoints
             .AllowAnonymous().ExcludeFromDescription()
             .RequireRateLimiting(RateLimitPolicy)
             .WithName("VerifyWebhook");
+        app.Map(RoutePattern, MethodNotAllowed)
+            .AllowAnonymous().DisableAntiforgery().ExcludeFromDescription()
+            .RequireRateLimiting(RateLimitPolicy)
+            .WithName("WebhookMethodNotAllowed");
         return app;
+    }
+
+    /// <summary>405 sem corpo e sem cache, com <c>Allow</c>; não toca no catálogo nem no banco do tenant.</summary>
+    private static void MethodNotAllowed(HttpContext http)
+    {
+        PrepareResponse(http);
+        http.Response.Headers.Allow = "GET, POST";
+        http.Response.StatusCode = StatusCodes.Status405MethodNotAllowed;
     }
 
     /// <summary>

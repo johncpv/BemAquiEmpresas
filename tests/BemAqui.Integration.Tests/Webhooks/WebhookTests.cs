@@ -58,16 +58,23 @@ public partial class WebhookTests(WebhookFixture fixture) : IClassFixture<Webhoo
         var (key, secret) = await TestProviderAsync(fixture.Tenancy.TenantB);
         var before = fixture.Alerts.Raised.Count;
         var client = fixture.Platform();
+        // Os testes da classe rodam em sequência e dividem os dois bancos: "nada gravado" é o total de cada tenant igual antes e
+        // depois, e nenhuma das entregas recusadas aparece em A nem em B (gravação no tenant errado também reprova).
+        var deliveries = Enumerable.Range(0, 4).Select(i => "d-recusa-" + i + "-" + Guid.NewGuid().ToString("N")).ToList();
+        var eventsA = await fixture.QueryAsync(fixture.Tenancy.TenantA, db => db.WebhookEvents.CountAsync());
+        var eventsB = await fixture.QueryAsync(fixture.Tenancy.TenantB, db => db.WebhookEvents.CountAsync());
+        var outboxA = await fixture.QueryAsync(fixture.Tenancy.TenantA, db => db.OutboxMessages.CountAsync());
+        var outboxB = await fixture.QueryAsync(fixture.Tenancy.TenantB, db => db.OutboxMessages.CountAsync());
 
-        var unknownKey = await client.SendAsync(WebhookFixture.SignedPost(Path("test", "AAAAAAAAAAAAAAAAAAAAAA"), secret, WebhookFixture.Body()));
-        var unknownProvider = await client.SendAsync(WebhookFixture.SignedPost(Path("nao-existe", key), secret, WebhookFixture.Body()));
-        var badSignature = await client.SendAsync(WebhookFixture.SignedPost(Path("test", key), OpaqueToken.New(), WebhookFixture.Body()));
+        var unknownKey = await client.SendAsync(WebhookFixture.SignedPost(Path("test", "AAAAAAAAAAAAAAAAAAAAAA"), secret, WebhookFixture.Body(), deliveries[0]));
+        var unknownProvider = await client.SendAsync(WebhookFixture.SignedPost(Path("nao-existe", key), secret, WebhookFixture.Body(), deliveries[1]));
+        var badSignature = await client.SendAsync(WebhookFixture.SignedPost(Path("test", key), OpaqueToken.New(), WebhookFixture.Body(), deliveries[2]));
         await fixture.Tenancy.SetStatusAsync(fixture.Tenancy.TenantB.Id, suspended: true);
         fixture.Factory.Services.GetRequiredService<BemAqui.BuildingBlocks.Tenancy.ITenantResolver>().Invalidate();
         HttpResponseMessage suspended;
         try
         {
-            suspended = await client.SendAsync(WebhookFixture.SignedPost(Path("test", key), secret, WebhookFixture.Body()));
+            suspended = await client.SendAsync(WebhookFixture.SignedPost(Path("test", key), secret, WebhookFixture.Body(), deliveries[3]));
         }
         finally
         {
@@ -82,8 +89,16 @@ public partial class WebhookTests(WebhookFixture fixture) : IClassFixture<Webhoo
             response.Headers.CacheControl?.NoStore.Should().BeTrue();
         }
 
-        (await fixture.QueryAsync(fixture.Tenancy.TenantB, db => db.WebhookEvents.CountAsync(e => e.Payload != null && e.Status == WebhookEventStatus.Received && e.ReceivedAt > DateTimeOffset.UtcNow.AddMinutes(-1))))
-            .Should().Be(0, "nada é gravado numa recusa");
+        foreach (var tenant in new[] { fixture.Tenancy.TenantA, fixture.Tenancy.TenantB })
+        {
+            (await fixture.QueryAsync(tenant, db => db.WebhookEvents.CountAsync(e => deliveries.Contains(e.ExternalId))))
+                .Should().Be(0, "nada é gravado numa recusa, em nenhum tenant");
+        }
+
+        (await fixture.QueryAsync(fixture.Tenancy.TenantA, db => db.WebhookEvents.CountAsync())).Should().Be(eventsA, "nada é gravado numa recusa");
+        (await fixture.QueryAsync(fixture.Tenancy.TenantB, db => db.WebhookEvents.CountAsync())).Should().Be(eventsB, "nada é gravado numa recusa");
+        (await fixture.QueryAsync(fixture.Tenancy.TenantA, db => db.OutboxMessages.CountAsync())).Should().Be(outboxA, "nenhuma mensagem vai ao outbox");
+        (await fixture.QueryAsync(fixture.Tenancy.TenantB, db => db.OutboxMessages.CountAsync())).Should().Be(outboxB, "nenhuma mensagem vai ao outbox");
         fixture.Alerts.Raised.Count.Should().Be(before, "4 recusas não chegam ao limite de 20");
     }
 
