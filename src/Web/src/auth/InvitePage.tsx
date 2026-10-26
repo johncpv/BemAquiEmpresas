@@ -8,6 +8,7 @@ import { applyServerErrors, inputClass, useZodForm } from '@/components/form/for
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { z } from '@/lib/zod'
 import { AuthLayout } from './AuthLayout'
+import { homeRouteFor } from './home-route'
 import { newPasswordSchema } from './password-schema'
 import { pendingChallenge } from './pending-challenge'
 import { linkClass, primaryButton } from './styles'
@@ -30,7 +31,7 @@ export function InvitePage() {
     try {
       const result = await acceptInvite({ token, name, password })
       if (result.twoFactor) {
-        pendingChallenge.set({ ...result.twoFactor, purpose: 'setup', volta: '/app' })
+        pendingChallenge.set({ ...result.twoFactor, purpose: 'setup', volta: homeRouteFor() })
         await navigate({ to: '/entrar/configurar-2fa' })
         return
       }

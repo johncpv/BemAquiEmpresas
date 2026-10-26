@@ -7,18 +7,22 @@ let firstHref: string | undefined
 
 /**
  * Título da tela (FND-09b CA 11): document.title "{Tela} · {Tenant} · BemAqui Empresas" e, na troca de rota, foco no
- * h1 (o leitor de tela anuncia a tela nova). Na primeira carga o foco não é movido (CA 12).
+ * h1 (o leitor de tela anuncia a tela nova). Na primeira carga o foco não é movido (CA 12). Com <c>count</c> maior que zero, a aba
+ * mostra a contagem antes ("(4) Início", DSH-04 CA 7); mudar a contagem não mexe no foco.
  */
-export function PageHeading({ title, children }: { title: string; children?: ReactNode }) {
+export function PageHeading({ title, count, children }: { title: string; count?: number; children?: ReactNode }) {
   const { tenantName } = useNavigation()
   const href = useRouterState({ select: (s) => s.location.href })
   const ref = useRef<HTMLHeadingElement>(null)
 
   useEffect(() => {
-    document.title = `${title} · ${tenantName} · BemAqui Empresas`
+    document.title = `${count ? `(${count}) ` : ''}${title} · ${tenantName} · BemAqui Empresas`
+  }, [title, tenantName, count])
+
+  useEffect(() => {
     firstHref ??= href
     if (href !== firstHref) ref.current?.focus()
-  }, [title, tenantName, href])
+  }, [href])
 
   return (
     <div className="mb-5">

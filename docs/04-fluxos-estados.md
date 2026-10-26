@@ -325,6 +325,20 @@ pode(usuário, módulo, ação) = liberado ∧ habilitado ∧ ∃ grupo do usuá
 - Alçada de aprovação (3.6) é verificada depois: ter `finance.approve` não dispensa a regra de valor.
 - Cache por usuário invalidado ao alterar grupo, membros ou liberação do tenant.
 
+### 3.8 Minha pauta (DSH-04, ADR 0028 §4)
+```
+pauta(usuário) = ordena( ∪ fonte.itens(usuário, categorias pedidas) )
+  fonte chamada  ⇔ liberado(tenant, fonte.módulo)
+  categoria pedida ⇔ pode(usuário, categoria.permissão)   (permissão efetiva de 3.7)
+ordem: nível (1 destrava outra pessoa ou dinheiro → 2 já passou do prazo → 3 vence em breve)
+       → vencimento mais próximo (sem data no fim do nível) → maior valor
+```
+- Leitura pura: nenhuma tabela, evento ou notificação; o item some quando o documento sai da situação (aprovado, pago, prorrogado, com solicitação). `GET /api/v1/me/agenda` (rota do usuário, `no-store`, fora da sessão de PIN); o Front recarrega a cada 60 s e no foco.
+- Cada módulo é dono do seu `IAgendaSource` (BuildingBlocks), no Application, lendo só as próprias tabelas e os contratos dos outros; a regra de quem decide é a mesma da lista "Aguardando você" (alçada da OP e do pedido, autor do aditivo, segregação da qualidade com "Autoinspeção").
+- Fontes em sequência no escopo do request, cada uma com tempo limite de 300 ms: falha ou atraso vira "Não foi possível carregar {categoria}." e vai para o log com o tenant; as outras categorias saem normalmente.
+- Categorias entregues: `finance.payment_orders_awaiting` e `finance.payment_orders_to_pay` (1), `projects.amendments_pending` (1), `production.quality_pending` (1), `purchasing.orders_awaiting` e `purchasing.shortages_without_request` (1), `finance.receivables_overdue` (2), `production.orders_late` (2), `production.non_conformities_mine` (2), `hr.positions_without_cost` (2, pelo `ILaborCostGaps` da Produção), `finance.payables_due_soon` (3, até 3 dias, fora de OP), `quotes.expiring` (3, até 7 dias). Entram com as próprias stories: ajuste de estoque aguardando (EST-01b), caixa projetado negativo (FIN-07), recebimento a fazer (CMP-04), cotação (CMP-02), expedição (PRD-06b), inventário (EST-05) e as fontes das Fases 5 e 6.
+- `IAgendaService.ForUserAsync(categorias)`: o card "Aguardando sua decisão" do painel do dono (DSH-01a) pede as do nível 1 e recebe os mesmos itens, na mesma ordem. A página inicial é o Início para todos (`homeRouteFor` no front, um ponto só para a DSH-01a acrescentar o Proprietário com `dashboard.view`).
+
 ## 4. Numeração padrão (editável)
 ORC-AAAA-0001 · CTR-AAAA-0001 · PRJ-AAAA-0001 · OS-AAAA-00001 · NC-AAAA-0001 · SC-AAAA-0001 (solicitação) · COT-AAAA-0001 · PC-AAAA-0001 · REC-AAAA-0001 (recebimento) · CR-AAAA-00001 · CP-AAAA-00001 · OP-AAAA-0001 · MAN-AAAA-0001 · PAT-00001 (etiqueta)
 

@@ -31,6 +31,8 @@ public static class PurchasingInfrastructure
         services.TryAddScoped<MinStockPurchaseRequests>();
         services.TryAddScoped<IPurchaseRequests, PurchaseRequestsContract>();
         services.TryAddScoped<PurchaseOrderService>();
+        // Minha pauta (DSH-04): pedido aguardando a aprovação da pessoa e falta da OS sem solicitação.
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Agenda.IAgendaSource, PurchasingAgendaSource>());
         services.TryAddScoped<PurchaseOrdersContract>();
         services.TryAddScoped<IPurchaseOrders>(sp => sp.GetRequiredService<PurchaseOrdersContract>());
         services.TryAddScoped<IOpenPurchaseOrderQuantities>(sp => sp.GetRequiredService<PurchaseOrdersContract>());

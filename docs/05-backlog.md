@@ -400,7 +400,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-4--planejamento-p
 - Requisitos: R-FIN-13, R-FIN-1, R-PRP-5, PRD §5.14 (Faturamento), PRD §6.
 - CA: DRE pelos grupos do plano de contas; receita pela data da nota (antes do go-live, `issue_date` do título com o rótulo "provisório"; sinal como adiantamento); compra para estoque na 2.1 pela data do documento; juros, multa e desconto em contas pré-configuradas "a confirmar"; sinal no rótulo e "Δ mês anterior"; `TreeTable` com drill-down por célula (salário com nome só com `hr.view_sensitive`); aviso "Mudou desde a última consulta"; `IRevenueSummary`; 24 meses em menos de 2 s.
 
-**DSH-04 [ ] Minha pauta (M)** — 4.2, ordem 4 — `Ready` — [story](stories/DSH-04-minha-pauta.md)
+**DSH-04 [x] Minha pauta (M)** — 4.2, ordem 4 — `Done` — [story](stories/DSH-04-minha-pauta.md)
 - Requisitos: R-PRP-4, R-PRP-5, R-COM-2, PRD §5.14 (Pendências do dono), PRD §6.
 - CA: detectores por módulo (`IAgendaSource`), cada um com a sua permissão; ordem pelo que destrava outra pessoa ou dinheiro, depois o vencimento; pauta no Início (página inicial de todos), sem item no dock; item some quando resolvido; resposta parcial se uma fonte falhar; menos de 1 s.
 

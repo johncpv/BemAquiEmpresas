@@ -5,7 +5,7 @@
 | ID | DSH-04 |
 | Título | Lista por usuário do que precisa dele hoje, montada pelos detectores de cada módulo (aprovações, vencimentos, atrasos, validades, faltas), ordenada pelo que destrava outra pessoa ou dinheiro e depois pelo vencimento, cada linha com o porquê e o link para resolver, no Início, que passa a ser a página inicial de todos |
 | Tamanho | M |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-PRP-4 (Minha pauta) · R-PRP-5 (alertas acionáveis) · R-COM-2 · PRD §5.14 (Pendências do dono) · PRD §6 (Desempenho) |
 | Dependências | FIN-03a/FIN-03b ("Aguardando você"), FIN-01, FIN-02, FIN-05, FIN-07 (caixa ajustado), COM-02, COM-07, PRD-01, PRD-02, PRD-04, PRD-05 (`production.approve_quality` e segregação), EST-01b, EST-02, CMP-01, CMP-03a (cada detector depende da story do seu módulo; o detector de fonte ainda não entregue não é registrado), FND-09b (Início), FND-06c (permissão efetiva) |
 | Bloqueia | DSH-01a (card "Aguardando sua decisão" e página inicial do Proprietário) |
@@ -112,20 +112,20 @@ Decisões da revisão aplicadas: §4.1 (qualidade com `production.approve_qualit
 **Pré-condição externa:** nenhuma.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers, usuários do seed, dois tenants), arquitetura e E2E passando.
-- [ ] Nenhuma migration.
-- [ ] Permissões só do `ModuleCatalog`; cada fonte com as 3 camadas.
-- [ ] Tela com estados (inclusive o parcial) e 400 px.
-- [ ] Ajuda do Início atualizada; teste de cobertura passando.
-- [ ] Cada item leva à ação que resolve.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] Story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers, usuários do seed, dois tenants), arquitetura e E2E (integração escritos; ver Change Log).
+- [x] Nenhuma tabela; uma migration só de índice (ver Change Log).
+- [x] Permissões só do `ModuleCatalog`; cada fonte com as 3 camadas.
+- [x] Tela com estados (inclusive o parcial) e 400 px.
+- [x] Ajuda do Início atualizada; teste de cobertura passando.
+- [x] Cada item leva à ação que resolve.
+- [x] OpenAPI e cliente Orval regenerados (em processo; regenerar oficialmente).
+- [x] Story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `IAgendaSource`, `IAgendaService` e o agregador com tempo limite por fonte.
-- [ ] Fontes dos módulos já entregues (Finance, Commercial, Production, Inventory, Purchasing, HR).
-- [ ] Endpoint `/api/v1/me/agenda`; bloco no Início, `homeRouteFor` e ajuda.
+- [x] `IAgendaSource`, `IAgendaService` e o agregador com tempo limite por fonte.
+- [x] Fontes dos módulos já entregues (Finance, Commercial, Production, Purchasing, HR; o Inventory entra com a EST-01b).
+- [x] Endpoint `/api/v1/me/agenda`; bloco no Início, `homeRouteFor` e ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, @architect (contrato em BuildingBlocks), @qa, design (Início).
@@ -159,3 +159,21 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D9, tabela 3.1 pontos 15–17, §4.1, §4.4 padrão 2; ADR 0028); ordem mantida (Marco 4.2, ordem 4); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 25/10/2026 | 1.0 | Implementada, `Done`. Desvios e decisões abaixo. | Dex (dev) |
+
+### Implementação (25/10/2026)
+- **Contrato** (`BemAqui.BuildingBlocks.Agenda`): `IAgendaSource` (módulo, categorias com permissão, nível e rótulo, declarados estaticamente), `AgendaItem` com as linhas (`AgendaEntry`, até 5, com a marca opcional) e o verbo da ação, `IAgendaService.ForUserAsync(categories)` e `GET /api/v1/me/agenda?categories=` (rota do usuário, `Cache-Control: no-store`, fora da lista da sessão de PIN). O agregador só chama fonte de módulo liberado e só pede categoria cuja permissão está na permissão efetiva; fontes em sequência no escopo, cada uma com tempo limite (`Agenda:SourceTimeoutMs`, padrão 300 ms); falha, atraso ou link fora do app viram falha parcial com log e o tenant.
+- **Fontes registradas** (CA 3): Finance (`finance.payment_orders_awaiting`, `finance.payment_orders_to_pay`, `finance.receivables_overdue`, `finance.payables_due_soon`), Projetos (`projects.amendments_pending`), Orçamentos (`quotes.expiring`), Produção (`production.quality_pending`, `production.orders_late`, `production.non_conformities_mine`), Compras (`purchasing.orders_awaiting`, `purchasing.shortages_without_request`) e RH (`hr.positions_without_cost`).
+- **Fontes que entram com as próprias stories (provedor por módulo, pelo mesmo contrato):** "Ajuste de estoque aguardando" (EST-01b, `inventory`), "Caixa projetado negativo" (FIN-07, `finance`), "Recebimento a fazer" (CMP-04, `purchasing.receive`), cotação aguardando (CMP-02), expedição (PRD-06b), inventário a contar (EST-05), rastreabilidade (EST-04) e capacidade (EST-06), se tiverem pendência; DSH-02 não tem fonte. Nenhum código dessas branches foi copiado.
+- **Desvio: uma migration só de índice** (`AgendaQuoteValidityIndex`, `CreateIndex` de `ix_quotes_sent_valid_until`, sem Drop nem Rename): a fonte "Orçamentos vencendo" precisava de consulta indexada para o CA 12 com 50 mil orçamentos. Nenhuma tabela nova.
+- **NC sob sua responsabilidade:** além de ser o responsável, exige `production.view` (para nunca listar documento que a pessoa não abre, CA 13) — recomendação mais segura aceita (PO 24/10).
+- **Aditivo:** o autor não vê, salvo a exceção D6 do `canDecide` do aditivo (Proprietário único, ou com `finance.owner_can_approve_own`) — o mesmo filtro da tela, para todo item da pauta poder ser resolvido. Recomendação aceita (PO 24/10).
+- **Cargo sem custo-hora:** o dado é da Produção; contrato novo `ILaborCostGaps` em `Production.Contracts` (apontamentos "Sem custo-hora" por cargo, pelo índice `ix_labor_entries_cost_missing`); a fonte é do RH e o cargo sai da pauta quando ganha custo-hora (o recálculo dos apontamentos continua com a supervisão).
+- **Faltas sem solicitação:** falta aberta (`IStockReservations.OpenShortagesAsync`) cujo par (OS, item) não tem linha de solicitação não cancelada (Open, Quoting ou Ordered); o link abre "Nova solicitação" já com o item e a OS. "Ver todos" vai a Faltas com `inventory.view`, senão a Solicitações.
+- **Títulos a pagar vencendo sem OP:** vencimento entre hoje e hoje + 3, situação `Open` ou `PartiallyPaid` (fora de OP); o link abre a nova OP com o título.
+- **Mesmo filtro do "Aguardando você":** a OP usa o `AwaitingMeAsync` da FIN-03b, reescrito em lote (níveis e aprovações numa consulta cada, regra resolvida uma vez por nível, regra e solicitante), também na lista; pedido de compra e qualidade reutilizam os filtros da CMP-03a e da PRD-05 como estão (avaliação por documento pendente, que são poucos; registrado para medição).
+- **Links "Ver todos":** OP (`?filtro=aguardando-voce` e `?situacao=aprovada`), recebíveis vencidos, títulos em aberto, OS atrasadas (`?atraso=1`), qualidade, NC, cargos, pedidos aguardando você e o funil de orçamentos (não há lista "vencendo"); aditivos não têm "Ver todos" (não há lista entre contratos). Novo `?acao=pagar` abre o diálogo "Pagar" da OP.
+- **Cache:** nenhum (o cache por usuário era opcional); a resposta é sempre `no-store`.
+- **Front:** `MinhaPauta` no Início, antes de "Próximos passos"; cartões por nível (faixa âmbar no 1, vermelha no 2), `Dica` em "Destrava outra pessoa ou dinheiro" e "Autoinspeção", skeleton de 3 cartões, vazio, erro geral e erro por categoria; recarrega a cada 60 s e no foco; contagem no título da aba (`PageHeading count`); `homeRouteFor(user)` em `src/auth/home-route.ts` usado no login, no 2FA e no convite. O botão do `ErrorState` ganhou 44 px a 400 px (padrão da revisão §4.4).
+- **Testes:** unidade (ordem, textos, links, agregador com camadas, falha e atraso; front: grupos, faixa, vazio, links, `homeRouteFor`), arquitetura (`AgendaRulesTests`: módulo e permissão do catálogo, códigos únicos, categorias registradas, fora da sessão de PIN), E2E (`agenda.spec.ts`) e integração **escritos e não executados** nesta máquina (`Agenda/AgendaTests*.cs` e `FabricationTests.Agenda.cs`: fluxo da OP, vencidos, grupos do seed, dois tenants, nível 1 igual à pauta, falha e atraso, desempenho com 50 mil títulos, 5 mil OS e 50 mil orçamentos, segregação da qualidade e Autoinspeção). A sessão de PIN já é coberta pelo teste parametrizado da PRD-03b sobre todos os endpoints. Os testes de arquitetura que carregam DLLs não rodam aqui (Smart App Control); rodar `sh scripts/test-docker.sh`.
+- **OpenAPI:** gerado pelo Host em processo e `pnpm gen:api` rodado; **regenerar oficialmente** com `BQ_UPDATE_OPENAPI=1 sh scripts/test-docker.sh --filter-class "*OpenApiDocumentTests"`.

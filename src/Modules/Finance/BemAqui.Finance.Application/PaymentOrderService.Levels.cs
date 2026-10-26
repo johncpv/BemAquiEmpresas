@@ -65,16 +65,47 @@ public sealed partial class PaymentOrderService
         return list;
     }
 
-    /// <summary>OPs pendentes cujo nível atual está na alçada do usuário (CA 15, "Aguardando você").</summary>
-    private async Task<List<Guid>> AwaitingMeAsync(Guid me, CancellationToken ct)
+    /// <summary>
+    /// OPs pendentes cujo nível atual está na alçada do usuário (CA 15, "Aguardando você"; também a Minha pauta, DSH-04). Mesma regra do
+    /// <see cref="ApprovalResolver.EligibleAsync"/>, em lote: níveis e aprovações numa consulta cada, a regra resolvida uma vez por
+    /// nível, regra e solicitante (DSH-04 CA 12, sem N+1 por OP).
+    /// </summary>
+    internal async Task<List<Guid>> AwaitingMeAsync(Guid me, CancellationToken ct)
     {
-        var pending = await db.PaymentOrders.AsNoTracking().Where(o => o.Status == PaymentOrderStatus.Pending).Select(o => new { o.Id, o.RequestedBy }).ToListAsync(ct);
+        var pending = await db.PaymentOrders.AsNoTracking().Where(o => o.Status == PaymentOrderStatus.Pending)
+            .Select(o => new { o.Id, o.RequestedBy, o.SubmittedAt }).ToListAsync(ct);
+        if (pending.Count == 0)
+        {
+            return [];
+        }
+
+        var ids = pending.Select(o => o.Id).ToList();
+        var levels = (await db.PaymentOrderLevels.AsNoTracking().Where(l => ids.Contains(l.PaymentOrderId) && l.Status == LevelStatus.Pending).ToListAsync(ct))
+            .GroupBy(l => l.PaymentOrderId).ToDictionary(g => g.Key, g => g.OrderBy(l => l.Level).First());
+        var approvals = (await db.PaymentOrderApprovals.AsNoTracking().Where(a => ids.Contains(a.PaymentOrderId) && a.Decision == PaymentOrderDecision.Approved && a.DecidedBy == me)
+            .Select(a => new { a.PaymentOrderId, a.Level, a.DecidedAt }).ToListAsync(ct)).ToLookup(a => a.PaymentOrderId);
+        var byRule = new Dictionary<(int Level, Guid Rule, Guid? Requester), IReadOnlyList<Guid>>();
         var result = new List<Guid>();
         foreach (var o in pending)
         {
-            var level = await CurrentLevelAsync(o.Id, ct);
-            var eligible = level is null ? (o.RequestedBy == me ? [] : [me]) : await resolver.EligibleAsync(level, o.RequestedBy, ct);
-            if (eligible.Contains(me))
+            if (!levels.TryGetValue(o.Id, out var level))
+            {
+                if (o.RequestedBy != me)
+                {
+                    result.Add(o.Id);
+                }
+
+                continue;
+            }
+
+            var key = (level.Level, level.ApprovalRuleId, o.RequestedBy);
+            if (!byRule.TryGetValue(key, out var candidates))
+            {
+                byRule[key] = candidates = await resolver.EligibleByRuleAsync(ApprovalDocumentTypes.PaymentOrder, level.Level, level.ApprovalRuleId, o.RequestedBy, ct);
+            }
+
+            // Quem aprovou outro nível desde o envio não decide este (CA 13).
+            if (candidates.Contains(me) && !approvals[o.Id].Any(a => a.Level != level.Level && a.DecidedAt >= o.SubmittedAt))
             {
                 result.Add(o.Id);
             }

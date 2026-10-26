@@ -276,3 +276,15 @@ public interface IProjectProductionCosts
 
     Task<ProjectNonConformityCost> NonConformitiesAsync(Guid projectId, CancellationToken cancellationToken = default);
 }
+
+/// <summary>Cargo com apontamento fechado marcado "Sem custo-hora" (PRD-04 CA 5): quantos apontamentos esperam o custo-hora.</summary>
+public sealed record LaborCostGap(Guid PositionId, int Entries);
+
+/// <summary>
+/// Apontamentos sem custo-hora por cargo, para a Minha pauta do RH (DSH-04 CA 2, "Cargo sem custo-hora"): o dado é da Produção e
+/// o RH resolve informando o custo-hora do cargo.
+/// </summary>
+public interface ILaborCostGaps
+{
+    Task<IReadOnlyList<LaborCostGap>> ByPositionAsync(CancellationToken cancellationToken = default);
+}

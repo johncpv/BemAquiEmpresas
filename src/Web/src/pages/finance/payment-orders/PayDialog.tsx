@@ -1,3 +1,4 @@
+import { useNavigate, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
 import { payPaymentOrder, resubmitPaymentOrder, useGetCashFlow, useListBankAccounts } from '@/api/generated/bemaqui'
 import type { PaymentOrderDetail, PaymentResult } from '@/api/generated/model'
@@ -11,8 +12,15 @@ import { destination, itemTotal } from './payment-orders'
 
 interface Charges { interest: string | null; fine: string | null; discount: string | null }
 
-/** Pagar (CA 13 a 18): conta, data, acréscimos por título, total ao vivo e o saldo da conta antes e depois. */
+/**
+ * Pagar (CA 13 a 18): conta, data, acréscimos por título, total ao vivo e o saldo da conta antes e depois. Com <c>?acao=pagar</c> (link
+ * da Minha pauta, DSH-04) o diálogo já abre.
+ */
 export function PayDialog({ order, refresh, onPaid }: { order: PaymentOrderDetail; refresh: () => Promise<void>; onPaid: (result: PaymentResult) => void }) {
+  const { acao } = useSearch({ strict: false }) as { acao?: string }
+  const navigate = useNavigate()
+  const [open, setOpen] = useState(acao === 'pagar')
+  const clearAction = () => { if (acao) void navigate({ to: '.', search: (p: Record<string, unknown>) => ({ ...p, acao: undefined }), replace: true } as never) }
   const accounts = useListBankAccounts({ pageSize: 100 })
   const active = (accounts.data?.items ?? []).filter((a) => a.isActive)
   const [account, setAccount] = useState<string>('')
@@ -30,6 +38,7 @@ export function PayDialog({ order, refresh, onPaid }: { order: PaymentOrderDetai
 
   return (
     <ConfirmDialog size="lg" verb="Pagar" done="Pagamento registrado" title={`Pagar a ${order.summary.number}?`} description="O valor sai da conta escolhida na data informada."
+      open={open} onOpenChange={(o) => { setOpen(o); if (!o) clearAction() }}
       preconditions={[{ ok: !!bankAccountId, text: 'Conta bancária escolhida.' }]}
       impact={(
         <div aria-live="polite" className="space-y-1 text-sm">

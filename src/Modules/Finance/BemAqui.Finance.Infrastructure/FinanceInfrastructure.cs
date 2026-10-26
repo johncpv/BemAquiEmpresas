@@ -71,6 +71,8 @@ public static class FinanceInfrastructure
         services.TryAddScoped<AgingService>();
         // Ordens de pagamento (FIN-03a): comprovante só em OP paga, lido com finance.view e gravado com finance.pay.
         services.TryAddScoped<PaymentOrderService>();
+        // Minha pauta (DSH-04): OP aguardando, OP para pagar, recebíveis vencidos e títulos a pagar vencendo sem OP.
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Agenda.IAgendaSource, FinanceAgendaSource>());
         // Extrato, transferências e lançamentos sem OP (FIN-04).
         services.TryAddScoped<BankStatementService>();
         services.TryAddScoped<BankMovementService>();
