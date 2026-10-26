@@ -74,7 +74,13 @@ jobs:
         run: dotnet restore BemAquiEmpresas.slnx
       - name: Build
         run: dotnet build BemAquiEmpresas.slnx --no-restore -c Release
+      # Cada WebApplicationFactory abre um watcher do appsettings; o bloco grande estoura o limite padrão do runner
+      # (128 instâncias de inotify). Sobe o limite e desliga o reload, que não serve para teste.
+      - name: Limite de inotify
+        run: sudo sysctl -w fs.inotify.max_user_instances=8192 fs.inotify.max_user_watches=524288
       - name: Testes (unidade, arquitetura, integração com Testcontainers)
+        env:
+          DOTNET_hostBuilder__reloadConfigOnChange: "false"
         run: dotnet test --solution BemAquiEmpresas.slnx --no-build -c Release --ignore-exit-code 8 ${{ matrix.chunk.filter }}
       - name: Pacotes vulneráveis (alta/crítica falham)
         if: matrix.chunk.vuln
