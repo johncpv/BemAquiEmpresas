@@ -165,7 +165,11 @@ public partial class FabricationTests
         var view = await GanttAsync(owner, $"/api/v1/production/planning/projects/{project}/gantt");
         view.GetProperty("projects").GetArrayLength().Should().Be(1, "CA 11: só esse projeto");
         GanttRow(view, project)!.Value.GetProperty("position").GetInt32().Should().BeGreaterThan(0);
-        DateOf(view.GetProperty("to")).Should().BeOnOrAfter(Today.AddDays(3000).AddDays(-GanttRules.MaxDays), "o período cabe o projeto, até 12 meses");
+        // O período começa 7 dias antes do primeiro início e alarga até caber o projeto, no máximo 12 meses: o prometido em 3000 dias não
+        // cabe, então o fim é o limite contado do início (GanttRules.ProjectPeriod).
+        var start = DateOf(view.GetProperty("from"));
+        start.Should().BeOnOrBefore(Today.AddDays(-GanttRules.DefaultDaysBefore), "7 dias antes de hoje ou do primeiro início");
+        DateOf(view.GetProperty("to")).Should().Be(start.AddDays(GanttRules.MaxDays - 1), "o período cabe o projeto, até 12 meses");
         var period = await GanttAsync(owner, $"/api/v1/production/planning/projects/{project}/gantt?from={Iso(Today)}&to={Iso(Today.AddDays(30))}");
         (DateOf(period.GetProperty("from")), DateOf(period.GetProperty("to"))).Should().Be((Today, Today.AddDays(30)));
 
