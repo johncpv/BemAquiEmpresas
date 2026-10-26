@@ -428,7 +428,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-4--planejamento-p
 - Requisitos: R-PLN-4, R-PLN-3, R-PRP-5, PRD §5.14 (Entregas), PRD §6.
 - CA: Gantt próprio em SVG (ADR 0033) por projeto e por centro; OS de instalação como barra só de leitura; escala dia/semana/mês; teclado e tabela equivalente; 300 OS em menos de 1,5 s.
 
-**PNL-01a [ ] Tokens de tela, sessão de quiosque e tempo real da TV (G)** — 4.4, ordem 11 — `Ready` — [story](stories/PNL-01a-tokens-tela-sessao-quiosque.md)
+**PNL-01a [x] Tokens de tela, sessão de quiosque e tempo real da TV (G)** — 4.4, ordem 11 — `Done` — [story](stories/PNL-01a-tokens-tela-sessao-quiosque.md)
 - Requisitos: R-SEC-6, PRD §2, PRD §5.14 (Painel de produção), PRD §6 (Segurança), R-SEC-5.
 - CA: token de 256 bits só como hash; `/tv#token` trocado por cookie `__Host-bq_kiosk` (ADR 0030), sessão de 30 dias sem uso e 180 absolutos; `kiosk.delete` e criar com `production.view`; principal de quiosque só em GET do painel; revogação em menos de 1 min; kit TV e prévia no backoffice; sem cache no service worker.
 

@@ -19,6 +19,7 @@ public partial class DataOwnershipTests
         ["Identity/BemAqui.Identity.Application/TwoFactorService.cs"] = "troca dos códigos de recuperação",
         ["Identity/BemAqui.Identity.Application/TwoFactorService.Challenge.cs"] = "anti-replay do TOTP e uso do código de recuperação",
         ["Identity/BemAqui.Identity.Application/PermissionService.cs"] = "versão do cache de permissões (ADR 0008)",
+        ["Identity/BemAqui.Identity.Application/Kiosk/KioskSessionService.cs"] = "último acesso da TV (last_seen_at e o prazo de 30 dias), no máximo 1 vez por minuto; não é dado de negócio (PNL-01a CA 19)",
         ["Parties/BemAqui.Parties.Application/CnpjLookupService.cs"] = "expurgo do cache de consultas de CNPJ",
         ["Migrations/BemAqui.Migrations.Application/StagingService.cs"] = "expurgo da staging da importação (ADR 0017)",
         ["Migrations/BemAqui.Migrations.Application/ImportSession.cs"] = "xmin gravado na staging da importação",

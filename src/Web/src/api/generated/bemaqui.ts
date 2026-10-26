@@ -252,6 +252,14 @@ import type {
   ItemLotRow,
   ItemSearchHit,
   ItemType,
+  KioskScreenContext,
+  KioskScreenInput,
+  KioskScreenLink,
+  KioskScreenList,
+  KioskScreenRow,
+  KioskSessionOpened,
+  KioskSessionRequest,
+  KioskVersionInput,
   LaborCorrectionInput,
   LaborCostHistoryView,
   LaborCostMissingView,
@@ -8207,6 +8215,609 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getDeleteMyPinMutationOptions(options), queryClient);
     }
+
+export const getListKioskScreensUrl = () => {
+
+
+
+
+  return `/api/v1/kiosk-screens`
+}
+
+export const listKioskScreens = async ( options?: Parameters<typeof apiFetch>[1]): Promise<KioskScreenList> => {
+
+  return apiFetch<KioskScreenList>(getListKioskScreensUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListKioskScreensQueryKey = () => {
+    return [
+    `/api/v1/kiosk-screens`
+    ] as const;
+    }
+
+
+export const getListKioskScreensQueryOptions = <TData = Awaited<ReturnType<typeof listKioskScreens>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listKioskScreens>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListKioskScreensQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listKioskScreens>>> = ({ signal }) => listKioskScreens({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listKioskScreens>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListKioskScreensQueryResult = NonNullable<Awaited<ReturnType<typeof listKioskScreens>>>
+export type ListKioskScreensQueryError = unknown
+
+
+export function useListKioskScreens<TData = Awaited<ReturnType<typeof listKioskScreens>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listKioskScreens>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listKioskScreens>>,
+          TError,
+          Awaited<ReturnType<typeof listKioskScreens>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListKioskScreens<TData = Awaited<ReturnType<typeof listKioskScreens>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listKioskScreens>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listKioskScreens>>,
+          TError,
+          Awaited<ReturnType<typeof listKioskScreens>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListKioskScreens<TData = Awaited<ReturnType<typeof listKioskScreens>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listKioskScreens>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListKioskScreens<TData = Awaited<ReturnType<typeof listKioskScreens>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listKioskScreens>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListKioskScreensQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateKioskScreenUrl = () => {
+
+
+
+
+  return `/api/v1/kiosk-screens`
+}
+
+export const createKioskScreen = async (kioskScreenInput: KioskScreenInput, options?: Parameters<typeof apiFetch>[1]): Promise<KioskScreenLink> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<KioskScreenLink>(getCreateKioskScreenUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(kioskScreenInput)
+  }
+);}
+
+
+
+
+
+export const getCreateKioskScreenMutationKey = () => ['createKioskScreen'] as const;
+
+export const getCreateKioskScreenMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createKioskScreen>>, TError,CreateKioskScreenMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createKioskScreen>>, TError,CreateKioskScreenMutationVariables, TContext> => {
+
+const mutationKey = getCreateKioskScreenMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createKioskScreen>>, CreateKioskScreenMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createKioskScreen(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateKioskScreenMutationResult = NonNullable<Awaited<ReturnType<typeof createKioskScreen>>>
+    export type CreateKioskScreenMutationBody = KioskScreenInput
+    export type CreateKioskScreenMutationError = unknown
+    export type CreateKioskScreenMutationVariables = {data: KioskScreenInput}
+
+    export const useCreateKioskScreen = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createKioskScreen>>, TError,CreateKioskScreenMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createKioskScreen>>,
+        TError,
+        CreateKioskScreenMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateKioskScreenMutationOptions(options), queryClient);
+    }
+
+export const getUpdateKioskScreenUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/kiosk-screens/${id}`
+}
+
+export const updateKioskScreen = async (id: string,
+    kioskScreenInput: KioskScreenInput, options?: Parameters<typeof apiFetch>[1]): Promise<KioskScreenRow> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<KioskScreenRow>(getUpdateKioskScreenUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(kioskScreenInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateKioskScreenMutationKey = () => ['updateKioskScreen'] as const;
+
+export const getUpdateKioskScreenMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateKioskScreen>>, TError,UpdateKioskScreenMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateKioskScreen>>, TError,UpdateKioskScreenMutationVariables, TContext> => {
+
+const mutationKey = getUpdateKioskScreenMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateKioskScreen>>, UpdateKioskScreenMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateKioskScreen(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateKioskScreenMutationResult = NonNullable<Awaited<ReturnType<typeof updateKioskScreen>>>
+    export type UpdateKioskScreenMutationBody = KioskScreenInput
+    export type UpdateKioskScreenMutationError = unknown
+    export type UpdateKioskScreenMutationVariables = {id: string;data: KioskScreenInput}
+
+    export const useUpdateKioskScreen = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateKioskScreen>>, TError,UpdateKioskScreenMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateKioskScreen>>,
+        TError,
+        UpdateKioskScreenMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateKioskScreenMutationOptions(options), queryClient);
+    }
+
+export const getRegenerateKioskScreenLinkUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/kiosk-screens/${id}/new-link`
+}
+
+export const regenerateKioskScreenLink = async (id: string,
+    kioskVersionInput: KioskVersionInput, options?: Parameters<typeof apiFetch>[1]): Promise<KioskScreenLink> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<KioskScreenLink>(getRegenerateKioskScreenLinkUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(kioskVersionInput)
+  }
+);}
+
+
+
+
+
+export const getRegenerateKioskScreenLinkMutationKey = () => ['regenerateKioskScreenLink'] as const;
+
+export const getRegenerateKioskScreenLinkMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof regenerateKioskScreenLink>>, TError,RegenerateKioskScreenLinkMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof regenerateKioskScreenLink>>, TError,RegenerateKioskScreenLinkMutationVariables, TContext> => {
+
+const mutationKey = getRegenerateKioskScreenLinkMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof regenerateKioskScreenLink>>, RegenerateKioskScreenLinkMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  regenerateKioskScreenLink(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RegenerateKioskScreenLinkMutationResult = NonNullable<Awaited<ReturnType<typeof regenerateKioskScreenLink>>>
+    export type RegenerateKioskScreenLinkMutationBody = KioskVersionInput
+    export type RegenerateKioskScreenLinkMutationError = unknown
+    export type RegenerateKioskScreenLinkMutationVariables = {id: string;data: KioskVersionInput}
+
+    export const useRegenerateKioskScreenLink = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof regenerateKioskScreenLink>>, TError,RegenerateKioskScreenLinkMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof regenerateKioskScreenLink>>,
+        TError,
+        RegenerateKioskScreenLinkMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRegenerateKioskScreenLinkMutationOptions(options), queryClient);
+    }
+
+export const getRevokeKioskScreenUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/kiosk-screens/${id}/revoke`
+}
+
+export const revokeKioskScreen = async (id: string,
+    kioskVersionInput: KioskVersionInput, options?: Parameters<typeof apiFetch>[1]): Promise<KioskScreenRow> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<KioskScreenRow>(getRevokeKioskScreenUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(kioskVersionInput)
+  }
+);}
+
+
+
+
+
+export const getRevokeKioskScreenMutationKey = () => ['revokeKioskScreen'] as const;
+
+export const getRevokeKioskScreenMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeKioskScreen>>, TError,RevokeKioskScreenMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof revokeKioskScreen>>, TError,RevokeKioskScreenMutationVariables, TContext> => {
+
+const mutationKey = getRevokeKioskScreenMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof revokeKioskScreen>>, RevokeKioskScreenMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  revokeKioskScreen(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RevokeKioskScreenMutationResult = NonNullable<Awaited<ReturnType<typeof revokeKioskScreen>>>
+    export type RevokeKioskScreenMutationBody = KioskVersionInput
+    export type RevokeKioskScreenMutationError = unknown
+    export type RevokeKioskScreenMutationVariables = {id: string;data: KioskVersionInput}
+
+    export const useRevokeKioskScreen = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeKioskScreen>>, TError,RevokeKioskScreenMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof revokeKioskScreen>>,
+        TError,
+        RevokeKioskScreenMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRevokeKioskScreenMutationOptions(options), queryClient);
+    }
+
+export const getOpenKioskSessionUrl = () => {
+
+
+
+
+  return `/api/v1/kiosk/session`
+}
+
+export const openKioskSession = async (nullKioskSessionRequest?: null | KioskSessionRequest, options?: Parameters<typeof apiFetch>[1]): Promise<KioskSessionOpened> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<KioskSessionOpened>(getOpenKioskSessionUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(nullKioskSessionRequest)
+  }
+);}
+
+
+
+
+
+export const getOpenKioskSessionMutationKey = () => ['openKioskSession'] as const;
+
+export const getOpenKioskSessionMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof openKioskSession>>, TError,OpenKioskSessionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof openKioskSession>>, TError,OpenKioskSessionMutationVariables, TContext> => {
+
+const mutationKey = getOpenKioskSessionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof openKioskSession>>, OpenKioskSessionMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  openKioskSession(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type OpenKioskSessionMutationResult = NonNullable<Awaited<ReturnType<typeof openKioskSession>>>
+    export type OpenKioskSessionMutationBody = null | KioskSessionRequest | undefined
+    export type OpenKioskSessionMutationError = unknown
+    export type OpenKioskSessionMutationVariables = {data?: null | KioskSessionRequest}
+
+    export const useOpenKioskSession = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof openKioskSession>>, TError,OpenKioskSessionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof openKioskSession>>,
+        TError,
+        OpenKioskSessionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getOpenKioskSessionMutationOptions(options), queryClient);
+    }
+
+export const getGetKioskScreenUrl = () => {
+
+
+
+
+  return `/api/v1/kiosk/screen`
+}
+
+export const getKioskScreen = async ( options?: Parameters<typeof apiFetch>[1]): Promise<KioskScreenContext> => {
+
+  return apiFetch<KioskScreenContext>(getGetKioskScreenUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetKioskScreenQueryKey = () => {
+    return [
+    `/api/v1/kiosk/screen`
+    ] as const;
+    }
+
+
+export const getGetKioskScreenQueryOptions = <TData = Awaited<ReturnType<typeof getKioskScreen>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskScreen>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetKioskScreenQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getKioskScreen>>> = ({ signal }) => getKioskScreen({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getKioskScreen>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetKioskScreenQueryResult = NonNullable<Awaited<ReturnType<typeof getKioskScreen>>>
+export type GetKioskScreenQueryError = unknown
+
+
+export function useGetKioskScreen<TData = Awaited<ReturnType<typeof getKioskScreen>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskScreen>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getKioskScreen>>,
+          TError,
+          Awaited<ReturnType<typeof getKioskScreen>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetKioskScreen<TData = Awaited<ReturnType<typeof getKioskScreen>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskScreen>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getKioskScreen>>,
+          TError,
+          Awaited<ReturnType<typeof getKioskScreen>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetKioskScreen<TData = Awaited<ReturnType<typeof getKioskScreen>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskScreen>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetKioskScreen<TData = Awaited<ReturnType<typeof getKioskScreen>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskScreen>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetKioskScreenQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getListPartiesUrl = (params?: ListPartiesParams,) => {
   const normalizedParams = new URLSearchParams();

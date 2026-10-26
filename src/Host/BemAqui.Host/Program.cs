@@ -109,6 +109,13 @@ try
     builder.Services.AddSingleton<BemAqui.Host.Realtime.HubConnectionRegistry>();
     builder.Services.AddSingleton<BemAqui.BuildingBlocks.Identity.IRealtimeConnections>(sp => sp.GetRequiredService<BemAqui.Host.Realtime.HubConnectionRegistry>());
     builder.Services.AddSingleton<BemAqui.Production.Application.IProductionBoardPush, BemAqui.Host.Realtime.SignalRProductionBoardPush>();
+    // Painel da TV (PNL-01a, ADR 0030): esquema Kiosk (cookie __Host-bq_kiosk), hub do quiosque e revalidação das TVs a cada 30 s.
+    builder.Services.AddKioskAuthentication();
+    builder.Services.Configure<KioskRealtimeOptions>(builder.Configuration.GetSection(KioskRealtimeOptions.Section));
+    builder.Services.AddSingleton<KioskConnectionRegistry>();
+    builder.Services.AddSingleton<SignalRKioskRealtime>();
+    builder.Services.AddSingleton<BemAqui.BuildingBlocks.Identity.IKioskRealtime>(sp => sp.GetRequiredService<SignalRKioskRealtime>());
+    builder.Services.AddHostedService<KioskHubRevalidator>();
     builder.Services.AddAuthRateLimiting(builder.Configuration);
     // Número é número no contrato (OpenAPI/Orval): sem aceitar "1" como 1, que gerava tipos integer|string no cliente.
     builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.Strict);
@@ -133,6 +140,7 @@ try
     app.UseAuthentication();
     app.UseRateLimiter();
     app.UseMiddleware<PinSessionScopeMiddleware>(); // sessão por PIN: aparelho e sessão a cada request, só a lista permitida (ADR 0026)
+    app.UseMiddleware<KioskScopeMiddleware>(); // principal de quiosque: só GET do painel; fora dele, 403 kiosk_scope (ADR 0030 §2)
     app.UseRequestLogContext();
     app.UseBemAquiRequestLogging();
     app.UsePlatformDashboard(); // antes da policy padrão: o painel tem a própria autorização (esquema Platform)
@@ -156,6 +164,7 @@ try
     app.MapHealthChecks("/health", new HealthCheckOptions { Predicate = c => c.Tags.Contains("ready") }).AllowAnonymous();
     app.MapHub<PingHub>(PingHub.Path);
     app.MapHub<BemAqui.Host.Realtime.ProductionHub>(BemAqui.Host.Realtime.ProductionHub.Path).RequireHubAccess("production", "production.view", "shopfloor.view").AllowPinSession();
+    app.MapHub<KioskHub>(KioskHub.Path).RequireKiosk(); // só o principal de quiosque, grupos das claims (ADR 0030 §3)
 
     var api = app.MapGroup("/api/v1");
     api.MapAuditEndpoints();

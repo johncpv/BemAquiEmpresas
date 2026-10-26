@@ -97,7 +97,10 @@ public static partial class ModuleCatalog
                 new("view_sensitive", "Ver dados sensíveis", "Ver salário, documentos e dados pessoais protegidos pela LGPD."),
                 new("view_health", "Ver dados de saúde", "Ver atestados e dados de saúde: o tipo Doença ou Acidente de trabalho dos afastamentos, com o motivo, e o atestado médico."),
             ], "ajustes de ponto"),
-        new("kiosk", "Painel da TV", ModuleAreas.Dedicated, 4, 130, "Painéis de fábrica na TV, sem login. Criar = gerar o token de uma tela.", [StandardActions.View, StandardActions.Create], []),
+        // PNL-01a (D11, ADR 0003 adendo de 21/10/2026, ADR 0030 §4): kiosk.delete revoga a tela; criar e editar exigem também production.view.
+        new("kiosk", "Painel da TV", ModuleAreas.Dedicated, 4, 130,
+            "Painéis de fábrica na TV, sem login. Criar = gerar o link de uma tela (exige ver a produção). Excluir = revogar uma tela: desliga a TV na hora.",
+            [StandardActions.View, StandardActions.Create, StandardActions.Delete], []),
         new("shopfloor", "App do operador", ModuleAreas.Dedicated, 3, 140, "Fila do operador e apontamento das etapas. Criar = apontar.", [StandardActions.View, StandardActions.Create], []),
         new("identity", "Usuários e acessos", ModuleAreas.System, 0, 150, "Usuários, grupos e permissões.", Crud, []),
         new("settings", "Configurações", ModuleAreas.System, 0, 160, "Parâmetros da empresa: segurança, numeração, IA e mais.", [StandardActions.View, StandardActions.Edit], []),

@@ -29,6 +29,14 @@ public sealed class SecurityHeadersMiddleware(RequestDelegate next, IHostEnviron
             headers.XContentTypeOptions = "nosniff";
             headers.XFrameOptions = "DENY";
             headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+            // Painel da TV (PNL-01a CA 5 e 11): nada do quiosque fica em cache nem vai no Referer.
+            if (context.Request.Path.StartsWithSegments(BemAqui.BuildingBlocks.Web.KioskEndpoints.PathPrefix, StringComparison.OrdinalIgnoreCase)
+                || context.Request.Path.StartsWithSegments(BemAqui.BuildingBlocks.Web.KioskEndpoints.HubPath, StringComparison.OrdinalIgnoreCase))
+            {
+                headers.CacheControl = "no-store";
+                headers["Referrer-Policy"] = "no-referrer";
+            }
+
             headers["Permissions-Policy"] = "camera=(self), microphone=(), geolocation=(self), payment=()";
             headers["Cross-Origin-Opener-Policy"] = "same-origin";
             return Task.CompletedTask;

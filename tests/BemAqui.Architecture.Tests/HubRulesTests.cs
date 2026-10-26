@@ -16,6 +16,9 @@ public static partial class HubRules
     /// <summary>O hub técnico da FND-02 só prova token e host do tenant (grupo "all").</summary>
     public static readonly string[] TechnicalHubs = ["PingHub"];
 
+    /// <summary>Hubs do principal de quiosque (PNL-01a): sem usuário, só com a sessão da TV.</summary>
+    public static readonly string[] KioskHubs = ["KioskHub"];
+
     [GeneratedRegex(@"MapHub<(?<hub>[\w.]+)>[^;]*;", RegexOptions.Singleline)]
     private static partial Regex MapHub();
 
@@ -29,6 +32,19 @@ public static partial class HubRules
             if (TechnicalHubs.Contains(hub))
             {
                 return [];
+            }
+
+            // Hub do Painel da TV (ADR 0030 §3): não é de usuário; exige o principal de quiosque (RequireKiosk, policy kiosk).
+            if (KioskHubs.Contains(hub))
+            {
+                return m.Value.Contains(".RequireKiosk()", StringComparison.Ordinal) && !m.Value.Contains("RequireHubAccess", StringComparison.Ordinal)
+                    ? []
+                    : new[] { $"{s.File}: MapHub<{hub}> do quiosque sem RequireKiosk" };
+            }
+
+            if (m.Value.Contains(".RequireKiosk()", StringComparison.Ordinal))
+            {
+                return new[] { $"{s.File}: MapHub<{hub}> de usuário com RequireKiosk" };
             }
 
             var access = HubAccessUse().Match(m.Value);
@@ -77,6 +93,17 @@ public class HubRulesTests
         HubRules.Violations([("X.cs", """app.MapHub<ProductionHub>(ProductionHub.Path).RequireHubAccess("production", "production.view", "shopfloor.view");""")])
             .Should().BeEmpty();
 
+    [Theory]
+    [InlineData("""app.MapHub<KioskHub>(KioskHub.Path);""")]
+    [InlineData("""app.MapHub<KioskHub>(KioskHub.Path).RequireHubAccess("kiosk", "kiosk.view");""")]
+    [InlineData("""app.MapHub<ProductionHub>(ProductionHub.Path).RequireHubAccess("production", "production.view").RequireKiosk();""")]
+    public void Hub_do_quiosque_so_com_RequireKiosk_e_hub_de_usuario_nunca_com_ele(string source) =>
+        HubRules.Violations([("X.cs", source)]).Should().NotBeEmpty();
+
+    [Fact]
+    public void Hub_do_quiosque_com_RequireKiosk_e_aceito() =>
+        HubRules.Violations([("X.cs", """app.MapHub<KioskHub>(KioskHub.Path).RequireKiosk();""")]).Should().BeEmpty();
+
     [Fact]
     public void Hubs_de_negocio_nao_tem_metodo_de_servidor()
     {
@@ -84,7 +111,7 @@ public class HubRulesTests
             .Where(t => t is { IsClass: true, IsAbstract: false } && typeof(Hub).IsAssignableFrom(t) && !HubRules.TechnicalHubs.Contains(t.Name))
             .ToList();
 
-        hubs.Should().Contain(typeof(ProductionHub));
+        hubs.Should().Contain(typeof(ProductionHub)).And.Contain(typeof(KioskHub));
         hubs.SelectMany(HubRules.ServerMethods).Should().BeEmpty("o cliente só recebe; entrar em grupo é decisão do servidor");
     }
 }

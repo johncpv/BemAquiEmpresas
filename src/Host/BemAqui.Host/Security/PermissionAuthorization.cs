@@ -135,7 +135,7 @@ public sealed class PermissionResultHandler : IAuthorizationMiddlewareResultHand
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(authorizeResult);
-        if (authorizeResult.Forbidden && policy?.Requirements.Any(r => r is PermissionRequirement or HubAccessRequirement) == true)
+        if (authorizeResult.Forbidden && policy?.Requirements.Any(r => r is PermissionRequirement or HubAccessRequirement or KioskRequirement) == true)
         {
             var notReleased = authorizeResult.AuthorizationFailure?.FailureReasons
                 .Select(r => r.Message).FirstOrDefault(m => m.StartsWith(PermissionHandler.NotReleasedReason + ":", StringComparison.Ordinal));

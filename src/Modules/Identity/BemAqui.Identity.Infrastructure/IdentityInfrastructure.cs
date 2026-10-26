@@ -73,6 +73,15 @@ public static class IdentityInfrastructure
         services.TryAddScoped<BemAqui.BuildingBlocks.Identity.IPinSessionValidator, Application.Shopfloor.PinSessionValidator>();
         services.AddAuditableEntity<ShopfloorDevice>("settings");
         services.AddAuditableEntity<UserPin>("identity");
+        // Painel da TV (PNL-01a, ADR 0030): telas com token de uso único, sessão de quiosque conferida a cada request e a troca da rota.
+        services.TryAddSingleton<Application.Kiosk.KioskSessionVersions>();
+        services.TryAddSingleton<BemAqui.BuildingBlocks.Identity.IKioskRealtime, BemAqui.BuildingBlocks.Identity.NoKioskRealtime>();
+        services.TryAddScoped<Application.Kiosk.KioskNotices>();
+        services.TryAddScoped<Application.Kiosk.KioskScreenService>();
+        services.TryAddScoped<Application.Kiosk.KioskSessionService>();
+        services.TryAddScoped<BemAqui.BuildingBlocks.Identity.IKioskSessionValidator>(sp => sp.GetRequiredService<Application.Kiosk.KioskSessionService>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Tenancy.ITenantSeeder, KioskLegacyRouteSeeder>());
+        services.AddAuditableEntity<KioskScreen>("kiosk");
         return services;
     }
 

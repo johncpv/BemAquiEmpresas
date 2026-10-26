@@ -18,6 +18,8 @@ import { AiSettingsPage } from '@/pages/settings/AiSettingsPage'
 import { ImportRunPage } from '@/pages/settings/import/ImportRunPage'
 import { ImportRunsPage } from '@/pages/settings/import/ImportRunsPage'
 import { ShopfloorLayout, TvLayout } from '@/pages/DedicatedLayouts'
+import { TvLegacyPage, TvPage } from '@/pages/tv/TvPage'
+import { KioskScreensPage } from '@/pages/kiosk/KioskScreensPage'
 import { FabEntryPage } from '@/pages/shopfloor/FabEntryPage'
 import { Inicio } from '@/pages/Inicio'
 import { DashboardPage } from '@/pages/dashboard/DashboardPage'
@@ -333,6 +335,8 @@ const detailMoldRoute = createRoute({ getParentRoute: () => appRoute, path: 'dev
 const panelMoldRoute = createRoute({ getParentRoute: () => appRoute, path: 'dev/moldes/painel', component: PanelMold })
 const componentsMoldRoute = createRoute({ getParentRoute: () => appRoute, path: 'dev/componentes', component: ComponentsMold })
 const devRoutes = galleryEnabled ? [moldsRoute, createMoldRoute, detailMoldRoute, panelMoldRoute, componentsMoldRoute] : []
+// Telas dedicadas → Painel da TV (PNL-01a): cadastro das telas, link de uso único, novo link e revogação.
+const kioskScreensRoute = createRoute({ getParentRoute: () => appRoute, path: 'painel-tv', component: gated('kiosk', KioskScreensPage) })
 const moduleRoute = createRoute({ getParentRoute: () => appRoute, path: '$module', component: ModulePage })
 const moduleTabRoute = createRoute({ getParentRoute: () => appRoute, path: '$module/$tab', component: ModulePage })
 
@@ -382,7 +386,10 @@ const countingRoute = createRoute({
   },
 })
 const countingIndexRoute = createRoute({ getParentRoute: () => countingRoute, path: '/', component: InventoryCountingPage })
-const tvRoute = createRoute({ getParentRoute: () => rootRoute, path: '/tv/$token', component: TvLayout })
+// Painel da TV (PNL-01a, ADR 0030): /tv#token troca o token pelo cookie e a rota fica só /tv; qualquer /tv/* é o link antigo, desligado.
+const tvRoute = createRoute({ getParentRoute: () => rootRoute, path: '/tv', component: TvLayout })
+const tvIndexRoute = createRoute({ getParentRoute: () => tvRoute, path: '/', component: TvPage })
+const tvLegacyRoute = createRoute({ getParentRoute: () => tvRoute, path: '$', component: TvLegacyPage })
 const galleryRoute = createRoute({ getParentRoute: () => rootRoute, path: '/dev/galeria', component: Gallery ?? NotFound })
 
 export const routeTree = rootRoute.addChildren([
@@ -396,14 +403,14 @@ export const routeTree = rootRoute.addChildren([
   appRoute.addChildren([appIndexRoute, dashboardRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute,
     aiSettingsRoute, importRunsRoute, importRunRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute,
     inventoryRootRoute, balancesRoute, movementsRoute, movementRoute, manualPostingsRoute, manualPostingRoute, shortagesRoute, requisitionsRoute, requisitionRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, bomsRoute, productionRootRoute, fabricationOrdersRoute, fabricationOrderRoute, kanbanRoute, openLaborRoute, operatorRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute, qualityRoute, qualityStepRoute, nonConformitiesRoute, nonConformityRoute, purchasingRootRoute, purchaseRequestsRoute, newPurchaseRequestRoute, purchaseRequestRoute, purchaseOrdersRoute, newPurchaseOrderRoute, purchaseOrderRoute, editPurchaseOrderRoute, shipmentsRoute, newShipmentRoute, shipmentRoute, traceabilityRoute, adjustmentsRoute, adjustmentRoute, goodsReceiptsRoute, goodsReceiptRoute, newGoodsReceiptRoute, rfqsRoute, newRfqRoute, rfqRoute, inventoryCountsRoute, inventoryCountRoute, capacityRoute, planningRoute,
-    financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, payablesRoute, newPayableRoute, payableRoute, recurringRoute, approvalRulesRoute, openingRoute, cashFlowRoute, dreRoute, agingRoute, paymentOrdersRoute, newPaymentOrderRoute, paymentOrderRoute, statementRoute, quotesRoute, quoteFunnelRoute, quoteRoute, quoteCompareRoute, contractsRoute, contractRoute, amendmentRoute, projectsRoute, projectMarginsRoute, projectRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
+    financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, payablesRoute, newPayableRoute, payableRoute, recurringRoute, approvalRulesRoute, openingRoute, cashFlowRoute, dreRoute, agingRoute, paymentOrdersRoute, newPaymentOrderRoute, paymentOrderRoute, statementRoute, quotesRoute, quoteFunnelRoute, quoteRoute, quoteCompareRoute, contractsRoute, contractRoute, amendmentRoute, projectsRoute, projectMarginsRoute, projectRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, kioskScreensRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
   platformLoginRoute,
   platformPasswordRoute,
   platformRoute.addChildren([platformIndexRoute, tenantsRoute, tenantRoute]),
   fabEntryRoute,
   fabRoute.addChildren([fabQueueRoute, fabStepRoute, fabQualityRoute, fabQualityStepRoute]),
   countingRoute.addChildren([countingIndexRoute]),
-  tvRoute,
+  tvRoute.addChildren([tvIndexRoute, tvLegacyRoute]),
   galleryRoute,
 ])
 

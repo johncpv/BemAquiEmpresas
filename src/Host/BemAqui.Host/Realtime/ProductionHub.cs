@@ -128,8 +128,11 @@ public sealed class HubConnectionRegistry : IRealtimeConnections
     }
 }
 
-/// <summary>Envio do <c>OrderBoardChanged</c> aos grupos do tenant (CA 12): só o id, nunca dado.</summary>
-public sealed class SignalRProductionBoardPush(IHubContext<ProductionHub> hub) : IProductionBoardPush
+/// <summary>
+/// Envio do <c>OrderBoardChanged</c> aos grupos do tenant (CA 12): só o id, nunca dado. Também às TVs do tenant, no grupo
+/// <c>{tenantId}:production</c> do <see cref="KioskHub"/> (PNL-01a CA 12 e 13): a TV recarrega pela API de quiosque.
+/// </summary>
+public sealed class SignalRProductionBoardPush(IHubContext<ProductionHub> hub, IHubContext<KioskHub> kiosk) : IProductionBoardPush
 {
     public async Task OrdersChangedAsync(Guid tenantId, IReadOnlyCollection<Guid> orderIds, CancellationToken cancellationToken = default)
     {
@@ -137,7 +140,9 @@ public sealed class SignalRProductionBoardPush(IHubContext<ProductionHub> hub) :
         var groups = new[] { PingHub.Group(tenantId, ProductionHub.ProductionPanel), PingHub.Group(tenantId, ProductionHub.ShopfloorPanel) };
         foreach (var id in orderIds)
         {
-            await hub.Clients.Groups(groups).SendAsync(ProductionHub.OrderBoardChanged, new BoardChangedMessage(id), cancellationToken);
+            var message = new BoardChangedMessage(id);
+            await hub.Clients.Groups(groups).SendAsync(ProductionHub.OrderBoardChanged, message, cancellationToken);
+            await kiosk.Clients.Group(KioskHub.ProductionGroup(tenantId)).SendAsync(KioskHub.OrderBoardChanged, message, cancellationToken);
         }
     }
 

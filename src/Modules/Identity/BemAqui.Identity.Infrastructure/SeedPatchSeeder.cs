@@ -84,6 +84,11 @@ public sealed class SeedPatchSeeder : ITenantSeeder
         [
             ("warehouse", "inventory", ["adjust"]),
         ]),
+        // PNL-01a CA 1 (D11, ADR 0003 adendo de 21/10/2026, ADR 0030 §4): a Supervisão de produção, que já cria as telas, passa a revogá-las.
+        new("kiosk-delete",
+        [
+            ("production_supervision", "kiosk", ["delete"]),
+        ]),
     ];
 
     public int Order => 25;

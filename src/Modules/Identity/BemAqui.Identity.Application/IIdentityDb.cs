@@ -15,6 +15,11 @@ public interface IIdentityDb
 
     DbSet<UserPin> UserPins { get; }
 
+    /// <summary>Telas de TV (<c>identity.kiosk_tokens</c>, PNL-01a).</summary>
+    DbSet<KioskScreen> KioskScreens { get; }
+
+    DbSet<KioskSession> KioskSessions { get; }
+
     DbSet<UserInvite> UserInvites { get; }
 
     DbSet<PasswordReset> PasswordResets { get; }
@@ -51,4 +56,8 @@ public interface IIdentityDb
     DbSet<AuditEntry> AuditEntries { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Concorrência otimista (xmin) da tela de TV.</summary>
+    Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<TEntity> Entry<TEntity>(TEntity entity)
+        where TEntity : class;
 }

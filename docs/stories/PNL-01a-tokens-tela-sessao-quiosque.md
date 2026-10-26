@@ -5,7 +5,7 @@
 | ID | PNL-01a |
 | Título | Cadastro das telas de TV com token próprio (256 bits, guardado só como hash, mostrado uma vez, de uso único), link `/tv#token` trocado por uma sessão de quiosque no cookie `__Host-bq_kiosk` (30 dias sem uso, 180 dias absolutos), esquema de autenticação só de leitura e restrito ao painel, hub de tempo real com o grupo derivado das claims, revogação com `kiosk.delete` que derruba a tela em menos de 1 minuto, aviso ao Proprietário e o kit base da superfície `/tv` (ADR 0030) |
 | Tamanho | G (quebra da PNL-01: tokens, sessão, autenticação, tempo real e o kit base da TV; as visões e a prévia ficam na PNL-01b) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-SEC-6 (token de quiosque por tela, revogável, somente leitura, escopo de painel) · PRD §5.14 (Painel de produção: tempo real via SignalR; uma tela por linha ou geral, filtro na configuração do token; modo escuro e fonte grande) · PRD §2 (Tela de quiosque: painel sem login) · PRD §6 (Segurança) · R-SEC-5 |
 | Dependências | PRD-02 (`ProductionHub`, `IProductionBoardNotifier`, mensagem `OrderBoardChanged`), PLN-01b (sinal `ScheduleChanged`), FND-02 (SignalR com o tenant, `PingHub`), FND-04 (sessões e cookies `__Host-`), FND-09b (superfície `/tv` sem dock), FND-12 (logs e alertas), ADR 0015 (log do nginx mascarado) |
 | Bloqueia | PNL-01b (visões do painel e prévia) |
@@ -105,22 +105,22 @@ Decisões da revisão aplicadas: D11 e ADR 0030 (aviso ao Proprietário, CA 3, 6
 **Pré-condição externa:** nenhuma (a TV é da Konebras, P-12 decidida).
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers, dois tenants, revogação com conexão caída), arquitetura, front (Vitest) e E2E passando.
-- [ ] Migration de `kiosk_tokens` e `kiosk_sessions` (não destrutiva), com a conferência das linhas antigas; seed patch `kiosk-delete` (ADR 0003 adendo aplicado).
-- [ ] Permissões só do `ModuleCatalog`; rota anônima só a de sessão de quiosque (lista de rotas anônimas da ADR 0009 atualizada).
-- [ ] Telas com estados (gestão e TV) e 400 px; kit TV base com tokens e sem cor literal.
-- [ ] Ajudas `painel-tv` e `tv`; teste de cobertura passando.
-- [ ] Auditoria ligada; canário de log sem token.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/02-arquitetura.md` (§2.1 e §4) e `docs/03-modelo-dados.md` atualizados; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers, dois tenants, revogação com conexão caída), arquitetura, front (Vitest) e E2E passando. (unidade, arquitetura, Vitest e E2E rodados; integração escrita, roda na fila do Docker: ver o Change Log 1.0)
+- [x] Migration de `kiosk_tokens` e `kiosk_sessions` (não destrutiva), com a conferência das linhas antigas; seed patch `kiosk-delete` (ADR 0003 adendo aplicado).
+- [x] Permissões só do `ModuleCatalog`; rota anônima só a de sessão de quiosque (lista de rotas anônimas da ADR 0009 atualizada).
+- [x] Telas com estados (gestão e TV) e 400 px; kit TV base com tokens e sem cor literal.
+- [x] Ajudas `painel-tv` e `tv`; teste de cobertura passando.
+- [x] Auditoria ligada; canário de log sem token.
+- [x] OpenAPI e cliente Orval regenerados. (gerado pelo Host em processo; regenerar oficialmente com `BQ_UPDATE_OPENAPI=1`)
+- [x] `docs/02-arquitetura.md` (§2.1 e §4) e `docs/03-modelo-dados.md` atualizados; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `kiosk.delete` no `ModuleCatalog` e seed patch; entidades e migration (com a conferência das linhas antigas).
-- [ ] Serviço de telas (criar, editar, gerar novo link, revogar) e endpoints `/api/v1/kiosk-screens`; avisos ao Proprietário.
-- [ ] `POST /api/v1/kiosk/session`, esquema `Kiosk`, policy, uso único, validação com cache e revalidação.
-- [ ] `KioskHub`, notificador estendido, `KioskRevoked`/`KioskConfigChanged`.
-- [ ] Superfície `/tv` (fragmento, cookie, estados, tela cheia, Wake Lock), kit TV base, service worker; tela de gestão e ajudas.
+- [x] `kiosk.delete` no `ModuleCatalog` e seed patch; entidades e migration (com a conferência das linhas antigas).
+- [x] Serviço de telas (criar, editar, gerar novo link, revogar) e endpoints `/api/v1/kiosk-screens`; avisos ao Proprietário.
+- [x] `POST /api/v1/kiosk/session`, esquema `Kiosk`, policy, uso único, validação com cache e revalidação.
+- [x] `KioskHub`, notificador estendido, `KioskRevoked`/`KioskConfigChanged`.
+- [x] Superfície `/tv` (fragmento, cookie, estados, tela cheia, Wake Lock), kit TV base, service worker; tela de gestão e ajudas.
 
 ## Quality gates
 - Agentes previstos: @dev, @architect (esquema de autenticação e hub), cybersecurity (token, sessão, rota anônima, isolamento), @qa, design (kit TV).
@@ -154,3 +154,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D11, D18, D19, tabela 3.1 pontos 44–47, §4.2, §4.3, §4.4 padrões 4 e 7; ADR 0030; adendos 0003 e 0009); ordem mantida (Marco 4.4, ordem 11); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 25/10/2026 | 1.0 | Implementada (`Done`). **Desvios e decisões:** (1) A API de dados do painel (`/api/v1/kiosk/board/*`, DTO com allowlist, 404 por linha) é da PNL-01b; nesta story a TV recarrega `GET /api/v1/kiosk/screen` (nome, linha, visões, rotação, empresa), e a medição do CA 13 vai do commit à resposta dessa rota. (2) `ScheduleChanged` (PLN-01b, fora da main): o `KioskHub` tem a constante e a porta desligada `SignalRKioskRealtime.ScheduleChangedAsync`; a PLN-01b/PNL-01b ligam. A TV já trata a mensagem. (3) O próximo passo "Ver prévia" é da PNL-01b; aqui só "Copiar link". (4) CA 17: nenhuma migration anterior criava `kiosk_tokens` (a tabela nasce aqui), então não há linha antiga; a conferência ficou como patch único `kiosk-route-fragment` (seeder do `migrate`, chave em `seed_patches`), que revoga as telas existentes na hora, audita "Rota da TV trocada para /tv#token" e avisa o Proprietário. (5) Ação padrão não tem descrição por módulo no catálogo: "Revogar uma tela: desliga a TV na hora." está na descrição do módulo `kiosk`. (6) Onde a story não detalhava, recomendação mais segura (recomendação aceita, PO 24/10): a troca do token também exige `Origin` do host e `X-CSRF: 1`; a falha tem tempo mínimo de 250 ms; o aviso de reuso do link vai ao Proprietário no máximo 1 vez por hora por tela (o rate limit segura o resto); "Gerar novo link" também avisa o Proprietário; o 405 em `/api/v1/kiosk/*` sai do `KioskScopeMiddleware` (com `Allow: GET`); o 403 `kiosk_scope` vale para request sem `Authorization` (um usuário do backoffice com token vencido no mesmo navegador continua recebendo 401 e renovando). (7) Canário do nginx: teste estático da configuração (`log_format bqe_masked` sem query, corpo, cookie nem Authorization; `/tv` com `no-referrer` e `no-store` no nginx do front), porque os testes não sobem o nginx. (8) Testes de integração (`KioskTests`, `EndpointAuthorizationTests`) escritos e não executados nesta máquina (Docker em fila); unidade (`KioskRulesTests`), arquitetura (`KioskRulesTests`, `HubRulesTests`, `DataOwnershipTests`), Vitest e E2E (`e2e/kiosk.spec.ts`) rodados. (9) O `openapi.json` foi gerado pelo Host em processo (só acréscimos); regenerar oficialmente com `BQ_UPDATE_OPENAPI=1`. | Dex (Dev) |

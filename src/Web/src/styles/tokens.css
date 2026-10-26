@@ -146,9 +146,13 @@
   --chart-6: #ff8fb8;
 }
 
-/* Painel da TV: sempre escuro, texto grande (revisão §2.4). */
+/* Painel da TV: sempre escuro, texto grande (revisão §2.4). Kit TV (PNL-01a CA 18, ADR 0030 §5): leitura a distância com mínimo de
+   32 px nos títulos, 28 px nas linhas e 48 px em contagens e relógio, crescendo com a altura da tela (TV 1080p ou 4K). */
 .theme-tv {
+  --tv-title: max(32px, 3.4vh);
+  --tv-line: max(28px, 2.9vh);
+  --tv-count: max(48px, 5vh);
   background: var(--background);
   color: var(--foreground);
-  font-size: 24px;
+  font-size: var(--tv-line);
 }
