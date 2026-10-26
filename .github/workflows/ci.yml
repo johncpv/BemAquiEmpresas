@@ -1,6 +1,6 @@
 name: CI
 
-# Economia de minutos (plano Free, repositório privado): roda no PR pronto para revisão, que é o mesmo código que
+# Roda no PR pronto para revisão, que é o mesmo código que
 # entra na main pelo squash, e não repete no push da main. PR que só muda docs/ não roda; rascunho espera ficar pronto.
 # Rodada manual (ex.: conferir a main) pelo workflow_dispatch.
 on:
@@ -29,9 +29,42 @@ jobs:
         run: sh scripts/check-actions-pinned.sh
 
   backend:
-    name: Backend (.NET)
+    name: Backend (.NET) — ${{ matrix.chunk.name }}
     runs-on: ubuntu-latest
     needs: supply-chain
+    # A suíte inteira num processo só acumula memória do test host. Em blocos por namespace (como o suite-chunks local)
+    # roda em paralelo e cada máquina fica leve. O bloco "resto" pega tudo que os outros excluem, inclusive unidade e
+    # arquitetura. Assembly sem teste no filtro sai com código 8, que aqui não é falha.
+    strategy:
+      fail-fast: false
+      matrix:
+        chunk:
+          - name: financeiro
+            filter: --filter-namespace "BemAqui.Integration.Tests.Finance*"
+          - name: comercial
+            filter: >-
+              --filter-namespace "BemAqui.Integration.Tests.Commercial*"
+              --filter-namespace "BemAqui.Integration.Tests.Dashboard*"
+              --filter-namespace "BemAqui.Integration.Tests.Agenda*"
+          - name: producao
+            filter: >-
+              --filter-namespace "BemAqui.Integration.Tests.Production*"
+              --filter-namespace "BemAqui.Integration.Tests.Engineering*"
+          - name: estoque
+            filter: >-
+              --filter-namespace "BemAqui.Integration.Tests.Inventory*"
+              --filter-namespace "BemAqui.Integration.Tests.Purchasing*"
+          - name: resto
+            vuln: true
+            filter: >-
+              --filter-not-namespace "BemAqui.Integration.Tests.Finance*"
+              --filter-not-namespace "BemAqui.Integration.Tests.Commercial*"
+              --filter-not-namespace "BemAqui.Integration.Tests.Dashboard*"
+              --filter-not-namespace "BemAqui.Integration.Tests.Agenda*"
+              --filter-not-namespace "BemAqui.Integration.Tests.Production*"
+              --filter-not-namespace "BemAqui.Integration.Tests.Engineering*"
+              --filter-not-namespace "BemAqui.Integration.Tests.Inventory*"
+              --filter-not-namespace "BemAqui.Integration.Tests.Purchasing*"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
@@ -42,8 +75,9 @@ jobs:
       - name: Build
         run: dotnet build BemAquiEmpresas.slnx --no-restore -c Release
       - name: Testes (unidade, arquitetura, integração com Testcontainers)
-        run: dotnet test --solution BemAquiEmpresas.slnx --no-build -c Release
+        run: dotnet test --solution BemAquiEmpresas.slnx --no-build -c Release --ignore-exit-code 8 ${{ matrix.chunk.filter }}
       - name: Pacotes vulneráveis (alta/crítica falham)
+        if: matrix.chunk.vuln
         run: |
           dotnet list BemAquiEmpresas.slnx package --vulnerable --include-transitive 2>&1 | tee vuln.txt
           if grep -qE '\b(High|Critical)\b' vuln.txt; then echo "Pacote com vulnerabilidade alta ou crítica."; exit 1; fi
