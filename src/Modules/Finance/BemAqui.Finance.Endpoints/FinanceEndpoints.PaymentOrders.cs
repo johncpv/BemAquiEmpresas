@@ -29,8 +29,9 @@ internal static partial class FinanceEndpoints
         orders.MapPost("/{id:guid}/resubmit", async (Guid id, ResubmitInput input, PaymentOrderService service, CancellationToken ct) => (await service.ResubmitAsync(id, input, ct)).ToHttpResult())
             .RequirePermission("finance.create").WithName("ResubmitPaymentOrder").Produces<PaymentOrderDetail>();
         orders.MapPost("/{id:guid}/pay", async (Guid id, PayInput input, PaymentOrderService service, CancellationToken ct) => (await service.PayAsync(id, input, ct)).ToHttpResult())
-            .RequirePermission("finance.pay").RequireIdempotencyKey().WithName("PayPaymentOrder").Produces<PaymentResult>();
+            .RequirePermission("finance.pay").RequireRecentTwoFactor().RequireIdempotencyKey().WithName("PayPaymentOrder").Produces<PaymentResult>();
+        // Pagar e estornar pedem o 2FA de novo (D6, P-19; BNK-01a CA 2): sem a prova recente, 403 two_factor_required e nada é gravado.
         orders.MapPost("/{id:guid}/reverse", async (Guid id, ReasonInput input, PaymentOrderService service, CancellationToken ct) => (await service.ReverseAsync(id, input, ct)).ToHttpResult())
-            .RequirePermission("finance.pay").WithName("ReversePaymentOrder").Produces<PaymentOrderDetail>();
+            .RequirePermission("finance.pay").RequireRecentTwoFactor().WithName("ReversePaymentOrder").Produces<PaymentOrderDetail>();
     }
 }

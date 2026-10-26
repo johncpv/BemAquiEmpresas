@@ -438,6 +438,10 @@ namespace BemAqui.Platform.Infrastructure.Catalog.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<bool>("BankProductionAllowed")
+                        .HasColumnType("boolean")
+                        .HasColumnName("bank_production_allowed");
+
                     b.Property<string>("ConnectionSecret")
                         .IsRequired()
                         .HasColumnType("text")

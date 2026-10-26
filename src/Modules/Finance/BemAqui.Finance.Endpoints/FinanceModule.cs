@@ -15,5 +15,5 @@ public sealed class FinanceModule : IModule
 
     public void AddServices(IServiceCollection services, IConfiguration configuration) => services.AddFinanceInfrastructure();
 
-    public void MapEndpoints(IEndpointRouteBuilder endpoints) => endpoints.MapFinanceEndpoints();
+    public void MapEndpoints(IEndpointRouteBuilder endpoints) => endpoints.MapFinanceEndpoints().MapBankIntegrationEndpoints();
 }

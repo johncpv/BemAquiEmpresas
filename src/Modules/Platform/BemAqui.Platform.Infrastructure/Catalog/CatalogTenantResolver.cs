@@ -96,6 +96,7 @@ public sealed class CatalogTenantResolver(IServiceScopeFactory scopes, TimeProvi
         return new ResolvedTenant(new TenantInfo(tenant.Id, tenant.Key, status), tenant.LegalName, tenant.TradeName, primary, tenant.ConnectionSecret, tenant.SchemaVersion)
         {
             ReleasedModules = released.ToHashSet(StringComparer.Ordinal),
+            BankProductionAllowed = tenant.BankProductionAllowed,
         };
     }
 

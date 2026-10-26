@@ -11,6 +11,12 @@ public sealed record ResolvedTenant(TenantInfo Tenant, string LegalName, string?
     public IReadOnlySet<string> ReleasedModules { get; init; } = new HashSet<string>(StringComparer.Ordinal);
 
     public bool IsReleased(string moduleCode) => ReleasedModules.Contains(moduleCode);
+
+    /// <summary>
+    /// Cobrança real pelo banco liberada (<c>catalog.tenants.bank_production_allowed</c>, ligada só pelo super admin na GOL-01b, ADR 0034):
+    /// sem ela, a integração bancária de produção só é salva e testada (BNK-01a CA 12).
+    /// </summary>
+    public bool BankProductionAllowed { get; init; }
 }
 
 /// <summary>Resolve o tenant pelo host ou pelo id, com cache; <see cref="Invalidate"/> é chamado ao mudar o catálogo.</summary>

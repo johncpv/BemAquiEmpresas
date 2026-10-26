@@ -97,6 +97,16 @@ public static class FinanceInfrastructure
             CanAttach: async (sp, id, ct) => await sp.GetRequiredService<IFinanceDb>().PaymentOrders.AnyAsync(o => o.Id == id && o.Status == PaymentOrderStatus.Paid, ct)
                 ? null
                 : Error.Conflict("attachment.owner_state", "Anexe o comprovante depois do pagamento.")));
+        // Banco Inter (BNK-01a, ADR 0032): integração por conta, cliente com mTLS (handler por conta e token em cache, singletons do
+        // processo), aviso de vencimento do certificado e o histórico (sem segredo) na auditoria.
+        services.AddOptions<BemAqui.Finance.Application.Inter.InterOptions>().BindConfiguration(BemAqui.Finance.Application.Inter.InterOptions.Section);
+        services.TryAddSingleton<Inter.IInterHandlerFactory, Inter.SocketsInterHandlerFactory>();
+        services.TryAddSingleton<Inter.InterHandlerCache>();
+        services.TryAddSingleton<Inter.InterTokenCache>();
+        services.TryAddSingleton<BemAqui.Finance.Application.Inter.IInterApiClient, Inter.InterApiClient>();
+        services.TryAddScoped<BankIntegrationService>();
+        services.TryAddScoped<InterCertificateExpiryNotifier>();
+        services.AddAuditableEntity<BankIntegration>("settings");
         // Painel do proprietário (DSH-01a, ADR 0028 §1): resumos com a mesma fonte dos relatórios e as metas de faturamento.
         services.TryAddScoped<FinanceSummariesContract>();
         services.TryAddScoped<IBankBalances>(sp => sp.GetRequiredService<FinanceSummariesContract>());

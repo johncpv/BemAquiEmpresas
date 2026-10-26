@@ -56,6 +56,12 @@ public sealed class Tenant : Entity, IAuditable
         return true;
     }
 
+    /// <summary>
+    /// Cobrança real pelo banco liberada (BNK-01a CA 12, ADR 0034): padrão falso; só o super admin liga, na virada (GOL-01b). Antes
+    /// disso a integração bancária de produção pode ser salva e testada, mas emitir, registrar webhook e importar extrato respondem 409.
+    /// </summary>
+    public bool BankProductionAllowed { get; set; }
+
     public List<TenantDomain> Domains { get; } = [];
 
     /// <summary>Tenant novo, em Provisioning, com o id já definido (o id entra no propósito do segredo).</summary>

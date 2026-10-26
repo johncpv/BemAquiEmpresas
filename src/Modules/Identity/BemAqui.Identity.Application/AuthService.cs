@@ -113,20 +113,25 @@ public sealed partial class AuthService(
     /// Sessão completa. Persistente: família nova de refresh, com prazo absoluto de <c>security.session_absolute_days</c> (D17 d).
     /// Sem persistência (tablet da fábrica, ADR 0026 §2): só o access token, nenhum refresh emitido.
     /// </summary>
-    public async Task<LoginSession> StartSessionAsync(User user, string host, string? ip, IReadOnlyList<string> amr, bool persistent, CancellationToken cancellationToken = default)
+    public Task<LoginSession> StartSessionAsync(User user, string host, string? ip, IReadOnlyList<string> amr, bool persistent, CancellationToken cancellationToken = default) =>
+        StartSessionAsync(user, host, ip, amr, persistent, otpProven: false, cancellationToken);
+
+    /// <param name="otpProven">O código TOTP foi conferido agora: o access token sai com a prova recente (<c>otp_at</c>, BNK-01a CA 1).</param>
+    public async Task<LoginSession> StartSessionAsync(User user, string host, string? ip, IReadOnlyList<string> amr, bool persistent, bool otpProven, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(user);
         var now = clock.GetUtcNow();
         user.RegisterSuccessfulLogin(now);
         LoginSession session;
+        var otpAt = otpProven ? now : (DateTimeOffset?)null;
         if (persistent)
         {
             var absolute = SessionLifetimes.FullAbsolute(now, await AbsoluteDaysAsync(cancellationToken));
-            session = CreateSession(user, host, Guid.CreateVersion7(), ip, now, new SessionSpec(SessionKind.Full, null, absolute, amr));
+            session = CreateSession(user, host, Guid.CreateVersion7(), ip, now, new SessionSpec(SessionKind.Full, null, absolute, amr, otpAt));
         }
         else
         {
-            var access = issuer.Issue(user, TenantId(), host, amr);
+            var access = issuer.Issue(user, TenantId(), host, amr, otpAt);
             session = new LoginSession(access.Token, access.ExpiresAt, null, null, access.ExpiresAt);
         }
 
@@ -197,11 +202,20 @@ public sealed partial class AuthService(
     }
 
     /// <summary>Tipo, aparelho, prazo absoluto e <c>amr</c> da família (ADR 0026 §3).</summary>
-    private sealed record SessionSpec(SessionKind Kind, Guid? DeviceId, DateTimeOffset Absolute, IReadOnlyList<string> Amr);
+    private sealed record SessionSpec(SessionKind Kind, Guid? DeviceId, DateTimeOffset Absolute, IReadOnlyList<string> Amr, DateTimeOffset? OtpAt = null);
+
+    /// <summary>
+    /// "2FA de novo" (BNK-01a CA 1): só um access token novo, com a prova recente; a família de refresh e o cookie continuam os mesmos.
+    /// </summary>
+    public AccessToken IssueStepUp(User user, string host)
+    {
+        ArgumentNullException.ThrowIfNull(user);
+        return issuer.Issue(user, TenantId(), host, [AuthMethods.Password, AuthMethods.Otp], clock.GetUtcNow());
+    }
 
     private LoginSession CreateSession(User user, string host, Guid familyId, string? ip, DateTimeOffset now, SessionSpec spec)
     {
-        var access = issuer.Issue(user, TenantId(), host, spec.Amr);
+        var access = issuer.Issue(user, TenantId(), host, spec.Amr, spec.OtpAt);
         var raw = OpaqueToken.New();
         var refresh = new RefreshToken
         {

@@ -54,6 +54,8 @@ public interface IFinanceDb
 
     DbSet<RevenueTarget> RevenueTargets { get; }
 
+    DbSet<BankIntegration> BankIntegrations { get; }
+
     /// <summary>Para trocar a conta padrão em dois passos numa transação (o índice único parcial é checado a cada comando).</summary>
     DatabaseFacade Database { get; }
 

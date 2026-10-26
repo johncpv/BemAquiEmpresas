@@ -11,4 +11,12 @@ public interface ISecretProtector
     string Protect(SecretScope scope, SecretKind kind, Secret secret);
 
     Secret Unprotect(SecretScope scope, SecretKind kind, string protectedValue);
+
+    /// <summary>
+    /// Segredo de um item do escopo (ex.: a integração de uma conta do Inter, ADR 0007 adendo de 21/10/2026): o id entra no
+    /// propósito depois do tipo, então o ciphertext de uma conta não decifra em outra.
+    /// </summary>
+    string Protect(SecretScope scope, SecretKind kind, Guid itemId, Secret secret);
+
+    Secret Unprotect(SecretScope scope, SecretKind kind, Guid itemId, string protectedValue);
 }

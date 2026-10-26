@@ -13,6 +13,9 @@ public static class AlertKinds
     /// <summary>Abuso de autenticação: entrada por PIN bloqueada num aparelho da fábrica por excesso de erros (PRD-03b CA 14).</summary>
     public const string AuthAbuse = "auth_abuse";
 
+    /// <summary>Integração bancária parada: certificado do Inter vencido (BNK-01a CA 15).</summary>
+    public const string BankIntegration = "bank_integration";
+
     /// <summary>Tipos que podem vir de fora da API, pela CLI <c>alert raise</c> (FND-10).</summary>
     public static readonly string[] External = [BackupFailed];
 }
