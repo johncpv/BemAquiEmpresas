@@ -8209,6 +8209,22 @@
             }
           },
           {
+            "name": "deliveredFrom",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "deliveredTo",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
             "name": "sort",
             "in": "query",
             "schema": {
@@ -8298,6 +8314,22 @@
             "schema": {
               "type": "boolean"
             }
+          },
+          {
+            "name": "deliveredFrom",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "deliveredTo",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
           }
         ],
         "responses": {
@@ -8380,6 +8412,22 @@
             "in": "query",
             "schema": {
               "type": "boolean"
+            }
+          },
+          {
+            "name": "deliveredFrom",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "deliveredTo",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
             }
           }
         ],
@@ -25393,6 +25441,380 @@
         }
       }
     },
+    "/api/v1/dashboard/cards/margin": {
+      "get": {
+        "tags": [
+          "Painel do propriet\u00E1rio"
+        ],
+        "operationId": "GetDashboardMargin",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarginOverview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/cards/active-projects": {
+      "get": {
+        "tags": [
+          "Painel do propriet\u00E1rio"
+        ],
+        "operationId": "GetDashboardActiveProjects",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActiveProjectsCard"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/cards/active-projects/margins": {
+      "get": {
+        "tags": [
+          "Painel do propriet\u00E1rio"
+        ],
+        "operationId": "ListDashboardActiveProjectMargins",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ActiveProjectMarginRow"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/cards/active-projects/received": {
+      "get": {
+        "tags": [
+          "Painel do propriet\u00E1rio"
+        ],
+        "operationId": "ListDashboardActiveProjectsReceived",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ActiveProjectReceivedItem"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/cards/backlog": {
+      "get": {
+        "tags": [
+          "Painel do propriet\u00E1rio"
+        ],
+        "operationId": "GetDashboardBacklog",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BacklogCard"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/cards/deliveries": {
+      "get": {
+        "tags": [
+          "Painel do propriet\u00E1rio"
+        ],
+        "operationId": "GetDashboardDeliveries",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeliveriesCard"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/cards/production": {
+      "get": {
+        "tags": [
+          "Painel do propriet\u00E1rio"
+        ],
+        "operationId": "GetDashboardProduction",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductionCard"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/project-results": {
+      "get": {
+        "tags": [
+          "Painel do propriet\u00E1rio"
+        ],
+        "operationId": "ListDashboardProjectResults",
+        "parameters": [
+          {
+            "name": "situation",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "partyId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectResultsPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/project-results/{projectId}": {
+      "get": {
+        "tags": [
+          "Painel do propriet\u00E1rio"
+        ],
+        "operationId": "GetDashboardProjectResult",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectResultDetail"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/project-results/{projectId}/cell": {
+      "get": {
+        "tags": [
+          "Painel do propriet\u00E1rio"
+        ],
+        "operationId": "GetDashboardProjectResultCell",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "line",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "month",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectResultCell"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/dashboard/supervisor": {
       "get": {
         "tags": [
@@ -25791,6 +26213,160 @@
           "Asset",
           "Liability"
         ]
+      },
+      "ActiveProjectItem": {
+        "required": [
+          "id",
+          "number",
+          "name",
+          "partyName",
+          "status",
+          "promisedDate",
+          "forecastDate",
+          "slackDays",
+          "risk",
+          "delayDays",
+          "contractedAmount"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "promisedDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "forecastDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "slackDays": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "risk": {
+            "$ref": "#/components/schemas/DeliveryRisk"
+          },
+          "delayDays": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "contractedAmount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "ActiveProjectMarginRow": {
+        "required": [
+          "projectId",
+          "budgetedMarginPct",
+          "projectedMarginPct",
+          "deviationPp"
+        ],
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "budgetedMarginPct": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "projectedMarginPct": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "deviationPp": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "ActiveProjectReceivedItem": {
+        "required": [
+          "projectId",
+          "received",
+          "receivedPct"
+        ],
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "received": {
+            "type": "number",
+            "format": "double"
+          },
+          "receivedPct": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "ActiveProjectsCard": {
+        "required": [
+          "total",
+          "items",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ActiveProjectItem"
+            }
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
       },
       "AddHolidaysInput": {
         "required": [
@@ -27560,6 +28136,64 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "BacklogCard": {
+        "required": [
+          "toProduce",
+          "toProduceCount",
+          "contracted",
+          "recognized",
+          "toInvoice",
+          "toInvoiceCount",
+          "provisional",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "toProduce": {
+            "type": "number",
+            "format": "double"
+          },
+          "toProduceCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "contracted": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "recognized": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "toInvoice": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "toInvoiceCount": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "provisional": {
+            "type": "boolean"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -32739,6 +33373,100 @@
             "items": {
               "$ref": "#/components/schemas/DecisionItem"
             }
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "DelayedProjectItem": {
+        "required": [
+          "projectId",
+          "number",
+          "name",
+          "promisedDate",
+          "forecastDate",
+          "delayDays"
+        ],
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "promisedDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "forecastDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "delayDays": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "DeliveriesCard": {
+        "required": [
+          "year",
+          "month",
+          "forecastInMonth",
+          "deliveredInMonth",
+          "atRisk",
+          "late",
+          "mostDelayed",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "year": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "month": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "forecastInMonth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "deliveredInMonth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "atRisk": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "late": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mostDelayed": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/DelayedProjectItem"
+              }
+            ]
           },
           "updatedAt": {
             "type": "string",
@@ -38085,6 +38813,51 @@
         },
         "additionalProperties": false
       },
+      "HttpValidationProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "title": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "instance": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "errors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
       "IFormFile": {
         "type": "string",
         "format": "binary"
@@ -42511,6 +43284,152 @@
           },
           "awaitingMe": {
             "type": "boolean"
+          }
+        }
+      },
+      "MarginOverview": {
+        "required": [
+          "year",
+          "activeCount",
+          "activeRevenue",
+          "projectedMarginPct",
+          "budgetedMarginPct",
+          "deviationPp",
+          "finishedCount",
+          "finishedRealizedMarginPct",
+          "finishedBudgetedMarginPct",
+          "finishedDeviationPp",
+          "worst",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "year": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "activeCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "activeRevenue": {
+            "type": "number",
+            "format": "double"
+          },
+          "projectedMarginPct": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "budgetedMarginPct": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "deviationPp": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "finishedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "finishedRealizedMarginPct": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "finishedBudgetedMarginPct": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "finishedDeviationPp": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "worst": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MarginProjectRow"
+            }
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MarginProjectRow": {
+        "required": [
+          "projectId",
+          "number",
+          "name",
+          "partyName",
+          "budgetedMarginPct",
+          "projectedMarginPct",
+          "deviationPp",
+          "worstCostType"
+        ],
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "budgetedMarginPct": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "projectedMarginPct": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "deviationPp": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "worstCostType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CostType"
+              }
+            ]
           }
         }
       },
@@ -49313,6 +50232,61 @@
           }
         }
       },
+      "ProductionCard": {
+        "required": [
+          "activeProjects",
+          "openOrders",
+          "lateOrders",
+          "atRiskOrders",
+          "weeks",
+          "busyUntil",
+          "planComputedAt",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "activeProjects": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "openOrders": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lateOrders": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "atRiskOrders": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "weeks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductionWeekItem"
+            }
+          },
+          "busyUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "planComputedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "ProductionOrderState": {
         "enum": [
           "Open",
@@ -49421,6 +50395,50 @@
           "Done",
           "Rejected"
         ]
+      },
+      "ProductionWeekItem": {
+        "required": [
+          "start",
+          "end",
+          "isoWeek",
+          "committedHours",
+          "capacityHours",
+          "percent",
+          "band"
+        ],
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "string",
+            "format": "date"
+          },
+          "end": {
+            "type": "string",
+            "format": "date"
+          },
+          "isoWeek": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "committedHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "capacityHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "percent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "band": {
+            "$ref": "#/components/schemas/FactoryLoadBand"
+          }
+        }
       },
       "ProjectBudgetLine": {
         "required": [
@@ -50587,6 +51605,382 @@
           },
           "receivedPct": {
             "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "ProjectResultCell": {
+        "required": [
+          "line",
+          "label",
+          "month",
+          "total",
+          "entries"
+        ],
+        "type": "object",
+        "properties": {
+          "line": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "month": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectResultEntry"
+            }
+          }
+        }
+      },
+      "ProjectResultCostAmount": {
+        "required": [
+          "costType",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "costType": {
+            "$ref": "#/components/schemas/CostType"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "ProjectResultDetail": {
+        "required": [
+          "projectId",
+          "number",
+          "name",
+          "partyName",
+          "status",
+          "from",
+          "to",
+          "months",
+          "lines",
+          "marginPct",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          },
+          "months": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectResultMonth"
+            }
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectResultLine"
+            }
+          },
+          "marginPct": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ProjectResultEntry": {
+        "required": [
+          "kind",
+          "document",
+          "date",
+          "amount",
+          "hours",
+          "note",
+          "link"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "document": {
+            "type": "string"
+          },
+          "date": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "hours": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "link": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ProjectResultLine": {
+        "required": [
+          "key",
+          "label",
+          "kind",
+          "values",
+          "total",
+          "drillable"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "drillable": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ProjectResultMonth": {
+        "required": [
+          "month",
+          "provisional"
+        ],
+        "type": "object",
+        "properties": {
+          "month": {
+            "type": "string"
+          },
+          "provisional": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ProjectResultRow": {
+        "required": [
+          "projectId",
+          "number",
+          "name",
+          "partyId",
+          "partyName",
+          "status",
+          "revenue",
+          "costs",
+          "directCosts",
+          "result",
+          "marginPct"
+        ],
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "revenue": {
+            "type": "number",
+            "format": "double"
+          },
+          "costs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectResultCostAmount"
+            }
+          },
+          "directCosts": {
+            "type": "number",
+            "format": "double"
+          },
+          "result": {
+            "type": "number",
+            "format": "double"
+          },
+          "marginPct": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "ProjectResultsPage": {
+        "required": [
+          "from",
+          "to",
+          "months",
+          "provisional",
+          "items",
+          "page",
+          "pageSize",
+          "total",
+          "totals",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          },
+          "months": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectResultMonth"
+            }
+          },
+          "provisional": {
+            "type": "boolean"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectResultRow"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/ProjectResultTotals"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ProjectResultTotals": {
+        "required": [
+          "projects",
+          "revenue",
+          "costs",
+          "directCosts",
+          "result",
+          "marginPct"
+        ],
+        "type": "object",
+        "properties": {
+          "projects": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "revenue": {
+            "type": "number",
+            "format": "double"
+          },
+          "costs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectResultCostAmount"
+            }
+          },
+          "directCosts": {
+            "type": "number",
+            "format": "double"
+          },
+          "result": {
+            "type": "number",
+            "format": "double"
+          },
+          "marginPct": {
+            "type": [
+              "null",
+              "number"
+            ],
             "format": "double"
           }
         }

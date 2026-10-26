@@ -12,6 +12,8 @@ managerId?: string;
 signedFrom?: string;
 signedTo?: string;
 belowBudget?: boolean;
+deliveredFrom?: string;
+deliveredTo?: string;
 sort?: string;
 page?: number;
 pageSize?: number;
