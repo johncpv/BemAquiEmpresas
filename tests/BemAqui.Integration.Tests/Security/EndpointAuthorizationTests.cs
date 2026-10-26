@@ -42,6 +42,12 @@ public class EndpointAuthorizationTests(TenancyFixture tenancy) : IClassFixture<
         ["/api/v1/platform/auth/2fa/confirm"] = "2FA do super admin, pelo desafio",
         ["/api/v1/platform/auth/2fa/verify"] = "2FA do super admin, pelo desafio",
         ["/api/v1/platform/auth/logout"] = "encerra a sessão da plataforma",
+        // FND-16: única rota anônima de provedor externo (POST e o GET de verificação de quem declara; outro método, 405). Sem usuário,
+        // a origem é provada antes de qualquer gravação: HMAC do corpo cru com timestamp ou token na URL (só o hash guardado), em tempo
+        // constante; tenant só pelo tenantKey opaco, só no host da plataforma (ou no interno, para quem declara), fora do tenant por host;
+        // corpo de até 64 KB, Content-Type do provedor, política de rate limit "webhooks"; recusa uniforme 401 sem corpo.
+        // CLAUDE.md ("webhooks, assinatura validada"), ADR 0009 adendo de 21/10/2026, ADR 0031 §1 e §2, ADR 0007 adendo (webhook-secret).
+        ["/webhooks/{provider}/{tenantKey}/{pathToken?}"] = "webhooks de provedores externos com origem validada (ADR 0009 adendo de 21/10/2026, ADR 0031)",
         ["/health/live"] = "healthcheck do Docker",
         ["/health/ready"] = "healthcheck do Docker",
         ["/health"] = "healthcheck do Docker (compatibilidade)",
