@@ -148,7 +148,8 @@ public class ProjectMarginTests(TenancyFixture tenancy) : IClassFixture<TenancyF
     /// <summary>O <see cref="IProjectMargins"/> do painel do dono com o banco real e a permissão concedida (a terceira saída do CA 1).</summary>
     private static ProjectMarginService Service(IServiceProvider sp, IProjectProductionCosts? production = null) => new(
         sp.GetRequiredService<TenantDbContext>(), sp.GetRequiredService<IProjectPayableCosts>(), sp.GetRequiredService<IParties>(), sp.GetRequiredService<IUserDirectory>(),
-        new AllowAllPermissionChecker(), production ?? sp.GetRequiredService<IProjectProductionCosts>(), sp.GetRequiredService<IProductionOrders>());
+        new AllowAllPermissionChecker(), production ?? sp.GetRequiredService<IProjectProductionCosts>(), sp.GetRequiredService<IProductionOrders>(),
+        sp.GetRequiredService<BemAqui.BuildingBlocks.Tenancy.ITenantContext>(), sp.GetRequiredService<BemAqui.BuildingBlocks.Tenancy.ITenantScopeFactory>());
 
     private static ProjectMarginFigures FiguresOf(ProjectCostView v) => new(
         v.Lines, v.Total, v.Revenue, v.BudgetedMargin, v.BudgetedMarginPct, v.RealizedMargin, v.RealizedMarginPct, v.ProjectedMargin, v.ProjectedMarginPct, v.MarginDeviationPp, v.TaxBasis, v.TaxGuides);

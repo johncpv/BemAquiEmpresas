@@ -5,8 +5,8 @@ using Microsoft.EntityFrameworkCore;
 namespace BemAqui.Finance.Application;
 
 /// <summary>
-/// <see cref="IProjectPayableCosts"/> (DSH-02 CA 2 a 4 e 18): uma consulta agrupada no banco por projeto, natureza, origem e situação (uma
-/// linha por combinação, não por título) e a classe pela <see cref="PayableCostRules"/> em memória.
+/// <see cref="IProjectPayableCosts"/> (DSH-02 CA 2 a 4 e 18): uma consulta agrupada no banco por projeto, com as classes da
+/// <see cref="PayableCostRules"/> em somas condicionais (uma linha por projeto, não por título).
 /// </summary>
 public sealed class ProjectPayableCostsContract(IFinanceDb db) : IProjectPayableCosts
 {
@@ -19,23 +19,53 @@ public sealed class ProjectPayableCostsContract(IFinanceDb db) : IProjectPayable
         }
 
         var ids = projectIds.Distinct().ToArray();
-        var groups = await db.Payables.AsNoTracking()
-            .Where(p => p.ProjectId != null && ids.Contains(p.ProjectId.Value) && p.Status != PayableStatus.Cancelled)
-            .GroupBy(p => new { ProjectId = p.ProjectId!.Value, p.CostType, p.Origin, p.Status })
-            .Select(g => new { g.Key.ProjectId, g.Key.CostType, g.Key.Origin, g.Key.Status, Amount = g.Sum(p => p.Amount) })
+        // Uma linha por projeto (DSH-02 CA 18): as somas de cada natureza já nas classes da PayableCostRules.Bucket, para trafegar 5 mil linhas
+        // e não uma por projeto, natureza, origem e situação. Impostos é guia; Material de compra (pedido ou recebimento) é compra de item
+        // estocável; o resto é confirmado (abertura ou fora de previsto) ou previsto (o total menos as outras classes). Sem natureza vai para
+        // Outros. O array vai num parâmetro só (= ANY), não em 5 mil parâmetros.
+        var rows = await db.Payables.AsNoTracking()
+            .Where(p => p.ProjectId != null && EF.Parameter(ids).Contains(p.ProjectId.Value) && p.Status != PayableStatus.Cancelled)
+            .GroupBy(p => p.ProjectId!.Value)
+            .Select(g => new PayableSums(
+                g.Key,
+                g.Sum(p => p.CostType == CostType.Material ? p.Amount : 0),
+                g.Sum(p => p.CostType == CostType.Material && (p.Origin == DocumentOrigin.Purchase || p.Origin == DocumentOrigin.GoodsReceipt) ? p.Amount : 0),
+                g.Sum(p => p.CostType == CostType.Material && p.Origin != DocumentOrigin.Purchase && p.Origin != DocumentOrigin.GoodsReceipt
+                    && (p.Origin == DocumentOrigin.Opening || p.Status != PayableStatus.Planned) ? p.Amount : 0),
+                g.Sum(p => p.CostType == CostType.Labor ? p.Amount : 0),
+                g.Sum(p => p.CostType == CostType.Labor && (p.Origin == DocumentOrigin.Opening || p.Status != PayableStatus.Planned) ? p.Amount : 0),
+                g.Sum(p => p.CostType == CostType.Installation ? p.Amount : 0),
+                g.Sum(p => p.CostType == CostType.Installation && (p.Origin == DocumentOrigin.Opening || p.Status != PayableStatus.Planned) ? p.Amount : 0),
+                g.Sum(p => p.CostType == CostType.Freight ? p.Amount : 0),
+                g.Sum(p => p.CostType == CostType.Freight && (p.Origin == DocumentOrigin.Opening || p.Status != PayableStatus.Planned) ? p.Amount : 0),
+                g.Sum(p => p.CostType == null || p.CostType == CostType.Other ? p.Amount : 0),
+                g.Sum(p => (p.CostType == null || p.CostType == CostType.Other) && (p.Origin == DocumentOrigin.Opening || p.Status != PayableStatus.Planned) ? p.Amount : 0),
+                g.Sum(p => p.CostType == CostType.Tax ? p.Amount : 0)))
             .ToListAsync(cancellationToken);
-        return groups
-            .Select(g => new Classified(g.ProjectId, g.CostType ?? CostType.Other, PayableCostRules.Bucket(g.Origin, g.CostType, g.Status), g.Amount))
-            .Where(g => g.Bucket is not null)
-            .GroupBy(g => (g.ProjectId, g.CostType))
-            .Select(g => new ProjectPayableCostTotals(
-                g.Key.ProjectId, g.Key.CostType, Sum(g, PayableCostBucket.Confirmed), Sum(g, PayableCostBucket.Planned), Sum(g, PayableCostBucket.StockPurchase), Sum(g, PayableCostBucket.TaxGuide)))
-            .ToList();
+        return rows.SelectMany(r => r.Totals()).ToList();
     }
 
-    private static decimal Sum(IEnumerable<Classified> rows, PayableCostBucket bucket) => rows.Where(r => r.Bucket == bucket).Sum(r => r.Amount);
+    /// <summary>As somas de um projeto (<see cref="CostSummaryByProjectsAsync"/>); <c>Total</c> de cada natureza inclui todas as classes.</summary>
+    private sealed record PayableSums(
+        Guid ProjectId, decimal MaterialTotal, decimal MaterialPurchase, decimal MaterialConfirmed, decimal LaborTotal, decimal LaborConfirmed, decimal InstallationTotal,
+        decimal InstallationConfirmed, decimal FreightTotal, decimal FreightConfirmed, decimal OtherTotal, decimal OtherConfirmed, decimal Tax)
+    {
+        public IEnumerable<ProjectPayableCostTotals> Totals()
+        {
+            var lines = new[]
+            {
+                new ProjectPayableCostTotals(ProjectId, CostType.Material, MaterialConfirmed, MaterialTotal - MaterialPurchase - MaterialConfirmed, MaterialPurchase, 0),
+                Plain(CostType.Labor, LaborTotal, LaborConfirmed),
+                Plain(CostType.Installation, InstallationTotal, InstallationConfirmed),
+                Plain(CostType.Freight, FreightTotal, FreightConfirmed),
+                new ProjectPayableCostTotals(ProjectId, CostType.Tax, 0, 0, 0, Tax),
+                Plain(CostType.Other, OtherTotal, OtherConfirmed),
+            };
+            return lines.Where(l => l.Confirmed != 0 || l.Planned != 0 || l.StockPurchase != 0 || l.TaxGuide != 0);
+        }
 
-    private sealed record Classified(Guid ProjectId, CostType CostType, PayableCostBucket? Bucket, decimal Amount);
+        private ProjectPayableCostTotals Plain(CostType type, decimal total, decimal confirmed) => new(ProjectId, type, confirmed, total - confirmed, 0, 0);
+    }
 
     public async Task<IReadOnlyList<ProjectPayableCostEntry>> CostEntriesAsync(Guid projectId, CostType costType, CancellationToken cancellationToken = default)
     {

@@ -95,6 +95,8 @@ internal sealed class ProjectCostConfiguration : IEntityTypeConfiguration<Projec
         b.HasIndex(e => new { e.Source, e.SourceId, e.Seq }).IsUnique();
         b.HasIndex(e => new { e.ProjectId, e.CostType });
         b.HasIndex(e => e.SourceId);
+        // Marca de recomposição do relatório de margem (DSH-02 CA 6 e 18): só as linhas recompostas, poucas, sem varrer a razão inteira.
+        b.HasIndex(e => e.ProjectId).HasFilter("is_backfill").HasDatabaseName("ix_project_costs_project_id_backfill");
     }
 }
 

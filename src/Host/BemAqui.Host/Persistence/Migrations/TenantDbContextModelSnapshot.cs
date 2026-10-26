@@ -1063,6 +1063,10 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_project_costs");
 
+                    b.HasIndex("ProjectId")
+                        .HasDatabaseName("ix_project_costs_project_id_backfill")
+                        .HasFilter("is_backfill");
+
                     b.HasIndex("SourceId")
                         .HasDatabaseName("ix_project_costs_source_id");
 

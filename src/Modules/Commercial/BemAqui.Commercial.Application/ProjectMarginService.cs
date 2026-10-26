@@ -1,6 +1,7 @@
 using BemAqui.BuildingBlocks.Authorization;
 using BemAqui.BuildingBlocks.Identity;
 using BemAqui.BuildingBlocks.Paging;
+using BemAqui.BuildingBlocks.Tenancy;
 using BemAqui.Commercial.Contracts;
 using BemAqui.Commercial.Domain;
 using BemAqui.Finance.Contracts;
@@ -8,6 +9,7 @@ using BemAqui.Parties.Contracts;
 using BemAqui.Production.Contracts;
 using BemAqui.SharedKernel;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace BemAqui.Commercial.Application;
 
@@ -19,7 +21,7 @@ namespace BemAqui.Commercial.Application;
 /// </summary>
 public sealed partial class ProjectMarginService(
     ICommercialDb db, IProjectPayableCosts payableCosts, IParties parties, IUserDirectory users, IPermissionChecker permissions, IProjectProductionCosts productionCosts,
-    IProductionOrders productionOrders)
+    IProductionOrders productionOrders, ITenantContext tenant, ITenantScopeFactory scopes)
     : IProjectMargins
 {
     /// <summary>Ordenações aceitas (allowlist, CA 20); fora delas, 422.</summary>
@@ -117,7 +119,7 @@ public sealed partial class ProjectMarginService(
         }
 
         var ids = projectIds.Distinct().Take(5_000).ToArray();
-        var computed = await ComputeAsync(db.Projects.Where(p => ids.Contains(p.Id)), cancellationToken);
+        var computed = await ComputeAsync(db.Projects.Where(p => EF.Parameter(ids).Contains(p.Id)), cancellationToken);
         return Result<IReadOnlyList<ProjectMarginRow>>.Success(await RowsAsync(computed, cancellationToken));
     }
 
@@ -187,25 +189,56 @@ public sealed partial class ProjectMarginService(
         }
 
         var ids = heads.Select(h => h.Id).ToArray();
-        var contractIds = heads.Select(h => h.ContractId).Distinct().ToArray();
+        // Muitos projetos (o relatório): os títulos do Finance numa conexão própria, em paralelo com as consultas do Commercial abaixo.
+        var parallelPayables = ids.Length >= ParallelPayablesFrom && tenant.Tenant is { } current ? SeparatePayablesAsync(current, ids, ct) : null;
+        var projectIds = projects.Select(p => p.Id);
+        var contractIds = projects.Select(p => p.ContractId);
         var amendments = await db.ContractAmendments.AsNoTracking().Where(a => contractIds.Contains(a.ContractId) && a.Status == AmendmentStatus.Approved)
             .GroupBy(a => a.ContractId).Select(g => new { g.Key, Delta = g.Sum(a => a.ValueDelta) }).ToDictionaryAsync(g => g.Key, g => g.Delta, ct);
-        var budgets = (await db.ProjectBudgets.AsNoTracking().Where(b => ids.Contains(b.ProjectId))
-            .GroupBy(b => new { b.ProjectId, b.CostType }).Select(g => new { g.Key.ProjectId, g.Key.CostType, Amount = g.Sum(b => b.BudgetedAmount) }).ToListAsync(ct))
-            .ToLookup(b => b.ProjectId);
-        var ledger = (await db.ProjectCosts.AsNoTracking().Where(c => ids.Contains(c.ProjectId))
-            .GroupBy(c => new { c.ProjectId, c.CostType, c.Source, c.IsBackfill })
-            .Select(g => new { g.Key.ProjectId, g.Key.CostType, g.Key.Source, g.Key.IsBackfill, Amount = g.Sum(c => c.Amount), Invoice = g.Sum(c => c.InvoiceAmount ?? 0) })
+        // Orçado numa linha por projeto (uma coluna por natureza): 5 mil linhas em vez de 25 mil.
+        var budgets = await db.ProjectBudgets.AsNoTracking().Where(b => projectIds.Contains(b.ProjectId))
+            .GroupBy(b => b.ProjectId)
+            .Select(g => new BudgetRow(
+                g.Key, g.Sum(b => b.CostType == CostType.Material ? b.BudgetedAmount : 0), g.Sum(b => b.CostType == CostType.Labor ? b.BudgetedAmount : 0),
+                g.Sum(b => b.CostType == CostType.Installation ? b.BudgetedAmount : 0), g.Sum(b => b.CostType == CostType.Freight ? b.BudgetedAmount : 0),
+                g.Sum(b => b.CostType == CostType.Tax ? b.BudgetedAmount : 0), g.Sum(b => b.CostType == CostType.Other ? b.BudgetedAmount : 0)))
+            .ToDictionaryAsync(b => b.ProjectId, ct);
+        // Razão somada por projeto e natureza, com as somas condicionais do cálculo (LedgerTypeTotals): sem agrupar pela fonte nem ordenar texto.
+        var ledger = (await db.ProjectCosts.AsNoTracking().Where(c => projectIds.Contains(c.ProjectId))
+            .GroupBy(c => new { c.ProjectId, c.CostType })
+            .Select(g => new LedgerTypeRow(
+                g.Key.ProjectId, g.Key.CostType, g.Sum(c => c.Amount),
+                g.Sum(c => c.Source == ProjectCostSource.StockIssue || c.Source == ProjectCostSource.StockReturn ? c.Amount : 0),
+                g.Sum(c => c.Source == ProjectCostSource.InvoiceTax || c.Source == ProjectCostSource.InvoiceTaxReversal ? c.Amount : 0),
+                g.Sum(c => c.Source == ProjectCostSource.InvoiceTax || c.Source == ProjectCostSource.InvoiceTaxReversal ? c.InvoiceAmount ?? 0 : 0)))
             .ToListAsync(ct)).ToLookup(l => l.ProjectId);
-        var payables = (await payableCosts.CostSummaryByProjectsAsync(ids, ct)).ToLookup(p => p.ProjectId);
+        // Marca de recomposição (CA 6): só as linhas recompostas, pelo índice parcial; vale a natureza com alguma fonte (fora o imposto) ≠ 0.
+        var backfilled = (await db.ProjectCosts.AsNoTracking()
+            .Where(c => c.IsBackfill && projectIds.Contains(c.ProjectId) && c.Source != ProjectCostSource.InvoiceTax && c.Source != ProjectCostSource.InvoiceTaxReversal)
+            .GroupBy(c => new { c.ProjectId, c.CostType, c.Source })
+            .Where(g => g.Sum(c => c.Amount) != 0)
+            .Select(g => new { g.Key.ProjectId, g.Key.CostType })
+            .Distinct()
+            .ToListAsync(ct)).Select(b => (b.ProjectId, b.CostType)).ToHashSet();
+        var payables = (parallelPayables is null ? await payableCosts.CostSummaryByProjectsAsync(ids, ct) : await parallelPayables).ToLookup(p => p.ProjectId);
         return heads.Select(h =>
         {
             var revenue = h.ContractValue + amendments.GetValueOrDefault(h.ContractId);
-            var result = ProjectMarginCalculator.Compute(
-                revenue, budgets[h.Id].ToDictionary(b => b.CostType, b => b.Amount), ProjectCosts.Totals(payables[h.Id]),
-                ledger[h.Id].Select(l => new LedgerCostTotals(l.CostType, l.Source, l.IsBackfill, l.Amount, l.Invoice)).ToList());
-            return new ComputedProject(h, result, ProjectCosts.Figures(result));
+            var result = ProjectMarginCalculator.FromTotals(
+                revenue, budgets.TryGetValue(h.Id, out var budget) ? budget.ToDictionary() : NoBudget, ProjectCosts.Totals(payables[h.Id]),
+                ledger[h.Id].Select(l => l.Totals(backfilled.Contains((h.Id, l.CostType)))).ToList());
+            return new ComputedProject(h, result);
         }).ToList();
+    }
+
+    /// <summary>A partir de quantos projetos os títulos vêm numa conexão própria (abaixo disso, a consulta é rápida e não paga o escopo novo).</summary>
+    private const int ParallelPayablesFrom = 500;
+
+    /// <summary>Os títulos num escopo próprio do mesmo tenant (outro <c>TenantDbContext</c>, outra conexão), para rodar junto com a razão.</summary>
+    private async Task<IReadOnlyList<ProjectPayableCostTotals>> SeparatePayablesAsync(TenantInfo current, Guid[] ids, CancellationToken ct)
+    {
+        await using var scope = await scopes.CreateScopeAsync(current, ct);
+        return await scope.ServiceProvider.GetRequiredService<IProjectPayableCosts>().CostSummaryByProjectsAsync(ids, ct);
     }
 
     private static IEnumerable<ComputedProject> Sort(IEnumerable<ComputedProject> rows, string sort) => sort switch
@@ -243,5 +276,27 @@ public sealed partial class ProjectMarginService(
 
     internal sealed record ProjectHead(Guid Id, string Number, string Name, Guid PartyId, ProjectStatus Status, Guid? ManagerUserId, Guid ContractId, DateOnly SignedAt, decimal ContractValue);
 
-    internal sealed record ComputedProject(ProjectHead Head, MarginResult Result, ProjectMarginFigures Figures);
+    /// <summary>Um projeto calculado; os números no formato do contrato só quando pedidos (o ranking ordena pelo resultado e monta só a página).</summary>
+    internal sealed record ComputedProject(ProjectHead Head, MarginResult Result)
+    {
+        private ProjectMarginFigures? figures;
+
+        public ProjectMarginFigures Figures => figures ??= ProjectCosts.Figures(Result);
+    }
+
+    private static readonly IReadOnlyDictionary<CostType, decimal> NoBudget = new Dictionary<CostType, decimal>();
+
+    private sealed record BudgetRow(Guid ProjectId, decimal Material, decimal Labor, decimal Installation, decimal Freight, decimal Tax, decimal Other)
+    {
+        public Dictionary<CostType, decimal> ToDictionary() => new()
+        {
+            [CostType.Material] = Material, [CostType.Labor] = Labor, [CostType.Installation] = Installation, [CostType.Freight] = Freight, [CostType.Tax] = Tax, [CostType.Other] = Other,
+        };
+    }
+
+    /// <summary>Uma natureza da razão de um projeto, somada no banco: <c>Total</c> com o imposto da nota, que o cálculo separa.</summary>
+    private sealed record LedgerTypeRow(Guid ProjectId, CostType CostType, decimal Total, decimal StockMovement, decimal InvoiceTax, decimal InvoiceAmount)
+    {
+        public LedgerTypeTotals Totals(bool backfill) => new(CostType, Total - InvoiceTax, StockMovement, InvoiceTax, InvoiceAmount, backfill);
+    }
 }

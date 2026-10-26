@@ -13,6 +13,12 @@ public sealed record PayableCostTotals(CostType CostType, decimal Confirmed, dec
 /// <summary>Soma das linhas da razão <c>commercial.project_costs</c> por natureza, fonte e marca de recomposição; <c>InvoiceAmount</c> só no imposto.</summary>
 public sealed record LedgerCostTotals(CostType CostType, ProjectCostSource Source, bool IsBackfill, decimal Amount, decimal InvoiceAmount = 0);
 
+/// <summary>
+/// A razão de um projeto somada por natureza: <c>Amount</c> sem o imposto da nota, <c>StockMovement</c> só baixas e devoluções, <c>InvoiceTax</c> e
+/// <c>InvoiceAmount</c> só das linhas de imposto da nota, e <c>IncludesBackfill</c> se alguma fonte de recomposição (fora o imposto) soma diferente de 0.
+/// </summary>
+public sealed record LedgerTypeTotals(CostType CostType, decimal Amount, decimal StockMovement, decimal InvoiceTax, decimal InvoiceAmount, bool IncludesBackfill);
+
 /// <summary>De onde vem o imposto projetado (DSH-02 CA 5): "Imposto orçado" ou "Imposto das notas + orçado no restante".</summary>
 [JsonConverter(typeof(JsonStringEnumConverter<TaxProjectionBasis>))]
 public enum TaxProjectionBasis
@@ -49,6 +55,8 @@ public sealed record MarginResult(
 /// </summary>
 public static class ProjectMarginCalculator
 {
+    private static readonly CostType[] CostTypes = Enum.GetValues<CostType>();
+
     /// <summary>Linhas da razão que são imposto da nota (o realizado de Impostos).</summary>
     public static bool IsInvoiceTax(ProjectCostSource source) => source is ProjectCostSource.InvoiceTax or ProjectCostSource.InvoiceTaxReversal;
 
@@ -56,6 +64,23 @@ public static class ProjectMarginCalculator
     public static bool IsStockMovement(ProjectCostSource source) => source is ProjectCostSource.StockIssue or ProjectCostSource.StockReturn;
 
     public static MarginResult Compute(decimal revenue, IReadOnlyDictionary<CostType, decimal> budget, IEnumerable<PayableCostTotals> payables, IEnumerable<LedgerCostTotals> ledger)
+    {
+        ArgumentNullException.ThrowIfNull(ledger);
+        return FromTotals(revenue, budget, payables, Summarize(ledger));
+    }
+
+    /// <summary>A razão somada por natureza (o formato que o banco já devolve agregado no relatório): mesma regra do <see cref="Compute"/>.</summary>
+    public static IReadOnlyList<LedgerTypeTotals> Summarize(IEnumerable<LedgerCostTotals> ledger)
+    {
+        ArgumentNullException.ThrowIfNull(ledger);
+        return ledger.GroupBy(l => l.CostType).Select(g => new LedgerTypeTotals(
+            g.Key, g.Where(l => !IsInvoiceTax(l.Source)).Sum(l => l.Amount), g.Where(l => IsStockMovement(l.Source)).Sum(l => l.Amount),
+            g.Where(l => IsInvoiceTax(l.Source)).Sum(l => l.Amount), g.Where(l => IsInvoiceTax(l.Source)).Sum(l => l.InvoiceAmount),
+            g.Any(l => !IsInvoiceTax(l.Source) && l.IsBackfill && l.Amount != 0))).ToList();
+    }
+
+    /// <summary>O mesmo cálculo do <see cref="Compute"/>, com a razão já somada por natureza (<see cref="LedgerTypeTotals"/>).</summary>
+    public static MarginResult FromTotals(decimal revenue, IReadOnlyDictionary<CostType, decimal> budget, IEnumerable<PayableCostTotals> payables, IEnumerable<LedgerTypeTotals> ledger)
     {
         ArgumentNullException.ThrowIfNull(budget);
         ArgumentNullException.ThrowIfNull(payables);
@@ -83,20 +108,12 @@ public static class ProjectMarginCalculator
 
         foreach (var l in ledger)
         {
-            if (IsInvoiceTax(l.Source))
-            {
-                taxRealized += l.Amount;
-                invoiced += l.InvoiceAmount;
-                continue;
-            }
-
+            // Imposto da nota (de qualquer natureza) é o realizado de Impostos; o resto é realizado da natureza e, se baixa ou devolução, baixa líquida.
+            taxRealized += l.InvoiceTax;
+            invoiced += l.InvoiceAmount;
             Add(realized, l.CostType, l.Amount);
-            if (IsStockMovement(l.Source))
-            {
-                Add(issued, l.CostType, l.Amount);
-            }
-
-            if (l.IsBackfill && l.Amount != 0)
+            Add(issued, l.CostType, l.StockMovement);
+            if (l.IncludesBackfill)
             {
                 backfilled.Add(l.CostType);
             }
@@ -105,7 +122,7 @@ public static class ProjectMarginCalculator
         // Com a nota estornada (líquido 0), o projetado volta ao imposto orçado.
         var hasInvoice = taxRealized != 0 || invoiced != 0;
         var lines = new List<MarginLine>();
-        foreach (var type in Enum.GetValues<CostType>())
+        foreach (var type in CostTypes)
         {
             var budgeted = budget.GetValueOrDefault(type);
             if (type == CostType.Tax)
@@ -131,7 +148,7 @@ public static class ProjectMarginCalculator
     {
         ArgumentNullException.ThrowIfNull(projects);
         var list = projects.ToList();
-        var lines = Enum.GetValues<CostType>().Select(type =>
+        var lines = CostTypes.Select(type =>
         {
             var mine = list.Select(p => p.Lines.First(l => l.CostType == type)).ToList();
             var budgeted = mine.Sum(l => l.Budgeted);
