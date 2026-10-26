@@ -73,7 +73,30 @@ public interface IProjects
     /// </summary>
     Task<IReadOnlyList<ProjectForecastSummary>> ForecastsAsync(IReadOnlyCollection<Guid> projectIds, CancellationToken cancellationToken = default) =>
         Task.FromResult<IReadOnlyList<ProjectForecastSummary>>([]);
+
+    /// <summary>
+    /// Carteira do painel do dono (DSH-01b CA 1 e 3), sem custo: os projetos em andamento (<c>Planned</c>, <c>InProgress</c>, <c>Fabricated</c>,
+    /// <c>Installing</c>), os de contrato <c>Active</c> e os entregues desde <paramref name="deliveredSince"/>, com a receita contratada (contrato +
+    /// aditivos aprovados), a previsão e o risco pela função única (PLN-01b). Sem os cancelados.
+    /// </summary>
+    Task<IReadOnlyList<ProjectPortfolioItem>> PortfolioAsync(DateOnly deliveredSince, CancellationToken cancellationToken = default) =>
+        Task.FromResult<IReadOnlyList<ProjectPortfolioItem>>([]);
+
+    /// <summary>
+    /// Projetos nas situações pedidas (nomes de <c>ProjectStatus</c>; vazio = todas) e do cliente, para o resultado gerencial por projeto
+    /// (DSH-01b CA 6), sem custo e sem nome do cliente (o chamador resolve só os da página).
+    /// </summary>
+    Task<IReadOnlyList<ProjectSummary>> ListAsync(IReadOnlyCollection<string> statuses, Guid? partyId, CancellationToken cancellationToken = default) =>
+        Task.FromResult<IReadOnlyList<ProjectSummary>>([]);
 }
+
+/// <summary>
+/// Projeto na carteira do painel do dono (DSH-01b): situação (nome de <c>ProjectStatus</c>), situação do contrato (nome de <c>ContractStatus</c>),
+/// assinatura, receita contratada (contrato + aditivos aprovados, preço e não custo), entrega e a previsão pela função única de risco.
+/// </summary>
+public sealed record ProjectPortfolioItem(
+    Guid Id, string Number, string Name, Guid PartyId, string Status, string ContractStatus, DateOnly SignedAt, decimal ContractedAmount, DateOnly? DeliveredOn,
+    ProjectForecastSummary Forecast);
 
 /// <summary>
 /// Previsão do projeto vista pelos outros módulos (PLN-01b CA 11): prometido, entrega prevista, fim da fabricação, motivo (código) da

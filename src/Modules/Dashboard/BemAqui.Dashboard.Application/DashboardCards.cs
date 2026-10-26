@@ -10,8 +10,9 @@ public sealed record CardRule(string Code, IReadOnlyList<string> Permissions)
 }
 
 /// <summary>
-/// Cards do painel do proprietário (DSH-01a CA 5), na ordem da tela a 400 px: Saldo em contas (linha de KPIs), Caixa →
-/// Aguardando sua decisão → Faturamento → Vencido → Comercial. A DSH-01b acrescenta os de margem, carteira e produção.
+/// Cards do painel do proprietário (DSH-01a CA 5 e DSH-01b CA 1), na ordem da tela a 400 px: Saldo em contas (linha de KPIs), Caixa →
+/// Aguardando sua decisão → Faturamento → Vencido → Comercial, e depois os da DSH-01b: Margem → Projetos em andamento → Produção →
+/// Carteira → Entregas.
 /// </summary>
 public static class DashboardCards
 {
@@ -24,6 +25,16 @@ public static class DashboardCards
     public const string Overdue = "overdue";
     public const string Commercial = "commercial";
     public const string Decisions = "decisions";
+
+    // DSH-01b.
+    public const string Margin = "margin";
+    public const string ActiveProjects = "active-projects";
+    public const string Production = "production";
+    public const string Backlog = "backlog";
+    public const string Deliveries = "deliveries";
+
+    /// <summary>Custo e margem do projeto (ADR 0019 §20): o card Margem, a coluna de margem e o resultado por projeto.</summary>
+    public const string CostPermission = "projects.view_cost";
 
     /// <summary>Semanas do "Caixa projetado" (protótipo: "próximas 12 semanas").</summary>
     public const int ForecastWeeks = 12;
@@ -42,6 +53,11 @@ public static class DashboardCards
         new(Revenue, ["finance.view"]),
         new(Overdue, ["finance.view"]),
         new(Commercial, ["quotes.view"]),
+        new(Margin, [CostPermission]),
+        new(ActiveProjects, ["projects.view"]),
+        new(Production, ["production.view"]),
+        new(Backlog, ["projects.view"]),
+        new(Deliveries, ["projects.view"]),
     ];
 
     public static CardRule? Find(string code) => All.FirstOrDefault(c => string.Equals(c.Code, code, StringComparison.Ordinal));

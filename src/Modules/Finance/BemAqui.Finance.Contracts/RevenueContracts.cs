@@ -18,4 +18,13 @@ public interface IRevenueSummary
 
     /// <summary>Receita bruta por projeto e mês: só a receita reconhecida dos títulos com projeto.</summary>
     Task<IReadOnlyList<ProjectMonthlyRevenue>> GrossRevenueByProjectsAsync(IReadOnlyCollection<Guid> projectIds, DateOnly from, DateOnly to, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Documentos da receita bruta de um projeto de <paramref name="from"/> a <paramref name="to"/> (DSH-01b CA 8): títulos e sinais reconhecidos,
+    /// pela mesma regra; a soma de cada mês é a do <see cref="GrossRevenueByProjectsAsync"/>.
+    /// </summary>
+    Task<IReadOnlyList<ProjectRevenueDocument>> GrossRevenueDocumentsAsync(Guid projectId, DateOnly from, DateOnly to, CancellationToken cancellationToken = default);
 }
+
+/// <summary>Documento da receita de um projeto (DSH-01b CA 8): <c>Receivable</c> ou <c>DownPayment</c> (sinal reconhecido), número, data, valor, nota e link.</summary>
+public sealed record ProjectRevenueDocument(string Kind, Guid DocumentId, string Number, DateOnly Date, decimal Amount, string? Note, string Link);

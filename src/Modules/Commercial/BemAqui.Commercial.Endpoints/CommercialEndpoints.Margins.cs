@@ -18,20 +18,20 @@ internal static partial class CommercialEndpoints
     private static void MapMargins(RouteGroupBuilder projects)
     {
         projects.MapGet("/margins/ranking", async (
-                    string? situation, Guid? partyId, Guid? managerId, DateOnly? signedFrom, DateOnly? signedTo, bool? belowBudget, string? sort, int? page, int? pageSize,
+                    string? situation, Guid? partyId, Guid? managerId, DateOnly? signedFrom, DateOnly? signedTo, bool? belowBudget, DateOnly? deliveredFrom, DateOnly? deliveredTo, string? sort, int? page, int? pageSize,
                     ProjectMarginService service, CancellationToken ct) =>
-                (await service.RankingAsync(Filter(situation, partyId, managerId, signedFrom, signedTo, belowBudget), sort,
+                (await service.RankingAsync(Filter(situation, partyId, managerId, signedFrom, signedTo, belowBudget, deliveredFrom, deliveredTo), sort,
                     new PageRequest(page ?? 1, pageSize ?? PageRequest.DefaultPageSize).Normalize(), ct)).ToHttpResult())
             .RequirePermission("projects.view_cost").WithName("ListProjectMarginRanking").Produces<ProjectMarginRanking>();
         projects.MapGet("/margins/portfolio", async (
-                    string? situation, Guid? partyId, Guid? managerId, DateOnly? signedFrom, DateOnly? signedTo, bool? belowBudget, ProjectMarginService service, CancellationToken ct) =>
-                (await service.PortfolioAsync(Filter(situation, partyId, managerId, signedFrom, signedTo, belowBudget), ct)).ToHttpResult())
+                    string? situation, Guid? partyId, Guid? managerId, DateOnly? signedFrom, DateOnly? signedTo, bool? belowBudget, DateOnly? deliveredFrom, DateOnly? deliveredTo, ProjectMarginService service, CancellationToken ct) =>
+                (await service.PortfolioAsync(Filter(situation, partyId, managerId, signedFrom, signedTo, belowBudget, deliveredFrom, deliveredTo), ct)).ToHttpResult())
             .RequirePermission("projects.view_cost").WithName("GetProjectMarginPortfolio").Produces<ProjectMarginPortfolio>();
         projects.MapGet("/margins/entries", async (
-                    string costType, string? column, string? situation, Guid? partyId, Guid? managerId, DateOnly? signedFrom, DateOnly? signedTo, bool? belowBudget,
+                    string costType, string? column, string? situation, Guid? partyId, Guid? managerId, DateOnly? signedFrom, DateOnly? signedTo, bool? belowBudget, DateOnly? deliveredFrom, DateOnly? deliveredTo,
                     ProjectMarginService service, CancellationToken ct) =>
                 ParseCostType(costType) is { } type
-                    ? (await service.PortfolioEntriesAsync(Filter(situation, partyId, managerId, signedFrom, signedTo, belowBudget), type, column, ct)).ToHttpResult()
+                    ? (await service.PortfolioEntriesAsync(Filter(situation, partyId, managerId, signedFrom, signedTo, belowBudget, deliveredFrom, deliveredTo), type, column, ct)).ToHttpResult()
                     : InvalidCostType())
             .RequirePermission("projects.view_cost").WithName("ListProjectMarginEntries").Produces<ProjectCostEntries>();
         projects.MapGet("/{id:guid}/costs/labor/workers", async (Guid id, ProjectMarginService service, CancellationToken ct) => (await service.LaborWorkersAsync(id, ct)).ToHttpResult())
@@ -41,8 +41,9 @@ internal static partial class CommercialEndpoints
             .RequirePermission("projects.view_cost").WithName("ListProjectCostEntries").Produces<ProjectCostEntries>();
     }
 
-    private static ProjectMarginFilter Filter(string? situation, Guid? partyId, Guid? managerId, DateOnly? signedFrom, DateOnly? signedTo, bool? belowBudget) =>
-        new(string.IsNullOrWhiteSpace(situation) ? null : situation, partyId, managerId, signedFrom, signedTo, belowBudget ?? false);
+    private static ProjectMarginFilter Filter(
+        string? situation, Guid? partyId, Guid? managerId, DateOnly? signedFrom, DateOnly? signedTo, bool? belowBudget, DateOnly? deliveredFrom = null, DateOnly? deliveredTo = null) =>
+        new(string.IsNullOrWhiteSpace(situation) ? null : situation, partyId, managerId, signedFrom, signedTo, belowBudget ?? false, deliveredFrom, deliveredTo);
 
     private static CostType? ParseCostType(string value) =>
         Enum.TryParse<CostType>(value, ignoreCase: true, out var type) && Enum.IsDefined(type) && !int.TryParse(value, out _) ? type : null;

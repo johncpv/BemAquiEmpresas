@@ -67,6 +67,29 @@ public sealed class ProjectPayableCostsContract(IFinanceDb db) : IProjectPayable
         private ProjectPayableCostTotals Plain(CostType type, decimal total, decimal confirmed) => new(ProjectId, type, confirmed, total - confirmed, 0, 0);
     }
 
+    public async Task<IReadOnlyList<ProjectPayableCostByMonth>> ConfirmedByMonthAsync(IReadOnlyCollection<Guid> projectIds, DateOnly from, DateOnly to, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(projectIds);
+        if (projectIds.Count == 0)
+        {
+            return [];
+        }
+
+        var ids = projectIds.Distinct().ToArray();
+        // A classe Confirmed da PayableCostRules.Bucket, em SQL: fora de cancelado e de Impostos (guia), fora da compra de item estocável
+        // (Material de pedido ou recebimento) e abertura ou fora de previsto.
+        var rows = await db.Payables.AsNoTracking()
+            .Where(p => p.ProjectId != null && EF.Parameter(ids).Contains(p.ProjectId.Value) && p.Status != PayableStatus.Cancelled && p.IssueDate >= from && p.IssueDate <= to
+                && (p.CostType == null || p.CostType != CostType.Tax)
+                && !(p.CostType == CostType.Material && (p.Origin == DocumentOrigin.Purchase || p.Origin == DocumentOrigin.GoodsReceipt))
+                && (p.Origin == DocumentOrigin.Opening || p.Status != PayableStatus.Planned))
+            .GroupBy(p => new { ProjectId = p.ProjectId!.Value, p.CostType, p.IssueDate.Year, p.IssueDate.Month })
+            .Select(g => new { g.Key.ProjectId, g.Key.CostType, g.Key.Year, g.Key.Month, Amount = g.Sum(p => p.Amount) })
+            .ToListAsync(cancellationToken);
+        return rows.GroupBy(r => (r.ProjectId, Type: r.CostType ?? CostType.Other, r.Year, r.Month))
+            .Select(g => new ProjectPayableCostByMonth(g.Key.ProjectId, g.Key.Type, g.Key.Year, g.Key.Month, g.Sum(r => r.Amount))).ToList();
+    }
+
     public async Task<IReadOnlyList<ProjectPayableCostEntry>> CostEntriesAsync(Guid projectId, CostType costType, CancellationToken cancellationToken = default)
     {
         var rows = await db.Payables.AsNoTracking()

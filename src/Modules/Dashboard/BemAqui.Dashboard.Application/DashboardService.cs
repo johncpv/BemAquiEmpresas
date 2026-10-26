@@ -26,6 +26,7 @@ public sealed class DashboardService(
     ICashForecastSource cashForecast,
     IRevenueSource revenue,
     IDecisionAgenda agenda,
+    OwnerProjectsService ownerProjects,
     TimeProvider clock)
 {
     private EffectivePermissions? _effective;
@@ -38,11 +39,13 @@ public sealed class DashboardService(
         var bank = Sees(DashboardCards.Balances) ? await BalancesAsync(cancellationToken) : null;
         var decisions = Sees(DashboardCards.Decisions) ? await DecisionsAsync(cancellationToken) : null;
         var overdue = Sees(DashboardCards.Overdue) ? await OverdueAsync(cancellationToken) : null;
+        // DSH-01b CA 4: o projeto que mais vai atrasar entra na faixa "Atenção" para quem vê as entregas.
+        var deliveries = Sees(DashboardCards.Deliveries) ? await ownerProjects.DeliveriesAsync(cancellationToken) : null;
         var now = BusinessTime.ToBusiness(clock.GetUtcNow());
         var today = DateOnly.FromDateTime(now.DateTime);
         var name = await users.DisplayNameAsync(UserId, cancellationToken);
         return new DashboardOverview(DashboardRules.Greeting(now.Hour), DashboardRules.FirstName(name), today,
-            DashboardRules.Summary(cash, bank, decisions, overdue), DashboardRules.Attention(today, cash, decisions, overdue), visible, clock.GetUtcNow());
+            DashboardRules.Summary(cash, bank, decisions, overdue), DashboardRules.Attention(today, cash, decisions, overdue, deliveries), visible, clock.GetUtcNow());
     }
 
     /// <summary>Cards que o usuário vê, na ordem da tela: módulo dono liberado e a permissão dele (CA 4 e 5).</summary>

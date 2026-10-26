@@ -13,6 +13,10 @@ public static class DashboardServices
         services.TryAddSingleton(TimeProvider.System);
         services.TryAddSingleton<DashboardCache>();
         services.TryAddScoped<DashboardService>();
+        // DSH-01b: cards de margem, projetos, carteira, produção e entregas e o resultado gerencial por projeto.
+        services.TryAddScoped<DashboardAccess>();
+        services.TryAddScoped<OwnerProjectsService>();
+        services.TryAddScoped<ProjectResultsService>();
         services.TryAddScoped<ICashForecastSource, CashForecastSource>(); // FIN-07: ICashForecast
         services.TryAddScoped<IRevenueSource, RevenueSource>(); // FIN-08: IRevenueSummary
         services.TryAddScoped<IDecisionAgenda, DecisionAgenda>(); // DSH-04: IAgendaService (nível 1)

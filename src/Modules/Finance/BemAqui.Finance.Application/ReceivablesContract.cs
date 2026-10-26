@@ -19,6 +19,22 @@ public sealed class ReceivablesContract(IFinanceDb db) : IReceivables
     public async Task<IReadOnlyList<ContractReceivable>> ByProjectAsync(Guid projectId, CancellationToken cancellationToken = default) =>
         await Views(db.Receivables.Where(r => r.ProjectId == projectId)).ToListAsync(cancellationToken);
 
+    public async Task<IReadOnlyDictionary<Guid, decimal>> ReceivedByProjectsAsync(IReadOnlyCollection<Guid> projectIds, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(projectIds);
+        if (projectIds.Count == 0)
+        {
+            return new Dictionary<Guid, decimal>();
+        }
+
+        var ids = projectIds.Distinct().ToArray();
+        return await db.Receivables.AsNoTracking()
+            .Where(r => r.ProjectId != null && EF.Parameter(ids).Contains(r.ProjectId.Value) && r.Status != ReceivableStatus.Cancelled)
+            .GroupBy(r => r.ProjectId!.Value)
+            .Select(g => new { g.Key, Received = g.Sum(r => r.PaidAmount) })
+            .ToDictionaryAsync(g => g.Key, g => g.Received, cancellationToken);
+    }
+
     private static IQueryable<ContractReceivable> Views(IQueryable<Receivable> receivables) =>
         receivables.AsNoTracking().OrderBy(r => r.DueDate == null).ThenBy(r => r.DueDate).ThenBy(r => r.Number)
             .Select(r => new ContractReceivable(r.Id, r.Number, r.OriginId ?? Guid.Empty, r.Status, r.DueDate, r.Amount, r.Amount - r.PaidAmount, r.PaidAmount > 0, r.Description, r.CreatedAt));

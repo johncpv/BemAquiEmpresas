@@ -68,10 +68,32 @@ public class CompositionRulesTests
         dtos.Should().Contain(t => t.Name == "RevenueCard").And.Contain(t => t.Name == "CommercialCard");
         dtos.Should().Contain(t => t.Name == "SupervisorShortagesBlock").And.Contain(t => t.Name == "SupervisorQualityBlock").And.Contain(t => t.Name == "SupervisorIndicatorsBlock");
 
+        // DSH-01b: os cards sem custo (projetos em andamento, carteira, produção, entregas) entram na mesma regra.
+        dtos.Should().Contain(t => t.Name == "ActiveProjectsCard").And.Contain(t => t.Name == "BacklogCard").And.Contain(t => t.Name == "ProductionCard")
+            .And.Contain(t => t.Name == "DeliveriesCard");
+        dtos.Should().NotContain(IsCostDto, "um DTO com a marca [CostDto] não usa o sufixo dos cards sem custo");
+
         var properties = dtos.SelectMany(Reachable).Distinct().SelectMany(t => t.GetProperties(BindingFlags.Public | BindingFlags.Instance).Select(p => $"{t.Name}.{p.Name}")).ToList();
         properties.Should().NotBeEmpty();
-        properties.Where(p => CostWords.Any(w => p.Contains(w, StringComparison.OrdinalIgnoreCase))).Should().BeEmpty("custo e margem são da DSH-01b, com projects.view_cost (ADR 0028 §2)");
+        properties.Where(p => CostWords.Any(w => p.Contains(w, StringComparison.OrdinalIgnoreCase))).Should().BeEmpty("custo e margem só com projects.view_cost, em DTO próprio (ADR 0028 §2)");
+        dtos.SelectMany(Reachable).Where(IsCostDto).Should().BeEmpty("nenhum DTO sem custo carrega um com custo");
     }
+
+    [Fact]
+    public void DTOs_com_custo_do_painel_tem_a_marca_CostDto()
+    {
+        // DSH-01b CA 2 e 11 (ADR 0028 §2): DTO por forma de permissão. Todo tipo do painel com palavra de custo é [CostDto] (servido só pelas rotas
+        // com projects.view_cost, conferido no teste de autorização), e os do card Margem e do resultado por projeto estão entre eles.
+        var application = typeof(BemAqui.Dashboard.Application.DashboardService).Assembly;
+        var records = application.GetExportedTypes().Where(t => t.IsClass && !t.IsAbstract && !t.IsNested && t.Namespace == "BemAqui.Dashboard.Application" && t.GetMethod("<Clone>$") is not null).ToList();
+        var withCost = records.Where(t => t.GetProperties(BindingFlags.Public | BindingFlags.Instance).Any(p => CostWords.Any(w => p.Name.Contains(w, StringComparison.OrdinalIgnoreCase))))
+            .ToList();
+        withCost.Should().NotBeEmpty();
+        withCost.Where(t => !IsCostDto(t)).Select(t => t.Name).Should().BeEmpty("tipo com custo precisa da marca [CostDto]");
+        records.Where(IsCostDto).Select(t => t.Name).Should().Contain(["MarginOverview", "MarginProjectRow", "ActiveProjectMarginRow", "ProjectResultsPage", "ProjectResultDetail", "ProjectResultCell"]);
+    }
+
+    private static bool IsCostDto(Type type) => type.GetCustomAttributes(typeof(BemAqui.Dashboard.Application.CostDtoAttribute), false).Length > 0;
 
     [Fact]
     public void Contratos_do_painel_do_supervisor_nao_levam_custo()

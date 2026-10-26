@@ -94,6 +94,26 @@ public sealed partial class ProjectMarginService(
         return new ProjectMarginPortfolio(filtered.Value.Count, figures, ProjectCosts.Worst(figures));
     }
 
+    /// <summary>Consolidado e os piores pelo desvio (DSH-01b, card Margem): o mesmo cálculo e a mesma ordem padrão do relatório, numa leitura só.</summary>
+    public async Task<Result<ProjectMarginSummary>> SummaryAsync(ProjectMarginFilter filter, int worst, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(filter);
+        if (!await CanCostAsync(cancellationToken))
+        {
+            return NoCost();
+        }
+
+        var filtered = await FilteredAsync(filter, cancellationToken);
+        if (filtered.IsFailure)
+        {
+            return filtered.Error!;
+        }
+
+        var figures = ProjectCosts.Figures(ProjectMarginCalculator.Consolidate(filtered.Value.Select(c => c.Result)));
+        var rows = await RowsAsync(Sort(filtered.Value, "deviation").Take(Math.Clamp(worst, 0, 50)).ToList(), cancellationToken);
+        return new ProjectMarginSummary(new ProjectMarginPortfolio(filtered.Value.Count, figures, ProjectCosts.Worst(figures)), rows);
+    }
+
     public async Task<Result<ProjectMarginRow>> ForProjectAsync(Guid projectId, CancellationToken cancellationToken = default)
     {
         if (!await CanCostAsync(cancellationToken))
@@ -141,13 +161,29 @@ public sealed partial class ProjectMarginService(
             case "encerrado":
                 projects = projects.Where(p => p.Status == ProjectStatus.Closed);
                 break;
+            case "concluido":
+                projects = projects.Where(p => p.Status == ProjectStatus.Delivered || p.Status == ProjectStatus.Closed);
+                break;
             case "cancelado":
                 projects = projects.Where(p => p.Status == ProjectStatus.Cancelled);
                 break;
             case "todos":
                 break;
             default:
-                return QuoteService.Invalid("situation", "Escolha em andamento, entregues, encerrados, cancelados ou todos.");
+                return QuoteService.Invalid("situation", "Escolha em andamento, entregues, encerrados, entregues e encerrados, cancelados ou todos.");
+        }
+
+        // DSH-01b: período da entrega (sem data de entrega, a do encerramento, em UTC a partir da meia-noite do dia).
+        if (filter.DeliveredFrom is { } deliveredFrom)
+        {
+            var since = new DateTimeOffset(deliveredFrom.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
+            projects = projects.Where(p => p.DeliveredOn >= deliveredFrom || (p.DeliveredOn == null && p.ClosedAt >= since));
+        }
+
+        if (filter.DeliveredTo is { } deliveredTo)
+        {
+            var until = new DateTimeOffset(deliveredTo.AddDays(1).ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
+            projects = projects.Where(p => p.DeliveredOn <= deliveredTo || (p.DeliveredOn == null && p.ClosedAt < until));
         }
 
         if (filter.PartyId is { } party)

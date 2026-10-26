@@ -45,6 +45,9 @@ public class DashboardAdaptersTests
 
         public Task<IReadOnlyList<ProjectMonthlyRevenue>> GrossRevenueByProjectsAsync(IReadOnlyCollection<Guid> projectIds, DateOnly from, DateOnly to, CancellationToken cancellationToken = default) =>
             Task.FromResult<IReadOnlyList<ProjectMonthlyRevenue>>([]);
+
+        public Task<IReadOnlyList<ProjectRevenueDocument>> GrossRevenueDocumentsAsync(Guid projectId, DateOnly from, DateOnly to, CancellationToken cancellationToken = default) =>
+            Task.FromResult<IReadOnlyList<ProjectRevenueDocument>>([]);
     }
 
     private sealed class FakeAgenda : IAgendaService
