@@ -33,6 +33,7 @@ public static class LoggingSetup
             .Enrich.FromLogContext()
             .Enrich.With<SensitivePropertyMask>()
             .Enrich.With<AccessTokenQueryMask>()
+            .Enrich.With<WebhookUrlMask>()
             .Enrich.WithProperty("Application", "bemaqui-empresas");
 
         if (environment.IsDevelopment())

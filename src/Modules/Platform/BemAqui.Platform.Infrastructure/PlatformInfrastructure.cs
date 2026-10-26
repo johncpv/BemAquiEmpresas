@@ -34,6 +34,8 @@ public static class PlatformInfrastructure
         services.TryAddScoped<TenantContextHolder>();
         services.TryAddScoped<ITenantContext>(sp => sp.GetRequiredService<TenantContextHolder>());
         services.TryAddSingleton<ITenantScopeFactory, TenantScopeFactory>();
+        // FND-16 CA 2: o tenantKey opaco dos webhooks, só para a rota /webhooks/*.
+        services.TryAddSingleton<BemAqui.BuildingBlocks.Webhooks.IWebhookTenantKeys, CatalogWebhookTenantKeys>();
 
         services.TryAddScoped<IProvisioningCatalog, EfProvisioningCatalog>();
         services.TryAddSingleton<ITenantDatabaseAdmin, PostgresTenantDatabaseAdmin>();

@@ -11,4 +11,7 @@ public enum SecretKind
     SmtpPassword,
     TotpSecret,
     AiApiKey,
+
+    /// <summary>Segredo de assinatura de webhook por provedor e tenant (FND-16, ADR 0007 adendo de 21/10/2026).</summary>
+    WebhookSecret,
 }

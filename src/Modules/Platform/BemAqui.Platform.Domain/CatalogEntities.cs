@@ -36,6 +36,26 @@ public sealed class Tenant : Entity, IAuditable
 
     public DateTimeOffset? MigratedAt { get; set; }
 
+    /// <summary>
+    /// Chave opaca da URL dos webhooks (FND-16 CA 2, ADR 0031 §1): 128 bits aleatórios em base64url, criada no primeiro provedor
+    /// configurado, sem relação com nome, slug ou id. Na auditoria do catálogo aparece só como "alterado".
+    /// </summary>
+    [ProtectedSecret]
+    public string? WebhookKey { get; private set; }
+
+    /// <summary>Grava a chave só se ainda não existe (a URL cadastrada nos provedores não muda).</summary>
+    public bool AssignWebhookKey(string key)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+        if (WebhookKey is not null)
+        {
+            return false;
+        }
+
+        WebhookKey = key;
+        return true;
+    }
+
     public List<TenantDomain> Domains { get; } = [];
 
     /// <summary>Tenant novo, em Provisioning, com o id já definido (o id entra no propósito do segredo).</summary>

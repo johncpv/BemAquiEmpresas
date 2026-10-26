@@ -31,6 +31,8 @@ public static class IdentityInfrastructure
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ITwoFactorRequirementRule, TenantRequiresTwoFactorRule>());
         services.TryAddScoped<TwoFactorRequirement>();
         services.TryAddScoped<TwoFactorService>();
+        // 2FA de novo antes de ação sensível (D6): o webhook da FND-16 e, na BNK-01a, as credenciais do Inter.
+        services.AddScoped<BemAqui.BuildingBlocks.Identity.IStepUpTwoFactor>(sp => sp.GetRequiredService<TwoFactorService>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Tenancy.ITenantSeeder, ModuleCatalogSeeder>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Tenancy.ITenantSeeder, GroupSeeder>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Tenancy.ITenantSeeder, SeedPatchSeeder>());

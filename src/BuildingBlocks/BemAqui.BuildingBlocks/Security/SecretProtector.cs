@@ -42,6 +42,7 @@ public sealed class SecretProtector(IDataProtectionProvider provider) : ISecretP
         SecretKind.SmtpPassword => "smtp",
         SecretKind.TotpSecret => "totp",
         SecretKind.AiApiKey => "ai-key",
+        SecretKind.WebhookSecret => "webhook-secret",
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Tipo de segredo sem propósito definido."),
     };
 

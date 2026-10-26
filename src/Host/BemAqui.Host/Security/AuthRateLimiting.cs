@@ -78,6 +78,21 @@ public static class AuthRateLimiting
                     Window = TimeSpan.FromMinutes(1),
                     QueueLimit = 0,
                 }));
+            // Webhooks (FND-16 CA 8, §4.3): política nomeada, por IP real (KnownProxies, D19) e provedor, antes de ler o corpo e de abrir o
+            // banco do tenant. Provedor fora do registro conta como "-" (o código da URL não cria partição nova).
+            var webhooks = configuration.GetSection(BemAqui.BuildingBlocks.Webhooks.WebhookOptions.Section).Get<BemAqui.BuildingBlocks.Webhooks.WebhookOptions>()
+                ?? new BemAqui.BuildingBlocks.Webhooks.WebhookOptions();
+            o.AddPolicy(BemAqui.BuildingBlocks.Webhooks.WebhookEndpoints.RateLimitPolicy, http =>
+            {
+                var code = http.Request.RouteValues["provider"] as string;
+                var provider = http.RequestServices.GetRequiredService<BemAqui.BuildingBlocks.Webhooks.WebhookProviderRegistry>().TryGet(code, out var known) ? known.Code : "-";
+                return RateLimitPartition.GetFixedWindowLimiter("webhook|" + provider + "|" + (http.Connection.RemoteIpAddress?.ToString() ?? "-"), _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = Math.Max(1, webhooks.PerIpPerMinute),
+                    Window = TimeSpan.FromMinutes(1),
+                    QueueLimit = 0,
+                });
+            });
             o.OnRejected = async (context, cancellationToken) =>
             {
                 var retryAfter = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var wait) ? wait : TimeSpan.FromMinutes(1);

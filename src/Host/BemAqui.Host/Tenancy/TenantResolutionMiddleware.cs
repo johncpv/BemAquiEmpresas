@@ -46,7 +46,11 @@ public sealed class PlatformHostOptions
 /// Liga cada requisição ao tenant pelo host (ADR 0004). Host desconhecido → 404 sem revelar nada;
 /// host da plataforma não tem rotas de tenant; suspenso → 403 <c>tenant_suspended</c> (FND-02 CA 2, 3 e 5).
 /// </summary>
-public sealed class TenantResolutionMiddleware(RequestDelegate next, ITenantResolver resolver, Microsoft.Extensions.Options.IOptions<PlatformHostOptions> platform)
+public sealed class TenantResolutionMiddleware(
+    RequestDelegate next,
+    ITenantResolver resolver,
+    Microsoft.Extensions.Options.IOptions<PlatformHostOptions> platform,
+    Microsoft.Extensions.Options.IOptions<BemAqui.BuildingBlocks.Webhooks.WebhookOptions> webhooks)
 {
     private const string PublicContextPath = "/api/v1/public/tenant-context";
 
@@ -62,6 +66,21 @@ public sealed class TenantResolutionMiddleware(RequestDelegate next, ITenantReso
         }
 
         var host = TenantDomain.Normalize(context.Request.Host.Host);
+
+        // Webhooks (FND-16 CA 1, ADR 0031 §1): fora do tenant por host e fora da allowlist de IP do painel; só no host da plataforma
+        // ou no host interno da API. O tenant vem do tenantKey no endpoint; em host de tenant a rota não existe.
+        if (context.Request.Path.StartsWithSegments(BemAqui.BuildingBlocks.Webhooks.WebhookEndpoints.PathPrefix, StringComparison.OrdinalIgnoreCase))
+        {
+            if (string.Equals(host, TenantDomain.Normalize(platform.Value.Host), StringComparison.Ordinal)
+                || webhooks.Value.InternalHosts.Any(h => string.Equals(TenantDomain.Normalize(h), host, StringComparison.Ordinal)))
+            {
+                await next(context);
+                return;
+            }
+
+            await NotFound(context);
+            return;
+        }
         if (string.Equals(host, TenantDomain.Normalize(platform.Value.Host), StringComparison.Ordinal))
         {
             // Host da plataforma: só as rotas da plataforma, e só de IP permitido. Rota de tenant aqui não existe.
