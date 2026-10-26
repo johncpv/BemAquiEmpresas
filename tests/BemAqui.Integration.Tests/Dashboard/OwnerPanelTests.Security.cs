@@ -100,7 +100,7 @@ public partial class OwnerPanelTests
         }
 
         var costly = endpoints.Where(e => Ok(e) is { } t && t.GetCustomAttributes(typeof(CostDtoAttribute), false).Length > 0).ToList();
-        costly.Select(e => e.RoutePattern.RawText).Should().Contain([Base + "/cards/margin", Base + "/cards/active-projects/margins", Base + "/project-results",
+        costly.Select(e => e.RoutePattern.RawText!.TrimEnd('/')).Should().Contain([Base + "/cards/margin", Base + "/cards/active-projects/margins", Base + "/project-results",
             Base + "/project-results/{projectId:guid}", Base + "/project-results/{projectId:guid}/cell"]);
         costly.Should().OnlyContain(e => e.Metadata.GetOrderedMetadata<IAuthorizeData>().Any(a => a.Policy == ModuleEndpoints.PermissionPolicyPrefix + DashboardCards.CostPermission));
         endpoints.Where(e => !costly.Contains(e)).Select(Ok).Where(t => t is not null)

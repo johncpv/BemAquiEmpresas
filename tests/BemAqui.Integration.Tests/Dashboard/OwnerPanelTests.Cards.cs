@@ -162,7 +162,7 @@ public partial class OwnerPanelTests
         card.GetProperty("atRiskOrders").GetInt32().Should().Be(board.GetProperty("atRiskCount").GetInt32());
         var weeks = card.GetProperty("weeks").EnumerateArray().ToList();
         weeks.Should().HaveCount(5, "a semana atual e as 4 seguintes");
-        var cells = load.GetProperty("factory").GetProperty("cells").EnumerateArray().ToList();
+        var cells = load.GetProperty("load").GetProperty("factory").GetProperty("cells").EnumerateArray().ToList();
         weeks.Select(w => (w.GetProperty("start").GetString(), Dec(w, "percent"), w.GetProperty("committedHours").GetDecimal()))
             .Should().Equal(cells.Select(c => (c.GetProperty("weekStart").GetString(), Dec(c, "percent"), c.GetProperty("committedHours").GetDecimal())));
     }
