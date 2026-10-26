@@ -2808,6 +2808,170 @@
         }
       }
     },
+    "/api/v1/kiosk-screens/{id}/preview": {
+      "get": {
+        "tags": [
+          "Painel da TV"
+        ],
+        "operationId": "GetKioskScreenPreview",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KioskScreenContext"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/kiosk-screens/{id}/preview/board": {
+      "get": {
+        "tags": [
+          "Painel da TV"
+        ],
+        "operationId": "GetKioskPreviewBoard",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KioskBoard"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/kiosk-screens/{id}/preview/board/orders/{orderId}": {
+      "get": {
+        "tags": [
+          "Painel da TV"
+        ],
+        "operationId": "GetKioskPreviewBoardOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KioskCard"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/kiosk-screens/{id}/preview/queue": {
+      "get": {
+        "tags": [
+          "Painel da TV"
+        ],
+        "operationId": "GetKioskPreviewQueue",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KioskQueueView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/kiosk-screens/{id}/preview/delays": {
+      "get": {
+        "tags": [
+          "Painel da TV"
+        ],
+        "operationId": "GetKioskPreviewDelays",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KioskDelays"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/kiosk/session": {
       "post": {
         "tags": [
@@ -13574,6 +13738,97 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/kiosk/board": {
+      "get": {
+        "tags": [
+          "Painel da TV"
+        ],
+        "operationId": "GetKioskBoard",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KioskBoard"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/kiosk/board/orders/{id}": {
+      "get": {
+        "tags": [
+          "Painel da TV"
+        ],
+        "operationId": "GetKioskBoardOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KioskCard"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/kiosk/queue": {
+      "get": {
+        "tags": [
+          "Painel da TV"
+        ],
+        "operationId": "GetKioskQueue",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KioskQueueView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/kiosk/delays": {
+      "get": {
+        "tags": [
+          "Painel da TV"
+        ],
+        "operationId": "GetKioskDelays",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KioskDelays"
+                }
+              }
+            }
           }
         }
       }
@@ -31364,8 +31619,7 @@
           "None",
           "AtRisk",
           "Late"
-        ],
-        "default": "None"
+        ]
       },
       "DeviceTheme": {
         "enum": [
@@ -38154,6 +38408,357 @@
           "toStock": {
             "type": "number",
             "format": "double"
+          }
+        }
+      },
+      "KioskBoard": {
+        "required": [
+          "line",
+          "inProgressCount",
+          "lateCount",
+          "atRiskCount",
+          "columns",
+          "cards",
+          "serverNow"
+        ],
+        "type": "object",
+        "properties": {
+          "line": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "inProgressCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lateCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "atRiskCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "columns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KioskColumn"
+            }
+          },
+          "cards": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KioskCard"
+            }
+          },
+          "serverNow": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "KioskCard": {
+        "required": [
+          "id",
+          "number",
+          "projectNumber",
+          "projectName",
+          "columnKey",
+          "stepCode",
+          "stepName",
+          "operator",
+          "pausedReason",
+          "stepStartedAt",
+          "appliedHours",
+          "standardHours",
+          "plannedEnd",
+          "risk",
+          "delayDays"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "projectNumber": {
+            "type": "string"
+          },
+          "projectName": {
+            "type": "string"
+          },
+          "columnKey": {
+            "type": "string"
+          },
+          "stepCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "stepName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "operator": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pausedReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "stepStartedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "appliedHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "standardHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "plannedEnd": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "risk": {
+            "$ref": "#/components/schemas/DeliveryRisk"
+          },
+          "delayDays": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "KioskColumn": {
+        "required": [
+          "key",
+          "code",
+          "name",
+          "count"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "KioskDelayRow": {
+        "required": [
+          "id",
+          "number",
+          "projectNumber",
+          "projectName",
+          "stepCode",
+          "stepName",
+          "operator",
+          "risk",
+          "days",
+          "definingStepName",
+          "definingStepEnd"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "projectNumber": {
+            "type": "string"
+          },
+          "projectName": {
+            "type": "string"
+          },
+          "stepCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "stepName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "operator": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "risk": {
+            "$ref": "#/components/schemas/DeliveryRisk"
+          },
+          "days": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "definingStepName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "definingStepEnd": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          }
+        }
+      },
+      "KioskDelays": {
+        "required": [
+          "line",
+          "rows",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "line": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KioskDelayRow"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "KioskQueueRow": {
+        "required": [
+          "position",
+          "projectId",
+          "projectNumber",
+          "projectName",
+          "firstStart",
+          "forecastDate",
+          "promisedDate",
+          "slackDays",
+          "risk"
+        ],
+        "type": "object",
+        "properties": {
+          "position": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": "string"
+          },
+          "projectName": {
+            "type": "string"
+          },
+          "firstStart": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "forecastDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "promisedDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "slackDays": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "risk": {
+            "$ref": "#/components/schemas/DeliveryRisk"
+          }
+        }
+      },
+      "KioskQueueView": {
+        "required": [
+          "line",
+          "rows",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "line": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KioskQueueRow"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
