@@ -198,6 +198,21 @@ Regra dura: **nenhum pagamento é baixado sem OP aprovada**. Exceção: tarifas,
 ### Boleto (Inter)
 `Requested → Issued → Paid (webhook com reconsulta por mTLS, ou conferência diária) | PaidPendingReview (pagamento com diferença: conferência humana) | Cancelled | Expired` (BNK-01b, BNK-02, ADR 0032). O webhook nunca baixa pelo corpo; estorno de baixa feita pelo banco e estorno de pagamento da OP exigem `finance.approve` (D6, P-20). Multa, juros e desconto vêm de Configurações → Cobrança; acima do limite da D8, `finance.approve`.
 
+### Evento de webhook recebido (FND-16, ADR 0031)
+```
+(POST /webhooks/{provedor}/{tenantKey}) → [429 rate limit | 415 Content-Type | 413 corpo > 64 KB | 401 sem corpo: chave, tenant, provedor ou origem]
+   → Received ──(job)──> Processed
+                     └─> Ignored (módulo dono não liberado, provedor não registrado ou o handler diz que não há efeito)
+                     └─> Failed ──(retry do Hangfire)──> Processed | Ignored | DeadLettered (10ª tentativa)
+   DeadLettered ──(Reprocessar, edição do módulo dono)──> Received
+```
+- **Recepção:** tenant só pelo `tenantKey` (nunca pelo host), só `Active` e no host da plataforma (ou no interno, para o provedor que declara); a origem é conferida sobre os bytes crus (HMAC-SHA256 com timestamp de até 5 min, ou token de 256 bits na URL comparado ao hash), em tempo constante, contra a credencial atual e a anterior (24 h). Aceito: o evento e a mensagem `WebhookReceived` vão juntos no mesmo `SaveChanges` e a resposta é **202** sem esperar o processamento; entrega repetida (mesmo id de entrega ou mesmo SHA-256 do corpo, inclusive em corrida) responde **200** sem mensagem nova; falha no banco responde **503** e nada fica gravado.
+- **Processamento:** o consumidor da mensagem (com inbox) enfileira o `ProcessWebhookEventJob(tenantId, eventId)` na fila do provedor; o job trava a linha (`FOR UPDATE SKIP LOCKED`: a segunda execução simultânea não faz nada), confere o módulo dono liberado, chama o handler do provedor na mesma transação que marca o evento. O handler nunca confia no corpo: reconsulta a fonte (BNK-02) ou confere com o documento local (FIS-01).
+- **Dead letter:** na 10ª falha, `DeadLettered`, alerta `webhook_dead_letter` aos super admins e aviso a quem tem `{dono}.edit`, com o link para "Reprocessar" (filtro "Parados").
+- **Varredor de reserva** (`webhook-events-sweep`, a cada 5 min): `Received` sem fila há mais de 5 min volta ao outbox; na 3ª volta, alerta `webhook_stalled`.
+- **Recusas:** contador `webhook_rejected{provider}`; 20 recusas em 5 min do mesmo provedor e tenant geram o alerta `webhook_rejections` (uma vez por janela). Uso do segredo anterior gera `webhook_previous_secret` e o aviso "O {provedor} ainda usa o endereço antigo do aviso." aos membros do Proprietário, uma vez por dia.
+- **Expurgo** (`webhook-events-purge`, 03:00): Processed/Ignored com mais de 90 dias perdem o corpo; a linha fica para a deduplicação.
+
 ### Conciliação bancária (BNK-03a/03b)
 Linha do extrato (API do Inter ou OFX; OFX bloqueado em conta com API, salvo contingência com `finance.approve`) `Imported → Matched | Ignored` (imutável; "Ignorada" com motivo). Quem importou não confirma a conciliação; o período `Open → Closed` com `finance.approve`.
 
@@ -266,7 +281,7 @@ Marcação imutável (controle interno, não registro oficial); ajuste `Pending 
 | ProjectForecastChanged | Production | `{ ProjectId, ForecastDate?, FabricationEnd?, Reason? (código: NoRouting, NoWorkCenter, NoCapacity, NoFabricationOrder), ComputedAt, ReasonOrderId? }`, publicado pelo escritor único do plano (`ScheduleService`) na transação da execução, só dos projetos cuja previsão mudou (comparada com `production.schedule_project_forecasts`). Commercial (`ProjectForecastConsumer`) grava `commercial.project_forecasts` só se o `computedAt` for mais novo que o gravado (idempotente pela inbox; a linha de `commercial.projects` não é tocada) e, ao entrar em risco ou piorar, avisa o responsável e quem tem `production.approve` (`dedup_key` `project-at-risk:{projectId}:{forecastDate}`). *Aplicado na PLN-01b (25/10/2026), ADR 0029* |
 | InvoiceCancelled | Fiscal | Commercial grava `InvoiceTaxReversal` na razão `project_costs` (FIS-03b, ADR 0025 adendo); nada no estoque |
 | BillingSlipIssued / BillingSlipCancelled | Finance | Régua de cobrança (FIN-09) e portal (POR-01c), lendo a fonte no envio |
-| WebhookReceived | Host (FND-16) | Consumidor do provedor (inbox) reconsulta a fonte; gravado na mesma transação do `webhook_events` (ADR 0031) |
+| WebhookReceived | BuildingBlocks (FND-16) | Gravado no mesmo `SaveChanges` do `webhook_events` (ADR 0031); o consumidor (inbox) enfileira o `ProcessWebhookEventJob` com o `tenantId` e o id do evento na fila do provedor; o handler do módulo dono reconsulta a fonte. Leva só ids, nunca o corpo |
 | PartyContactChanged | Parties | Portal invalida o acesso quando o e-mail muda; WhatsApp derruba o opt-in quando o número muda (POR-01a, WPP-01) |
 | QuoteAcceptedByCustomer / QuoteRejectedByCustomer | Commercial | Só aviso ao Comercial e pré-preenchimento da aprovação interna (POR-02, ADR 0005 D5) |
 | SubjectAnonymized | Settings | Cada módulo confirma a anonimização da sua parte (LGPD-01b) |

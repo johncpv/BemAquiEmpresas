@@ -44,3 +44,11 @@
 - Adendo de 21/10/2026 à ADR 0007 (segredos novos) e à ADR 0009 (rota anônima `/webhooks/*`).
 - `docs/02-arquitetura.md` deixa de citar o tenant pelo nome na URL do webhook; `docs/03-modelo-dados.md` registra `shared.webhook_events`.
 - O expurgo do corpo apaga dado de propósito e está coberto por esta ADR (não é migration destrutiva).
+
+## Adendo 25/10/2026 (implementação da FND-16; recomendações aceitas pelo PO em 24/10/2026)
+- **Respostas:** 202 para evento aceito, 200 para entrega repetida, **401 sem corpo para toda recusa** (chave inexistente, tenant suspenso, provedor desconhecido, origem inválida), 403 sem corpo no GET de verificação recusado, 413/415/429 antes de ler o corpo e de abrir o banco do tenant, 503 em falha do banco ou schema defasado. Substitui o "404 para tenant ou provedor desconhecido" da §3 (sem enumeração).
+- **Anti-replay:** o HMAC cobre `{timestamp}.{corpo}` quando o provedor declara o cabeçalho do timestamp (janela de 5 min), além da deduplicação por id e por SHA-256.
+- **Provedor de teste só nos testes:** o build publicado não registra provedor nesta story; o `emissor-fiscal` (FIS-01) e o `inter` (BNK-02) são os primeiros.
+- **Credencial:** `shared.webhook_tokens` guarda, por provedor e escopo, o hash do token ou o segredo HMAC cifrado (`webhook-secret`), com o anterior até `previous_valid_until`. Validar exige ler a credencial antes da gravação; a gravação continua uma só (evento + outbox).
+- **Rate limit:** política `webhooks` por IP real e provedor (60/min); o abuso por tenant é coberto pelo alerta de 20 recusas em 5 min por provedor e tenant.
+- **2FA de novo:** contrato `IStepUpTwoFactor` (BuildingBlocks), implementado pelo Identity, com o código do aplicativo no corpo da ação.
