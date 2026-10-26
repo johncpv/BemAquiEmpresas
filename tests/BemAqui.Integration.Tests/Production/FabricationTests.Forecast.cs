@@ -86,20 +86,10 @@ public partial class FabricationTests
         before.ForecastDate.Should().Be(await PlannedEndAsync(orders), "CA 5 (c): sem instalação, a entrega é o fim da fabricação");
         (await CommercialForecastAsync(project))!.ForecastDate.Should().Be(before.ForecastDate, "CA 7: a previsão chegou ao Commercial pelo evento");
 
-        // Apontamento finalizado acima do padrão (2 h): o comando marca o pedido depois do commit; o job refaz as datas.
         var center = (await StepAsync(await StepIdAsync(orders[0], 1))).WorkCenterId;
-        var (_, employee, _, _) = await OperatorAsync(center);
-        await ClearPendingAsync();
-        await RecordAsync(supervisor, orders[0], employee, await StepIdAsync(orders[0], 1), 180);
-        var committed = Stopwatch.StartNew();
-        (await PendingAsync()).Should().BeTrue("CA 1: apontamento fechado pede o recálculo, gatilho Event");
-        (await RunPendingAsync()).Run!.Status.Should().Be(ScheduleRunStatus.Succeeded);
-        await DrainAsync();
-        committed.Stop();
-        committed.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(10), "CA 4: as datas novas em até 10 s depois do commit");
-        (await WithDbAsync(db => db.ScheduleRuns.AsNoTracking().OrderByDescending(r => r.FinishedAt).FirstAsync())).Trigger.Should().Be(ScheduleTrigger.Event);
 
-        // Editar as etapas (mais horas na última) empurra a data; o Projeto 360 mostra a nova.
+        // Editar as etapas (mais horas na última) empurra a data; o Projeto 360 mostra a nova. Antes do apontamento: com a OS iniciada
+        // as etapas não mudam (PRD-01 CA 8).
         var order = await GetOrderAsync(owner, orders[0]);
         var steps = CurrentSteps(order);
         await ClearPendingAsync();
@@ -118,6 +108,18 @@ public partial class FabricationTests
         after.ForecastDate.Should().Be(await PlannedEndAsync(orders));
         var detail = await JsonAsync(await owner.GetAsync($"{Projects}/{project}"));
         detail.GetProperty("forecast").GetProperty("forecastDate").GetString().Should().Be(Iso(after.ForecastDate!.Value), "CA 8: Entrega prevista de project_forecasts");
+
+        // Apontamento finalizado acima do padrão (2 h): o comando marca o pedido depois do commit; o job refaz as datas.
+        var (_, employee, _, _) = await OperatorAsync(center);
+        await ClearPendingAsync();
+        await RecordAsync(supervisor, orders[0], employee, await StepIdAsync(orders[0], 1), 180);
+        var committed = Stopwatch.StartNew();
+        (await PendingAsync()).Should().BeTrue("CA 1: apontamento fechado pede o recálculo, gatilho Event");
+        (await RunPendingAsync()).Run!.Status.Should().Be(ScheduleRunStatus.Succeeded);
+        await DrainAsync();
+        committed.Stop();
+        committed.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(10), "CA 4: as datas novas em até 10 s depois do commit");
+        (await WithDbAsync(db => db.ScheduleRuns.AsNoTracking().OrderByDescending(r => r.FinishedAt).FirstAsync())).Trigger.Should().Be(ScheduleTrigger.Event);
 
         // Calendário, centro e parâmetro também pedem.
         var calendar = await WithDbAsync(db => db.Calendars.AsNoTracking().Where(c => c.IsDefault).Select(c => c.Id).SingleAsync());

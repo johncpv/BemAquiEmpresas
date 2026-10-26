@@ -33,7 +33,10 @@ public sealed class ProjectForecastConsumer(ICommercialDb db, IUserDirectory use
         }
 
         var row = await db.ProjectForecasts.FirstOrDefaultAsync(f => f.ProjectId == integrationEvent.ProjectId, cancellationToken);
-        if (row is not null && row.ComputedAt >= integrationEvent.ComputedAt)
+        // O timestamptz guarda microssegundos e o evento traz ticks de 100 ns: compara e grava na precisão do banco, senão o evento do
+        // mesmo instante pareceria mais novo que o gravado e sobrescreveria (CA 7).
+        var computedAt = ToMicroseconds(integrationEvent.ComputedAt);
+        if (row is not null && row.ComputedAt >= computedAt)
         {
             return;
         }
@@ -49,7 +52,7 @@ public sealed class ProjectForecastConsumer(ICommercialDb db, IUserDirectory use
         row.FabricationEnd = integrationEvent.FabricationEnd;
         row.Reason = integrationEvent.Reason is { Length: > 0 and <= 32 } reason ? reason : null;
         row.ReasonOrderId = integrationEvent.ReasonOrderId;
-        row.ComputedAt = integrationEvent.ComputedAt;
+        row.ComputedAt = computedAt;
         row.UpdatedAt = clock.GetUtcNow();
 
         if (!ProjectDelivery.Finished(project.Status) && ShouldWarn(project.PromisedDate, previous, integrationEvent.ForecastDate))
@@ -71,6 +74,9 @@ public sealed class ProjectForecastConsumer(ICommercialDb db, IUserDirectory use
 
         await db.SaveChangesAsync(cancellationToken);
     }
+
+    /// <summary>O instante na precisão do <c>timestamptz</c> (microssegundos), para comparar o evento com o que está gravado.</summary>
+    public static DateTimeOffset ToMicroseconds(DateTimeOffset value) => new(value.Ticks - (value.Ticks % TimeSpan.TicksPerMicrosecond), value.Offset);
 
     /// <summary>
     /// Avisa quando a nova previsão passa da prometida (sem tolerância) e antes não passava, ou quando piorou (CA 10); sem previsão ou saindo
