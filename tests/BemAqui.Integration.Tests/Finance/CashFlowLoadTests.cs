@@ -76,18 +76,37 @@ public class CashFlowLoadTests(TenancyFixture tenancy) : IClassFixture<TenancyFi
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", TestTokens.Create(tenancy.TenantA.Id, Host, userId: userId, stamp: stamp));
         (await client.GetAsync("/api/v1/finance/cash-flow?days=1")).StatusCode.Should().Be(HttpStatusCode.OK, "aquecimento");
         // FIN-07 CA 16: comandos SQL contados pela fonte de rastreamento do Npgsql; N+1 daria um por cliente (2 mil).
+        // O ouvinte é do processo inteiro: só contam os comandos do trace deste pedido (traceparent no cabeçalho), não os dos outros
+        // testes e dos jobs que rodam em paralelo.
+        var trace = ActivityTraceId.CreateRandom();
         var commands = 0;
+        var all = 0;
         using var listener = new ActivityListener
         {
-            ShouldListenTo = s => s.Name == "Npgsql",
+            ShouldListenTo = s => s.Name is "Npgsql" or "Microsoft.AspNetCore",
             Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllData,
-            ActivityStarted = _ => Interlocked.Increment(ref commands),
+            ActivityStarted = a =>
+            {
+                if (a.Source.Name != "Npgsql")
+                {
+                    return;
+                }
+
+                Interlocked.Increment(ref all);
+                if (a.TraceId == trace)
+                {
+                    Interlocked.Increment(ref commands);
+                }
+            },
         };
         ActivitySource.AddActivityListener(listener);
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/finance/cash-flow?days=90&scenario=both");
+        request.Headers.Add("traceparent", $"00-{trace}-{ActivitySpanId.CreateRandom()}-01");
         var watch = Stopwatch.StartNew();
-        var response = await client.GetAsync("/api/v1/finance/cash-flow?days=90&scenario=both");
+        var response = await client.SendAsync(request);
         watch.Stop();
         var executed = Volatile.Read(ref commands);
+        executed.Should().BeGreaterThan(0, $"os comandos do pedido vêm no trace dele ({Volatile.Read(ref all)} no processo)");
         response.StatusCode.Should().Be(HttpStatusCode.OK, await response.Content.ReadAsStringAsync());
         watch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(2));
         executed.Should().BeLessThan(60, "a pontualidade dos 2 mil clientes vem em lote (ICustomerPaymentStats.ForPartiesAsync)");
