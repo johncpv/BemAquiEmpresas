@@ -27,6 +27,8 @@ export async function mockApi(page: Page, overrides: Record<string, Handler> = {
     'GET /api/v1/settings/security/shopfloor-devices': (r) => json(r, { devices: [], activeCount: 0, maxActive: 10 }),
     'GET /api/v1/settings/ia': (r) => json(r, aiSettings()),
     'GET /api/v1/audit/*/*': (r) => json(r, { items: [], page: 1, pageSize: 20, total: 0 }),
+    // "Última compra" na página do item (CMP-04 CA 15): por padrão o item ainda não foi comprado.
+    'GET /api/v1/purchasing/items/*/last-purchase': (r) => json(r, { status: 404, code: 'last_purchase_not_found', title: 'Este item ainda não foi comprado.' }, 404),
   }
   const handlers = { ...defaults, ...overrides }
 
