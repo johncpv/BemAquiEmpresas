@@ -91,7 +91,7 @@
     "/api/v1/modules": {
       "get": {
         "tags": [
-          "M\u00F3dulos"
+          "Módulos"
         ],
         "operationId": "ListModules",
         "responses": {
@@ -343,7 +343,7 @@
     "/api/v1/notifications": {
       "get": {
         "tags": [
-          "Notifica\u00E7\u00F5es"
+          "Notificações"
         ],
         "operationId": "ListMyNotifications",
         "parameters": [
@@ -381,7 +381,7 @@
     "/api/v1/notifications/{id}/read": {
       "post": {
         "tags": [
-          "Notifica\u00E7\u00F5es"
+          "Notificações"
         ],
         "operationId": "MarkNotificationRead",
         "parameters": [
@@ -859,7 +859,7 @@
     "/api/v1/auth/login": {
       "post": {
         "tags": [
-          "Autentica\u00E7\u00E3o"
+          "Autenticação"
         ],
         "operationId": "Login",
         "requestBody": {
@@ -889,7 +889,7 @@
     "/api/v1/auth/refresh": {
       "post": {
         "tags": [
-          "Autentica\u00E7\u00E3o"
+          "Autenticação"
         ],
         "operationId": "RefreshSession",
         "responses": {
@@ -909,7 +909,7 @@
     "/api/v1/auth/logout": {
       "post": {
         "tags": [
-          "Autentica\u00E7\u00E3o"
+          "Autenticação"
         ],
         "operationId": "Logout",
         "responses": {
@@ -922,7 +922,7 @@
     "/api/v1/auth/pin/users": {
       "get": {
         "tags": [
-          "Autentica\u00E7\u00E3o"
+          "Autenticação"
         ],
         "operationId": "ListPinUsers",
         "responses": {
@@ -942,7 +942,7 @@
     "/api/v1/auth/pin": {
       "post": {
         "tags": [
-          "Autentica\u00E7\u00E3o"
+          "Autenticação"
         ],
         "operationId": "LoginWithPin",
         "requestBody": {
@@ -972,7 +972,7 @@
     "/api/v1/auth/forgot-password": {
       "post": {
         "tags": [
-          "Autentica\u00E7\u00E3o"
+          "Autenticação"
         ],
         "operationId": "ForgotPassword",
         "requestBody": {
@@ -1002,7 +1002,7 @@
     "/api/v1/auth/reset-password": {
       "post": {
         "tags": [
-          "Autentica\u00E7\u00E3o"
+          "Autenticação"
         ],
         "operationId": "ResetPassword",
         "requestBody": {
@@ -1025,7 +1025,7 @@
     "/api/v1/auth/invites/inspect": {
       "post": {
         "tags": [
-          "Autentica\u00E7\u00E3o"
+          "Autenticação"
         ],
         "operationId": "InspectInvite",
         "requestBody": {
@@ -1055,7 +1055,7 @@
     "/api/v1/auth/invites/accept": {
       "post": {
         "tags": [
-          "Autentica\u00E7\u00E3o"
+          "Autenticação"
         ],
         "operationId": "AcceptInvite",
         "requestBody": {
@@ -1085,7 +1085,7 @@
     "/api/v1/auth/2fa/verify": {
       "post": {
         "tags": [
-          "Autentica\u00E7\u00E3o"
+          "Autenticação"
         ],
         "operationId": "VerifyTwoFactor",
         "requestBody": {
@@ -1115,7 +1115,7 @@
     "/api/v1/auth/2fa/setup": {
       "post": {
         "tags": [
-          "Autentica\u00E7\u00E3o"
+          "Autenticação"
         ],
         "operationId": "BeginRequiredTwoFactorSetup",
         "requestBody": {
@@ -1145,7 +1145,7 @@
     "/api/v1/auth/2fa/confirm": {
       "post": {
         "tags": [
-          "Autentica\u00E7\u00E3o"
+          "Autenticação"
         ],
         "operationId": "ConfirmRequiredTwoFactorSetup",
         "requestBody": {
@@ -1275,7 +1275,7 @@
     "/api/v1/identity/groups": {
       "get": {
         "tags": [
-          "Usu\u00E1rios e acessos"
+          "Usuários e acessos"
         ],
         "operationId": "ListGroups",
         "responses": {
@@ -1296,7 +1296,7 @@
       },
       "post": {
         "tags": [
-          "Usu\u00E1rios e acessos"
+          "Usuários e acessos"
         ],
         "operationId": "CreateGroup",
         "requestBody": {
@@ -1326,7 +1326,7 @@
     "/api/v1/identity/groups/{id}": {
       "get": {
         "tags": [
-          "Usu\u00E1rios e acessos"
+          "Usuários e acessos"
         ],
         "operationId": "GetGroup",
         "parameters": [
@@ -1355,7 +1355,7 @@
       },
       "put": {
         "tags": [
-          "Usu\u00E1rios e acessos"
+          "Usuários e acessos"
         ],
         "operationId": "UpdateGroup",
         "parameters": [
@@ -1396,7 +1396,7 @@
     "/api/v1/identity/groups/{id}/duplicate": {
       "post": {
         "tags": [
-          "Usu\u00E1rios e acessos"
+          "Usuários e acessos"
         ],
         "operationId": "DuplicateGroup",
         "parameters": [
@@ -1427,7 +1427,7 @@
     "/api/v1/identity/groups/{id}/deactivate": {
       "post": {
         "tags": [
-          "Usu\u00E1rios e acessos"
+          "Usuários e acessos"
         ],
         "operationId": "DeactivateGroup",
         "parameters": [
@@ -1458,7 +1458,7 @@
     "/api/v1/identity/groups/{id}/members": {
       "put": {
         "tags": [
-          "Usu\u00E1rios e acessos"
+          "Usuários e acessos"
         ],
         "operationId": "SetGroupMembers",
         "parameters": [
@@ -1499,7 +1499,7 @@
     "/api/v1/identity/users": {
       "get": {
         "tags": [
-          "Usu\u00E1rios e acessos"
+          "Usuários e acessos"
         ],
         "operationId": "ListUsers",
         "responses": {
@@ -1522,7 +1522,7 @@
     "/api/v1/identity/users/invite": {
       "post": {
         "tags": [
-          "Usu\u00E1rios e acessos"
+          "Usuários e acessos"
         ],
         "operationId": "InviteUser",
         "requestBody": {
@@ -1552,7 +1552,7 @@
     "/api/v1/identity/users/{id}/resend-invite": {
       "post": {
         "tags": [
-          "Usu\u00E1rios e acessos"
+          "Usuários e acessos"
         ],
         "operationId": "ResendInvite",
         "parameters": [
@@ -1576,7 +1576,7 @@
     "/api/v1/identity/users/{id}/cancel-invite": {
       "post": {
         "tags": [
-          "Usu\u00E1rios e acessos"
+          "Usuários e acessos"
         ],
         "operationId": "CancelInvite",
         "parameters": [
@@ -1600,7 +1600,7 @@
     "/api/v1/identity/users/{id}/deactivate": {
       "post": {
         "tags": [
-          "Usu\u00E1rios e acessos"
+          "Usuários e acessos"
         ],
         "operationId": "DeactivateUser",
         "parameters": [
@@ -1624,7 +1624,7 @@
     "/api/v1/identity/users/{id}/reactivate": {
       "post": {
         "tags": [
-          "Usu\u00E1rios e acessos"
+          "Usuários e acessos"
         ],
         "operationId": "ReactivateUser",
         "parameters": [
@@ -1648,7 +1648,7 @@
     "/api/v1/identity/users/{id}/groups": {
       "put": {
         "tags": [
-          "Usu\u00E1rios e acessos"
+          "Usuários e acessos"
         ],
         "operationId": "SetUserGroups",
         "parameters": [
@@ -1682,7 +1682,7 @@
     "/api/v1/settings/security": {
       "get": {
         "tags": [
-          "Configura\u00E7\u00F5es"
+          "Configurações"
         ],
         "operationId": "GetSecuritySettings",
         "responses": {
@@ -1700,7 +1700,7 @@
       },
       "put": {
         "tags": [
-          "Configura\u00E7\u00F5es"
+          "Configurações"
         ],
         "operationId": "SaveSecuritySettings",
         "requestBody": {
@@ -1859,7 +1859,7 @@
     "/api/v1/settings/ia": {
       "get": {
         "tags": [
-          "Configura\u00E7\u00F5es"
+          "Configurações"
         ],
         "operationId": "GetAiSettings",
         "responses": {
@@ -1877,7 +1877,7 @@
       },
       "put": {
         "tags": [
-          "Configura\u00E7\u00F5es"
+          "Configurações"
         ],
         "operationId": "SaveAiSettings",
         "requestBody": {
@@ -1905,7 +1905,7 @@
       },
       "delete": {
         "tags": [
-          "Configura\u00E7\u00F5es"
+          "Configurações"
         ],
         "operationId": "RemoveAiSettings",
         "responses": {
@@ -1918,7 +1918,7 @@
     "/api/v1/settings/ia/testar": {
       "post": {
         "tags": [
-          "Configura\u00E7\u00F5es"
+          "Configurações"
         ],
         "operationId": "TestAiSettings",
         "requestBody": {
@@ -1948,7 +1948,7 @@
     "/api/v1/settings/company": {
       "get": {
         "tags": [
-          "Configura\u00E7\u00F5es"
+          "Configurações"
         ],
         "operationId": "GetCompanyProfile",
         "responses": {
@@ -1966,7 +1966,7 @@
       },
       "put": {
         "tags": [
-          "Configura\u00E7\u00F5es"
+          "Configurações"
         ],
         "operationId": "SaveCompanyProfile",
         "requestBody": {
@@ -1996,7 +1996,7 @@
     "/api/v1/settings/company/logo": {
       "post": {
         "tags": [
-          "Configura\u00E7\u00F5es"
+          "Configurações"
         ],
         "operationId": "UploadCompanyLogo",
         "requestBody": {
@@ -2034,7 +2034,7 @@
     "/api/v1/settings/company/cep/{cep}": {
       "get": {
         "tags": [
-          "Configura\u00E7\u00F5es"
+          "Configurações"
         ],
         "operationId": "LookupCompanyCep",
         "parameters": [
@@ -2064,7 +2064,7 @@
     "/api/v1/settings/numbering": {
       "get": {
         "tags": [
-          "Configura\u00E7\u00F5es"
+          "Configurações"
         ],
         "operationId": "ListNumberFormats",
         "responses": {
@@ -2087,7 +2087,7 @@
     "/api/v1/settings/numbering/{docType}": {
       "put": {
         "tags": [
-          "Configura\u00E7\u00F5es"
+          "Configurações"
         ],
         "operationId": "SaveNumberFormat",
         "parameters": [
@@ -2127,7 +2127,7 @@
     "/api/v1/settings/parameters": {
       "get": {
         "tags": [
-          "Configura\u00E7\u00F5es"
+          "Configurações"
         ],
         "operationId": "GetTenantParameters",
         "responses": {
@@ -2147,7 +2147,7 @@
     "/api/v1/settings/parameters/payroll-charges": {
       "put": {
         "tags": [
-          "Configura\u00E7\u00F5es"
+          "Configurações"
         ],
         "operationId": "SavePayrollCharges",
         "requestBody": {
@@ -2177,7 +2177,7 @@
     "/api/v1/settings/parameters/pricing-mode": {
       "put": {
         "tags": [
-          "Configura\u00E7\u00F5es"
+          "Configurações"
         ],
         "operationId": "SavePricingMode",
         "requestBody": {
@@ -2207,7 +2207,7 @@
     "/api/v1/settings/parameters/email-dispatch-limit": {
       "put": {
         "tags": [
-          "Configura\u00E7\u00F5es"
+          "Configurações"
         ],
         "operationId": "SaveEmailDispatchLimit",
         "requestBody": {
@@ -2356,7 +2356,7 @@
     "/api/v1/settings/security/shopfloor-devices": {
       "get": {
         "tags": [
-          "Configura\u00E7\u00F5es"
+          "Configurações"
         ],
         "operationId": "ListShopfloorDevices",
         "responses": {
@@ -2376,7 +2376,7 @@
     "/api/v1/settings/security/shopfloor-devices/{id}/revoke": {
       "post": {
         "tags": [
-          "Configura\u00E7\u00F5es"
+          "Configurações"
         ],
         "operationId": "RevokeShopfloorDevice",
         "parameters": [
@@ -4715,7 +4715,7 @@
     "/api/v1/quotes": {
       "get": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "ListQuotes",
         "parameters": [
@@ -4797,7 +4797,7 @@
       },
       "post": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "CreateQuote",
         "requestBody": {
@@ -4827,7 +4827,7 @@
     "/api/v1/quotes/funnel": {
       "get": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "GetQuoteFunnel",
         "parameters": [
@@ -4880,7 +4880,7 @@
     "/api/v1/quotes/costs": {
       "get": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "ListQuoteCosts",
         "parameters": [
@@ -4913,7 +4913,7 @@
     "/api/v1/quotes/{id}": {
       "get": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "GetQuote",
         "parameters": [
@@ -4942,7 +4942,7 @@
       },
       "put": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "UpdateQuote",
         "parameters": [
@@ -4981,7 +4981,7 @@
       },
       "delete": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "DeleteQuote",
         "parameters": [
@@ -5014,7 +5014,7 @@
     "/api/v1/quotes/{id}/send": {
       "post": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "MarkQuoteSent",
         "parameters": [
@@ -5055,7 +5055,7 @@
     "/api/v1/quotes/{id}/items": {
       "post": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "AddQuoteItem",
         "parameters": [
@@ -5096,7 +5096,7 @@
     "/api/v1/quotes/{id}/items/{itemId}": {
       "put": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "UpdateQuoteItem",
         "parameters": [
@@ -5144,7 +5144,7 @@
       },
       "delete": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "RemoveQuoteItem",
         "parameters": [
@@ -5193,7 +5193,7 @@
     "/api/v1/quotes/{id}/costs": {
       "get": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "GetQuoteCosts",
         "parameters": [
@@ -5224,7 +5224,7 @@
     "/api/v1/quotes/{id}/items/{itemId}/costs": {
       "put": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "SetQuoteItemCosts",
         "parameters": [
@@ -5274,7 +5274,7 @@
     "/api/v1/quotes/{id}/refresh-costs": {
       "get": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "PreviewQuoteCostRefresh",
         "parameters": [
@@ -5303,7 +5303,7 @@
       },
       "post": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "RefreshQuoteCosts",
         "parameters": [
@@ -5344,7 +5344,7 @@
     "/api/v1/quotes/material-cost/{itemId}": {
       "get": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "GetLastMaterialCost",
         "parameters": [
@@ -5375,7 +5375,7 @@
     "/api/v1/quotes/{id}/conditions": {
       "get": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "GetQuoteConditions",
         "parameters": [
@@ -5404,7 +5404,7 @@
       },
       "put": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "SaveQuoteConditions",
         "parameters": [
@@ -5445,7 +5445,7 @@
     "/api/v1/quotes/{id}/conditions/from-term/{termId}": {
       "get": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "QuoteMilestonesFromTerm",
         "parameters": [
@@ -5488,7 +5488,7 @@
     "/api/v1/quotes/{id}/lose": {
       "post": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "LoseQuote",
         "parameters": [
@@ -5529,7 +5529,7 @@
     "/api/v1/quotes/copy-options": {
       "get": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "ListQuoteCopyOptions",
         "parameters": [
@@ -5561,7 +5561,7 @@
     "/api/v1/quotes/{id}/copy": {
       "post": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "CopyQuote",
         "parameters": [
@@ -5602,7 +5602,7 @@
     "/api/v1/quotes/{id}/copy-items": {
       "post": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "CopyQuoteItems",
         "parameters": [
@@ -5643,7 +5643,7 @@
     "/api/v1/quotes/payment-terms": {
       "get": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "ListQuotePaymentTerms",
         "responses": {
@@ -5666,7 +5666,7 @@
     "/api/v1/quotes/{id}/revisions": {
       "post": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "NewQuoteRevision",
         "parameters": [
@@ -5705,7 +5705,7 @@
       },
       "get": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "ListQuoteRevisions",
         "parameters": [
@@ -5739,7 +5739,7 @@
     "/api/v1/quotes/{id}/revisions/{revisionId}": {
       "get": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "GetQuoteRevision",
         "parameters": [
@@ -5779,7 +5779,7 @@
     "/api/v1/quotes/{id}/extend-validity": {
       "post": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "ExtendQuoteValidity",
         "parameters": [
@@ -5820,7 +5820,7 @@
     "/api/v1/quotes/{id}/approval": {
       "get": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "GetQuoteApproval",
         "parameters": [
@@ -5851,7 +5851,7 @@
     "/api/v1/quotes/{id}/approval/costs": {
       "get": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "GetQuoteApprovalCosts",
         "parameters": [
@@ -5882,7 +5882,7 @@
     "/api/v1/quotes/{id}/approve": {
       "post": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "ApproveQuote",
         "parameters": [
@@ -5923,7 +5923,7 @@
     "/api/v1/quotes/{id}/contract": {
       "get": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "GetQuoteContract",
         "parameters": [
@@ -5954,7 +5954,7 @@
     "/api/v1/quotes/{id}/documents": {
       "get": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "GetQuoteDocuments",
         "parameters": [
@@ -5985,7 +5985,7 @@
     "/api/v1/quotes/{id}/pdf": {
       "post": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "GenerateQuotePdf",
         "parameters": [
@@ -6016,7 +6016,7 @@
     "/api/v1/quotes/{id}/send-draft": {
       "get": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "GetQuoteSendDraft",
         "parameters": [
@@ -6047,7 +6047,7 @@
     "/api/v1/quotes/{id}/email": {
       "post": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "EmailQuote",
         "parameters": [
@@ -6088,7 +6088,7 @@
     "/api/v1/quotes/lookups/customers": {
       "get": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "ListQuoteCustomers",
         "parameters": [
@@ -6120,7 +6120,7 @@
     "/api/v1/quotes/lookups/installers": {
       "get": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "ListQuoteInstallers",
         "parameters": [
@@ -6152,7 +6152,7 @@
     "/api/v1/quotes/lookups/customers/{partyId}/contacts": {
       "get": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "ListQuoteCustomerContacts",
         "parameters": [
@@ -6186,7 +6186,7 @@
     "/api/v1/quotes/lookups/customers/{partyId}/addresses": {
       "get": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "ListQuoteCustomerAddresses",
         "parameters": [
@@ -6220,7 +6220,7 @@
     "/api/v1/quotes/lookups/items": {
       "get": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "ListQuoteItems",
         "parameters": [
@@ -6252,7 +6252,7 @@
     "/api/v1/quotes/lookups/positions": {
       "get": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "ListQuotePositions",
         "responses": {
@@ -6275,7 +6275,7 @@
     "/api/v1/quotes/lookups/work-centers": {
       "get": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "ListQuoteWorkCenters",
         "responses": {
@@ -7499,7 +7499,7 @@
     "/api/v1/commercial/parameters": {
       "get": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "GetCommercialParameters",
         "responses": {
@@ -7517,7 +7517,7 @@
       },
       "put": {
         "tags": [
-          "Or\u00E7amentos"
+          "Orçamentos"
         ],
         "operationId": "UpdateCommercialParameters",
         "requestBody": {
@@ -8691,7 +8691,7 @@
     "/api/v1/production/work-centers": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "ListWorkCenters",
         "parameters": [
@@ -8741,7 +8741,7 @@
       },
       "post": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "CreateWorkCenter",
         "requestBody": {
@@ -8771,7 +8771,7 @@
     "/api/v1/production/work-centers/suggested-shifts": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "GetSuggestedShifts",
         "responses": {
@@ -8794,7 +8794,7 @@
     "/api/v1/production/work-centers/{id}": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "GetWorkCenter",
         "parameters": [
@@ -8823,7 +8823,7 @@
       },
       "put": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "UpdateWorkCenter",
         "parameters": [
@@ -8862,7 +8862,7 @@
       },
       "delete": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "DeleteWorkCenter",
         "parameters": [
@@ -8886,7 +8886,7 @@
     "/api/v1/production/work-centers/{id}/inactivate": {
       "post": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "InactivateWorkCenter",
         "parameters": [
@@ -8917,7 +8917,7 @@
     "/api/v1/production/work-centers/{id}/reactivate": {
       "post": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "ReactivateWorkCenter",
         "parameters": [
@@ -8948,7 +8948,7 @@
     "/api/v1/production/calendars/default": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "GetDefaultCalendar",
         "responses": {
@@ -8968,7 +8968,7 @@
     "/api/v1/production/calendars/{id}": {
       "put": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "UpdateCalendar",
         "parameters": [
@@ -9009,7 +9009,7 @@
     "/api/v1/production/calendars/{calendarId}/holidays/{year}": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "SuggestHolidays",
         "parameters": [
@@ -9052,7 +9052,7 @@
     "/api/v1/production/calendars/{calendarId}/holidays": {
       "post": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "AddHolidays",
         "parameters": [
@@ -9093,7 +9093,7 @@
     "/api/v1/production/calendars/{calendarId}/exceptions": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "ListCalendarExceptions",
         "parameters": [
@@ -9134,7 +9134,7 @@
       },
       "post": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "CreateCalendarException",
         "parameters": [
@@ -9175,7 +9175,7 @@
     "/api/v1/production/calendars/{calendarId}/exceptions/{exceptionId}": {
       "put": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "UpdateCalendarException",
         "parameters": [
@@ -9223,7 +9223,7 @@
       },
       "delete": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "DeleteCalendarException",
         "parameters": [
@@ -9256,7 +9256,7 @@
     "/api/v1/production/production-orders": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "ListFabricationOrders",
         "parameters": [
@@ -9329,7 +9329,7 @@
       },
       "post": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "GenerateFabricationOrder",
         "requestBody": {
@@ -9359,7 +9359,7 @@
     "/api/v1/production/production-orders/pending-items": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "ListPendingFabricationItems",
         "parameters": [
@@ -9405,7 +9405,7 @@
     "/api/v1/production/production-orders/batch": {
       "post": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "GenerateFabricationOrders",
         "requestBody": {
@@ -9435,7 +9435,7 @@
     "/api/v1/production/production-orders/{id}": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "GetFabricationOrder",
         "parameters": [
@@ -9466,7 +9466,7 @@
     "/api/v1/production/production-orders/{id}/steps": {
       "put": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "SaveFabricationOrderSteps",
         "parameters": [
@@ -9507,7 +9507,7 @@
     "/api/v1/production/production-orders/{id}/routings": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "ListFabricationRoutingOptions",
         "parameters": [
@@ -9541,7 +9541,7 @@
     "/api/v1/production/production-orders/{id}/routing": {
       "post": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "ChangeFabricationRouting",
         "parameters": [
@@ -9582,7 +9582,7 @@
     "/api/v1/production/production-orders/{id}/cancel": {
       "post": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "CancelFabricationOrder",
         "parameters": [
@@ -9623,7 +9623,7 @@
     "/api/v1/production/production-orders/{id}/steps/{stepId}/complete": {
       "post": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "CompleteFabricationStep",
         "parameters": [
@@ -9673,7 +9673,7 @@
     "/api/v1/production/production-orders/{id}/completion": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "GetFabricationOrderCompletion",
         "parameters": [
@@ -9704,7 +9704,7 @@
     "/api/v1/production/production-orders/{id}/completion/cost": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "GetFabricationOrderCompletionCost",
         "parameters": [
@@ -9735,7 +9735,7 @@
     "/api/v1/production/production-orders/{id}/complete": {
       "post": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "CompleteFabricationOrder",
         "parameters": [
@@ -9776,7 +9776,7 @@
     "/api/v1/production/production-orders/{id}/reverse-completion": {
       "post": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "ReverseFabricationOrderCompletion",
         "parameters": [
@@ -9817,7 +9817,7 @@
     "/api/v1/production/production-orders/{id}/product-options": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "ListFabricationProductOptions",
         "parameters": [
@@ -9858,7 +9858,7 @@
     "/api/v1/production/production-orders/{id}/product": {
       "put": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "SetFabricationOrderProduct",
         "parameters": [
@@ -9899,7 +9899,7 @@
     "/api/v1/production/production-orders/{id}/history": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "GetFabricationOrderHistory",
         "parameters": [
@@ -9946,7 +9946,7 @@
     "/api/v1/production/board": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "GetProductionBoard",
         "parameters": [
@@ -10010,10 +10010,202 @@
         }
       }
     },
+    "/api/v1/production/schedule": {
+      "get": {
+        "tags": [
+          "Produção"
+        ],
+        "operationId": "GetPlanningSummary",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningSummary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/schedule/orders": {
+      "get": {
+        "tags": [
+          "Produção"
+        ],
+        "operationId": "ListOrderForecasts",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OrderForecastInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/schedule/recalculate": {
+      "post": {
+        "tags": [
+          "Produção"
+        ],
+        "operationId": "RecalculateSchedule",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleRecalculation"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/planning/queue": {
+      "get": {
+        "tags": [
+          "Produção"
+        ],
+        "operationId": "GetPlanningQueue",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningQueueView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Produção"
+        ],
+        "operationId": "SavePlanningQueue",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanningQueueSaveInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningQueueSaved"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/planning/queue/preview": {
+      "post": {
+        "tags": [
+          "Produção"
+        ],
+        "operationId": "PreviewPlanningQueue",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanningQueuePreviewInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningQueuePreview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/planning/queue/changes": {
+      "get": {
+        "tags": [
+          "Produção"
+        ],
+        "operationId": "ListPlanningQueueChanges",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfPlanningQueueChangeView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/production/production-orders/{id}/labor-entries": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "ListOrderLaborEntries",
         "parameters": [
@@ -10042,7 +10234,7 @@
       },
       "post": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "RecordLaborEntry",
         "parameters": [
@@ -10083,7 +10275,7 @@
     "/api/v1/production/production-orders/{id}/labor-entries/{entryId}/correct": {
       "post": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "CorrectLaborEntry",
         "parameters": [
@@ -10133,7 +10325,7 @@
     "/api/v1/production/production-orders/{id}/steps/{stepId}/approve": {
       "post": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "ApproveFabricationStep",
         "parameters": [
@@ -10183,7 +10375,7 @@
     "/api/v1/production/labor-entries/open": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "ListOpenLaborEntries",
         "responses": {
@@ -10203,7 +10395,7 @@
     "/api/v1/production/labor-entries/employees": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "ListLaborEmployees",
         "responses": {
@@ -10226,7 +10418,7 @@
     "/api/v1/production/production-orders/{id}/labor-costs": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "GetOrderLaborCosts",
         "parameters": [
@@ -10257,7 +10449,7 @@
     "/api/v1/production/production-orders/{id}/labor-entries/{entryId}/cost-history": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "GetLaborEntryCostHistory",
         "parameters": [
@@ -10300,7 +10492,7 @@
     "/api/v1/production/labor-costs/missing": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "GetMissingLaborCosts",
         "parameters": [
@@ -10338,7 +10530,7 @@
     "/api/v1/production/labor-costs/recalculate": {
       "post": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "RecalculateMissingLaborCosts",
         "requestBody": {
@@ -10368,7 +10560,7 @@
     "/api/v1/production/production-orders/{id}/quality": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "GetOrderQuality",
         "parameters": [
@@ -10399,7 +10591,7 @@
     "/api/v1/production/production-orders/{id}/non-conformities/{ncId}": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "GetOrderNonConformity",
         "parameters": [
@@ -11084,7 +11276,7 @@
     "/api/v1/production/installations": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "ListInstallations",
         "parameters": [
@@ -11135,7 +11327,7 @@
       },
       "post": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "CreateInstallation",
         "requestBody": {
@@ -11165,7 +11357,7 @@
     "/api/v1/production/installations/defaults": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "GetInstallationDefaults",
         "parameters": [
@@ -11196,7 +11388,7 @@
     "/api/v1/production/installations/installers": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "ListInstallers",
         "parameters": [
@@ -11228,7 +11420,7 @@
     "/api/v1/production/installations/{id}": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "GetInstallation",
         "parameters": [
@@ -11257,7 +11449,7 @@
       },
       "put": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "UpdateInstallation",
         "parameters": [
@@ -11298,7 +11490,7 @@
     "/api/v1/production/installations/{id}/start": {
       "post": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "StartInstallation",
         "parameters": [
@@ -11339,7 +11531,7 @@
     "/api/v1/production/installations/{id}/steps/{stepId}/complete": {
       "post": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "CompleteInstallationStep",
         "parameters": [
@@ -11389,7 +11581,7 @@
     "/api/v1/production/installations/{id}/checklist/{itemId}": {
       "put": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "MarkInstallationChecklist",
         "parameters": [
@@ -11439,7 +11631,7 @@
     "/api/v1/production/installations/{id}/accept": {
       "post": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "AcceptInstallation",
         "parameters": [
@@ -11480,7 +11672,7 @@
     "/api/v1/production/installations/{id}/cancel": {
       "post": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "CancelInstallation",
         "parameters": [
@@ -11521,7 +11713,7 @@
     "/api/v1/production/shipments": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "ListShipments",
         "parameters": [
@@ -11579,7 +11771,7 @@
       },
       "post": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "CreateShipment",
         "requestBody": {
@@ -11609,7 +11801,7 @@
     "/api/v1/production/shipments/ready": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "ListReadyToShip",
         "responses": {
@@ -11632,7 +11824,7 @@
     "/api/v1/production/shipments/form": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "GetShipmentForm",
         "parameters": [
@@ -11671,7 +11863,7 @@
     "/api/v1/production/shipments/general-stock": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "ListShipmentGeneralStock",
         "parameters": [
@@ -11703,7 +11895,7 @@
     "/api/v1/production/shipments/carriers": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "ListShipmentCarriers",
         "parameters": [
@@ -11735,7 +11927,7 @@
     "/api/v1/production/shipments/{id}": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "GetShipment",
         "parameters": [
@@ -11764,7 +11956,7 @@
       },
       "put": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "UpdateShipment",
         "parameters": [
@@ -11805,7 +11997,7 @@
     "/api/v1/production/shipments/{id}/lines/{lineId}": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "GetShipmentLine",
         "parameters": [
@@ -11845,7 +12037,7 @@
     "/api/v1/production/shipments/{id}/impact": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "GetShipmentImpact",
         "parameters": [
@@ -11876,7 +12068,7 @@
     "/api/v1/production/shipments/{id}/pdf": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "DownloadShipmentPdf",
         "parameters": [
@@ -11900,7 +12092,7 @@
     "/api/v1/production/shipments/{id}/confirm": {
       "post": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "ConfirmShipment",
         "parameters": [
@@ -11941,7 +12133,7 @@
     "/api/v1/production/shipments/{id}/confirm-stock": {
       "post": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "ConfirmShipmentGeneralStock",
         "parameters": [
@@ -11982,7 +12174,7 @@
     "/api/v1/production/shipments/{id}/cancel": {
       "post": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "CancelShipment",
         "parameters": [
@@ -12023,7 +12215,7 @@
     "/api/v1/production/shipments/{id}/reverse": {
       "post": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "ReverseShipment",
         "parameters": [
@@ -12064,7 +12256,7 @@
     "/api/v1/production/shipments/{id}/history": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "GetShipmentHistory",
         "parameters": [
@@ -12111,7 +12303,7 @@
     "/api/v1/production/installation-template": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "GetInstallationTemplate",
         "responses": {
@@ -12129,7 +12321,7 @@
       },
       "put": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "SaveInstallationTemplate",
         "requestBody": {
@@ -12159,7 +12351,7 @@
     "/api/v1/production/parameters": {
       "get": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "GetProductionParameters",
         "responses": {
@@ -12177,7 +12369,7 @@
       },
       "put": {
         "tags": [
-          "Produ\u00E7\u00E3o"
+          "Produção"
         ],
         "operationId": "UpdateProductionParameters",
         "requestBody": {
@@ -14357,7 +14549,7 @@
           "405": {
             "description": "Method Not Allowed",
             "content": {
-              "application/problem\u002Bjson": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
                 }
@@ -14386,7 +14578,7 @@
           "405": {
             "description": "Method Not Allowed",
             "content": {
-              "application/problem\u002Bjson": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
                 }
@@ -16278,7 +16470,7 @@
           "409": {
             "description": "Conflict",
             "content": {
-              "application/problem\u002Bjson": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
                 }
@@ -23188,7 +23380,7 @@
     "/api/v1/settings/import-runs": {
       "get": {
         "tags": [
-          "Configura\u00E7\u00F5es"
+          "Configurações"
         ],
         "operationId": "ListImportRuns",
         "parameters": [
@@ -23226,7 +23418,7 @@
     "/api/v1/settings/import-runs/{id}": {
       "get": {
         "tags": [
-          "Configura\u00E7\u00F5es"
+          "Configurações"
         ],
         "operationId": "GetImportRun",
         "parameters": [
@@ -23257,7 +23449,7 @@
     "/api/v1/settings/import-runs/{id}/pending": {
       "get": {
         "tags": [
-          "Configura\u00E7\u00F5es"
+          "Configurações"
         ],
         "operationId": "ListImportPending",
         "parameters": [
@@ -23318,7 +23510,7 @@
     "/api/v1/dashboard": {
       "get": {
         "tags": [
-          "Painel do propriet\u00E1rio"
+          "Painel do proprietário"
         ],
         "operationId": "GetDashboardOverview",
         "responses": {
@@ -23338,7 +23530,7 @@
     "/api/v1/dashboard/refresh": {
       "post": {
         "tags": [
-          "Painel do propriet\u00E1rio"
+          "Painel do proprietário"
         ],
         "operationId": "RefreshDashboard",
         "responses": {
@@ -23348,7 +23540,7 @@
           "429": {
             "description": "Too Many Requests",
             "content": {
-              "application/problem\u002Bjson": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
                 }
@@ -23361,7 +23553,7 @@
     "/api/v1/dashboard/cards/balances": {
       "get": {
         "tags": [
-          "Painel do propriet\u00E1rio"
+          "Painel do proprietário"
         ],
         "operationId": "GetDashboardBalances",
         "responses": {
@@ -23381,7 +23573,7 @@
     "/api/v1/dashboard/cards/cash-forecast": {
       "get": {
         "tags": [
-          "Painel do propriet\u00E1rio"
+          "Painel do proprietário"
         ],
         "operationId": "GetDashboardCashForecast",
         "responses": {
@@ -23401,7 +23593,7 @@
     "/api/v1/dashboard/cards/revenue": {
       "get": {
         "tags": [
-          "Painel do propriet\u00E1rio"
+          "Painel do proprietário"
         ],
         "operationId": "GetDashboardRevenue",
         "responses": {
@@ -23421,7 +23613,7 @@
     "/api/v1/dashboard/cards/overdue": {
       "get": {
         "tags": [
-          "Painel do propriet\u00E1rio"
+          "Painel do proprietário"
         ],
         "operationId": "GetDashboardOverdue",
         "responses": {
@@ -23441,7 +23633,7 @@
     "/api/v1/dashboard/cards/commercial": {
       "get": {
         "tags": [
-          "Painel do propriet\u00E1rio"
+          "Painel do proprietário"
         ],
         "operationId": "GetDashboardCommercial",
         "responses": {
@@ -23461,7 +23653,7 @@
     "/api/v1/dashboard/cards/decisions": {
       "get": {
         "tags": [
-          "Painel do propriet\u00E1rio"
+          "Painel do proprietário"
         ],
         "operationId": "GetDashboardDecisions",
         "responses": {
@@ -23471,6 +23663,111 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DecisionsCard"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/planning/load": {
+      "get": {
+        "tags": [
+          "Produção"
+        ],
+        "operationId": "GetFactoryLoad",
+        "parameters": [
+          {
+            "name": "weeks",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "workCenterIds",
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          },
+          {
+            "name": "line",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FactoryLoadView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/production/planning/load/cell": {
+      "get": {
+        "tags": [
+          "Produção"
+        ],
+        "operationId": "GetFactoryLoadCell",
+        "parameters": [
+          {
+            "name": "workCenterId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "weekStart",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "workCenterIds",
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          },
+          {
+            "name": "line",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FactoryLoadCellDetail"
                 }
               }
             }
@@ -30249,7 +30546,8 @@
           "None",
           "AtRisk",
           "Late"
-        ]
+        ],
+        "default": "None"
       },
       "DeviceTheme": {
         "enum": [
@@ -32109,6 +32407,9 @@
           },
           "noRouting": {
             "type": "boolean"
+          },
+          "risk": {
+            "$ref": "#/components/schemas/DeliveryRisk"
           }
         }
       },
@@ -32327,6 +32628,303 @@
           "selfInspection": {
             "type": "boolean",
             "default": false
+          }
+        }
+      },
+      "FactoryLoadBand": {
+        "enum": [
+          "NoCapacity",
+          "Idle",
+          "Normal",
+          "Full",
+          "Over"
+        ]
+      },
+      "FactoryLoadCell": {
+        "required": [
+          "weekStart",
+          "committedHours",
+          "capacityHours",
+          "percent",
+          "band"
+        ],
+        "type": "object",
+        "properties": {
+          "weekStart": {
+            "type": "string",
+            "format": "date"
+          },
+          "committedHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "capacityHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "percent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "band": {
+            "$ref": "#/components/schemas/FactoryLoadBand"
+          }
+        }
+      },
+      "FactoryLoadCellDetail": {
+        "required": [
+          "workCenterId",
+          "name",
+          "weekStart",
+          "from",
+          "to",
+          "totalHours",
+          "steps"
+        ],
+        "type": "object",
+        "properties": {
+          "workCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "weekStart": {
+            "type": "string",
+            "format": "date"
+          },
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "totalHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FactoryLoadCellStep"
+            }
+          }
+        }
+      },
+      "FactoryLoadCellStep": {
+        "required": [
+          "stepId",
+          "stepName",
+          "orderId",
+          "orderNumber",
+          "projectId",
+          "projectNumber",
+          "projectName",
+          "workCenterId",
+          "workCenterName",
+          "hours",
+          "plannedStart",
+          "plannedEnd"
+        ],
+        "type": "object",
+        "properties": {
+          "stepId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "stepName": {
+            "type": "string"
+          },
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "projectName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "workCenterId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "workCenterName": {
+            "type": "string"
+          },
+          "hours": {
+            "type": "number",
+            "format": "double"
+          },
+          "plannedStart": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "plannedEnd": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          }
+        }
+      },
+      "FactoryLoadRow": {
+        "required": [
+          "workCenterId",
+          "name",
+          "line",
+          "cells",
+          "hoursAfter",
+          "busyUntil"
+        ],
+        "type": "object",
+        "properties": {
+          "workCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "line": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cells": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FactoryLoadCell"
+            }
+          },
+          "hoursAfter": {
+            "type": "number",
+            "format": "double"
+          },
+          "busyUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          }
+        }
+      },
+      "FactoryLoadView": {
+        "required": [
+          "load",
+          "lines",
+          "activeCenters"
+        ],
+        "type": "object",
+        "properties": {
+          "load": {
+            "$ref": "#/components/schemas/FactoryLoadWeekly"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "activeCenters": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "FactoryLoadWeek": {
+        "required": [
+          "start",
+          "end",
+          "isoWeek",
+          "from"
+        ],
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "string",
+            "format": "date"
+          },
+          "end": {
+            "type": "string",
+            "format": "date"
+          },
+          "isoWeek": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "from": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "FactoryLoadWeekly": {
+        "required": [
+          "today",
+          "planComputedAt",
+          "weeks",
+          "centers",
+          "factory"
+        ],
+        "type": "object",
+        "properties": {
+          "today": {
+            "type": "string",
+            "format": "date"
+          },
+          "planComputedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "weeks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FactoryLoadWeek"
+            }
+          },
+          "centers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FactoryLoadRow"
+            }
+          },
+          "factory": {
+            "$ref": "#/components/schemas/FactoryLoadRow"
           }
         }
       },
@@ -39746,6 +40344,48 @@
           }
         }
       },
+      "OrderForecastInfo": {
+        "required": [
+          "orderId",
+          "plannedStart",
+          "plannedEnd",
+          "noForecastReason",
+          "steps"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "plannedStart": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "plannedEnd": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "noForecastReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StepForecastInfo"
+            }
+          }
+        }
+      },
       "OrderLaborCostView": {
         "required": [
           "orderId",
@@ -41089,6 +41729,35 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PaymentTermDetail"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PagedListOfPlanningQueueChangeView": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlanningQueueChangeView"
             }
           },
           "page": {
@@ -43511,6 +44180,457 @@
           null
         ]
       },
+      "PlanningQueueChangeKind": {
+        "enum": [
+          "Initial",
+          "Manual",
+          "Entered",
+          "Left"
+        ]
+      },
+      "PlanningQueueChangeView": {
+        "required": [
+          "id",
+          "at",
+          "who",
+          "kind",
+          "reason",
+          "moves"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "who": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PlanningQueueChangeKind"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "moves": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlanningQueueMoveView"
+            }
+          }
+        }
+      },
+      "PlanningQueueMoveView": {
+        "required": [
+          "projectId",
+          "projectNumber",
+          "from",
+          "to"
+        ],
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": "string"
+          },
+          "from": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "to": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "PlanningQueuePreview": {
+        "required": [
+          "rows",
+          "durationMs"
+        ],
+        "type": "object",
+        "properties": {
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlanningQueuePreviewRow"
+            }
+          },
+          "durationMs": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PlanningQueuePreviewInput": {
+        "required": [
+          "order"
+        ],
+        "type": "object",
+        "properties": {
+          "order": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        }
+      },
+      "PlanningQueuePreviewRow": {
+        "required": [
+          "projectId",
+          "positionBefore",
+          "positionAfter",
+          "promisedDate",
+          "forecastBefore",
+          "forecastAfter",
+          "slackBefore",
+          "slackAfter",
+          "riskBefore",
+          "riskAfter",
+          "worsened",
+          "daysLate"
+        ],
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "positionBefore": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "positionAfter": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "promisedDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "forecastBefore": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "forecastAfter": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "slackBefore": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "slackAfter": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "riskBefore": {
+            "$ref": "#/components/schemas/DeliveryRisk"
+          },
+          "riskAfter": {
+            "$ref": "#/components/schemas/DeliveryRisk"
+          },
+          "worsened": {
+            "type": "boolean"
+          },
+          "daysLate": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "PlanningQueueRow": {
+        "required": [
+          "position",
+          "projectId",
+          "projectNumber",
+          "projectName",
+          "partyId",
+          "partyName",
+          "openOrders",
+          "remainingHours",
+          "promisedDate",
+          "forecastDate",
+          "slackDays",
+          "risk",
+          "hasForecast",
+          "noForecastReason",
+          "reasonOrderId",
+          "reasonOrderNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "position": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": "string"
+          },
+          "projectName": {
+            "type": "string"
+          },
+          "partyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "openOrders": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "remainingHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "promisedDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "forecastDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "slackDays": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "risk": {
+            "$ref": "#/components/schemas/DeliveryRisk"
+          },
+          "hasForecast": {
+            "type": "boolean"
+          },
+          "noForecastReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reasonOrderId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "reasonOrderNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PlanningQueueSaved": {
+        "required": [
+          "changed",
+          "recalculationRequested",
+          "queue"
+        ],
+        "type": "object",
+        "properties": {
+          "changed": {
+            "type": "boolean"
+          },
+          "recalculationRequested": {
+            "type": "boolean"
+          },
+          "queue": {
+            "$ref": "#/components/schemas/PlanningQueueView"
+          }
+        }
+      },
+      "PlanningQueueSaveInput": {
+        "required": [
+          "order",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "order": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "PlanningQueueView": {
+        "required": [
+          "version",
+          "reorderedAt",
+          "reorderedBy",
+          "rows"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "reorderedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "reorderedBy": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlanningQueueRow"
+            }
+          }
+        }
+      },
+      "PlanningSummary": {
+        "required": [
+          "lastRun",
+          "lastSuccess",
+          "pending",
+          "openOrders",
+          "warnings"
+        ],
+        "type": "object",
+        "properties": {
+          "lastRun": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ScheduleRunInfo"
+              }
+            ]
+          },
+          "lastSuccess": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ScheduleRunInfo"
+              }
+            ]
+          },
+          "pending": {
+            "type": "boolean"
+          },
+          "openOrders": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlanningWarning"
+            }
+          }
+        }
+      },
+      "PlanningWarning": {
+        "required": [
+          "orderId",
+          "orderNumber",
+          "reason",
+          "action"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "action": {
+            "$ref": "#/components/schemas/PlanningWarningAction"
+          }
+        }
+      },
+      "PlanningWarningAction": {
+        "enum": [
+          "ChooseRouting",
+          "SetWorkCenter",
+          "ReviewCalendar"
+        ]
+      },
       "PlatformChallengeRequest": {
         "required": [
           "challenge"
@@ -44145,6 +45265,19 @@
           "openLaborAlertHours": {
             "type": "integer",
             "format": "int32"
+          },
+          "installationDays": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "installationDaysConfirmed": {
+            "type": [
+              "null",
+              "boolean"
+            ]
           }
         }
       },
@@ -44172,6 +45305,22 @@
             "format": "uuid"
           },
           "openLaborAlertHoursId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "installationDays": {
+            "type": "integer",
+            "format": "int32",
+            "default": 5
+          },
+          "installationDaysConfirmed": {
+            "type": "boolean",
+            "default": false
+          },
+          "installationDaysId": {
             "type": [
               "null",
               "string"
@@ -44560,6 +45709,16 @@
             "type": "integer",
             "format": "int32",
             "default": 0
+          },
+          "forecast": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ProjectForecastView"
+              }
+            ]
           }
         }
       },
@@ -44618,6 +45777,83 @@
           "toPay": {
             "type": "number",
             "format": "double"
+          }
+        }
+      },
+      "ProjectForecastView": {
+        "required": [
+          "forecastDate",
+          "fabricationEnd",
+          "reason",
+          "reasonOrderId",
+          "reasonOrderNumber",
+          "slackDays",
+          "risk",
+          "delayDays",
+          "computedAt",
+          "installationOnly"
+        ],
+        "type": "object",
+        "properties": {
+          "forecastDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "fabricationEnd": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reasonOrderId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "reasonOrderNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "slackDays": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "risk": {
+            "$ref": "#/components/schemas/DeliveryRisk"
+          },
+          "delayDays": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "computedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "installationOnly": {
+            "type": "boolean"
           }
         }
       },
@@ -44838,6 +46074,29 @@
           "contractId": {
             "type": "string",
             "format": "uuid"
+          },
+          "forecastDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "slackDays": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "risk": {
+            "$ref": "#/components/schemas/DeliveryRisk"
+          },
+          "forecastReason": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -53819,6 +55078,119 @@
           }
         }
       },
+      "ScheduleRecalculation": {
+        "required": [
+          "ran",
+          "queued",
+          "run"
+        ],
+        "type": "object",
+        "properties": {
+          "ran": {
+            "type": "boolean"
+          },
+          "queued": {
+            "type": "boolean"
+          },
+          "run": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ScheduleRunInfo"
+              }
+            ]
+          }
+        }
+      },
+      "ScheduleRunInfo": {
+        "required": [
+          "id",
+          "trigger",
+          "status",
+          "requestedAt",
+          "startedAt",
+          "finishedAt",
+          "ordersCount",
+          "stepsCount",
+          "changedOrdersCount",
+          "withoutForecastCount",
+          "durationMs",
+          "error"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "trigger": {
+            "$ref": "#/components/schemas/ScheduleTrigger"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ScheduleRunStatus"
+          },
+          "requestedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "startedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "finishedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "ordersCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "stepsCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "changedOrdersCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "withoutForecastCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "durationMs": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ScheduleRunStatus": {
+        "enum": [
+          "Pending",
+          "Succeeded",
+          "Failed"
+        ]
+      },
+      "ScheduleTrigger": {
+        "enum": [
+          "Hourly",
+          "Manual",
+          "Event"
+        ]
+      },
       "Secret": {
         "type": "string",
         "format": "password",
@@ -56396,6 +57768,51 @@
           }
         }
       },
+      "StepForecastInfo": {
+        "required": [
+          "stepId",
+          "sequence",
+          "hours",
+          "plannedStart",
+          "plannedEnd",
+          "noForecastReason"
+        ],
+        "type": "object",
+        "properties": {
+          "stepId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hours": {
+            "type": "number",
+            "format": "double"
+          },
+          "plannedStart": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "plannedEnd": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "noForecastReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "StepLaborCostView": {
         "required": [
           "stepId",
@@ -58804,7 +60221,7 @@
       "name": "Minha pauta"
     },
     {
-      "name": "M\u00F3dulos"
+      "name": "Módulos"
     },
     {
       "name": "Plataforma"
@@ -58816,16 +60233,16 @@
       "name": "Anexos"
     },
     {
-      "name": "Notifica\u00E7\u00F5es"
+      "name": "Notificações"
     },
     {
-      "name": "Autentica\u00E7\u00E3o"
+      "name": "Autenticação"
     },
     {
-      "name": "Usu\u00E1rios e acessos"
+      "name": "Usuários e acessos"
     },
     {
-      "name": "Configura\u00E7\u00F5es"
+      "name": "Configurações"
     },
     {
       "name": "Ajuda"
@@ -58840,7 +60257,7 @@
       "name": "RH"
     },
     {
-      "name": "Or\u00E7amentos"
+      "name": "Orçamentos"
     },
     {
       "name": "Contratos e projetos"
@@ -58849,7 +60266,7 @@
       "name": "Engenharia"
     },
     {
-      "name": "Produ\u00E7\u00E3o"
+      "name": "Produção"
     },
     {
       "name": "Qualidade"
@@ -58864,7 +60281,7 @@
       "name": "Financeiro"
     },
     {
-      "name": "Painel do propriet\u00E1rio"
+      "name": "Painel do proprietário"
     }
   ]
 }

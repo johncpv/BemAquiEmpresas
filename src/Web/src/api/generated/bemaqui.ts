@@ -153,6 +153,8 @@ import type {
   FabricationRoutingInput,
   FabricationRoutingOption,
   FabricationStepsInput,
+  FactoryLoadCellDetail,
+  FactoryLoadView,
   FinanceDeadLetter,
   FinanceLimits,
   FinanceLimitsInput,
@@ -171,6 +173,8 @@ import type {
   GetDreChangesParams,
   GetDreParams,
   GetFabricationOrderHistoryParams,
+  GetFactoryLoadCellParams,
+  GetFactoryLoadParams,
   GetGoodsReceiptHistoryParams,
   GetInstallationDefaultsParams,
   GetInventoryCountDivergencesParams,
@@ -286,11 +290,13 @@ import type {
   ListMaterialRequisitionsParams,
   ListMyNotificationsParams,
   ListNonConformitiesParams,
+  ListOrderForecastsParams,
   ListPartiesParams,
   ListPayablesParams,
   ListPaymentOrdersParams,
   ListPaymentTermsParams,
   ListPendingFabricationItemsParams,
+  ListPlanningQueueChangesParams,
   ListPositionsParams,
   ListProductionCapacityReferencesParams,
   ListProjectCostEntriesParams,
@@ -366,6 +372,7 @@ import type {
   OpeningStatus,
   OrderCompletionPreview,
   OrderCost,
+  OrderForecastInfo,
   OrderLaborCostView,
   OrderLaborView,
   OrderMaterialCostView,
@@ -393,6 +400,7 @@ import type {
   PagedListOfMovementRow,
   PagedListOfPartyListItem,
   PagedListOfPaymentTermDetail,
+  PagedListOfPlanningQueueChangeView,
   PagedListOfPositionDetail,
   PagedListOfPurchaseItemRow,
   PagedListOfPurchaseOrderSummary,
@@ -433,6 +441,12 @@ import type {
   PinLoginRequest,
   PinSessionResponse,
   PinUsers,
+  PlanningQueuePreview,
+  PlanningQueuePreviewInput,
+  PlanningQueueSaveInput,
+  PlanningQueueSaved,
+  PlanningQueueView,
+  PlanningSummary,
   PlatformChallengeRequest,
   PlatformChallengeResponse,
   PlatformConfirmRequest,
@@ -586,6 +600,7 @@ import type {
   SaveModuleReleaseRequest,
   ScheduleDetail,
   ScheduleInput,
+  ScheduleRecalculation,
   SearchItemsParams,
   SearchPartiesParams,
   SearchShopfloorOrderParams,
@@ -26212,6 +26227,638 @@ export function useGetProductionBoard<TData = Awaited<ReturnType<typeof getProdu
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetProductionBoardQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetPlanningSummaryUrl = () => {
+
+
+
+
+  return `/api/v1/production/schedule`
+}
+
+export const getPlanningSummary = async ( options?: Parameters<typeof apiFetch>[1]): Promise<PlanningSummary> => {
+
+  return apiFetch<PlanningSummary>(getGetPlanningSummaryUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPlanningSummaryQueryKey = () => {
+    return [
+    `/api/v1/production/schedule`
+    ] as const;
+    }
+
+
+export const getGetPlanningSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getPlanningSummary>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPlanningSummary>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPlanningSummaryQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPlanningSummary>>> = ({ signal }) => getPlanningSummary({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPlanningSummary>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetPlanningSummaryQueryResult = NonNullable<Awaited<ReturnType<typeof getPlanningSummary>>>
+export type GetPlanningSummaryQueryError = unknown
+
+
+export function useGetPlanningSummary<TData = Awaited<ReturnType<typeof getPlanningSummary>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPlanningSummary>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPlanningSummary>>,
+          TError,
+          Awaited<ReturnType<typeof getPlanningSummary>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPlanningSummary<TData = Awaited<ReturnType<typeof getPlanningSummary>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPlanningSummary>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPlanningSummary>>,
+          TError,
+          Awaited<ReturnType<typeof getPlanningSummary>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPlanningSummary<TData = Awaited<ReturnType<typeof getPlanningSummary>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPlanningSummary>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetPlanningSummary<TData = Awaited<ReturnType<typeof getPlanningSummary>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPlanningSummary>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetPlanningSummaryQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListOrderForecastsUrl = (params?: ListOrderForecastsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    const explodeParameters = ["ids"];
+
+    if (Array.isArray(value) && explodeParameters.includes(key)) {
+      value.forEach((v) => {
+        normalizedParams.append(key, v === null ? 'null' : String(v));
+      });
+      return;
+    }
+
+
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/production/schedule/orders?${stringifiedParams}` : `/api/v1/production/schedule/orders`
+}
+
+export const listOrderForecasts = async (params?: ListOrderForecastsParams, options?: Parameters<typeof apiFetch>[1]): Promise<OrderForecastInfo[]> => {
+
+  return apiFetch<OrderForecastInfo[]>(getListOrderForecastsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListOrderForecastsQueryKey = (params?: ListOrderForecastsParams,) => {
+    return [
+    `/api/v1/production/schedule/orders`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListOrderForecastsQueryOptions = <TData = Awaited<ReturnType<typeof listOrderForecasts>>, TError = unknown>(params?: ListOrderForecastsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrderForecasts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListOrderForecastsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listOrderForecasts>>> = ({ signal }) => listOrderForecasts(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listOrderForecasts>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListOrderForecastsQueryResult = NonNullable<Awaited<ReturnType<typeof listOrderForecasts>>>
+export type ListOrderForecastsQueryError = unknown
+
+
+export function useListOrderForecasts<TData = Awaited<ReturnType<typeof listOrderForecasts>>, TError = unknown>(
+ params: undefined |  ListOrderForecastsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrderForecasts>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listOrderForecasts>>,
+          TError,
+          Awaited<ReturnType<typeof listOrderForecasts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListOrderForecasts<TData = Awaited<ReturnType<typeof listOrderForecasts>>, TError = unknown>(
+ params?: ListOrderForecastsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrderForecasts>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listOrderForecasts>>,
+          TError,
+          Awaited<ReturnType<typeof listOrderForecasts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListOrderForecasts<TData = Awaited<ReturnType<typeof listOrderForecasts>>, TError = unknown>(
+ params?: ListOrderForecastsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrderForecasts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListOrderForecasts<TData = Awaited<ReturnType<typeof listOrderForecasts>>, TError = unknown>(
+ params?: ListOrderForecastsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrderForecasts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListOrderForecastsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getRecalculateScheduleUrl = () => {
+
+
+
+
+  return `/api/v1/production/schedule/recalculate`
+}
+
+export const recalculateSchedule = async ( options?: Parameters<typeof apiFetch>[1]): Promise<ScheduleRecalculation> => {
+
+  return apiFetch<ScheduleRecalculation>(getRecalculateScheduleUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getRecalculateScheduleMutationKey = () => ['recalculateSchedule'] as const;
+
+export const getRecalculateScheduleMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recalculateSchedule>>, TError,void, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof recalculateSchedule>>, TError,void, TContext> => {
+
+const mutationKey = getRecalculateScheduleMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof recalculateSchedule>>, void> = () => {
+
+
+          return  recalculateSchedule(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RecalculateScheduleMutationResult = NonNullable<Awaited<ReturnType<typeof recalculateSchedule>>>
+
+    export type RecalculateScheduleMutationError = unknown
+
+
+    export const useRecalculateSchedule = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recalculateSchedule>>, TError,void, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof recalculateSchedule>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getRecalculateScheduleMutationOptions(options), queryClient);
+    }
+
+export const getGetPlanningQueueUrl = () => {
+
+
+
+
+  return `/api/v1/production/planning/queue`
+}
+
+export const getPlanningQueue = async ( options?: Parameters<typeof apiFetch>[1]): Promise<PlanningQueueView> => {
+
+  return apiFetch<PlanningQueueView>(getGetPlanningQueueUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPlanningQueueQueryKey = () => {
+    return [
+    `/api/v1/production/planning/queue`
+    ] as const;
+    }
+
+
+export const getGetPlanningQueueQueryOptions = <TData = Awaited<ReturnType<typeof getPlanningQueue>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPlanningQueue>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPlanningQueueQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPlanningQueue>>> = ({ signal }) => getPlanningQueue({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPlanningQueue>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetPlanningQueueQueryResult = NonNullable<Awaited<ReturnType<typeof getPlanningQueue>>>
+export type GetPlanningQueueQueryError = unknown
+
+
+export function useGetPlanningQueue<TData = Awaited<ReturnType<typeof getPlanningQueue>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPlanningQueue>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPlanningQueue>>,
+          TError,
+          Awaited<ReturnType<typeof getPlanningQueue>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPlanningQueue<TData = Awaited<ReturnType<typeof getPlanningQueue>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPlanningQueue>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPlanningQueue>>,
+          TError,
+          Awaited<ReturnType<typeof getPlanningQueue>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPlanningQueue<TData = Awaited<ReturnType<typeof getPlanningQueue>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPlanningQueue>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetPlanningQueue<TData = Awaited<ReturnType<typeof getPlanningQueue>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPlanningQueue>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetPlanningQueueQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSavePlanningQueueUrl = () => {
+
+
+
+
+  return `/api/v1/production/planning/queue`
+}
+
+export const savePlanningQueue = async (planningQueueSaveInput: PlanningQueueSaveInput, options?: Parameters<typeof apiFetch>[1]): Promise<PlanningQueueSaved> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<PlanningQueueSaved>(getSavePlanningQueueUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(planningQueueSaveInput)
+  }
+);}
+
+
+
+
+
+export const getSavePlanningQueueMutationKey = () => ['savePlanningQueue'] as const;
+
+export const getSavePlanningQueueMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof savePlanningQueue>>, TError,SavePlanningQueueMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof savePlanningQueue>>, TError,SavePlanningQueueMutationVariables, TContext> => {
+
+const mutationKey = getSavePlanningQueueMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof savePlanningQueue>>, SavePlanningQueueMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  savePlanningQueue(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SavePlanningQueueMutationResult = NonNullable<Awaited<ReturnType<typeof savePlanningQueue>>>
+    export type SavePlanningQueueMutationBody = PlanningQueueSaveInput
+    export type SavePlanningQueueMutationError = unknown
+    export type SavePlanningQueueMutationVariables = {data: PlanningQueueSaveInput}
+
+    export const useSavePlanningQueue = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof savePlanningQueue>>, TError,SavePlanningQueueMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof savePlanningQueue>>,
+        TError,
+        SavePlanningQueueMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSavePlanningQueueMutationOptions(options), queryClient);
+    }
+
+export const getPreviewPlanningQueueUrl = () => {
+
+
+
+
+  return `/api/v1/production/planning/queue/preview`
+}
+
+export const previewPlanningQueue = async (planningQueuePreviewInput: PlanningQueuePreviewInput, options?: Parameters<typeof apiFetch>[1]): Promise<PlanningQueuePreview> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<PlanningQueuePreview>(getPreviewPlanningQueueUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(planningQueuePreviewInput)
+  }
+);}
+
+
+
+
+
+export const getPreviewPlanningQueueMutationKey = () => ['previewPlanningQueue'] as const;
+
+export const getPreviewPlanningQueueMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewPlanningQueue>>, TError,PreviewPlanningQueueMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof previewPlanningQueue>>, TError,PreviewPlanningQueueMutationVariables, TContext> => {
+
+const mutationKey = getPreviewPlanningQueueMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof previewPlanningQueue>>, PreviewPlanningQueueMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  previewPlanningQueue(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PreviewPlanningQueueMutationResult = NonNullable<Awaited<ReturnType<typeof previewPlanningQueue>>>
+    export type PreviewPlanningQueueMutationBody = PlanningQueuePreviewInput
+    export type PreviewPlanningQueueMutationError = unknown
+    export type PreviewPlanningQueueMutationVariables = {data: PlanningQueuePreviewInput}
+
+    export const usePreviewPlanningQueue = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewPlanningQueue>>, TError,PreviewPlanningQueueMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof previewPlanningQueue>>,
+        TError,
+        PreviewPlanningQueueMutationVariables,
+        TContext
+      > => {
+      return useMutation(getPreviewPlanningQueueMutationOptions(options), queryClient);
+    }
+
+export const getListPlanningQueueChangesUrl = (params?: ListPlanningQueueChangesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/production/planning/queue/changes?${stringifiedParams}` : `/api/v1/production/planning/queue/changes`
+}
+
+export const listPlanningQueueChanges = async (params?: ListPlanningQueueChangesParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfPlanningQueueChangeView> => {
+
+  return apiFetch<PagedListOfPlanningQueueChangeView>(getListPlanningQueueChangesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListPlanningQueueChangesQueryKey = (params?: ListPlanningQueueChangesParams,) => {
+    return [
+    `/api/v1/production/planning/queue/changes`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListPlanningQueueChangesQueryOptions = <TData = Awaited<ReturnType<typeof listPlanningQueueChanges>>, TError = unknown>(params?: ListPlanningQueueChangesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPlanningQueueChanges>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListPlanningQueueChangesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPlanningQueueChanges>>> = ({ signal }) => listPlanningQueueChanges(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPlanningQueueChanges>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListPlanningQueueChangesQueryResult = NonNullable<Awaited<ReturnType<typeof listPlanningQueueChanges>>>
+export type ListPlanningQueueChangesQueryError = unknown
+
+
+export function useListPlanningQueueChanges<TData = Awaited<ReturnType<typeof listPlanningQueueChanges>>, TError = unknown>(
+ params: undefined |  ListPlanningQueueChangesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPlanningQueueChanges>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPlanningQueueChanges>>,
+          TError,
+          Awaited<ReturnType<typeof listPlanningQueueChanges>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPlanningQueueChanges<TData = Awaited<ReturnType<typeof listPlanningQueueChanges>>, TError = unknown>(
+ params?: ListPlanningQueueChangesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPlanningQueueChanges>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPlanningQueueChanges>>,
+          TError,
+          Awaited<ReturnType<typeof listPlanningQueueChanges>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPlanningQueueChanges<TData = Awaited<ReturnType<typeof listPlanningQueueChanges>>, TError = unknown>(
+ params?: ListPlanningQueueChangesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPlanningQueueChanges>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListPlanningQueueChanges<TData = Awaited<ReturnType<typeof listPlanningQueueChanges>>, TError = unknown>(
+ params?: ListPlanningQueueChangesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPlanningQueueChanges>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListPlanningQueueChangesQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -58909,6 +59556,226 @@ export function useGetDashboardDecisions<TData = Awaited<ReturnType<typeof getDa
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetDashboardDecisionsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetFactoryLoadUrl = (params?: GetFactoryLoadParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    const explodeParameters = ["workCenterIds"];
+
+    if (Array.isArray(value) && explodeParameters.includes(key)) {
+      value.forEach((v) => {
+        normalizedParams.append(key, v === null ? 'null' : String(v));
+      });
+      return;
+    }
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/production/planning/load?${stringifiedParams}` : `/api/v1/production/planning/load`
+}
+
+export const getFactoryLoad = async (params?: GetFactoryLoadParams, options?: Parameters<typeof apiFetch>[1]): Promise<FactoryLoadView> => {
+
+  return apiFetch<FactoryLoadView>(getGetFactoryLoadUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetFactoryLoadQueryKey = (params?: GetFactoryLoadParams,) => {
+    return [
+    `/api/v1/production/planning/load`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetFactoryLoadQueryOptions = <TData = Awaited<ReturnType<typeof getFactoryLoad>>, TError = unknown>(params?: GetFactoryLoadParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFactoryLoad>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetFactoryLoadQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFactoryLoad>>> = ({ signal }) => getFactoryLoad(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFactoryLoad>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetFactoryLoadQueryResult = NonNullable<Awaited<ReturnType<typeof getFactoryLoad>>>
+export type GetFactoryLoadQueryError = unknown
+
+
+export function useGetFactoryLoad<TData = Awaited<ReturnType<typeof getFactoryLoad>>, TError = unknown>(
+ params: undefined |  GetFactoryLoadParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFactoryLoad>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getFactoryLoad>>,
+          TError,
+          Awaited<ReturnType<typeof getFactoryLoad>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetFactoryLoad<TData = Awaited<ReturnType<typeof getFactoryLoad>>, TError = unknown>(
+ params?: GetFactoryLoadParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFactoryLoad>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getFactoryLoad>>,
+          TError,
+          Awaited<ReturnType<typeof getFactoryLoad>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetFactoryLoad<TData = Awaited<ReturnType<typeof getFactoryLoad>>, TError = unknown>(
+ params?: GetFactoryLoadParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFactoryLoad>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetFactoryLoad<TData = Awaited<ReturnType<typeof getFactoryLoad>>, TError = unknown>(
+ params?: GetFactoryLoadParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFactoryLoad>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetFactoryLoadQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetFactoryLoadCellUrl = (params: GetFactoryLoadCellParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    const explodeParameters = ["workCenterIds"];
+
+    if (Array.isArray(value) && explodeParameters.includes(key)) {
+      value.forEach((v) => {
+        normalizedParams.append(key, v === null ? 'null' : String(v));
+      });
+      return;
+    }
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/production/planning/load/cell?${stringifiedParams}` : `/api/v1/production/planning/load/cell`
+}
+
+export const getFactoryLoadCell = async (params: GetFactoryLoadCellParams, options?: Parameters<typeof apiFetch>[1]): Promise<FactoryLoadCellDetail> => {
+
+  return apiFetch<FactoryLoadCellDetail>(getGetFactoryLoadCellUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetFactoryLoadCellQueryKey = (params?: GetFactoryLoadCellParams,) => {
+    return [
+    `/api/v1/production/planning/load/cell`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetFactoryLoadCellQueryOptions = <TData = Awaited<ReturnType<typeof getFactoryLoadCell>>, TError = unknown>(params: GetFactoryLoadCellParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFactoryLoadCell>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetFactoryLoadCellQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFactoryLoadCell>>> = ({ signal }) => getFactoryLoadCell(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFactoryLoadCell>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetFactoryLoadCellQueryResult = NonNullable<Awaited<ReturnType<typeof getFactoryLoadCell>>>
+export type GetFactoryLoadCellQueryError = unknown
+
+
+export function useGetFactoryLoadCell<TData = Awaited<ReturnType<typeof getFactoryLoadCell>>, TError = unknown>(
+ params: GetFactoryLoadCellParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFactoryLoadCell>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getFactoryLoadCell>>,
+          TError,
+          Awaited<ReturnType<typeof getFactoryLoadCell>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetFactoryLoadCell<TData = Awaited<ReturnType<typeof getFactoryLoadCell>>, TError = unknown>(
+ params: GetFactoryLoadCellParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFactoryLoadCell>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getFactoryLoadCell>>,
+          TError,
+          Awaited<ReturnType<typeof getFactoryLoadCell>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetFactoryLoadCell<TData = Awaited<ReturnType<typeof getFactoryLoadCell>>, TError = unknown>(
+ params: GetFactoryLoadCellParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFactoryLoadCell>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetFactoryLoadCell<TData = Awaited<ReturnType<typeof getFactoryLoadCell>>, TError = unknown>(
+ params: GetFactoryLoadCellParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFactoryLoadCell>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetFactoryLoadCellQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

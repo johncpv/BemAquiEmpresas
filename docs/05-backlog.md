@@ -420,7 +420,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-4--planejamento-p
 - Requisitos: R-PLN-2, R-PLN-3, R-PLN-4, R-PRP-2, R-SEC-5.
 - CA: fila de projetos no Production (`production.planning_queue`, ADR 0029), reordenada com `production.edit`, auditada; projeto novo pela data prometida; prévia "antes → depois" sem gravar; salvar com versão (409) e recálculo; `commercial.projects.priority` sem uso, sem apagar.
 
-**PLN-04 [ ] Ocupação da fábrica por semana e centro (M)** — 4.3, ordem 9 — `Ready` — [story](stories/PLN-04-ocupacao-fabrica.md)
+**PLN-04 [x] Ocupação da fábrica por semana e centro (M)** — 4.3, ordem 9 — `Done` — [story](stories/PLN-04-ocupacao-fabrica.md)
 - Requisitos: R-PLN-6, R-PLN-1, PRD §5.14 (Produção), PRD §6.
 - CA: horas comprometidas ÷ capacidade por semana e centro, até 100% no plano finito com o quadro "Depois de"; "Acima da capacidade" só quando a capacidade cai depois do plano; faixas < 60% "Folga" e ≥ 95% "Lotado"; `ColumnChart` com tabela equivalente; `IFactoryLoad`; menos de 1 s.
 

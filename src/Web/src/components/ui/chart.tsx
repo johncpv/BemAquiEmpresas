@@ -27,8 +27,13 @@ interface ChartProps<T extends Record<string, unknown>> {
   xLabel?: string
   /** Marcas verticais no eixo x (ex.: "Hoje" e o dia de menor saldo), com o rótulo no topo. */
   references?: { x: string; label: string }[]
-  /** Marcas horizontais no eixo y (ex.: "Saldo zero", meta, capacidade). */
-  yReferences?: { y: number; label: string }[]
+  /**
+   * Marcas horizontais no eixo y (ex.: "Saldo zero", meta, capacidade). `extend`: o eixo sempre mostra a marca, mesmo com os valores
+   * abaixo dela (PLN-04: "Capacidade (100%)"); `legend`: a marca também aparece na legenda.
+   */
+  yReferences?: { y: number; label: string; extend?: boolean; legend?: boolean }[]
+  /** Rótulo direto do valor em cada ponto, no lugar do nome da série no último ponto (PLN-04: o percentual de cada semana). */
+  valueLabels?: boolean
   /** Resumo textual acima do gráfico (FIN-07 CA 11). */
   summary?: ReactNode
   state?: ChartFrameState
@@ -51,13 +56,13 @@ const color = (s: ChartSeries, i: number) => `var(--chart-${s.color ?? (i % 6) +
  * --chart-1 a --chart-6, tipo de série pelo traço, rótulo direto no último ponto, referências em x e em y e a tabela
  * equivalente, acessível por teclado, ligada ao gráfico por aria-describedby.
  */
-export function Chart<T extends Record<string, unknown>>({ title, data, xKey, series, format = (v) => v.toLocaleString('pt-BR'), height = 260, xLabel = 'Período', references = [], yReferences = [], summary, state = 'ready', onRetry, emptyTitle }: ChartProps<T>) {
+export function Chart<T extends Record<string, unknown>>({ title, data, xKey, series, format = (v) => v.toLocaleString('pt-BR'), height = 260, xLabel = 'Período', references = [], yReferences = [], valueLabels = false, summary, state = 'ready', onRetry, emptyTitle }: ChartProps<T>) {
   const value = (v: unknown) => (typeof v === 'number' ? format(v) : '—')
   const last = Object.fromEntries(series.map((s) => [s.key, data.reduce((at, row, i) => (typeof row[s.key] === 'number' ? i : at), -1)]))
-  const legend: ChartLegendItem[] = series.map((s, i) => {
+  const legend: ChartLegendItem[] = series.map((s, i): ChartLegendItem => {
     const stroke = SERIES_STROKE[s.kind ?? 'actual']
     return { key: s.key, label: s.label + (s.kind === 'projected' && !/projet/i.test(s.label) ? ' (projetado)' : ''), color: color(s, i), dash: stroke.dash, width: stroke.width, marker: stroke.marker }
-  })
+  }).concat(yReferences.filter((r) => r.legend).map((r) => ({ key: `ref-${r.label}`, label: r.label, color: 'var(--muted-foreground)', width: 1.5 })))
   const table = { xLabel, columns: series.map((s) => ({ key: s.key, label: s.label })), rows: data.map((row) => ({ x: String(row[xKey]), values: Object.fromEntries(series.map((s) => [s.key, value(row[s.key])])) })) }
   return (
     <ChartFrame title={title} summary={summary} legend={legend} table={table} state={state === 'ready' && data.length === 0 ? 'empty' : state} onRetry={onRetry} emptyTitle={emptyTitle} height={height}>
@@ -69,14 +74,15 @@ export function Chart<T extends Record<string, unknown>>({ title, data, xKey, se
             <YAxis stroke="var(--muted-foreground)" tick={{ fontSize: 12 }} tickFormatter={(v: number) => format(v)} width={88} />
             <Tooltip formatter={(v) => value(v)} contentStyle={{ background: 'var(--popover)', border: '1px solid var(--border)', color: 'var(--popover-foreground)' }} />
             {references.map((r) => <ReferenceLine key={r.label} x={r.x} stroke="var(--muted-foreground)" strokeDasharray="2 2" label={{ value: r.label, position: 'insideTopLeft', fill: 'var(--muted-foreground)', fontSize: 11 }} />)}
-            {yReferences.map((r) => <ReferenceLine key={r.label} y={r.y} stroke="var(--muted-foreground)" label={{ value: r.label, position: 'insideBottomLeft', fill: 'var(--muted-foreground)', fontSize: 11 }} />)}
+            {yReferences.map((r) => <ReferenceLine key={r.label} y={r.y} stroke="var(--muted-foreground)" ifOverflow={r.extend ? 'extendDomain' : undefined} label={{ value: r.label, position: 'insideBottomLeft', fill: 'var(--muted-foreground)', fontSize: 11 }} />)}
             {series.map((s, i) => {
               const stroke = SERIES_STROKE[s.kind ?? 'actual']
               return (
                 <Line key={s.key} type="monotone" dataKey={s.key} name={s.label} stroke={color(s, i)} strokeWidth={stroke.width} strokeDasharray={stroke.dash} isAnimationActive={false}
-                  dot={stroke.marker ? { r: 2.5, fill: color(s, i), strokeWidth: 0 } : false}
-                  label={(p: { x?: number | string; y?: number | string; index?: number }) =>
-                    p.index === last[s.key] ? <text key={`${s.key}-rotulo`} x={Number(p.x) + 6} y={Number(p.y)} dy={4} fontSize={11} fontWeight={600} fill={color(s, i)} data-series-label={s.key}>{s.label}</text> : <g key={`${s.key}-${p.index}`} />} />
+                  dot={stroke.marker || valueLabels ? { r: 2.5, fill: color(s, i), strokeWidth: 0 } : false}
+                  label={(p: { x?: number | string; y?: number | string; index?: number; value?: unknown }) =>
+                    valueLabels ? <text key={`${s.key}-${p.index}`} x={Number(p.x)} y={Number(p.y)} dy={-8} textAnchor="middle" fontSize={11} fontWeight={600} fill="var(--foreground)" data-value-label={s.key}>{value(p.value)}</text>
+                    : p.index === last[s.key] ? <text key={`${s.key}-rotulo`} x={Number(p.x) + 6} y={Number(p.y)} dy={4} fontSize={11} fontWeight={600} fill={color(s, i)} data-series-label={s.key}>{s.label}</text> : <g key={`${s.key}-${p.index}`} />} />
               )
             })}
           </LineChart>
