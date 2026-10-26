@@ -155,7 +155,9 @@ public partial class FabricationTests
         (await WithDbAsync(db => db.ProductionOrders.AsNoTracking().Where(o => o.Id == installation.Id).Select(o => new { o.PlannedStart, o.PlannedEnd, o.Version }).SingleAsync()))
             .Should().Be(before, "nada é editável no cronograma");
         var body = await (await owner.GetAsync($"{Gantt}/projects?projectId={project}")).Content.ReadAsStringAsync();
-        body.Should().NotContainAny(["contractValue", "installerId", "1500"], "CA 14: sem valor nem instalador");
+        // O valor como número JSON (":1500"): "1500" solto casava com trechos de Guid na resposta.
+        body.Should().NotContainAny(["contractValue", "installerId", ":1500"], "CA 14: sem valor nem instalador");
+        body.Should().NotContain(installation.InstallerId!.Value.ToString(), "CA 14: nem o id do instalador");
     }
 
     [Fact]
