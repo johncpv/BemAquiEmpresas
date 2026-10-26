@@ -162,3 +162,81 @@ public class OutboxAlertTests(PostgresFixture postgres)
             a.Kind == BemAqui.BuildingBlocks.Observability.AlertKinds.OutboxDeadLetter && a.Tenant == MessagingHarness.Tenant.Key && a.Summary.Contains(nameof(AlwaysFails)));
     }
 }
+
+/// <summary>
+/// Conflito de concorrência no handler (CI do lote 5: <c>ContractCompletionConsumer</c> × outro processador na mesma linha): o handler
+/// relê e roda de novo na hora, sem gastar tentativa da mensagem; passou do limite, vira falha comum com backoff.
+/// </summary>
+[Collection(PostgresTestGroup.Name)]
+public class OutboxConcurrencyTests(PostgresFixture postgres)
+{
+    [Fact]
+    public async Task Conflito_de_concorrencia_rele_e_tenta_de_novo_sem_falhar_a_mensagem()
+    {
+        await using var provider = await MessagingHarness.CreateAsync(await postgres.CreateDatabaseAsync("ob_conc"));
+        var id = await CreateDocumentAsync(provider);
+        await MessagingHarness.PublishAsync(provider, new DocumentRenamed(id, "final"));
+
+        ConflictingRenameConsumer.Calls = 0;
+        ConflictingRenameConsumer.ConflictsLeft = 2;
+        try
+        {
+            (await MessagingHarness.ProcessAsync(provider)).Should().Be(1);
+        }
+        finally
+        {
+            ConflictingRenameConsumer.ConflictsLeft = 0;
+        }
+
+        ConflictingRenameConsumer.Calls.Should().Be(3, "duas disputas e a terceira leitura grava");
+        var message = (await MessagingHarness.OutboxAsync(provider)).Single();
+        message.ProcessedAt.Should().NotBeNull();
+        message.Attempts.Should().Be(0, "o conflito é transitório e não conta como falha");
+        message.Error.Should().BeNull();
+        (await NameAsync(provider, id)).Should().Be("final");
+        await using var scope = provider.CreateAsyncScope();
+        (await scope.ServiceProvider.GetRequiredService<SampleDbContext>().InboxMessages.CountAsync(i => i.MessageId == message.Id)).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task Conflito_que_persiste_vira_falha_com_backoff_depois_do_limite()
+    {
+        await using var provider = await MessagingHarness.CreateAsync(await postgres.CreateDatabaseAsync("ob_conc_lim"));
+        var id = await CreateDocumentAsync(provider);
+        await MessagingHarness.PublishAsync(provider, new DocumentRenamed(id, "final"));
+
+        ConflictingRenameConsumer.Calls = 0;
+        ConflictingRenameConsumer.ConflictsLeft = 100;
+        try
+        {
+            await MessagingHarness.ProcessAsync(provider);
+        }
+        finally
+        {
+            ConflictingRenameConsumer.ConflictsLeft = 0;
+        }
+
+        ConflictingRenameConsumer.Calls.Should().Be(1 + new OutboxOptions().ConcurrencyRetries, "a primeira e as novas tentativas imediatas");
+        var message = (await MessagingHarness.OutboxAsync(provider)).Single();
+        message.ProcessedAt.Should().BeNull();
+        message.DeadLetteredAt.Should().BeNull();
+        message.Attempts.Should().Be(1);
+        message.Error.Should().Contain(nameof(ConflictingRenameConsumer)).And.Contain("expected to affect 1 row");
+    }
+
+    private static async Task<Guid> CreateDocumentAsync(IServiceProvider provider)
+    {
+        await using var scope = provider.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<SampleDbContext>();
+        var doc = new SampleDocument { Name = "v0" };
+        db.Documents.Add(doc);
+        await db.SaveChangesAsync();
+        return doc.Id;
+    }
+
+    private static async Task<string> NameAsync(IServiceProvider provider, Guid id)
+    {
+        await using var scope = provider.CreateAsyncScope();
+        return await scope.ServiceProvider.GetRequiredService<SampleDbContext>().Documents.AsNoTracking().Where(d => d.Id == id).Select(d => d.Name).SingleAsync();
+    }
+}

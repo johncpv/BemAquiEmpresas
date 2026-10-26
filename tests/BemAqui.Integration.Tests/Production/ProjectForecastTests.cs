@@ -168,7 +168,7 @@ public class ProjectForecastTests
         ProjectForecastConsumer.Title("Ed. Monte Castelo", D(12, 5), D(11, 28))
             .Should().Be("Ed. Monte Castelo vai atrasar 7 dias: previsão 05/12/2026, prometido ao cliente 28/11/2026.");
         ProjectForecastConsumer.Title("Ed. Sol", D(11, 29), D(11, 28)).Should().Contain("vai atrasar 1 dia:");
-        ProjectForecastConsumer.Link(ProjectId).Should().Be("/app/projetos/" + ProjectId);
+        ProjectForecastConsumer.Link(ProjectId).Should().Be("/app/projetos/" + ProjectId + "?aba=cronograma", "PLN-03: o aviso abre o cronograma do projeto");
         ProjectForecastConsumer.DedupKey(ProjectId, D(12, 5)).Should().Be($"project-at-risk:{ProjectId}:2026-12-05");
     }
 

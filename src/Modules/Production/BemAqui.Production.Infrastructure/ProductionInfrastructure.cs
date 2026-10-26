@@ -115,6 +115,9 @@ public static class ProductionInfrastructure
         services.TryAddScoped<FactoryLoadService>();
         services.TryAddScoped<IFactoryLoad>(sp => sp.GetRequiredService<FactoryLoadService>());
 
+        // PLN-03: cronograma por projeto e por centro (lê o plano gravado, a fila e a capacidade agora).
+        services.TryAddScoped<GanttService>();
+
         // Expedição (PRD-06b): romaneio, a saída síncrona pelo IStockMovements e o contrato IShipments (Commercial, Fase 5 e EST-04).
         services.TryAddScoped<ShipmentService>();
         services.TryAddScoped<IShipments, ShipmentsContract>();

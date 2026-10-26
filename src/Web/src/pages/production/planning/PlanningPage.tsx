@@ -2,7 +2,8 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { type ReactNode, useEffect, useRef } from 'react'
 import {
-  getGetFactoryLoadCellQueryKey, getGetFactoryLoadQueryKey, getGetPlanningQueueQueryKey, getGetPlanningSummaryQueryKey, getListOrderForecastsQueryKey, useGetPlanningSummary,
+  getGetCentersGanttQueryKey, getGetFactoryLoadCellQueryKey, getGetFactoryLoadQueryKey, getGetPlanningQueueQueryKey, getGetPlanningSummaryQueryKey, getGetProjectsGanttQueryKey,
+  getListOrderForecastsQueryKey, useGetPlanningSummary,
   useRecalculateSchedule,
 } from '@/api/generated/bemaqui'
 import type { PlanningSummary } from '@/api/generated/model'
@@ -14,6 +15,7 @@ import { Dica } from '@/help/Dica'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { ProductionTabs } from '../ProductionTabs'
+import { GanttTab } from './GanttTab'
 import { LoadTab } from './LoadTab'
 import { failedLine, PLANNING_DICAS, runLine, warningAction } from './planning'
 import { QueueTab } from './QueueTab'
@@ -22,9 +24,9 @@ const primary = 'inline-flex min-h-[44px] items-center justify-center rounded-md
 const action = 'inline-flex min-h-[44px] items-center rounded-md border border-border px-3 text-sm font-semibold text-primary'
 
 /**
- * Fábrica → Produção → Planejamento (PLN-01a, PLN-02 e PLN-04): o cabeçalho com a última execução do plano e "Recalcular agora"
- * (production.edit); as abas Fila (padrão, PLN-02), Ocupação (horas comprometidas ÷ capacidade por semana e centro, PLN-04) e Sem previsão
- * (as OS que o plano não conseguiu datar, cada uma com a ação que resolve). O Cronograma chega na PLN-03.
+ * Fábrica → Produção → Planejamento (PLN-01a, PLN-02, PLN-03 e PLN-04): o cabeçalho com a última execução do plano e "Recalcular agora"
+ * (production.edit); as abas Fila (padrão, PLN-02), Cronograma (barras por projeto e por centro, PLN-03), Ocupação (horas comprometidas ÷
+ * capacidade por semana e centro, PLN-04) e Sem previsão (as OS que o plano não conseguiu datar, cada uma com a ação que resolve).
  */
 export function PlanningPage() {
   const client = useQueryClient()
@@ -40,6 +42,8 @@ export function PlanningPage() {
       void client.invalidateQueries({ queryKey: getGetPlanningQueueQueryKey() })
       void client.invalidateQueries({ queryKey: getGetFactoryLoadQueryKey() })
       void client.invalidateQueries({ queryKey: getGetFactoryLoadCellQueryKey() })
+      void client.invalidateQueries({ queryKey: getGetProjectsGanttQueryKey() })
+      void client.invalidateQueries({ queryKey: getGetCentersGanttQueryKey() })
     }
     wasPending.current = pending
   }, [pending, client])
@@ -58,6 +62,8 @@ export function PlanningPage() {
       await client.invalidateQueries({ queryKey: getGetPlanningQueueQueryKey() })
       await client.invalidateQueries({ queryKey: getGetFactoryLoadQueryKey() })
       await client.invalidateQueries({ queryKey: getGetFactoryLoadCellQueryKey() })
+      await client.invalidateQueries({ queryKey: getGetProjectsGanttQueryKey() })
+      await client.invalidateQueries({ queryKey: getGetCentersGanttQueryKey() })
     } catch {
       notifyError('Não foi possível recalcular. Tente de novo em instantes.', () => void recalculate())
     }
@@ -81,6 +87,7 @@ export function PlanningPage() {
           <PlanningHeader summary={query.data} button={button} recalculating={recalc.isPending} />
           <UrlTabs label="Seções do planejamento" fallback="fila" tabs={[
             { id: 'fila', label: 'Fila', content: <QueueTab canEdit={canEdit} /> },
+            { id: 'cronograma', label: 'Cronograma', content: <GanttTab /> },
             { id: 'ocupacao', label: 'Ocupação', content: <LoadTab canEdit={canEdit} recalculating={recalc.isPending} onRecalculate={recalculate} /> },
             { id: 'sem-previsao', label: `Sem previsão (${query.data.warnings.length})`, content: <Warnings summary={query.data} /> },
           ]} />

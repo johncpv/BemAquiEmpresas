@@ -214,15 +214,22 @@ public sealed partial class ScheduleService(
         plan.ScheduleStepForecasts.AddRange(result.Steps.Select(s => new ScheduleStepForecast
         {
             StepId = s.StepId, ProductionOrderId = s.OrderId, Sequence = s.Sequence, Hours = s.Hours, PlannedStart = s.Start, PlannedEnd = s.End,
-            NoForecastReason = s.NoForecastReason is { Length: > MaxReason } reason ? reason[..MaxReason] : s.NoForecastReason, RunId = run.Id,
+            NoForecastReason = StoredReason(s.NoForecastReason), RunId = run.Id,
         }));
         plan.ScheduleAllocations.AddRange(result.Allocations.Select(a => new ScheduleAllocation
         {
             StepId = a.StepId, ProductionOrderId = a.OrderId, WorkCenterId = a.WorkCenterId, Date = a.Date, Hours = a.Hours,
         }));
 
-        var changedOrders = result.Orders.Where(o => !previous.TryGetValue(o.OrderId, out var before)
-            || before.PlannedStart != o.Start || before.PlannedEnd != o.End || before.NoForecastReason != o.NoForecastReason).Select(o => o.OrderId).ToHashSet();
+        // A OS sem linha no plano anterior (todas as etapas concluídas, que não entram em schedule_step_forecasts) conta como "sem datas e
+        // sem motivo": só muda se ganhou data ou motivo. O motivo é comparado como ficou gravado (truncado).
+        var changedOrders = result.Orders.Where(o =>
+        {
+            var reason = StoredReason(o.NoForecastReason);
+            return previous.TryGetValue(o.OrderId, out var before)
+                ? before.PlannedStart != o.Start || before.PlannedEnd != o.End || before.NoForecastReason != reason
+                : o.Start is not null || o.End is not null || reason is not null;
+        }).Select(o => o.OrderId).ToHashSet();
         var changedProjects = await WriteProjectForecastsAsync(result, run.Id, now, ct);
         run.OrdersCount = result.Orders.Count;
         run.StepsCount = result.Steps.Count;
@@ -327,6 +334,8 @@ public sealed partial class ScheduleService(
 
     internal static ScheduleRunInfo Info(ScheduleRun r) =>
         new(r.Id, r.Trigger, r.Status, r.RequestedAt, r.StartedAt, r.FinishedAt, r.OrdersCount, r.StepsCount, r.ChangedOrdersCount, r.WithoutForecastCount, r.DurationMs, r.Error);
+
+    private static string? StoredReason(string? reason) => reason is { Length: > MaxReason } ? reason[..MaxReason] : reason;
 
     private static string Truncate(string message) => message.Length <= MaxError ? message : message[..MaxError];
 

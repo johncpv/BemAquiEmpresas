@@ -6,6 +6,8 @@ import { getAccessToken } from '@/api/session'
 
 export const HUB_PATH = '/hubs/production'
 export const BOARD_CHANGED = 'OrderBoardChanged'
+/** Plano novo gravado (PLN-01b CA 4): só o sinal, sem corpo. */
+export const SCHEDULE_CHANGED = 'ScheduleChanged'
 /** Recarga agrupada (CA 14): 50 mudanças por minuto não travam a tela. */
 export const PUSH_DEBOUNCE_MS = 300
 /** Reserva enquanto o tempo real está fora (CA 13, ADR 0009). */
@@ -51,8 +53,15 @@ const refreshBoard = (client: QueryClient) => void client.invalidateQueries({ qu
 export const refreshShopfloor = (client: QueryClient) =>
   void client.invalidateQueries({ predicate: (q) => typeof q.queryKey[0] === 'string' && q.queryKey[0].startsWith('/api/v1/shopfloor') })
 
+/** O que escutar e de quanto em quanto agrupar (o Cronograma, PLN-03 CA 12: OrderBoardChanged e ScheduleChanged a cada 5 s). */
+export interface LiveOptions {
+  schedule?: boolean
+  delay?: number
+}
+
 /** Conexão com o hub da produção; <c>reload</c> decide o que recarregar quando chega o aviso. */
-export function useProductionLive(reload: (client: QueryClient) => void): LiveStatus {
+export function useProductionLive(reload: (client: QueryClient) => void, options: LiveOptions = {}): LiveStatus {
+  const { schedule = false, delay = PUSH_DEBOUNCE_MS } = options
   const client = useQueryClient()
   const [status, setStatus] = useState<LiveStatus>('connecting')
 
@@ -60,7 +69,7 @@ export function useProductionLive(reload: (client: QueryClient) => void): LiveSt
     let disposed = false
     let restart: ReturnType<typeof setTimeout> | null = null
     const refresh = () => reload(client)
-    const batch = createBatcher(() => refresh())
+    const batch = createBatcher(() => refresh(), delay)
     const connection = new HubConnectionBuilder()
       .withUrl(HUB_PATH, { accessTokenFactory: () => getAccessToken() ?? '' })
       .withAutomaticReconnect()
@@ -95,6 +104,7 @@ export function useProductionLive(reload: (client: QueryClient) => void): LiveSt
     connection.on(BOARD_CHANGED, (message: { productionOrderId?: string } | undefined) => {
       if (message?.productionOrderId) batch.push(message.productionOrderId)
     })
+    if (schedule) connection.on(SCHEDULE_CHANGED, () => batch.push('plano'))
     connection.onreconnecting(() => setStatus('offline'))
     connection.onreconnected(() => {
       setStatus('live')
@@ -113,7 +123,7 @@ export function useProductionLive(reload: (client: QueryClient) => void): LiveSt
       if (restart) clearTimeout(restart)
       void connection.stop()
     }
-  }, [client, reload])
+  }, [client, reload, schedule, delay])
 
   return status
 }

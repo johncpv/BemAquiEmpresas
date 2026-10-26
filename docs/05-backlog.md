@@ -424,7 +424,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-4--planejamento-p
 - Requisitos: R-PLN-6, R-PLN-1, PRD §5.14 (Produção), PRD §6.
 - CA: horas comprometidas ÷ capacidade por semana e centro, até 100% no plano finito com o quadro "Depois de"; "Acima da capacidade" só quando a capacidade cai depois do plano; faixas < 60% "Folga" e ≥ 95% "Lotado"; `ColumnChart` com tabela equivalente; `IFactoryLoad`; menos de 1 s.
 
-**PLN-03 [ ] Cronograma (Gantt) por projeto e por centro de trabalho (G)** — 4.3, ordem 10 — `Ready` — [story](stories/PLN-03-gantt.md)
+**PLN-03 [x] Cronograma (Gantt) por projeto e por centro de trabalho (G)** — 4.3, ordem 10 — `Done` — [story](stories/PLN-03-gantt.md)
 - Requisitos: R-PLN-4, R-PLN-3, R-PRP-5, PRD §5.14 (Entregas), PRD §6.
 - CA: Gantt próprio em SVG (ADR 0033) por projeto e por centro; OS de instalação como barra só de leitura; escala dia/semana/mês; teclado e tabela equivalente; 300 OS em menos de 1,5 s.
 

@@ -11,6 +11,7 @@ import { formatDate } from '@/lib/format'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { PROJECT_LETTERS, PROJECT_STAGES, projectStage } from '../contracts/contracts'
+import { ProjectGanttTab } from '../production/planning/GanttTab'
 import { ProjectCostsTab } from './ProjectCostsTab'
 import { ProjectDocumentsTab } from './ProjectDocumentsTab'
 import { ProjectEventDialog } from './ProjectEventDialog'
@@ -19,7 +20,7 @@ import { ProjectItemsTab } from './ProjectItemsTab'
 import { ProjectSummaryTab } from './ProjectSummaryTab'
 import { ProjectTimelineTab } from './ProjectTimelineTab'
 
-/** Projeto 360 (COM-05): cabeçalho com a etapa e as ações; abas na URL; aba sem permissão some. */
+/** Projeto 360 (COM-05): cabeçalho com a etapa e as ações; abas na URL; aba sem permissão some (o Cronograma, PLN-03, pede production.view). */
 export function ProjectPage() {
   const { id } = useParams({ strict: false }) as { id: string }
   const navigate = useNavigate()
@@ -27,6 +28,7 @@ export function ProjectPage() {
   const canFinance = useCan('finance.view')
   const canEdit = useCan('projects.edit')
   const canApprove = useCan('projects.approve')
+  const canProduction = useCan('production.view')
   const client = useQueryClient()
   const query = useGetProject(id)
   if (query.isPending) return <Skeleton className="h-96" />
@@ -72,6 +74,8 @@ export function ProjectPage() {
       <UrlTabs label="Seções do projeto" fallback="resumo" tabs={[
         { id: 'resumo', label: 'Resumo', content: <ProjectSummaryTab project={p} onSaved={refresh} onCosts={() => void navigate({ to: '/app/projetos/$id', params: { id }, search: { aba: 'custos' } } as never)} /> },
         { id: 'itens', label: 'Itens e OS', content: <ProjectItemsTab project={p} /> },
+        // PLN-03 CA 11: com OS de fabricação e production.view (a aba some sem a permissão).
+        ...(canProduction && byOrders ? [{ id: 'cronograma', label: 'Cronograma', content: <ProjectGanttTab projectId={id} /> }] : []),
         ...(canFinance ? [{ id: 'financeiro', label: 'Financeiro', content: <ProjectFinancialTab projectId={id} /> }] : []),
         ...(canCost ? [{ id: 'custos', label: 'Custos', content: <ProjectCostsTab projectId={id} /> }] : []),
         { id: 'documentos', label: 'Documentos', content: <ProjectDocumentsTab projectId={id} contractId={p.contractId} /> },
