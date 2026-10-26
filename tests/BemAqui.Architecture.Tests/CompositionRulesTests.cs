@@ -71,7 +71,7 @@ public class CompositionRulesTests
         // DSH-01b: os cards sem custo (projetos em andamento, carteira, produção, entregas) entram na mesma regra.
         dtos.Should().Contain(t => t.Name == "ActiveProjectsCard").And.Contain(t => t.Name == "BacklogCard").And.Contain(t => t.Name == "ProductionCard")
             .And.Contain(t => t.Name == "DeliveriesCard");
-        dtos.Should().NotContain(IsCostDto, "um DTO com a marca [CostDto] não usa o sufixo dos cards sem custo");
+        dtos.Should().NotContain(t => IsCostDto(t), "um DTO com a marca [CostDto] não usa o sufixo dos cards sem custo");
 
         var properties = dtos.SelectMany(Reachable).Distinct().SelectMany(t => t.GetProperties(BindingFlags.Public | BindingFlags.Instance).Select(p => $"{t.Name}.{p.Name}")).ToList();
         properties.Should().NotBeEmpty();

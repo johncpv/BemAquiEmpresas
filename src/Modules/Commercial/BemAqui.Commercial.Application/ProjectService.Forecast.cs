@@ -21,15 +21,9 @@ public sealed partial class ProjectService
         }
 
         var rows = await db.ProjectForecasts.AsNoTracking().Where(f => ids.Contains(f.ProjectId)).ToDictionaryAsync(f => f.ProjectId, ct);
-        var installationEnds = new Dictionary<Guid, DateOnly>();
-        foreach (var project in list.Where(p => ProjectDelivery.InstallationPhase(p.Status)))
-        {
-            var ends = (await installations.ByProjectAsync(project.Id, ct)).Where(o => o.Status != BemAqui.Production.Contracts.InstallationState.Cancelled).Select(o => o.PlannedEnd).ToList();
-            if (ends.Count > 0)
-            {
-                installationEnds[project.Id] = ends.Max();
-            }
-        }
+        // DSH-01b: o fim das OS de instalação em lote (uma consulta), não uma por projeto.
+        var installing = list.Where(p => ProjectDelivery.InstallationPhase(p.Status)).Select(p => p.Id).Distinct().ToList();
+        IReadOnlyDictionary<Guid, DateOnly> installationEnds = installing.Count == 0 ? new Dictionary<Guid, DateOnly>() : await installations.LatestPlannedEndsAsync(installing, ct);
 
         var reasonOrders = rows.Values.Where(r => r.ForecastDate is null && r.ReasonOrderId is not null).Select(r => r.ReasonOrderId!.Value).Distinct().ToList();
         var numbers = reasonOrders.Count == 0 ? [] : (await productionOrders.FindManyAsync(reasonOrders, ct)).ToDictionary(o => o.Id, o => o.Number);
