@@ -146,9 +146,15 @@ public sealed class SignalRProductionBoardPush(IHubContext<ProductionHub> hub, I
         }
     }
 
-    /// <summary>Sinal <c>ScheduleChanged</c> (PLN-01b CA 4) ao grupo <c>{tenantId}:production</c>: só o sinal, sem corpo; a TV (PNL-01b) e o Planejamento recarregam.</summary>
-    public Task ScheduleChangedAsync(Guid tenantId, CancellationToken cancellationToken = default) =>
-        hub.Clients.Group(PingHub.Group(tenantId, ProductionHub.ProductionPanel)).SendAsync(ProductionHub.ScheduleChanged, cancellationToken);
+    /// <summary>
+    /// Sinal <c>ScheduleChanged</c> (PLN-01b CA 4) ao grupo <c>{tenantId}:production</c> dos dois hubs: só o sinal, sem corpo; o Planejamento e
+    /// a TV (PNL-01b CA 8: a visão de fila recarrega) buscam pela API.
+    /// </summary>
+    public async Task ScheduleChangedAsync(Guid tenantId, CancellationToken cancellationToken = default)
+    {
+        await hub.Clients.Group(PingHub.Group(tenantId, ProductionHub.ProductionPanel)).SendAsync(ProductionHub.ScheduleChanged, cancellationToken);
+        await kiosk.Clients.Group(KioskHub.ProductionGroup(tenantId)).SendAsync(KioskHub.ScheduleChanged, cancellationToken);
+    }
 }
 
 /// <summary>Corpo da mensagem: só o id da OS (CA 12 e 16).</summary>

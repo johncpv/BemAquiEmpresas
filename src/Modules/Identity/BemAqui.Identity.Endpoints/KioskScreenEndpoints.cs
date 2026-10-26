@@ -3,6 +3,8 @@ using BemAqui.BuildingBlocks.Identity;
 using BemAqui.BuildingBlocks.Security;
 using BemAqui.BuildingBlocks.Web;
 using BemAqui.Identity.Application.Kiosk;
+using BemAqui.Identity.Domain;
+using BemAqui.Production.Contracts;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -48,6 +50,7 @@ internal static class KioskScreenEndpoints
         screens.MapPost("/{id:guid}/revoke", async (Guid id, KioskVersionInput input, ICurrentUser user, KioskScreenService service, CancellationToken ct) =>
                 (await service.RevokeAsync(id, input.Version, user.UserId!.Value, ct)).ToHttpResult())
             .RequirePermission("kiosk.delete").WithName("RevokeKioskScreen").Produces<KioskScreenRow>();
+        MapPreview(screens.MapGroup("/{id:guid}/preview"));
 
         var kiosk = api.MapGroup("/kiosk").WithTags("Painel da TV").RequireModule("kiosk");
         // Rota anônima do quiosque (ADR 0009 adendo de 21/10/2026): Origin do host e X-CSRF, 10 tentativas por minuto por IP e tenant,
@@ -90,6 +93,39 @@ internal static class KioskScreenEndpoints
             .RequireKiosk().WithName("GetKioskScreen").Produces<KioskScreenContext>();
         return api;
     }
+
+    /// <summary>
+    /// Prévia da tela no backoffice (PNL-01b CA 10, ADR 0030 §5): com a sessão do usuário (<c>kiosk.view</c> e <c>production.view</c>),
+    /// sem sessão de quiosque, pelos mesmos serviços e DTOs da TV (<see cref="IKioskPanel"/>) e com o escopo da tela (linha e visões).
+    /// </summary>
+    private static void MapPreview(RouteGroupBuilder preview)
+    {
+        preview.MapGet(string.Empty, async (Guid id, KioskScreenService service, CancellationToken ct) => (await service.PreviewAsync(id, ct)).ToHttpResult())
+            .RequirePermission("kiosk.view").RequirePermission("production.view").WithName("GetKioskScreenPreview").Produces<KioskScreenContext>();
+        preview.MapGet("/board", async (Guid id, KioskScreenService service, IKioskPanel panel, CancellationToken ct) =>
+                await ScopedAsync(id, KioskViews.Board, service, ct) is { } s ? Results.Ok(await panel.BoardAsync(s.Line, ct)) : PreviewNotFound())
+            .RequirePermission("kiosk.view").RequirePermission("production.view").WithName("GetKioskPreviewBoard").Produces<KioskBoard>();
+        preview.MapGet("/board/orders/{orderId:guid}", async (Guid id, Guid orderId, KioskScreenService service, IKioskPanel panel, CancellationToken ct) =>
+                await ScopedAsync(id, KioskViews.Board, service, ct) is { } s && await panel.CardAsync(orderId, s.Line, ct) is { } card ? Results.Ok(card) : PreviewNotFound())
+            .RequirePermission("kiosk.view").RequirePermission("production.view").WithName("GetKioskPreviewBoardOrder").Produces<KioskCard>();
+        preview.MapGet("/queue", async (Guid id, KioskScreenService service, IKioskPanel panel, CancellationToken ct) =>
+                await ScopedAsync(id, KioskViews.Queue, service, ct) is { } s ? Results.Ok(await panel.QueueAsync(s.Line, ct)) : PreviewNotFound())
+            .RequirePermission("kiosk.view").RequirePermission("production.view").WithName("GetKioskPreviewQueue").Produces<KioskQueueView>();
+        preview.MapGet("/delays", async (Guid id, KioskScreenService service, IKioskPanel panel, CancellationToken ct) =>
+                await ScopedAsync(id, KioskViews.Late, service, ct) is { } s ? Results.Ok(await panel.DelaysAsync(s.Line, ct)) : PreviewNotFound())
+            .RequirePermission("kiosk.view").RequirePermission("production.view").WithName("GetKioskPreviewDelays").Produces<KioskDelays>();
+    }
+
+    /// <summary>Escopo da tela para a prévia, se ela existe, não foi revogada e mostra a visão pedida.</summary>
+    private static async Task<KioskScreenContext?> ScopedAsync(Guid id, string view, KioskScreenService service, CancellationToken ct)
+    {
+        var screen = await service.PreviewAsync(id, ct);
+        return screen.IsSuccess && screen.Value.Views.Contains(view, StringComparer.Ordinal) ? screen.Value : null;
+    }
+
+    private static IResult PreviewNotFound() =>
+        Results.Problem(detail: "Não encontrado nesta tela.", statusCode: StatusCodes.Status404NotFound, title: "Não encontrado",
+            extensions: new Dictionary<string, object?> { ["code"] = "not_found" });
 
     private static IResult Invalid() =>
         Results.Problem(detail: KioskRules.InvalidLinkMessage, statusCode: StatusCodes.Status401Unauthorized, title: "Link inválido",

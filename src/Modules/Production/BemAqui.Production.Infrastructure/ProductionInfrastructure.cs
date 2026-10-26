@@ -50,6 +50,8 @@ public static class ProductionInfrastructure
         // Kanban (PRD-02): quadro, aviso depois do commit (o Host troca o envio pelo SignalR) e o job "OS atrasada".
         services.TryAddScoped<ProductionBoardService>();
         services.TryAddScoped<ProductionBoardNotifier>();
+        // Painel da TV (PNL-01b): as visões com o filtro de linha do escopo, para a TV (/api/v1/kiosk/*) e a prévia do backoffice.
+        services.TryAddScoped<IKioskPanel, KioskPanelService>();
         services.TryAddSingleton<IProductionBoardPush, NoProductionBoardPush>();
         services.TryAddScoped<LateOrdersNotifier>();
 
