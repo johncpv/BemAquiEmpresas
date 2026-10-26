@@ -513,4 +513,119 @@ public class PlanningTests(TenancyFixture tenancy) : IClassFixture<TenancyFixtur
             await CancelLoadAsync("OS-FILA-");
         }
     }
+
+    /// <summary>Orçamento em rascunho gravado direto (o fluxo tem os próprios testes), com um equipamento e as horas por centro da composição.</summary>
+    private async Task<Guid> QuoteWithHoursAsync(decimal quantity, params (Guid Center, decimal Hours)[] labor) => await WithDbAsync(async db =>
+    {
+        var quote = new BemAqui.Commercial.Domain.Quote
+        {
+            Number = "ORC-SIM-" + Guid.NewGuid().ToString("N")[..8], PartyId = Guid.CreateVersion7(), DeliveryDays = 30, CreatedAt = DateTimeOffset.UtcNow,
+        };
+        db.Quotes.Add(quote);
+        var item = new BemAqui.Commercial.Domain.QuoteItem { QuoteId = quote.Id, Sequence = 1, Kind = BemAqui.Commercial.Domain.QuoteItemKind.Equipment, Description = "Elevador", Quantity = quantity };
+        db.QuoteItems.Add(item);
+        foreach (var (center, hours) in labor)
+        {
+            db.QuoteItemCosts.Add(new BemAqui.Commercial.Domain.QuoteItemCost
+            {
+                QuoteItemId = item.Id, CostType = BemAqui.SharedKernel.CostType.Labor, WorkCenterId = center, PositionId = Guid.CreateVersion7(), Quantity = hours, UnitCost = 50m, Total = hours * 50m,
+            });
+        }
+
+        await db.SaveChangesAsync();
+        return quote.Id;
+    });
+
+    /// <summary>O que a simulação não pode gravar (PLN-05 CA 5): plano, fila, histórico, auditoria, outbox e o próprio orçamento.</summary>
+    private Task<string> PlanStateAsync(Guid quoteId) => WithDbAsync(async db => string.Join("|",
+        await db.ScheduleRuns.CountAsync(), await db.ScheduleStepForecasts.CountAsync(), await db.ScheduleAllocations.CountAsync(), await db.ScheduleProjectForecasts.CountAsync(),
+        await db.PlanningQueue.CountAsync(), await db.PlanningQueueChanges.CountAsync(), await db.AuditEntries.CountAsync(), await db.OutboxMessages.CountAsync(),
+        await db.Quotes.AsNoTracking().Where(q => q.Id == quoteId).Select(q => q.Version).SingleAsync()));
+
+    [Fact]
+    public async Task Simulacao_do_orcamento_com_50_projetos_e_300_OS_em_menos_de_2_s_sem_gravar_e_sem_esperar_o_lock()
+    {
+        // PLN-05 CA 5: o dataset da prévia da PLN-02 (50 projetos, 6 OS de 5 etapas, 6 centros) e um orçamento com 2 centros.
+        var centers = new List<Guid>();
+        for (var i = 0; i < 6; i++)
+        {
+            centers.Add(await CenterAsync("Sim " + i));
+        }
+
+        try
+        {
+            var projects = Enumerable.Range(0, 50).Select(_ => Guid.CreateVersion7()).ToList();
+            await WithDbAsync(async db =>
+            {
+                for (var p = 0; p < projects.Count; p++)
+                {
+                    for (var o = 0; o < 6; o++)
+                    {
+                        var order = new ProductionOrder
+                        {
+                            Number = "OS-SIMO-" + p.ToString("D2", System.Globalization.CultureInfo.InvariantCulture) + o + Guid.NewGuid().ToString("N")[..4], Type = ProductionOrderType.Fabrication,
+                            ProjectId = projects[p], ContractId = Guid.CreateVersion7(), ProjectItemId = Guid.CreateVersion7(), Quantity = 1m, CreatedAt = DateTimeOffset.UtcNow,
+                        };
+                        db.ProductionOrders.Add(order);
+                        for (var k = 0; k < 5; k++)
+                        {
+                            db.ProductionOrderSteps.Add(new ProductionOrderStep
+                            {
+                                OrderId = order.Id, Sequence = k + 1, Name = "Etapa " + k, Code = ((char)('A' + k)).ToString(), WorkCenterId = centers[(p + o + k) % 6], StandardHours = 2m + k,
+                                Status = k == 0 ? ProductionStepStatus.Ready : ProductionStepStatus.Waiting,
+                            });
+                        }
+                    }
+                }
+
+                return await db.SaveChangesAsync();
+            });
+            (await RecalculateAsync()).Run!.Status.Should().Be(ScheduleRunStatus.Succeeded);
+            var quote = await QuoteWithHoursAsync(2m, (centers[0], 6m), (centers[1], 4m));
+            var owner = await ActorAsync("owner");
+            var url = $"/api/v1/quotes/{quote}/schedule-simulation";
+            (await owner.PostAsJsonAsync(url, new { queuePosition = (int?)null })).StatusCode.Should().Be(HttpStatusCode.OK); // aquece
+            var state = await PlanStateAsync(quote);
+
+            var watch = Stopwatch.StartNew();
+            var atEnd = await owner.PostAsJsonAsync(url, new { queuePosition = (int?)null });
+            watch.Stop();
+            var endBody = await atEnd.Content.ReadAsStringAsync();
+            atEnd.StatusCode.Should().Be(HttpStatusCode.OK, endBody);
+            watch.ElapsedMilliseconds.Should().BeLessThan(2000, "CA 5: a simulação chega em menos de 2 s com 50 projetos e 300 OS");
+            var end = JsonSerializer.Deserialize<JsonElement>(endBody);
+            end.GetProperty("simulated").GetBoolean().Should().BeTrue();
+            end.GetProperty("queueSize").GetInt32().Should().BeGreaterThanOrEqualTo(50);
+            end.GetProperty("atEnd").GetBoolean().Should().BeTrue();
+            var endDate = DateOnly.Parse(end.GetProperty("fabricationEnd").GetString()!, System.Globalization.CultureInfo.InvariantCulture);
+
+            watch.Restart();
+            var first = await owner.PostAsJsonAsync(url, new { queuePosition = 1 });
+            watch.Stop();
+            var firstBody = await first.Content.ReadAsStringAsync();
+            first.StatusCode.Should().Be(HttpStatusCode.OK, firstBody);
+            watch.ElapsedMilliseconds.Should().BeLessThan(2000);
+            var top = JsonSerializer.Deserialize<JsonElement>(firstBody);
+            top.GetProperty("queuePosition").GetInt32().Should().Be(1);
+            DateOnly.Parse(top.GetProperty("fabricationEnd").GetString()!, System.Globalization.CultureInfo.InvariantCulture).Should().BeOnOrBefore(endDate, "na frente da fila termina antes");
+            DateOnly.Parse(top.GetProperty("fabricationEnd").GetString()!, System.Globalization.CultureInfo.InvariantCulture).Should().BeOnOrAfter(Today);
+            (await PlanStateAsync(quote)).Should().Be(state, "CA 5: nada é gravado (plano, fila, histórico, auditoria, outbox e orçamento)");
+
+            // Um recálculo "em andamento" (os locks do plano e da fila presos por outra conexão) não segura a simulação: ela só lê.
+            await using var holder = await ScopeAsync();
+            var db = holder.ServiceProvider.GetRequiredService<TenantDbContext>();
+            await using var transaction = await db.Database.BeginTransactionAsync();
+            await db.Database.SqlQuery<int>($"SELECT 1 AS \"Value\" FROM (SELECT pg_advisory_xact_lock(hashtextextended({ScheduleService.LockKey}, 0))) AS l").ToListAsync();
+            await db.Database.SqlQuery<int>($"SELECT 1 AS \"Value\" FROM (SELECT pg_advisory_xact_lock(hashtextextended({PlanningQueueStore.LockKey}, 0))) AS l").ToListAsync();
+            var simulation = owner.PostAsJsonAsync(url, new { queuePosition = 1 });
+            var finished = await Task.WhenAny(simulation, Task.Delay(TimeSpan.FromSeconds(10)));
+            finished.Should().BeSameAs(simulation, "a simulação não espera o lock do recálculo nem o da fila");
+            (await simulation).StatusCode.Should().Be(HttpStatusCode.OK);
+            await transaction.RollbackAsync();
+        }
+        finally
+        {
+            await CancelLoadAsync("OS-SIMO-");
+        }
+    }
 }

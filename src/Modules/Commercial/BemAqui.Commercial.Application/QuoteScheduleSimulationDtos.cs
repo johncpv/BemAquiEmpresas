@@ -9,10 +9,10 @@ public sealed record QuoteSimulationLateProject(Guid ProjectId, string Number, s
 /// <summary>
 /// Resultado da simulação de prazo (PLN-05 CA 4, 7 e 9): <b>só datas e dias</b>. Nenhum custo, custo-hora, cargo nem hora por centro sai
 /// aqui, nem a fila ou a ocupação de outros projetos além da contagem de quem passa a atrasar (e número e nome com <c>projects.view</c>).
-/// <c>HasHours</c> = false: o orçamento não tem horas por centro (CA 7) e o motor não foi chamado.
+/// <c>Simulated</c> = false: o orçamento não tem horas por centro (CA 7) e o motor não foi chamado.
 /// </summary>
 public sealed record QuoteScheduleSimulationView(
-    bool HasHours,
+    bool Simulated,
     int QueueSize,
     int QueuePosition,
     bool AtEnd,
