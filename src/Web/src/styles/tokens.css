@@ -156,3 +156,19 @@
   color: var(--foreground);
   font-size: var(--tv-line);
 }
+
+/* Troca de visão do Painel da TV (PNL-01b CA 7): transição curta, sem animação para quem pede menos movimento. */
+@keyframes tv-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.theme-tv .tv-fade {
+  animation: tv-fade 300ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-tv .tv-fade {
+    animation: none;
+  }
+}

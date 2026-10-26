@@ -131,6 +131,27 @@ describe('TvPage (PNL-01a CA 5, 6 e 14)', () => {
     expect(calls.every((c) => !c.url.includes('token-da-tela')), 'o token nunca vai na URL').toBe(true)
   })
 
+  it('painel conectado: cabeçalho com as contagens, o quadro da linha e nenhuma chamada fora da API do quiosque (PNL-01b)', async () => {
+    window.history.replaceState(null, '', '/tv')
+    const card = {
+      id: 'o1', number: 'OS-2026-0001', projectNumber: 'PRJ-2026-0007', projectName: 'Residencial Aurora', columnKey: 'M', stepCode: 'M', stepName: 'Montagem', operator: 'João S.',
+      pausedReason: null, stepStartedAt: null, appliedHours: 1, standardHours: 2, plannedEnd: null, risk: 'Late', delayDays: 2,
+    }
+    responses = {
+      'GET /api/v1/kiosk/screen': json({ name: 'TV Montagem', line: 'Linha 1', views: ['board', 'late'], rotationSeconds: 20, companyName: 'Konebras', serverNow: '2026-10-25T13:00:00Z' }),
+      'GET /api/v1/kiosk/board': json({ line: 'Linha 1', inProgressCount: 1, lateCount: 1, atRiskCount: 0, columns: [{ key: 'M', code: 'M', name: 'Montagem', count: 1 }], cards: [card], serverNow: '2026-10-25T13:00:00Z' }),
+      'GET /api/v1/kiosk/delays': json({ line: 'Linha 1', rows: [], total: 0 }),
+    }
+    await renderTv()
+
+    expect(await screen.findByRole('heading', { name: 'Linha 1 — 1 OS em andamento, 1 atrasada' })).toBeTruthy()
+    expect(await screen.findByText('João S.')).toBeTruthy()
+    expect(screen.getByText('ATRASADA')).toBeTruthy()
+    expect(await screen.findByLabelText('Visão 1 de 1: Quadro por etapa')).toBeTruthy()
+    expect(calls.every((c) => c.url.startsWith('/api/v1/kiosk/')), 'a TV só chama a API do quiosque').toBe(true)
+    expect(calls.some((c) => c.url === '/api/v1/kiosk/queue'), 'visão fora da tela não é pedida').toBe(false)
+  })
+
   it('segundo uso do link: "Link inválido ou desligado." sem chamar o painel', async () => {
     window.history.replaceState(null, '', '/tv#ja-usado')
     responses = { 'POST /api/v1/kiosk/session': json({ code: 'kiosk_link_invalid', detail: 'Link inválido ou desligado.' }, 401) }

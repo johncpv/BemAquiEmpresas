@@ -15,6 +15,12 @@ Cadastrar cada TV da fábrica com um link próprio, que abre o painel de produç
 - A lista mostra a situação de cada tela (Aguardando conexão, Ativa ou Revogada), o último acesso ("Visto há {n} min" ou "Nunca conectada") e as sessões ativas.
 - **Editar** muda o nome, a linha, as visões, a rotação e as redes. O link continua o mesmo e a TV recebe a configuração nova em até 1 minuto.
 
+## Visões e prévia
+- **Linha**: a TV mostra só as OS cuja etapa atual é de um centro desta linha. **Todas** mostra a fábrica inteira.
+- **Visões**: **Quadro por etapa** (as OS por etapa, com quem está nelas e há quanto tempo), **Fila e previsões** (os próximos projetos da fila e a previsão de entrega × prometido) e **Atrasos e riscos** (as OS atrasadas e em risco). A TV pula **Atrasos e riscos** quando não há nenhuma.
+- **Rotação**: de quanto em quanto tempo a TV troca de visão (de 10 a 120 segundos; padrão 20).
+- **Ver prévia** (é preciso ver a produção) mostra a tela como a TV mostraria, sem gastar o link. Depois de criar uma tela, o próximo passo também oferece **Ver prévia**.
+
 ## Gerar novo link
 - Use quando trocar a TV, limpar o navegador dela ou quando a lista mostrar **Precisa de novo link**. O link anterior deixa de valer e a TV conectada sai do painel até abrir o novo.
 - A sessão da TV vence com 30 dias sem uso ou 180 dias desde a conexão. Nos dois casos, gere um novo link.

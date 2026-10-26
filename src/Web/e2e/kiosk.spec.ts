@@ -37,6 +37,10 @@ function kioskApi() {
     'GET /api/v1/kiosk/screen': (r: Route) => state.revoked
       ? json(r, { code: 'kiosk_revoked', companyName: 'Konebras', detail: 'Esta tela foi desligada por Konebras.' }, 401)
       : json(r, { name: 'TV da Montagem', line: 'Linha 1', views: VIEWS, rotationSeconds: 20, companyName: 'Konebras', serverNow: new Date().toISOString() }),
+    // Visões do painel (PNL-01b): quadro vazio, fila e atrasos sem linhas.
+    'GET /api/v1/kiosk/board': (r: Route) => json(r, { line: 'Linha 1', inProgressCount: 0, lateCount: 0, atRiskCount: 0, columns: [], cards: [], serverNow: new Date().toISOString() }),
+    'GET /api/v1/kiosk/queue': (r: Route) => json(r, { line: 'Linha 1', rows: [], total: 0 }),
+    'GET /api/v1/kiosk/delays': (r: Route) => json(r, { line: 'Linha 1', rows: [], total: 0 }),
   }
   return { state, backoffice, tv }
 }
@@ -48,6 +52,7 @@ async function tvPage(page: Page, api: ReturnType<typeof kioskApi>) {
 
 test.describe('Painel da TV (PNL-01a)', () => {
   test('criar a tela, abrir o link na TV sem o token na URL, segundo uso recusado e revogar', async ({ page, context }) => {
+    test.slow() // cinco cargas de página (backoffice, recarga, duas TVs e a recarga da TV) no servidor de desenvolvimento
     const api = kioskApi()
     await mockApi(page, api.backoffice)
     await page.goto('/app/painel-tv')
