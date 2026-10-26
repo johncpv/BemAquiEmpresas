@@ -145,6 +145,13 @@ public class PlanningTests(TenancyFixture tenancy) : IClassFixture<TenancyFixtur
         return await scope.ServiceProvider.GetRequiredService<ScheduleService>().RecalculateAsync(trigger, null);
     }
 
+    /// <summary>
+    /// As OS de carga dos testes de desempenho saem do plano no fim (canceladas): o tenant é da classe inteira e, com mais de
+    /// <see cref="PlanningService.InRequestLimit"/> OS abertas, o "Recalcular agora" vai para a fila (CA 14) nos outros testes.
+    /// </summary>
+    private Task<int> CancelLoadAsync(string numberPrefix) => WithDbAsync(db => db.ProductionOrders.Where(o => o.Number.StartsWith(numberPrefix))
+        .ExecuteUpdateAsync(s => s.SetProperty(o => o.Status, ProductionOrderStatus.Cancelled)));
+
     private async Task SetProductionReleasedAsync(bool released)
     {
         await using (var scope = tenancy.Factory.Services.CreateAsyncScope())
@@ -419,20 +426,27 @@ public class PlanningTests(TenancyFixture tenancy) : IClassFixture<TenancyFixtur
             return await db.SaveChangesAsync();
         });
 
-        await SeedAsync(50, 0);
-        await RecalculateAsync(); // aquece
-        var watch = Stopwatch.StartNew();
-        var fifty = await RecalculateAsync();
-        watch.Stop();
-        fifty.Run!.Status.Should().Be(ScheduleRunStatus.Succeeded);
-        watch.ElapsedMilliseconds.Should().BeLessThan(2000, "CA 17: 50 OS com 5 etapas e 6 centros");
+        try
+        {
+            await SeedAsync(50, 0);
+            await RecalculateAsync(); // aquece
+            var watch = Stopwatch.StartNew();
+            var fifty = await RecalculateAsync();
+            watch.Stop();
+            fifty.Run!.Status.Should().Be(ScheduleRunStatus.Succeeded);
+            watch.ElapsedMilliseconds.Should().BeLessThan(2000, "CA 17: 50 OS com 5 etapas e 6 centros");
 
-        await SeedAsync(250, 50);
-        watch.Restart();
-        var many = await RecalculateAsync();
-        watch.Stop();
-        many.Run!.OrdersCount.Should().BeGreaterThanOrEqualTo(300);
-        watch.ElapsedMilliseconds.Should().BeLessThan(5000, "CA 17: 300 OS");
+            await SeedAsync(250, 50);
+            watch.Restart();
+            var many = await RecalculateAsync();
+            watch.Stop();
+            many.Run!.OrdersCount.Should().BeGreaterThanOrEqualTo(300);
+            watch.ElapsedMilliseconds.Should().BeLessThan(5000, "CA 17: 300 OS");
+        }
+        finally
+        {
+            await CancelLoadAsync("OS-PERF-");
+        }
     }
 
     [Fact]
@@ -445,51 +459,58 @@ public class PlanningTests(TenancyFixture tenancy) : IClassFixture<TenancyFixtur
             centers.Add(await CenterAsync("Fila " + i));
         }
 
-        var projects = Enumerable.Range(0, 50).Select(_ => Guid.CreateVersion7()).ToList();
-        await WithDbAsync(async db =>
+        try
         {
-            for (var p = 0; p < projects.Count; p++)
+            var projects = Enumerable.Range(0, 50).Select(_ => Guid.CreateVersion7()).ToList();
+            await WithDbAsync(async db =>
             {
-                for (var o = 0; o < 6; o++)
+                for (var p = 0; p < projects.Count; p++)
                 {
-                    var order = new ProductionOrder
+                    for (var o = 0; o < 6; o++)
                     {
-                        Number = "OS-FILA-" + p.ToString("D2", System.Globalization.CultureInfo.InvariantCulture) + o + Guid.NewGuid().ToString("N")[..4], Type = ProductionOrderType.Fabrication,
-                        ProjectId = projects[p], ContractId = Guid.CreateVersion7(), ProjectItemId = Guid.CreateVersion7(), Quantity = 1m, CreatedAt = DateTimeOffset.UtcNow,
-                    };
-                    db.ProductionOrders.Add(order);
-                    for (var k = 0; k < 5; k++)
-                    {
-                        db.ProductionOrderSteps.Add(new ProductionOrderStep
+                        var order = new ProductionOrder
                         {
-                            OrderId = order.Id, Sequence = k + 1, Name = "Etapa " + k, Code = ((char)('A' + k)).ToString(), WorkCenterId = centers[(p + o + k) % 6], StandardHours = 2m + k,
-                            Status = k == 0 ? ProductionStepStatus.Ready : ProductionStepStatus.Waiting,
-                        });
+                            Number = "OS-FILA-" + p.ToString("D2", System.Globalization.CultureInfo.InvariantCulture) + o + Guid.NewGuid().ToString("N")[..4], Type = ProductionOrderType.Fabrication,
+                            ProjectId = projects[p], ContractId = Guid.CreateVersion7(), ProjectItemId = Guid.CreateVersion7(), Quantity = 1m, CreatedAt = DateTimeOffset.UtcNow,
+                        };
+                        db.ProductionOrders.Add(order);
+                        for (var k = 0; k < 5; k++)
+                        {
+                            db.ProductionOrderSteps.Add(new ProductionOrderStep
+                            {
+                                OrderId = order.Id, Sequence = k + 1, Name = "Etapa " + k, Code = ((char)('A' + k)).ToString(), WorkCenterId = centers[(p + o + k) % 6], StandardHours = 2m + k,
+                                Status = k == 0 ? ProductionStepStatus.Ready : ProductionStepStatus.Waiting,
+                            });
+                        }
                     }
                 }
-            }
 
-            return await db.SaveChangesAsync();
-        });
-        (await RecalculateAsync()).Run!.Status.Should().Be(ScheduleRunStatus.Succeeded, "o recálculo também monta a fila");
+                return await db.SaveChangesAsync();
+            });
+            (await RecalculateAsync()).Run!.Status.Should().Be(ScheduleRunStatus.Succeeded, "o recálculo também monta a fila");
 
-        var owner = await ActorAsync("owner");
-        const string queue = "/api/v1/production/planning/queue";
-        (await owner.GetAsync(queue)).StatusCode.Should().Be(HttpStatusCode.OK); // aquece
-        var watch = Stopwatch.StartNew();
-        var opened = await owner.GetAsync(queue);
-        watch.Stop();
-        opened.StatusCode.Should().Be(HttpStatusCode.OK);
-        watch.ElapsedMilliseconds.Should().BeLessThan(1000, "CA 10: a fila abre em menos de 1 s");
-        var order = (await JsonAsync(opened)).GetProperty("rows").EnumerateArray().Select(r => r.GetProperty("projectId").GetGuid()).ToList();
-        order.Should().Contain(projects);
+            var owner = await ActorAsync("owner");
+            const string queue = "/api/v1/production/planning/queue";
+            (await owner.GetAsync(queue)).StatusCode.Should().Be(HttpStatusCode.OK); // aquece
+            var watch = Stopwatch.StartNew();
+            var opened = await owner.GetAsync(queue);
+            watch.Stop();
+            opened.StatusCode.Should().Be(HttpStatusCode.OK);
+            watch.ElapsedMilliseconds.Should().BeLessThan(1000, "CA 10: a fila abre em menos de 1 s");
+            var order = (await JsonAsync(opened)).GetProperty("rows").EnumerateArray().Select(r => r.GetProperty("projectId").GetGuid()).ToList();
+            order.Should().Contain(projects);
 
-        var reversed = Enumerable.Reverse(order).ToList();
-        watch.Restart();
-        var preview = await owner.PostAsJsonAsync(queue + "/preview", new { order = reversed });
-        watch.Stop();
-        preview.StatusCode.Should().Be(HttpStatusCode.OK, await preview.Content.ReadAsStringAsync());
-        watch.ElapsedMilliseconds.Should().BeLessThan(2000, "CA 10: a prévia chega em menos de 2 s");
-        (await JsonAsync(preview)).GetProperty("rows").GetArrayLength().Should().Be(order.Count);
+            var reversed = Enumerable.Reverse(order).ToList();
+            watch.Restart();
+            var preview = await owner.PostAsJsonAsync(queue + "/preview", new { order = reversed });
+            watch.Stop();
+            preview.StatusCode.Should().Be(HttpStatusCode.OK, await preview.Content.ReadAsStringAsync());
+            watch.ElapsedMilliseconds.Should().BeLessThan(2000, "CA 10: a prévia chega em menos de 2 s");
+            (await JsonAsync(preview)).GetProperty("rows").GetArrayLength().Should().Be(order.Count);
+        }
+        finally
+        {
+            await CancelLoadAsync("OS-FILA-");
+        }
     }
 }
