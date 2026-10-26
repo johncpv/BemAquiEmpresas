@@ -64,6 +64,7 @@ public class EndpointAuthorizationTests(TenancyFixture tenancy) : IClassFixture<
     {
         ["/api/v1/me"] = "perfil da própria pessoa",
         ["/api/v1/me/permissions"] = "permissões efetivas da própria pessoa (monta o menu)",
+        ["/api/v1/me/agenda"] = "a pauta da própria pessoa; cada categoria confere a permissão (DSH-04)",
         ["/api/v1/me/preferences"] = "tema e preferências da própria pessoa",
         ["/api/v1/me/2fa"] = "2FA da própria pessoa",
         ["/api/v1/me/2fa/setup"] = "2FA da própria pessoa",

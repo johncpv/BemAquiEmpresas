@@ -38,6 +38,43 @@ public sealed partial class CashFlowService : ICashForecast
         return new CashForecastSummary(today, horizonDays, flow.CurrentBalance, Of(flow.Periods, flow.Lowest), Of(adjusted.Periods, adjusted.Lowest), adjusted.LowestDifference ?? 0);
     }
 
+    /// <summary>
+    /// A visão semanal da tela, base e ajustado, para o gráfico do painel do dono (DSH-01a), e o saldo final dos horizontes pedidos. Monta
+    /// o fluxo diário uma vez só, até o maior horizonte, e corta cada recorte dele: a semana e o menor saldo saem como na tela (as
+    /// mesmas <see cref="CashFlowSeries.Aggregate"/> e <see cref="CashFlowSeries.Highlights"/>), e o saldo do dia N é o do
+    /// <see cref="SummaryAsync"/> de N dias, porque o saldo de um dia só soma o que cai até ele.
+    /// </summary>
+    public async Task<CashForecastWeeks> WeeksAsync(int horizonDays, IReadOnlyCollection<int>? horizons = null, CancellationToken cancellationToken = default)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(horizonDays, 1);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(horizonDays, MaxDays);
+        horizons ??= [];
+        if (horizons.Any(h => h is < 1 or > MaxDays))
+        {
+            throw new ArgumentOutOfRangeException(nameof(horizons), $"Horizonte de 1 a {MaxDays} dias.");
+        }
+
+        var today = BusinessTime.Today(clock);
+        var longest = horizons.Append(horizonDays).Max();
+        var flow = (await BuildAsync(new CashFlowQuery(CashFlowSeries.Daily, longest, null, today, ScenarioBoth), cancellationToken)).Value;
+        var adjusted = flow.Adjusted!;
+        var end = today.AddDays(horizonDays);
+        var baseDays = flow.Periods.Where(p => p.Start <= end).ToList();
+        var adjustedDays = adjusted.Periods.Where(p => p.Start <= end).ToList();
+        var (baseLowest, _) = CashFlowSeries.Highlights(baseDays);
+        var (adjustedLowest, adjustedNegative) = CashFlowSeries.Highlights(adjustedDays);
+        static CashForecastDay? Day(CashFlowPoint? p) => p is null ? null : new CashForecastDay(p.Date, p.Balance);
+        var weeks = CashFlowSeries.Aggregate(baseDays, CashFlowSeries.Weekly).Zip(CashFlowSeries.Aggregate(adjustedDays, CashFlowSeries.Weekly),
+            (b, a) => new CashForecastWeekBalance(b.Start, b.End, b.Balance, a.Balance)).ToList();
+        var balances = horizons.Distinct().Order().Select(h =>
+        {
+            var day = today.AddDays(h);
+            return new CashForecastHorizonBalance(h, flow.Periods.Last(p => p.Start <= day).Balance, adjusted.Periods.Last(p => p.Start <= day).Balance);
+        }).ToList();
+        var difference = baseLowest is null || adjustedLowest is null ? 0 : baseLowest.Balance - adjustedLowest.Balance;
+        return new CashForecastWeeks(today, horizonDays, flow.CurrentBalance, weeks, Day(baseLowest), Day(adjustedLowest), Day(adjustedNegative), difference, balances);
+    }
+
     /// <summary>Recebíveis projetados até <paramref name="to"/> (pelo saldo) passados pelo calculador, com o limite do parâmetro.</summary>
     private async Task<(AdjustedCashFlow Flow, IReadOnlyDictionary<Guid, CustomerDefaultStats> Stats, decimal Threshold)> CalculateAdjustedAsync(DateOnly today, DateOnly to, CancellationToken ct)
     {

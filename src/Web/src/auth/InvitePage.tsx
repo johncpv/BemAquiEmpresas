@@ -8,7 +8,7 @@ import { applyServerErrors, inputClass, useZodForm } from '@/components/form/for
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { z } from '@/lib/zod'
 import { AuthLayout } from './AuthLayout'
-import { homeRouteFor } from './home-route'
+import { landingAfterLogin } from './home-route'
 import { newPasswordSchema } from './password-schema'
 import { pendingChallenge } from './pending-challenge'
 import { linkClass, primaryButton } from './styles'
@@ -24,20 +24,20 @@ export function InvitePage() {
   const navigate = useNavigate()
   // O token vai no corpo (POST), nunca na URL da API; é uma consulta, então usa useQuery.
   const info = useQuery({ queryKey: ['invite', token], queryFn: () => inspectInvite({ token }), retry: false })
-  const [done, setDone] = useState<{ offerTwoFactor: boolean } | null>(null)
+  const [done, setDone] = useState<{ offerTwoFactor: boolean; home: string } | null>(null)
   const form = useZodForm(schema, { values: { name: info.data?.name ?? '', password: '', confirm: '' } })
 
   const submit = form.handleSubmit(async ({ name, password }) => {
     try {
       const result = await acceptInvite({ token, name, password })
       if (result.twoFactor) {
-        pendingChallenge.set({ ...result.twoFactor, purpose: 'setup', volta: homeRouteFor() })
+        pendingChallenge.set({ ...result.twoFactor, purpose: 'setup' }) // sem volta: a página inicial de quem entrou
         await navigate({ to: '/entrar/configurar-2fa' })
         return
       }
 
       setAccessToken(result.accessToken)
-      setDone({ offerTwoFactor: result.offerTwoFactor })
+      setDone({ offerTwoFactor: result.offerTwoFactor, home: await landingAfterLogin(undefined) }) // Proprietário: o painel (DSH-01a CA 3)
     } catch (e) {
       applyServerErrors(form, e)
     }
@@ -52,7 +52,7 @@ export function InvitePage() {
         <div className="space-y-4">
           <p className="text-sm">Tudo pronto. Para proteger a conta, ative a verificação em duas etapas: leva um minuto.</p>
           {done.offerTwoFactor ? <Link to="/app/conta/seguranca" className={primaryButton + ' block text-center'}>Configurar verificação em duas etapas</Link> : null}
-          <Link to="/app" className={linkClass + ' block text-center'}>Fazer depois</Link>
+          <Link to={done.home as never} className={linkClass + ' block text-center'}>Fazer depois</Link>
         </div>
       </AuthLayout>
     )

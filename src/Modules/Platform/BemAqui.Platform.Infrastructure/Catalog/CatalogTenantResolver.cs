@@ -21,6 +21,10 @@ public sealed class CatalogTenantResolver(IServiceScopeFactory scopes, TimeProvi
     private readonly ConcurrentDictionary<Guid, (ResolvedTenant? Tenant, DateTimeOffset Expires)> _byId = new();
     private int _negativeCount;
 
+    // Sobe a cada Invalidate: leitura do catálogo que começou antes dele não volta para o cache (senão o módulo desligado
+    // ou o tenant suspenso seguiriam liberados por até 5 min, numa corrida com outra resolução em andamento).
+    private long _generation;
+
     public async Task<ResolvedTenant?> ResolveByHostAsync(string host, CancellationToken cancellationToken = default)
     {
         var key = TenantDomain.Normalize(host);
@@ -30,8 +34,9 @@ public sealed class CatalogTenantResolver(IServiceScopeFactory scopes, TimeProvi
             return cached.Tenant;
         }
 
+        var generation = Interlocked.Read(ref _generation);
         var tenant = await LoadAsync(q => q.Where(t => t.Domains.Any(d => d.Host == key)), cancellationToken);
-        Remember(_byHost, key, tenant, now);
+        Remember(_byHost, key, tenant, now, generation);
         return tenant;
     }
 
@@ -43,8 +48,9 @@ public sealed class CatalogTenantResolver(IServiceScopeFactory scopes, TimeProvi
             return cached.Tenant;
         }
 
+        var generation = Interlocked.Read(ref _generation);
         var tenant = await LoadAsync(q => q.Where(t => t.Id == tenantId), cancellationToken);
-        Remember(_byId, tenantId, tenant, now);
+        Remember(_byId, tenantId, tenant, now, generation);
         return tenant;
     }
 
@@ -63,6 +69,7 @@ public sealed class CatalogTenantResolver(IServiceScopeFactory scopes, TimeProvi
 
     public void Invalidate()
     {
+        Interlocked.Increment(ref _generation);
         _byHost.Clear();
         _byId.Clear();
         Interlocked.Exchange(ref _negativeCount, 0);
@@ -92,9 +99,14 @@ public sealed class CatalogTenantResolver(IServiceScopeFactory scopes, TimeProvi
         };
     }
 
-    private void Remember<TKey>(ConcurrentDictionary<TKey, (ResolvedTenant? Tenant, DateTimeOffset Expires)> cache, TKey key, ResolvedTenant? tenant, DateTimeOffset now)
+    private void Remember<TKey>(ConcurrentDictionary<TKey, (ResolvedTenant? Tenant, DateTimeOffset Expires)> cache, TKey key, ResolvedTenant? tenant, DateTimeOffset now, long generation)
         where TKey : notnull
     {
+        if (Interlocked.Read(ref _generation) != generation)
+        {
+            return; // houve Invalidate durante a leitura: o próximo pedido lê de novo
+        }
+
         if (tenant is null)
         {
             if (Interlocked.Increment(ref _negativeCount) > MaxNegativeEntries)

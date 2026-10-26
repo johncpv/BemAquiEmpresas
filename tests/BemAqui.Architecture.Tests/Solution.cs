@@ -11,6 +11,11 @@ public static class Solution
 {
     public static readonly string[] ModuleLayers = ["Domain", "Contracts", "Application", "Infrastructure", "Endpoints"];
 
+    /// <summary>Módulos de composição (ADR 0028 §1): só compõem números dos donos pelos <c>*.Contracts</c>, sem tabela.</summary>
+    public static readonly IReadOnlyList<string> CompositionModules = ["Dashboard"];
+
+    public static readonly string[] CompositionLayers = ["Application", "Endpoints"];
+
     public static string RootDirectory { get; } = FindRoot();
 
     public static IReadOnlyList<string> ModuleNames { get; } =

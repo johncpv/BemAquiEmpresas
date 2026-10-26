@@ -40,9 +40,10 @@ describe('Minha pauta (DSH-04)', () => {
     expect(splitLink('//evil.example')).toEqual({ to: '/app', search: {} })
   })
 
-  it('página inicial: o Início para todos, num ponto só (CA 8)', () => {
+  it('página inicial: o Início para todos e o painel para o Proprietário, num ponto só (CA 8; DSH-01a CA 3)', () => {
     expect(homeRouteFor()).toBe('/app')
-    expect(homeRouteFor({ isOwner: true, permissions: ['dashboard.view'] })).toBe('/app')
+    expect(homeRouteFor({ isOwner: false, permissions: ['dashboard.view'] })).toBe('/app')
+    expect(homeRouteFor({ isOwner: true, permissions: ['dashboard.view'] })).toBe('/app/painel') // DSH-01a CA 3
     expect(safeReturn(undefined)).toBe('/app')
     expect(safeReturn('/app/compras')).toBe('/app/compras')
     expect(safeReturn('//evil.example')).toBe('/app')

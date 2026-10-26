@@ -19,7 +19,7 @@ public partial class FabricationTests
     private static async Task<(int Count, string Why)> QualityAgendaAsync(HttpClient client)
     {
         var view = await OkAsync(await client.GetAsync("/api/v1/me/agenda?categories=" + QualityCategory));
-        view.GetProperty("failures").GetArrayLength().Should().Be(0);
+        view.GetProperty("failures").GetArrayLength().Should().Be(0, view.GetProperty("failures").ToString());
         var item = view.GetProperty("items").EnumerateArray().Where(i => i.GetProperty("category").GetString() == QualityCategory).Select(i => (JsonElement?)i).FirstOrDefault();
         return item is { } found ? (found.GetProperty("count").GetInt32(), found.GetProperty("why").GetString()!) : (0, string.Empty);
     }

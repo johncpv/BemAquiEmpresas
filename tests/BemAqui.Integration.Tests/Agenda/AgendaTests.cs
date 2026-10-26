@@ -207,7 +207,7 @@ public partial class AgendaTests(TenancyFixture tenancy) : IClassFixture<Tenancy
         var afterApprove = await AgendaAsync(owner);
         Category(afterApprove, "finance.payment_orders_awaiting").Should().BeNull("CA 6: decidida, some");
         Links(afterApprove, "finance.payment_orders_to_pay").Should().Equal($"/app/financeiro/ordens-de-pagamento/{orderId}?acao=pagar");
-        Category(await AgendaAsync(finance), "finance.payment_orders_to_pay").Should().BeNull("o Financeiro do seed não tem finance.pay");
+        Links(await AgendaAsync(finance), "finance.payment_orders_to_pay").Should().Equal([$"/app/financeiro/ordens-de-pagamento/{orderId}?acao=pagar"], "o Financeiro do seed paga a OP aprovada (finance.pay, ADR 0008 adendo D5)");
     }
 
     /// <summary>CA 2 e 5: vencidos e em aberto (total e clientes) para quem tem <c>finance.edit</c>; Comercial não vê.</summary>
@@ -274,7 +274,7 @@ public partial class AgendaTests(TenancyFixture tenancy) : IClassFixture<Tenancy
         problems.Should().BeEmpty();
         seen["operators"].Should().BeEmpty("o Operador só tem o app do operador");
         seen["commercial"].Should().NotContain(c => c.StartsWith("finance.", StringComparison.Ordinal));
-        seen["finance"].Should().Contain(["finance.receivables_overdue", "finance.payables_due_soon"]).And.NotContain(["finance.payment_orders_awaiting", "finance.payment_orders_to_pay"]);
+        seen["finance"].Should().Contain(["finance.receivables_overdue", "finance.payables_due_soon"]).And.NotContain("finance.payment_orders_awaiting", "aprovar a OP é só do Proprietário; pagar (finance.pay) o Financeiro do seed pode, ADR 0008 adendo D5");
         seen[Group.OwnerSeedKey].Should().Contain(["finance.receivables_overdue", "finance.payables_due_soon", "finance.payment_orders_awaiting"]);
     }
 

@@ -43,10 +43,7 @@ public sealed partial class QuoteService
         }
 
         var current = InPeriod(db.Quotes.AsNoTracking().Where(x => x.IsCurrent), start, end, authorId);
-        var byStatus = await current.GroupBy(x => x.Status).Select(g => new { Status = g.Key, Count = g.Count(), Amount = g.Sum(x => x.TotalPrice) }).ToListAsync(cancellationToken);
-        var stages = FunnelStages.Select(s => byStatus.FirstOrDefault(b => b.Status == s.Status) is { } b
-            ? new FunnelStage(s.Status, s.Situation, b.Count, b.Amount)
-            : new FunnelStage(s.Status, s.Situation, 0, 0)).ToList();
+        var stages = await StagesAsync(current, cancellationToken);
         var stage = stages.ToDictionary(s => s.Status);
         var conversion = Conversion(stage[QuoteStatus.Approved], stage[QuoteStatus.Rejected], stage[QuoteStatus.Expired]);
 
@@ -108,11 +105,48 @@ public sealed partial class QuoteService
         return quotes.Where(x => origins.Any(o => o.Number == x.Number));
     }
 
-    private async Task<List<FunnelExpiring>> ExpiringAsync(DateOnly today, Guid? authorId, string sort, CancellationToken ct)
+    /// <summary>
+    /// Resumo do funil para o painel do proprietário (DSH-01a CA 5 e 6): o mesmo período padrão (últimos 90 dias), as mesmas
+    /// situações e a mesma conversão da tela Funil, sem autor; "Em aberto" soma rascunhos e enviados; "Vencendo" conta todos os
+    /// enviados que vencem em até 7 dias (a tela lista os 50 primeiros).
+    /// </summary>
+    public async Task<BemAqui.Commercial.Contracts.QuoteFunnelSummary> FunnelSummaryAsync(CancellationToken cancellationToken = default)
+    {
+        var today = BusinessTime.Today(clock);
+        var start = today.AddDays(-FunnelDefaultDays);
+        var stages = await StagesAsync(InPeriod(db.Quotes.AsNoTracking().Where(x => x.IsCurrent), start, today, null), cancellationToken);
+        var stage = stages.ToDictionary(s => s.Status);
+        var conversion = Conversion(stage[QuoteStatus.Approved], stage[QuoteStatus.Rejected], stage[QuoteStatus.Expired]);
+        var open = new[] { stage[QuoteStatus.Draft], stage[QuoteStatus.Sent] };
+        var expiring = ExpiringQuery(today, null);
+        var expiringCount = await expiring.CountAsync(cancellationToken);
+        var expiringAmount = await expiring.SumAsync(x => (decimal?)x.TotalPrice, cancellationToken) ?? 0;
+        return new BemAqui.Commercial.Contracts.QuoteFunnelSummary(
+            start, today, open.Sum(s => s.Count), open.Sum(s => s.Amount), conversion.ByCount, conversion.ByAmount, conversion.Decided,
+            expiringCount, expiringAmount,
+            stages.Select(s => new BemAqui.Commercial.Contracts.QuoteFunnelStageSummary(s.Status.ToString(), s.Situation, s.Count, s.Amount)).ToList());
+    }
+
+    /// <summary>Contagem e valor por situação da revisão corrente, na ordem do funil (CA 1).</summary>
+    private static async Task<List<FunnelStage>> StagesAsync(IQueryable<Quote> current, CancellationToken ct)
+    {
+        var byStatus = await current.GroupBy(x => x.Status).Select(g => new { Status = g.Key, Count = g.Count(), Amount = g.Sum(x => x.TotalPrice) }).ToListAsync(ct);
+        return FunnelStages.Select(s => byStatus.FirstOrDefault(b => b.Status == s.Status) is { } b
+            ? new FunnelStage(s.Status, s.Situation, b.Count, b.Amount)
+            : new FunnelStage(s.Status, s.Situation, 0, 0)).ToList();
+    }
+
+    /// <summary>Enviados que vencem de hoje a hoje + 7 dias (CA 6), do autor escolhido.</summary>
+    private IQueryable<Quote> ExpiringQuery(DateOnly today, Guid? authorId)
     {
         var limit = today.AddDays(ExpiringDays);
-        var sent = InPeriod(
+        return InPeriod(
             db.Quotes.AsNoTracking().Where(x => x.IsCurrent && x.Status == QuoteStatus.Sent && x.ValidUntil != null && x.ValidUntil >= today && x.ValidUntil <= limit), null, null, authorId);
+    }
+
+    private async Task<List<FunnelExpiring>> ExpiringAsync(DateOnly today, Guid? authorId, string sort, CancellationToken ct)
+    {
+        var sent = ExpiringQuery(today, authorId);
         sent = sort switch
         {
             "-validUntil" => sent.OrderByDescending(x => x.ValidUntil).ThenBy(x => x.Number),

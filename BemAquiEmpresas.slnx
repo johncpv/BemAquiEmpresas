@@ -22,6 +22,10 @@
     <Project Path="src/Modules/Commercial/BemAqui.Commercial.Endpoints/BemAqui.Commercial.Endpoints.csproj" />
     <Project Path="src/Modules/Commercial/BemAqui.Commercial.Infrastructure/BemAqui.Commercial.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/Dashboard/">
+    <Project Path="src/Modules/Dashboard/BemAqui.Dashboard.Application/BemAqui.Dashboard.Application.csproj" />
+    <Project Path="src/Modules/Dashboard/BemAqui.Dashboard.Endpoints/BemAqui.Dashboard.Endpoints.csproj" />
+  </Folder>
   <Folder Name="/src/Modules/Engineering/">
     <Project Path="src/Modules/Engineering/BemAqui.Engineering.Application/BemAqui.Engineering.Application.csproj" />
     <Project Path="src/Modules/Engineering/BemAqui.Engineering.Contracts/BemAqui.Engineering.Contracts.csproj" />

@@ -55,7 +55,22 @@ public partial class RoutingTests
             await scope.ServiceProvider.GetRequiredService<CatalogDbContext>().TenantModules.Where(m => m.TenantId == tenancy.TenantA.Id && m.ModuleCode == "engineering").ExecuteUpdateAsync(s => s.SetProperty(m => m.Enabled, released));
         }
 
-        tenancy.Factory.Services.GetRequiredService<ITenantResolver>().Invalidate();
+        // O cache do tenant é do host inteiro (jobs e outbox também resolvem o tenant): confere que a troca já vale antes de seguir.
+        var resolver = tenancy.Factory.Services.GetRequiredService<ITenantResolver>();
+        var deadline = DateTime.UtcNow.AddSeconds(10);
+        do
+        {
+            resolver.Invalidate();
+            if ((await resolver.FindByIdAsync(tenancy.TenantA.Id))?.IsReleased("engineering") == released)
+            {
+                return;
+            }
+
+            await Task.Delay(50);
+        }
+        while (DateTime.UtcNow < deadline);
+
+        throw new TimeoutException("O módulo engineering não mudou no cache do tenant.");
     }
 
     [Fact]

@@ -45,12 +45,13 @@ public partial class AgendaTests
     {
         var (space, _, owner) = await SpaceAsync();
         await OverdueReceivablesAsync(space, owner);
-        await using var factory = tenancy.Factory.WithWebHostBuilder(b => b.ConfigureTestServices(s =>
+        await using var factory = tenancy.Factory.WithWebHostBuilder(b => b.UseSetting("Agenda:SourceTimeoutMs", AgendaLimits.DefaultSourceTimeoutMs.ToString(System.Globalization.CultureInfo.InvariantCulture)).ConfigureTestServices(s =>
         {
             s.AddScoped<IAgendaSource, BrokenSource>();
             s.AddScoped<IAgendaSource, SlowSource>();
         }));
         var (_, client) = await ActorAsync(space, BemAqui.Identity.Domain.Group.OwnerSeedKey, factory);
+        await AgendaAsync(client); // aquece o host novo: a medida é do corte da fonte lenta, não da primeira carga das fontes
 
         var watch = Stopwatch.StartNew();
         var view = await AgendaAsync(client);
@@ -102,7 +103,8 @@ public partial class AgendaTests
                     {
                         db.Set<ProductionOrder>().Add(new ProductionOrder
                         {
-                            Number = $"OS-V-{n:D5}", Type = ProductionOrderType.Fabrication, ProjectId = Guid.CreateVersion7(), ContractId = Guid.CreateVersion7(), Status = ProductionOrderStatus.Open,
+                            Number = $"OS-V-{n:D5}", Type = ProductionOrderType.Fabrication, ProjectId = Guid.CreateVersion7(), ContractId = Guid.CreateVersion7(), ProjectItemId = Guid.CreateVersion7(),
+                            Quantity = 1m, Status = ProductionOrderStatus.Open,
                         });
                     }
                 }

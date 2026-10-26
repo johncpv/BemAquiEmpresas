@@ -17,6 +17,7 @@
     <ProjectReference Include="..\..\BuildingBlocks\BemAqui.BuildingBlocks\BemAqui.BuildingBlocks.csproj" />
     <ProjectReference Include="..\..\Modules\Assets\BemAqui.Assets.Endpoints\BemAqui.Assets.Endpoints.csproj" />
     <ProjectReference Include="..\..\Modules\Commercial\BemAqui.Commercial.Endpoints\BemAqui.Commercial.Endpoints.csproj" />
+    <ProjectReference Include="..\..\Modules\Dashboard\BemAqui.Dashboard.Endpoints\BemAqui.Dashboard.Endpoints.csproj" />
     <ProjectReference Include="..\..\Modules\Engineering\BemAqui.Engineering.Endpoints\BemAqui.Engineering.Endpoints.csproj" />
     <ProjectReference Include="..\..\Modules\Finance\BemAqui.Finance.Endpoints\BemAqui.Finance.Endpoints.csproj" />
     <ProjectReference Include="..\..\Modules\Fiscal\BemAqui.Fiscal.Endpoints\BemAqui.Fiscal.Endpoints.csproj" />

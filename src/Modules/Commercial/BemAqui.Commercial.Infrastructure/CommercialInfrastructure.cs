@@ -19,6 +19,8 @@ public static class CommercialInfrastructure
     {
         services.TryAddSingleton(TimeProvider.System);
         services.TryAddScoped<QuoteService>();
+        // Resumo do funil para o painel do proprietário (DSH-01a, ADR 0028 §1).
+        services.TryAddScoped<IQuoteFunnel, QuoteFunnelContract>();
         services.TryAddScoped<QuoteLookups>();
         services.TryAddScoped<QuoteExpiry>();
         // PDF e envio (COM-03): anexos do orçamento por revisão; o PDF gerado sai como anexo do sistema.

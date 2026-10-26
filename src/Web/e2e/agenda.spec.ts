@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, type Route, test } from '@playwright/test'
-import { json, mockApi } from './mock-api'
+import { allModules, json, mockApi } from './mock-api'
 import { ordersApi } from './payment-orders-api'
 
 const isMobile = (name: string) => name === 'celular'
@@ -110,8 +110,11 @@ test.describe('Minha pauta no Início (DSH-04)', () => {
     await expect(page.getByRole('heading', { name: '2 títulos a receber vencidos' })).toBeVisible()
   })
 
-  test('entrar sem rota de volta cai no Início (CA 8)', async ({ page }) => {
-    await mockApi(page, { 'POST /api/v1/auth/login': (r: Route) => json(r, { accessToken: 'tok-final', expiresAt: '2030-01-01T00:00:00Z', twoFactor: null }) }, { session: false })
+  test('entrar sem rota de volta cai no Início (CA 8; o Proprietário vai ao painel, DSH-01a)', async ({ page }) => {
+    await mockApi(page, {
+      'POST /api/v1/auth/login': (r: Route) => json(r, { accessToken: 'tok-final', expiresAt: '2030-01-01T00:00:00Z', twoFactor: null }),
+      'GET /api/v1/me/permissions': (r: Route) => json(r, { permissions: ['dashboard.view'], isOwner: false, version: '1', modules: allModules() }),
+    }, { session: false })
     await page.goto('/entrar')
     await page.getByLabel('E-mail').fill('ana@konebras.com.br')
     await page.getByLabel('Senha').fill('uma frase longa de teste')
