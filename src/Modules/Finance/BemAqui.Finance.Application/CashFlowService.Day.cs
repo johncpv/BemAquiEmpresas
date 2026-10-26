@@ -14,10 +14,16 @@ public sealed partial class CashFlowService
     /// O que compõe um dia (CA 10): as transações do dia e, de hoje em diante, os títulos e as recorrentes previstas
     /// (hoje inclui os vencidos em aberto). Cada item tem o link do documento.
     /// </summary>
-    public async Task<Result<CashFlowDay>> DayAsync(DateOnly date, Guid? bankAccountId, string? sort, CancellationToken cancellationToken = default)
+    public async Task<Result<CashFlowDay>> DayAsync(DateOnly date, Guid? bankAccountId, string? sort, string? scenario = null, CancellationToken cancellationToken = default)
     {
         var today = BusinessTime.Today(clock);
         sort ??= "kind";
+        scenario ??= ScenarioBase;
+        if (!DayScenarios.Contains(scenario))
+        {
+            return ReceivableService.Invalid("scenario", "Escolha o cenário base ou ajustado.");
+        }
+
         if (!DaySorts.Contains(sort))
         {
             return ReceivableService.Invalid("sort", "Ordene por tipo, valor ou descrição.");
@@ -43,9 +49,15 @@ public sealed partial class CashFlowService
         }
 
         var projected = bankAccountId is null && date >= today;
+        var adjusted = projected && scenario == ScenarioAdjusted;
         if (projected)
         {
-            await AddTitlesAsync(items, date, today, cancellationToken);
+            await AddTitlesAsync(items, date, today, !adjusted, cancellationToken);
+        }
+
+        if (adjusted)
+        {
+            await AddAdjustedReceivablesAsync(items, date, today, cancellationToken);
         }
 
         IEnumerable<CashFlowItem> sorted = sort switch
@@ -55,14 +67,14 @@ public sealed partial class CashFlowService
             "description" => items.OrderBy(i => i.Description, StringComparer.CurrentCulture),
             _ => items.OrderBy(i => i.Kind, StringComparer.Ordinal).ThenBy(i => i.DueDate),
         };
-        return new CashFlowDay(date, projected, sorted.ToList());
+        return new CashFlowDay(date, projected, sorted.ToList(), adjusted ? ScenarioAdjusted : ScenarioBase, items.Where(i => !i.ShiftedOut).Sum(i => i.Amount));
     }
 
-    private async Task AddTitlesAsync(List<CashFlowItem> items, DateOnly date, DateOnly today, CancellationToken ct)
+    private async Task AddTitlesAsync(List<CashFlowItem> items, DateOnly date, DateOnly today, bool includeReceivables, CancellationToken ct)
     {
         var isToday = date == today;
         var receivables = await db.Receivables.AsNoTracking()
-            .Where(r => OpenReceivable.Contains(r.Status) && r.DueDate != null && (r.DueDate == date || (isToday && r.DueDate < today)))
+            .Where(r => includeReceivables && OpenReceivable.Contains(r.Status) && r.DueDate != null && (r.DueDate == date || (isToday && r.DueDate < today)))
             .Select(r => new { r.Id, r.Number, r.Description, r.PartyId, Balance = r.Amount - r.PaidAmount, r.DueDate }).ToListAsync(ct);
         var payables = await db.Payables.AsNoTracking()
             .Where(p => !ClosedPayable.Contains(p.Status) && p.DueDate != null && (p.DueDate == date || (isToday && p.DueDate < today)))

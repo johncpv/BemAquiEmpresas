@@ -45,7 +45,7 @@
   --signal-foreground: #1a1205;
   --chart-1: #2148c0; /* séries de gráfico (FND-09e CA 11): >= 3:1 contra o card */
   --chart-2: #0e6f8a;
-  --chart-3: #a35a00;
+  --chart-3: #1e2f5c; /* FIN-07 CA 13 (D18): azul-marinho frio, fora do âmbar do --signal e dos tons de estado */
   --chart-4: #7a3fb0;
   --chart-5: #2f7d5b;
   --chart-6: #b0306a;
@@ -93,7 +93,7 @@
     --signal-foreground: #1a1205;
     --chart-1: #8fa8ff;
     --chart-2: #4fc3dc;
-    --chart-3: #f0b25a;
+    --chart-3: #d6e4ff;
     --chart-4: #c39bff;
     --chart-5: #5fd39a;
     --chart-6: #ff8fb8;
@@ -140,7 +140,7 @@
   --signal-foreground: #1a1205;
   --chart-1: #8fa8ff;
   --chart-2: #4fc3dc;
-  --chart-3: #f0b25a;
+  --chart-3: #d6e4ff;
   --chart-4: #c39bff;
   --chart-5: #5fd39a;
   --chart-6: #ff8fb8;

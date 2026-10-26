@@ -10,4 +10,6 @@ export interface CashFlowDay {
   date: string;
   projected: boolean;
   items: CashFlowItem[];
+  scenario?: string;
+  total?: number;
 }

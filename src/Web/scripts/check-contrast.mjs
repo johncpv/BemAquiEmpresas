@@ -42,6 +42,36 @@ export function hueDistance(a, b) {
   return Math.min(diff, 360 - diff)
 }
 
+/**
+ * Daltonismo (FIN-07 CA 13): simula protanopia e deuteranopia (Viénot, Brettel e Mollon, 1999, em RGB linear) e mede a
+ * distância ΔE (CIE76, Lab D65) entre duas cores como a pessoa as veria.
+ */
+const MATRICES = {
+  protanopia: [[0.11238, 0.88762, 0], [0.11238, 0.88762, 0], [0.00401, -0.00401, 1]],
+  deuteranopia: [[0.29275, 0.70725, 0], [0.29275, 0.70725, 0], [-0.02234, 0.02234, 1]],
+}
+const lab = (linear) => {
+  const [r, g, b] = linear
+  const xyz = [0.4124 * r + 0.3576 * g + 0.1805 * b, 0.2126 * r + 0.7152 * g + 0.0722 * b, 0.0193 * r + 0.1192 * g + 0.9505 * b]
+  const f = (t) => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116)
+  const [fx, fy, fz] = [xyz[0] / 0.95047, xyz[1], xyz[2] / 1.08883].map(f)
+  return [116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)]
+}
+export function cvdDistance(a, b, kind) {
+  const sim = (hex) => {
+    const c = rgb(hex).map(channel)
+    const m = kind ? MATRICES[kind] : [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+    return lab(m.map((row) => Math.max(0, Math.min(1, row[0] * c[0] + row[1] * c[1] + row[2] * c[2]))))
+  }
+  const [l1, l2] = [sim(a), sim(b)]
+  return Math.hypot(l1[0] - l2[0], l1[1] - l2[1], l1[2] - l2[2])
+}
+
+/** Série de gráfico na faixa de matiz do âmbar (--signal) confunde com destaque de estado (FIN-07 CA 13, D18). */
+export const AMBER_HUE_DISTANCE = 25
+/** ΔE mínimo entre o --chart-3 e as outras séries, também com protanopia e deuteranopia. */
+export const CVD_MIN_DISTANCE = 12
+
 // [frente, fundo, mínimo, motivo]
 export const PAIRS = [
   ['foreground', 'background', 4.5, 'texto'],
@@ -81,6 +111,20 @@ export function check(css) {
     // Distintas no matiz ou na luminosidade: no escuro o protótipo tinha as duas quase iguais (revisão §2.4).
     if (hueDistance(tokens.signal, tokens.warn) < 12 && contrast(tokens.signal, tokens.warn) < 1.5) {
       problems.push(`${theme}: --signal e --warn precisam ser cores distintas (CA 6)`)
+    }
+    // FIN-07 CA 13: o âmbar é só do destaque de estado e do item ativo, nunca de série de gráfico.
+    for (const n of [1, 2, 3, 4, 5, 6]) {
+      const series = tokens[`chart-${n}`]
+      if (series && tokens.signal && hueDistance(series, tokens.signal) < AMBER_HUE_DISTANCE) {
+        problems.push(`${theme}: --chart-${n} está na faixa de matiz do âmbar (--signal); use um tom frio`)
+      }
+    }
+    for (const n of [1, 2, 4, 5, 6]) {
+      for (const kind of [undefined, 'protanopia', 'deuteranopia']) {
+        if (tokens['chart-3'] && tokens[`chart-${n}`] && cvdDistance(tokens['chart-3'], tokens[`chart-${n}`], kind) < CVD_MIN_DISTANCE) {
+          problems.push(`${theme}: --chart-3 e --chart-${n} ficam parecidas${kind ? ` com ${kind}` : ''}`)
+        }
+      }
     }
   }
   return problems

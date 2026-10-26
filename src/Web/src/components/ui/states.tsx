@@ -27,7 +27,7 @@ export function ErrorState({ title = 'Não foi possível carregar.', message, on
       <p className="font-semibold">{title}</p>
       <p className="max-w-md text-sm text-muted-foreground">{message ?? 'Verifique a conexão e tente de novo. Se continuar, fale com o suporte.'}</p>
       {onRetry ? (
-        <button type="button" onClick={onRetry} className="mt-2 rounded-md border border-border bg-card px-3 py-1.5 text-sm font-semibold">
+        <button type="button" onClick={onRetry} className="mt-2 min-h-11 rounded-md border border-border bg-card px-3 py-1.5 text-sm font-semibold">
           Tentar de novo
         </button>
       ) : null}

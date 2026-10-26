@@ -40,7 +40,9 @@ public sealed record ReceivableSettled(
     bool IsReversal) : IIntegrationEvent;
 
 /// <summary>Parâmetros do Finance (ADR 0016 adendo M6): limites de desconto, cancelamento e data retroativa (FIN-01 CA 13, 14 e 18).</summary>
-public sealed record FinanceLimits(decimal DiscountApprovalPct, decimal DiscountApprovalAmount, decimal CancelApprovalAmount, int BackdateDays, bool OwnerCanApproveOwn = false, decimal PaymentTolerance = 0, decimal TransferNotifyAmount = 10_000);
+public sealed record FinanceLimits(
+    decimal DiscountApprovalPct, decimal DiscountApprovalAmount, decimal CancelApprovalAmount, int BackdateDays, bool OwnerCanApproveOwn = false, decimal PaymentTolerance = 0, decimal TransferNotifyAmount = 10_000,
+    decimal AdjustedDefaultThresholdPct = 20);
 
 /// <summary>Leitura dos parâmetros do Finance pelos outros módulos e telas (Configurações → Parâmetros, seção Financeiro).</summary>
 public interface IFinanceParameters
@@ -79,7 +81,33 @@ public interface IFinancialOpening
 public sealed record CustomerPaymentStats(
     decimal AvgDelayDays, decimal PctPaidLate, decimal PctOverdueNow, decimal Last12mInvoiced, bool HasHistory, decimal TenantAvgDelayDays);
 
+/// <summary>
+/// Pontualidade e inadimplência do cliente para a projeção ajustada (FIN-07 CA 2, 3 e 16). <c>DefaultPct</c> = min(100,
+/// <c>Overdue30Amount</c> ÷ <c>Last12mInvoiced</c> × 100), com 2 casas; o vencido há mais de 30 dias inclui os títulos
+/// <c>Opening</c>, o faturado não.
+/// </summary>
+public sealed record CustomerDefaultStats(
+    Guid PartyId, decimal AvgDelayDays, bool HasHistory, decimal TenantAvgDelayDays, decimal Overdue30Amount, decimal Last12mInvoiced, decimal DefaultPct, bool TenantHasHistory);
+
 public interface ICustomerPaymentStats
 {
     Task<CustomerPaymentStats> ForPartyAsync(Guid partyId, CancellationToken cancellationToken = default);
+
+    /// <summary>Vários clientes de uma vez, num número fixo de consultas, sem N+1 (FIN-07 CA 16). Cliente sem título vem zerado.</summary>
+    Task<IReadOnlyDictionary<Guid, CustomerDefaultStats>> ForPartiesAsync(IReadOnlyCollection<Guid> partyIds, CancellationToken cancellationToken = default);
+}
+
+/// <summary>Um cenário do caixa projetado: saldo no fim do horizonte e o menor saldo (data e valor).</summary>
+public sealed record CashForecastScenario(decimal EndBalance, DateOnly? LowestDate, decimal? LowestBalance);
+
+/// <summary>
+/// Resumo do caixa projetado para o painel do dono (FIN-07 CA 14, DSH-01a): saldo atual consolidado, base e ajustado, e a
+/// diferença causada pelos atrasos (menor saldo base − menor saldo ajustado). Os números são os da tela do fluxo de caixa.
+/// </summary>
+public sealed record CashForecastSummary(DateOnly Today, int HorizonDays, decimal CurrentBalance, CashForecastScenario Base, CashForecastScenario Adjusted, decimal LowestDifference);
+
+public interface ICashForecast
+{
+    /// <summary>Horizonte de 30, 60 ou 90 dias (até 365).</summary>
+    Task<CashForecastSummary> SummaryAsync(int horizonDays, CancellationToken cancellationToken = default);
 }

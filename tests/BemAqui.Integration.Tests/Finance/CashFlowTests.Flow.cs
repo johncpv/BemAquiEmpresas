@@ -7,7 +7,8 @@ namespace BemAqui.Integration.Tests.Finance;
 
 public partial class CashFlowTests
 {
-    private static Dictionary<DateOnly, (decimal In, decimal Out)> Expected()
+    /// <summary>Entradas e saídas esperadas por dia do dataset da FIN-05 (a FIN-07 parte dele).</summary>
+    internal static Dictionary<DateOnly, (decimal In, decimal Out)> Expected()
     {
         var map = new Dictionary<DateOnly, (decimal In, decimal Out)>();
         void Add(int day, decimal inflow, decimal outflow) => Add2(Today.AddDays(day), inflow, outflow);

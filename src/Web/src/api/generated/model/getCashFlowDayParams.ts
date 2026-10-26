@@ -9,4 +9,5 @@ export type GetCashFlowDayParams = {
 date: string;
 bankAccountId?: string;
 sort?: string;
+scenario?: string;
 };

@@ -47,8 +47,44 @@ public sealed class PaymentStatsService(IFinanceDb db, TimeProvider clock) : ICu
     }
 
     /// <summary>Pontualidade de vários clientes de uma vez (coluna da Inadimplência, CA 4).</summary>
-    public async Task<Dictionary<Guid, (decimal AvgDelay, decimal PctLate)>> ForPartiesAsync(IReadOnlyCollection<Guid> partyIds, CancellationToken cancellationToken = default) =>
+    public async Task<Dictionary<Guid, (decimal AvgDelay, decimal PctLate)>> PunctualityAsync(IReadOnlyCollection<Guid> partyIds, CancellationToken cancellationToken = default) =>
         (await SettledAsync(partyIds, cancellationToken)).GroupBy(p => p.PartyId).ToDictionary(g => g.Key, g => Compute(g));
+
+    /// <summary>
+    /// Pontualidade e inadimplência em lote (FIN-07 CA 3 e 16): duas consultas, qualquer que seja o número de clientes. A
+    /// primeira traz os títulos quitados da empresa (a média da empresa e a de cada cliente saem dela); a segunda, o faturado
+    /// em 12 meses (sem <c>Opening</c>) e o vencido há mais de 30 dias (com <c>Opening</c>) por cliente.
+    /// </summary>
+    public async Task<IReadOnlyDictionary<Guid, CustomerDefaultStats>> ForPartiesAsync(IReadOnlyCollection<Guid> partyIds, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(partyIds);
+        var today = BusinessTime.Today(clock);
+        var settled = await SettledAsync(null, cancellationToken);
+        var (tenantAvg, _) = Compute(settled);
+        var wanted = partyIds.ToHashSet();
+        var byParty = settled.Where(p => wanted.Contains(p.PartyId)).GroupBy(p => p.PartyId).ToDictionary(g => g.Key, g => Compute(g).AvgDelay);
+        var since = today.AddMonths(-12);
+        var limit = today.AddDays(-AdjustedCashFlowCalculator.DefaultOverdueDays);
+        var ids = wanted.ToList();
+        var amounts = (await db.Receivables.AsNoTracking().Where(r => ids.Contains(r.PartyId) && r.Status != ReceivableStatus.Cancelled)
+                .GroupBy(r => r.PartyId)
+                .Select(g => new
+                {
+                    g.Key,
+                    Invoiced = g.Sum(r => r.Origin != DocumentOrigin.Opening && r.IssueDate >= since ? r.Amount : 0),
+                    Overdue = g.Sum(r => (r.Status == ReceivableStatus.Open || r.Status == ReceivableStatus.PartiallyPaid) && r.DueDate < limit ? r.Amount - r.PaidAmount : 0),
+                })
+                .ToListAsync(cancellationToken))
+            .ToDictionary(a => a.Key);
+        return ids.ToDictionary(id => id, id =>
+        {
+            var a = amounts.GetValueOrDefault(id);
+            var invoiced = a?.Invoiced ?? 0m;
+            var overdue = a?.Overdue ?? 0m;
+            var history = byParty.TryGetValue(id, out var avg);
+            return new CustomerDefaultStats(id, history ? avg : 0m, history, tenantAvg, overdue, invoiced, AdjustedCashFlowCalculator.DefaultPct(overdue, invoiced), settled.Count > 0);
+        });
+    }
 
     private async Task<List<SettledParcel>> SettledAsync(IReadOnlyCollection<Guid>? partyIds, CancellationToken ct)
     {

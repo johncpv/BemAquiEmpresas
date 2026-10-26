@@ -82,6 +82,7 @@ import type {
   CarrierOption,
   CashFlowDay,
   CashFlowResult,
+  CashForecastSummary,
   CategoryDetail,
   CategoryInput,
   ChallengeRequest,
@@ -152,6 +153,7 @@ import type {
   GetBankStatementParams,
   GetCashFlowDayParams,
   GetCashFlowParams,
+  GetCashForecastSummaryParams,
   GetDiscountsAndCancellationsParams,
   GetFabricationOrderHistoryParams,
   GetGoodsReceiptHistoryParams,
@@ -55528,6 +55530,108 @@ export function useGetCashFlowDay<TData = Awaited<ReturnType<typeof getCashFlowD
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetCashFlowDayQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetCashForecastSummaryUrl = (params?: GetCashForecastSummaryParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/finance/cash-flow/summary?${stringifiedParams}` : `/api/v1/finance/cash-flow/summary`
+}
+
+export const getCashForecastSummary = async (params?: GetCashForecastSummaryParams, options?: Parameters<typeof apiFetch>[1]): Promise<CashForecastSummary> => {
+
+  return apiFetch<CashForecastSummary>(getGetCashForecastSummaryUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCashForecastSummaryQueryKey = (params?: GetCashForecastSummaryParams,) => {
+    return [
+    `/api/v1/finance/cash-flow/summary`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetCashForecastSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getCashForecastSummary>>, TError = unknown>(params?: GetCashForecastSummaryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashForecastSummary>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCashForecastSummaryQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCashForecastSummary>>> = ({ signal }) => getCashForecastSummary(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCashForecastSummary>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetCashForecastSummaryQueryResult = NonNullable<Awaited<ReturnType<typeof getCashForecastSummary>>>
+export type GetCashForecastSummaryQueryError = unknown
+
+
+export function useGetCashForecastSummary<TData = Awaited<ReturnType<typeof getCashForecastSummary>>, TError = unknown>(
+ params: undefined |  GetCashForecastSummaryParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashForecastSummary>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCashForecastSummary>>,
+          TError,
+          Awaited<ReturnType<typeof getCashForecastSummary>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetCashForecastSummary<TData = Awaited<ReturnType<typeof getCashForecastSummary>>, TError = unknown>(
+ params?: GetCashForecastSummaryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashForecastSummary>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCashForecastSummary>>,
+          TError,
+          Awaited<ReturnType<typeof getCashForecastSummary>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetCashForecastSummary<TData = Awaited<ReturnType<typeof getCashForecastSummary>>, TError = unknown>(
+ params?: GetCashForecastSummaryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashForecastSummary>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetCashForecastSummary<TData = Awaited<ReturnType<typeof getCashForecastSummary>>, TError = unknown>(
+ params?: GetCashForecastSummaryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashForecastSummary>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetCashForecastSummaryQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

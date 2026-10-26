@@ -10,4 +10,5 @@ view?: string;
 days?: number;
 bankAccountId?: string;
 from?: string;
+scenario?: string;
 };

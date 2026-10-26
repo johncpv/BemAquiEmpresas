@@ -10,7 +10,7 @@ import { notifySuccess } from '@/components/ui/messages'
 import { Skeleton } from '@/components/ui/states'
 import { useCan } from '@/pages/use-can'
 
-/** Limites do Financeiro (FIN-01 CA 13, 14 e 18, D8): desconto, cancelamento e data retroativa; só com finance.view. */
+/** Limites do Financeiro (FIN-01 CA 13, 14 e 18, D8; FIN-07 CA 15): desconto, cancelamento, data retroativa e o limite do ajustado; só com finance.view. */
 export function FinanceLimitsSection({ canEdit }: { canEdit: boolean }) {
   const canSee = useCan('finance.view')
   const query = useGetFinanceLimits({ query: { enabled: canSee } })
@@ -29,10 +29,11 @@ function LimitsForm({ limits, canEdit }: { limits: FinanceLimits; canEdit: boole
   const [ownApproval, setOwnApproval] = useState(limits.ownerCanApproveOwn ?? false)
   const [notify, setNotify] = useState<string | null>(String(limits.transferNotifyAmount ?? 10000))
   const [tolerance, setTolerance] = useState<string | null>(String(limits.paymentTolerance ?? 0))
+  const [threshold, setThreshold] = useState<string | null>(String(limits.adjustedDefaultThresholdPct ?? 20))
   const [error, setError] = useState<{ message: string; fields: Record<string, string[]> } | null>(null)
   const save = async () => {
     try {
-      const saved = await updateFinanceLimits({ discountApprovalPct: Number(pct ?? 0), discountApprovalAmount: Number(discount ?? 0), cancelApprovalAmount: Number(cancel ?? 0), backdateDays: Number(days || 0), ownerCanApproveOwn: ownApproval, paymentTolerance: Number(tolerance ?? 0), transferNotifyAmount: Number(notify ?? 0) })
+      const saved = await updateFinanceLimits({ discountApprovalPct: Number(pct ?? 0), discountApprovalAmount: Number(discount ?? 0), cancelApprovalAmount: Number(cancel ?? 0), backdateDays: Number(days || 0), ownerCanApproveOwn: ownApproval, paymentTolerance: Number(tolerance ?? 0), transferNotifyAmount: Number(notify ?? 0), adjustedDefaultThresholdPct: Number(threshold ?? 0) })
       client.setQueryData(getGetFinanceLimitsQueryKey(), saved)
       notifySuccess('Limites do financeiro salvos')
     } catch (e) {
@@ -54,6 +55,9 @@ function LimitsForm({ limits, canEdit }: { limits: FinanceLimits; canEdit: boole
           </Field>
           <Field label="Tolerância no pagamento" error={field('paymentTolerance')} hint="Quanto o pagamento pode passar do aprovado sem nova aprovação.">{(p) => <MoneyInput {...p} value={tolerance} onChange={setTolerance} />}</Field>
           <Field label="Aviso de transferência acima de" error={field('transferNotifyAmount')} hint="Transferência maior que isso avisa o Proprietário.">{(p) => <MoneyInput {...p} value={notify} onChange={setNotify} />}</Field>
+          <Field label="Limite de inadimplência para ponderar o ajustado" error={field('adjustedDefaultThresholdPct')} hint="No fluxo de caixa ajustado, cliente com inadimplência acima disso entra só com a parte que provavelmente paga (padrão 20,00%).">
+            {(p) => <PercentInput {...p} value={threshold} onChange={setThreshold} />}
+          </Field>
         </div>
         <label className="flex items-start gap-2 text-sm">
           <input type="checkbox" checked={ownApproval} onChange={(e) => setOwnApproval(e.target.checked)} className="mt-0.5 size-4 accent-primary" />
