@@ -11,12 +11,19 @@ public static class TestTokens
 
     public static string SigningKeyBase64 { get; } = Convert.ToBase64String(SigningKey);
 
-    public static string Create(Guid? tenantId, string audience, DateTime? expires = null, string issuer = "bemaqui-empresas", byte[]? key = null, Guid? userId = null, string? stamp = null)
+    /// <param name="otpAt">Prova recente do 2FA (claim <c>otp_at</c>, BNK-01a CA 1): o token sai com <c>amr = ["pwd","otp"]</c>.</param>
+    public static string Create(Guid? tenantId, string audience, DateTime? expires = null, string issuer = "bemaqui-empresas", byte[]? key = null, Guid? userId = null, string? stamp = null, DateTimeOffset? otpAt = null)
     {
         var claims = new Dictionary<string, object> { ["sub"] = (userId ?? Guid.CreateVersion7()).ToString() };
         if (stamp is not null)
         {
             claims["sstamp"] = stamp;
+        }
+
+        if (otpAt is { } proof)
+        {
+            claims["amr"] = new[] { "pwd", "otp" };
+            claims["otp_at"] = proof.ToUnixTimeSeconds().ToString(System.Globalization.CultureInfo.InvariantCulture);
         }
 
         if (tenantId is { } tid)

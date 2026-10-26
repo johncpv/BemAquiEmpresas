@@ -61,6 +61,8 @@ public class SecretProtectorTests
     [InlineData(SecretKind.TotpSecret, "totp")]
     [InlineData(SecretKind.AiApiKey, "ai-key")]
     [InlineData(SecretKind.WebhookSecret, "webhook-secret")]
+    [InlineData(SecretKind.InterCredentials, "inter-credentials")]
+    [InlineData(SecretKind.InterCertificate, "inter-certificate")]
     public void Proposito_de_cada_tipo_e_fixo(SecretKind kind, string expected)
     {
         var tenant = Guid.Parse("0199f1a2-0000-7000-8000-000000000001");
@@ -68,6 +70,32 @@ public class SecretProtectorTests
         SecretProtector.Purposes(SecretScope.ForTenant(tenant), kind)
             .Should().Equal("bemaqui", "tenant:0199f1a2000070008000000000000001", expected, "v1");
         SecretProtector.Purposes(SecretScope.Platform, kind).Should().Equal("bemaqui", "platform", expected, "v1");
+    }
+
+    /// <summary>Golden do Inter por conta (BNK-01a CA 5, ADR 0007 adendo): o id da integração vem depois do tipo.</summary>
+    [Theory]
+    [InlineData(SecretKind.InterCredentials, "inter-credentials")]
+    [InlineData(SecretKind.InterCertificate, "inter-certificate")]
+    public void Proposito_do_Inter_tem_o_id_da_integracao(SecretKind kind, string expected)
+    {
+        var tenant = Guid.Parse("0199f1a2-0000-7000-8000-000000000001");
+        var integration = Guid.Parse("0199f1a2-0000-7000-8000-0000000000aa");
+
+        SecretProtector.Purposes(SecretScope.ForTenant(tenant), kind, integration)
+            .Should().Equal("bemaqui", "tenant:0199f1a2000070008000000000000001", expected, "0199f1a20000700080000000000000aa", "v1");
+    }
+
+    [Fact]
+    public void Segredo_de_uma_conta_nao_decifra_em_outra()
+    {
+        var contaA = Guid.CreateVersion7();
+        var cipher = _protector.Protect(TenantA, SecretKind.InterCredentials, contaA, new Secret("client-secret"));
+
+        _protector.Unprotect(TenantA, SecretKind.InterCredentials, contaA, cipher).Reveal().Should().Be("client-secret");
+        ((Action)(() => _protector.Unprotect(TenantA, SecretKind.InterCredentials, Guid.CreateVersion7(), cipher))).Should().Throw<CryptographicException>();
+        ((Action)(() => _protector.Unprotect(TenantB, SecretKind.InterCredentials, contaA, cipher))).Should().Throw<CryptographicException>();
+        ((Action)(() => _protector.Unprotect(TenantA, SecretKind.InterCertificate, contaA, cipher))).Should().Throw<CryptographicException>();
+        ((Action)(() => _protector.Unprotect(TenantA, SecretKind.InterCredentials, cipher))).Should().Throw<CryptographicException>("sem o item é outro propósito");
     }
 
     [Fact]
