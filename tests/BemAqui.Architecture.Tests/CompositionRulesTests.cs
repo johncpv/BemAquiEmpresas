@@ -62,12 +62,32 @@ public class CompositionRulesTests
     public void DTOs_dos_cards_nao_levam_custo_orcado_nem_margem()
     {
         var application = typeof(BemAqui.Dashboard.Application.DashboardService).Assembly;
-        var dtos = application.GetExportedTypes().Where(t => t.Name.EndsWith("Card", StringComparison.Ordinal) || t.Name.EndsWith("Item", StringComparison.Ordinal) || t.Name == "DashboardOverview").ToList();
+        // DSH-03 CA 9: os blocos do painel do supervisor ("…Block", "SupervisorOverview") seguem a mesma regra.
+        var dtos = application.GetExportedTypes().Where(t => t.Name.EndsWith("Card", StringComparison.Ordinal) || t.Name.EndsWith("Item", StringComparison.Ordinal)
+            || t.Name.EndsWith("Block", StringComparison.Ordinal) || t.Name is "DashboardOverview" or "SupervisorOverview").ToList();
         dtos.Should().Contain(t => t.Name == "RevenueCard").And.Contain(t => t.Name == "CommercialCard");
+        dtos.Should().Contain(t => t.Name == "SupervisorShortagesBlock").And.Contain(t => t.Name == "SupervisorQualityBlock").And.Contain(t => t.Name == "SupervisorIndicatorsBlock");
 
         var properties = dtos.SelectMany(Reachable).Distinct().SelectMany(t => t.GetProperties(BindingFlags.Public | BindingFlags.Instance).Select(p => $"{t.Name}.{p.Name}")).ToList();
         properties.Should().NotBeEmpty();
         properties.Where(p => CostWords.Any(w => p.Contains(w, StringComparison.OrdinalIgnoreCase))).Should().BeEmpty("custo e margem são da DSH-01b, com projects.view_cost (ADR 0028 §2)");
+    }
+
+    [Fact]
+    public void Contratos_do_painel_do_supervisor_nao_levam_custo()
+    {
+        // DSH-03 CA 9: os contratos novos do Production e do Purchasing que o painel compõe também não levam custo nem valor.
+        Type[] types =
+        [
+            typeof(BemAqui.Production.Contracts.ProductionBoardSummary), typeof(BemAqui.Production.Contracts.BoardColumnSummary), typeof(BemAqui.Production.Contracts.BoardHighlightCard),
+            typeof(BemAqui.Production.Contracts.QualityPendingSummary), typeof(BemAqui.Production.Contracts.QualityPendingStep), typeof(BemAqui.Production.Contracts.OpenNonConformities),
+            typeof(BemAqui.Production.Contracts.OpenNonConformity), typeof(BemAqui.Production.Contracts.ProductionIndicatorsSummary), typeof(BemAqui.Production.Contracts.StoppageByReason),
+            typeof(BemAqui.Production.Contracts.StoppageOrderHours), typeof(BemAqui.Production.Contracts.QualityRateByStep), typeof(BemAqui.Purchasing.Contracts.PurchaseOrderForRequestLine),
+        ];
+        var properties = types.SelectMany(t => t.GetProperties(BindingFlags.Public | BindingFlags.Instance).Select(p => $"{t.Name}.{p.Name}")).ToList();
+        properties.Should().NotBeEmpty();
+        properties.Where(p => CostWords.Concat(["Total", "Price", "Amount"]).Any(w => p.Contains(w, StringComparison.OrdinalIgnoreCase)) && !p.EndsWith(".Total", StringComparison.Ordinal) && !p.EndsWith("TotalCount", StringComparison.Ordinal))
+            .Should().BeEmpty("o painel do supervisor não mostra custo nem valor (ADR 0028 §2)");
     }
 
     /// <summary>O tipo e os tipos do próprio painel que ele carrega (listas e registros aninhados).</summary>

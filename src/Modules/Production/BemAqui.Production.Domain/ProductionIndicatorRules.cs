@@ -8,9 +8,6 @@ namespace BemAqui.Production.Domain;
 /// </summary>
 public static class ProductionIndicatorRules
 {
-    /// <summary>Dias do período dos indicadores (os últimos 30, contando hoje).</summary>
-    public const int PeriodDays = 30;
-
     /// <summary>Motivo da pausa que entra nas horas paradas: Material, Máquina e Outro; intervalo e fim de turno não são parada.</summary>
     public static StoppageReason? StoppageOf(PauseReason reason) => reason switch
     {
