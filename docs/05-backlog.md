@@ -432,7 +432,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-4--planejamento-p
 - Requisitos: R-SEC-6, PRD §2, PRD §5.14 (Painel de produção), PRD §6 (Segurança), R-SEC-5.
 - CA: token de 256 bits só como hash; `/tv#token` trocado por cookie `__Host-bq_kiosk` (ADR 0030), sessão de 30 dias sem uso e 180 absolutos; `kiosk.delete` e criar com `production.view`; principal de quiosque só em GET do painel; revogação em menos de 1 min; kit TV e prévia no backoffice; sem cache no service worker.
 
-**PNL-01b [ ] Visões do painel da TV (M)** — 4.4, ordem 12 — `Ready` — [story](stories/PNL-01b-visoes-painel-tv.md)
+**PNL-01b [x] Visões do painel da TV (M)** — 4.4, ordem 12 — `Done` — [story](stories/PNL-01b-visoes-painel-tv.md)
 - Requisitos: PRD §5.14 (Painel de produção), R-PRD-2, R-PLN-4, PRD §6.
 - CA: quadro por etapa e fila com previsão × prometido, com 32/28/48 px, até 3 cartões por coluna; operador pelo primeiro nome e inicial; cliente nunca aparece, só o nome curto do projeto; as 3 visões, pulando "Atrasos" vazia; atualização em menos de 2 s após o apontamento.
 
