@@ -51,7 +51,7 @@ test.describe('configurações da empresa (CAD-06)', () => {
     await mockApi(page, api)
     await page.goto('/app/configuracoes')
     await expect(page).toHaveURL(/\/app\/configuracoes\/empresa$/)
-    await expect(page.getByRole('main').getByRole('navigation', { name: 'Configurações' }).getByRole('link')).toHaveText(['Empresa', 'Numeração', 'Parâmetros', 'Segurança', 'Inteligência artificial', 'Importação do Dolibarr'])
+    await expect(page.getByRole('main').getByRole('navigation', { name: 'Configurações' }).getByRole('link')).toHaveText(['Empresa', 'Numeração', 'Parâmetros', 'Segurança', 'Inteligência artificial', 'Importação do Dolibarr', 'Integrações'])
     await expect(page.getByText('Os dados vieram do cadastro da plataforma.')).toBeVisible()
     await expect(page.getByRole('textbox', { name: 'CNPJ' })).toHaveValue('12.345.678/0001-95')
     await expect(page.getByRole('textbox', { name: 'CNPJ' })).toBeDisabled()

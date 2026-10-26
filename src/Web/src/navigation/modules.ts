@@ -29,6 +29,8 @@ export interface Tab {
   group?: string
   /** Ação do módulo exigida para a aba aparecer no menu e na busca (ex.: "view_cost" em "Orçado × realizado", DSH-02 CA 19). */
   action?: string
+  /** A aba só aparece com uma destas permissões (ex.: Integrações em Configurações, FND-16 CA 16: sem ver o módulo dono, a aba some). */
+  requiresAny?: readonly string[]
 }
 
 /** Parte de tela de cada módulo do ModuleCatalog: rota, ícone e sub-telas (abas na topbar, CA 8). */
@@ -93,7 +95,7 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
   kiosk: { slug: 'painel-tv', icon: MonitorPlay },
   shopfloor: { slug: 'operador', icon: HardHat, href: '/fab' },
   identity: { slug: 'acessos', icon: ShieldCheck, tabs: [{ slug: 'usuarios', label: 'Usuários' }, { slug: 'grupos', label: 'Grupos' }] },
-  settings: { slug: 'configuracoes', icon: Settings, tabs: [{ slug: 'empresa', label: 'Empresa' }, { slug: 'numeracao', label: 'Numeração' }, { slug: 'parametros', label: 'Parâmetros' }, { slug: 'seguranca', label: 'Segurança' }, { slug: 'ia', label: 'Inteligência artificial' }, { slug: 'importacao', label: 'Importação do Dolibarr' }] },
+  settings: { slug: 'configuracoes', icon: Settings, tabs: [{ slug: 'empresa', label: 'Empresa' }, { slug: 'numeracao', label: 'Numeração' }, { slug: 'parametros', label: 'Parâmetros' }, { slug: 'seguranca', label: 'Segurança' }, { slug: 'ia', label: 'Inteligência artificial' }, { slug: 'importacao', label: 'Importação do Dolibarr' }, { slug: 'integracoes', label: 'Integrações', requiresAny: ['finance.view', 'fiscal.view'] }] },
 }
 
 /** Mesmo formato de MyModule em GET /api/v1/me/permissions (FND-06c/06d). */
@@ -130,9 +132,18 @@ export interface Navigation {
   all: NavModule[]
 }
 
-const toNav = (m: PermissionModule): NavModule | null => {
+/** Permissão `modulo.acao` liberada e marcada para o usuário (o mesmo critério do <Can>). */
+const grants = (modules: readonly PermissionModule[], permission: string) => {
+  const [code, action] = permission.split('.')
+  const module = modules.find((m) => m.code === code)
+  return !!module && module.released && module.actions.includes(action)
+}
+
+const toNav = (m: PermissionModule, modules: readonly PermissionModule[]): NavModule | null => {
   const ui = MODULE_UI[m.code]
-  const tabs = (ui?.tabs ?? []).filter((t) => !t.action || m.actions.includes(t.action))
+  const tabs = (ui?.tabs ?? []).filter(
+    (t) => (!t.action || m.actions.includes(t.action)) && (!t.requiresAny || t.requiresAny.some((p) => grants(modules, p))),
+  )
   return ui ? { ...m, slug: ui.slug, aliases: ui.aliases ?? [], path: ui.href ?? `/app/${ui.slug}`, icon: ui.icon, tabs, locked: !m.released } : null
 }
 
@@ -140,7 +151,7 @@ const toNav = (m: PermissionModule): NavModule | null => {
 export const isVisible = (m: NavModule) => m.locked || m.enabled
 
 export function buildNavigation(modules: readonly PermissionModule[]): Navigation {
-  const all = modules.map(toNav).filter((m): m is NavModule => m !== null)
+  const all = modules.map((m) => toNav(m, modules)).filter((m): m is NavModule => m !== null)
   const areas = AREAS.map((area) => ({
     ...area,
     modules: all.filter((m) => m.area === area.name && isVisible(m)).sort((x, y) => (x.order ?? 0) - (y.order ?? 0)),
