@@ -148,6 +148,7 @@ Checklist do @po (Pax), 16/10/2026.
 |---|---|---|---|
 | 16/10/2026 | 0.1 | Story detalhada a partir do backlog, da ADR 0006 proposta e dos CAs de segurança da revisão | River (SM) |
 | 16/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
+| 26/10/2026 | 1.1 | Conflito de concorrência no handler é transitório — recomendação aceita (PO 24/10). O CI do lote 5 mostrou o `ContractCompletionConsumer` (COM-04b) tomando `DbUpdateConcurrencyException` ao concluir contrato e projeto: dois `ReceivableSettled` (ou `ProjectDelivered`) do mesmo contrato entregues ao mesmo tempo por dois processadores (SKIP LOCKED pega mensagens diferentes) leem o contrato ainda ativo e os dois gravam; o segundo perde no `xmin`. Correção no `OutboxProcessor`: o handler que toma o conflito roda de novo na hora, em escopo e transação novos, e relê o estado (idempotente pela inbox e pela regra), até `Outbox:ConcurrencyRetries` (padrão 3) vezes, sem gastar tentativa da mensagem; passou do limite, segue o backoff e o dead-letter de sempre. Semântica de negócio igual; testes `OutboxConcurrencyTests` | @dev |
 
 ## Dev Agent Record
 - **Parte A (FND-07a), 17/10/2026, branch `feat/fnd-07a-building-blocks`.** A story foi entregue em três PRs: 07a (esta), 07b (outbox, inbox, jobs) e 07c (anexos e notificações).

@@ -29,7 +29,39 @@ public sealed class RecordEffectConsumer(SampleDbContext db) : IIntegrationEvent
     }
 }
 
-public sealed class FailingConsumer : IIntegrationEventConsumer<AlwaysFails>
+public sealed record DocumentRenamed(Guid DocumentId, string Name) : IIntegrationEvent;
+
+/// <summary>
+/// Renomeia o documento (versão pelo xmin). Enquanto <see cref="ConflictsLeft"/> &gt; 0, outra transação grava a mesma linha entre a
+/// leitura e a gravação do handler: a gravação dele toma <see cref="DbUpdateConcurrencyException"/> de verdade (a disputa do
+/// <c>ContractCompletionConsumer</c> com outro processador, de forma determinística).
+/// </summary>
+public sealed class ConflictingRenameConsumer(SampleDbContext db, IServiceScopeFactory scopes) : IIntegrationEventConsumer<DocumentRenamed>
+{
+    public static int ConflictsLeft { get; set; }
+
+    public static int Calls { get; set; }
+
+    public async Task HandleAsync(DocumentRenamed integrationEvent, CancellationToken cancellationToken)
+    {
+        Calls++;
+        var doc = await db.Documents.SingleAsync(d => d.Id == integrationEvent.DocumentId, cancellationToken);
+        if (ConflictsLeft > 0)
+        {
+            ConflictsLeft--;
+            await using var other = scopes.CreateAsyncScope();
+            var otherDb = other.ServiceProvider.GetRequiredService<SampleDbContext>();
+            var same = await otherDb.Documents.SingleAsync(d => d.Id == integrationEvent.DocumentId, cancellationToken);
+            same.Name = "concorrente " + Calls;
+            await otherDb.SaveChangesAsync(cancellationToken);
+        }
+
+        doc.Name = integrationEvent.Name;
+        await db.SaveChangesAsync(cancellationToken);
+    }
+}
+
+public sealed class FailingConsumer :IIntegrationEventConsumer<AlwaysFails>
 {
     public Task HandleAsync(AlwaysFails integrationEvent, CancellationToken cancellationToken) =>
         throw new InvalidOperationException("falha proposital: " + integrationEvent.Reason);
@@ -83,7 +115,8 @@ public static class MessagingHarness
         }).Build();
         services.AddBemAquiMessaging(configuration, r => r
             .AddHandler<CustomerRegistered, RecordEffectConsumer>()
-            .AddHandler<AlwaysFails, FailingConsumer>(), runDispatcher: false);
+            .AddHandler<AlwaysFails, FailingConsumer>()
+            .AddHandler<DocumentRenamed, ConflictingRenameConsumer>(), runDispatcher: false);
         services.AddSingleton<OutboxDispatcher>();
 
         var provider = services.BuildServiceProvider();

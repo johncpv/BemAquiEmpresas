@@ -90,7 +90,7 @@ public sealed partial class OutboxProcessor(
         {
             try
             {
-                await RunHandlerAsync(tenant, message, handler, integrationEvent, cancellationToken);
+                await RunWithConcurrencyRetryAsync(tenant, message, handler, integrationEvent, cancellationToken);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
@@ -100,6 +100,29 @@ public sealed partial class OutboxProcessor(
         }
 
         return errors.Count == 0 ? null : string.Join(" | ", errors);
+    }
+
+    /// <summary>
+    /// Conflito de concorrência otimista (<see cref="DbUpdateConcurrencyException"/>, ADR 0019) é transitório: outra transação mudou a
+    /// linha entre a leitura e a gravação do handler (outro handler, outro processador ou um comando do usuário). O handler roda de novo
+    /// na hora, em escopo e transação novos, e relê o estado; como é idempotente (inbox e regra), a nova leitura decide se ainda há o que
+    /// fazer. Só depois de <see cref="OutboxOptions.ConcurrencyRetries"/> novas tentativas o erro conta como falha da mensagem (backoff).
+    /// </summary>
+    private async Task RunWithConcurrencyRetryAsync(TenantInfo tenant, OutboxMessage message, RegisteredHandler handler, object integrationEvent, CancellationToken cancellationToken)
+    {
+        var retries = Math.Max(0, options.Value.ConcurrencyRetries);
+        for (var attempt = 0; ; attempt++)
+        {
+            try
+            {
+                await RunHandlerAsync(tenant, message, handler, integrationEvent, cancellationToken);
+                return;
+            }
+            catch (DbUpdateConcurrencyException ex) when (attempt < retries)
+            {
+                LogConcurrencyRetry(logger, ex, handler.Name, message.Id, tenant.Key, attempt + 1);
+            }
+        }
     }
 
     /// <summary>Avisa os módulos donos (COM-04b CA 5); a falha do aviso só vai para o log.</summary>
@@ -159,6 +182,9 @@ public sealed partial class OutboxProcessor(
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Handler {Handler} falhou para a mensagem {MessageId} do tenant {Tenant}.")]
     private static partial void LogHandlerFailed(ILogger logger, Exception exception, string handler, Guid messageId, string tenant);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Handler {Handler} teve conflito de concorrência na mensagem {MessageId} do tenant {Tenant}; relê e tenta de novo ({Retry}).")]
+    private static partial void LogConcurrencyRetry(ILogger logger, Exception exception, string handler, Guid messageId, string tenant, int retry);
 
     [LoggerMessage(Level = LogLevel.Error, Message = "Mensagem {MessageId} ({Type}) do tenant {Tenant} foi para dead-letter após {Attempts} tentativas: {Error}")]
     private static partial void LogDeadLettered(ILogger logger, Guid messageId, string type, string tenant, int attempts, string error);
