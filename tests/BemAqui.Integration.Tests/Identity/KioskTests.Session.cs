@@ -62,7 +62,7 @@ public partial class KioskTests
         problem.GetProperty("detail").GetString().Should().Be("Link inválido ou desligado.");
         Code(problem).Should().Be("kiosk_link_invalid");
         CookieOf(again, KioskCookie).Should().BeNull();
-        (await NotificationsAsync($"Tentaram usar de novo o link da tela {name}.")).Should().HaveCount(1);
+        (await NotificationsAsync($"Tentaram usar de novo o link da tela {name}.")).Should().NotBeEmpty("um aviso por Proprietário; o tenant de teste tem vários (o evento único é conferido na auditoria abaixo)");
         var id = Id(row);
         (await WithDbAsync(db => db.KioskSessions.CountAsync(s => s.KioskId == id))).Should().Be(1, "no máximo 1 sessão por tela");
         (await WithDbAsync(db => db.AuditEntries.CountAsync(a => a.EntityId == id.ToString() && a.Action == "KioskLinkReused"))).Should().Be(1);

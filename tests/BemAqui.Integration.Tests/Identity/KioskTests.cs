@@ -227,7 +227,11 @@ public partial class KioskTests(KioskFixture kiosk) : IClassFixture<KioskFixture
         var (row, token) = await CreateScreenAsync(manager, name, networks);
         var opened = await Client().SendAsync(OpenRequest(token));
         opened.StatusCode.Should().Be(HttpStatusCode.OK, await opened.Content.ReadAsStringAsync());
-        return (row, ValueOf(CookieOf(opened, KioskCookie)!), manager);
+        // O pareamento ativa a tela e muda a versão: devolve a linha como está depois dele.
+        var id = Id(row);
+        var current = await JsonAsync(await Client().SendAsync(Authorized(HttpMethod.Get, Screens, manager)));
+        var paired = current.GetProperty("screens").EnumerateArray().Single(s => Id(s) == id).Clone();
+        return (paired, ValueOf(CookieOf(opened, KioskCookie)!), manager);
     }
 
     private async Task<List<string>> NotificationsAsync(string startsWith, Guid? tenantId = null) =>
