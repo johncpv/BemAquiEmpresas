@@ -251,6 +251,13 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     IQueryable<ScheduleProjectForecast> IProductionDb.ScheduleProjectForecastsView => Set<ScheduleProjectForecast>().AsNoTracking();
 
+    // Fila de prioridade dos projetos (PLN-02, ADR 0029 §3): do Production, auditada.
+    public DbSet<BemAqui.Production.Domain.PlanningQueueEntry> PlanningQueue => Set<BemAqui.Production.Domain.PlanningQueueEntry>();
+
+    public DbSet<BemAqui.Production.Domain.PlanningQueueState> PlanningQueueStates => Set<BemAqui.Production.Domain.PlanningQueueState>();
+
+    public DbSet<BemAqui.Production.Domain.PlanningQueueChange> PlanningQueueChanges => Set<BemAqui.Production.Domain.PlanningQueueChange>();
+
     public DbSet<BemAqui.Commercial.Domain.ProjectForecast> ProjectForecasts => Set<BemAqui.Commercial.Domain.ProjectForecast>();
 
     public DbSet<BemAqui.Engineering.Domain.RoutingTemplate> RoutingTemplates => Set<BemAqui.Engineering.Domain.RoutingTemplate>();

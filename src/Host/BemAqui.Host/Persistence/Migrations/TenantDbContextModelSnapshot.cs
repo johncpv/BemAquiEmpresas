@@ -8051,6 +8051,113 @@ namespace BemAqui.Host.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("BemAqui.Production.Domain.PlanningQueueChange", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("At")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("at");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("Moves")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("moves");
+
+                    b.Property<Guid?>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("reason");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_planning_queue_changes");
+
+                    b.HasIndex("At")
+                        .HasDatabaseName("ix_planning_queue_changes_at");
+
+                    b.ToTable("planning_queue_changes", "production");
+                });
+
+            modelBuilder.Entity("BemAqui.Production.Domain.PlanningQueueEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer")
+                        .HasColumnName("position");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_planning_queue");
+
+                    b.HasIndex("Position")
+                        .HasDatabaseName("ix_planning_queue_position");
+
+                    b.HasIndex("ProjectId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_planning_queue_project_id");
+
+                    b.ToTable("planning_queue", "production", t =>
+                        {
+                            t.HasCheckConstraint("ck_planning_queue_position", "position > 0");
+                        });
+                });
+
+            modelBuilder.Entity("BemAqui.Production.Domain.PlanningQueueState", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("ReorderedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reordered_at");
+
+                    b.Property<Guid?>("ReorderedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reordered_by");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_planning_queue_state");
+
+                    b.ToTable("planning_queue_state", "production");
+                });
+
             modelBuilder.Entity("BemAqui.Production.Domain.ProductionOrder", b =>
                 {
                     b.Property<Guid>("Id")

@@ -25,7 +25,8 @@ public sealed record ScheduleRecalculation(bool Ran, bool Queued, ScheduleRunInf
 /// </para>
 /// </summary>
 public sealed partial class ScheduleService(
-    IProductionPlanDb plan, ScheduleInputBuilder builder, ProjectForecastBuilder projects, IEventPublisher events, IProductionBoardPush push, ITenantContext tenant,
+    IProductionPlanDb plan, ScheduleInputBuilder builder, ProjectForecastBuilder projects, PlanningQueueStore queue, IEventPublisher events, IProductionBoardPush push,
+    ITenantContext tenant,
     TimeProvider clock, ILogger<ScheduleService> logger)
 {
     /// <summary>Chave do advisory lock; cada tenant tem banco próprio, então a chave fixa já é por tenant.</summary>
@@ -201,7 +202,9 @@ public sealed partial class ScheduleService(
     /// </summary>
     private async Task<Written> WriteAsync(ScheduleRun run, DateTimeOffset now, CancellationToken ct)
     {
-        var input = await builder.BuildAsync(cancellationToken: ct);
+        // PLN-02: a fila é mantida (entrada pela data prometida, saída das concluídas) na mesma transação e o motor segue a posição dela.
+        var queueOrder = await queue.SyncAsync(ct);
+        var input = await builder.BuildAsync(queueOrder, ct);
         var result = FiniteScheduler.Run(input);
         var previous = ScheduleViews.ByOrder(await plan.ScheduleStepForecasts.AsNoTracking()
             .Select(f => new ScheduleViews.Row(f.StepId, f.ProductionOrderId, f.Sequence, f.Hours, f.PlannedStart, f.PlannedEnd, f.NoForecastReason)).ToListAsync(ct));

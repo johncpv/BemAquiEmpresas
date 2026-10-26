@@ -52,6 +52,13 @@ public interface IProductionDb
     /// <summary>Previsão de entrega de cada projeto (PLN-01b): o risco do Kanban e da lista de OS e o <c>IProductionSchedule</c>.</summary>
     IQueryable<ScheduleProjectForecast> ScheduleProjectForecastsView { get; }
 
+    /// <summary>Fila de prioridade dos projetos (PLN-02, ADR 0029 §3), gravada só pelo <see cref="PlanningQueueStore"/> e pelo <see cref="PlanningQueueService"/>.</summary>
+    DbSet<PlanningQueueEntry> PlanningQueue { get; }
+
+    DbSet<PlanningQueueState> PlanningQueueStates { get; }
+
+    DbSet<PlanningQueueChange> PlanningQueueChanges { get; }
+
     DatabaseFacade Database { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);

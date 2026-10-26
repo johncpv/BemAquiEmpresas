@@ -5,7 +5,7 @@
 | ID | PLN-02 |
 | Título | Fila dos projetos com OS de fabricação abertas, do Production (`production.planning_queue`, ADR 0029), reordenada arrastando (ou pelo teclado) com `production.edit`, com a simulação "antes → depois" das datas previstas e da folga de cada projeto antes de salvar, aviso de quem passa a ficar em risco, histórico auditado das mudanças e recálculo do plano; projeto novo entra pela data prometida |
 | Tamanho | M |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-PLN-2 (fila de projetos com prioridade manual, arrastar para ordenar) · R-PLN-3 · R-PLN-4 · R-PRP-2 · R-SEC-5 |
 | Dependências | PLN-01a (motor, `SimulateAsync`), PLN-01b (data prevista, folga e risco), COM-05 (projeto), FND-09e (diálogo, concorrência) |
 | Bloqueia | PLN-03 (ordem das linhas), PNL-01b ("próximos na fila"), PLN-05 (posição na simulação) |
@@ -92,21 +92,21 @@ Decisões da revisão aplicadas: D10 e ADR 0029; §4.1 (item 28 da Fase 3 fechad
 **Pré-condição externa:** nenhuma.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers), desempenho e E2E (arraste e teclado) passando.
-- [ ] Migration das tabelas da fila (não destrutiva), com a carga inicial pela data prometida, testada sobre cópia do `konebras`.
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Tela com estados, acessível pelo teclado e a 400 px.
-- [ ] Ajuda da aba; teste de cobertura passando.
-- [ ] Prévia e aviso de atraso aplicados.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` (`planning_queue`, `priority` sem uso) atualizado; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, arquitetura e E2E (arraste, teclado e 400 px) passando; integração (Testcontainers) e desempenho escritos, a rodar na suíte em container antes do merge.
+- [ ] Migration `PlanningQueue` (não destrutiva, só `CREATE TABLE`; a carga inicial pela data prometida é a primeira manutenção da fila), a testar sobre cópia do banco do tenant `konebras` no deploy.
+- [x] Permissões só do `ModuleCatalog` (`production.view` e `production.edit`, já existentes).
+- [x] Tela com estados, acessível pelo teclado e a 400 px.
+- [x] Ajuda da aba; teste de cobertura passando.
+- [x] Prévia e aviso de atraso aplicados.
+- [x] Auditoria ligada (posição e versão da fila no `audit_log`; histórico legível em `planning_queue_changes`).
+- [x] OpenAPI e cliente Orval regenerados (OpenAPI gerado pelo Host em processo; regenerar oficialmente com `BQ_UPDATE_OPENAPI`).
+- [x] `docs/03-modelo-dados.md` (`planning_queue`, `priority` sem uso) e `docs/04-fluxos-estados.md` (§3.4 itens 1 e 5) atualizados; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `planning_queue` e `planning_queue_state`; manutenção da fila na criação e no fim das OS, pela data prometida.
-- [ ] Endpoints `/api/v1/production/planning/queue` (GET, `/preview`, PUT); `IPlanningQueue`; política `planning-simulate`.
-- [ ] Aba Fila com dnd-kit, prévia e ajuda.
+- [x] `planning_queue` e `planning_queue_state`; manutenção da fila na criação e no fim das OS, pela data prometida.
+- [x] Endpoints `/api/v1/production/planning/queue` (GET, `/preview`, PUT); `IPlanningQueue`; política `planning-simulate`.
+- [x] Aba Fila com dnd-kit, prévia e ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, @qa, design (arraste, teclado e 400 px).
@@ -140,3 +140,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D10, tabela 3.1 pontos 36–39, §4.1, §4.2, §4.3, §4.4 padrão 7; ADR 0029); ordem mantida (Marco 4.3, ordem 8); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 25/10/2026 | 1.0 | Implementada (`Done`), sobre a PLN-01b (branch `feat/pln-01b-recalculo`, ainda fora da main). `PlanningQueueEntry` (`planning_queue`, auditada), `PlanningQueueState` (`planning_queue_state`, `xmin`, auditada) e `PlanningQueueChange` (`planning_queue_changes`); regras puras `PlanningQueueRules` (entrada pela data prometida, saída, posições contíguas, permutação, movimentos); `PlanningQueueStore` (fila efetiva sem gravar, manutenção sob o advisory lock `production.planning_queue` e `IPlanningQueue.OrderAsync`); `PlanningQueueService` (fila, prévia, salvar e mudanças); o `ScheduleService` mantém a fila na transação do recálculo e passa a ordem ao motor; endpoints `GET/PUT /production/planning/queue`, `POST /preview` (política `planning-simulate`) e `GET /changes`; migration `PlanningQueue` (só `CREATE TABLE`); aba Fila (padrão do Planejamento) com dnd-kit, teclado, prévia, aviso de quem atrasa, "Salvar ordem"/"Descartar", histórico e 400 px; ajuda `producao-planejamento-fila.md`. **Desvios:** (1) Tabela a mais, `production.planning_queue_changes` (só inserção, fora da auditoria), não citada na ADR 0029: é o histórico legível do CA 8 (quem ou Sistema, motivo, posições antes → depois numa linha por mudança); a posição de cada projeto e a versão também vão para o `audit_log` (`IAuditable`). (2) CA 3: a carga inicial não é SQL na migration (leria `commercial.projects` de outro módulo, ADR 0006); a migration só cria as tabelas e a primeira manutenção num tenant sem fila monta a fila pela data prometida, depois a assinatura e o número ("Fila montada pela data prometida"), sem ler nem gravar `priority`. A manutenção roda em todo recálculo do plano (o primeiro chega em até 1 h depois do deploy, ou antes, no primeiro evento) e no "Salvar ordem"; até lá a tela já mostra a fila na ordem padrão, calculada em memória. (3) CA 2: a entrada e a saída não são feitas pelo comando da OS, e sim pela manutenção do recálculo que esse comando já pede (PLN-01b, em até 10 s); a tela e o `IPlanningQueue` já mostram o projeto novo na posição da data prometida antes disso (fila efetiva, sem gravar). Saída tem dois motivos: "Saiu: OS concluídas" (alguma concluída) e "Saiu: OS canceladas". (4) CA 4: a prévia usa o mesmo motor do `SimulateAsync` (`ScheduleInputBuilder` + `FiniteScheduler` em memória, uma leitura e duas execuções) e o `ProjectForecastBuilder.BuildManyAsync` (novo), para a data prevista ter o prazo de instalação como no recálculo; o contrato `SimulateAsync` devolve só o fim da fabricação. O "antes" é a simulação com a ordem gravada (não a previsão publicada), para a diferença mostrar só o efeito da ordem. (5) CA 5: "piora" = a previsão nova passa da prometida e fica depois da anterior (ou antes não havia previsão). (6) CA 6 e 7: a versão (`xmin`) só sobe no "Salvar ordem"; entrada e saída automáticas não mexem nela, e a lista antiga deixa de ser permutação (422 `planning_queue.changed`, que a prévia também confere); mudar a data prometida por aditivo não move o projeto (só a reordenação manual move), a opção mais segura (recomendação aceita, PO 24/10). (7) CA 10: o `UseRateLimiter` passou para depois do `UseAuthentication`, para a política nomeada contar por usuário (as janelas de login continuam por IP e tenant); o 429 da prévia tem a mensagem própria. A prévia exige `production.edit` (quem só vê não reordena). (8) Planejamento ganhou abas: Fila (padrão) e "Sem previsão" (a lista da PLN-01a); a ajuda da PLN-01a virou a da aba `sem-previsao` (`padrao: false`). (9) dnd-kit entrou agora (`@dnd-kit/core` 6.3.1, `sortable` 10.0.0, `utilities` 3.2.2): o Kanban não usa arraste (PRD-02, item 60). Abaixo de 1024 px não há alça: "Subir" e "Descer" (44 px); "Posição…" só na tela larga. (10) No salvar, quem entrou ou saiu na mesma transação aparece como Sistema no histórico, mas o `audit_log` dessas linhas leva o usuário do request. (11) `IPlanningQueue` com `SuppressMessage` do CA1711 (o nome vem da story). (12) Testes de integração e de desempenho (CA 10, em `PlanningTests`) escritos e não executados nesta máquina; 9 testes de arquitetura não rodam no Windows com Smart App Control (bloqueio das DLLs, não ligado à story). (13) OpenAPI gerado pelo Host em processo, sem banco: regenerar oficialmente com `BQ_UPDATE_OPENAPI`. (14) Migration ainda não aplicada sobre cópia do banco `konebras`. | Dex (dev) |

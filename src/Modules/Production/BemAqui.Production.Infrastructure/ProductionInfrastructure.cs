@@ -105,6 +105,12 @@ public static class ProductionInfrastructure
         services.TryAddScoped<ProjectForecastBuilder>();
         services.TryAddScoped<IProductionSchedule, ProductionScheduleContract>();
         services.TryAddScoped<PlanningService>();
+        // PLN-02: fila de prioridade dos projetos (auditada), mantida no recálculo e no "Salvar ordem"; IPlanningQueue para o motor, a TV e a PLN-05.
+        services.TryAddScoped<PlanningQueueStore>();
+        services.TryAddScoped<IPlanningQueue>(sp => sp.GetRequiredService<PlanningQueueStore>());
+        services.TryAddScoped<PlanningQueueService>();
+        services.AddAuditableEntity<PlanningQueueEntry>("production");
+        services.AddAuditableEntity<PlanningQueueState>("production");
 
         // Expedição (PRD-06b): romaneio, a saída síncrona pelo IStockMovements e o contrato IShipments (Commercial, Fase 5 e EST-04).
         services.TryAddScoped<ShipmentService>();

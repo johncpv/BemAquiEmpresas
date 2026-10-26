@@ -1,6 +1,8 @@
 using System.Globalization;
 using System.Threading.RateLimiting;
+using BemAqui.BuildingBlocks.Identity;
 using BemAqui.BuildingBlocks.Tenancy;
+using BemAqui.Production.Application;
 using Microsoft.AspNetCore.RateLimiting;
 
 namespace BemAqui.Host.Security;
@@ -61,13 +63,18 @@ public static class AuthRateLimiting
                             QueueLimit = 0,
                         })
                         : RateLimitPartition.GetNoLimiter(string.Empty)));
+            // Prévia da fila (PLN-02 CA 10): política nomeada, por usuário dentro do tenant (o limiter roda depois da autenticação).
+            o.AddPolicy(PlanningQueueService.SimulatePolicy, http => RateLimitPartition.GetFixedWindowLimiter(
+                "plan-sim|" + TenantKey(http) + "|" + (http.RequestServices.GetService<ICurrentUser>()?.UserId?.ToString() ?? http.Connection.RemoteIpAddress?.ToString() ?? "-"),
+                _ => new FixedWindowRateLimiterOptions { PermitLimit = PlanningQueueService.SimulatePerMinute, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
             o.OnRejected = async (context, cancellationToken) =>
             {
                 var retryAfter = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var wait) ? wait : TimeSpan.FromMinutes(1);
                 context.HttpContext.Response.Headers.RetryAfter = Math.Max(1, (int)Math.Ceiling(retryAfter.TotalSeconds)).ToString(CultureInfo.InvariantCulture);
+                var simulate = context.HttpContext.GetEndpoint()?.Metadata.GetMetadata<EnableRateLimitingAttribute>()?.PolicyName == PlanningQueueService.SimulatePolicy;
                 await Results.Problem(
                     statusCode: StatusCodes.Status429TooManyRequests,
-                    title: Message,
+                    title: simulate ? PlanningQueueService.SimulateLimitMessage : Message,
                     extensions: new Dictionary<string, object?> { ["code"] = "rate_limited" })
                     .ExecuteAsync(context.HttpContext);
             };
