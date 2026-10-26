@@ -216,6 +216,12 @@ Marcação imutável (controle interno, não registro oficial); ajuste `Pending 
 ### OS de manutenção (PAT-03a, ADR 0038)
 `Open → InProgress → Done | Cancelled`; o bem fica "Em manutenção" enquanto parado e não é baixado com OS aberta; a parada reduz a capacidade do centro pelo `IWorkCenterCapacity`.
 
+### Tela de TV e sessão de quiosque (PNL-01a, ADR 0030)
+- **Tela** (`identity.kiosk_tokens`): `AwaitingConnection` (criada ou "Gerar novo link": token novo, ainda não usado) → `Active` (o token virou sessão, `consumed_at`) → `Revoked` (`kiosk.delete`, com quem e quando; não volta). "Gerar novo link" (`kiosk.create` + `production.view`) leva `Active → AwaitingConnection`, troca o token e derruba as sessões da tela. Editar não muda a situação nem o token; as TVs conectadas recebem `KioskConfigChanged`. Toda mudança avisa o Proprietário e é auditada sem o token nem o hash; `xmin` (409 na versão antiga).
+- **Troca do token** (`POST /api/v1/kiosk/session`, anônima): token desconhecido, de outro tenant, já usado ou de tela revogada → 401 "Link inválido ou desligado." (tempo uniforme; o reuso avisa o Proprietário); IP fora das redes → 403 e o token não é consumido; módulo não liberado → 403 `module_not_released`. Aceita: sessão nova, as outras da tela caem (teto de 1) e o cookie `__Host-bq_kiosk` sai.
+- **Sessão** (`identity.kiosk_sessions`): `Active` → `Revoked` (revogação da tela, novo link, outra troca) ou vencida (30 dias sem uso ou 180 desde o pareamento; o uso renova os 30 dias no máximo 1 vez por minuto, nunca os 180). Conferida em todo request (cache de 30 s invalidado na revogação) e a cada 30 s no `KioskHub`; tenant suspenso ou módulo fora fecham a conexão ("Painel indisponível nesta versão do sistema.").
+- **Troca da rota** (`kiosk-route-fragment`, uma vez por tenant no `migrate`): telas que existirem nessa hora (criadas com o link antigo `/tv/{token}`) são revogadas, auditadas e o Proprietário é avisado. No front, qualquer `/tv/*` mostra "Este link antigo foi desligado.".
+
 ### Pedido do titular (LGPD-01a/01b, ADR 0037)
 `Received → IdentityChecked → Exported | Anonymized | Rejected`, com prazo de 15 dias corridos; anonimizar exige confirmação digitada e 2FA de novo, uma transação por módulo, retomável.
 
