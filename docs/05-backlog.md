@@ -458,7 +458,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-
 
 **Quebras e novas:** FIS-02, FIS-03, FIS-04, BNK-01, BNK-03 em a/b · **nova:** FND-16. **Re-estimadas (M → G):** FIS-01, BNK-02, BNK-01a, FIS-02a.
 
-**FND-16 [ ] Recepção de webhooks: rota pública, validação, idempotência e processamento por fila (M)** — 5.1, ordem 1 — `Ready` — [story](stories/FND-16-webhooks-de-entrada.md)
+**FND-16 [x] Recepção de webhooks: rota pública, validação, idempotência e processamento por fila (M)** — 5.1, ordem 1 — `Done` — [story](stories/FND-16-webhooks-de-entrada.md)
 - Requisitos: R-FIN-7, R-FIS-3, PRD §6 Segurança e Observabilidade, R-SEC-5.
 - CA: rota `/webhooks/{provider}/{tenantKey}` no host da plataforma, fora da allowlist e do middleware de tenant por host (ADR 0031); HMAC com timestamp ou token `?t=` (só hash), resposta uniforme; evento e outbox na mesma transação; deduplicação pelo id e pelo SHA-256 do corpo; GET de verificação só para o provedor que o declara (Meta); corpo 90 dias; rotação com 24 h de sobreposição; canário no `access_log` e no `error_log`; dois tenants.
 

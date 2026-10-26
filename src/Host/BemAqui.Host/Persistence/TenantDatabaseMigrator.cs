@@ -49,3 +49,9 @@ public sealed class TenantDatabaseMigrator : ITenantDatabaseMigrator
         }
     }
 }
+
+/// <summary>A versão esperada para quem está fora do middleware de tenant por host (webhooks, FND-16).</summary>
+public sealed class TenantSchemaVersion : BemAqui.BuildingBlocks.Webhooks.ITenantSchemaVersion
+{
+    public string Expected => TenantSchema.ExpectedVersion;
+}

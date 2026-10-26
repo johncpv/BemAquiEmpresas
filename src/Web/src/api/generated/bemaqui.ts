@@ -344,6 +344,7 @@ import type {
   ListSupplierOptionsParams,
   ListTenantsParams,
   ListUnitsParams,
+  ListWebhookEventsParams,
   ListWorkCentersParams,
   LocationDetail,
   LocationInput,
@@ -600,6 +601,7 @@ import type {
   RfqSubmitResult,
   RfqSupplierInput,
   RfqVersionInput,
+  RotateWebhookRequest,
   RoutingItemLinkInput,
   RoutingItemView,
   RoutingProductOption,
@@ -691,6 +693,10 @@ import type {
   VersionInput,
   WarrantyDefaultDetail,
   WarrantyDefaultInput,
+  WebhookCredentialStatus,
+  WebhookEventContent,
+  WebhookEventList,
+  WebhookRotation,
   WorkCenterChoice,
   WorkCenterDetail,
   WorkCenterInput,
@@ -1933,6 +1939,449 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getMarkNotificationReadMutationOptions(options), queryClient);
+    }
+
+export const getListWebhookEventsUrl = (params?: ListWebhookEventsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/settings/integrations/events?${stringifiedParams}` : `/api/v1/settings/integrations/events`
+}
+
+export const listWebhookEvents = async (params?: ListWebhookEventsParams, options?: Parameters<typeof apiFetch>[1]): Promise<WebhookEventList> => {
+
+  return apiFetch<WebhookEventList>(getListWebhookEventsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListWebhookEventsQueryKey = (params?: ListWebhookEventsParams,) => {
+    return [
+    `/api/v1/settings/integrations/events`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListWebhookEventsQueryOptions = <TData = Awaited<ReturnType<typeof listWebhookEvents>>, TError = unknown>(params?: ListWebhookEventsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWebhookEvents>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListWebhookEventsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listWebhookEvents>>> = ({ signal }) => listWebhookEvents(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listWebhookEvents>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListWebhookEventsQueryResult = NonNullable<Awaited<ReturnType<typeof listWebhookEvents>>>
+export type ListWebhookEventsQueryError = unknown
+
+
+export function useListWebhookEvents<TData = Awaited<ReturnType<typeof listWebhookEvents>>, TError = unknown>(
+ params: undefined |  ListWebhookEventsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWebhookEvents>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listWebhookEvents>>,
+          TError,
+          Awaited<ReturnType<typeof listWebhookEvents>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListWebhookEvents<TData = Awaited<ReturnType<typeof listWebhookEvents>>, TError = unknown>(
+ params?: ListWebhookEventsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWebhookEvents>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listWebhookEvents>>,
+          TError,
+          Awaited<ReturnType<typeof listWebhookEvents>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListWebhookEvents<TData = Awaited<ReturnType<typeof listWebhookEvents>>, TError = unknown>(
+ params?: ListWebhookEventsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWebhookEvents>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListWebhookEvents<TData = Awaited<ReturnType<typeof listWebhookEvents>>, TError = unknown>(
+ params?: ListWebhookEventsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWebhookEvents>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListWebhookEventsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetWebhookEventContentUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/settings/integrations/events/${id}/content`
+}
+
+export const getWebhookEventContent = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<WebhookEventContent> => {
+
+  return apiFetch<WebhookEventContent>(getGetWebhookEventContentUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetWebhookEventContentQueryKey = (id: string,) => {
+    return [
+    `/api/v1/settings/integrations/events/${id}/content`
+    ] as const;
+    }
+
+
+export const getGetWebhookEventContentQueryOptions = <TData = Awaited<ReturnType<typeof getWebhookEventContent>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWebhookEventContent>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetWebhookEventContentQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getWebhookEventContent>>> = ({ signal }) => getWebhookEventContent(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getWebhookEventContent>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetWebhookEventContentQueryResult = NonNullable<Awaited<ReturnType<typeof getWebhookEventContent>>>
+export type GetWebhookEventContentQueryError = unknown
+
+
+export function useGetWebhookEventContent<TData = Awaited<ReturnType<typeof getWebhookEventContent>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWebhookEventContent>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getWebhookEventContent>>,
+          TError,
+          Awaited<ReturnType<typeof getWebhookEventContent>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetWebhookEventContent<TData = Awaited<ReturnType<typeof getWebhookEventContent>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWebhookEventContent>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getWebhookEventContent>>,
+          TError,
+          Awaited<ReturnType<typeof getWebhookEventContent>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetWebhookEventContent<TData = Awaited<ReturnType<typeof getWebhookEventContent>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWebhookEventContent>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetWebhookEventContent<TData = Awaited<ReturnType<typeof getWebhookEventContent>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWebhookEventContent>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetWebhookEventContentQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getReprocessWebhookEventUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/settings/integrations/events/${id}/reprocess`
+}
+
+export const reprocessWebhookEvent = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getReprocessWebhookEventUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getReprocessWebhookEventMutationKey = () => ['reprocessWebhookEvent'] as const;
+
+export const getReprocessWebhookEventMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reprocessWebhookEvent>>, TError,ReprocessWebhookEventMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reprocessWebhookEvent>>, TError,ReprocessWebhookEventMutationVariables, TContext> => {
+
+const mutationKey = getReprocessWebhookEventMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reprocessWebhookEvent>>, ReprocessWebhookEventMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  reprocessWebhookEvent(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReprocessWebhookEventMutationResult = NonNullable<Awaited<ReturnType<typeof reprocessWebhookEvent>>>
+
+    export type ReprocessWebhookEventMutationError = unknown
+    export type ReprocessWebhookEventMutationVariables = {id: string}
+
+    export const useReprocessWebhookEvent = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reprocessWebhookEvent>>, TError,ReprocessWebhookEventMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reprocessWebhookEvent>>,
+        TError,
+        ReprocessWebhookEventMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReprocessWebhookEventMutationOptions(options), queryClient);
+    }
+
+export const getListWebhookCredentialsUrl = () => {
+
+
+
+
+  return `/api/v1/settings/integrations/webhooks`
+}
+
+export const listWebhookCredentials = async ( options?: Parameters<typeof apiFetch>[1]): Promise<WebhookCredentialStatus[]> => {
+
+  return apiFetch<WebhookCredentialStatus[]>(getListWebhookCredentialsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListWebhookCredentialsQueryKey = () => {
+    return [
+    `/api/v1/settings/integrations/webhooks`
+    ] as const;
+    }
+
+
+export const getListWebhookCredentialsQueryOptions = <TData = Awaited<ReturnType<typeof listWebhookCredentials>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWebhookCredentials>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListWebhookCredentialsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listWebhookCredentials>>> = ({ signal }) => listWebhookCredentials({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listWebhookCredentials>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListWebhookCredentialsQueryResult = NonNullable<Awaited<ReturnType<typeof listWebhookCredentials>>>
+export type ListWebhookCredentialsQueryError = unknown
+
+
+export function useListWebhookCredentials<TData = Awaited<ReturnType<typeof listWebhookCredentials>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWebhookCredentials>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listWebhookCredentials>>,
+          TError,
+          Awaited<ReturnType<typeof listWebhookCredentials>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListWebhookCredentials<TData = Awaited<ReturnType<typeof listWebhookCredentials>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWebhookCredentials>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listWebhookCredentials>>,
+          TError,
+          Awaited<ReturnType<typeof listWebhookCredentials>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListWebhookCredentials<TData = Awaited<ReturnType<typeof listWebhookCredentials>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWebhookCredentials>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListWebhookCredentials<TData = Awaited<ReturnType<typeof listWebhookCredentials>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWebhookCredentials>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListWebhookCredentialsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getRotateWebhookSecretUrl = (provider: string,) => {
+
+
+
+
+  return `/api/v1/settings/integrations/webhooks/${provider}/rotate`
+}
+
+export const rotateWebhookSecret = async (provider: string,
+    rotateWebhookRequest: RotateWebhookRequest, options?: Parameters<typeof apiFetch>[1]): Promise<WebhookRotation> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<WebhookRotation>(getRotateWebhookSecretUrl(provider),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(rotateWebhookRequest)
+  }
+);}
+
+
+
+
+
+export const getRotateWebhookSecretMutationKey = () => ['rotateWebhookSecret'] as const;
+
+export const getRotateWebhookSecretMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rotateWebhookSecret>>, TError,RotateWebhookSecretMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof rotateWebhookSecret>>, TError,RotateWebhookSecretMutationVariables, TContext> => {
+
+const mutationKey = getRotateWebhookSecretMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof rotateWebhookSecret>>, RotateWebhookSecretMutationVariables> = (props) => {
+          const {provider,data} = props ?? {};
+
+          return  rotateWebhookSecret(provider,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RotateWebhookSecretMutationResult = NonNullable<Awaited<ReturnType<typeof rotateWebhookSecret>>>
+    export type RotateWebhookSecretMutationBody = RotateWebhookRequest
+    export type RotateWebhookSecretMutationError = unknown
+    export type RotateWebhookSecretMutationVariables = {provider: string;data: RotateWebhookRequest}
+
+    export const useRotateWebhookSecret = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rotateWebhookSecret>>, TError,RotateWebhookSecretMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof rotateWebhookSecret>>,
+        TError,
+        RotateWebhookSecretMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRotateWebhookSecretMutationOptions(options), queryClient);
     }
 
 export const getPlatformLoginUrl = () => {

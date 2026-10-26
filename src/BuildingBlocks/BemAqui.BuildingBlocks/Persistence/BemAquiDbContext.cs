@@ -5,6 +5,7 @@ using BemAqui.BuildingBlocks.Messaging;
 using BemAqui.BuildingBlocks.Notifications;
 using BemAqui.BuildingBlocks.Persistence.Auditing;
 using BemAqui.BuildingBlocks.Persistence.Numbering;
+using BemAqui.BuildingBlocks.Webhooks;
 using BemAqui.SharedKernel;
 using Microsoft.EntityFrameworkCore;
 
@@ -36,6 +37,10 @@ public abstract class BemAquiDbContext(DbContextOptions options) : DbContext(opt
     public DbSet<EmailLog> EmailLogs => Set<EmailLog>();
 
     public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
+
+    public DbSet<WebhookEvent> WebhookEvents => Set<WebhookEvent>();
+
+    public DbSet<WebhookCredential> WebhookCredentials => Set<WebhookCredential>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -136,6 +141,37 @@ public abstract class BemAquiDbContext(DbContextOptions options) : DbContext(opt
             b.HasIndex(e => new { e.Status, e.CreatedAt });
             b.HasIndex(e => new { e.RelatedType, e.RelatedId });
             b.HasIndex(e => new { e.Template, e.CreatedAt });
+        });
+
+        // FND-16 (ADR 0031 §4): evento cru com deduplicação pelo id da entrega e pelo hash do corpo; credencial por provedor e escopo.
+        modelBuilder.Entity<WebhookEvent>(b =>
+        {
+            b.ToTable("webhook_events", SharedSchema);
+            b.HasKey(e => e.Id);
+            b.Property(e => e.Provider).HasMaxLength(32);
+            b.Property(e => e.ExternalId).HasMaxLength(WebhookReceiver.ExternalIdMaxLength + 8);
+            b.Property(e => e.BodySha256).HasColumnType("bytea");
+            b.Property(e => e.EventType).HasMaxLength(WebhookReceiver.EventTypeMaxLength);
+            b.Property(e => e.Payload).HasColumnType("bytea");
+            b.Property(e => e.Status).HasConversion<string>().HasMaxLength(16);
+            b.Property(e => e.LastError).HasMaxLength(WebhookEvent.ErrorMaxLength);
+            b.HasIndex(e => new { e.Provider, e.ExternalId }).IsUnique().HasDatabaseName(WebhookReceiver.UniqueExternalId);
+            b.HasIndex(e => new { e.Provider, e.BodySha256 }).IsUnique().HasDatabaseName(WebhookReceiver.UniqueBodyHash);
+            b.HasIndex(e => e.Status).HasFilter("status IN ('Received','Failed')").HasDatabaseName("ix_webhook_events_pending");
+            b.HasIndex(e => e.ReceivedAt);
+        });
+
+        modelBuilder.Entity<WebhookCredential>(b =>
+        {
+            b.ToTable("webhook_tokens", SharedSchema);
+            b.HasKey(e => e.Id);
+            b.Property(e => e.Provider).HasMaxLength(32);
+            b.Property(e => e.Kind).HasConversion<string>().HasMaxLength(16);
+            b.Property(e => e.TokenHash).HasMaxLength(64);
+            b.Property(e => e.PreviousTokenHash).HasMaxLength(64);
+            b.Property(e => e.SecretCipher).HasMaxLength(1024);
+            b.Property(e => e.PreviousSecretCipher).HasMaxLength(1024);
+            b.HasIndex(e => new { e.Provider, e.ScopeId }).IsUnique();
         });
 
         ConfigureModules(modelBuilder);

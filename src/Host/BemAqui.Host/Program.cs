@@ -9,6 +9,7 @@ using BemAqui.BuildingBlocks.Messaging;
 using BemAqui.BuildingBlocks.Notifications;
 using BemAqui.BuildingBlocks.Security;
 using BemAqui.BuildingBlocks.Web;
+using BemAqui.BuildingBlocks.Webhooks;
 using BemAqui.Host;
 using BemAqui.Host.Cli;
 using BemAqui.Host.Health;
@@ -18,6 +19,7 @@ using BemAqui.Host.Realtime;
 using BemAqui.Host.Security;
 using BemAqui.Host.Tenancy;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Serilog;
 
 // Modo CLI da imagem: migrate (antes da subida) e tenant provision (ADR 0006, FND-03a).
@@ -42,6 +44,13 @@ try
             lc.WriteTo.Sink(sink); // sinks extras registrados na DI (ex.: testes)
         }
     });
+    // ILogger do Microsoft.Extensions.Logging no logger do próprio host, não no estático global (o AddSerilog sem
+    // preserveStaticLogger lê o Log.Logger ao criar cada ILogger): com vários hosts no processo (testes de integração), o log ia
+    // para o último host criado, e os testes de "log sem segredo" passavam sem ver nada (FND-16 CA 13). O Log.Logger continua
+    // apontando para este logger (resolver o Serilog.ILogger o define), como antes.
+    builder.Services.RemoveAll<Microsoft.Extensions.Logging.ILoggerFactory>();
+    builder.Services.AddSingleton<Microsoft.Extensions.Logging.ILoggerFactory>(sp =>
+        new Serilog.Extensions.Logging.SerilogLoggerFactory(sp.GetRequiredService<Serilog.ILogger>(), dispose: true));
 
     builder.Services.AddProblemDetails();
     builder.Services.AddExceptionHandler<BemAqui.BuildingBlocks.Web.ConcurrencyExceptionHandler>();
@@ -98,6 +107,9 @@ try
     builder.Services.AddBemAquiLookups(builder.Configuration);
     builder.Services.AddBemAquiMessaging(builder.Configuration, HostEvents.Register);
     builder.Services.AddBemAquiAgenda(builder.Configuration); // Minha pauta (DSH-04): o agregador; as fontes vêm dos módulos
+    // Webhooks de entrada (FND-16, ADR 0031): rota pública validada, evento e outbox na mesma transação, processamento por fila.
+    builder.Services.AddBemAquiWebhooks(builder.Configuration);
+    builder.Services.AddSingleton<ITenantSchemaVersion, TenantSchemaVersion>();
 
     // Endurecimento HTTP (FND-02b): proxy confiável, JWT preso ao tenant e ao host, SignalR. Sem CORS (mesma origem).
     builder.Services.Configure<ReverseProxyOptions>(builder.Configuration.GetSection(ReverseProxyOptions.Section));
@@ -162,6 +174,8 @@ try
     app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false }).AllowAnonymous();
     app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = c => c.Tags.Contains("ready") }).AllowAnonymous();
     app.MapHealthChecks("/health", new HealthCheckOptions { Predicate = c => c.Tags.Contains("ready") }).AllowAnonymous();
+    // Única rota anônima de provedor externo (ADR 0009 adendo de 21/10/2026): fora de /api/v1 e do OpenAPI.
+    app.MapWebhookReceiver();
     app.MapHub<PingHub>(PingHub.Path);
     app.MapHub<BemAqui.Host.Realtime.ProductionHub>(BemAqui.Host.Realtime.ProductionHub.Path).RequireHubAccess("production", "production.view", "shopfloor.view").AllowPinSession();
     app.MapHub<KioskHub>(KioskHub.Path).RequireKiosk(); // só o principal de quiosque, grupos das claims (ADR 0030 §3)
@@ -171,6 +185,7 @@ try
     api.MapAttachmentEndpoints();
     api.MapNotificationEndpoints();
     api.MapAgendaEndpoints();
+    api.MapWebhookSettingsEndpoints();
     api.MapModuleEndpoints();
     foreach (var module in ModuleRegistry.All)
     {

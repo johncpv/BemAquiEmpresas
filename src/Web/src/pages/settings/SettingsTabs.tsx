@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router'
+import { useNavigation } from '@/navigation/navigation-context'
 
 const TABS = [
   { to: '/app/configuracoes/empresa', label: 'Empresa' },
@@ -7,13 +8,17 @@ const TABS = [
   { to: '/app/configuracoes/seguranca', label: 'Segurança' },
   { to: '/app/configuracoes/ia', label: 'Inteligência artificial' },
   { to: '/app/configuracoes/importacao', label: 'Importação do Dolibarr' },
+  // FND-16: só com a visualização do módulo dono de algum provedor (finance.view ou fiscal.view); sem ela, a aba some (CA 16).
+  { to: '/app/configuracoes/integracoes', label: 'Integrações', slug: 'integracoes' },
 ] as const
 
 /** Abas de Configurações: cada aba é uma rota própria (FND-09b CA 8). */
 export function SettingsTabs() {
+  const { all } = useNavigation()
+  const allowed = new Set(all.find((m) => m.code === 'settings')?.tabs.map((t) => t.slug) ?? [])
   return (
     <nav aria-label="Configurações" className="mb-5 flex gap-1 overflow-x-auto border-b border-border">
-      {TABS.map((t) => (
+      {TABS.filter((t) => !('slug' in t) || allowed.has(t.slug)).map((t) => (
         <Link key={t.to} to={t.to} activeProps={{ 'aria-current': 'page' }} className="-mb-px whitespace-nowrap border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-muted-foreground aria-[current=page]:border-primary aria-[current=page]:text-foreground">
           {t.label}
         </Link>

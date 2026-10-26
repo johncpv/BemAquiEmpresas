@@ -42,6 +42,11 @@ internal sealed class RecurringJobsRegistrar(IRecurringJobManager recurring, ICo
             new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         recurring.AddOrUpdate<BemAqui.BuildingBlocks.Persistence.IdempotencyPurgeRecurringJob>(BemAqui.BuildingBlocks.Persistence.IdempotencyPurgeRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             BemAqui.BuildingBlocks.Persistence.IdempotencyPurgeRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
+        // Webhooks (FND-16 CA 11 e 14): expurgo do corpo com mais de 90 dias às 03:00 de São Paulo e varredor de eventos parados a cada 5 min.
+        recurring.AddOrUpdate<BemAqui.BuildingBlocks.Webhooks.WebhookEventsPurgeRecurringJob>(BemAqui.BuildingBlocks.Webhooks.WebhookEventsPurgeRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
+            BemAqui.BuildingBlocks.Webhooks.WebhookEventsPurgeRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
+        recurring.AddOrUpdate<BemAqui.BuildingBlocks.Webhooks.WebhookStalledSweepRecurringJob>(BemAqui.BuildingBlocks.Webhooks.WebhookStalledSweepRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
+            BemAqui.BuildingBlocks.Webhooks.WebhookStalledSweepRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         // 07:00 de São Paulo como valor inicial; o horário é parâmetro (Jobs:Cron:production-late-orders).
         recurring.AddOrUpdate<BemAqui.Production.Application.LateOrdersRecurringJob>(BemAqui.Production.Application.LateOrdersRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             configuration["Jobs:Cron:" + BemAqui.Production.Application.LateOrdersRecurringJob.Id] is { Length: > 0 } cron ? cron : BemAqui.Production.Application.LateOrdersRecurringJob.Cron,

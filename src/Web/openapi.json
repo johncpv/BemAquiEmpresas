@@ -402,6 +402,192 @@
         }
       }
     },
+    "/api/v1/settings/integrations/events": {
+      "get": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "ListWebhookEvents",
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookEventList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/integrations/events/{id}/content": {
+      "get": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "GetWebhookEventContent",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookEventContent"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/integrations/events/{id}/reprocess": {
+      "post": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "ReprocessWebhookEvent",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/settings/integrations/webhooks": {
+      "get": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "ListWebhookCredentials",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WebhookCredentialStatus"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/integrations/webhooks/{provider}/rotate": {
+      "post": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "RotateWebhookSecret",
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RotateWebhookRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookRotation"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/platform/auth/login": {
       "post": {
         "tags": [
@@ -43400,6 +43586,35 @@
           }
         }
       },
+      "PagedListOfWebhookEventRow": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebhookEventRow"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "PagedListOfWorkCenterDetail": {
         "required": [
           "items",
@@ -55731,6 +55946,20 @@
           }
         }
       },
+      "RotateWebhookRequest": {
+        "required": [
+          "code"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "RoutingChecklistItem": {
         "required": [
           "sequence",
@@ -61334,6 +61563,206 @@
           }
         }
       },
+      "WebhookCredentialStatus": {
+        "required": [
+          "provider",
+          "name",
+          "configured",
+          "configuredAt",
+          "previousValidUntil",
+          "kind"
+        ],
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "configured": {
+            "type": "boolean"
+          },
+          "configuredAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "previousValidUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "kind": {
+            "type": "string"
+          }
+        }
+      },
+      "WebhookEventContent": {
+        "required": [
+          "id",
+          "provider",
+          "eventType",
+          "receivedAt",
+          "maskedJson",
+          "purged"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "eventType": {
+            "type": "string"
+          },
+          "receivedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "maskedJson": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "purged": {
+            "type": "boolean"
+          }
+        }
+      },
+      "WebhookEventList": {
+        "required": [
+          "page",
+          "providers",
+          "deadLettered"
+        ],
+        "type": "object",
+        "properties": {
+          "page": {
+            "$ref": "#/components/schemas/PagedListOfWebhookEventRow"
+          },
+          "providers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebhookProviderOption"
+            }
+          },
+          "deadLettered": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "WebhookEventRow": {
+        "required": [
+          "id",
+          "provider",
+          "providerName",
+          "eventType",
+          "receivedAt",
+          "status",
+          "attempts",
+          "lastError",
+          "canViewContent",
+          "canReprocess",
+          "contentPurged"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "providerName": {
+            "type": "string"
+          },
+          "eventType": {
+            "type": "string"
+          },
+          "receivedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string"
+          },
+          "attempts": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lastError": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "canViewContent": {
+            "type": "boolean"
+          },
+          "canReprocess": {
+            "type": "boolean"
+          },
+          "contentPurged": {
+            "type": "boolean"
+          }
+        }
+      },
+      "WebhookProviderOption": {
+        "required": [
+          "code",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "WebhookRotation": {
+        "required": [
+          "provider",
+          "url",
+          "secret",
+          "previousValidUntil"
+        ],
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "secret": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "previousValidUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
       "Weekday": {
         "enum": [
           "Sunday",
@@ -61485,13 +61914,13 @@
       "name": "Notifica\u00E7\u00F5es"
     },
     {
+      "name": "Configura\u00E7\u00F5es"
+    },
+    {
       "name": "Autentica\u00E7\u00E3o"
     },
     {
       "name": "Usu\u00E1rios e acessos"
-    },
-    {
-      "name": "Configura\u00E7\u00F5es"
     },
     {
       "name": "Ajuda"

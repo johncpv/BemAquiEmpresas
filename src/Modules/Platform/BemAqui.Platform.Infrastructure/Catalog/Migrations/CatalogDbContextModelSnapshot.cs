@@ -494,6 +494,11 @@ namespace BemAqui.Platform.Infrastructure.Catalog.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("trade_name");
 
+                    b.Property<string>("WebhookKey")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("webhook_key");
+
                     b.HasKey("Id")
                         .HasName("pk_tenants");
 
@@ -503,6 +508,10 @@ namespace BemAqui.Platform.Infrastructure.Catalog.Migrations
 
                     b.HasIndex("PlanId")
                         .HasDatabaseName("ix_tenants_plan_id");
+
+                    b.HasIndex("WebhookKey")
+                        .IsUnique()
+                        .HasDatabaseName("ix_tenants_webhook_key");
 
                     b.ToTable("tenants", "catalog");
                 });
