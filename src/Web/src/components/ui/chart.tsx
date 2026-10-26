@@ -59,7 +59,7 @@ const color = (s: ChartSeries, i: number) => `var(--chart-${s.color ?? (i % 6) +
 export function Chart<T extends Record<string, unknown>>({ title, data, xKey, series, format = (v) => v.toLocaleString('pt-BR'), height = 260, xLabel = 'Período', references = [], yReferences = [], valueLabels = false, summary, state = 'ready', onRetry, emptyTitle }: ChartProps<T>) {
   const value = (v: unknown) => (typeof v === 'number' ? format(v) : '—')
   const last = Object.fromEntries(series.map((s) => [s.key, data.reduce((at, row, i) => (typeof row[s.key] === 'number' ? i : at), -1)]))
-  const legend: ChartLegendItem[] = series.map((s, i) => {
+  const legend: ChartLegendItem[] = series.map((s, i): ChartLegendItem => {
     const stroke = SERIES_STROKE[s.kind ?? 'actual']
     return { key: s.key, label: s.label + (s.kind === 'projected' && !/projet/i.test(s.label) ? ' (projetado)' : ''), color: color(s, i), dash: stroke.dash, width: stroke.width, marker: stroke.marker }
   }).concat(yReferences.filter((r) => r.legend).map((r) => ({ key: `ref-${r.label}`, label: r.label, color: 'var(--muted-foreground)', width: 1.5 })))

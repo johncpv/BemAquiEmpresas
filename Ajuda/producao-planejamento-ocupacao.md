@@ -39,7 +39,7 @@ O plano é **finito**: ele nunca põe num dia mais horas do que o centro tem. O 
 ## Ver as etapas da célula
 - Clique na célula, ou vá até ela com as **setas** e aperte **Enter**. O painel lateral lista as etapas alocadas naquele centro e naquela semana: OS (com link), projeto, etapa, horas na semana e o início e o fim previstos.
 - O **total da semana** no painel é o mesmo número da célula.
-- Na tabela, **Home** e **End** vão para a primeira e a última semana da linha; **Ctrl+Home** e **Ctrl+End**, para o começo e o fim da tabela. A coluna dos centros fica fixa quando a tabela rola para o lado.
+- Na tabela, **Home** e **End** vão para o começo (o nome do centro) e para a última semana da linha; **Ctrl+Home** e **Ctrl+End**, para o começo e o fim da tabela. A coluna dos centros fica fixa quando a tabela rola para o lado.
 
 ## Gráfico
 - Escolha **Gráfico** para ver um ponto por semana com o percentual escrito ao lado e a linha de referência **Capacidade (100%)**. Sem filtro, o gráfico é da fábrica; escolhendo um **Centro**, é só dele.

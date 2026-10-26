@@ -71,29 +71,31 @@ describe('ocupação (PLN-04)', () => {
   it('tabela navega por célula pelo teclado e Enter abre o drill-down (CA 7)', () => {
     const onOpen = vi.fn()
     render(<OccupancyGrid label="Ocupação por semana e centro" weeks={WEEKS} rows={[CUT, ASSEMBLY, FACTORY]} onOpen={onOpen} />)
-    const grid = screen.getByRole('grid', { name: 'Ocupação por semana e centro' })
+    const grid = screen.getByRole('treegrid', { name: 'Ocupação por semana e centro' })
+    // TreeTable analítica (FIN-08): por linha, a célula do centro e uma por semana.
     const cells = screen.getAllByRole('gridcell')
-    expect(cells).toHaveLength(6)
+    const at = (r: number, c: number) => cells[r * 3 + c]
+    expect(cells).toHaveLength(9)
     expect(cells.filter((c) => c.tabIndex === 0)).toHaveLength(1)
     expect(grid.querySelector('th[scope="row"]')!.className).toContain('sticky')
     expect(screen.getByRole('gridcell', { name: 'Corte, S44 · 26/10: 8 de 8 h, 100,0%, Lotado' })).toBeTruthy()
 
-    cells[0].focus()
-    fireEvent.keyDown(cells[0], { key: 'ArrowRight' })
-    expect(document.activeElement).toBe(cells[1])
-    fireEvent.keyDown(cells[1], { key: 'ArrowDown' })
-    expect(document.activeElement).toBe(cells[3])
-    fireEvent.keyDown(cells[3], { key: 'Home' })
-    expect(document.activeElement).toBe(cells[2])
-    fireEvent.keyDown(cells[2], { key: 'End', ctrlKey: true })
-    expect(document.activeElement).toBe(cells[5])
-    fireEvent.keyDown(cells[5], { key: 'ArrowDown' })
-    expect(document.activeElement).toBe(cells[5]) // para na última linha
-    fireEvent.keyDown(cells[5], { key: 'Enter' })
+    at(0, 1).focus()
+    fireEvent.keyDown(at(0, 1), { key: 'ArrowRight' })
+    expect(document.activeElement).toBe(at(0, 2))
+    fireEvent.keyDown(at(0, 2), { key: 'ArrowDown' })
+    expect(document.activeElement).toBe(at(1, 2))
+    fireEvent.keyDown(at(1, 2), { key: 'Home' })
+    expect(document.activeElement).toBe(at(1, 0))
+    fireEvent.keyDown(at(1, 0), { key: 'End', ctrlKey: true })
+    expect(document.activeElement).toBe(at(2, 2))
+    fireEvent.keyDown(at(2, 2), { key: 'ArrowDown' })
+    expect(document.activeElement).toBe(at(2, 2)) // para na última linha
+    fireEvent.keyDown(at(2, 2), { key: 'Enter' })
     expect(onOpen).toHaveBeenCalledWith(FACTORY, 1)
-    fireEvent.click(cells[0])
+    fireEvent.click(at(0, 1))
     expect(onOpen).toHaveBeenLastCalledWith(CUT, 0)
-    expect(cells[0].tabIndex).toBe(0)
+    expect(at(0, 1).tabIndex).toBe(0)
   })
 
   it('gráfico com a referência "Capacidade (100%)" na legenda e a tabela equivalente (CA 8)', () => {
