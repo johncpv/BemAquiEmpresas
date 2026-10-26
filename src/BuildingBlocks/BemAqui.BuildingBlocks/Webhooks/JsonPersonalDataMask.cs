@@ -80,6 +80,13 @@ public static partial class JsonPersonalDataMask
         return Phone().IsMatch(text) && text.Count(char.IsAsciiDigit) is >= 10 and <= 13;
     }
 
+    /// <summary>Texto livre (ex.: observação): e-mail, CPF/CNPJ com máscara e telefone com DDD no meio da frase viram <see cref="Mask"/>.</summary>
+    public static string MaskInline(string value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        return InlinePersonal().Replace(value, Mask);
+    }
+
     private static JsonNode? Walk(JsonNode? node, bool personal)
     {
         switch (node)
@@ -104,7 +111,19 @@ public static partial class JsonPersonalDataMask
                     return value.GetValueKind() is JsonValueKind.Null or JsonValueKind.True or JsonValueKind.False ? value : JsonValue.Create(Mask);
                 }
 
-                return value.GetValueKind() == JsonValueKind.String && IsPersonalValue(value.GetValue<string>()) ? JsonValue.Create(Mask) : value;
+                if (value.GetValueKind() != JsonValueKind.String)
+                {
+                    return value;
+                }
+
+                var text = value.GetValue<string>();
+                if (IsPersonalValue(text))
+                {
+                    return JsonValue.Create(Mask);
+                }
+
+                var inline = MaskInline(text);
+                return string.Equals(inline, text, StringComparison.Ordinal) ? value : JsonValue.Create(inline);
             default:
                 return node;
         }
@@ -133,4 +152,7 @@ public static partial class JsonPersonalDataMask
 
     [GeneratedRegex(@"^(\+\d{1,3}\s?)?\(\d{2}\)\s?\d{4,5}-?\d{4}$|^\+\d{12,13}$", RegexOptions.CultureInvariant)]
     private static partial Regex Phone();
+
+    [GeneratedRegex(@"[^@\s""'<>(),;:]+@[^@\s""'<>(),;:]+\.[A-Za-z]{2,}|\d{3}\.\d{3}\.\d{3}-\d{2}|\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}|\(\d{2}\)\s?\d{4,5}-?\d{4}", RegexOptions.CultureInvariant)]
+    private static partial Regex InlinePersonal();
 }
