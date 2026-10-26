@@ -19,6 +19,8 @@ public static class CommercialInfrastructure
     {
         services.TryAddSingleton(TimeProvider.System);
         services.TryAddScoped<QuoteService>();
+        // PLN-05: simulação de prazo do orçamento pelo motor do Production (IProductionSchedule), sem gravar.
+        services.TryAddScoped<QuoteScheduleSimulationService>();
         // Resumo do funil para o painel do proprietário (DSH-01a, ADR 0028 §1).
         services.TryAddScoped<IQuoteFunnel, QuoteFunnelContract>();
         services.TryAddScoped<QuoteLookups>();

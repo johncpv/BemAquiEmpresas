@@ -53,6 +53,29 @@ public sealed record SimulatedProject(Guid ProjectId, string Number, DateOnly? P
 public sealed record ScheduleSimulation(IReadOnlyList<OrderForecastInfo> Orders, IReadOnlyList<ProjectFabricationForecast> Projects);
 
 /// <summary>
+/// Entrega simulada do projeto virtual (PLN-05 CA 3 e 4), sem gravar nada: tamanho da fila real e posição usada (1 até o tamanho + 1), hoje
+/// (a aprovação), o fim da fabricação e a entrega prevista (com o prazo de instalação da PLN-01b quando <c>IncludesInstallation</c>), ou o
+/// motivo em código (<see cref="ProjectForecastReasons"/>), e os projetos reais que passam a atrasar (prometido antes da nova previsão, que
+/// piora). Só ids e datas: nenhuma hora, centro ou custo.
+/// </summary>
+public sealed record DeliverySimulation(
+    int QueueSize, int Position, DateOnly Today, DateOnly? FabricationEnd, DateOnly? DeliveryDate, string? NoForecastReason, bool IncludesInstallation,
+    IReadOnlyList<Guid> NewlyLateProjectIds);
+
+/// <summary>
+/// Política nomeada do rate limit das simulações do motor (PLN-02 CA 10 e PLN-05 CA 10, §4.3 transversal): 20 por minuto por usuário, por
+/// rota; acima, 429 com <see cref="SimulateLimitMessage"/>. Fica no contrato para o Commercial usar sem depender do Production.
+/// </summary>
+public static class PlanningRateLimits
+{
+    public const string SimulatePolicy = "planning-simulate";
+
+    public const int SimulatePerMinute = 20;
+
+    public const string SimulateLimitMessage = "Aguarde alguns segundos para simular de novo.";
+}
+
+/// <summary>
 /// Plano de produção para os outros módulos e telas (PLN-01a CA 15, ADR 0029): lê as tabelas do plano (a última execução bem-sucedida)
 /// ou simula em memória com outra ordem de fila ou um projeto virtual, <b>sem gravar nada</b> (PLN-02 e PLN-05). Sem custo.
 /// </summary>
@@ -75,6 +98,14 @@ public interface IProductionSchedule
     /// ordem padrão) e, se houver, o projeto virtual. Não grava nada.
     /// </summary>
     Task<ScheduleSimulation> SimulateAsync(IReadOnlyList<Guid> queueOrder, SimulatedProject? extraProject = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// "Se eu aceitar agora, quando entrego?" (PLN-05): roda <see cref="SimulateAsync"/> com a fila de hoje (<see cref="IPlanningQueue"/>), sem e
+    /// com o projeto virtual na posição <see cref="SimulatedProject.QueuePosition"/> (null ou fora da faixa = no fim), e devolve a entrega
+    /// prevista do virtual (fim da fabricação + prazo de instalação quando <paramref name="hasInstallationBudget"/>) e quem passa a atrasar.
+    /// Só lê: nenhum lock, nada gravado.
+    /// </summary>
+    Task<DeliverySimulation> SimulateDeliveryAsync(SimulatedProject project, bool hasInstallationBudget, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Última previsão de entrega publicada de cada projeto pedido (PLN-01b CA 11: a TV na PNL-01b); os que nunca foram calculados ficam fora.

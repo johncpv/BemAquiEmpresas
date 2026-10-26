@@ -36,6 +36,7 @@ internal static partial class CommercialEndpoints
         MapItems(quotes);
         MapConditions(quotes);
         MapRevisions(quotes);
+        MapScheduleSimulation(quotes);
         MapApproval(quotes);
         MapDocuments(quotes);
         MapContracts(api);

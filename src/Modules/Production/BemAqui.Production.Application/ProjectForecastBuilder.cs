@@ -79,6 +79,22 @@ public sealed class ProjectForecastBuilder(IProductionDb db, IProjects projects,
         })];
     }
 
+    /// <summary>
+    /// Previsão do projeto virtual da simulação do orçamento (PLN-05 CA 4): as OS dele no resultado do motor, sem OS de instalação; com custo
+    /// de instalação no orçamento, fim da fabricação + o prazo <c>planning.installation_days</c> em dias úteis (a mesma regra da PLN-01b).
+    /// </summary>
+    public async Task<ProjectForecastResult> VirtualAsync(ScheduleResult result, Guid projectId, bool hasInstallationBudget, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+        var orders = result.Orders.Where(o => o.ProjectId == projectId)
+            .Select((o, i) => new ProjectForecastOrder(o.OrderId, (i + 1).ToString("D3", System.Globalization.CultureInfo.InvariantCulture), false, o.End,
+                o.End is null ? ProjectForecastCalculator.ReasonCode(o.NoForecastReason) : null))
+            .ToList();
+        var days = await parameters.InstallationDaysAsync(cancellationToken);
+        var isWorkingDay = await WorkingDaysAsync(BusinessTime.Today(clock), cancellationToken);
+        return ProjectForecastCalculator.Compute(new ProjectForecastInput(projectId, orders, [], hasInstallationBudget), days, isWorkingDay);
+    }
+
     /// <summary>Dia útil do calendário padrão: dia da semana útil e sem exceção de 0 h (feriado ou parada do dia todo).</summary>
     private async Task<Func<DateOnly, bool>> WorkingDaysAsync(DateOnly today, CancellationToken ct)
     {
