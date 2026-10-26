@@ -5,6 +5,7 @@ using BemAqui.BuildingBlocks.Tenancy;
 using BemAqui.BuildingBlocks.Time;
 using BemAqui.Commercial.Contracts;
 using BemAqui.Production.Domain;
+using BemAqui.SharedKernel;
 using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -46,7 +47,7 @@ public sealed class LateOrdersNotifier(
         var today = BusinessTime.Today(clock);
         var late = orders
             .Select(o => (Order: o, Project: byProject.GetValueOrDefault(o.ProjectId)))
-            .Select(x => (x.Order, x.Project, Risk: ProductionOrderRisk.Evaluate(x.Project?.PromisedDate, today, x.Order.Status, atLastStep: true)))
+            .Select(x => (x.Order, x.Project, Risk: ProductionOrderRisk.Evaluate(x.Project?.PromisedDate, null, today, x.Order.Status)))
             .Where(x => x.Project is not null && x.Risk.Risk == DeliveryRisk.Late)
             .ToList();
         if (late.Count == 0)

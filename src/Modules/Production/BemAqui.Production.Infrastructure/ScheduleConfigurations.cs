@@ -51,3 +51,15 @@ internal sealed class ScheduleStepForecastConfiguration : IEntityTypeConfigurati
         b.HasIndex(e => e.ProductionOrderId);
     }
 }
+
+/// <summary>Previsão de entrega por projeto (PLN-01b CA 7): <c>project_id</c> é a chave; o motivo é código (até 32). Fora da auditoria.</summary>
+internal sealed class ScheduleProjectForecastConfiguration : IEntityTypeConfiguration<ScheduleProjectForecast>
+{
+    public void Configure(EntityTypeBuilder<ScheduleProjectForecast> b)
+    {
+        b.ToTable("schedule_project_forecasts", ProductionSchema.Name);
+        b.HasKey(e => e.ProjectId);
+        b.Property(e => e.ProjectId).ValueGeneratedNever();
+        b.Property(e => e.Reason).HasMaxLength(32);
+    }
+}

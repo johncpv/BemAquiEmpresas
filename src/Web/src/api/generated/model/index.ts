@@ -662,6 +662,7 @@ export * from './projectCostView';
 export * from './projectDetail';
 export * from './projectEventInput';
 export * from './projectFinancial';
+export * from './projectForecastView';
 export * from './projectItemKind';
 export * from './projectItemView';
 export * from './projectLaborWorkerEntry';

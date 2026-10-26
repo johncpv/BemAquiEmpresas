@@ -4,6 +4,7 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { ProjectForecastView } from './projectForecastView';
 import type { ProjectItemView } from './projectItemView';
 import type { ProjectStatus } from './projectStatus';
 
@@ -45,4 +46,5 @@ export interface ProjectDetail {
   fabricatedByOrders?: boolean;
   fabricationOrders?: number;
   openFabricationOrders?: number;
+  forecast?: null | ProjectForecastView;
 }

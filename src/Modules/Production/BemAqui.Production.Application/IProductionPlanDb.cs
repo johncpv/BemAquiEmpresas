@@ -18,6 +18,9 @@ public interface IProductionPlanDb
 
     DbSet<ScheduleStepForecast> ScheduleStepForecasts { get; }
 
+    /// <summary>Última previsão publicada de cada projeto (PLN-01b CA 7).</summary>
+    DbSet<ScheduleProjectForecast> ScheduleProjectForecasts { get; }
+
     DatabaseFacade Database { get; }
 
     ChangeTracker ChangeTracker { get; }

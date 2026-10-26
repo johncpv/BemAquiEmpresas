@@ -68,7 +68,7 @@ function OrdersTable() {
       id: 'number', header: 'OS', cell: ({ row: { original: o } }) => (
         <span>
           <Link to={'/app/producao/os/$id' as never} params={{ id: o.id } as never} className="font-semibold text-primary hover:underline">{o.number}</Link>
-          {delayLabel(o.delayDays) ? <span className="block text-xs font-semibold text-crit-ink">{delayLabel(o.delayDays)}</span> : null}
+          {delayLabel(o.delayDays) ? <span className="block text-xs font-semibold text-crit-ink">{delayLabel(o.delayDays)}</span> : o.risk === 'AtRisk' ? <span className="block text-xs font-semibold text-warn-ink">Em risco</span> : null}
         </span>
       ),
     },
@@ -105,7 +105,7 @@ function OrdersTable() {
     <>
       {clear}
       <DataTable label="OS de fabricação" columns={columns} query={query} getRowId={(o) => o.id} searchable={false}
-        rowClassName={(o) => (o.delayDays ? 'border-l-4 border-l-crit' : undefined)}
+        rowClassName={(o) => (o.delayDays ? 'border-l-4 border-l-crit' : o.risk === 'AtRisk' ? 'border-l-4 border-l-warn' : undefined)}
         filters={[
           { key: 'situacao', label: 'Situação', options: [...(canApprove ? [{ value: 'todas', label: 'Todas' }] : []), ...FABRICATION_SITUATIONS.map((s) => (s.value === 'pronta' && canApprove ? { ...s, label: 'Aguardando você' } : s))] },
           ...(lines.length > 0 ? [{ key: 'linha', label: 'Linha', options: lines.map((l) => ({ value: l, label: l })) }] : []),

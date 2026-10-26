@@ -22,7 +22,8 @@ const action = 'inline-flex min-h-[44px] items-center rounded-md border border-b
 export function PlanningPage() {
   const client = useQueryClient()
   const canEdit = useCan('production.edit')
-  const query = useGetPlanningSummary()
+  // PLN-01b: enquanto há recálculo pendente, o cabeçalho mostra "Recalculando…" e confere de novo a cada 3 s.
+  const query = useGetPlanningSummary({ query: { refetchInterval: (q) => (q.state.data?.pending ? 3000 : false) } })
   const recalc = useRecalculateSchedule()
   const recalculate = async () => {
     try {
@@ -68,13 +69,13 @@ function PlanningBody({ summary, button, recalculating }: { summary: PlanningSum
       <section aria-label="Última execução do plano" className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-border bg-card p-4">
         <div className="min-w-0 space-y-1 text-sm">
           <p className="font-semibold tabular-nums" aria-live="polite">
-            {recalculating ? 'Recalculando…' : summary.lastSuccess ? runLine(summary.lastSuccess) : 'O plano ainda não foi calculado.'}
+            {recalculating || summary.pending ? 'Recalculando…' : summary.lastSuccess ? runLine(summary.lastSuccess) : 'O plano ainda não foi calculado.'}
           </p>
           <p className="text-muted-foreground tabular-nums">
             {summary.openOrders === 1 ? '1 OS de fabricação aberta' : `${summary.openOrders} OS de fabricação abertas`}
-            {summary.lastSuccess ? `, ${summary.lastSuccess.changedOrdersCount} com data alterada no último cálculo` : ''}. O plano se refaz de hora em hora.
+            {summary.lastSuccess ? `, ${summary.lastSuccess.changedOrdersCount} com data alterada no último cálculo` : ''}. O plano se refaz sozinho a cada mudança na fábrica (em até 10 s) e de hora em hora.
           </p>
-          {summary.pending ? <StatusChip tone="info">Recálculo pendente</StatusChip> : null}
+          {summary.pending && summary.lastSuccess ? <StatusChip tone="info">{runLine(summary.lastSuccess)}</StatusChip> : null}
         </div>
         {button}
       </section>

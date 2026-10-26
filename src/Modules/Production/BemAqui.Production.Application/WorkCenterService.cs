@@ -8,9 +8,10 @@ namespace BemAqui.Production.Application;
 
 /// <summary>
 /// Centros de trabalho (CAD-03 CA 12 a 14). Horas por dia derivadas dos turnos, calendário padrão do tenant, inativar e
-/// excluir conforme o uso informado pelos <see cref="IWorkCenterUsageProvider"/> (D10).
+/// excluir conforme o uso informado pelos <see cref="IWorkCenterUsageProvider"/> (D10). PLN-01b CA 1: salvar, inativar ou reativar um
+/// centro muda a capacidade e pede o recálculo do plano depois do commit (o centro novo e o excluído não estão em uso por nenhuma etapa).
 /// </summary>
-public sealed class WorkCenterService(IProductionDb db, CalendarService calendars, IEnumerable<IWorkCenterUsageProvider> usages, TimeProvider clock)
+public sealed class WorkCenterService(IProductionDb db, CalendarService calendars, IEnumerable<IWorkCenterUsageProvider> usages, TimeProvider clock, IScheduleTrigger trigger)
 {
     public async Task<PagedList<WorkCenterDetail>> ListAsync(WorkCenterListQuery query, PageRequest page, CancellationToken cancellationToken = default)
     {
@@ -67,6 +68,7 @@ public sealed class WorkCenterService(IProductionDb db, CalendarService calendar
         }
 
         Apply(center, input);
+        await trigger.RequestAsync("centro de trabalho", cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         return ToDetail(center);
     }
@@ -81,6 +83,7 @@ public sealed class WorkCenterService(IProductionDb db, CalendarService calendar
         }
 
         center.IsActive = active;
+        await trigger.RequestAsync("centro de trabalho", cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         return ToDetail(center);
     }

@@ -5,6 +5,7 @@ using BemAqui.Inventory.Contracts;
 using BemAqui.Parties.Contracts;
 using BemAqui.Production.Contracts;
 using BemAqui.Production.Domain;
+using BemAqui.SharedKernel;
 using Microsoft.EntityFrameworkCore;
 
 namespace BemAqui.Production.Application;
@@ -38,7 +39,10 @@ public sealed class ProductionBoardService(
                 .ToListAsync(cancellationToken))
             .ToLookup(s => s.OrderId);
 
-        var byProject = (await projects.FindManyAsync(orders.Select(o => o.ProjectId).Distinct().ToList(), cancellationToken)).ToDictionary(p => p.Id);
+        var projectIds = orders.Select(o => o.ProjectId).Distinct().ToList();
+        var byProject = (await projects.FindManyAsync(projectIds, cancellationToken)).ToDictionary(p => p.Id);
+        // PLN-01b CA 9: o risco é a previsão de entrega do projeto (o plano) depois da data prometida, sem tolerância.
+        var forecasts = await ForecastsAsync(db, projectIds, cancellationToken);
         var partyNames = (await parties.FindManyAsync(byProject.Values.Select(p => p.PartyId).Distinct().ToList(), cancellationToken))
             .ToDictionary(p => p.Id, p => p.TradeName ?? p.LegalName);
         var products = (await items.FindAsync(orders.Where(o => o.ProductId is not null).Select(o => o.ProductId!.Value).Distinct().ToList(), cancellationToken))
@@ -66,8 +70,7 @@ public sealed class ProductionBoardService(
             // Linha: centro da etapa atual; na "Pronta para concluir", o da última etapa (a OS continua na linha dela).
             var lineStep = current ?? (mine.Count > 0 ? mine[^1] : null);
             var project = byProject.GetValueOrDefault(o.ProjectId);
-            var statuses = mine.Select(s => s.Status).ToList();
-            var risk = ProductionOrderRisk.Evaluate(project?.PromisedDate, today, o.Status, ProductionOrderRisk.IsAtLastStep(statuses));
+            var risk = ProductionOrderRisk.Evaluate(project?.PromisedDate, forecasts.GetValueOrDefault(o.ProjectId), today, o.Status);
             var product = o.ProductId is { } p ? products.GetValueOrDefault(p) : null;
             var onStep = current is null ? [] : open[current.Id].ToList();
             var working = onStep.Any(e => e.Paused is null);
@@ -120,6 +123,19 @@ public sealed class ProductionBoardService(
         columns.AddRange(BoardRules.StepColumns(columnSource).Select(c => Column(c.Code, BoardColumnKind.Step, c.Code, c.Name, filtered)));
         columns.Add(Column(BoardRules.ReadyKey, BoardColumnKind.ReadyToComplete, null, BoardRules.ReadyName, filtered));
         return new ProductionBoard(columns, filtered, lateCount, riskCount, cards.Count, projectOptions, partyOptions, routingOptions, lines);
+    }
+
+    /// <summary>Data prevista de entrega de cada projeto no plano (PLN-01b CA 9), para o risco do Kanban e da lista e do detalhe da OS.</summary>
+    public static async Task<Dictionary<Guid, DateOnly?>> ForecastsAsync(IProductionDb db, IReadOnlyCollection<Guid> projectIds, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(db);
+        ArgumentNullException.ThrowIfNull(projectIds);
+        if (projectIds.Count == 0)
+        {
+            return [];
+        }
+
+        return await db.ScheduleProjectForecastsView.Where(f => projectIds.Contains(f.ProjectId)).ToDictionaryAsync(f => f.ProjectId, f => f.ForecastDate, cancellationToken);
     }
 
     /// <summary>Iniciais do funcionário no cartão (CA 3 da PRD-02): primeira letra do primeiro e do último nome.</summary>

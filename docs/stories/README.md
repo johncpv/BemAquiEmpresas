@@ -676,7 +676,7 @@ Achados pontuais da §4.4 aplicados nas stories: conciliação com uma linha por
 
 | 5 (4.2) | DSH-01a | Painel do proprietário: módulo Dashboard e cards de caixa, faturamento, inadimplência, comercial e decisões | G | Ready | PRD §5.14, R-FIN-10, R-FIN-11, R-FIN-12, R-FIN-13, R-COML-9 | FIN-05, FIN-07, FIN-08, FIN-06a, COM-08, DSH-04, DSH-02 | [DSH-01a](DSH-01a-painel-dono-financeiro-comercial.md) |
 | 6 (4.3) | PLN-01a | Motor de agendamento finito | G | Done | R-PLN-3, R-PLN-1, PRD §6, R-SEC-5 | PRD-01, PRD-03a, PRD-05, PRD-06a1, CAD-03 | [PLN-01a](PLN-01a-motor-agendamento.md) |
-| 7 (4.3) | PLN-01b | Recálculo por evento, data prevista do projeto e risco de atraso | M | Ready (pré-condição externa) | R-PLN-3, R-PLN-4, R-COM-2, R-PRP-5, PRD §1.2, PRD §6 | PLN-01a, COM-05, COM-07, PRD-02, PRD-03a, PRD-05, PRD-06a1 | [PLN-01b](PLN-01b-recalculo-previsao-risco.md) |
+| 7 (4.3) | PLN-01b | Recálculo por evento, data prevista do projeto e risco de atraso | M | Done | R-PLN-3, R-PLN-4, R-COM-2, R-PRP-5, PRD §1.2, PRD §6 | PLN-01a, COM-05, COM-07, PRD-02, PRD-03a, PRD-05, PRD-06a1 | [PLN-01b](PLN-01b-recalculo-previsao-risco.md) |
 | 8 (4.3) | PLN-02 | Fila de prioridade dos projetos | M | Ready | R-PLN-2, R-PLN-3, R-PLN-4, R-PRP-2, R-SEC-5 | PLN-01a, PLN-01b, COM-05, FND-09e | [PLN-02](PLN-02-fila-prioridade.md) |
 | 9 (4.3) | PLN-04 | Ocupação da fábrica por semana e centro | M | Ready | R-PLN-6, R-PLN-1, PRD §5.14, PRD §6 | PLN-01a, CAD-03, DSH-02, FIN-08 | [PLN-04](PLN-04-ocupacao-fabrica.md) |
 | 10 (4.3) | PLN-03 | Cronograma (Gantt) por projeto e por centro de trabalho | G | Ready | R-PLN-4, R-PLN-3, PRD §5.14, R-PRP-5, PRD §6 | PLN-01a, PLN-01b, PLN-02, FIN-07, COM-05, COM-06 | [PLN-03](PLN-03-gantt.md) |

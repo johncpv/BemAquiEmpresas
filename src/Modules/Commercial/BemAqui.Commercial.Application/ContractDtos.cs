@@ -27,7 +27,7 @@ public sealed record ProjectDetail(
     Guid Id, string Number, string Name, ProjectStatus Status, Guid PartyId, string PartyName, Guid ContractId, string ContractNumber, Guid? SiteAddressId, string? SiteAddress,
     DateOnly? PromisedDate, DateOnly? ForecastDate, int? Priority, Guid? ManagerUserId, string? ManagerName, DateTimeOffset CreatedAt, IReadOnlyList<ProjectItemView> Items, uint Version,
     DateOnly? FabricatedOn = null, DateOnly? DeliveredOn = null, bool DeliveredManually = false, bool HasFabricationMilestone = false, string? ContractStatus = null, bool IsOnboarding = false,
-    bool FabricatedByOrders = false, int FabricationOrders = 0, int OpenFabricationOrders = 0);
+    bool FabricatedByOrders = false, int FabricationOrders = 0, int OpenFabricationOrders = 0, ProjectForecastView? Forecast = null);
 
 /// <summary>Orçado por natureza (CA 8), só com <c>projects.view_cost</c>.</summary>
 public sealed record ProjectBudgetLine(CostType CostType, decimal BudgetedAmount);

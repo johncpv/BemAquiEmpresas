@@ -75,4 +75,40 @@ public interface IProductionSchedule
     /// ordem padrão) e, se houver, o projeto virtual. Não grava nada.
     /// </summary>
     Task<ScheduleSimulation> SimulateAsync(IReadOnlyList<Guid> queueOrder, SimulatedProject? extraProject = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Última previsão de entrega publicada de cada projeto pedido (PLN-01b CA 11: a TV na PNL-01b); os que nunca foram calculados ficam fora.
+    /// </summary>
+    Task<IReadOnlyList<ProjectDeliveryForecast>> ProjectForecastsAsync(IReadOnlyCollection<Guid> projectIds, CancellationToken cancellationToken = default);
 }
+
+/// <summary>
+/// Motivo da previsão vazia do projeto (PLN-01b, regras): sempre código, traduzido na tela (ADR 0019 §19, sem texto livre no evento).
+/// </summary>
+public static class ProjectForecastReasons
+{
+    /// <summary>Alguma OS de fabricação do projeto sem etapas ("Sem roteiro").</summary>
+    public const string NoRouting = "NoRouting";
+
+    /// <summary>Etapa sem centro de trabalho.</summary>
+    public const string NoWorkCenter = "NoWorkCenter";
+
+    /// <summary>Centro sem capacidade nos próximos 2 anos.</summary>
+    public const string NoCapacity = "NoCapacity";
+
+    /// <summary>Projeto sem nenhuma OS de fabricação não cancelada.</summary>
+    public const string NoFabricationOrder = "NoFabricationOrder";
+
+    public static IReadOnlyList<string> All { get; } = [NoRouting, NoWorkCenter, NoCapacity, NoFabricationOrder];
+}
+
+/// <summary>
+/// Data prevista do projeto mudou (PLN-01b CA 7): entrega prevista e fim da fabricação, ou o motivo (código) e a OS que impede a data, e
+/// quando foi calculada. Só ids, datas e código (ADR 0019 §19). O Commercial grava em <c>commercial.project_forecasts</c> só se
+/// <c>ComputedAt</c> for mais novo que o gravado (o outbox não garante ordem).
+/// </summary>
+public sealed record ProjectForecastChanged(
+    Guid ProjectId, DateOnly? ForecastDate, DateOnly? FabricationEnd, string? Reason, DateTimeOffset ComputedAt, Guid? ReasonOrderId = null) : BemAqui.SharedKernel.IIntegrationEvent;
+
+/// <summary>Previsão do projeto no plano (PLN-01b CA 11, PNL-01b): entrega, fim da fabricação, motivo e quando foi calculada.</summary>
+public sealed record ProjectDeliveryForecast(Guid ProjectId, DateOnly? ForecastDate, DateOnly? FabricationEnd, string? Reason, Guid? ReasonOrderId, DateTimeOffset ComputedAt);

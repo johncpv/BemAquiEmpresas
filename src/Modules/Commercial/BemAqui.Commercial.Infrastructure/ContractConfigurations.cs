@@ -53,6 +53,22 @@ internal sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
     }
 }
 
+/// <summary>
+/// Previsão de entrega do projeto (PLN-01b CA 7, ADR 0029): uma linha por projeto (<c>project_id</c> é a chave), fora da auditoria; o motivo é
+/// código (até 32). A linha de <c>projects</c> não é tocada.
+/// </summary>
+internal sealed class ProjectForecastConfiguration : IEntityTypeConfiguration<ProjectForecast>
+{
+    public void Configure(EntityTypeBuilder<ProjectForecast> b)
+    {
+        b.ToTable("project_forecasts", CommercialSchema.Name);
+        b.HasKey(e => e.ProjectId);
+        b.Property(e => e.ProjectId).ValueGeneratedNever();
+        b.Property(e => e.Reason).HasMaxLength(32);
+        b.HasOne<Project>().WithOne().HasForeignKey<ProjectForecast>(e => e.ProjectId).OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
 internal sealed class ProjectItemConfiguration : IEntityTypeConfiguration<ProjectItem>
 {
     public void Configure(EntityTypeBuilder<ProjectItem> b)

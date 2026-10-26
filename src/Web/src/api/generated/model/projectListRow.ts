@@ -4,6 +4,7 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { DeliveryRisk } from './deliveryRisk';
 import type { ProjectStatus } from './projectStatus';
 
 export interface ProjectListRow {
@@ -23,4 +24,11 @@ export interface ProjectListRow {
   /** @nullable */
   managerName: string | null;
   contractId: string;
+  /** @nullable */
+  forecastDate?: string | null;
+  /** @nullable */
+  slackDays?: number | null;
+  risk?: DeliveryRisk;
+  /** @nullable */
+  forecastReason?: string | null;
 }

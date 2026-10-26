@@ -12,6 +12,7 @@ Ver a fila do que a fábrica tem para produzir: cada equipamento vendido vira um
 ## Como usar
 - A lista mostra o número da OS, o projeto e o cliente, o produto e a quantidade, a etapa atual (a letra do roteiro), a data prometida ao cliente e a situação.
 - A OS atrasada (prometido no passado e OS não concluída) tem a faixa vermelha e o texto **Atrasada {n} d**.
+- A OS de um projeto **Em risco** (a entrega prevista do projeto passou da prometida, sem tolerância) tem a faixa âmbar e o texto **Em risco**.
 - Filtre por situação, linha (do centro de trabalho) e **Atrasadas**. Clique no projeto ou no cliente de uma linha para ver só as OS dele.
 - O chip **Sem roteiro** marca a OS que nasceu sem etapas: abra a OS e escolha o roteiro.
 - Quem aprova na produção abre a lista em **Aguardando você**: as OS **Prontas para concluir**, com todas as etapas e a qualidade feitas. Abra a OS e clique em **Concluir OS**. Para ver as outras, escolha **Todas** em Situação.

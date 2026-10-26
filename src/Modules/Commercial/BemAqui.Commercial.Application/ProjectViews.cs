@@ -7,9 +7,13 @@ namespace BemAqui.Commercial.Application;
 
 // Projeto 360 (COM-05). Sem custo nos DTOs da lista e do resumo; custo só em ProjectCosts, com projects.view_cost (D7).
 
+/// <summary>
+/// Linha da lista de projetos (COM-05 CA 1; PLN-01b CA 8 e 9): a entrega prevista, a folga (prometido − previsto, dias corridos), o risco e o
+/// motivo da previsão vazia saem da mesma função do Projeto 360 e do Kanban; o atraso também.
+/// </summary>
 public sealed record ProjectListRow(
     Guid Id, string Number, string Name, Guid PartyId, string PartyName, ProjectStatus Status, DateOnly? PromisedDate, int? DelayDays, decimal ContractValue, Guid? ManagerUserId,
-    string? ManagerName, Guid ContractId);
+    string? ManagerName, Guid ContractId, DateOnly? ForecastDate = null, int? SlackDays = null, DeliveryRisk Risk = DeliveryRisk.None, string? ForecastReason = null);
 
 public sealed record ProjectListPage(IReadOnlyList<ProjectListRow> Items, int Page, int PageSize, int Total);
 

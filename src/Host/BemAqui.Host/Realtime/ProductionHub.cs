@@ -23,6 +23,9 @@ public sealed class ProductionHub(HubConnectionRegistry registry, ITenantDirecto
     public const string ShopfloorPanel = "shopfloor";
     public const string OrderBoardChanged = "OrderBoardChanged";
 
+    /// <summary>Plano novo gravado (PLN-01b CA 4): só o sinal, para a TV (PNL-01b) e o Planejamento.</summary>
+    public const string ScheduleChanged = "ScheduleChanged";
+
     public override async Task OnConnectedAsync()
     {
         var user = Context.User;
@@ -137,6 +140,10 @@ public sealed class SignalRProductionBoardPush(IHubContext<ProductionHub> hub) :
             await hub.Clients.Groups(groups).SendAsync(ProductionHub.OrderBoardChanged, new BoardChangedMessage(id), cancellationToken);
         }
     }
+
+    /// <summary>Sinal <c>ScheduleChanged</c> (PLN-01b CA 4) ao grupo <c>{tenantId}:production</c>: só o sinal, sem corpo; a TV (PNL-01b) e o Planejamento recarregam.</summary>
+    public Task ScheduleChangedAsync(Guid tenantId, CancellationToken cancellationToken = default) =>
+        hub.Clients.Group(PingHub.Group(tenantId, ProductionHub.ProductionPanel)).SendAsync(ProductionHub.ScheduleChanged, cancellationToken);
 }
 
 /// <summary>Corpo da mensagem: só o id da OS (CA 12 e 16).</summary>

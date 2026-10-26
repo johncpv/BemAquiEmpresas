@@ -4,6 +4,7 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { DeliveryRisk } from './deliveryRisk';
 import type { ProductionOrderStatus } from './productionOrderStatus';
 
 export interface FabricationOrderSummary {
@@ -28,4 +29,5 @@ export interface FabricationOrderSummary {
   stepNames: string[];
   currentStepIndex: number;
   noRouting: boolean;
+  risk?: DeliveryRisk;
 }

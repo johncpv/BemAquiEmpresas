@@ -32,6 +32,9 @@ public interface ICommercialDb
 
     DbSet<ProjectCost> ProjectCosts { get; }
 
+    /// <summary>Previsão de entrega do projeto (PLN-01b), escrita só pelo consumidor do <c>ProjectForecastChanged</c>.</summary>
+    DbSet<ProjectForecast> ProjectForecasts { get; }
+
     DbSet<ContractAmendment> ContractAmendments { get; }
 
     DbSet<ContractAmendmentMilestone> ContractAmendmentMilestones { get; }

@@ -136,7 +136,7 @@ test.describe('Kanban da produção (PRD-02)', () => {
     await tabs.getByRole('tab', { name: /Corte/ }).click()
     await expect(page).toHaveURL(/coluna=C/)
     await expect(page.getByRole('link', { name: 'OS-2026-00008' })).toBeVisible()
-    await expect(page.getByText('Em risco, previsto 25/10/2026')).toBeVisible()
+    await expect(page.getByText('Em risco, prometido 25/10/2026')).toBeVisible()
     const width = await page.evaluate(() => document.documentElement.scrollWidth)
     expect(width).toBeLessThanOrEqual(400)
   })
