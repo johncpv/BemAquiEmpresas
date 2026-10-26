@@ -276,7 +276,7 @@ function ProjectsContent({ view, filters, title, single = false, onScale, onPeri
       {wide ? (
         <Gantt handle={ref} title={title} summary={summaryLine(view.projects)} rows={rows} from={view.from} to={view.to} today={view.today} scale={filters.scale}
           rowHeader="Projeto / OS / Etapa" legend={PROJECT_LEGEND} onToggle={toggle} onActivate={activate}
-          table={<TreeTable nodes={nodes} label="Cronograma em tabela" nameHeader="Projeto / OS / Etapa" columns={PROJECT_COLUMNS}
+          table={<TreeTable nodes={nodes} label="Cronograma em tabela" labelHeader="Projeto / OS / Etapa" columns={PROJECT_COLUMNS}
             renderLabel={(n) => (n.orderId ? <Link to={(n.installation ? '/app/producao/instalacoes/$id' : '/app/producao/os/$id') as never} params={{ id: n.orderId } as never} className="font-semibold text-primary tabular-nums hover:underline">{n.label}</Link> : <span className="tabular-nums">{n.label}</span>)} />} />
       ) : null}
       {noForecast > 0 ? (
@@ -443,7 +443,7 @@ function CentersContent({ view, filters, setFilters }: { view: GanttCentersView;
           {wide ? (
             <Gantt handle={ref} title="Cronograma por centro de trabalho" summary={centersSummary(view.centers)} rows={rows} from={view.from} to={view.to} today={view.today}
               scale={filters.scale} rowHeader="Centro de trabalho" legend={CENTER_LEGEND} onActivate={activate}
-              table={<TreeTable nodes={nodes} label="Cronograma por centro em tabela" nameHeader="Centro / Etapa" columns={CENTER_COLUMNS}
+              table={<TreeTable nodes={nodes} label="Cronograma por centro em tabela" labelHeader="Centro / Etapa" columns={CENTER_COLUMNS}
                 renderLabel={(n) => (n.orderId ? <Link to={'/app/producao/os/$id' as never} params={{ id: n.orderId } as never} className="font-semibold text-primary tabular-nums hover:underline">{n.label}</Link> : <span>{n.label}</span>)} />} />
           ) : null}
           {!wide && center ? (
