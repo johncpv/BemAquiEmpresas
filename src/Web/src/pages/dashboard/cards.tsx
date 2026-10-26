@@ -16,21 +16,16 @@ import { QUOTE_STATUS } from '@/pages/quotes/quotes'
 import {
   cashFlowHref, cashPoints, HOW, linkParts, meterWidth, monthOf, plural, REVENUE_ORIGIN, type Scenario, SCENARIOS, scenarioOf, scenarioParam, workingDaysLabel,
 } from './dashboard'
+import { useGo } from './use-go'
 
-const primaryAction = 'inline-flex min-h-[44px] items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground sm:min-h-0'
+export const primaryAction = 'inline-flex min-h-[44px] items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground sm:min-h-0'
 const BUCKETS = ['0–30 dias', '31–60 dias', '61–90 dias', 'Mais de 90 dias']
-
-/** Navegação para um link com busca (o "Ver origem" e o clique no Kpi). */
-function useGo() {
-  const navigate = useNavigate()
-  return (href: string) => void navigate(linkParts(href) as never)
-}
 
 /**
  * Card do painel sobre o `DashboardCard` da DSH-02: `data-card` e a ordem a 400 px no invólucro; "Atualizado às" pela hora em que o
  * servidor calculou o número (cache de 60 s, CA 12).
  */
-function PanelCard<T extends { updatedAt: string }>({ code, className, query, ...props }: {
+export function PanelCard<T extends { updatedAt: string }>({ code, className, query, ...props }: {
   code: string
   className?: string
   title: string

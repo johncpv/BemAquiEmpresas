@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils'
 import { PageHeading } from '@/shell/PageHeading'
 import { BalancesKpi, CashForecastPanel, CommercialPanel, DecisionsPanel, OverdueKpi, RevenueKpi } from './cards'
 import { greetingOf, longDateOf, MOBILE_ORDER } from './dashboard'
+import { ActiveProjectsPanel, BacklogPanel, DeliveriesPanel, MarginKpi, ProductionPanel } from './owner-cards'
 
 const TITLE = 'Painel do proprietário'
 export const NO_CARDS_MESSAGE = 'Você ainda não tem acesso aos indicadores. Fale com o administrador.'
@@ -17,16 +18,21 @@ export const REFRESH_LIMITED = 'Aguarde alguns segundos para atualizar de novo.'
 
 /** Cada card na posição do desktop e com a ordem do celular (400 px). */
 const LAYOUT: Record<string, { Card: (p: { className?: string }) => ReactNode; span: string }> = {
-  balances: { Card: BalancesKpi, span: 'lg:col-span-4' },
-  revenue: { Card: RevenueKpi, span: 'lg:col-span-4' },
-  overdue: { Card: OverdueKpi, span: 'lg:col-span-4' },
+  balances: { Card: BalancesKpi, span: 'lg:col-span-3' },
+  revenue: { Card: RevenueKpi, span: 'lg:col-span-3' },
+  overdue: { Card: OverdueKpi, span: 'lg:col-span-3' },
+  margin: { Card: MarginKpi, span: 'lg:col-span-3' },
   'cash-forecast': { Card: CashForecastPanel, span: 'lg:col-span-8' },
   decisions: { Card: DecisionsPanel, span: 'lg:col-span-4' },
   commercial: { Card: CommercialPanel, span: 'lg:col-span-6' },
+  'active-projects': { Card: ActiveProjectsPanel, span: 'lg:col-span-12' },
+  production: { Card: ProductionPanel, span: 'lg:col-span-6' },
+  backlog: { Card: BacklogPanel, span: 'lg:col-span-3' },
+  deliveries: { Card: DeliveriesPanel, span: 'lg:col-span-3' },
 }
 
-/** Ordem no HTML (= desktop): linha de KPIs, caixa e decisões, comercial. */
-const DESKTOP = ['balances', 'revenue', 'overdue', 'cash-forecast', 'decisions', 'commercial']
+/** Ordem no HTML (= desktop): linha de KPIs (com a margem), caixa e decisões, projetos em andamento, produção, carteira e entregas, comercial. */
+const DESKTOP = ['balances', 'revenue', 'overdue', 'margin', 'cash-forecast', 'decisions', 'active-projects', 'production', 'backlog', 'deliveries', 'commercial']
 
 /**
  * Visão geral → Painel do proprietário (DSH-01a): cabeçalho com saudação, data e frase-resumo, "Atualizar", faixa "Atenção"
@@ -78,7 +84,7 @@ export function DashboardPage() {
       ) : overview.isError || !data ? (
         <ErrorState title="Não foi possível montar o painel." message="Verifique a conexão e tente de novo. Se continuar, fale com o suporte." onRetry={() => void overview.refetch()} />
       ) : data.cards.length === 0 ? (
-        <EmptyState title={NO_CARDS_MESSAGE} description="O painel mostra o caixa, o faturamento, a inadimplência e o comercial conforme os módulos a que você tem acesso." />
+        <EmptyState title={NO_CARDS_MESSAGE} description="O painel mostra o caixa, o faturamento, a inadimplência, o comercial, os projetos e a fábrica conforme os módulos a que você tem acesso." />
       ) : (
         <div className="space-y-4">
           <Attention alerts={data.attention} />

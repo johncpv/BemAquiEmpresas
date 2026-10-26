@@ -59,9 +59,9 @@ describe('painel (DSH-01a)', () => {
     expect(workingDaysLabel(1)).toBe('falta 1 dia útil')
   })
 
-  it('a 400 px, a ordem é Saldo, Caixa, Decisões, Faturamento, Vencido e Comercial', () => {
-    const order = Object.entries(MOBILE_ORDER).sort((a, b) => a[1].localeCompare(b[1])).map(([code]) => code)
-    expect(order).toEqual(['balances', 'cash-forecast', 'decisions', 'revenue', 'overdue', 'commercial'])
+  it('a 400 px, a ordem é Saldo, Caixa, Decisões, Faturamento, Vencido e Comercial, e depois os cards da DSH-01b', () => {
+    const order = Object.entries(MOBILE_ORDER).sort((a, b) => Number(a[1].slice(6)) - Number(b[1].slice(6))).map(([code]) => code)
+    expect(order).toEqual(['balances', 'cash-forecast', 'decisions', 'revenue', 'overdue', 'commercial', 'margin', 'active-projects', 'production', 'backlog', 'deliveries'])
   })
 })
 
