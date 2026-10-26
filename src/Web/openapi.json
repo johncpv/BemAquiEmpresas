@@ -22145,6 +22145,249 @@
         }
       }
     },
+    "/api/v1/finance/dre": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetDre",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DreReport"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/dre/cells": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetDreCell",
+        "parameters": [
+          {
+            "name": "accountId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "group",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "month",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DreCell"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/dre/changes": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetDreChanges",
+        "parameters": [
+          {
+            "name": "since",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DreChanges"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/dre/view-mark": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "MarkDreViewed",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/finance/parameters/dre": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetDreParameters",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DreParametersView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "UpdateDreParameters",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DreParametersInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DreParametersView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/parameters/dre/confirm": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ConfirmDreParameter",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DreParameterConfirmInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DreParametersView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/payment-orders": {
       "get": {
         "tags": [
@@ -29260,6 +29503,277 @@
           "GoodsReceipt"
         ]
       },
+      "DreAccountOption": {
+        "required": [
+          "id",
+          "code",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "DreCell": {
+        "required": [
+          "label",
+          "from",
+          "to",
+          "total",
+          "items",
+          "truncated",
+          "hasProtected"
+        ],
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DreCellItem"
+            }
+          },
+          "truncated": {
+            "type": "boolean"
+          },
+          "hasProtected": {
+            "type": "boolean"
+          }
+        }
+      },
+      "DreCellItem": {
+        "required": [
+          "kind",
+          "id",
+          "number",
+          "counterparty",
+          "description",
+          "date",
+          "amount",
+          "link",
+          "note",
+          "count",
+          "protected"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "number": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "counterparty": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "link": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "count": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "protected": {
+            "type": "boolean"
+          }
+        }
+      },
+      "DreChange": {
+        "required": [
+          "kind",
+          "id",
+          "number",
+          "date",
+          "month",
+          "effect",
+          "amount",
+          "at",
+          "link"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "month": {
+            "type": "string",
+            "format": "date"
+          },
+          "effect": {
+            "type": "string"
+          },
+          "amount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "link": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "DreChanges": {
+        "required": [
+          "since",
+          "count",
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "since": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DreChange"
+            }
+          }
+        }
+      },
+      "DreChangeSummary": {
+        "required": [
+          "since",
+          "count",
+          "months"
+        ],
+        "type": "object",
+        "properties": {
+          "since": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "months": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        }
+      },
+      "DreClassifyNotice": {
+        "required": [
+          "accountId",
+          "code",
+          "name",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "DreGroup": {
         "enum": [
           "GrossRevenue",
@@ -29269,6 +29783,364 @@
           "FinancialResult",
           "OtherResults",
           "OutsideDre"
+        ]
+      },
+      "DreMonth": {
+        "required": [
+          "month",
+          "isProvisional",
+          "changed"
+        ],
+        "type": "object",
+        "properties": {
+          "month": {
+            "type": "string",
+            "format": "date"
+          },
+          "isProvisional": {
+            "type": "boolean"
+          },
+          "changed": {
+            "type": "boolean"
+          }
+        }
+      },
+      "DreParameterConfirmInput": {
+        "required": [
+          "key"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          }
+        }
+      },
+      "DreParameterItem": {
+        "required": [
+          "key",
+          "label",
+          "description",
+          "accountId",
+          "accountCode",
+          "accountName",
+          "enabled",
+          "reviewState",
+          "reviewedByName",
+          "reviewedAt",
+          "parameterId",
+          "options"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "accountId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "accountCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "accountName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "enabled": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "reviewState": {
+            "$ref": "#/components/schemas/ParameterReviewState"
+          },
+          "reviewedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reviewedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "parameterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DreAccountOption"
+            }
+          }
+        }
+      },
+      "DreParametersInput": {
+        "required": [
+          "interestIncomeAccountId",
+          "interestExpenseAccountId",
+          "discountGrantedAccountId",
+          "discountReceivedAccountId",
+          "downPaymentAsAdvance"
+        ],
+        "type": "object",
+        "properties": {
+          "interestIncomeAccountId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "interestExpenseAccountId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "discountGrantedAccountId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "discountReceivedAccountId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "downPaymentAsAdvance": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          }
+        }
+      },
+      "DreParametersView": {
+        "required": [
+          "items",
+          "pendingCount"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DreParameterItem"
+            }
+          },
+          "pendingCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "DreReport": {
+        "required": [
+          "from",
+          "to",
+          "months",
+          "rows",
+          "isProvisional",
+          "hasEntries",
+          "toClassify",
+          "changes",
+          "lastViewedAt",
+          "pendingParameters"
+        ],
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "months": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DreMonth"
+            }
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DreRow"
+            }
+          },
+          "isProvisional": {
+            "type": "boolean"
+          },
+          "hasEntries": {
+            "type": "boolean"
+          },
+          "toClassify": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DreClassifyNotice"
+            }
+          },
+          "changes": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/DreChangeSummary"
+              }
+            ]
+          },
+          "lastViewedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "pendingParameters": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "DreRow": {
+        "required": [
+          "key",
+          "kind",
+          "label",
+          "group",
+          "accountId",
+          "code",
+          "parentKey",
+          "level",
+          "values",
+          "total",
+          "percentOfNetRevenue",
+          "delta",
+          "deltaPercent",
+          "criticalWhenNegative",
+          "hasChildren"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/DreRowKind"
+          },
+          "label": {
+            "type": "string"
+          },
+          "group": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/DreGroup"
+              }
+            ]
+          },
+          "accountId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "parentKey": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "percentOfNetRevenue": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "delta": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "deltaPercent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "criticalWhenNegative": {
+            "type": "boolean"
+          },
+          "hasChildren": {
+            "type": "boolean"
+          }
+        }
+      },
+      "DreRowKind": {
+        "enum": [
+          "Group",
+          "Subtotal",
+          "Account",
+          "Memo"
         ]
       },
       "DueDateInput": {
@@ -39495,6 +40367,12 @@
             "format": "int32"
           }
         }
+      },
+      "ParameterReviewState": {
+        "enum": [
+          "ToConfirm",
+          "Confirmed"
+        ]
       },
       "PartyAddressDto": {
         "required": [

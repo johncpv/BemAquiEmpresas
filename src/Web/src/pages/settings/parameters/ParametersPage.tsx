@@ -13,6 +13,7 @@ import { PageHeading } from '@/shell/PageHeading'
 import { useCan } from '@/pages/use-can'
 import { SettingsTabs } from '../SettingsTabs'
 import { CommercialPricingSection } from './CommercialPricingSection'
+import { DreParametersSection } from './DreParametersSection'
 import { FinanceLimitsSection } from './FinanceLimitsSection'
 import { ProductionParametersSection } from './ProductionParametersSection'
 import { PurchasingParametersSection } from './PurchasingParametersSection'
@@ -38,6 +39,7 @@ export function ParametersPage() {
           <PricingSection key={`p${query.data.pricingMode}`} params={query.data} canEdit={canEdit} />
           <CommercialPricingSection canEdit={canEdit} />
           <FinanceLimitsSection canEdit={canEdit} />
+          <DreParametersSection canEdit={canEdit} />
           <ProductionParametersSection canEdit={canEdit} />
           <PurchasingParametersSection canEdit={canEdit} />
           <EmailDispatchSection key={`e${query.data.emailDispatchMaxPerUserDay}`} params={query.data} canEdit={canEdit} />

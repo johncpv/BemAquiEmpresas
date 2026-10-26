@@ -40,6 +40,10 @@ internal sealed class PayableConfiguration : IEntityTypeConfiguration<Payable>
         b.HasIndex(e => new { e.Origin, e.OriginId, e.Installment }).IsUnique().HasFilter("origin_id IS NOT NULL AND status <> 'Cancelled'")
             .HasDatabaseName(PayableService.OriginInstallmentIndex);
         b.HasIndex(e => new { e.RecurringExpenseId, e.Competence }).IsUnique().HasFilter("recurring_expense_id IS NOT NULL").HasDatabaseName(PayableService.CompetenceIndex);
+
+        // DRE por competência (FIN-08 CA 17): a data do título no DRE é a competência, senão a data do documento.
+        b.HasIndex(e => new { e.IssueDate, e.AccountId }).IncludeProperties(e => e.Amount).HasDatabaseName("ix_payables_issue_date");
+        b.HasIndex(e => e.Competence).HasFilter("competence IS NOT NULL").HasDatabaseName("ix_payables_competence");
     }
 }
 

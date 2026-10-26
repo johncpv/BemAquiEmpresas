@@ -77,6 +77,7 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
     { slug: 'receber', label: 'A receber', group: CASH },
     { slug: 'pagar', label: 'A pagar', group: CASH },
     { slug: 'fluxo-de-caixa', label: 'Fluxo de caixa', group: CASH },
+    { slug: 'dre', label: 'DRE', group: CASH },
     { slug: 'inadimplencia', label: 'Inadimplência', group: CASH },
     { slug: 'ordens-de-pagamento', label: 'Ordens de pagamento', group: CASH },
     { slug: 'contas', label: 'Contas e caixas', group: CASH },

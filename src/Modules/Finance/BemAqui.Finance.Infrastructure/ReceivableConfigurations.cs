@@ -34,6 +34,9 @@ internal sealed class ReceivableConfiguration : IEntityTypeConfiguration<Receiva
         b.HasIndex(e => e.OriginId).IsUnique().HasFilter("origin = 'Contract'").HasDatabaseName(ReceivableService.ContractMilestoneIndex);
         b.HasIndex(e => e.ContractId);
         b.HasIndex(e => e.ProjectId);
+
+        // DRE por competência (FIN-08 CA 17): agregação por conta e data de emissão.
+        b.HasIndex(e => new { e.IssueDate, e.AccountId }).IncludeProperties(e => e.Amount).HasDatabaseName("ix_receivables_issue_date");
     }
 }
 
@@ -91,5 +94,17 @@ internal sealed class FinanceParameterConfiguration : IEntityTypeConfiguration<F
         b.Property(e => e.Key).HasMaxLength(64);
         b.HasIndex(e => e.Key).IsUnique();
         b.Property(e => e.Value).HasPrecision(18, 4);
+        b.Property(e => e.Text).HasMaxLength(64);
+        b.Property(e => e.ReviewState).HasConversion<string>().HasMaxLength(16);
+    }
+}
+
+/// <summary>Marca da última consulta do DRE (FIN-08 CA 9): uma por usuário, fora da auditoria.</summary>
+internal sealed class DreViewMarkConfiguration : IEntityTypeConfiguration<DreViewMark>
+{
+    public void Configure(EntityTypeBuilder<DreViewMark> b)
+    {
+        b.ToTable("dre_view_marks", FinanceSchema.Name);
+        b.HasIndex(e => e.UserId).IsUnique().HasDatabaseName(DreService.ViewMarkIndex);
     }
 }
