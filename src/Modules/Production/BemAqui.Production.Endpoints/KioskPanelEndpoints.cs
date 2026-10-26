@@ -1,3 +1,4 @@
+using BemAqui.BuildingBlocks.Identity;
 using BemAqui.BuildingBlocks.Security;
 using BemAqui.BuildingBlocks.Web;
 using BemAqui.Production.Contracts;
@@ -22,22 +23,22 @@ internal static class KioskPanelEndpoints
     {
         var kiosk = api.MapGroup("/kiosk").WithTags("Painel da TV").RequireModule("kiosk");
         kiosk.MapGet("/board", async (HttpContext http, IKioskPanel panel, CancellationToken ct) =>
-                Scope(http, ViewBoard) is { } s ? Results.Ok(await panel.BoardAsync(s.Line, ct)) : NotFound())
+                Scope(http, ViewBoard) is KioskSessionInfo s ? Results.Ok(await panel.BoardAsync(s.Line, ct)) : NotFound())
             .RequireKiosk().WithName("GetKioskBoard").Produces<KioskBoard>();
         kiosk.MapGet("/board/orders/{id:guid}", async (Guid id, HttpContext http, IKioskPanel panel, CancellationToken ct) =>
-                Scope(http, ViewBoard) is { } s && await panel.CardAsync(id, s.Line, ct) is { } card ? Results.Ok(card) : NotFound())
+                Scope(http, ViewBoard) is KioskSessionInfo s && await panel.CardAsync(id, s.Line, ct) is KioskCard card ? Results.Ok(card) : NotFound())
             .RequireKiosk().WithName("GetKioskBoardOrder").Produces<KioskCard>();
         kiosk.MapGet("/queue", async (HttpContext http, IKioskPanel panel, CancellationToken ct) =>
-                Scope(http, ViewQueue) is { } s ? Results.Ok(await panel.QueueAsync(s.Line, ct)) : NotFound())
+                Scope(http, ViewQueue) is KioskSessionInfo s ? Results.Ok(await panel.QueueAsync(s.Line, ct)) : NotFound())
             .RequireKiosk().WithName("GetKioskQueue").Produces<KioskQueueView>();
         kiosk.MapGet("/delays", async (HttpContext http, IKioskPanel panel, CancellationToken ct) =>
-                Scope(http, ViewLate) is { } s ? Results.Ok(await panel.DelaysAsync(s.Line, ct)) : NotFound())
+                Scope(http, ViewLate) is KioskSessionInfo s ? Results.Ok(await panel.DelaysAsync(s.Line, ct)) : NotFound())
             .RequireKiosk().WithName("GetKioskDelays").Produces<KioskDelays>();
         return api;
     }
 
     /// <summary>Escopo da sessão de quiosque, se a visão pedida está entre as da tela.</summary>
-    private static BemAqui.BuildingBlocks.Identity.KioskSessionInfo? Scope(HttpContext http, string view)
+    private static KioskSessionInfo? Scope(HttpContext http, string view)
     {
         var session = KioskPrincipal.From(http.User);
         http.Response.Headers.CacheControl = "no-store";

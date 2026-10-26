@@ -22,6 +22,26 @@ public static partial class KioskRules
     [GeneratedRegex("""\.RequireKiosk\(\)""")]
     private static partial Regex Use();
 
+    /// <summary>Posição logo depois do último ';' ou '{' antes de <paramref name="end"/> que não está dentro de uma string.</summary>
+    private static int StatementStart(string content, int end)
+    {
+        var quotes = 0;
+        for (var i = end - 1; i >= 0; i--)
+        {
+            var c = content[i];
+            if (c == '"')
+            {
+                quotes++;
+            }
+            else if ((c == ';' || c == '{') && quotes % 2 == 0)
+            {
+                return i + 1;
+            }
+        }
+
+        return 0;
+    }
+
     [GeneratedRegex("""kiosk\.Map(?<method>\w+)\("(?<path>[^"]*)"[\s\S]*?\.WithName\("(?<name>[^"]+)"\)""")]
     private static partial Regex KioskRoute();
 
@@ -29,7 +49,8 @@ public static partial class KioskRules
     public static IReadOnlyList<string> Violations(IEnumerable<(string File, string Content)> sources) =>
         sources.SelectMany(s => Use().Matches(s.Content).Select(m =>
         {
-            var start = Math.Max(s.Content.LastIndexOf(';', m.Index), s.Content.LastIndexOf('{', m.Index)) + 1;
+            // Começo da instrução: o último ";" ou "{" fora de string (o "{id:guid}" da rota não conta; as fontes vêm sem quebra de linha).
+            var start = StatementStart(s.Content, m.Index);
             var statement = s.Content[start..m.Index].Trim();
             var allowed = (statement.StartsWith("kiosk.MapGet(", StringComparison.Ordinal) && EndpointFiles.Any(f => s.File.EndsWith(f, StringComparison.Ordinal)))
                 || statement.Contains("MapHub<KioskHub>", StringComparison.Ordinal);
@@ -70,6 +91,9 @@ public class KioskRulesTests
             """;
 
         KioskRules.Violations([("src/KioskScreenEndpoints.cs", source)]).Should().HaveCount(2);
+        KioskRules.Violations([("src/KioskPanelEndpoints.cs", """kiosk.MapGet("/board/orders/{id:guid}", (Guid id) => 1).RequireKiosk().WithName("X");""")])
+            .Should().BeEmpty("o parâmetro da rota não é começo de instrução (PNL-01b)");
+        KioskRules.Violations([("src/OutroArquivo.cs", """kiosk.MapGet("/board", () => 1).RequireKiosk().WithName("X");""")]).Should().HaveCount(1);
     }
 
     [Fact]
