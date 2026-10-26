@@ -26,15 +26,23 @@ public interface IScheduleTrigger
 /// tenant (o DbContext do comando não é tocado), grava a marca "pendente" do tenant e, se ela não existia, enfileira o
 /// <see cref="PlanningRecalculateJob"/> com o gatilho <c>Event</c> e só o <c>tenantId</c>. Com a marca já lá, o pedido se junta a ela
 /// (no máximo 1 rodando e 1 pendente, CA 3). Módulo <c>production</c> não liberado: nada é pedido (CA 14). Falha no pedido só vai para o
-/// log; o recorrente de hora em hora é a reserva.
+/// log; o recorrente de hora em hora é a reserva. Sem Hangfire no processo (migrator e CLI de provisionamento rodam o seed sem servidor
+/// de jobs), o <see cref="IBackgroundJobClient"/> é resolvido só na hora do pedido e, ausente, nada é marcado nem enfileirado: o
+/// recálculo de hora em hora da API cobre o tenant.
 /// </summary>
 public sealed partial class ScheduleRecalculationTrigger(
-    IAfterCommit afterCommit, TenantContextHolder tenant, ITenantScopeFactory scopes, IBackgroundJobClient jobs, ILogger<ScheduleRecalculationTrigger> logger) : IScheduleTrigger
+    IAfterCommit afterCommit, TenantContextHolder tenant, ITenantScopeFactory scopes, IServiceProvider services, ILogger<ScheduleRecalculationTrigger> logger) : IScheduleTrigger
 {
     public Task RequestAsync(string reason, CancellationToken cancellationToken = default)
     {
         if (tenant.Resolved is not { } resolved || !resolved.IsReleased(PlanningService.Module))
         {
+            return Task.CompletedTask;
+        }
+
+        if (services.GetService<IBackgroundJobClient>() is not { } jobs)
+        {
+            LogNoJobs(logger, reason, resolved.Tenant.Id);
             return Task.CompletedTask;
         }
 
@@ -61,6 +69,9 @@ public sealed partial class ScheduleRecalculationTrigger(
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "Recálculo do plano pedido ({Reason}) no tenant {TenantId}.")]
     private static partial void LogRequested(ILogger logger, string reason, Guid tenantId);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Recálculo do plano ({Reason}) não pedido no tenant {TenantId}: processo sem Hangfire (migrator).")]
+    private static partial void LogNoJobs(ILogger logger, string reason, Guid tenantId);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "O pedido de recálculo do plano ({Reason}) falhou no tenant {TenantId}; o recorrente de hora em hora recalcula.")]
     private static partial void LogFailed(ILogger logger, Exception exception, string reason, Guid tenantId);
