@@ -9,4 +9,10 @@ public interface IBusinessCalendar
 {
     /// <summary>Dias úteis de <paramref name="from"/> a <paramref name="to"/>, os dois inclusive; zero se o fim vem antes do início.</summary>
     Task<int> WorkingDaysAsync(DateOnly from, DateOnly to, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Os dias úteis de <paramref name="from"/> a <paramref name="to"/>, em ordem (vazio se o fim vem antes do início): o painel do supervisor
+    /// conta em quantos dias úteis a falta de material bloqueia (DSH-03 CA 5) numa leitura só.
+    /// </summary>
+    Task<IReadOnlyList<DateOnly>> WorkingDatesAsync(DateOnly from, DateOnly to, CancellationToken cancellationToken = default);
 }

@@ -55,7 +55,16 @@ public interface IPurchaseOrders
 
     /// <summary>Última compra do item (CMP-04 CA 15): o último pedido aprovado (ou além, sem cancelado) com o item; null sem compra.</summary>
     Task<LastPurchaseInfo?> LastPurchaseAsync(Guid itemId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Pedidos não cancelados que atendem as linhas de SC pedidas (DSH-03 CA 5, "Pedido {PC} previsto para {data}"), do previsto mais cedo para o
+    /// mais tarde. Só leitura, sem valor.
+    /// </summary>
+    Task<IReadOnlyList<PurchaseOrderForRequestLine>> ForRequestLinesAsync(IReadOnlyCollection<Guid> requestLineIds, CancellationToken cancellationToken = default);
 }
+
+/// <summary>Pedido que atende uma linha de SC: número, situação e data prevista de entrega (sem valor).</summary>
+public sealed record PurchaseOrderForRequestLine(Guid RequestLineId, Guid PurchaseOrderId, string Number, PurchaseOrderStatus Status, DateOnly ExpectedDate);
 
 /// <summary>Pedido enviado para aprovação (CA 8): só aviso; o sino e o e-mail aos aprovadores do nível 1 saem na mesma transação.</summary>
 public sealed record PurchaseOrderSubmitted(Guid PurchaseOrderId, int Attempt, decimal Total, Guid? RequestedBy) : IIntegrationEvent;
