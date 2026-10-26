@@ -25,3 +25,19 @@ describe('menu por permissão (FND-06d)', () => {
     expect(nav.areas.map((a) => a.name)).toEqual(['Financeiro', 'Sistema'])
   })
 })
+
+describe('Painel do supervisor no menu da Produção (DSH-03)', () => {
+  const production = (actions: string[]) =>
+    buildNavigation([{ code: 'production', name: 'Produção', area: 'Fábrica', released: true, enabled: true, actions }]).all[0].tabs.map((t) => t.slug)
+
+  it('é a primeira aba para quem aprova na produção ou decide a qualidade', () => {
+    expect(production(['view', 'approve'])[0]).toBe('supervisor')
+    expect(production(['view', 'approve_quality'])[0]).toBe('supervisor')
+  })
+
+  it('fica no fim para quem só vê a produção', () => {
+    const tabs = production(['view'])
+    expect(tabs[0]).toBe('os')
+    expect(tabs.at(-1)).toBe('supervisor')
+  })
+})

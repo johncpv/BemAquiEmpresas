@@ -12,6 +12,8 @@ interface DashboardCardProps {
   howWeCalculate?: string
   /** "Ver origem": leva ao drill-down ou à tela de origem dos números. */
   onOrigin?: () => void
+  /** Rótulo do link da origem (padrão "Ver origem"; o painel do supervisor usa "Abrir", DSH-03 CA 1). */
+  originLabel?: string
   /** Quando os dados chegaram (o "Atualizado às {hh:mm}"), em ms (dataUpdatedAt do TanStack Query). */
   updatedAt?: number
   /** Estado da consulta do card; cada card tem os próprios estados (padrão 2 das Fases 4 a 8). */
@@ -27,7 +29,7 @@ interface DashboardCardProps {
  * Card de painel (DSH-02 CA 16, D18): título, subtítulo, "Como calculamos", "Ver origem", "Atualizado às {hh:mm}" e os estados
  * carregando, vazio, erro ("Não foi possível carregar {card}." com "Tentar de novo") e sem permissão (não monta). Só tokens.
  */
-export function DashboardCard({ title, subtitle, howWeCalculate, onOrigin, updatedAt, query, allowed = true, empty, className, children }: DashboardCardProps) {
+export function DashboardCard({ title, subtitle, howWeCalculate, onOrigin, originLabel = 'Ver origem', updatedAt, query, allowed = true, empty, className, children }: DashboardCardProps) {
   if (!allowed) return null
   let body: ReactNode
   if (query?.isPending) {
@@ -50,7 +52,7 @@ export function DashboardCard({ title, subtitle, howWeCalculate, onOrigin, updat
         </div>
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           {ready && updatedAt ? <span className="tabular-nums">Atualizado às {time.format(new Date(updatedAt))}</span> : null}
-          {ready && onOrigin ? <button type="button" onClick={onOrigin} className="min-h-[44px] font-semibold text-primary sm:min-h-0">Ver origem</button> : null}
+          {ready && onOrigin ? <button type="button" onClick={onOrigin} className="min-h-[44px] font-semibold text-primary sm:min-h-0">{originLabel}</button> : null}
         </div>
       </header>
       {body}
