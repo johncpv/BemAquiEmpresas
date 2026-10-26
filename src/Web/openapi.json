@@ -22609,6 +22609,325 @@
           }
         }
       }
+    },
+    "/api/v1/projects/margins/ranking": {
+      "get": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "ListProjectMarginRanking",
+        "parameters": [
+          {
+            "name": "situation",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "partyId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "managerId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "signedFrom",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "signedTo",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "belowBudget",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectMarginRanking"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/margins/portfolio": {
+      "get": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "GetProjectMarginPortfolio",
+        "parameters": [
+          {
+            "name": "situation",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "partyId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "managerId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "signedFrom",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "signedTo",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "belowBudget",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectMarginPortfolio"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/margins/entries": {
+      "get": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "ListProjectMarginEntries",
+        "parameters": [
+          {
+            "name": "costType",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "column",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "situation",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "partyId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "managerId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "signedFrom",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "signedTo",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "belowBudget",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectCostEntries"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{id}/costs/labor/workers": {
+      "get": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "ListProjectLaborWorkers",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectLaborWorkers"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{id}/costs/{costType}/entries": {
+      "get": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "ListProjectCostEntries",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "costType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "column",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectCostEntries"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -41675,72 +41994,33 @@
           }
         }
       },
-      "ProjectCostLine": {
-        "required": [
-          "costType",
-          "budgeted",
-          "realized",
-          "committed",
-          "projected",
-          "deviation",
-          "deviationPct",
-          "includesBackfill"
-        ],
-        "type": "object",
-        "properties": {
-          "costType": {
-            "$ref": "#/components/schemas/CostType"
-          },
-          "budgeted": {
-            "type": "number",
-            "format": "double"
-          },
-          "realized": {
-            "type": "number",
-            "format": "double"
-          },
-          "committed": {
-            "type": "number",
-            "format": "double"
-          },
-          "projected": {
-            "type": "number",
-            "format": "double"
-          },
-          "deviation": {
-            "type": "number",
-            "format": "double"
-          },
-          "deviationPct": {
-            "type": [
-              "null",
-              "number"
-            ],
-            "format": "double"
-          },
-          "includesBackfill": {
-            "type": "boolean"
-          }
-        }
-      },
       "ProjectCostView": {
         "required": [
           "lines",
           "total",
           "revenue",
           "budgetedMarginPct",
-          "projectedMarginPct"
+          "projectedMarginPct",
+          "budgetedMargin",
+          "realizedMargin",
+          "realizedMarginPct",
+          "projectedMargin",
+          "marginDeviationPp",
+          "taxBasis",
+          "taxGuides",
+          "nonConformityCount",
+          "nonConformityCost"
         ],
         "type": "object",
         "properties": {
           "lines": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ProjectCostLine"
+              "$ref": "#/components/schemas/ProjectMarginLine"
             }
           },
           "total": {
-            "$ref": "#/components/schemas/ProjectCostLine"
+            "$ref": "#/components/schemas/ProjectMarginLine"
           },
           "revenue": {
             "type": "number",
@@ -41758,6 +42038,47 @@
               "null",
               "number"
             ],
+            "format": "double"
+          },
+          "budgetedMargin": {
+            "type": "number",
+            "format": "double"
+          },
+          "realizedMargin": {
+            "type": "number",
+            "format": "double"
+          },
+          "realizedMarginPct": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "projectedMargin": {
+            "type": "number",
+            "format": "double"
+          },
+          "marginDeviationPp": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "taxBasis": {
+            "$ref": "#/components/schemas/ProjectTaxBasis"
+          },
+          "taxGuides": {
+            "type": "number",
+            "format": "double"
+          },
+          "nonConformityCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nonConformityCost": {
+            "type": "number",
             "format": "double"
           }
         }
@@ -55655,6 +55976,459 @@
           }
         },
         "additionalProperties": false
+      },
+      "ProjectCostColumn": {
+        "enum": [
+          "Budgeted",
+          "Realized",
+          "Committed"
+        ]
+      },
+      "ProjectCostEntries": {
+        "required": [
+          "costType",
+          "column",
+          "total",
+          "entries",
+          "purchasedTotal",
+          "issuedTotal"
+        ],
+        "type": "object",
+        "properties": {
+          "costType": {
+            "$ref": "#/components/schemas/CostType"
+          },
+          "column": {
+            "$ref": "#/components/schemas/ProjectCostColumn"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectCostEntry"
+            }
+          },
+          "purchasedTotal": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "issuedTotal": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "ProjectCostEntry": {
+        "required": [
+          "kind",
+          "document",
+          "date",
+          "amount",
+          "hours",
+          "link"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/ProjectCostEntryKind"
+          },
+          "document": {
+            "type": "string"
+          },
+          "date": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "hours": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "link": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ProjectCostEntryKind": {
+        "enum": [
+          "StockIssue",
+          "StockReturn",
+          "Labor",
+          "LaborCorrection",
+          "Payable",
+          "PurchasePayable",
+          "StockIssuedOffset",
+          "InvoiceTax",
+          "InvoiceTaxReversal",
+          "Contract",
+          "Amendment",
+          "Project"
+        ]
+      },
+      "ProjectLaborWorkerEntry": {
+        "required": [
+          "workerName",
+          "orderNumber",
+          "workCenterName",
+          "date",
+          "hours",
+          "hourlyCost",
+          "amount",
+          "link"
+        ],
+        "type": "object",
+        "properties": {
+          "workerName": {
+            "type": "string"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "workCenterName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "hours": {
+            "type": "number",
+            "format": "double"
+          },
+          "hourlyCost": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "link": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ProjectLaborWorkers": {
+        "required": [
+          "total",
+          "entries"
+        ],
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectLaborWorkerEntry"
+            }
+          }
+        }
+      },
+      "ProjectMarginFigures": {
+        "required": [
+          "lines",
+          "total",
+          "revenue",
+          "budgetedMargin",
+          "budgetedMarginPct",
+          "realizedMargin",
+          "realizedMarginPct",
+          "projectedMargin",
+          "projectedMarginPct",
+          "marginDeviationPp",
+          "taxBasis",
+          "taxGuides"
+        ],
+        "type": "object",
+        "properties": {
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectMarginLine"
+            }
+          },
+          "total": {
+            "$ref": "#/components/schemas/ProjectMarginLine"
+          },
+          "revenue": {
+            "type": "number",
+            "format": "double"
+          },
+          "budgetedMargin": {
+            "type": "number",
+            "format": "double"
+          },
+          "budgetedMarginPct": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "realizedMargin": {
+            "type": "number",
+            "format": "double"
+          },
+          "realizedMarginPct": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "projectedMargin": {
+            "type": "number",
+            "format": "double"
+          },
+          "projectedMarginPct": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "marginDeviationPp": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "taxBasis": {
+            "$ref": "#/components/schemas/ProjectTaxBasis"
+          },
+          "taxGuides": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "ProjectMarginHeader": {
+        "required": [
+          "id",
+          "number",
+          "name",
+          "partyId",
+          "partyName",
+          "status",
+          "managerUserId",
+          "managerName",
+          "contractId",
+          "signedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "managerUserId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "managerName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "contractId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "signedAt": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "ProjectMarginLine": {
+        "required": [
+          "costType",
+          "budgeted",
+          "realized",
+          "committed",
+          "projected",
+          "deviation",
+          "deviationPct",
+          "includesBackfill"
+        ],
+        "type": "object",
+        "properties": {
+          "costType": {
+            "$ref": "#/components/schemas/CostType"
+          },
+          "budgeted": {
+            "type": "number",
+            "format": "double"
+          },
+          "realized": {
+            "type": "number",
+            "format": "double"
+          },
+          "committed": {
+            "type": "number",
+            "format": "double"
+          },
+          "projected": {
+            "type": "number",
+            "format": "double"
+          },
+          "deviation": {
+            "type": "number",
+            "format": "double"
+          },
+          "deviationPct": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "includesBackfill": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ProjectMarginPortfolio": {
+        "required": [
+          "projectCount",
+          "figures",
+          "worstCostType"
+        ],
+        "type": "object",
+        "properties": {
+          "projectCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "figures": {
+            "$ref": "#/components/schemas/ProjectMarginFigures"
+          },
+          "worstCostType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CostType"
+              }
+            ]
+          }
+        }
+      },
+      "ProjectMarginRanking": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectMarginRow"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ProjectMarginRow": {
+        "required": [
+          "project",
+          "figures",
+          "worstCostType"
+        ],
+        "type": "object",
+        "properties": {
+          "project": {
+            "$ref": "#/components/schemas/ProjectMarginHeader"
+          },
+          "figures": {
+            "$ref": "#/components/schemas/ProjectMarginFigures"
+          },
+          "worstCostType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CostType"
+              }
+            ]
+          }
+        }
+      },
+      "ProjectTaxBasis": {
+        "enum": [
+          "Budgeted",
+          "Invoices"
+        ]
       }
     }
   },

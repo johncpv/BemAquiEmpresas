@@ -6,7 +6,7 @@
  */
 import type { CostType } from './costType';
 
-export interface ProjectCostLine {
+export interface ProjectMarginLine {
   costType: CostType;
   budgeted: number;
   realized: number;

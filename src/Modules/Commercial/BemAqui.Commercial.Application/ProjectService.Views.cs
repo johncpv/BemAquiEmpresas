@@ -71,32 +71,5 @@ public sealed partial class ProjectService
             activeReceivables.Sum(r => r.Amount - r.Balance), activeReceivables.Sum(r => r.Balance), activePayables.Sum(p => p.Amount - p.Balance), activePayables.Sum(p => p.Balance));
     }
 
-    /// <summary>
-    /// Aba Custos (COM-05 CA 8 a 10; PRD-04 CA 9) e margens do Resumo, com <c>projects.view_cost</c>: títulos a pagar do projeto pelo
-    /// <c>IPayables.ByProjectAsync</c> e as somas da razão <c>commercial.project_costs</c>.
-    /// </summary>
-    public async Task<Result<ProjectCostView>> CostsAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        if (!await permissions.HasPermissionAsync("projects", "view_cost", cancellationToken))
-        {
-            return NoCost();
-        }
-
-        var project = await db.Projects.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
-        if (project is null)
-        {
-            return NotFound();
-        }
-
-        var revenue = await db.Contracts.Where(c => c.Id == project.ContractId).Select(c => c.TotalValue).FirstAsync(cancellationToken)
-            + await db.ContractAmendments.Where(a => a.ContractId == project.ContractId && a.Status == AmendmentStatus.Approved).SumAsync(a => a.ValueDelta, cancellationToken);
-        var budget = await db.ProjectBudgets.AsNoTracking().Where(b => b.ProjectId == id).ToDictionaryAsync(b => b.CostType, b => b.BudgetedAmount, cancellationToken);
-        var toPay = await payables.ByProjectAsync(id, cancellationToken);
-        var ledger = await db.ProjectCosts.AsNoTracking().Where(c => c.ProjectId == id)
-            .GroupBy(c => new { c.CostType, c.Source, c.IsBackfill })
-            .Select(g => new { g.Key.CostType, g.Key.Source, g.Key.IsBackfill, Amount = g.Sum(c => c.Amount) })
-            .ToListAsync(cancellationToken);
-        return ProjectCosts.Compute(
-            revenue, budget, toPay.Select(p => new CostPayable(p.CostType, p.Origin, p.Status, p.Amount)), ledger.Select(l => new CostLedgerLine(l.CostType, l.Source, l.Amount, l.IsBackfill)));
-    }
+    // A aba Custos (COM-05 CA 8 a 10; PRD-04 CA 9) passou ao ProjectMarginService.CostsAsync (DSH-02 CA 1: um cálculo só).
 }

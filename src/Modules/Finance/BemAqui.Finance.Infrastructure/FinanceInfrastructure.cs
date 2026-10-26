@@ -44,6 +44,8 @@ public static class FinanceInfrastructure
         // Contas a pagar e recorrentes (FIN-02).
         services.TryAddScoped<PayableService>();
         services.TryAddScoped<IPayables, PayablesContract>();
+        // Custo do projeto pelos títulos (DSH-02): somas em lote e o drill-down, com a regra única da PayableCostRules.
+        services.TryAddScoped<IProjectPayableCosts, ProjectPayableCostsContract>();
         services.TryAddScoped<IReceivables, ReceivablesContract>();
         services.TryAddScoped<IFinancialOpening, FinancialOpeningContract>();
         services.TryAddScoped<PaymentStatsService>();

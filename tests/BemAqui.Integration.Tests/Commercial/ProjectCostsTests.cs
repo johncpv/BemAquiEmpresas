@@ -1,4 +1,5 @@
 using BemAqui.Commercial.Application;
+using BemAqui.Commercial.Contracts;
 using BemAqui.Commercial.Domain;
 using BemAqui.Finance.Contracts;
 using BemAqui.SharedKernel;
@@ -18,7 +19,7 @@ public class ProjectCostsTests
 
     private static CostLedgerLine Ledger(CostType type, decimal amount, ProjectCostSource source = ProjectCostSource.Labor, bool backfill = false) => new(type, source, amount, backfill);
 
-    private static ProjectCostLine LineOf(ProjectCostView view, CostType type) => view.Lines.Single(l => l.CostType == type);
+    private static ProjectMarginLine LineOf(ProjectMarginFigures view, CostType type) => view.Lines.Single(l => l.CostType == type);
 
     [Fact]
     public void Exemplo_da_story_instalacao_dentro_e_depois_acima_do_orcado()
@@ -39,8 +40,8 @@ public class ProjectCostsTests
         installation.Deviation.Should().Be(1_000m);
         installation.DeviationPct.Should().Be(10m);
         second.Total.Projected.Should().Be(41_000m);
-        second.BudgetedMarginPct.Should().Be(33.3m);
-        second.ProjectedMarginPct.Should().Be(31.7m);
+        second.BudgetedMarginPct.Should().Be(33.3333m);
+        second.ProjectedMarginPct.Should().Be(31.6667m);
     }
 
     [Fact]
@@ -135,7 +136,7 @@ public class ProjectCostsTests
         var freight = LineOf(view, CostType.Freight);
         (freight.Realized, freight.Committed, freight.Projected, freight.Deviation, freight.DeviationPct).Should().Be((650m, 0m, 650m, 150m, 30m));
         (view.Total.Budgeted, view.Total.Realized, view.Total.Committed, view.Total.Projected, view.Total.Deviation).Should().Be((9_500m, 960.33m, 7_000m, 9_650m, 150m));
-        view.BudgetedMarginPct.Should().Be(36.7m);
-        view.ProjectedMarginPct.Should().Be(35.7m);
+        view.BudgetedMarginPct.Should().Be(36.6667m);
+        view.ProjectedMarginPct.Should().Be(35.6667m);
     }
 }
