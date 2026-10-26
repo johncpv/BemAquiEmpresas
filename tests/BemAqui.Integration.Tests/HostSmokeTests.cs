@@ -27,6 +27,9 @@ public class HostSmokeTests(PostgresFixture postgres)
             b.UseSetting("RateLimit:Auth:PerTenantPerMinute", "100000");
             b.UseSetting("RateLimit:Auth:AskPerMinute", "100000");
             b.UseSetting("Health:ClamAv", "false");
+            // DSH-04: com a suíte em paralelo, uma fonte da pauta passa dos 300 ms de produção e vira falha parcial, sumindo com o item que o
+            // teste confere. O corte do tempo limite tem teste próprio, com 300 ms (AgendaTests.Fonte_com_falha_ou_atraso...).
+            b.UseSetting("Agenda:SourceTimeoutMs", "5000");
             b.UseSetting("Storage:Root", Path.Combine(Path.GetTempPath(), "bemaqui-test-files"));
             b.UseSetting("Auth:SigningKey", BemAqui.Integration.Tests.Tenancy.TestTokens.SigningKeyBase64);
         });
