@@ -28,6 +28,7 @@ async function planningApi(page: import('@playwright/test').Page, state: { summa
   await mockApi(page, {
     'GET /api/v1/me/permissions': (r: Route) => json(r, { permissions: [], isOwner: false, version: '1', modules: allModules({ production: { actions } as never }) }),
     'GET /api/v1/production/schedule': (r: Route) => json(r, state.summary),
+    'GET /api/v1/production/planning/queue': (r: Route) => json(r, { version: 0, reorderedAt: null, reorderedBy: null, rows: [] }),
     'GET /api/v1/production/schedule/orders': (r: Route) => json(r, new URL(r.request().url()).searchParams.getAll('ids').includes('of1') ? [forecast] : []),
     'GET /api/v1/production/production-orders/of1': (r: Route) => json(r, order),
     'GET /api/v1/attachments/ProductionOrder/of1': (r: Route) => json(r, []),
@@ -55,7 +56,7 @@ test.describe('Planejamento (PLN-01a)', () => {
       },
     })
 
-    await page.goto('/app/producao/planejamento')
+    await page.goto('/app/producao/planejamento?aba=sem-previsao')
     await expect(page.getByRole('heading', { name: 'Produção: Planejamento' })).toBeVisible()
     await expect(page.getByText('Recalculado às 10:00 (de hora em hora), 2 OS em 180 ms')).toBeVisible()
     await expect(page.getByText('Sem previsão: Etapa Solda sem centro de trabalho')).toBeVisible()
@@ -82,7 +83,7 @@ test.describe('Planejamento (PLN-01a)', () => {
   test('sem production.edit o botão some; sem OS aberta, o vazio leva às OS; erro do último cálculo', async ({ page }) => {
     const state = { summary: { lastRun: null, lastSuccess: null, pending: false, openOrders: 0, warnings: [] } as Record<string, unknown> }
     await planningApi(page, state, {}, ['view'])
-    await page.goto('/app/producao/planejamento')
+    await page.goto('/app/producao/planejamento?aba=sem-previsao')
     await expect(page.getByText('Nenhuma OS de fabricação aberta para planejar.')).toBeVisible()
     await expect(page.getByRole('link', { name: 'Ver OS de fabricação' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Recalcular agora' })).toHaveCount(0)

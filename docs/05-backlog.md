@@ -416,7 +416,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-4--planejamento-p
 - Requisitos: R-PLN-3, R-PLN-4, R-COM-2, R-PRP-5, PRD §1.2, PRD §6.
 - CA: o plano se refaz a cada evento, com pedidos agrupados (1 rodando, 1 pendente), em até 10 s; data prevista do projeto em `commercial.project_forecasts` = fim da fabricação + prazo de instalação (5 dias úteis, parâmetro); `ProjectForecastChanged` com `computedAt`; prevista > prometida avisa o responsável e `production.approve`, sem tolerância.
 
-**PLN-02 [ ] Fila de prioridade dos projetos (M)** — 4.3, ordem 8 — `Ready` — [story](stories/PLN-02-fila-prioridade.md)
+**PLN-02 [x] Fila de prioridade dos projetos (M)** — 4.3, ordem 8 — `Done` — [story](stories/PLN-02-fila-prioridade.md)
 - Requisitos: R-PLN-2, R-PLN-3, R-PLN-4, R-PRP-2, R-SEC-5.
 - CA: fila de projetos no Production (`production.planning_queue`, ADR 0029), reordenada com `production.edit`, auditada; projeto novo pela data prometida; prévia "antes → depois" sem gravar; salvar com versão (409) e recálculo; `commercial.projects.priority` sem uso, sem apagar.
 

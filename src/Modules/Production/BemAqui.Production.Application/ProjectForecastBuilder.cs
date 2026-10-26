@@ -22,10 +22,20 @@ public sealed class ProjectForecastBuilder(IProductionDb db, IProjects projects,
     public async Task<IReadOnlyList<ProjectForecastResult>> BuildAsync(ScheduleResult result, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(result);
+        return (await BuildManyAsync([result], cancellationToken))[0];
+    }
+
+    /// <summary>
+    /// A previsão de cada projeto para vários resultados do motor de uma vez (PLN-02 CA 4: a prévia "antes → depois"), com os dados lidos
+    /// uma vez só.
+    /// </summary>
+    public async Task<IReadOnlyList<IReadOnlyList<ProjectForecastResult>>> BuildManyAsync(IReadOnlyList<ScheduleResult> results, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(results);
         var candidates = await projects.PlanningCandidatesAsync(cancellationToken);
         if (candidates.Count == 0)
         {
-            return [];
+            return [.. results.Select(_ => (IReadOnlyList<ProjectForecastResult>)[])];
         }
 
         var ids = candidates.Select(p => p.Id).Distinct().ToList();
@@ -35,35 +45,38 @@ public sealed class ProjectForecastBuilder(IProductionDb db, IProjects projects,
         var fabricationIds = orders.Where(o => o.Type == ProductionOrderType.Fabrication).Select(o => o.Id).ToList();
         var withSteps = (await db.ProductionOrderSteps.AsNoTracking().Where(s => fabricationIds.Contains(s.OrderId)).Select(s => s.OrderId).Distinct().ToListAsync(cancellationToken))
             .ToHashSet();
-        var planned = result.Orders.ToDictionary(o => o.OrderId);
         var budgets = await projects.BudgetedManyAsync(ids, CostType.Installation, cancellationToken);
         var days = await parameters.InstallationDaysAsync(cancellationToken);
         var isWorkingDay = await WorkingDaysAsync(today, cancellationToken);
 
         var byProject = orders.ToLookup(o => o.ProjectId);
-        return ids.Select(id =>
+        return [.. results.Select(result =>
         {
-            var mine = byProject[id].ToList();
-            var fabrication = mine.Where(o => o.Type == ProductionOrderType.Fabrication).Select(o =>
+            var planned = result.Orders.ToDictionary(o => o.OrderId);
+            return (IReadOnlyList<ProjectForecastResult>)[.. ids.Select(id =>
             {
-                if (o.Status == ProductionOrderStatus.Completed)
+                var mine = byProject[id].ToList();
+                var fabrication = mine.Where(o => o.Type == ProductionOrderType.Fabrication).Select(o =>
                 {
-                    return new ProjectForecastOrder(o.Id, o.Number, true, o.ActualEnd is { } end ? DateOnly.FromDateTime(BusinessTime.ToBusiness(end).DateTime) : today, null);
-                }
+                    if (o.Status == ProductionOrderStatus.Completed)
+                    {
+                        return new ProjectForecastOrder(o.Id, o.Number, true, o.ActualEnd is { } end ? DateOnly.FromDateTime(BusinessTime.ToBusiness(end).DateTime) : today, null);
+                    }
 
-                if (!withSteps.Contains(o.Id))
-                {
-                    return new ProjectForecastOrder(o.Id, o.Number, false, null, ProjectForecastReasons.NoRouting);
-                }
+                    if (!withSteps.Contains(o.Id))
+                    {
+                        return new ProjectForecastOrder(o.Id, o.Number, false, null, ProjectForecastReasons.NoRouting);
+                    }
 
-                return planned.TryGetValue(o.Id, out var plan)
-                    ? new ProjectForecastOrder(o.Id, o.Number, false, plan.End, plan.End is null ? ProjectForecastCalculator.ReasonCode(plan.NoForecastReason) : null)
-                    : new ProjectForecastOrder(o.Id, o.Number, false, today, null);
-            }).ToList();
-            var installations = mine.Where(o => o.Type == ProductionOrderType.Installation && o.PlannedEnd is not null).Select(o => o.PlannedEnd!.Value).ToList();
-            var input = new ProjectForecastInput(id, fabrication, installations, budgets.GetValueOrDefault(id) > 0m);
-            return ProjectForecastCalculator.Compute(input, days, isWorkingDay);
-        }).ToList();
+                    return planned.TryGetValue(o.Id, out var plan)
+                        ? new ProjectForecastOrder(o.Id, o.Number, false, plan.End, plan.End is null ? ProjectForecastCalculator.ReasonCode(plan.NoForecastReason) : null)
+                        : new ProjectForecastOrder(o.Id, o.Number, false, today, null);
+                }).ToList();
+                var installations = mine.Where(o => o.Type == ProductionOrderType.Installation && o.PlannedEnd is not null).Select(o => o.PlannedEnd!.Value).ToList();
+                var input = new ProjectForecastInput(id, fabrication, installations, budgets.GetValueOrDefault(id) > 0m);
+                return ProjectForecastCalculator.Compute(input, days, isWorkingDay);
+            })];
+        })];
     }
 
     /// <summary>Dia útil do calendário padrão: dia da semana útil e sem exceção de 0 h (feriado ou parada do dia todo).</summary>

@@ -1,8 +1,8 @@
 ---
-titulo: Planejamento da produção
+titulo: Planejamento — como o plano calcula e OS sem previsão
 rota: /app/producao/planejamento
-aba:
-padrao: true
+aba: sem-previsao
+padrao: false
 modulo: production
 ---
 
@@ -10,7 +10,7 @@ modulo: production
 Saber quando cada etapa de cada OS de fabricação vai começar e terminar, pela capacidade real da fábrica. Com isso a data de entrega dada ao cliente vem do plano, e não do chute.
 
 ## Como o plano calcula
-- **Ordem:** os projetos entram pela **data prometida** ao cliente (a mais cedo primeiro). No empate, pela **data de assinatura** do contrato e depois pelo número do projeto. Projeto sem data prometida vai para o fim. Dentro do projeto, as OS seguem a ordem dos itens; dentro da OS, as etapas seguem a sequência do roteiro.
+- **Ordem:** os projetos entram pela **fila** (aba **Fila**). Quem não mexeu na fila vê a ordem da **data prometida** ao cliente (a mais cedo primeiro); no empate, pela **data de assinatura** do contrato e depois pelo número do projeto. Projeto sem data prometida vai para o fim. Dentro do projeto, as OS seguem a ordem dos itens; dentro da OS, as etapas seguem a sequência do roteiro.
 - **Quem já está na máquina continua:** a etapa em andamento ou pausada entra antes da fila, a partir de hoje, no centro dela.
 - **Horas restantes:** etapa que não começou conta as horas padrão inteiras. Etapa em andamento conta as horas padrão menos as apontadas, e nunca menos de 10% do padrão.
 - **Retrabalho inteiro:** a etapa que a qualidade devolveu volta com as horas padrão inteiras.
@@ -23,7 +23,7 @@ Saber quando cada etapa de cada OS de fabricação vai começar e terminar, pela
 - **Quando o plano se refaz:** sozinho, a cada mudança que afeta as datas: gerar, editar, trocar o roteiro ou cancelar uma OS; iniciar, pausar, retomar ou finalizar uma etapa; fechar ou corrigir um apontamento; aprovar ou reprovar a qualidade; concluir a OS; salvar um centro de trabalho, o calendário ou uma exceção; mudar o prazo de instalação; aprovar um aditivo ou cancelar um contrato. As datas novas aparecem em **até 10 segundos**. Vários pedidos seguidos (por exemplo, 20 apontamentos em poucos segundos) viram um cálculo só. Além disso, o plano se refaz **de hora em hora**.
 - Enquanto há um recálculo pendente, o cabeçalho mostra **Recalculando…** e a tela se atualiza sozinha. Quem edita na produção também pode clicar em **Recalcular agora**.
 - **Entrega prevista do projeto:** o fim da última OS de fabricação do projeto, mais o prazo padrão de instalação quando o projeto tem instalação. Ela aparece no Projeto 360 e na lista de projetos; passou da data prometida, o projeto fica **Em risco** e o responsável e quem aprova na produção são avisados.
-- **OS sem previsão** lista as OS que o plano não conseguiu datar, com o motivo e o botão que resolve:
+- A aba **Sem previsão** lista as OS que o plano não conseguiu datar, com o motivo e o botão que resolve:
   - **Escolher roteiro:** a OS ainda não tem etapas.
   - **Informar centro:** uma etapa está sem centro de trabalho. Abra a aba **Etapas** da OS e escolha o centro.
   - **Revisar calendário:** o centro não tem horas nos próximos 2 anos (centro inativo ou calendário sem dias úteis).
@@ -37,4 +37,4 @@ Saber quando cada etapa de cada OS de fabricação vai começar e terminar, pela
 
 **E a OS de instalação?** Ela fica fora do cálculo e mantém as datas digitadas.
 
-**Posso mudar a ordem da fila?** A fila manual chega na próxima versão do Planejamento. Por enquanto a ordem é pela data prometida e pela assinatura.
+**Posso mudar a ordem da fila?** Pode, na aba **Fila**, com permissão de editar a produção. Arraste o projeto ou use os botões de mover, confira a prévia e clique em **Salvar ordem**.
