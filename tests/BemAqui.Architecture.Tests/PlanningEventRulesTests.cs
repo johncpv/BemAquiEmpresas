@@ -72,7 +72,8 @@ public class PlanningEventRulesTests
 
         var consumer = Commercial("ProjectForecastConsumer.cs");
         consumer.Should().Contain("db.Projects.AsNoTracking()", "CA 7: a linha de commercial.projects não é tocada (versão, 409 e auditoria intactos)");
-        consumer.Should().Contain("row.ComputedAt >= integrationEvent.ComputedAt", "CA 7: o outbox não garante ordem; só o mais novo vence");
+        consumer.Should().Contain("var computedAt = ToMicroseconds(integrationEvent.ComputedAt);", "CA 7: compara na precisão do timestamptz (microssegundos)")
+            .And.Contain("row.ComputedAt >= computedAt", "CA 7: o outbox não garante ordem; só o mais novo vence");
         consumer.Should().Contain("NotifyOnceAsync(", "CA 10: aviso uma vez por projeto e data");
     }
 
