@@ -53,7 +53,8 @@ test.describe('produção e estoque (CAD-03)', () => {
     const { api, posted } = productionApi()
     await mockApi(page, api)
     await page.goto('/app/producao')
-    await expect(page).toHaveURL(/\/app\/producao\/os$/)
+    // O Proprietário pode concluir OS e a lista abre em "Aguardando você" (PRD-06a1 CA 1), com ?situacao=pronta.
+    await expect(page).toHaveURL(/\/app\/producao\/os(\?situacao=pronta)?$/)
     await page.goto('/app/producao/centros-de-trabalho')
     await expect(page.getByText('Cadastre os centros de trabalho da fábrica, como Corte e Montagem, com os turnos de cada um.')).toBeVisible()
     await page.getByRole('button', { name: 'Novo centro de trabalho' }).first().focus()
