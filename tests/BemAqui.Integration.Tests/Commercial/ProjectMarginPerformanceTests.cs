@@ -93,11 +93,19 @@ public class ProjectMarginPerformanceTests(TenancyFixture tenancy) : IClassFixtu
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", TestTokens.Create(tenancy.TenantA.Id, Host, userId: userId, stamp: stamp));
         (await client.GetAsync("/api/v1/projects/margins/ranking?pageSize=1")).StatusCode.Should().Be(HttpStatusCode.OK, "aquecimento");
 
-        var watch = Stopwatch.StartNew();
-        var ranking = await client.GetAsync("/api/v1/projects/margins/ranking");
-        watch.Stop();
-        ranking.StatusCode.Should().Be(HttpStatusCode.OK, await ranking.Content.ReadAsStringAsync());
-        watch.Elapsed.Should().BeLessThan(TimeSpan.FromMilliseconds(1_500), "meta de 1 s com folga");
+        // Melhor de três medições (como na pauta, DSH-04 CA 12): absorve o ruído das classes pesadas que rodam em paralelo na suíte.
+        var best = TimeSpan.MaxValue;
+        var watch = new Stopwatch();
+        for (var i = 0; i < 3; i++)
+        {
+            watch.Restart();
+            var ranking = await client.GetAsync("/api/v1/projects/margins/ranking");
+            watch.Stop();
+            ranking.StatusCode.Should().Be(HttpStatusCode.OK, await ranking.Content.ReadAsStringAsync());
+            best = watch.Elapsed < best ? watch.Elapsed : best;
+        }
+
+        best.Should().BeLessThan(TimeSpan.FromMilliseconds(1_500), "meta de 1 s com folga");
 
         watch.Restart();
         var portfolio = await client.GetAsync("/api/v1/projects/margins/portfolio");
