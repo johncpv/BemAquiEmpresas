@@ -22,6 +22,7 @@ public partial class DataOwnershipTests
         ["Parties/BemAqui.Parties.Application/CnpjLookupService.cs"] = "expurgo do cache de consultas de CNPJ",
         ["Migrations/BemAqui.Migrations.Application/StagingService.cs"] = "expurgo da staging da importação (ADR 0017)",
         ["Migrations/BemAqui.Migrations.Application/ImportSession.cs"] = "xmin gravado na staging da importação",
+        ["Production/BemAqui.Production.Application/ScheduleService.cs"] = "substituição do plano (schedule_allocations e schedule_step_forecasts) numa transação; as tabelas do plano ficam fora da auditoria e o histórico é a schedule_runs (PLN-01a, ADR 0029)",
         ["Inventory/BemAqui.Inventory.Application/StockLedger.cs"] = "trava do motor de estoque: INSERT … ON CONFLICT DO NOTHING da posição, do lote e do saldo por lote antes do SELECT … FOR UPDATE (ADR 0023 §2); o movimento é a trilha",
     };
 

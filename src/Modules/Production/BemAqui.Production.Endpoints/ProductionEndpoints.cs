@@ -18,6 +18,7 @@ internal static partial class ProductionEndpoints
         MapCalendars(production.MapGroup("/calendars"));
         MapFabricationOrders(production.MapGroup("/production-orders"));
         MapBoard(production.MapGroup("/board"));
+        MapSchedule(production.MapGroup("/schedule"));
         MapLabor(production);
         MapQuality(production);
         MapInstallations(production.MapGroup("/installations"));

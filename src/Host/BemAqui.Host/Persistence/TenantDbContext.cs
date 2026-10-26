@@ -21,7 +21,7 @@ namespace BemAqui.Host.Persistence;
 /// DbContext único do banco de tenant (ADR 0006): tabelas compartilhadas da base e, conforme as stories
 /// avançam, as configurações de cada módulo. A conexão por tenant chega na FND-02.
 /// </summary>
-public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) : BemAquiDbContext(options), IIdentityDb, IPartiesDb, IMigrationDb, IFinanceDb, IInventoryDb, IProductionDb, IHrDb, BemAqui.Commercial.Application.ICommercialDb, BemAqui.Engineering.Application.IEngineeringDb, BemAqui.Purchasing.Application.IPurchasingDb
+public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) : BemAquiDbContext(options), IIdentityDb, IPartiesDb, IMigrationDb, IFinanceDb, IInventoryDb, IProductionDb, IProductionPlanDb, IHrDb, BemAqui.Commercial.Application.ICommercialDb, BemAqui.Engineering.Application.IEngineeringDb, BemAqui.Purchasing.Application.IPurchasingDb
 {
     public DbSet<User> Users => Set<User>();
 
@@ -232,6 +232,19 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
     public DbSet<BemAqui.Production.Domain.ShipmentLine> ShipmentLines => Set<BemAqui.Production.Domain.ShipmentLine>();
 
     public DbSet<BemAqui.Production.Domain.ShipmentLineSerial> ShipmentLineSerials => Set<BemAqui.Production.Domain.ShipmentLineSerial>();
+
+    // Plano (PLN-01a, ADR 0029): a escrita só pelo IProductionPlanDb (ScheduleService); o IProductionDb só lê, sem rastreamento.
+    public DbSet<ScheduleRun> ScheduleRuns => Set<ScheduleRun>();
+
+    public DbSet<ScheduleAllocation> ScheduleAllocations => Set<ScheduleAllocation>();
+
+    public DbSet<ScheduleStepForecast> ScheduleStepForecasts => Set<ScheduleStepForecast>();
+
+    IQueryable<ScheduleRun> IProductionDb.ScheduleRunsView => Set<ScheduleRun>().AsNoTracking();
+
+    IQueryable<ScheduleAllocation> IProductionDb.ScheduleAllocationsView => Set<ScheduleAllocation>().AsNoTracking();
+
+    IQueryable<ScheduleStepForecast> IProductionDb.ScheduleStepForecastsView => Set<ScheduleStepForecast>().AsNoTracking();
 
     public DbSet<BemAqui.Engineering.Domain.RoutingTemplate> RoutingTemplates => Set<BemAqui.Engineering.Domain.RoutingTemplate>();
 

@@ -128,8 +128,9 @@ public sealed partial class ProjectService(
         return row is null ? null : new ContractInfo(row.Id, row.Number, Enum.Parse<ContractState>(row.Status.ToString()), row.PartyId, row.ProjectId);
     }
 
-    private static IQueryable<ProjectSummary> Summaries(IQueryable<Project> projects) =>
-        projects.AsNoTracking().Select(p => new ProjectSummary(p.Id, p.Number, p.Name, p.PartyId, p.ContractId, p.Status.ToString(), p.SiteAddressId, p.ManagerUserId, p.PromisedDate));
+    private IQueryable<ProjectSummary> Summaries(IQueryable<Project> projects) =>
+        projects.AsNoTracking().Select(p => new ProjectSummary(p.Id, p.Number, p.Name, p.PartyId, p.ContractId, p.Status.ToString(), p.SiteAddressId, p.ManagerUserId, p.PromisedDate,
+            db.Contracts.Where(c => c.Id == p.ContractId).Select(c => (DateOnly?)c.SignedAt).FirstOrDefault()));
 
     internal static Error NotFound() => Error.NotFound("project_not_found", "Projeto não encontrado.");
 }

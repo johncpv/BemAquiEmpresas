@@ -13,6 +13,7 @@ import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { ProductionTabs } from '../ProductionTabs'
 import { FABRICATION_STATUS } from '../orders/fabrication'
+import { ForecastsContext, useOrderForecasts } from '../planning/use-forecasts'
 import { BoardCard } from './BoardCard'
 import { boardParams, hasFilters, hoursText, KANBAN_DICAS, KANBAN_FILTERS, promisedText, stripe } from './kanban'
 import { FALLBACK_POLL_MS, useBoardLive } from './useBoardLive'
@@ -42,6 +43,8 @@ export function KanbanPage() {
   }
   const asList = filters.ver === 'lista'
   const board = query.data
+  // PLN-01a CA 16: "Fim previsto" de cada cartão, lido do plano em uma leitura por lote de cartões.
+  const forecasts = useOrderForecasts(board?.cards.map((c) => c.id) ?? [])
 
   return (
     <>
@@ -65,7 +68,9 @@ export function KanbanPage() {
             <EmptyState title="Nenhuma OS com estes filtros." description="Mude ou limpe os filtros para ver as outras OS abertas."
               action={<button type="button" className={button} onClick={clear}>Limpar filtros</button>} />
           ) : asList ? <BoardList board={board} /> : (
-            <Columns board={board} selected={filters.coluna} onSelect={(key) => setFilter('coluna', key)} canApprove={canApprove} onChanged={refresh} />
+            <ForecastsContext.Provider value={forecasts}>
+              <Columns board={board} selected={filters.coluna} onSelect={(key) => setFilter('coluna', key)} canApprove={canApprove} onChanged={refresh} />
+            </ForecastsContext.Provider>
           )}
         </>
       ) : null}

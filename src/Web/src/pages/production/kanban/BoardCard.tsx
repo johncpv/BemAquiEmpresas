@@ -12,6 +12,8 @@ import { Dica } from '@/help/Dica'
 import { cn } from '@/lib/utils'
 import { useBomRecovery } from '@/pages/engineering/boms/bom-recovery'
 import { quantity } from '../orders/fabrication'
+import { orderEndText, PLANNING_DICAS } from '../planning/planning'
+import { useForecast } from '../planning/use-forecasts'
 import { canCompleteStep, completeLabel, hoursText, KANBAN_DICAS, MAX_REASON, meter, promisedText, stripe } from './kanban'
 
 const itemClass = 'cursor-pointer rounded-sm px-2 py-1.5 text-sm outline-none data-[highlighted]:bg-muted'
@@ -26,6 +28,7 @@ export function BoardCard({ card, canApprove, onChanged }: { card: Card; canAppr
   const [completing, setCompleting] = useState(false)
   const band = stripe(card)
   const hours = meter(card)
+  const forecast = useForecast(card.id)
   const completable = canApprove && canCompleteStep(card)
   const toOrder = { to: '/app/producao/os/$id', params: { id: card.id } } as never
   return (
@@ -65,6 +68,11 @@ export function BoardCard({ card, canApprove, onChanged }: { card: Card; canAppr
         </div>
       ) : null}
       {!band ? <p className="mt-2 text-xs text-muted-foreground tabular-nums">{promisedText(card)}</p> : null}
+      {forecast && !card.readyToComplete ? (
+        <p className={cn('mt-1 flex items-center text-xs tabular-nums', forecast.plannedEnd ? 'text-muted-foreground' : 'font-semibold text-warn-ink')}>
+          {orderEndText(forecast)}<Dica nome={forecast.plannedEnd ? 'Fim previsto' : 'Sem previsão'} texto={forecast.plannedEnd ? PLANNING_DICAS.previsto : PLANNING_DICAS.semPrevisao} />
+        </p>
+      ) : null}
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
         {card.inExecution ? <StatusChip tone="info">Em execução</StatusChip> : null}
         {card.pausedReason ? <StatusChip tone="warn">Pausada: {card.pausedReason}</StatusChip> : null}
