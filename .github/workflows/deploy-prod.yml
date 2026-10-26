@@ -12,13 +12,13 @@ permissions:
 
 jobs:
   production:
-    if: vars.PROD_DEPLOY == 'true'
+    if: vars.PROD_DEPLOY == 'true' && github.repository == 'johncpv/BemAquiEmpresas'
     uses: ./.github/workflows/deploy.yml
     with:
       environment: production
       ref: ${{ github.sha }}
       tenant_host: app.konebras.com.br
-      ssh_host: 2.25.82.127
+      ssh_host: ${{ vars.PROD_SSH_HOST }}
     secrets:
       DEPLOY_SSH_KEY: ${{ secrets.PROD_SSH_KEY }}
       DEPLOY_KNOWN_HOSTS: ${{ secrets.PROD_KNOWN_HOSTS }}

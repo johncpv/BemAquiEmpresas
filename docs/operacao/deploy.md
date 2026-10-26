@@ -1,6 +1,6 @@
 # Runbook: deploy da homologação (FND-10, ADR 0015)
 
-Para quem opera a VPS. Este runbook prepara a homologação **uma vez**; depois disso, a publicação automática liga com a variável `HOMOLOG_DEPLOY`. Desde a economia de minutos do Actions (21/10/2026), o CI roda só no PR pronto para revisão e não no push da `main`; com a variável ligada, dispare "Deploy homologação" à mão (workflow_dispatch). Enquanto ela estiver desligada, o deploy de homologação é feito pelo script local, que monta as imagens do commit da `main`, envia à VPS, roda o migrator e a fumaça.
+Para quem opera a VPS. Este runbook prepara a homologação **uma vez**; depois disso, a publicação pelo Actions liga com a variável `HOMOLOG_DEPLOY`. Desde a economia de minutos do Actions (21/10/2026), o CI roda só no PR pronto para revisão e não no push da `main`; com a variável ligada, dispare "Deploy homologação" à mão (workflow_dispatch). Enquanto ela estiver desligada, o deploy de homologação é feito pelo script local, que monta as imagens do commit da `main`, envia à VPS, roda o migrator e a fumaça.
 
 Regras que valem em toda a operação:
 - **VPS compartilhada:** não mexa nos containers, volumes e vhosts dos outros projetos (`bemaqui-atende`, `konebras`, `nshome`…). `app.konebras.com.br` continua com o Dolibarr até a GOL-01.
@@ -85,10 +85,10 @@ Rode uma vez à mão (`./backup-cron.sh daily`) e liste o bucket. Depois, **tent
 2. Na VPS, em `/root/.ssh/authorized_keys`, inclua uma linha com o comando restrito:
    `command="/opt/projetos/bemaqui-empresas-homolog/deploy.sh",restrict ssh-ed25519 AAAA… bqe-homolog-deploy`
 3. No GitHub, crie o environment `homolog` com os secrets `HOMOLOG_SSH_KEY` (a chave privada) e `HOMOLOG_KNOWN_HOSTS` (saída de `ssh-keyscan -t ed25519 2.25.82.127`).
-4. Crie a variável do repositório `HOMOLOG_DEPLOY=true`.
+4. Crie as variáveis do repositório `HOMOLOG_SSH_HOST` (IP da VPS) e `HOMOLOG_DEPLOY=true`. Na produção, `PROD_SSH_HOST` e `PROD_DEPLOY`.
 
-## Cada deploy (automático)
-- **Imagens:** o `deploy-homolog.yml` roda depois do CI verde na `main`. Ele publica as imagens com a tag do SHA e chama `deploy.sh`.
+## Cada deploy (manual)
+- **Imagens:** o `deploy-homolog.yml` roda à mão (workflow_dispatch) na `main`, depois do CI verde do PR. Ele publica as imagens com a tag do SHA e chama `deploy.sh`.
 - **Ordem no `deploy.sh`:** compose do commit, depois `pull`, depois `migrator`, depois `api` e `web` esperando `healthy`.
 - **Fumaça:** `scripts/smoke.sh` confere `/health/ready`, o front, o tenant, a rota `/hubs` e o Dolibarr em `app.konebras.com.br`.
 - **Migrator falhou:** o deploy termina com erro, a versão anterior fica no ar e o alerta `migration_failed` é enviado.
