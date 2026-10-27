@@ -4,6 +4,7 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { PayeeType } from './payeeType';
 import type { PaymentDetailsInput } from './paymentDetailsInput';
 
 export interface PaymentOrderItemView {
@@ -24,4 +25,5 @@ export interface PaymentOrderItemView {
   paidTotal: number;
   /** @nullable */
   installationBudget?: number | null;
+  payeeType?: PayeeType;
 }

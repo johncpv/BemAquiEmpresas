@@ -11,4 +11,6 @@ export interface HrParameterChange {
   value: number | null;
   /** @nullable */
   partyId: string | null;
+  /** @nullable */
+  code?: string | null;
 }

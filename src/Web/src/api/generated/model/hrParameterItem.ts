@@ -29,4 +29,8 @@ export interface HrParameterItem {
   confirmedAt: string | null;
   /** @nullable */
   parameterId: string | null;
+  /** @nullable */
+  code?: string | null;
+  /** @nullable */
+  codeName?: string | null;
 }

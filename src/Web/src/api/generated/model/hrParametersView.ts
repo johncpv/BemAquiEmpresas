@@ -4,9 +4,14 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { HrCodeOption } from './hrCodeOption';
 import type { HrParameterItem } from './hrParameterItem';
 
 export interface HrParametersView {
   items: HrParameterItem[];
   pendingCount: number;
+  /** @nullable */
+  accounts?: HrCodeOption[] | null;
+  /** @nullable */
+  costCenters?: HrCodeOption[] | null;
 }

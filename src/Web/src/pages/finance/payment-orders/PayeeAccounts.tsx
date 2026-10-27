@@ -1,4 +1,4 @@
-import { useGetPaymentOrderPayeeAccounts } from '@/api/generated/bemaqui'
+import { getPaymentOrderPayeeAccounts, useGetPaymentOrderPayeeAccounts } from '@/api/generated/bemaqui'
 import type { PaymentOrderDetail } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { Skeleton } from '@/components/ui/states'
@@ -9,7 +9,8 @@ import { Skeleton } from '@/components/ui/states'
  */
 export function PayeeAccounts({ order, onResubmit }: { order: PaymentOrderDetail; onResubmit: () => void }) {
   const hasSalaries = order.items.some((i) => i.payeeType === 'Employee')
-  const query = useGetPaymentOrderPayeeAccounts(order.summary.id, { query: { enabled: hasSalaries, staleTime: 0, gcTime: 0, retry: false } })
+  // Sem AbortSignal: cada leitura grava SensitiveRead, e uma leitura cancelada (desmontagem no meio) seria refeita.
+  const query = useGetPaymentOrderPayeeAccounts(order.summary.id, { query: { queryFn: () => getPaymentOrderPayeeAccounts(order.summary.id), enabled: hasSalaries, staleTime: Infinity, gcTime: 0, retry: false, refetchOnWindowFocus: false, refetchOnReconnect: false } })
   if (!hasSalaries) return null
   if (query.isPending) return <Skeleton className="mt-3 h-16" />
   if (query.isError) {

@@ -25,7 +25,7 @@ function closingApi() {
   const api: Record<string, (r: Route) => Promise<void> | void> = {
     'GET /api/v1/hr/payroll-runs/*': (r) => json(r, run()),
     'GET /api/v1/hr/payroll-runs/*/payslips/sensitive': (r) => json(r, []),
-    'GET /api/v1/me/two-factor': (r) => json(r, { enabled: true, recoveryCodesLeft: 8 }),
+    'GET /api/v1/me/2fa': (r) => json(r, { enabled: true, recoveryCodesLeft: 8 }),
     'GET /api/v1/hr/payroll-runs/*/close/sensitive': (r) => json(r, {
       runId: 'r1', period: '2026-10-01', type: 'Monthly', blockers: [], suggestedPaymentDate: '2026-11-06', paymentDateRequired: false, paymentDateConfirmed: false,
       newcomers: [{ employeeId: 'e2', name: 'Rui Prado', registration: '102', quarantineUntil: null }],
@@ -63,7 +63,7 @@ test.describe('RH-02c: fechamento da folha e salários no Financeiro', () => {
     await expect(dialog.getByText('Novos na folha')).toBeVisible()
     await expect(dialog.getByText(/Rui Prado: conta em quarentena até 20\/11\/2026/)).toBeVisible()
     await expect(dialog.getByText('A confirmar com a contadora')).toBeVisible()
-    await expect(dialog.getByLabel('Data de pagamento')).toHaveValue(/06\/11\/2026|2026-11-06/)
+    await expect(dialog.getByRole('textbox', { name: /Data de pagamento/ })).toHaveValue(/06\/11\/2026|2026-11-06/)
     await dialog.getByLabel('Código do aplicativo autenticador').fill('123456')
     await dialog.getByRole('button', { name: 'Fechar folha' }).click()
     await expect(page.getByRole('status').filter({ hasText: 'Folha fechada' }).first()).toBeVisible()

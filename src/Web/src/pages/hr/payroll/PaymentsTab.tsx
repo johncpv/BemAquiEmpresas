@@ -1,4 +1,5 @@
 import { Link, useNavigate } from '@tanstack/react-router'
+import { useState } from 'react'
 import { useGetPayrollPaymentsSensitive } from '@/api/generated/bemaqui'
 import type { PayrollPaymentRow, PayrollRunSummary } from '@/api/generated/model'
 import { Money } from '@/components/ui/money'
@@ -33,6 +34,7 @@ function Row({ r, canOpen }: { r: PayrollPaymentRow; canOpen: boolean }) {
  */
 export function PaymentsTab({ run }: { run: PayrollRunSummary }) {
   const navigate = useNavigate()
+  const [stepsDismissed, setStepsDismissed] = useState(false)
   const canOrder = useCan('finance.create')
   const canOpen = useCan('finance.view')
   const query = useGetPayrollPaymentsSensitive(run.id, { query: { enabled: run.status !== 'Draft' } })
@@ -49,7 +51,7 @@ export function PaymentsTab({ run }: { run: PayrollRunSummary }) {
   ]
   return (
     <div className="max-w-4xl space-y-4">
-      {canOrder && steps.length > 0 ? <NextSteps steps={steps} /> : null}
+      {canOrder && !stepsDismissed && steps.length > 0 ? <NextSteps steps={steps} onDismiss={() => setStepsDismissed(true)} /> : null}
       {view.quarantined.length > 0 ? (
         <section aria-label="Fora do pagamento automático" className="rounded-md border border-warn-soft bg-warn-soft px-3 py-2 text-sm text-warn-ink">
           <p className="inline-flex items-center font-semibold">Fora do pagamento automático<Dica nome="Conta em quarentena" texto={PAYROLL_DICAS.quarentena} /></p>

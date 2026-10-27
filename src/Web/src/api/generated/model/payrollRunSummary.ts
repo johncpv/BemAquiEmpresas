@@ -21,4 +21,12 @@ export interface PayrollRunSummary {
   /** @nullable */
   closedByName: string | null;
   version: number;
+  /** @nullable */
+  paymentDate?: string | null;
+  /** @nullable */
+  paidAt?: string | null;
+  /** @nullable */
+  reopenReason?: string | null;
+  /** @nullable */
+  payableCount?: number | null;
 }

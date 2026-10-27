@@ -70,7 +70,7 @@ function ReceiptPayables({ receiptId }: { receiptId: string }) {
           <span className="flex flex-wrap items-center gap-2 tabular-nums">
             {p.dueDate ? formatDate(p.dueDate) : '—'}
             <Money value={p.amount} className="font-semibold" />
-            <StatusChip tone={PAYABLE_STATUS[p.status]?.tone ?? 'neutral'}>{PAYABLE_STATUS[p.status]?.label ?? p.status}</StatusChip>
+            <StatusChip tone={PAYABLE_STATUS[p.status ?? '']?.tone ?? 'neutral'}>{PAYABLE_STATUS[p.status ?? '']?.label ?? p.status}</StatusChip>
             {p.paymentOrderId ? <Link to={'/app/financeiro/ordens-de-pagamento/$id' as never} params={{ id: p.paymentOrderId } as never} className="text-xs font-semibold text-primary">Ver OP</Link> : null}
           </span>
         </li>

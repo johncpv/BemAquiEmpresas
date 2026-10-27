@@ -13,4 +13,10 @@ export const HrParameterKind = {
   DayOfMonth: 'DayOfMonth',
   Days: 'Days',
   Party: 'Party',
+  BusinessDay: 'BusinessDay',
+  DayOfPeriod: 'DayOfPeriod',
+  MonthDay: 'MonthDay',
+  Months: 'Months',
+  Account: 'Account',
+  CostCenter: 'CostCenter',
 } as const;
