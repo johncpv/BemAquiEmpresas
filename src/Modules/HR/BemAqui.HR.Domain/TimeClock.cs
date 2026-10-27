@@ -58,7 +58,7 @@ public enum TimeClockGeolocation
 /// (RH-01b) a desconsidera e cria outra. A localização (latitude, longitude e precisão) é <c>[PersonalData]</c>: mascarada na
 /// auditoria, fora do log e de qualquer evento, e só sai pela rota <c>/sensitive</c>.
 /// </summary>
-public sealed class TimeEntry : Entity, IAuditable
+public sealed class TimeEntry : Entity, IAuditable, IConcurrencyVersioned
 {
     public Guid EmployeeId { get; init; }
 
@@ -72,7 +72,20 @@ public sealed class TimeEntry : Entity, IAuditable
 
     public TimeEntrySource Source { get; init; }
 
-    public TimeEntryStatus Status { get; init; } = TimeEntryStatus.Valid;
+    public TimeEntryStatus Status { get; set; } = TimeEntryStatus.Valid;
+
+    /// <summary>Quem aprovou o ajuste que criou esta marcação (origem Manual, RH-01b CA 11).</summary>
+    public Guid? ApprovedBy { get; init; }
+
+    /// <summary>Pedido de ajuste que criou esta marcação (RH-01b CA 11).</summary>
+    public Guid? AdjustmentId { get; init; }
+
+    /// <summary>Pedido de ajuste aprovado que desconsiderou esta marcação (RH-01b CA 11 e 19); a marcação nunca é apagada.</summary>
+    public Guid? VoidAdjustmentId { get; set; }
+
+    public Guid? VoidedBy { get; set; }
+
+    public DateTimeOffset? VoidedAt { get; set; }
 
     public Guid? RecordedByUserId { get; init; }
 
@@ -93,6 +106,9 @@ public sealed class TimeEntry : Entity, IAuditable
     public int? AccuracyM { get; init; }
 
     public DateTimeOffset CreatedAt { get; init; }
+
+    /// <summary><c>xmin</c>: dois ajustes aprovados ao mesmo tempo não desconsideram a mesma marcação (RH-01b CA 14).</summary>
+    public uint Version { get; set; }
 }
 
 /// <summary>

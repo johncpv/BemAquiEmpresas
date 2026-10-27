@@ -188,7 +188,7 @@ public partial class EmployeesTests
         await using (var scope = await ScopeAsync())
         {
             var hr = scope.ServiceProvider.GetRequiredService<IHrDb>();
-            hr.EmployeeHistory.Add(new EmployeeHistoryEntry { EmployeeId = other, Kind = EmployeeHistoryKind.Leave, EffectiveDate = Today.AddDays(-1), LeaveEndDate = Today.AddDays(3), LeaveType = EmployeeLeaveType.Other, CreatedAt = DateTimeOffset.UtcNow });
+            hr.EmployeeHistory.Add(new EmployeeHistoryEntry { EmployeeId = other, Kind = EmployeeHistoryKind.Leave, EffectiveDate = Today.AddDays(-1), LeaveEndDate = Today.AddDays(3), LeaveType = AbsenceReason.JustifiedAbsence, CreatedAt = DateTimeOffset.UtcNow });
             await hr.SaveChangesAsync();
         }
 

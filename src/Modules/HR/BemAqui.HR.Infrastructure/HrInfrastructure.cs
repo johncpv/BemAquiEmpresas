@@ -126,6 +126,17 @@ public static class HrInfrastructure
         services.TryAddScoped<BemAqui.HR.Application.TimeClock.TimeClockService>();
         services.AddAuditableEntity<TimeEntry>("hr", PositionService.SensitiveAction);
         services.AddAuditableEntity<TimeClockGeoConsent>("hr", PositionService.SensitiveAction);
+        // Ajustes do ponto (RH-01b): lançamento, pedido, abono e aprovação. O período fechado vem da RH-01c (até lá, nenhum fechado). O
+        // documento do abono (dono TimeAdjustmentDocument, ADR 0019 §7) lê e grava com hr.view_health, pdf, png e jpg até 10 MB, confere o
+        // pedido e grava SensitiveRead no download; a rota genérica de anexos não grava (CanAttach): só a do pedido, que confere o registro.
+        // O histórico do pedido abre com hr.view (justificativa, motivo e comentário mascarados, [PersonalData]).
+        services.TryAddScoped<BemAqui.HR.Application.TimeClock.ITimesheetPeriodLock, BemAqui.HR.Application.TimeClock.NoTimesheetClosings>();
+        services.TryAddScoped<BemAqui.HR.Application.TimeClock.TimeAdjustmentService>();
+        services.AddAuditableEntity<TimeAdjustment>("hr");
+        services.AddAttachmentOwner(BemAqui.HR.Application.TimeClock.TimeAdjustmentService.DocumentOwner, new AttachmentOwnerRules("hr", ["application/pdf", "image/png", "image/jpeg"], 10 * 1024 * 1024,
+            OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IHrDb>().TimeAdjustments.AnyAsync(a => a.Id == id && a.Kind == TimeAdjustmentKind.Absence, ct),
+            ReadAction: BemAqui.HR.Application.TimeClock.TimeAdjustmentService.HealthAction, WriteAction: BemAqui.HR.Application.TimeClock.TimeAdjustmentService.HealthAction,
+            CanAttach: ByRequestOnly, AuditReads: true));
         services.AddAuditableEntity<EmployeeDependent>("hr", PositionService.SensitiveAction);
         services.AddAuditableEntity<Employee>("hr", PositionService.SensitiveAction);
         services.AddAuditableEntity<EmployeeHistoryEntry>("hr", PositionService.SensitiveAction);
@@ -134,6 +145,9 @@ public static class HrInfrastructure
         services.AddAuditableEntity<LaborUnion>("hr", PositionService.SensitiveAction);
         return services;
     }
+
+    private static Task<BemAqui.SharedKernel.Error?> ByRequestOnly(IServiceProvider services, Guid ownerId, CancellationToken cancellationToken) =>
+        Task.FromResult<BemAqui.SharedKernel.Error?>(BemAqui.SharedKernel.Error.Validation("attachment.by_request_only", "Anexe o documento pelo pedido de abono."));
 
     private static Task<BemAqui.SharedKernel.Error?> SystemOnly(IServiceProvider services, Guid ownerId, CancellationToken cancellationToken) =>
         Task.FromResult<BemAqui.SharedKernel.Error?>(BemAqui.SharedKernel.Error.Validation("attachment.system_only", "Este documento é gerado pelo sistema e não aceita anexos."));

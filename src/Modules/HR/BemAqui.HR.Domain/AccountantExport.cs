@@ -27,7 +27,7 @@ public sealed record AccountantEvent(
     string? Cbo = null,
     decimal? Salary = null,
     string? Schedule = null,
-    EmployeeLeaveType? LeaveType = null,
+    AbsenceReason? LeaveType = null,
     DateOnly? LeaveEnd = null);
 
 /// <summary>Linha do holerite da folha fechada (CA 3): a chave do funcionário, o tipo da folha e a linha como está na folha.</summary>
@@ -86,15 +86,8 @@ public static class AccountantLayoutV1
         _ => "afastamento",
     };
 
-    public static string LeaveLabel(EmployeeLeaveType type) => type switch
-    {
-        EmployeeLeaveType.Illness => "Doença",
-        EmployeeLeaveType.WorkAccident => "Acidente de trabalho",
-        EmployeeLeaveType.Maternity => "Maternidade",
-        EmployeeLeaveType.Paternity => "Paternidade",
-        EmployeeLeaveType.Military => "Serviço militar",
-        _ => "Outros",
-    };
+    /// <summary>Nome do motivo da lista única de ausências (RH-01b CA 7), o mesmo da tela.</summary>
+    public static string LeaveLabel(AbsenceReason type) => AbsenceReasons.Label(type);
 
     /// <summary>
     /// Linhas de <c>movimentacao.csv</c> (CA 2), em ordem de data, evento e nome. Cada evento leva só as colunas dele: nascimento, cargo,

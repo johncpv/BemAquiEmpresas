@@ -37,14 +37,14 @@ public class AccountantExportRulesTests
     {
         var rows = AccountantLayoutV1.MovementRows(
         [
-            new(AccountantEventKind.Leave, "003", "Carla", "11144477735", new DateOnly(2024, 2, 25), LeaveType: EmployeeLeaveType.Illness, LeaveEnd: new DateOnly(2024, 3, 5)),
+            new(AccountantEventKind.Leave, "003", "Carla", "11144477735", new DateOnly(2024, 2, 25), LeaveType: AbsenceReason.MedicalCertificate, LeaveEnd: new DateOnly(2024, 3, 5)),
             new(AccountantEventKind.Admission, "001", "Ana", "01234567890", new DateOnly(2024, 3, 5), new DateOnly(1990, 5, 10), "Montador", "715505", 3500m, "44 h"),
             new(AccountantEventKind.Termination, null, "Bruno", "52998224725", new DateOnly(2024, 3, 20), Salary: 9999m),
             new(AccountantEventKind.SalaryChange, "003", "Carla", "11144477735", new DateOnly(2024, 3, 1), Salary: 4000.5m),
             new(AccountantEventKind.PositionChange, "003", "Carla", "11144477735", new DateOnly(2024, 3, 10), Position: "Soldador", Cbo: "724315"),
         ]);
         rows.Should().HaveCount(5);
-        rows[0].Should().Equal("afastamento", "003", "Carla", "111.444.777-35", null, null, null, null, null, "25/02/2024", "Doença", "05/03/2024");
+        rows[0].Should().Equal("afastamento", "003", "Carla", "111.444.777-35", null, null, null, null, null, "25/02/2024", "Atestado médico", "05/03/2024");
         rows[1].Should().Equal("reajuste", "003", "Carla", "111.444.777-35", null, null, null, "4000,50", null, "01/03/2024", null, null);
         rows[2].Should().Equal("admissao", "001", "Ana", "012.345.678-90", "10/05/1990", "Montador", "7155-05", "3500,00", "44 h", "05/03/2024", null, null);
         rows[3].Should().Equal("troca_cargo", "003", "Carla", "111.444.777-35", null, "Soldador", "7243-15", null, null, "10/03/2024", null, null);

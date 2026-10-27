@@ -36,3 +36,26 @@ internal sealed class TimeClockGeoConsentConfiguration : IEntityTypeConfiguratio
         b.HasIndex(e => new { e.EmployeeId, e.TextVersion }).IsUnique().HasDatabaseName("ix_time_clock_geo_consents_employee_version");
     }
 }
+
+/// <summary>
+/// Pedidos de ajuste do ponto (RH-01b): índices (funcionário, dia) e (situação, pedido em); a marcação desconsiderada e a criada ficam só
+/// pelo id (sem chave estrangeira, a marcação nunca é apagada); o motivo da lista única em texto.
+/// </summary>
+internal sealed class TimeAdjustmentConfiguration : IEntityTypeConfiguration<TimeAdjustment>
+{
+    public void Configure(EntityTypeBuilder<TimeAdjustment> b)
+    {
+        b.ToTable("time_adjustments", HrSchema.Name);
+        b.Property(e => e.Kind).HasConversion<string>().HasMaxLength(20);
+        b.Property(e => e.EntryType).HasConversion<string>().HasMaxLength(20);
+        b.Property(e => e.AbsenceReason).HasConversion<string>().HasMaxLength(20);
+        b.Property(e => e.Source).HasConversion<string>().HasMaxLength(20);
+        b.Property(e => e.Status).HasConversion<string>().HasMaxLength(20);
+        b.Property(e => e.Justification).HasMaxLength(TimeAdjustmentRules.JustificationMax);
+        b.Property(e => e.DecisionComment).HasMaxLength(TimeAdjustmentRules.CommentMax);
+        b.HasOne<Employee>().WithMany().HasForeignKey(e => e.EmployeeId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => new { e.EmployeeId, e.Day }).HasDatabaseName("ix_time_adjustments_employee_day");
+        b.HasIndex(e => new { e.Status, e.RequestedAt }).HasDatabaseName("ix_time_adjustments_status_requested");
+        b.HasIndex(e => e.EntryId).HasDatabaseName("ix_time_adjustments_entry");
+    }
+}

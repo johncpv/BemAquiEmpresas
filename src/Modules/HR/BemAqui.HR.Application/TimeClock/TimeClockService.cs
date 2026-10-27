@@ -19,6 +19,7 @@ public sealed class TimeClockService(
     IHrDb db,
     HrParametersService parameters,
     IShopfloorDevices devices,
+    IUserDirectory users,
     IAuditWriter audit,
     ICurrentUser currentUser,
     TimeProvider clock)
@@ -197,8 +198,25 @@ public sealed class TimeClockService(
 
         var rows = await query.OrderByDescending(x => x.Entry.Day).ThenBy(x => x.Name).ThenBy(x => x.Entry.At).Take(MaxRows + 1).ToListAsync(cancellationToken);
         var names = await DeviceNamesAsync(rows.Select(r => r.Entry.DeviceId), cancellationToken);
+        // RH-01b CA 13 e 19: a marca "autoaprovado" da marcação criada por ajuste e o texto da desconsiderada, com o aprovador e o motivo.
+        var adjustmentIds = rows.SelectMany(r => new[] { r.Entry.AdjustmentId, r.Entry.VoidAdjustmentId }).OfType<Guid>().Distinct().ToList();
+        var adjustments = adjustmentIds.Count == 0
+            ? []
+            : await db.TimeAdjustments.AsNoTracking().Where(a => adjustmentIds.Contains(a.Id)).Select(a => new { a.Id, a.SelfApproved, a.Justification }).ToListAsync(cancellationToken);
+        var byId = adjustments.ToDictionary(a => a.Id);
+        var approvers = new Dictionary<Guid, string?>();
+        foreach (var approver in rows.Select(r => r.Entry.VoidedBy).OfType<Guid>().Distinct())
+        {
+            approvers[approver] = await users.DisplayNameAsync(approver, cancellationToken);
+        }
+
         var items = rows.Take(MaxRows).Select(x => new TimeEntryRow(x.Entry.Id, x.Entry.EmployeeId, x.Name, x.Entry.Day, x.Entry.At, x.Entry.Type, x.Entry.Source,
-            x.Entry.DeviceId is { } d ? names.GetValueOrDefault(d) : null, x.Entry.Location, x.Entry.Status)).ToList();
+            x.Entry.DeviceId is { } d ? names.GetValueOrDefault(d) : null, x.Entry.Location, x.Entry.Status,
+            x.Entry.AdjustmentId, x.Entry.AdjustmentId is { } created && byId.TryGetValue(created, out var origin) && origin.SelfApproved, x.Entry.VoidAdjustmentId,
+            x.Entry.Status == TimeEntryStatus.Voided && x.Entry.VoidedAt is { } voidedAt
+                ? TimeAdjustmentRules.VoidedNote(x.Entry.VoidedBy is { } by ? approvers.GetValueOrDefault(by) : null, BusinessTime.ToBusiness(voidedAt),
+                    x.Entry.VoidAdjustmentId is { } v && byId.TryGetValue(v, out var voiding) ? voiding.Justification : null)
+                : null)).ToList();
         return new TimeEntryList(start, end, items, rows.Count > MaxRows);
     }
 
