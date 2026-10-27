@@ -30,6 +30,9 @@ public sealed class BankAccount : Entity, IAuditable, ISoftDeletable
 
     public bool IsDefault { get; set; }
 
+    /// <summary>Banco ligado por API (BNK-01a): <c>Inter</c> com a integração ativa; <c>None</c> sem integração ou desligada.</summary>
+    public BankProvider Provider { get; set; } = BankProvider.None;
+
     /// <summary>Origem da importação (ex.: <c>dolibarr:llx_bank_account:3</c>), gravada só pelo <c>IBankAccountImport</c> (MIG-01b).</summary>
     public string? ImportSource { get; set; }
 

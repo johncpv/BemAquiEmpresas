@@ -32,7 +32,8 @@ public sealed partial class TwoFactorService
 
         open.Complete(clock.GetUtcNow());
         await auth.AuditAsync(usedRecovery ? "RecoveryCodeUsed" : "TwoFactorVerified", user.Id, ip, null, cancellationToken);
-        return await auth.StartSessionAsync(user, host, ip, [AuthMethods.Password, AuthMethods.Otp], persistent, cancellationToken);
+        // Com o código do aplicativo, o token já sai com a prova recente do 2FA (BNK-01a CA 1); com o código de recuperação, não.
+        return await auth.StartSessionAsync(user, host, ip, [AuthMethods.Password, AuthMethods.Otp], persistent, otpProven: !usedRecovery, cancellationToken);
     }
 
     /// <summary>2FA obrigatório e ainda não configurado (CA 8): o desafio de configuração só libera estas duas etapas.</summary>

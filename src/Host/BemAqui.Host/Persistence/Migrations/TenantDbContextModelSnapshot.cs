@@ -2248,6 +2248,14 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("date")
                         .HasColumnName("opening_date");
 
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("None")
+                        .HasColumnName("provider");
+
                     b.HasKey("Id")
                         .HasName("pk_bank_accounts");
 
@@ -2342,6 +2350,143 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDatabaseName("ix_bank_entries_bank_account_id");
 
                     b.ToTable("bank_entries", "finance");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.BankIntegration", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AccountNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("account_number");
+
+                    b.Property<Guid>("BankAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("bank_account_id");
+
+                    b.Property<string>("CertificateCipher")
+                        .HasColumnType("text")
+                        .HasColumnName("certificate_cipher");
+
+                    b.Property<string>("CertificateFormat")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("certificate_format");
+
+                    b.Property<DateTimeOffset?>("CertificateNotAfter")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("certificate_not_after");
+
+                    b.Property<string>("CertificatePasswordCipher")
+                        .HasColumnType("text")
+                        .HasColumnName("certificate_password_cipher");
+
+                    b.Property<string>("CertificateSubject")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("certificate_subject");
+
+                    b.Property<string>("CertificateThumbprint")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("certificate_thumbprint");
+
+                    b.Property<string>("ClientIdCipher")
+                        .HasColumnType("text")
+                        .HasColumnName("client_id_cipher");
+
+                    b.Property<string>("ClientIdHint")
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)")
+                        .HasColumnName("client_id_hint");
+
+                    b.Property<string>("ClientSecretCipher")
+                        .HasColumnType("text")
+                        .HasColumnName("client_secret_cipher");
+
+                    b.Property<DateTimeOffset>("ConfiguredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("configured_at");
+
+                    b.Property<Guid?>("ConfiguredBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("configured_by");
+
+                    b.Property<DateTimeOffset?>("DisabledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("disabled_at");
+
+                    b.Property<Guid?>("DisabledBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("disabled_by");
+
+                    b.Property<string>("Environment")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("environment");
+
+                    b.Property<string>("GrantedScopes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("granted_scopes");
+
+                    b.Property<DateTimeOffset?>("LastTestAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_test_at");
+
+                    b.Property<string>("LastTestMessage")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("last_test_message");
+
+                    b.Property<string>("LastTestOutcome")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("last_test_outcome");
+
+                    b.Property<string>("PrivateKeyCipher")
+                        .HasColumnType("text")
+                        .HasColumnName("private_key_cipher");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("provider");
+
+                    b.Property<DateTimeOffset?>("RotatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("rotated_at");
+
+                    b.Property<Guid?>("RotatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("rotated_by");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_bank_integrations");
+
+                    b.HasIndex("BankAccountId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_bank_integrations_bank_account_id");
+
+                    b.ToTable("bank_integrations", "finance");
                 });
 
             modelBuilder.Entity("BemAqui.Finance.Domain.BankTransfer", b =>
@@ -11196,6 +11341,16 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasForeignKey("ParentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_chart_of_accounts_chart_of_accounts_parent_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.BankIntegration", b =>
+                {
+                    b.HasOne("BemAqui.Finance.Domain.BankAccount", null)
+                        .WithMany()
+                        .HasForeignKey("BankAccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_bank_integrations_bank_accounts_bank_account_id");
                 });
 
             modelBuilder.Entity("BemAqui.Finance.Domain.CostCenter", b =>

@@ -462,7 +462,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-
 - Requisitos: R-FIN-7, R-FIS-3, PRD §6 Segurança e Observabilidade, R-SEC-5.
 - CA: rota `/webhooks/{provider}/{tenantKey}` no host da plataforma, fora da allowlist e do middleware de tenant por host (ADR 0031); HMAC com timestamp ou token `?t=` (só hash), resposta uniforme; evento e outbox na mesma transação; deduplicação pelo id e pelo SHA-256 do corpo; GET de verificação só para o provedor que o declara (Meta); corpo 90 dias; rotação com 24 h de sobreposição; canário no `access_log` e no `error_log`; dois tenants.
 
-**BNK-01a [ ] Banco Inter: Configurações → Integrações → Banco Inter, credenciais por conta, mTLS em memória, token OAuth2 e rotação (G)** — 5.2, ordem 2 — re-estimada de M — `Ready (pré-condição externa)` — [story](stories/BNK-01a-inter-configuracao-mtls.md)
+**BNK-01a [x] Banco Inter: Configurações → Integrações → Banco Inter, credenciais por conta, mTLS em memória, token OAuth2 e rotação (G)** — 5.2, ordem 2 — re-estimada de M — `Done` — [story](stories/BNK-01a-inter-configuracao-mtls.md)
 - Requisitos: R-FIN-7, R-FIN-8, R-FIN-2, PRD §6 Segurança, R-SEC-5.
 - CA: Configurações → Integrações → Banco Inter por conta, com `settings.edit` e 2FA de novo; credenciais e certificado (`.crt`/`.key` ou `.pfx`) só de escrita, com canário; handler mTLS por conta em memória e saída só para o Inter (ADR 0032); recusa de credencial com escopo de pagamento; teste de conexão; produção só na GOL-01b; filtro comum `RequireRecentTwoFactor`, aplicado também a pagar e estornar a OP; `EnvironmentBanner`; alerta de vencimento ao Proprietário.
 

@@ -10,5 +10,7 @@ public sealed record AccessToken(string Token, DateTimeOffset ExpiresAt);
 /// </summary>
 public interface IAccessTokenIssuer
 {
-    AccessToken Issue(User user, Guid tenantId, string audienceHost, IReadOnlyList<string> amr);
+    /// <param name="otpAt">Instante da confirmação do código TOTP agora (login com o código ou "2FA de novo"): vira a claim
+    /// <c>otp_at</c>, a prova que o <c>RequireRecentTwoFactor</c> confere (BNK-01a CA 1). Nulo na renovação silenciosa.</param>
+    AccessToken Issue(User user, Guid tenantId, string audienceHost, IReadOnlyList<string> amr, DateTimeOffset? otpAt = null);
 }

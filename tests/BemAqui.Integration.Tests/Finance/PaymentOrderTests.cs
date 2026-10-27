@@ -37,7 +37,8 @@ public partial class PaymentOrderTests(TenancyFixture tenancy) : IClassFixture<T
         return await action(scope.ServiceProvider.GetRequiredService<TenantDbContext>());
     }
 
-    private async Task<(Guid Id, HttpClient Client)> ActorAsync(string? seedKey)
+    /// <param name="recentTwoFactor">Token com a prova recente do 2FA: pagar e estornar exigem (BNK-01a CA 2).</param>
+    private async Task<(Guid Id, HttpClient Client)> ActorAsync(string? seedKey, bool recentTwoFactor = true, TimeSpan? proofAge = null)
     {
         var (id, stamp) = await tenancy.SeedUserAsync(tenancy.TenantA, "o" + Guid.NewGuid().ToString("N")[..10] + "@teste.com");
         if (seedKey is not null)
@@ -52,7 +53,7 @@ public partial class PaymentOrderTests(TenancyFixture tenancy) : IClassFixture<T
 
         var client = tenancy.Factory.CreateClient();
         client.DefaultRequestHeaders.Host = Host;
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", TestTokens.Create(tenancy.TenantA.Id, Host, userId: id, stamp: stamp));
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", TestTokens.Create(tenancy.TenantA.Id, Host, userId: id, stamp: stamp, otpAt: recentTwoFactor ? DateTimeOffset.UtcNow - (proofAge ?? TimeSpan.Zero) : null));
         return (id, client);
     }
 

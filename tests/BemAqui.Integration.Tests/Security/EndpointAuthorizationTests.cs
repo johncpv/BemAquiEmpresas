@@ -77,6 +77,7 @@ public class EndpointAuthorizationTests(TenancyFixture tenancy) : IClassFixture<
         ["/api/v1/me/2fa/setup"] = "2FA da própria pessoa",
         ["/api/v1/me/2fa/confirm"] = "2FA da própria pessoa",
         ["/api/v1/me/2fa/disable"] = "2FA da própria pessoa (exige senha/código no serviço)",
+        ["/api/v1/me/2fa/step-up"] = "2FA de novo da própria pessoa (BNK-01a): confere o código e troca só o access token; rate limit por usuário",
         ["/api/v1/me/pins"] = "PINs da própria pessoa nos aparelhos da fábrica (PRD-03b)",
         ["/api/v1/me/pins/{deviceId:guid}"] = "apaga o PIN da própria pessoa num aparelho (PRD-03b)",
         ["/api/v1/modules"] = "catálogo de módulos com o que está liberado no tenant (menu e tela não liberada)",

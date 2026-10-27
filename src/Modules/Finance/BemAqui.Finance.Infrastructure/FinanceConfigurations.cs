@@ -25,8 +25,36 @@ internal sealed class BankAccountConfiguration : IEntityTypeConfiguration<BankAc
         b.Property(e => e.Account).HasMaxLength(20);
         b.Property(e => e.OpeningBalance).HasPrecision(18, 2);
         b.Property(e => e.ImportSource).HasMaxLength(100);
+        // BNK-01a: banco ligado por API; as contas que já existem entram como None.
+        b.Property(e => e.Provider).HasConversion<string>().HasMaxLength(20).HasDefaultValue(BankProvider.None).HasSentinel(BankProvider.None);
         // Uma conta padrão por vez (CA 6); a excluída deixa de ser padrão.
         b.HasIndex(e => e.IsDefault).IsUnique().HasFilter("is_default").HasDatabaseName(BankAccountService.DefaultIndex);
+    }
+}
+
+/// <summary>
+/// Integração bancária por conta (BNK-01a, ADR 0032 §1): uma por conta (<c>bank_account_id</c> único). As colunas <c>*_cipher</c>
+/// guardam só o ciphertext do Data Protection.
+/// </summary>
+internal sealed class BankIntegrationConfiguration : IEntityTypeConfiguration<BankIntegration>
+{
+    public void Configure(EntityTypeBuilder<BankIntegration> b)
+    {
+        b.ToTable("bank_integrations", FinanceSchema.Name);
+        b.HasIndex(e => e.BankAccountId).IsUnique();
+        b.HasOne<BankAccount>().WithMany().HasForeignKey(e => e.BankAccountId).OnDelete(DeleteBehavior.Restrict);
+        b.Property(e => e.Provider).HasConversion<string>().HasMaxLength(20);
+        b.Property(e => e.Environment).HasConversion<string>().HasMaxLength(20);
+        b.Property(e => e.Status).HasConversion<string>().HasMaxLength(20);
+        b.Property(e => e.CertificateFormat).HasConversion<string>().HasMaxLength(10);
+        b.Property(e => e.LastTestOutcome).HasConversion<string>().HasMaxLength(20);
+        b.Property(e => e.ClientIdHint).HasMaxLength(8);
+        b.Property(e => e.CertificateThumbprint).HasMaxLength(64);
+        b.Property(e => e.CertificateSubject).HasMaxLength(300);
+        b.Property(e => e.AccountNumber).HasMaxLength(20);
+        b.Property(e => e.GrantedScopes).HasMaxLength(500);
+        b.Property(e => e.LastTestMessage).HasMaxLength(300);
+        b.Ignore(e => e.IsActive);
     }
 }
 

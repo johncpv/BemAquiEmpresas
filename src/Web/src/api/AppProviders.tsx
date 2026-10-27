@@ -4,6 +4,7 @@ import { getGetMyPermissionsQueryKey, refreshSession, saveMyPreferences, useGetM
 import { apiNotificationsSource } from '@/api/notifications-source'
 import { queryClient } from '@/api/query-client'
 import { getAccessToken, isPinSession, onSessionChange, setAccessToken, setPermVersionListener } from '@/api/session'
+import { StepUpHost } from '@/components/ui/step-up-dialog'
 import { NotificationsContext } from '@/shell/notifications'
 import { isThemePreference } from '@/theme/theme'
 import { ThemeProvider } from '@/theme/ThemeProvider'
@@ -41,6 +42,8 @@ export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <SessionBridge>{children}</SessionBridge>
+      {/* Passo "Confirme o código" do 2FA de novo, único no app (BNK-01a CA 1). */}
+      <StepUpHost />
     </QueryClientProvider>
   )
 }

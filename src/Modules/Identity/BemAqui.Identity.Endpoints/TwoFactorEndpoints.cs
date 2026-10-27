@@ -29,6 +29,11 @@ public sealed record DisableTwoFactorRequest(string Password, string Code);
 
 public sealed record TwoFactorActivatedResponse(IReadOnlyList<string> RecoveryCodes, string AccessToken, DateTimeOffset ExpiresAt);
 
+public sealed record StepUpRequest(string? Code);
+
+/// <summary>Access token novo com a prova recente do 2FA; a sessão (refresh) continua a mesma (BNK-01a CA 1).</summary>
+public sealed record StepUpResponse(string AccessToken, DateTimeOffset ExpiresAt);
+
 /// <summary>
 /// 2FA (FND-05). Desafio do login e configuração obrigatória: anônimas, pelo token do desafio (5 min, só serve
 /// aqui). Perfil: autenticadas, em <c>/me/2fa</c>.
@@ -77,6 +82,16 @@ internal static class TwoFactorEndpoints
                 (await service.DisableAsync(user.UserId!.Value, request.Password, request.Code, http.Request.Host.Host, AuthEndpoints.Ip(http), ct))
                     .ToHttpResult(session => AuthEndpoints.Issue(http, session)))
             .WithName("DisableTwoFactor").Produces<AccessTokenResponse>();
+
+        // "2FA de novo" (D6, BNK-01a CA 1): confere o código e troca só o access token; fora da lista da sessão por PIN.
+        me.MapPost("/step-up", async (StepUpRequest request, ICurrentUser user, HttpContext http, TwoFactorService service, CancellationToken ct) =>
+                (await service.StepUpAsync(user.UserId!.Value, request?.Code, http.Request.Host.Host, ct)).ToHttpResult(token =>
+                {
+                    http.Response.Headers.CacheControl = "no-store";
+                    return Results.Ok(new StepUpResponse(token.Token, token.ExpiresAt));
+                }))
+            .RequireRateLimiting(RecentTwoFactorEndpoints.StepUpRateLimitPolicy)
+            .WithName("StepUpTwoFactor").Produces<StepUpResponse>();
 
         return endpoints;
     }

@@ -80,6 +80,14 @@ public static class AuthRateLimiting
                     Window = TimeSpan.FromMinutes(1),
                     QueueLimit = 0,
                 }));
+            // "2FA de novo" (BNK-01a CA 1): 10 códigos a cada 5 min por usuário e tenant (o anti-replay do código já vale; isto corta a
+            // força bruta dos 6 dígitos). "Testar conexão" do Inter: 6 por minuto por usuário e rota (chamada externa com mTLS).
+            o.AddPolicy(BemAqui.BuildingBlocks.Web.RecentTwoFactorEndpoints.StepUpRateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
+                "step-up|" + TenantKey(http) + "|" + (http.RequestServices.GetService<ICurrentUser>()?.UserId?.ToString() ?? http.Connection.RemoteIpAddress?.ToString() ?? "-"),
+                _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(5), QueueLimit = 0 }));
+            o.AddPolicy(BemAqui.Finance.Application.BankIntegrationService.TestRateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
+                "bank-test|" + TenantKey(http) + "|" + (http.GetEndpoint()?.DisplayName ?? "-") + "|" + (http.RequestServices.GetService<ICurrentUser>()?.UserId?.ToString() ?? http.Connection.RemoteIpAddress?.ToString() ?? "-"),
+                _ => new FixedWindowRateLimiterOptions { PermitLimit = 6, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
             // Webhooks (FND-16 CA 8, §4.3): política nomeada, por IP real (KnownProxies, D19) e provedor, antes de ler o corpo e de abrir o
             // banco do tenant. Provedor fora do registro conta como "-" (o código da URL não cria partição nova).
             var webhooks = configuration.GetSection(BemAqui.BuildingBlocks.Webhooks.WebhookOptions.Section).Get<BemAqui.BuildingBlocks.Webhooks.WebhookOptions>()
