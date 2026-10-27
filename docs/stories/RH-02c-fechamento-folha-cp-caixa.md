@@ -5,7 +5,7 @@
 | ID | RH-02c |
 | Título | Fechar a folha da competência com 2FA de novo (pré-condições, totais congelados) e, na mesma transação, criar pelo `IPayables` um título a pagar por funcionário (salário líquido, favorecido `Employee`) e um por guia (órgão como terceiro), com conta e centro de custo pelo centro do cargo e vencimento no 5º dia útil; conta de salário lida do HR só no pagamento da OP, conta em quarentena fora do pagamento automático, quem fecha não paga; folha `Paid` quando tudo estiver pago, reabertura controlada e **folha prevista** de 3 meses, com 13º e férias, no fluxo de caixa (origem `PayrollForecast`) |
 | Tamanho | G (re-estimada de M: favorecido funcionário no `finance.payables` e na OP da FIN-03a, leitura sensível da conta no pagamento, 2FA de novo e previsão por funcionário, ADR 0036) |
-| Status | Ready (pré-condição externa) |
+| Status | Done (pré-condição externa: conferência da contadora) |
 | Requisitos | R-RH-5 (parte: gerar CP de salários) · R-FIN-4 (CP originado da folha) · R-FIN-10 (folha prevista no fluxo de caixa) · R-FIN-13 (despesa de pessoal no DRE) · R-PRP-2 · R-PRP-7 · R-SEC-5 |
 | Dependências | RH-02a (folha, guias, parâmetros do RH, `IBusinessCalendar`), CAD-04c2 (conta de salário, quarentena e revisão), FIN-02 (`IPayables`, origem `Payroll`), FIN-03a (OP), FIN-05 (fluxo de caixa com títulos `Planned` estimados), CAD-05a (contas 2.2 e 3.1, centros de custo), CMP-03a (`IPayables` por parcela, ADR 0024) |
 | Bloqueia | RH-02b (holerite só com folha fechada), RH-03, LGPD-01a, FLH-02a |
@@ -109,23 +109,23 @@ Decisões da revisão aplicadas: §4.2 (riscos de migração, CA 6); §4.3 (DTO 
 **Pré-condição externa:** a contadora confere a conta e o centro de custo da folha e das guias e os vencimentos padrão (valores pré-configurados em Configurações → Parâmetros → RH com o chip "A confirmar com a contadora"); não bloqueia o `Ready`.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers, cadeia até o título e o pagamento) e E2E passando.
-- [ ] Migration criada (não destrutiva: expansão do `payables`), testada sobre cópia do banco do tenant `konebras`.
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Telas com estados, inclusive pré-condições, quarentena e conta mudada.
-- [ ] Ajuda atualizada (RH, Financeiro e Configurações); teste de cobertura passando.
-- [ ] Confirmação com impacto financeiro, 2FA de novo e próximos passos aplicados.
-- [ ] Auditoria ligada, com `SensitiveRead` na leitura da conta.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` (`payables`, `payroll_runs`, `payroll_forecasts`) e `docs/04-fluxos-estados.md` (máquina da folha; `PayrollClosed` só aviso; chamada síncrona) atualizados; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers, cadeia até o título e o pagamento) e E2E passando.
+- [ ] Migration criada (não destrutiva: expansão do `payables`), testada sobre cópia do banco do tenant `konebras`. (criada e aplicada nos bancos do Testcontainers; a cópia do `konebras` fica para a homologação, fora do alcance do agente)
+- [x] Permissões só do `ModuleCatalog`.
+- [x] Telas com estados, inclusive pré-condições, quarentena e conta mudada.
+- [x] Ajuda atualizada (RH, Financeiro e Configurações); teste de cobertura passando.
+- [x] Confirmação com impacto financeiro, 2FA de novo e próximos passos aplicados.
+- [x] Auditoria ligada, com `SensitiveRead` na leitura da conta.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` (`payables`, `payroll_runs`, `payroll_forecasts`) e `docs/04-fluxos-estados.md` (máquina da folha; `PayrollClosed` só aviso; chamada síncrona) atualizados; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] Transições da `PayrollRun`; serviço de fechamento chamando o `IPayables` na transação.
-- [ ] Migration do `payables` (`payee_type`, `payee_id`, `CHECK`, `party_id` anulável) e `Payee` no `IPayables`.
-- [ ] `IEmployeeBankAccounts` no `HR.Contracts`; retrato, quarentena, leitura no "Pagar" e "quem fecha não paga" na OP.
-- [ ] Previsão da folha (`PayrollForecast`); consumidores de `PaymentOrderPaid`/`PaymentOrderReversed`.
-- [ ] Endpoints de fechar, reabrir e recalcular; aba Pagamentos e ajuda.
+- [x] Transições da `PayrollRun`; serviço de fechamento chamando o `IPayables` na transação.
+- [x] Migration do `payables` (`payee_type`, `payee_id`, `CHECK`, `party_id` anulável) e `Payee` no `IPayables`.
+- [x] `IEmployeeBankAccounts` no `HR.Contracts`; retrato, quarentena, leitura no "Pagar" e "quem fecha não paga" na OP.
+- [x] Previsão da folha (`PayrollForecast`); consumidores de `PaymentOrderPaid`/`PaymentOrderReversed`.
+- [x] Endpoints de fechar, reabrir e recalcular; aba Pagamentos e ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, @architect (favorecido no título, chamada síncrona, migração N-1), cybersecurity (dado do funcionário no Financeiro, conta no pagamento, segregação), @qa.
@@ -160,3 +160,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D6, D14 pela opção do arquiteto, tabela 3.3 pontos 19 e 23–27, ADR 0036, §4.2, §4.3, §4.4 padrões 2 e 8); nova ordem (Marco 6.2, ordem 3); re-estimada para G; CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 27/10/2026 | 1.0 | Implementada (@dev). Backend: `PayrollClosingService` (prévia `/close/sensitive` com pendências, data de pagamento pelo tipo, "Novos na folha" e "Conta alterada"; fechar com `hr.approve` + `hr.view_sensitive` e 2FA de novo, `xmin` e `Idempotency-Key`; um título por holerite com `Payee Employee` e um por guia no órgão, na mesma transação pelo `IPayables`; reabrir com motivo, cancelando os títulos pela origem; aba Pagamentos `/payments/sensitive`; folha `Paid` pela fonte nos consumidores de `PaymentOrderPaid`/`PaymentOrderReversed`), `PayrollForecastService` (folha prevista de 3 meses com 13º e férias, origem nova `PayrollForecast`, "Recalcular previsão" com `hr.edit`), `PayrollCostTargets` (conta e centro pelo centro do cargo, parâmetros "A confirmar com a contadora"), `IEmployeeBankAccounts` no `HR.Contracts` (resumo mascarado e conta só no "Pagar" com `finance.pay` e `SensitiveRead` com o número da OP). Finance: `payables` com `payee_type`/`payee_id`, `CHECK` e `party_id` anulável; OP recusa conta em quarentena (422), confere a versão da conta no "Pagar" (409 `payee_account_changed`), quem fecha a folha não paga (403 `payroll_closer_cannot_pay`), estorno publica `PaymentOrderReversed`; salário agrupado "Folha {mês}: N salários" para quem só tem `finance.view`; rota `GET /finance/payment-orders/{id}/payee-accounts` (no-store). Migration `PayrollClosing` (só expansão: colunas, `payroll_forecasts`, índice, `CHECK` e preenchimento de `payee_type = Party`). Front: "Fechar folha" e "Reabrir folha" (`ClosingDialogs`), aba Pagamentos com os próximos passos "Criar ordem de pagamento dos salários/das guias" e a quarentena à parte, bloco "Para onde vai o dinheiro" no "Pagar", favorecido funcionário no Pagar, parâmetros do RH (conta, centro e vencimentos), ajudas `rh-folha-detalhe-pagamentos`, `rh-folha-detalhe`, `financeiro-fluxo-de-caixa`, `financeiro-ordens-de-pagamento` e `configuracoes-parametros`. Desvios e decisões: (1) "Novo na folha" no retrato da OP = sem holerite em **outra** folha fechada ou paga (a folha do próprio salário já conta uma vez); (2) a situação na aba Pagamentos vem nula sem `finance.view`, e o gerador do OpenAPI marca o enum `PayableStatus` como anulável (padrão dos enums anuláveis do projeto): as telas de Compras que indexam pela situação ganharam `?? ''`; (3) o bloco "Para onde vai o dinheiro" lê a conta sem `AbortSignal` e sem refazer a busca, para gravar um `SensitiveRead` por abertura do "Pagar"; (4) a migration foi aplicada nos bancos do Testcontainers; a conferência sobre a cópia do `konebras` fica para a homologação. | @dev |
