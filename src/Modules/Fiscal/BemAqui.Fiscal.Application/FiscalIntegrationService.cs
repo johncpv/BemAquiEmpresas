@@ -51,7 +51,7 @@ public sealed record FiscalConnectionTest(bool Ok, string Result, string Message
 
 /// <summary>
 /// Credencial do EmissorFiscal por tenant (FIS-01 CA 7 a 10, ADR 0027 §2, ADR 0042): <c>settings.edit</c> (no endpoint) e 2FA de novo ao
-/// salvar; chave e segredo do webhook cifrados e só de escrita; URL só da lista do ambiente; ambiente pela marca do catálogo; chave nova
+/// salvar; chave e segredo do webhook cifrados e só de escrita; URL fixa pela configuração (API pública do Emissor); ambiente pela marca do catálogo; chave nova
 /// testada antes da troca; Proprietário avisado da troca. A auditoria registra "alterado" sem o valor (<c>[ProtectedSecret]</c>).
 /// </summary>
 public sealed class FiscalIntegrationService(
@@ -68,14 +68,15 @@ public sealed class FiscalIntegrationService(
     INotificationService notifications,
     FiscalAlerts alerts,
     IOptions<FiscalIntegrationOptions> options,
+    IOptions<WebhookOptions> webhookOptions,
     TimeProvider clock)
 {
     public const string TestRateLimitPolicy = "fiscal-integration";
     public const string TwoFactorInvalid = "two_factor_invalid";
     public const string StepUpMessage = "Confirme com o código do aplicativo autenticador para salvar a integração fiscal.";
     public const string RotatedNotification = "fiscal.integration_rotated";
-    public const string KeyRejectedMessage = "O Emissor Fiscal recusou a chave. Confira a chave e o endereço.";
-    public const string UnavailableMessage = "O Emissor Fiscal não respondeu. Confira o endereço e se o serviço está no ar.";
+    public const string KeyRejectedMessage = "O Emissor Fiscal recusou a chave. Confira se a chave foi copiada inteira e se está ativa no Emissor.";
+    public const string UnavailableMessage = "O Emissor Fiscal não respondeu. Tente de novo em instantes; se continuar, confira se o serviço está no ar.";
 
     private static readonly OutgoingInvoiceStatus[] Pending = [OutgoingInvoiceStatus.Processing, OutgoingInvoiceStatus.ContingencyPending];
 
@@ -94,14 +95,15 @@ public sealed class FiscalIntegrationService(
         if (credential is not null)
         {
             var key = await webhookKeys.EnsureAsync(TenantId(), cancellationToken);
-            webhookUrl = options.Value.WebhookBaseUrl.TrimEnd('/') + "/webhooks/" + EmissorFiscalWebhook.ProviderCode + "/" + key;
+            // Endereço público do aviso: o host da plataforma, pelo stack-nginx (ADR 0031 §1); o Emissor só entrega em HTTPS pública.
+            webhookUrl = webhookOptions.Value.PublicBaseUrl.TrimEnd('/') + "/webhooks/" + EmissorFiscalWebhook.ProviderCode + "/" + key;
         }
 
         return new FiscalIntegrationView(
             settings?.ApiKeyCipher is not null,
             allowance != FiscalEnvironmentAllowance.None,
             allowance.ToString(),
-            options.Value.DefaultBaseUrl,
+            options.Value.BaseUrl,
             settings?.BaseUrl,
             settings?.ApiKeySetAt,
             credential?.RotatedAt ?? credential?.CreatedAt,
@@ -127,7 +129,7 @@ public sealed class FiscalIntegrationService(
     {
         ArgumentNullException.ThrowIfNull(request);
         var settings = await db.FiscalIntegrationSettings.FirstOrDefaultAsync(cancellationToken);
-        var url = FiscalBaseUrl.Validate(request.BaseUrl, options.Value);
+        var url = FiscalBaseUrl.Resolve(request.BaseUrl, options.Value);
         if (Validate(request, settings, url) is { } invalid)
         {
             return invalid;
@@ -169,7 +171,7 @@ public sealed class FiscalIntegrationService(
             settings = new FiscalIntegrationSettings { BaseUrl = url.Value.ToString() };
             db.FiscalIntegrationSettings.Add(settings);
         }
-        else if (!string.Equals(settings.BaseUrl, url.Value.ToString(), StringComparison.Ordinal))
+        else if (!FiscalEmitterAccess.SameUrl(settings.BaseUrl, url.Value))
         {
             settings.BaseUrl = url.Value.ToString();
             settings.Deactivate(); // endereço novo: só volta depois de um teste aprovado
@@ -238,6 +240,8 @@ public sealed class FiscalIntegrationService(
             verdict = checkedAccount.Value;
             if (verdict.Snapshot is { } snapshot)
             {
+                // O teste foi no endereço da configuração: é ele que fica salvo (ex.: a troca do endereço interno pela API pública).
+                settings.BaseUrl = FiscalBaseUrl.Configured(options.Value).Value.ToString();
                 settings.RecordApprovedTest(snapshot, now);
             }
             else

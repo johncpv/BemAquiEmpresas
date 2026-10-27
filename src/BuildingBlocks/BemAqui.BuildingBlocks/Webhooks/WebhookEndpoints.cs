@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 
 namespace BemAqui.BuildingBlocks.Webhooks;
@@ -129,7 +128,7 @@ public static partial class WebhookEndpoints
             return;
         }
 
-        var resolved = await ResolveTenantAsync(http, definition);
+        var resolved = await ResolveTenantAsync(http);
         if (resolved is null)
         {
             await RejectAsync(http, logger, definition, null, started, clock);
@@ -201,7 +200,7 @@ public static partial class WebhookEndpoints
         PrepareResponse(http);
         var registry = services.GetRequiredService<WebhookProviderRegistry>();
         var known = registry.TryGet(provider, out var definition) ? definition : null;
-        var resolved = known is { SupportsVerificationGet: true } && pathToken is null ? await ResolveTenantAsync(http, known) : null;
+        var resolved = known is { SupportsVerificationGet: true } && pathToken is null ? await ResolveTenantAsync(http) : null;
         var challenge = http.Request.Query["hub.challenge"].ToString();
         if (known is null || resolved is null || resolved.SchemaOutdated
             || !string.Equals(http.Request.Query["hub.mode"].ToString(), "subscribe", StringComparison.Ordinal)
@@ -245,16 +244,10 @@ public static partial class WebhookEndpoints
 
     private sealed record ResolvedWebhookTenant(ResolvedTenant Tenant, bool SchemaOutdated);
 
-    /// <summary>Tenant só pelo <c>tenantKey</c> (nunca pelo host) e só se <c>Active</c>; o host interno só para quem o declara.</summary>
-    private static async Task<ResolvedWebhookTenant?> ResolveTenantAsync(HttpContext http, WebhookProvider provider)
+    /// <summary>Tenant só pelo <c>tenantKey</c> (nunca pelo host) e só se <c>Active</c>.</summary>
+    private static async Task<ResolvedWebhookTenant?> ResolveTenantAsync(HttpContext http)
     {
         var services = http.RequestServices;
-        var options = services.GetRequiredService<IOptions<WebhookOptions>>().Value;
-        if (IsInternalHost(http, options) && !provider.AllowInternalHost)
-        {
-            return null;
-        }
-
         var tenantKey = http.Request.RouteValues["tenantKey"] as string ?? string.Empty;
         var tenant = await services.GetRequiredService<IWebhookTenantKeys>().ResolveAsync(tenantKey, http.RequestAborted);
         if (tenant is null || tenant.Tenant.Status != TenantStatus.Active)
@@ -265,14 +258,6 @@ public static partial class WebhookEndpoints
         var expected = services.GetService<ITenantSchemaVersion>()?.Expected;
         var outdated = expected is not null && string.CompareOrdinal(tenant.SchemaVersion ?? string.Empty, expected) < 0;
         return new ResolvedWebhookTenant(tenant, outdated);
-    }
-
-    public static bool IsInternalHost(HttpContext http, WebhookOptions options)
-    {
-        ArgumentNullException.ThrowIfNull(http);
-        ArgumentNullException.ThrowIfNull(options);
-        var host = http.Request.Host.Host;
-        return options.InternalHosts.Any(h => string.Equals(h, host, StringComparison.OrdinalIgnoreCase));
     }
 
     private static async Task RejectAsync(HttpContext http, ILogger logger, WebhookProvider? provider, ResolvedTenant? tenant, long started, TimeProvider clock)

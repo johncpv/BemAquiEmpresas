@@ -48,9 +48,6 @@ public sealed partial record WebhookProvider
     /// <summary>Rotação do segredo pela tela de Configurações nesta story (só o provedor de teste, até a BNK-01a).</summary>
     public bool RotationInSettings { get; init; }
 
-    /// <summary>Aceito também no host interno da API, pela rede interna (só o EmissorFiscal, FIS-01).</summary>
-    public bool AllowInternalHost { get; init; }
-
     public string ViewPermission => OwnerModule + "." + StandardActions.View;
 
     public string EditPermission => OwnerModule + "." + StandardActions.Edit;

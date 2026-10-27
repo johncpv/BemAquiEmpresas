@@ -38,7 +38,6 @@ namespace BemAqui.Integration.Tests.Fiscal;
 public sealed class FiscalFixture : IAsyncLifetime
 {
     public const string PlatformHost = "plataforma.bemaquiapp.com.br";
-    public const string InternalHost = "bqe-test-api";
     public const string HostA = "a.localhost";
     public const string HostB = "b.localhost";
     public const string ApiKey = "ef_chave-canario-fiscal-0123456789";
@@ -62,7 +61,6 @@ public sealed class FiscalFixture : IAsyncLifetime
         Factory = Tenancy.Factory.WithWebHostBuilder(b =>
         {
             b.UseSetting("Webhooks:PerIpPerMinute", "100000");
-            b.UseSetting("Webhooks:InternalHosts:0", InternalHost);
             b.UseSetting("Fiscal:Emissor:TestsPerMinute", "5");
             b.ConfigureTestServices(s =>
             {
@@ -138,11 +136,11 @@ public sealed class FiscalFixture : IAsyncLifetime
         var settings = await db.FiscalIntegrationSettings.FirstOrDefaultAsync();
         if (settings is null)
         {
-            settings = new FiscalIntegrationSettings { BaseUrl = "http://emissor-fiscal:8080/" };
+            settings = new FiscalIntegrationSettings { BaseUrl = "https://api.fiscal.bemaquiapp.com.br/" };
             db.FiscalIntegrationSettings.Add(settings);
         }
 
-        settings.BaseUrl = "http://emissor-fiscal:8080/";
+        settings.BaseUrl = "https://api.fiscal.bemaquiapp.com.br/";
         settings.SetApiKey(secrets.Protect(SecretScope.ForTenant(tenant.Id), SecretKind.FiscalApiKey, new Secret(apiKey)), now);
         var account = fake.DefaultAccount();
         if (active)
@@ -218,14 +216,15 @@ public sealed class FiscalFixture : IAsyncLifetime
 
     public Task<string> WebhookKeyAsync(Tenant tenant) => Factory.Services.GetRequiredService<IWebhookTenantKeys>().EnsureAsync(tenant.Id);
 
-    /// <summary>POST do Emissor (assinatura <c>t=…,v1=…</c> sobre <c>{timestamp}.{corpo}</c>), pelo host interno da rede <c>bqe-fiscal</c>.</summary>
-    public async Task<(HttpResponseMessage Response, string Delivery)> PostWebhookAsync(Tenant tenant, string body, string eventType, string secret = WebhookSecret, DateTimeOffset? at = null, string host = InternalHost)
+    /// <summary>POST do Emissor (assinatura <c>t=…,v1=…</c> sobre <c>{timestamp}.{corpo}</c>), pela URL pública (host da plataforma, como chega pelo stack-nginx).</summary>
+    public async Task<(HttpResponseMessage Response, string Delivery)> PostWebhookAsync(Tenant tenant, string body, string eventType, string secret = WebhookSecret, DateTimeOffset? at = null, string host = PlatformHost,
+        string? delivery = null, Func<string, long, string>? signature = null)
     {
         var key = await WebhookKeyAsync(tenant);
         var ts = (at ?? DateTimeOffset.UtcNow).ToUnixTimeSeconds();
-        var delivery = Guid.CreateVersion7().ToString();
+        delivery ??= Guid.CreateVersion7().ToString();
         var request = new HttpRequestMessage(HttpMethod.Post, "/webhooks/" + EmissorFiscalWebhook.ProviderCode + "/" + key) { Content = new StringContent(body, Encoding.UTF8, "application/json") };
-        request.Headers.Add("X-BemAqui-Signature", FakeEmissorServer.Sign(secret, body, ts));
+        request.Headers.Add("X-BemAqui-Signature", signature?.Invoke(body, ts) ?? FakeEmissorServer.Sign(secret, body, ts));
         request.Headers.Add("X-BemAqui-Timestamp", ts.ToString(CultureInfo.InvariantCulture));
         request.Headers.Add("X-BemAqui-Event", eventType);
         request.Headers.Add("X-BemAqui-Delivery-Id", delivery);

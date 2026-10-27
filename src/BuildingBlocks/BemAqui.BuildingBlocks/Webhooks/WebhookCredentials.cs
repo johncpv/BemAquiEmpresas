@@ -34,9 +34,6 @@ public sealed class WebhookOptions
     /// <summary>Base pública da URL mostrada para o cadastro no provedor (host da plataforma, ADR 0005 D2).</summary>
     public string PublicBaseUrl { get; set; } = "https://plataforma.bemaquiapp.com.br";
 
-    /// <summary>Hosts internos da API (ex.: <c>bqe-homolog-api</c>), aceitos só para provedor com <c>AllowInternalHost</c> (FIS-01).</summary>
-    public string[] InternalHosts { get; set; } = [];
-
     /// <summary>Requisições por minuto do mesmo IP para o mesmo provedor (política <c>webhooks</c>, CA 8).</summary>
     public int PerIpPerMinute { get; set; } = 60;
 }

@@ -149,15 +149,15 @@ public partial class WebhookTests(WebhookFixture fixture) : IClassFixture<Webhoo
     }
 
     [Fact]
-    public async Task Provedor_sem_host_interno_declarado_e_recusado_no_host_interno()
+    public async Task Host_interno_da_API_nao_recebe_webhook_de_nenhum_provedor()
     {
+        // Sem rede privada com o EmissorFiscal (ADR 0027, adendo de 27/10/2026): todo aviso chega pelo host da plataforma, pelo stack-nginx.
         var (key, secret) = await TestProviderAsync();
-        await using var factory = fixture.Factory.WithWebHostBuilder(b => b.UseSetting("Webhooks:InternalHosts:0", "bqe-test-api"));
-        var client = factory.CreateClient();
-        client.DefaultRequestHeaders.Host = "bqe-test-api";
+        var client = fixture.Factory.CreateClient();
+        client.DefaultRequestHeaders.Host = "bqe-homolog-api";
 
         (await client.SendAsync(WebhookFixture.SignedPost(Path("test", key), secret, WebhookFixture.Body()))).StatusCode
-            .Should().Be(HttpStatusCode.Unauthorized, "só o EmissorFiscal (AllowInternalHost, FIS-01) entra pela rede interna");
+            .Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]

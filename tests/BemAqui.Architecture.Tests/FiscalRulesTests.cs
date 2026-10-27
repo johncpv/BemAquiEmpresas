@@ -51,7 +51,7 @@ public class FiscalRulesTests
     }
 
     [Fact]
-    public void Provedor_emissor_fiscal_e_do_modulo_fiscal_com_timestamp_fila_fiscal_e_host_interno()
+    public void Provedor_emissor_fiscal_e_do_modulo_fiscal_com_timestamp_fila_fiscal_e_cabecalhos_do_Emissor()
     {
         var provider = EmissorFiscalWebhook.Provider;
 
@@ -59,7 +59,8 @@ public class FiscalRulesTests
         provider.Validator.Should().BeOfType<TimestampedSignatureValidator>().Which.Window.Should().Be(TimeSpan.FromMinutes(5));
         provider.Queue.Should().Be(JobQueues.Fiscal);
         provider.DeliveryIdHeader.Should().Be("X-BemAqui-Delivery-Id");
-        provider.AllowInternalHost.Should().BeTrue();
+        provider.EventTypeHeader.Should().Be("X-BemAqui-Event");
+        provider.Validator.Should().BeOfType<TimestampedSignatureValidator>().Which.SignatureHeader.Should().Be("X-BemAqui-Signature");
         provider.RotationInSettings.Should().BeFalse("o segredo é trocado na tela do Emissor fiscal, com o teste da chave");
     }
 
@@ -285,29 +286,58 @@ public class FiscalRulesTests
     // ---------- CA 7 ----------
 
     [Theory]
-    [InlineData("http://emissor-fiscal:8080", true)]
-    [InlineData("http://emissor-fiscal:8080/", true)]
-    [InlineData("https://EMISSOR-FISCAL", true)]
-    [InlineData("http://169.254.169.254/latest", false)]
-    [InlineData("http://169.254.169.254", false)]
-    [InlineData("http://localhost:8080", false)]
-    [InlineData("http://127.0.0.1:8080", false)]
-    [InlineData("http://[::1]:8080", false)]
-    [InlineData("http://bqe-homolog-postgres:5432", false)]
-    [InlineData("http://emissor-fiscal.evil.com", false)]
-    [InlineData("http://user:pass@emissor-fiscal:8080", false)]
-    [InlineData("http://emissor-fiscal:8080/api/v1", false)]
-    [InlineData("ftp://emissor-fiscal", false)]
-    [InlineData("emissor-fiscal:8080", false)]
+    [InlineData("https://api.fiscal.bemaquiapp.com.br", true)]
+    [InlineData("https://api.fiscal.bemaquiapp.com.br/", true)]
+    [InlineData("https://API.FISCAL.BEMAQUIAPP.COM.BR", true)]
+    [InlineData("https://api.fiscal.bemaquiapp.com.br:443/", true)]
+    [InlineData("http://api.fiscal.bemaquiapp.com.br", false)]
+    [InlineData("https://api.fiscal.bemaquiapp.com.br:8443", false)]
+    [InlineData("http://emissor-fiscal:8080", false)]
+    [InlineData("https://emissor-fiscal", false)]
+    [InlineData("https://169.254.169.254/latest", false)]
+    [InlineData("https://localhost", false)]
+    [InlineData("https://127.0.0.1", false)]
+    [InlineData("https://[::1]", false)]
+    [InlineData("https://api.fiscal.bemaquiapp.com.br.evil.com", false)]
+    [InlineData("https://user:pass.fiscal.bemaquiapp.com.br", false)]
+    [InlineData("https://api.fiscal.bemaquiapp.com.br/api/v1", false)]
+    [InlineData("https://api.fiscal.bemaquiapp.com.br/?x=1", false)]
+    [InlineData("ftp://api.fiscal.bemaquiapp.com.br", false)]
+    [InlineData("api.fiscal.bemaquiapp.com.br", false)]
     [InlineData("", false)]
-    public void URL_so_aceita_o_host_da_lista_do_ambiente(string url, bool ok)
+    public void URL_so_aceita_a_API_publica_do_Emissor_em_HTTPS(string url, bool ok)
     {
         var result = FiscalBaseUrl.Validate(url, new FiscalIntegrationOptions());
 
         result.IsSuccess.Should().Be(ok);
         if (ok)
         {
-            result.Value.AbsolutePath.Should().Be("/");
+            result.Value.Should().Be(new Uri("https://api.fiscal.bemaquiapp.com.br/"));
         }
+    }
+
+    [Theory]
+    [InlineData(null, true)]
+    [InlineData("", true)]
+    [InlineData("https://api.fiscal.bemaquiapp.com.br", true)]
+    [InlineData("http://emissor-fiscal:8080", false)]
+    public void Endereco_vem_da_configuracao_e_a_tela_nao_troca(string? requested, bool ok)
+    {
+        var result = FiscalBaseUrl.Resolve(requested, new FiscalIntegrationOptions());
+
+        result.IsSuccess.Should().Be(ok);
+        if (ok)
+        {
+            result.Value.Should().Be(new Uri("https://api.fiscal.bemaquiapp.com.br/"));
+        }
+    }
+
+    [Fact]
+    public void Configuracao_fora_da_regra_nao_e_usada()
+    {
+        FiscalBaseUrl.Configured(new FiscalIntegrationOptions { BaseUrl = "http://emissor-fiscal:8080" }).IsFailure.Should().BeTrue("sem HTTPS");
+        FiscalBaseUrl.Configured(new FiscalIntegrationOptions { BaseUrl = "https://outro.exemplo.com.br" }).IsFailure.Should().BeTrue("fora da lista");
+        FiscalBaseUrl.Configured(new FiscalIntegrationOptions()).Value.Should().Be(new Uri("https://api.fiscal.bemaquiapp.com.br/"));
+        new FiscalIntegrationOptions().AllowedHosts.Should().Equal("api.fiscal.bemaquiapp.com.br");
     }
 }

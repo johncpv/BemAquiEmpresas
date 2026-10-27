@@ -164,15 +164,11 @@ public static class ReverseProxySetup
 }
 
 /// <summary>
-/// Com <c>RequireTrustedProxy</c>, requisição que não veio do proxy responde 404 (exceto /health para o healthcheck do Docker e o webhook no
-/// host interno da API: o EmissorFiscal avisa direto pela rede dedicada <c>bqe-fiscal</c>, sem o nginx, FIS-01 CA 11 e 17; a origem continua
-/// provada pela assinatura, e só o provedor que declara <c>AllowInternalHost</c> é aceito ali). Registrar antes do UseForwardedHeaders.
+/// Com <c>RequireTrustedProxy</c>, requisição que não veio do proxy responde 404 (exceto /health para o healthcheck do Docker). Sem exceção
+/// para webhook: o EmissorFiscal avisa pela URL pública, pelo stack-nginx, como os outros provedores (ADR 0027, adendo de 27/10/2026).
+/// Registrar antes do UseForwardedHeaders.
 /// </summary>
-public sealed class TrustedProxyMiddleware(
-    RequestDelegate next,
-    Microsoft.Extensions.Options.IOptions<ReverseProxyOptions> options,
-    TrustedProxies trusted,
-    Microsoft.Extensions.Options.IOptions<BemAqui.BuildingBlocks.Webhooks.WebhookOptions> webhooks)
+public sealed class TrustedProxyMiddleware(RequestDelegate next, Microsoft.Extensions.Options.IOptions<ReverseProxyOptions> options, TrustedProxies trusted)
 {
     public async Task InvokeAsync(HttpContext context)
     {
@@ -180,8 +176,7 @@ public sealed class TrustedProxyMiddleware(
         // Roda antes do UseForwardedHeaders: aqui o RemoteIpAddress ainda é o do socket.
         if (options.Value.RequireTrustedProxy
             && !context.Request.Path.StartsWithSegments("/health", StringComparison.OrdinalIgnoreCase)
-            && !trusted.IsTrusted(context.Connection.RemoteIpAddress)
-            && !IsInternalWebhook(context))
+            && !trusted.IsTrusted(context.Connection.RemoteIpAddress))
         {
             await Error.NotFound(Error.Codes.NotFound, "Endereço não encontrado.").ToProblem().ExecuteAsync(context);
             return;
@@ -189,8 +184,4 @@ public sealed class TrustedProxyMiddleware(
 
         await next(context);
     }
-
-    private bool IsInternalWebhook(HttpContext context) =>
-        context.Request.Path.StartsWithSegments(BemAqui.BuildingBlocks.Webhooks.WebhookEndpoints.PathPrefix, StringComparison.OrdinalIgnoreCase)
-        && BemAqui.BuildingBlocks.Webhooks.WebhookEndpoints.IsInternalHost(context, webhooks.Value);
 }
