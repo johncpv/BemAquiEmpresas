@@ -30,6 +30,7 @@ import type {
   AccountDetail,
   AccountInput,
   AccountSuggestion,
+  AccountantExportOverview,
   ActiveProjectMarginRow,
   ActiveProjectReceivedItem,
   ActiveProjectsCard,
@@ -156,6 +157,7 @@ import type {
   DisableTwoFactorRequest,
   DiscountsAndCancellations,
   DocumentCheck,
+  DownloadAccountantExportParams,
   DreCell,
   DreChanges,
   DreParameterConfirmInput,
@@ -203,6 +205,7 @@ import type {
   FoundLineInput,
   GanttCentersView,
   GanttProjectsView,
+  GetAccountantExportOverviewParams,
   GetAgingParams,
   GetAuditHistoryParams,
   GetBankStatementLinesParams,
@@ -19369,6 +19372,210 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getRecalculatePayrollForecastMutationOptions(options), queryClient);
     }
+
+export const getGetAccountantExportOverviewUrl = (params?: GetAccountantExportOverviewParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/hr/accountant-exports?${stringifiedParams}` : `/api/v1/hr/accountant-exports`
+}
+
+export const getAccountantExportOverview = async (params?: GetAccountantExportOverviewParams, options?: Parameters<typeof apiFetch>[1]): Promise<AccountantExportOverview> => {
+
+  return apiFetch<AccountantExportOverview>(getGetAccountantExportOverviewUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAccountantExportOverviewQueryKey = (params?: GetAccountantExportOverviewParams,) => {
+    return [
+    `/api/v1/hr/accountant-exports`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetAccountantExportOverviewQueryOptions = <TData = Awaited<ReturnType<typeof getAccountantExportOverview>>, TError = unknown>(params?: GetAccountantExportOverviewParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAccountantExportOverview>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAccountantExportOverviewQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAccountantExportOverview>>> = ({ signal }) => getAccountantExportOverview(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAccountantExportOverview>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAccountantExportOverviewQueryResult = NonNullable<Awaited<ReturnType<typeof getAccountantExportOverview>>>
+export type GetAccountantExportOverviewQueryError = unknown
+
+
+export function useGetAccountantExportOverview<TData = Awaited<ReturnType<typeof getAccountantExportOverview>>, TError = unknown>(
+ params: undefined |  GetAccountantExportOverviewParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAccountantExportOverview>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAccountantExportOverview>>,
+          TError,
+          Awaited<ReturnType<typeof getAccountantExportOverview>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAccountantExportOverview<TData = Awaited<ReturnType<typeof getAccountantExportOverview>>, TError = unknown>(
+ params?: GetAccountantExportOverviewParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAccountantExportOverview>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAccountantExportOverview>>,
+          TError,
+          Awaited<ReturnType<typeof getAccountantExportOverview>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAccountantExportOverview<TData = Awaited<ReturnType<typeof getAccountantExportOverview>>, TError = unknown>(
+ params?: GetAccountantExportOverviewParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAccountantExportOverview>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetAccountantExportOverview<TData = Awaited<ReturnType<typeof getAccountantExportOverview>>, TError = unknown>(
+ params?: GetAccountantExportOverviewParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAccountantExportOverview>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetAccountantExportOverviewQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getDownloadAccountantExportUrl = (params?: DownloadAccountantExportParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/hr/accountant-exports/package?${stringifiedParams}` : `/api/v1/hr/accountant-exports/package`
+}
+
+export const downloadAccountantExport = async (params?: DownloadAccountantExportParams, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDownloadAccountantExportUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadAccountantExportQueryKey = (params?: DownloadAccountantExportParams,) => {
+    return [
+    `/api/v1/hr/accountant-exports/package`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getDownloadAccountantExportQueryOptions = <TData = Awaited<ReturnType<typeof downloadAccountantExport>>, TError = unknown>(params?: DownloadAccountantExportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadAccountantExport>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadAccountantExportQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadAccountantExport>>> = ({ signal }) => downloadAccountantExport(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadAccountantExport>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DownloadAccountantExportQueryResult = NonNullable<Awaited<ReturnType<typeof downloadAccountantExport>>>
+export type DownloadAccountantExportQueryError = unknown
+
+
+export function useDownloadAccountantExport<TData = Awaited<ReturnType<typeof downloadAccountantExport>>, TError = unknown>(
+ params: undefined |  DownloadAccountantExportParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadAccountantExport>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadAccountantExport>>,
+          TError,
+          Awaited<ReturnType<typeof downloadAccountantExport>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadAccountantExport<TData = Awaited<ReturnType<typeof downloadAccountantExport>>, TError = unknown>(
+ params?: DownloadAccountantExportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadAccountantExport>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadAccountantExport>>,
+          TError,
+          Awaited<ReturnType<typeof downloadAccountantExport>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadAccountantExport<TData = Awaited<ReturnType<typeof downloadAccountantExport>>, TError = unknown>(
+ params?: DownloadAccountantExportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadAccountantExport>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useDownloadAccountantExport<TData = Awaited<ReturnType<typeof downloadAccountantExport>>, TError = unknown>(
+ params?: DownloadAccountantExportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadAccountantExport>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDownloadAccountantExportQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getListQuotesUrl = (params?: ListQuotesParams,) => {
   const normalizedParams = new URLSearchParams();

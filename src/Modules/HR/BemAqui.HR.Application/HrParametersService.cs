@@ -35,6 +35,9 @@ public enum HrParameterKind
 
     /// <summary>Centro de custo, pelo código ("3").</summary>
     CostCenter,
+
+    /// <summary>Layout do pacote para a contadora (RH-03, P-06), pelo código ("v1").</summary>
+    ExportLayout,
 }
 
 /// <summary>
@@ -63,7 +66,8 @@ public sealed record HrParameterItem(
 public sealed record HrCodeOption(string Code, string Name);
 
 /// <summary>Os parâmetros, quantos valores legais estão "A confirmar com a contadora" e as contas e os centros para escolher.</summary>
-public sealed record HrParametersView(IReadOnlyList<HrParameterItem> Items, int PendingCount, IReadOnlyList<HrCodeOption>? Accounts = null, IReadOnlyList<HrCodeOption>? CostCenters = null);
+public sealed record HrParametersView(
+    IReadOnlyList<HrParameterItem> Items, int PendingCount, IReadOnlyList<HrCodeOption>? Accounts = null, IReadOnlyList<HrCodeOption>? CostCenters = null, IReadOnlyList<HrCodeOption>? ExportLayouts = null);
 
 /// <summary>Uma troca: número em <c>Value</c>, o órgão em <c>PartyId</c> (nulo limpa o órgão padrão) ou o código da conta ou do centro em <c>Code</c>.</summary>
 public sealed record HrParameterChange(string Key, decimal? Value, Guid? PartyId, string? Code = null);
@@ -102,6 +106,9 @@ public sealed class HrParametersService(
     public const string CostCenterDirect = "hr.payroll_cost_center_direct";
     public const string AccountAdmin = "hr.payroll_account_admin";
     public const string CostCenterAdmin = "hr.payroll_cost_center_admin";
+
+    /// <summary>Layout do pacote para a contadora (RH-03): padrão <c>v1</c>, "A confirmar com a contadora" (ADR 0042).</summary>
+    public const string AccountantExportLayout = "hr.accountant_export_layout";
 
     public const decimal DefaultAlertPct = 10m;
     public const int DefaultDueDay = 20;
@@ -147,9 +154,11 @@ public sealed class HrParametersService(
         new(CostCenterDirect, "Centro de custo da mão de obra direta", "Centro de custo dos salários de quem tem cargo com centro de trabalho.", HrParameterKind.CostCenter, null, null, null, true, "3"),
         new(AccountAdmin, "Conta do pessoal administrativo", "Conta dos salários dos demais cargos.", HrParameterKind.Account, null, null, null, true, "3.1"),
         new(CostCenterAdmin, "Centro de custo do pessoal administrativo", "Centro de custo dos salários dos demais cargos.", HrParameterKind.CostCenter, null, null, null, true, "1"),
+        new(AccountantExportLayout, "Layout do pacote para a contadora", "Arquivos e colunas do pacote mensal que o RH gera para a contadora (RH → Exportar para a contadora). O padrão do sistema é o v1, descrito na ajuda; confira as colunas com a contadora.",
+            HrParameterKind.ExportLayout, null, null, null, true, AccountantLayouts.Default),
     ];
 
-    private static readonly HrParameterKind[] CodeKinds = [HrParameterKind.Account, HrParameterKind.CostCenter];
+    private static readonly HrParameterKind[] CodeKinds = [HrParameterKind.Account, HrParameterKind.CostCenter, HrParameterKind.ExportLayout];
 
     /// <summary>Vencimentos da folha (RH-02c CA 1); fora do intervalo, o padrão.</summary>
     public async Task<PayrollDueParameters> DueParametersAsync(CancellationToken cancellationToken = default)
@@ -174,6 +183,8 @@ public sealed class HrParametersService(
         var stored = await db.HrParameters.AsNoTracking().Where(p => p.Key == accountKey || p.Key == centerKey).ToDictionaryAsync(p => p.Key, p => p.Text, cancellationToken);
         return (stored.GetValueOrDefault(accountKey) ?? Definitions.First(d => d.Key == accountKey).DefaultCode!, stored.GetValueOrDefault(centerKey) ?? Definitions.First(d => d.Key == centerKey).DefaultCode!);
     }
+
+    private static List<HrCodeOption> ExportLayoutOptions() => AccountantLayouts.Available.Select(l => new HrCodeOption(l.Code, l.Name)).ToList();
 
     private static bool ValidMonthDay(decimal value)
     {
@@ -228,17 +239,18 @@ public sealed class HrParametersService(
 
         var accounts = (await chart.PostableAsync(BemAqui.Finance.Contracts.AccountType.Expense, cancellationToken)).Select(a => new HrCodeOption(a.Code, a.Name)).ToList();
         var centers = (await chart.CostCentersAsync(cancellationToken)).Select(c => new HrCodeOption(c.Code, c.Name)).ToList();
+        var exportLayouts = ExportLayoutOptions();
         var items = Definitions.Select(d =>
         {
             var p = stored.GetValueOrDefault(d.Key);
             Guid? party = d.Kind == HrParameterKind.Party && Guid.TryParse(p?.Text, out var id) ? id : null;
             var code = CodeKinds.Contains(d.Kind) ? p?.Text ?? d.DefaultCode : null;
-            var codeName = code is null ? null : (d.Kind == HrParameterKind.Account ? accounts : centers).FirstOrDefault(o => o.Code == code)?.Name;
+            var codeName = code is null ? null : (d.Kind switch { HrParameterKind.Account => accounts, HrParameterKind.CostCenter => centers, _ => exportLayouts }).FirstOrDefault(o => o.Code == code)?.Name;
             return new HrParameterItem(d.Key, d.Label, d.Description, d.Kind, d.Kind == HrParameterKind.Party || CodeKinds.Contains(d.Kind) ? null : p?.Value ?? d.Default, d.Min, d.Max, party,
                 party is { } pid ? names.GetValueOrDefault(pid) : null, d.Legal, d.Legal && p?.ConfirmedAt is not null,
                 p?.ConfirmedBy is { } by ? reviewers.GetValueOrDefault(by) : null, d.Legal ? p?.ConfirmedAt : null, p?.Id, code, codeName);
         }).ToList();
-        return new HrParametersView(items, items.Count(i => i.Legal && !i.Confirmed), accounts, centers);
+        return new HrParametersView(items, items.Count(i => i.Legal && !i.Confirmed), accounts, centers, exportLayouts);
     }
 
     /// <summary>Só o que veio muda; o valor legal trocado volta para "A confirmar com a contadora" (ADR 0042 §1).</summary>
@@ -271,6 +283,13 @@ public sealed class HrParametersService(
                 if ((await chart.PostableAsync(BemAqui.Finance.Contracts.AccountType.Expense, cancellationToken)).All(a => a.Code != change.Code))
                 {
                     return PayrollRules.Field(change.Key, "Escolha uma conta de despesa analítica ativa.");
+                }
+            }
+            else if (definition.Kind == HrParameterKind.ExportLayout)
+            {
+                if (ExportLayoutOptions().All(l => l.Code != change.Code))
+                {
+                    return PayrollRules.Field(change.Key, "Escolha um dos layouts disponíveis.");
                 }
             }
             else if (definition.Kind == HrParameterKind.CostCenter)

@@ -19,4 +19,5 @@ export const HrParameterKind = {
   Months: 'Months',
   Account: 'Account',
   CostCenter: 'CostCenter',
+  ExportLayout: 'ExportLayout',
 } as const;

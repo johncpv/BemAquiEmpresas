@@ -5,7 +5,7 @@
 | ID | RH-03 |
 | Título | Pacote mensal para a contadora em CSV no layout padrão do sistema (`v1`, documentado): movimentação do mês (admissões, desligamentos, reajustes, trocas de cargo, afastamentos) e, quando houver, a folha lançada fechada; os eventos do ponto entram no pacote com a RH-01c; gerado só por quem tem `hr.view_sensitive`, com dados minimizados, sem guardar o arquivo e com registro de cada exportação |
 | Tamanho | M (D no PRD) |
-| Status | Ready (pré-condição externa) |
+| Status | Done (pré-condição externa: a contadora confere as colunas do layout `v1`) |
 | Requisitos | R-RH-8 (exportação para contadora, D) · P-06 (layout padrão documentado; adicionais como plug-ins) · PRD §6 LGPD · R-SEC-5 · R-PRP-3 |
 | Dependências | RH-02a (folha lançada e parâmetros do RH), RH-02c (folha fechada no pacote), CAD-04b e CAD-04c1 (movimentação e afastamentos) |
 | Bloqueia | RH-01c (acrescenta o `ponto.csv` ao pacote) |
@@ -72,15 +72,15 @@ Decisões da revisão aplicadas: D15 (folha antes do ponto: o pacote sai sem o p
 **Pré-condição externa:** a contadora confere as colunas do layout `v1`; se ela pedir outra coluna ou outro layout, entra uma versão nova ou um plug-in (P-06); não bloqueia o `Ready`.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers), golden e E2E passando.
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Tela com estados; ajuda com o layout documentado; teste de cobertura passando.
-- [ ] Auditoria ligada (`SensitiveRead`).
-- [ ] OpenAPI e cliente Orval regenerados; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers), golden e E2E passando.
+- [x] Permissões só do `ModuleCatalog`.
+- [x] Tela com estados; ajuda com o layout documentado; teste de cobertura passando.
+- [x] Auditoria ligada (`SensitiveRead`).
+- [x] OpenAPI e cliente Orval regenerados; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `IAccountantExport` com seções registráveis e o layout `v1`; endpoint `/api/v1/hr/accountant-exports`; tela e ajuda.
+- [x] `IAccountantExport` com seções registráveis e o layout `v1`; endpoint `/api/v1/hr/accountant-exports`; tela e ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, cybersecurity (minimização), @qa.
@@ -114,3 +114,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D15, tabela 3.3 pontos 28–30, §4.4 padrão 8); nova ordem (Marco 6.2, ordem 5; `ponto.csv` na RH-01c) | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 27/10/2026 | 1.0 | Implementada (@dev). Backend: `IAccountantExport` com o layout padrão `v1` (`StandardAccountantExport`) montado por seções registradas no DI (`IAccountantExportSection`: `movimentacao.csv`, `folha.csv` e a seção do ponto "não incluído", que a RH-01c troca pelo `ponto.csv`); regras puras em `AccountantLayoutV1` (cabeçalhos, formatos `dd/mm/aaaa`, decimal com vírgula, CPF com máscara, CBO `9999-99`, `leia-me.txt`); CSV pelo `SafeCsv` (`;`, UTF-8 com BOM, célula com `=`, `+`, `-` ou `@` com apóstrofo). Rotas `GET /api/v1/hr/accountant-exports` (tela: o que entra, folhas em rascunho, exportação anterior e histórico, sem valores) e `GET /api/v1/hr/accountant-exports/package?period=` (ZIP em memória, `attachment`, `private, no-store`, nunca gravado), as duas com `hr.view_sensitive` no grupo `hr` (`RequireModule`). Cada geração grava `SensitiveRead` (`AccountantExport`, a competência, o layout como referência, usuário e IP), lido por um novo `IAuditReader` (BuildingBlocks) para "Exportações anteriores" e "Substitui a exportação de {data}"; nada em log nem outbox. Layout escolhido pelo parâmetro do RH `hr.accountant_export_layout` (tipo `ExportLayout`, padrão `v1`, "A confirmar com a contadora", ADR 0042), editável em Configurações → Parâmetros → RH. Sem migration (nenhuma tabela; o parâmetro entra pelo seed). Front: RH → Exportar para a contadora (`/app/rh/exportar-contadora`, aba só com `hr.view_sensitive`, bloco "Dados protegidos" sem ela), competência sugerida = mês anterior (só o atual ou anteriores), "O que vai entrar no pacote", aviso da folha em rascunho com "Abrir a folha", "Gerar pacote (CSV)", `NextSteps` "Avisar a contadora" (`mailto:` com o texto pronto, sem anexo), "Exportações anteriores" em tabela e em cartões a 400 px; ajuda `Ajuda/rh-exportar-contadora.md` com o layout `v1` completo e `<Dica>` em "Layout padrão". Testes: `AccountantExportRulesTests` (golden dos cabeçalhos, linhas do dataset fixo, proteção de célula, leia-me) e `AccountantExportTests` (Testcontainers: pacote com e sem folha fechada, rascunho fora, minimização por canário, `SensitiveRead`, `no-store`, outbox intacto, nova exportação, três camadas, parâmetro); E2E `accountant-export.spec.ts` (desktop e 400 px). Decisões (recomendação aceita, PO 24/10): (1) afastamento entra quando cobre algum dia da competência, não só quando começa nela; (2) o tipo do afastamento só sai para quem tem também `hr.view_health` (regra da CAD-04c1b), senão a coluna vem vazia e o `leia-me.txt` explica; (3) `folha.csv` usa `matricula_ou_cpf` (o CPF quando não há matrícula), como o layout de importação da RH-02a, e traz também a descrição da rubrica; (4) o CPF vai em todas as linhas da movimentação (identificação), o nascimento só na admissão; (5) o pacote é gerado por `GET` autenticado (como a exportação do rastreio, EST-04), com o registro na auditoria. | @dev |

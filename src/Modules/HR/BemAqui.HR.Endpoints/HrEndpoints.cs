@@ -30,6 +30,7 @@ internal static partial class HrEndpoints
         MapPayrollItems(hr.MapGroup("/payroll-items"));
         MapHrParameters(hr.MapGroup("/parameters"));
         MapPayrollRuns(hr.MapGroup("/payroll-runs"));
+        MapAccountantExports(hr.MapGroup("/accountant-exports"));
         return api;
     }
 

@@ -14,4 +14,6 @@ export interface HrParametersView {
   accounts?: HrCodeOption[] | null;
   /** @nullable */
   costCenters?: HrCodeOption[] | null;
+  /** @nullable */
+  exportLayouts?: HrCodeOption[] | null;
 }
