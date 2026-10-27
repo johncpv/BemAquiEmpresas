@@ -53,28 +53,17 @@ for (const [name, s] of Object.entries(services)) {
   if ((s.ports ?? []).length > 0) problems.push(`${name}: o acesso externo é só pelo stack-nginx; remova ports:`)
 }
 
-// Rede dedicada com o EmissorFiscal (FIS-01 CA 17, ADR 0027 §4): externa (criada com --internal; o deploy.sh confere), só com a API do
-// BemAqui e, se estiver neste compose, a API do Emissor; nunca o banco, o web, o migrator ou o backup. A API do BemAqui alcança o Emissor
-// só por ela. Serviço do Emissor não publica porta nem liga o Swagger fora do desenvolvimento.
-const fiscalEntry = Object.entries(compose.networks ?? {}).find(([, n]) => n.name === 'bqe-fiscal')
-const fiscalNetwork = fiscalEntry?.[0]
-const isEmissor = (name) => /emissor/i.test(name)
-if (!fiscalEntry) problems.push('rede bqe-fiscal (EmissorFiscal) não declarada')
-else if (fiscalEntry[1].external !== true) problems.push('bqe-fiscal: precisa ser external (criada com "docker network create --internal bqe-fiscal")')
+// EmissorFiscal (ADR 0027, adendo de 27/10/2026): SaaS multi-cliente, falado pela API pública em HTTPS; o aviso chega pelo stack-nginx.
+// Sem rede privada com ele: a bqe-fiscal não volta, o endereço configurado é HTTPS e nenhum webhook entra por host interno.
+if (Object.values(compose.networks ?? {}).some((n) => n.name === 'bqe-fiscal')) problems.push('rede bqe-fiscal: o EmissorFiscal é falado pela API pública, sem rede privada (ADR 0027, adendo de 27/10/2026)')
 for (const [name, s] of Object.entries(services)) {
-  const networks = Object.keys(s.networks ?? {})
-  const onFiscal = fiscalNetwork && networks.includes(fiscalNetwork)
+  const env = s.environment ?? {}
   const isApi = /^bqe-[a-z0-9]+-api$/.test(name)
-  if (onFiscal && !isApi && !isEmissor(name)) problems.push(`${name}: só a API do BemAqui e a do Emissor podem estar na bqe-fiscal`)
-  if (isApi && fiscalNetwork && !onFiscal) problems.push(`${name}: a API precisa da rede bqe-fiscal para falar com o Emissor`)
-  if (isEmissor(name)) {
-    if ((s.ports ?? []).length > 0) problems.push(`${name}: o Emissor não publica porta`)
-    if (stackNetwork && networks.includes(stackNetwork)) problems.push(`${name}: a API do Emissor não entra na stack_stack`)
-    const env = s.environment ?? {}
-    if (String(env.Swagger__Enabled ?? '').toLowerCase() === 'true') problems.push(`${name}: Swagger ligado fora do desenvolvimento`)
-    if (String(env.ASPNETCORE_ENVIRONMENT ?? 'Production') === 'Development') problems.push(`${name}: ASPNETCORE_ENVIRONMENT=Development liga o Swagger`)
+  for (const [key, value] of Object.entries(env)) {
+    if (/^Fiscal__Emissor__BaseUrl$/.test(key) && !/^https:\/\//.test(String(value))) problems.push(`${name}: ${key} precisa ser HTTPS (API pública do Emissor)`)
+    if (/^Webhooks__InternalHosts__/.test(key)) problems.push(`${name}: ${key} não existe mais; o webhook chega só pelo stack-nginx`)
   }
-  if (isApi && String((s.environment ?? {}).ASPNETCORE_ENVIRONMENT ?? 'Production') === 'Development') problems.push(`${name}: ASPNETCORE_ENVIRONMENT=Development expõe o OpenAPI`)
+  if (isApi && String(env.ASPNETCORE_ENVIRONMENT ?? 'Production') === 'Development') problems.push(`${name}: ASPNETCORE_ENVIRONMENT=Development expõe o OpenAPI`)
 }
 
 if (!stackNetwork) problems.push('rede externa stack_stack não declarada')
