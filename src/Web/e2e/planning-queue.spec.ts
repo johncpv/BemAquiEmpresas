@@ -118,8 +118,11 @@ test.describe('Fila de prioridade (PLN-02)', () => {
     await expect(linhas(page)).toHaveCount(3)
 
     // dnd-kit com o sensor de teclado: Espaço pega, seta move, Espaço solta.
-    await page.getByRole('button', { name: 'Arrastar PRJ-2026-0002' }).focus()
+    const handle = page.getByRole('button', { name: 'Arrastar PRJ-2026-0002' })
+    await handle.focus()
     await page.keyboard.press('Space')
+    // Com a máquina carregada, a seta chegava antes de o dnd-kit pegar o item; espera o arraste começar.
+    await expect(handle).toHaveAttribute('aria-pressed', 'true')
     await page.keyboard.press('ArrowUp')
     await page.keyboard.press('Space')
     await expect.poll(() => numbers(page)).toEqual(['PRJ-2026-0002', 'PRJ-2026-0001', 'PRJ-2026-0003'])
