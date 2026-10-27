@@ -86,6 +86,8 @@ public sealed class OutgoingInvoice : Entity, IAuditable, IConcurrencyVersioned
     /// <summary>Desde quando está em contingência (alerta depois de 2 h, CA 12).</summary>
     public DateTimeOffset? ContingencySince { get; private set; }
 
+    /// <summary>Última reconsulta (fora da auditoria: a trilha é a mudança de situação).</summary>
+    [NotAudited]
     public DateTimeOffset? LastCheckedAt { get; private set; }
 
     /// <summary>Anexo de sistema com o XML autorizado (dono <c>OutgoingInvoice</c>, CA 13).</summary>

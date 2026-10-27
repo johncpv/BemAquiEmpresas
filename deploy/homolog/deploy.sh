@@ -28,6 +28,16 @@ install -m 0755 "$staging/deploy/postgres/init-roles.sh" "$DIR/postgres/init-rol
 previous=$(sed -n 's/^IMAGE_TAG=//p' .env)
 set_tag() { sed -i "s/^IMAGE_TAG=.*/IMAGE_TAG=$1/" .env; }
 
+# Rede dedicada com o EmissorFiscal (FIS-01 CA 17, ADR 0027 §4): criada uma vez, sem saída para a internet. Se já existe sem
+# --internal, o deploy para antes de mexer em qualquer coisa.
+if ! docker network inspect bqe-fiscal >/dev/null 2>&1; then
+  docker network create --internal bqe-fiscal >/dev/null
+fi
+if [ "$(docker network inspect -f '{{.Internal}}' bqe-fiscal)" != "true" ]; then
+  echo "A rede bqe-fiscal existe sem --internal. Recrie com: docker network create --internal bqe-fiscal" >&2
+  exit 4
+fi
+
 set_tag "$TAG"
 if ! docker compose pull --quiet migrator bqe-homolog-api bqe-homolog-web backup; then
   set_tag "$previous"

@@ -94,7 +94,10 @@ Projeto existente do PO em `D:\GIT\EmissorFiscal`. **Decidido na ADR 0027:** ser
 - Parâmetros fiscais pré-configurados e editáveis em Configurações → Fiscal, marcados "A confirmar com a contadora" até a conferência (ADR 0042).
 - Homologação SEFAZ no tenant `demo`; produção só na GOL-01b.
 - As lacunas do Emissor (reconciliação com a SEFAZ, DANFE em PDF, `transp`, IBS/CBS, escopo `nfe:eventos`, NFS-e de Caçapava) são pré-condição externa das stories fiscais.
-- O módulo Fiscal só conhece a interface `IFiscalEmitter` (FIS-01).
+- O módulo Fiscal só conhece a interface `IFiscalEmitter` (FIS-01): `EmissorFiscalHttpEmitter` em produção, `FakeFiscalEmitter` nos testes dos módulos e um fake HTTP do Emissor na suíte de contrato do CI.
+- **Rede `bqe-fiscal`** (FIS-01): rede Docker externa criada com `--internal`, só com a `bqe-<ambiente>-api` e o `emissor-fiscal`. A API chama `http://emissor-fiscal:8080` (URL base só da lista `Fiscal:Emissor:AllowedHosts`); o Emissor avisa pelo host interno da API (`/webhooks/emissor-fiscal/{tenantKey}`, sem o `stack-nginx`, assinatura `t=…,v1=…` com janela de 5 min). O `check-compose.mjs` reprova outro serviço na rede, porta publicada no Emissor e Swagger ligado.
+- **Retorno:** o webhook só dispara a reconsulta `GET /api/v1/nfe/{chave}`; a reserva é o recorrente `fiscal-pending-check` (10 min, um job por tenant com o módulo liberado) com a **consulta forçada** `POST /api/v1/nfe/{chave}/consultar`. Nada é reemitido: `Idempotency-Key` `nfe-{invoiceId}-{tentativa}` e `payload_hash` gravado em `Processing`.
+- **Ambiente:** `catalog.tenants.fiscal_environment_allowed` (`None`/`Homologation`/`Production`), lido a cada chamada; runbook em `docs/operacao/emissor-fiscal.md`.
 
 ### 6.2 Banco Inter
 - API de Cobrança (boleto com QR Code Pix), consulta, cancelamento, PDF; webhook de pagamento; API de extrato para conciliação; Pix cobrança se necessário.

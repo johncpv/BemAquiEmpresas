@@ -1,6 +1,6 @@
 # Homologação do BemAqui Empresas na VPS compartilhada (FND-10, ADR 0004 e 0015).
 # Diretório: /opt/projetos/bemaqui-empresas-homolog. Segredos em ./secrets (um arquivo por segredo, chmod 0400).
-# Regras verificadas no CI (scripts/check-compose.mjs): postgres sem ports e fora da stack_stack; api, web, migrator e
+# Regras verificadas no CI (scripts/check-compose.mjs): postgres sem ports e fora da stack_stack e da bqe-fiscal; api, web, migrator e
 # backup não-root, read_only, cap_drop ALL, no-new-privileges e com limites; só web e api na stack_stack.
 # Nomes únicos (ADR 0015): na stack_stack, "postgres", "redis", "api" e "web" já são apelidos de outros projetos.
 # Por isso api e web se chamam bqe-homolog-*, e a API acha o banco e o ClamAV pelo nome do container.
@@ -30,6 +30,11 @@ x-api-env: &api-env
   Email__SmtpUsername: ${SMTP_USERNAME}
   Storage__Root: /data/files
   ClamAV__Host: bqe-homolog-clamav
+  # EmissorFiscal (FIS-01, ADR 0027 §4): a API chama http://emissor-fiscal:8080 pela rede dedicada bqe-fiscal, e o Emissor avisa
+  # pelo host interno da API na mesma rede (o webhook não passa pelo nginx).
+  Webhooks__InternalHosts__0: bqe-homolog-api
+  Fiscal__Emissor__AllowedHosts__0: emissor-fiscal
+  Fiscal__Emissor__WebhookBaseUrl: http://bqe-homolog-api:8080
 
 x-api-secrets: &api-secrets
   - { source: catalog-connection, target: ConnectionStrings__Catalog }
@@ -134,7 +139,7 @@ services:
     tmpfs: ["/tmp:size=128m"]
     volumes:
       - files:/data/files
-    networks: [internal, stack]
+    networks: [internal, stack, fiscal]
     depends_on:
       migrator: { condition: service_completed_successfully }
       clamav: { condition: service_started }
@@ -195,6 +200,11 @@ networks:
   stack:
     external: true
     name: stack_stack
+  # Rede dedicada com o EmissorFiscal (ADR 0027 §4): criada com "docker network create --internal bqe-fiscal" (o deploy.sh confere);
+  # só a API do BemAqui e a API do Emissor. O banco e o painel do Emissor ficam fora dela.
+  fiscal:
+    external: true
+    name: bqe-fiscal
 
 volumes:
   pgdata: { name: bqe-homolog-pgdata }

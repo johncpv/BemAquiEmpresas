@@ -25,11 +25,12 @@ public static class NfePayload
         WriteIndented = false,
     };
 
-    public static decimal Money(decimal value) => Math.Round(value, MoneyDecimals, MidpointRounding.AwayFromZero);
+    // A soma com 0,00 (ou 0,0000) fixa a escala: 1 vai como 1.00 no JSON.
+    public static decimal Money(decimal value) => Math.Round(value, MoneyDecimals, MidpointRounding.AwayFromZero) + 0.00m;
 
     public static decimal? Money(decimal? value) => value is { } v ? Money(v) : null;
 
-    public static decimal Quantity(decimal value) => Math.Round(value, QuantityDecimals, MidpointRounding.AwayFromZero);
+    public static decimal Quantity(decimal value) => Math.Round(value, QuantityDecimals, MidpointRounding.AwayFromZero) + 0.0000m;
 
     public static decimal UnitPrice(decimal value) => Math.Round(value, UnitPriceDecimals, MidpointRounding.AwayFromZero);
 
