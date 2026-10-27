@@ -137,10 +137,20 @@ import type {
   DreReport,
   DueDateInput,
   EmailDispatchLimitInput,
+  EmployeeAdditionalInput,
+  EmployeeBankAccountInput,
+  EmployeeBankAccountRevealed,
+  EmployeeBankReviewInput,
+  EmployeeBankStatusView,
   EmployeeCreateInput,
   EmployeeCreated,
+  EmployeeDependentDetail,
+  EmployeeDependentInput,
   EmployeeDetail,
+  EmployeeDocumentsDetail,
+  EmployeeDocumentsInput,
   EmployeeGeneralInput,
+  EmployeePaymentDetail,
   EmployeePersonalInput,
   EmployeeSensitiveDetail,
   ExtendValidityInput,
@@ -15215,6 +15225,1249 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getUnlinkEmployeeUserMutationOptions(options), queryClient);
     }
+
+export const getListEmployeeDependentsSensitiveUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/dependents/sensitive`
+}
+
+export const listEmployeeDependentsSensitive = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<EmployeeDependentDetail[]> => {
+
+  return apiFetch<EmployeeDependentDetail[]>(getListEmployeeDependentsSensitiveUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListEmployeeDependentsSensitiveQueryKey = (id: string,) => {
+    return [
+    `/api/v1/hr/employees/${id}/dependents/sensitive`
+    ] as const;
+    }
+
+
+export const getListEmployeeDependentsSensitiveQueryOptions = <TData = Awaited<ReturnType<typeof listEmployeeDependentsSensitive>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployeeDependentsSensitive>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListEmployeeDependentsSensitiveQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listEmployeeDependentsSensitive>>> = ({ signal }) => listEmployeeDependentsSensitive(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listEmployeeDependentsSensitive>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListEmployeeDependentsSensitiveQueryResult = NonNullable<Awaited<ReturnType<typeof listEmployeeDependentsSensitive>>>
+export type ListEmployeeDependentsSensitiveQueryError = unknown
+
+
+export function useListEmployeeDependentsSensitive<TData = Awaited<ReturnType<typeof listEmployeeDependentsSensitive>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployeeDependentsSensitive>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listEmployeeDependentsSensitive>>,
+          TError,
+          Awaited<ReturnType<typeof listEmployeeDependentsSensitive>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListEmployeeDependentsSensitive<TData = Awaited<ReturnType<typeof listEmployeeDependentsSensitive>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployeeDependentsSensitive>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listEmployeeDependentsSensitive>>,
+          TError,
+          Awaited<ReturnType<typeof listEmployeeDependentsSensitive>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListEmployeeDependentsSensitive<TData = Awaited<ReturnType<typeof listEmployeeDependentsSensitive>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployeeDependentsSensitive>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListEmployeeDependentsSensitive<TData = Awaited<ReturnType<typeof listEmployeeDependentsSensitive>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployeeDependentsSensitive>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListEmployeeDependentsSensitiveQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getAddEmployeeDependentUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/dependents`
+}
+
+export const addEmployeeDependent = async (id: string,
+    employeeDependentInput: EmployeeDependentInput, options?: Parameters<typeof apiFetch>[1]): Promise<EmployeeDependentDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<EmployeeDependentDetail>(getAddEmployeeDependentUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(employeeDependentInput)
+  }
+);}
+
+
+
+
+
+export const getAddEmployeeDependentMutationKey = () => ['addEmployeeDependent'] as const;
+
+export const getAddEmployeeDependentMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addEmployeeDependent>>, TError,AddEmployeeDependentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addEmployeeDependent>>, TError,AddEmployeeDependentMutationVariables, TContext> => {
+
+const mutationKey = getAddEmployeeDependentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addEmployeeDependent>>, AddEmployeeDependentMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  addEmployeeDependent(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddEmployeeDependentMutationResult = NonNullable<Awaited<ReturnType<typeof addEmployeeDependent>>>
+    export type AddEmployeeDependentMutationBody = EmployeeDependentInput
+    export type AddEmployeeDependentMutationError = unknown
+    export type AddEmployeeDependentMutationVariables = {id: string;data: EmployeeDependentInput}
+
+    export const useAddEmployeeDependent = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addEmployeeDependent>>, TError,AddEmployeeDependentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof addEmployeeDependent>>,
+        TError,
+        AddEmployeeDependentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAddEmployeeDependentMutationOptions(options), queryClient);
+    }
+
+export const getUpdateEmployeeDependentUrl = (id: string,
+    dependentId: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/dependents/${dependentId}`
+}
+
+export const updateEmployeeDependent = async (id: string,
+    dependentId: string,
+    employeeDependentInput: EmployeeDependentInput, options?: Parameters<typeof apiFetch>[1]): Promise<EmployeeDependentDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<EmployeeDependentDetail>(getUpdateEmployeeDependentUrl(id,dependentId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(employeeDependentInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateEmployeeDependentMutationKey = () => ['updateEmployeeDependent'] as const;
+
+export const getUpdateEmployeeDependentMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateEmployeeDependent>>, TError,UpdateEmployeeDependentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateEmployeeDependent>>, TError,UpdateEmployeeDependentMutationVariables, TContext> => {
+
+const mutationKey = getUpdateEmployeeDependentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateEmployeeDependent>>, UpdateEmployeeDependentMutationVariables> = (props) => {
+          const {id,dependentId,data} = props ?? {};
+
+          return  updateEmployeeDependent(id,dependentId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateEmployeeDependentMutationResult = NonNullable<Awaited<ReturnType<typeof updateEmployeeDependent>>>
+    export type UpdateEmployeeDependentMutationBody = EmployeeDependentInput
+    export type UpdateEmployeeDependentMutationError = unknown
+    export type UpdateEmployeeDependentMutationVariables = {id: string;dependentId: string;data: EmployeeDependentInput}
+
+    export const useUpdateEmployeeDependent = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateEmployeeDependent>>, TError,UpdateEmployeeDependentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateEmployeeDependent>>,
+        TError,
+        UpdateEmployeeDependentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateEmployeeDependentMutationOptions(options), queryClient);
+    }
+
+export const getDeleteEmployeeDependentUrl = (id: string,
+    dependentId: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/dependents/${dependentId}`
+}
+
+export const deleteEmployeeDependent = async (id: string,
+    dependentId: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDeleteEmployeeDependentUrl(id,dependentId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteEmployeeDependentMutationKey = () => ['deleteEmployeeDependent'] as const;
+
+export const getDeleteEmployeeDependentMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteEmployeeDependent>>, TError,DeleteEmployeeDependentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteEmployeeDependent>>, TError,DeleteEmployeeDependentMutationVariables, TContext> => {
+
+const mutationKey = getDeleteEmployeeDependentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteEmployeeDependent>>, DeleteEmployeeDependentMutationVariables> = (props) => {
+          const {id,dependentId} = props ?? {};
+
+          return  deleteEmployeeDependent(id,dependentId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteEmployeeDependentMutationResult = NonNullable<Awaited<ReturnType<typeof deleteEmployeeDependent>>>
+
+    export type DeleteEmployeeDependentMutationError = unknown
+    export type DeleteEmployeeDependentMutationVariables = {id: string;dependentId: string}
+
+    export const useDeleteEmployeeDependent = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteEmployeeDependent>>, TError,DeleteEmployeeDependentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteEmployeeDependent>>,
+        TError,
+        DeleteEmployeeDependentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeleteEmployeeDependentMutationOptions(options), queryClient);
+    }
+
+export const getGetEmployeePaymentSensitiveUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/payment/sensitive`
+}
+
+export const getEmployeePaymentSensitive = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<EmployeePaymentDetail> => {
+
+  return apiFetch<EmployeePaymentDetail>(getGetEmployeePaymentSensitiveUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetEmployeePaymentSensitiveQueryKey = (id: string,) => {
+    return [
+    `/api/v1/hr/employees/${id}/payment/sensitive`
+    ] as const;
+    }
+
+
+export const getGetEmployeePaymentSensitiveQueryOptions = <TData = Awaited<ReturnType<typeof getEmployeePaymentSensitive>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeePaymentSensitive>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEmployeePaymentSensitiveQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEmployeePaymentSensitive>>> = ({ signal }) => getEmployeePaymentSensitive(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEmployeePaymentSensitive>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetEmployeePaymentSensitiveQueryResult = NonNullable<Awaited<ReturnType<typeof getEmployeePaymentSensitive>>>
+export type GetEmployeePaymentSensitiveQueryError = unknown
+
+
+export function useGetEmployeePaymentSensitive<TData = Awaited<ReturnType<typeof getEmployeePaymentSensitive>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeePaymentSensitive>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEmployeePaymentSensitive>>,
+          TError,
+          Awaited<ReturnType<typeof getEmployeePaymentSensitive>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEmployeePaymentSensitive<TData = Awaited<ReturnType<typeof getEmployeePaymentSensitive>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeePaymentSensitive>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEmployeePaymentSensitive>>,
+          TError,
+          Awaited<ReturnType<typeof getEmployeePaymentSensitive>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEmployeePaymentSensitive<TData = Awaited<ReturnType<typeof getEmployeePaymentSensitive>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeePaymentSensitive>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetEmployeePaymentSensitive<TData = Awaited<ReturnType<typeof getEmployeePaymentSensitive>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeePaymentSensitive>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetEmployeePaymentSensitiveQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetEmployeeBankStatusUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/bank-account/status`
+}
+
+export const getEmployeeBankStatus = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<EmployeeBankStatusView> => {
+
+  return apiFetch<EmployeeBankStatusView>(getGetEmployeeBankStatusUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetEmployeeBankStatusQueryKey = (id: string,) => {
+    return [
+    `/api/v1/hr/employees/${id}/bank-account/status`
+    ] as const;
+    }
+
+
+export const getGetEmployeeBankStatusQueryOptions = <TData = Awaited<ReturnType<typeof getEmployeeBankStatus>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeBankStatus>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEmployeeBankStatusQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEmployeeBankStatus>>> = ({ signal }) => getEmployeeBankStatus(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEmployeeBankStatus>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetEmployeeBankStatusQueryResult = NonNullable<Awaited<ReturnType<typeof getEmployeeBankStatus>>>
+export type GetEmployeeBankStatusQueryError = unknown
+
+
+export function useGetEmployeeBankStatus<TData = Awaited<ReturnType<typeof getEmployeeBankStatus>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeBankStatus>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEmployeeBankStatus>>,
+          TError,
+          Awaited<ReturnType<typeof getEmployeeBankStatus>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEmployeeBankStatus<TData = Awaited<ReturnType<typeof getEmployeeBankStatus>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeBankStatus>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEmployeeBankStatus>>,
+          TError,
+          Awaited<ReturnType<typeof getEmployeeBankStatus>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEmployeeBankStatus<TData = Awaited<ReturnType<typeof getEmployeeBankStatus>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeBankStatus>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetEmployeeBankStatus<TData = Awaited<ReturnType<typeof getEmployeeBankStatus>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeBankStatus>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetEmployeeBankStatusQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getRevealEmployeeBankAccountUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/bank-account/sensitive`
+}
+
+export const revealEmployeeBankAccount = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<EmployeeBankAccountRevealed> => {
+
+  return apiFetch<EmployeeBankAccountRevealed>(getRevealEmployeeBankAccountUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getRevealEmployeeBankAccountQueryKey = (id: string,) => {
+    return [
+    `/api/v1/hr/employees/${id}/bank-account/sensitive`
+    ] as const;
+    }
+
+
+export const getRevealEmployeeBankAccountQueryOptions = <TData = Awaited<ReturnType<typeof revealEmployeeBankAccount>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof revealEmployeeBankAccount>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getRevealEmployeeBankAccountQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof revealEmployeeBankAccount>>> = ({ signal }) => revealEmployeeBankAccount(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof revealEmployeeBankAccount>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type RevealEmployeeBankAccountQueryResult = NonNullable<Awaited<ReturnType<typeof revealEmployeeBankAccount>>>
+export type RevealEmployeeBankAccountQueryError = unknown
+
+
+export function useRevealEmployeeBankAccount<TData = Awaited<ReturnType<typeof revealEmployeeBankAccount>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof revealEmployeeBankAccount>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof revealEmployeeBankAccount>>,
+          TError,
+          Awaited<ReturnType<typeof revealEmployeeBankAccount>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useRevealEmployeeBankAccount<TData = Awaited<ReturnType<typeof revealEmployeeBankAccount>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof revealEmployeeBankAccount>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof revealEmployeeBankAccount>>,
+          TError,
+          Awaited<ReturnType<typeof revealEmployeeBankAccount>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useRevealEmployeeBankAccount<TData = Awaited<ReturnType<typeof revealEmployeeBankAccount>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof revealEmployeeBankAccount>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useRevealEmployeeBankAccount<TData = Awaited<ReturnType<typeof revealEmployeeBankAccount>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof revealEmployeeBankAccount>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getRevealEmployeeBankAccountQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSaveEmployeeBankAccountUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/bank-account`
+}
+
+export const saveEmployeeBankAccount = async (id: string,
+    employeeBankAccountInput: EmployeeBankAccountInput, options?: Parameters<typeof apiFetch>[1]): Promise<EmployeePaymentDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<EmployeePaymentDetail>(getSaveEmployeeBankAccountUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(employeeBankAccountInput)
+  }
+);}
+
+
+
+
+
+export const getSaveEmployeeBankAccountMutationKey = () => ['saveEmployeeBankAccount'] as const;
+
+export const getSaveEmployeeBankAccountMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveEmployeeBankAccount>>, TError,SaveEmployeeBankAccountMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveEmployeeBankAccount>>, TError,SaveEmployeeBankAccountMutationVariables, TContext> => {
+
+const mutationKey = getSaveEmployeeBankAccountMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveEmployeeBankAccount>>, SaveEmployeeBankAccountMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  saveEmployeeBankAccount(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveEmployeeBankAccountMutationResult = NonNullable<Awaited<ReturnType<typeof saveEmployeeBankAccount>>>
+    export type SaveEmployeeBankAccountMutationBody = EmployeeBankAccountInput
+    export type SaveEmployeeBankAccountMutationError = unknown
+    export type SaveEmployeeBankAccountMutationVariables = {id: string;data: EmployeeBankAccountInput}
+
+    export const useSaveEmployeeBankAccount = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveEmployeeBankAccount>>, TError,SaveEmployeeBankAccountMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof saveEmployeeBankAccount>>,
+        TError,
+        SaveEmployeeBankAccountMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSaveEmployeeBankAccountMutationOptions(options), queryClient);
+    }
+
+export const getReviewEmployeeBankAccountUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/bank-account/review`
+}
+
+export const reviewEmployeeBankAccount = async (id: string,
+    employeeBankReviewInput: EmployeeBankReviewInput, options?: Parameters<typeof apiFetch>[1]): Promise<EmployeePaymentDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<EmployeePaymentDetail>(getReviewEmployeeBankAccountUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(employeeBankReviewInput)
+  }
+);}
+
+
+
+
+
+export const getReviewEmployeeBankAccountMutationKey = () => ['reviewEmployeeBankAccount'] as const;
+
+export const getReviewEmployeeBankAccountMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviewEmployeeBankAccount>>, TError,ReviewEmployeeBankAccountMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reviewEmployeeBankAccount>>, TError,ReviewEmployeeBankAccountMutationVariables, TContext> => {
+
+const mutationKey = getReviewEmployeeBankAccountMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reviewEmployeeBankAccount>>, ReviewEmployeeBankAccountMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  reviewEmployeeBankAccount(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReviewEmployeeBankAccountMutationResult = NonNullable<Awaited<ReturnType<typeof reviewEmployeeBankAccount>>>
+    export type ReviewEmployeeBankAccountMutationBody = EmployeeBankReviewInput
+    export type ReviewEmployeeBankAccountMutationError = unknown
+    export type ReviewEmployeeBankAccountMutationVariables = {id: string;data: EmployeeBankReviewInput}
+
+    export const useReviewEmployeeBankAccount = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviewEmployeeBankAccount>>, TError,ReviewEmployeeBankAccountMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reviewEmployeeBankAccount>>,
+        TError,
+        ReviewEmployeeBankAccountMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReviewEmployeeBankAccountMutationOptions(options), queryClient);
+    }
+
+export const getSaveEmployeeAdditionalUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/additional`
+}
+
+export const saveEmployeeAdditional = async (id: string,
+    employeeAdditionalInput: EmployeeAdditionalInput, options?: Parameters<typeof apiFetch>[1]): Promise<EmployeePaymentDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<EmployeePaymentDetail>(getSaveEmployeeAdditionalUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(employeeAdditionalInput)
+  }
+);}
+
+
+
+
+
+export const getSaveEmployeeAdditionalMutationKey = () => ['saveEmployeeAdditional'] as const;
+
+export const getSaveEmployeeAdditionalMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveEmployeeAdditional>>, TError,SaveEmployeeAdditionalMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveEmployeeAdditional>>, TError,SaveEmployeeAdditionalMutationVariables, TContext> => {
+
+const mutationKey = getSaveEmployeeAdditionalMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveEmployeeAdditional>>, SaveEmployeeAdditionalMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  saveEmployeeAdditional(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveEmployeeAdditionalMutationResult = NonNullable<Awaited<ReturnType<typeof saveEmployeeAdditional>>>
+    export type SaveEmployeeAdditionalMutationBody = EmployeeAdditionalInput
+    export type SaveEmployeeAdditionalMutationError = unknown
+    export type SaveEmployeeAdditionalMutationVariables = {id: string;data: EmployeeAdditionalInput}
+
+    export const useSaveEmployeeAdditional = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveEmployeeAdditional>>, TError,SaveEmployeeAdditionalMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof saveEmployeeAdditional>>,
+        TError,
+        SaveEmployeeAdditionalMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSaveEmployeeAdditionalMutationOptions(options), queryClient);
+    }
+
+export const getGetEmployeeDocumentsSensitiveUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/documents/sensitive`
+}
+
+export const getEmployeeDocumentsSensitive = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<EmployeeDocumentsDetail> => {
+
+  return apiFetch<EmployeeDocumentsDetail>(getGetEmployeeDocumentsSensitiveUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetEmployeeDocumentsSensitiveQueryKey = (id: string,) => {
+    return [
+    `/api/v1/hr/employees/${id}/documents/sensitive`
+    ] as const;
+    }
+
+
+export const getGetEmployeeDocumentsSensitiveQueryOptions = <TData = Awaited<ReturnType<typeof getEmployeeDocumentsSensitive>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeDocumentsSensitive>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEmployeeDocumentsSensitiveQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEmployeeDocumentsSensitive>>> = ({ signal }) => getEmployeeDocumentsSensitive(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEmployeeDocumentsSensitive>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetEmployeeDocumentsSensitiveQueryResult = NonNullable<Awaited<ReturnType<typeof getEmployeeDocumentsSensitive>>>
+export type GetEmployeeDocumentsSensitiveQueryError = unknown
+
+
+export function useGetEmployeeDocumentsSensitive<TData = Awaited<ReturnType<typeof getEmployeeDocumentsSensitive>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeDocumentsSensitive>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEmployeeDocumentsSensitive>>,
+          TError,
+          Awaited<ReturnType<typeof getEmployeeDocumentsSensitive>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEmployeeDocumentsSensitive<TData = Awaited<ReturnType<typeof getEmployeeDocumentsSensitive>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeDocumentsSensitive>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEmployeeDocumentsSensitive>>,
+          TError,
+          Awaited<ReturnType<typeof getEmployeeDocumentsSensitive>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEmployeeDocumentsSensitive<TData = Awaited<ReturnType<typeof getEmployeeDocumentsSensitive>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeDocumentsSensitive>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetEmployeeDocumentsSensitive<TData = Awaited<ReturnType<typeof getEmployeeDocumentsSensitive>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeDocumentsSensitive>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetEmployeeDocumentsSensitiveQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSaveEmployeeDocumentsUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/documents`
+}
+
+export const saveEmployeeDocuments = async (id: string,
+    employeeDocumentsInput: EmployeeDocumentsInput, options?: Parameters<typeof apiFetch>[1]): Promise<EmployeeDocumentsDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<EmployeeDocumentsDetail>(getSaveEmployeeDocumentsUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(employeeDocumentsInput)
+  }
+);}
+
+
+
+
+
+export const getSaveEmployeeDocumentsMutationKey = () => ['saveEmployeeDocuments'] as const;
+
+export const getSaveEmployeeDocumentsMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveEmployeeDocuments>>, TError,SaveEmployeeDocumentsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveEmployeeDocuments>>, TError,SaveEmployeeDocumentsMutationVariables, TContext> => {
+
+const mutationKey = getSaveEmployeeDocumentsMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveEmployeeDocuments>>, SaveEmployeeDocumentsMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  saveEmployeeDocuments(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveEmployeeDocumentsMutationResult = NonNullable<Awaited<ReturnType<typeof saveEmployeeDocuments>>>
+    export type SaveEmployeeDocumentsMutationBody = EmployeeDocumentsInput
+    export type SaveEmployeeDocumentsMutationError = unknown
+    export type SaveEmployeeDocumentsMutationVariables = {id: string;data: EmployeeDocumentsInput}
+
+    export const useSaveEmployeeDocuments = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveEmployeeDocuments>>, TError,SaveEmployeeDocumentsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof saveEmployeeDocuments>>,
+        TError,
+        SaveEmployeeDocumentsMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSaveEmployeeDocumentsMutationOptions(options), queryClient);
+    }
+
+export const getListEmployeeDocumentFilesUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/documents/files`
+}
+
+export const listEmployeeDocumentFiles = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<AttachmentDto[]> => {
+
+  return apiFetch<AttachmentDto[]>(getListEmployeeDocumentFilesUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListEmployeeDocumentFilesQueryKey = (id: string,) => {
+    return [
+    `/api/v1/hr/employees/${id}/documents/files`
+    ] as const;
+    }
+
+
+export const getListEmployeeDocumentFilesQueryOptions = <TData = Awaited<ReturnType<typeof listEmployeeDocumentFiles>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployeeDocumentFiles>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListEmployeeDocumentFilesQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listEmployeeDocumentFiles>>> = ({ signal }) => listEmployeeDocumentFiles(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listEmployeeDocumentFiles>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListEmployeeDocumentFilesQueryResult = NonNullable<Awaited<ReturnType<typeof listEmployeeDocumentFiles>>>
+export type ListEmployeeDocumentFilesQueryError = unknown
+
+
+export function useListEmployeeDocumentFiles<TData = Awaited<ReturnType<typeof listEmployeeDocumentFiles>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployeeDocumentFiles>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listEmployeeDocumentFiles>>,
+          TError,
+          Awaited<ReturnType<typeof listEmployeeDocumentFiles>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListEmployeeDocumentFiles<TData = Awaited<ReturnType<typeof listEmployeeDocumentFiles>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployeeDocumentFiles>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listEmployeeDocumentFiles>>,
+          TError,
+          Awaited<ReturnType<typeof listEmployeeDocumentFiles>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListEmployeeDocumentFiles<TData = Awaited<ReturnType<typeof listEmployeeDocumentFiles>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployeeDocumentFiles>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListEmployeeDocumentFiles<TData = Awaited<ReturnType<typeof listEmployeeDocumentFiles>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployeeDocumentFiles>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListEmployeeDocumentFilesQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getDownloadEmployeeDocumentFileUrl = (id: string,
+    attachmentId: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/documents/files/${attachmentId}/content`
+}
+
+export const downloadEmployeeDocumentFile = async (id: string,
+    attachmentId: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDownloadEmployeeDocumentFileUrl(id,attachmentId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadEmployeeDocumentFileQueryKey = (id: string,
+    attachmentId: string,) => {
+    return [
+    `/api/v1/hr/employees/${id}/documents/files/${attachmentId}/content`
+    ] as const;
+    }
+
+
+export const getDownloadEmployeeDocumentFileQueryOptions = <TData = Awaited<ReturnType<typeof downloadEmployeeDocumentFile>>, TError = unknown>(id: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadEmployeeDocumentFile>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadEmployeeDocumentFileQueryKey(id,attachmentId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadEmployeeDocumentFile>>> = ({ signal }) => downloadEmployeeDocumentFile(id,attachmentId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && attachmentId !== null && attachmentId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadEmployeeDocumentFile>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DownloadEmployeeDocumentFileQueryResult = NonNullable<Awaited<ReturnType<typeof downloadEmployeeDocumentFile>>>
+export type DownloadEmployeeDocumentFileQueryError = unknown
+
+
+export function useDownloadEmployeeDocumentFile<TData = Awaited<ReturnType<typeof downloadEmployeeDocumentFile>>, TError = unknown>(
+ id: string,
+    attachmentId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadEmployeeDocumentFile>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadEmployeeDocumentFile>>,
+          TError,
+          Awaited<ReturnType<typeof downloadEmployeeDocumentFile>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadEmployeeDocumentFile<TData = Awaited<ReturnType<typeof downloadEmployeeDocumentFile>>, TError = unknown>(
+ id: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadEmployeeDocumentFile>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadEmployeeDocumentFile>>,
+          TError,
+          Awaited<ReturnType<typeof downloadEmployeeDocumentFile>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadEmployeeDocumentFile<TData = Awaited<ReturnType<typeof downloadEmployeeDocumentFile>>, TError = unknown>(
+ id: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadEmployeeDocumentFile>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useDownloadEmployeeDocumentFile<TData = Awaited<ReturnType<typeof downloadEmployeeDocumentFile>>, TError = unknown>(
+ id: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadEmployeeDocumentFile>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDownloadEmployeeDocumentFileQueryOptions(id,attachmentId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getListQuotesUrl = (params?: ListQuotesParams,) => {
   const normalizedParams = new URLSearchParams();

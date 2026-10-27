@@ -465,7 +465,7 @@ Stories detalhadas da Fase 3, uma por arquivo, escritas pelo @sm (River) e valid
 
 
 | 18 (3.3) | CMP-03b | PDF e envio do pedido de compra ao fornecedor | P | Done | R-CMP-3, R-COM-1, R-COM-3 | CMP-03a, COM-03 | [CMP-03b](CMP-03b-pdf-envio-pedido.md) |
-| Fase 6 | CAD-04c2 | Funcionários: dependentes, banco/Pix, adicionais, vale-transporte e documentos | M | Ready | R-RH-1, PRD §6 LGPD | CAD-04c1 | [CAD-04c2](CAD-04c2-funcionarios-complemento.md) |
+| Fase 6 | CAD-04c2 | Funcionários: dependentes, banco/Pix, adicionais, vale-transporte e documentos | M | Done | R-RH-1, PRD §6 LGPD | CAD-04c1 | [CAD-04c2](CAD-04c2-funcionarios-complemento.md) |
 
 Total da Fase 3: 24 stories (P: 4 · M: 15 · G: 5), todas `Ready`; cinco com pré-condição externa explícita que não bloqueia (PRD-03b, EST-01a, CMP-03a, CMP-04, PRD-06a2). A CAD-04c2 (M, `Ready`) foi movida para a Fase 6.
 

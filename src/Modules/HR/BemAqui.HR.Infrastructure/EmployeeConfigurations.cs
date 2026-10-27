@@ -29,12 +29,42 @@ internal sealed class EmployeeConfiguration : IEntityTypeConfiguration<Employee>
         b.Property(e => e.State).HasMaxLength(2);
         b.Property(e => e.Phone).HasMaxLength(20);
         b.Property(e => e.Email).HasMaxLength(150);
+        b.Property(e => e.PreviousEmail).HasMaxLength(150);
+        // Conta para pagamento, adicionais e documentos extras (CAD-04c2).
+        b.Property(e => e.BankCode).HasMaxLength(3);
+        b.Property(e => e.BankAgency).HasMaxLength(10);
+        b.Property(e => e.BankAccount).HasMaxLength(20);
+        b.Property(e => e.BankAccountType).HasConversion<string>().HasMaxLength(20);
+        b.Property(e => e.BankHolderName).HasMaxLength(150);
+        b.Property(e => e.BankHolderCpf).HasMaxLength(11);
+        b.Property(e => e.PixKeyType).HasConversion<string>().HasMaxLength(20);
+        b.Property(e => e.PixKey).HasMaxLength(77);
+        b.Property(e => e.BankMismatchReason).HasMaxLength(200);
+        b.Property(e => e.BankReviewNote).HasMaxLength(200);
+        b.Property(e => e.CnhNumber).HasMaxLength(11);
+        b.Property(e => e.CnhCategory).HasMaxLength(5);
+        b.Property(e => e.MilitaryCertificate).HasMaxLength(20);
         b.HasOne<JobPosition>().WithMany().HasForeignKey(e => e.PositionId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne<WorkSchedule>().WithMany().HasForeignKey(e => e.WorkScheduleId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne<LaborUnion>().WithMany().HasForeignKey(e => e.UnionId).OnDelete(DeleteBehavior.Restrict);
         // CPF e matrícula únicos entre os não excluídos (CA 4 e 7).
         b.HasIndex(e => e.Cpf).IsUnique().HasFilter("NOT is_deleted").HasDatabaseName(EmployeeService.CpfIndex);
         b.HasIndex(e => e.Registration).IsUnique().HasFilter("NOT is_deleted AND registration IS NOT NULL").HasDatabaseName(EmployeeService.RegistrationIndex);
+    }
+}
+
+/// <summary>Dependentes (CAD-04c2): CPF único entre os não excluídos do mesmo funcionário (CA 2).</summary>
+internal sealed class EmployeeDependentConfiguration : IEntityTypeConfiguration<EmployeeDependent>
+{
+    public void Configure(EntityTypeBuilder<EmployeeDependent> b)
+    {
+        b.ToTable("employee_dependents", HrSchema.Name);
+        b.Property(e => e.Name).HasMaxLength(150);
+        b.Property(e => e.Cpf).HasMaxLength(11);
+        b.Property(e => e.Kinship).HasConversion<string>().HasMaxLength(20);
+        b.HasOne<Employee>().WithMany().HasForeignKey(e => e.EmployeeId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => e.EmployeeId).HasDatabaseName("ix_employee_dependents_employee");
+        b.HasIndex(e => new { e.EmployeeId, e.Cpf }).IsUnique().HasFilter("NOT is_deleted AND cpf IS NOT NULL").HasDatabaseName(EmployeeComplementService.DependentCpfIndex);
     }
 }
 

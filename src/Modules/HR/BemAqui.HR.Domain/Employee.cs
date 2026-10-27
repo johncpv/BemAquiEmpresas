@@ -135,6 +135,91 @@ public sealed class Employee : Entity, IAuditable, ISoftDeletable, IConcurrencyV
     [PersonalData]
     public string? Email { get; set; }
 
+    /// <summary>E-mail pessoal anterior (CAD-04c2 CA 6): o aviso de troca de conta vai também para ele nos 30 dias da troca do e-mail.</summary>
+    [PersonalData]
+    public string? PreviousEmail { get; set; }
+
+    /// <summary>Quando o e-mail pessoal mudou pela última vez (CAD-04c2 CA 6).</summary>
+    public DateTimeOffset? EmailChangedAt { get; set; }
+
+    // Conta para pagamento (CAD-04c2 CA 4 a 9, ADR 0036): banco, Pix e titular são sensíveis e só saem por /sensitive, mascarados.
+    [PersonalData]
+    public string? BankCode { get; set; }
+
+    [PersonalData]
+    public string? BankAgency { get; set; }
+
+    [PersonalData]
+    public string? BankAccount { get; set; }
+
+    [PersonalData]
+    public EmployeeBankAccountType? BankAccountType { get; set; }
+
+    [PersonalData]
+    public string? BankHolderName { get; set; }
+
+    [PersonalData]
+    public string? BankHolderCpf { get; set; }
+
+    [PersonalData]
+    public EmployeePixKeyType? PixKeyType { get; set; }
+
+    [PersonalData]
+    public string? PixKey { get; set; }
+
+    /// <summary>Motivo da segunda confirmação (CA 5), quando a chave Pix ou o titular não é o CPF do funcionário.</summary>
+    [PersonalData]
+    public string? BankMismatchReason { get; set; }
+
+    /// <summary>A conta gravada tem chave Pix ou titular diferente do CPF do funcionário (CA 5): o aviso fica visível na aba.</summary>
+    public bool BankOwnerMismatch { get; set; }
+
+    /// <summary>Quando a conta foi registrada ou trocada pela última vez, e por quem (CA 6 e 7).</summary>
+    public DateTimeOffset? BankChangedAt { get; set; }
+
+    public Guid? BankChangedBy { get; set; }
+
+    /// <summary>Fim da quarentena da conta trocada (CA 7): troca + 30 dias; nulo na primeira conta.</summary>
+    public DateTimeOffset? BankQuarantineUntil { get; set; }
+
+    /// <summary>Revisão expressa da troca (CA 8), por quem não a fez.</summary>
+    public DateTimeOffset? BankReviewedAt { get; set; }
+
+    public Guid? BankReviewedBy { get; set; }
+
+    /// <summary>Revisado por quem fez a troca, pela exceção do Proprietário único (marca "autorrevisado", CA 8).</summary>
+    public bool BankSelfReviewed { get; set; }
+
+    /// <summary>Como a revisão conferiu a conta (até 200).</summary>
+    [PersonalData]
+    public string? BankReviewNote { get; set; }
+
+    /// <summary>Sobe a cada registro ou troca da conta (0 = sem conta); a RH-02c confere a versão no pagamento.</summary>
+    public int BankAccountVersion { get; set; }
+
+    // Adicionais e vale-transporte (CA 10): o valor do vale e o desconto vêm da folha (RH-02a), não do cadastro.
+    [PersonalData]
+    public int? InsalubrityPct { get; set; }
+
+    [PersonalData]
+    public bool HazardPay { get; set; }
+
+    [PersonalData]
+    public bool UsesTransportVoucher { get; set; }
+
+    // Documentos extras (CA 11).
+    [PersonalData]
+    public string? CnhNumber { get; set; }
+
+    [PersonalData]
+    public string? CnhCategory { get; set; }
+
+    [PersonalData]
+    public DateOnly? CnhExpiry { get; set; }
+
+    [PersonalData]
+    public string? MilitaryCertificate { get; set; }
+
     public DateTimeOffset CreatedAt { get; init; }
 
     /// <summary><c>xmin</c> (ADR 0019 §2): o registro de afastamento confere a versão do funcionário (CAD-04c1).</summary>

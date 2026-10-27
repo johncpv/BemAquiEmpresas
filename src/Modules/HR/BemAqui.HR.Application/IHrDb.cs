@@ -17,6 +17,8 @@ public interface IHrDb
 
     DbSet<EmployeeHistoryEntry> EmployeeHistory { get; }
 
+    DbSet<EmployeeDependent> EmployeeDependents { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 
     EntityEntry<TEntity> Entry<TEntity>(TEntity entity)

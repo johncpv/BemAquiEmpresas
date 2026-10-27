@@ -42,7 +42,13 @@ public class PersonalDataTests
         ["JobPosition"] = ["Id", "Name", "Cbo", "DefaultWorkCenterId", "WorkScheduleId", "MonthlyHours", "HourlyCost", "HourlyCostManual", "IsActive", "CreatedAt", "IsDeleted", "DeletedAt"],
         ["WorkSchedule"] = ["Id", "Name", "Days", "WeeklyHours", "IsActive", "SeedKey", "CreatedAt", "IsDeleted", "DeletedAt"],
         ["LaborUnion"] = ["Id", "Name", "Document", "BaseMonth", "IsActive", "CreatedAt", "IsDeleted", "DeletedAt"],
-        ["Employee"] = ["Id", "Name", "Registration", "PositionId", "WorkScheduleId", "UnionId", "AdmissionDate", "TerminationDate", "Status", "CreatedAt", "Version", "IsDeleted", "DeletedAt"],
+        // CAD-04c2: banco, Pix, titular, motivo da divergência, adicionais, vale-transporte, CNH, reservista e o e-mail anterior são
+        // [PersonalData]; só as marcas da conta (troca, quarentena, revisão e versão, sem dado bancário, expostas no IEmployees) e a
+        // data da troca do e-mail ficam fora.
+        ["Employee"] = ["Id", "Name", "Registration", "PositionId", "WorkScheduleId", "UnionId", "AdmissionDate", "TerminationDate", "Status", "CreatedAt", "Version", "IsDeleted", "DeletedAt",
+            "EmailChangedAt", "BankOwnerMismatch", "BankChangedAt", "BankChangedBy", "BankQuarantineUntil", "BankReviewedAt", "BankReviewedBy", "BankSelfReviewed", "BankAccountVersion"],
+        // CAD-04c2: dependente (pode ser menor) é todo dado pessoal; só as chaves, a criação e as marcas técnicas ficam fora.
+        ["EmployeeDependent"] = ["Id", "EmployeeId", "CreatedAt", "Version", "IsDeleted", "DeletedAt"],
         // CAD-04c1: tipo, fim previsto e motivo do afastamento são [PersonalData] (LGPD art. 11); só as marcas de publicação ficam fora.
         // CAD-04c1b: o vínculo da mudança com o afastamento, o que mudou e a marca do cancelamento não são dado pessoal; o tipo
         // anterior é.
@@ -62,7 +68,9 @@ public class PersonalDataTests
         typeof(BemAqui.HR.Domain.EmployeeHistoryEntry).GetProperty("OldValue")!.GetCustomAttribute<PersonalDataAttribute>().Should().NotBeNull("o período antes da mudança do afastamento é sensível (CAD-04c1b)");
 
         var application = Solution.Assemblies.Single(a => a.GetName().Name == "BemAqui.HR.Application");
-        var sensitive = auditable.SelectMany(t => t.GetProperties().Where(p => p.GetCustomAttribute<PersonalDataAttribute>() is not null).Select(p => p.Name)).ToHashSet(StringComparer.Ordinal);
+        // O nome do dependente é dado pessoal, mas o nome do funcionário e do cargo não: a lista e o resumo são conferidos contra o
+        // funcionário e o cargo.
+        var sensitive = auditable.Where(t => t != typeof(BemAqui.HR.Domain.EmployeeDependent)).SelectMany(t => t.GetProperties().Where(p => p.GetCustomAttribute<PersonalDataAttribute>() is not null).Select(p => p.Name)).ToHashSet(StringComparer.Ordinal);
         foreach (var dto in new[] { "PositionDetail", "PositionSummary", "EmployeeDetail" })
         {
             var type = application.GetTypes().Single(t => t.Name == dto);
@@ -83,6 +91,33 @@ public class PersonalDataTests
 
         contracts.GetTypes().Single(t => t.Name == "EmployeeLeaveStarted").GetProperties().Select(p => p.Name).Should().BeEquivalentTo(["EmployeeId", "StartDate", "ExpectedEndDate"]);
         contracts.GetTypes().Single(t => t.Name == "EmployeeLeaveEnded").GetProperties().Select(p => p.Name).Should().BeEquivalentTo(["EmployeeId", "StartDate", "EndDate"]);
+    }
+
+    /// <summary>
+    /// CAD-04c2 CA 7 e 11 (ADR 0019 §7 adendo): a situação da conta no <c>IEmployees</c> não leva dado bancário; o dono de anexo
+    /// <c>EmployeeDocument</c> lê e grava com <c>hr.view_sensitive</c>, pdf, png e jpg até 10 MB, confere o dono e audita o download.
+    /// </summary>
+    [Fact]
+    public void Situacao_da_conta_sem_dado_bancario_e_dono_EmployeeDocument_com_as_regras_da_ADR()
+    {
+        var contracts = Solution.Assemblies.Single(a => a.GetName().Name == "BemAqui.HR.Contracts");
+        contracts.GetTypes().Single(t => t.Name == "EmployeeBankAccountStatus").GetProperties().Select(p => p.Name)
+            .Should().BeEquivalentTo(["EmployeeId", "IsFirstAccount", "ChangedAt", "QuarantineUntil", "InQuarantine", "ReviewedAt", "SelfReviewed", "Version"]);
+        var application = Solution.Assemblies.Single(a => a.GetName().Name == "BemAqui.HR.Application");
+        application.GetTypes().Single(t => t.Name == "EmployeeBankStatusView").GetProperties().Select(p => p.Name)
+            .Should().NotContain(["BankCode", "Agency", "Account", "HolderName", "HolderCpf", "PixKey"], "o chip do cabeçalho não lê dado bancário");
+
+        var services = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
+        BemAqui.HR.Infrastructure.HrInfrastructure.AddHrInfrastructure(services);
+        var rules = services.Select(d => d.ImplementationInstance).OfType<BemAqui.BuildingBlocks.Attachments.AttachmentOwnerRegistration>().Single(r => r.OwnerType == "EmployeeDocument").Rules;
+        rules.Module.Should().Be("hr");
+        rules.ReadAction.Should().Be("view_sensitive");
+        rules.WriteAction.Should().Be("view_sensitive");
+        rules.AlternateWriteAction.Should().BeNull();
+        rules.MaxSize.Should().Be(10 * 1024 * 1024);
+        rules.ContentTypes.Should().BeEquivalentTo(["application/pdf", "image/png", "image/jpeg"]);
+        rules.OwnerExists.Should().NotBeNull();
+        rules.AuditReads.Should().BeTrue("cada download de documento do funcionário é leitura sensível (CA 12)");
     }
 
     private sealed class Leaky : IAuditable

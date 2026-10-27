@@ -16,7 +16,8 @@ public sealed record AttachmentContent(Stream Content, string ContentType, strin
 /// tamanho máximo, o maior lado da imagem, a conferência de que o documento dono existe (CAD-06 CA 8, obrigatória nos donos
 /// inscritos, teste de arquitetura) e se o dono aceita anexo no estado atual (<c>CanAttach</c>, ADR 0019 §7). <c>AlternateWriteAction</c>
 /// é uma segunda ação do mesmo módulo que também grava (ex.: a NC aceita <c>production.edit</c> ou <c>production.approve_quality</c>,
-/// ADR 0019 §7 adendo).
+/// ADR 0019 §7 adendo). <c>AuditReads</c>: dono com dado pessoal (ex.: <c>EmployeeDocument</c>, CAD-04c2 CA 12), cujo download
+/// grava leitura sensível na auditoria, com o dono, o anexo, quem, quando e o IP.
 /// </summary>
 public sealed record AttachmentOwnerRules(
     string Module,
@@ -28,7 +29,8 @@ public sealed record AttachmentOwnerRules(
     string WriteAction = StandardActions.Edit,
     Func<IServiceProvider, Guid, CancellationToken, Task<Error?>>? CanAttach = null,
     Func<IServiceProvider, Guid, AttachmentFile, CancellationToken, Task<Error?>>? CheckFile = null,
-    string? AlternateWriteAction = null);
+    string? AlternateWriteAction = null,
+    bool AuditReads = false);
 
 /// <summary>Arquivo já aceito pela allowlist, para a regra do dono que depende do documento (ex.: tipo da OS, PRD-01 CA 12).</summary>
 public sealed record AttachmentFile(string ContentType, long Size);
@@ -183,7 +185,37 @@ public sealed partial class AttachmentService(
             return Error.Conflict("attachment.not_scanned", "O arquivo ainda está sendo verificado pelo antivírus. Tente de novo em alguns minutos.");
         }
 
+        if (await AuditReadAsync(rules, attachment, cancellationToken) is { } missing)
+        {
+            return missing;
+        }
+
         return new AttachmentContent(await storage.OpenReadAsync(attachment.StoragePath, cancellationToken), attachment.ContentType, attachment.FileName);
+    }
+
+    /// <summary>
+    /// Dono com <c>AuditReads</c> (CAD-04c2 CA 12): confere que o dono existe (senão, 404) e grava a leitura sensível antes de
+    /// entregar o arquivo.
+    /// </summary>
+    private async Task<Error?> AuditReadAsync(AttachmentOwnerRules? rules, Attachment attachment, CancellationToken ct)
+    {
+        if (rules is not { AuditReads: true })
+        {
+            return null;
+        }
+
+        if (rules.OwnerExists is { } exists && !await exists(services, attachment.OwnerId, ct))
+        {
+            return Error.NotFound(Error.Codes.NotFound, "Anexo não encontrado.");
+        }
+
+        if (services.GetService(typeof(Persistence.Auditing.IAuditWriter)) is not Persistence.Auditing.IAuditWriter audit)
+        {
+            throw new InvalidOperationException("Dono de anexo com AuditReads sem o IAuditWriter registrado.");
+        }
+
+        await audit.RecordAttachmentReadAsync(attachment.OwnerType, attachment.OwnerId, attachment.Id, ct);
+        return null;
     }
 
     public async Task<Result<IReadOnlyList<AttachmentDto>>> ListAsync(string ownerType, Guid ownerId, CancellationToken cancellationToken = default)
