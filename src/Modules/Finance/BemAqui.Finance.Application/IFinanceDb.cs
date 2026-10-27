@@ -56,6 +56,14 @@ public interface IFinanceDb
 
     DbSet<BankIntegration> BankIntegrations { get; }
 
+    DbSet<BankStatementBatch> BankStatementBatches { get; }
+
+    DbSet<BankStatementLine> BankStatementLines { get; }
+
+    DbSet<BankStatementBalance> BankStatementBalances { get; }
+
+    DbSet<BankOfxContingency> BankOfxContingencies { get; }
+
     /// <summary>Para trocar a conta padrão em dois passos numa transação (o índice único parcial é checado a cada comando).</summary>
     DatabaseFacade Database { get; }
 

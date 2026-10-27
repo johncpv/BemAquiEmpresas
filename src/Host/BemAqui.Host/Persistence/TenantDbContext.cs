@@ -125,6 +125,14 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BankIntegration> BankIntegrations => Set<BankIntegration>();
 
+    public DbSet<BankStatementBatch> BankStatementBatches => Set<BankStatementBatch>();
+
+    public DbSet<BankStatementLine> BankStatementLines => Set<BankStatementLine>();
+
+    public DbSet<BankStatementBalance> BankStatementBalances => Set<BankStatementBalance>();
+
+    public DbSet<BankOfxContingency> BankOfxContingencies => Set<BankOfxContingency>();
+
     public DbSet<BemAqui.Commercial.Domain.Quote> Quotes => Set<BemAqui.Commercial.Domain.Quote>();
 
     public DbSet<BemAqui.Commercial.Domain.QuoteItem> QuoteItems => Set<BemAqui.Commercial.Domain.QuoteItem>();

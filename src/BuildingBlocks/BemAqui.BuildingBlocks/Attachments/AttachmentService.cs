@@ -18,6 +18,7 @@ public sealed record AttachmentContent(Stream Content, string ContentType, strin
 /// é uma segunda ação do mesmo módulo que também grava (ex.: a NC aceita <c>production.edit</c> ou <c>production.approve_quality</c>,
 /// ADR 0019 §7 adendo). <c>AuditReads</c>: dono com dado pessoal (ex.: <c>EmployeeDocument</c>, CAD-04c2 CA 12), cujo download
 /// grava leitura sensível na auditoria, com o dono, o anexo, quem, quando e o IP.
+/// <c>ExtraTypes</c> são tipos fora da lista geral aceitos só por este dono (o OFX do <c>BankStatementBatch</c>, ADR 0009 adendo).
 /// </summary>
 public sealed record AttachmentOwnerRules(
     string Module,
@@ -30,7 +31,8 @@ public sealed record AttachmentOwnerRules(
     Func<IServiceProvider, Guid, CancellationToken, Task<Error?>>? CanAttach = null,
     Func<IServiceProvider, Guid, AttachmentFile, CancellationToken, Task<Error?>>? CheckFile = null,
     string? AlternateWriteAction = null,
-    bool AuditReads = false);
+    bool AuditReads = false,
+    IReadOnlyCollection<AllowedFileType>? ExtraTypes = null);
 
 /// <summary>Arquivo já aceito pela allowlist, para a regra do dono que depende do documento (ex.: tipo da OS, PRD-01 CA 12).</summary>
 public sealed record AttachmentFile(string ContentType, long Size);
@@ -116,7 +118,7 @@ public sealed partial class AttachmentService(
         }
 
         var head = buffer.GetBuffer().AsSpan(0, (int)Math.Min(HeadSize, buffer.Length));
-        var type = AttachmentPolicy.Match(fileName, head);
+        var type = AttachmentPolicy.Match(fileName, head, rules.ExtraTypes);
         if (type is null)
         {
             return Error.Validation("attachment.type_not_allowed", "Tipo de arquivo não permitido. Envie PDF, imagem (PNG, JPG, WEBP), XML, planilha, documento, CSV, desenho (DWG, DXF) ou ZIP.");
