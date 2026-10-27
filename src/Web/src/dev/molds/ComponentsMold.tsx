@@ -4,6 +4,7 @@ import { Field } from '@/components/form/form'
 import { CboInput, CepInput, DateInput, DocumentInput, MoneyInput, NcmInput, PercentInput, PhoneInput, QuantityInput, TimeInput } from '@/components/form/inputs'
 import { RowsEditor } from '@/components/form/rows-editor'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { ToConfirmChip } from '@/components/ui/to-confirm-chip'
 import { DialogMessage } from '@/components/ui/dialog-message'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Tag } from '@/components/ui/tag'
@@ -17,6 +18,9 @@ import { ACCOUNTS, ROLES } from './sample'
 interface Installment { days: string; percent: string | null }
 
 /** Componentes da FND-09d nos estados vazio, preenchido, erro e aviso (galeria de aprovação). */
+/** Prazo do exemplo da contagem (fixo na carga do módulo). */
+const DEMO_DEADLINE = new Date(Date.now() + 3 * 3_600_000 + 12 * 60_000)
+
 export default function ComponentsMold() {
   const [doc, setDoc] = useState('12ABC34501DE35')
   const [cep, setCep] = useState('13069000')
@@ -89,6 +93,21 @@ export default function ComponentsMold() {
             trigger={<button type="button" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Dar baixa</button>}>
             <Field label="Valor recebido" required>{(p) => <MoneyInput {...p} value={paid || null} onChange={(v) => setPaid(v ?? '')} />}</Field>
           </ConfirmDialog>
+        </section>
+
+        <section aria-labelledby="c-confirm-d18" className="space-y-3 rounded-md border border-border bg-card p-4">
+          <h2 id="c-confirm-d18" className="font-semibold">ConfirmDialog: impacto em lista, confirmação digitada e contagem de prazo (D18, BNK-01b)</h2>
+          <p className="text-sm text-muted-foreground">Lote: <code>impactList</code> (afetados, recusados com o motivo e o total). Dado apagado (LGPD): <code>typed</code>. Prazo legal (NF-e): <code>deadline</code>, atualiza a cada minuto e bloqueia ao zerar. O verbo do botão é o da ação.</p>
+          <div className="flex flex-wrap gap-2">
+            <ConfirmDialog size="lg" verb="Emitir 2 boletos" done="2 boletos solicitados" title="Emitir boletos" onConfirm={async () => undefined}
+              impactList={{ label: 'Vão receber boleto', items: [{ key: '1', primary: 'CR-2026-0001 · Kappa Ltda.', secondary: 'R$ 1.500,00 · vence 10/11/2026' }, { key: '2', primary: 'CR-2026-0002 · Lambda S.A.', secondary: 'R$ 800,00 · vence 12/11/2026' }], refused: [{ key: '3', primary: 'CR-2026-0003 · Mu ME', reason: 'O cliente está sem endereço de cobrança completo.' }], total: 'R$ 2.300,00' }}
+              trigger={<button type="button" className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Impacto em lista</button>} />
+            <ConfirmDialog destructive verb="Excluir dados" done="Dados excluídos" title="Excluir os dados pessoais?" typed={{ word: 'EXCLUIR' }} onConfirm={async () => undefined}
+              trigger={<button type="button" className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Confirmação digitada</button>} />
+            <ConfirmDialog destructive verb="Cancelar nota" done="Nota cancelada" title="Cancelar a nota fiscal?" deadline={{ until: DEMO_DEADLINE, purpose: 'para cancelar' }} onConfirm={async () => undefined}
+              trigger={<button type="button" className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Contagem de prazo</button>} />
+          </div>
+          <ToConfirmChip state="ToConfirm" canEdit onConfirm={async () => undefined} field="Multa" />
         </section>
 
         <section aria-labelledby="c-arvore" className="space-y-3">

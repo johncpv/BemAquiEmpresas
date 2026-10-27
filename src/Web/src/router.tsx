@@ -14,6 +14,7 @@ import { SecurityPage } from '@/pages/settings/SecurityPage'
 import { CompanyPage } from '@/pages/settings/company/CompanyPage'
 import { NumberingPage } from '@/pages/settings/numbering/NumberingPage'
 import { ParametersPage } from '@/pages/settings/parameters/ParametersPage'
+import { BillingSettingsPage } from '@/pages/settings/billing/BillingSettingsPage'
 import { AiSettingsPage } from '@/pages/settings/AiSettingsPage'
 import { ImportRunPage } from '@/pages/settings/import/ImportRunPage'
 import { IntegrationEventsPage } from '@/pages/settings/integrations/IntegrationEventsPage'
@@ -203,6 +204,8 @@ const integrationEventsRoute = createRoute({ getParentRoute: () => appRoute, pat
 // Banco Inter (BNK-01a): contas 077 e o detalhe da integração; ?acao=trocar abre direto em "Trocar credenciais" (alerta de vencimento).
 const interAccountsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/integracoes/inter', component: gated('settings', InterAccountsPage) })
 const interAccountRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/integracoes/inter/$contaId', component: gated('settings', InterAccountPage), validateSearch: (s: Record<string, unknown>): { acao?: string } => ({ acao: text(s.acao) }) })
+// Configurações → Cobrança (BNK-01b): multa, juros, desconto, envio do boleto e a regra do vencido.
+const billingSettingsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/cobranca', component: gated('settings', BillingSettingsPage) })
 const importRunsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/importacao', component: gated('settings', ImportRunsPage) })
 const importRunRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/importacao/$id', component: gated('settings', ImportRunPage) })
 // Cadastros (CAD-01a): /app/cadastros leva à primeira aba do módulo.
@@ -428,7 +431,7 @@ export const routeTree = rootRoute.addChildren([
   resetRoute,
   inviteRoute,
   appRoute.addChildren([appIndexRoute, dashboardRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute, projectResultsRoute, projectResultRoute,
-    aiSettingsRoute, importRunsRoute, importRunRoute, integrationsRoute, integrationEventsRoute, interAccountsRoute, interAccountRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute,
+    aiSettingsRoute, importRunsRoute, importRunRoute, integrationsRoute, integrationEventsRoute, interAccountsRoute, interAccountRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute, billingSettingsRoute,
     inventoryRootRoute, balancesRoute, movementsRoute, movementRoute, manualPostingsRoute, manualPostingRoute, shortagesRoute, requisitionsRoute, requisitionRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, bomsRoute, productionRootRoute, fabricationOrdersRoute, fabricationOrderRoute, kanbanRoute, openLaborRoute, operatorRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute, qualityRoute, qualityStepRoute, nonConformitiesRoute, nonConformityRoute, purchasingRootRoute, purchaseRequestsRoute, newPurchaseRequestRoute, purchaseRequestRoute, purchaseOrdersRoute, newPurchaseOrderRoute, purchaseOrderRoute, editPurchaseOrderRoute, shipmentsRoute, newShipmentRoute, shipmentRoute, traceabilityRoute, adjustmentsRoute, adjustmentRoute, goodsReceiptsRoute, goodsReceiptRoute, newGoodsReceiptRoute, rfqsRoute, newRfqRoute, rfqRoute, inventoryCountsRoute, inventoryCountRoute, capacityRoute, planningRoute, supervisorRoute,
     financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, payablesRoute, newPayableRoute, payableRoute, recurringRoute, approvalRulesRoute, openingRoute, cashFlowRoute, dreRoute, agingRoute, paymentOrdersRoute, newPaymentOrderRoute, paymentOrderRoute, statementRoute, quotesRoute, quoteFunnelRoute, quoteRoute, quoteCompareRoute, contractsRoute, contractRoute, amendmentRoute, projectsRoute, projectMarginsRoute, projectRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, kioskScreensRoute, kioskPreviewRoute, payrollRunsRoute, payrollRunRoute, payrollItemsRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
   platformLoginRoute,

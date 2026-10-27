@@ -15,13 +15,17 @@ import { UrlTabs } from '@/components/ui/url-tabs'
 import { formatDate } from '@/lib/format'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
+import { useCanSettings } from '@/pages/settings/use-can-settings'
+import { BillingSlipTab } from './BillingSlipTab'
+import { slipStatus } from './billing-slips'
+import { IssueBillingSlipDialog } from './IssueBillingSlipDialog'
 import { CancelDialog, DueDateDialog, WriteOffDialog } from './ReceivableDialogs'
 import { ReceivableDataForm } from './ReceivableDataForm'
 import { ReceivableSettlements } from './ReceivableSettlements'
 import { situation } from './receivables'
 import { SettleDialog } from './SettleDialog'
 
-type Dialog = 'settle' | 'writeoff' | 'due' | 'cancel' | null
+type Dialog = 'settle' | 'writeoff' | 'due' | 'cancel' | 'billing' | null
 const button = 'rounded-md border border-border px-3 py-2 text-sm font-semibold'
 
 /** Título a receber (FIN-01, molde "detalhe com abas"): resumo, ações com efeito financeiro e abas Dados, Baixas e Histórico. */
@@ -33,6 +37,7 @@ export function ReceivablePage() {
   const query = useGetReceivable(id)
   const canEdit = useCan('finance.edit')
   const canCreate = useCan('finance.create')
+  const canConfigure = useCanSettings('edit')
   const [, setTab] = useUrlTab('dados')
   const [dialog, setDialog] = useState<Dialog>(null)
   const [steps, setSteps] = useState<'created' | 'paid' | null>(search.novo === '1' ? 'created' : null)
@@ -47,6 +52,9 @@ export function ReceivablePage() {
   const s = situation(r)
   const open = r.status === 'Open' || r.status === 'PartiallyPaid'
   const reload = () => query.refetch()
+  const slip = r.billingSlipStatus ? slipStatus(r.billingSlipStatus) : null
+  const canIssue = canEdit && open && !r.billingSlipId
+  const issue = () => setDialog('billing')
   const done = (next: ReceivableDetail) => {
     client.setQueryData(getGetReceivableQueryKey(id), next)
     void client.invalidateQueries({ queryKey: getListReceivableSettlementsQueryKey(id) })
@@ -54,7 +62,7 @@ export function ReceivablePage() {
     if (next.status === 'Paid') setSteps('paid')
   }
   const shown = steps === 'created'
-    ? [...(canEdit && open ? [{ label: 'Dar baixa', onSelect: () => setDialog('settle') }] : []), ...(canCreate ? [{ label: 'Novo título para este cliente', onSelect: () => void navigate({ to: '/app/financeiro/receber/novo' }) }] : [])]
+    ? [...(canEdit && open ? [{ label: 'Dar baixa', onSelect: () => setDialog('settle') }] : []), ...(canIssue ? [{ label: 'Emitir boleto', onSelect: issue }] : []), ...(canCreate ? [{ label: 'Novo título para este cliente', onSelect: () => void navigate({ to: '/app/financeiro/receber/novo' }) }] : [])]
     : steps === 'paid' ? [{ label: 'Ver os títulos em aberto', onSelect: () => void navigate({ to: '/app/financeiro/receber', search: { situacao: 'aberto' } as never }) }] : []
   const facts: [string, React.ReactNode][] = [
     ['Valor', <Money key="v" value={r.amount} />], ['Recebido', <Money key="p" value={r.paidAmount} />], ['Saldo', <Money key="b" value={r.balance} />],
@@ -67,12 +75,14 @@ export function ReceivablePage() {
         <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-1.5">
             <StatusChip tone={s.tone}>{s.label}</StatusChip>
+            {slip ? <StatusChip tone={slip.tone}>{slip.label}</StatusChip> : null}
             {r.origin === 'Opening' ? <Tag>Implantação</Tag> : r.origin === 'Contract' ? <Tag>Contrato</Tag> : null}
             <span className="text-sm text-muted-foreground">{r.description}</span>
             <Link to="/app/financeiro/receber" className="ml-2 text-sm font-semibold text-primary">Voltar à lista</Link>
           </div>
           {canEdit ? (
             <div className="flex flex-wrap gap-2">
+              {canIssue ? <button type="button" onClick={issue} className={button}>Emitir boleto</button> : null}
               {open ? <button type="button" onClick={() => setDialog('settle')} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Dar baixa</button> : null}
               {open ? <button type="button" onClick={() => setDialog('writeoff')} className={button}>Quitar o saldo com desconto</button> : null}
               {r.status === 'Open' ? <button type="button" onClick={() => setDialog('due')} className={button}>Alterar vencimento</button> : null}
@@ -93,8 +103,11 @@ export function ReceivablePage() {
       <UrlTabs label="Seções do título" fallback="dados" tabs={[
         { id: 'dados', label: 'Dados', keepMounted: true, content: <ReceivableDataForm key={r.version} receivable={r} canEdit={canEdit && r.status !== 'Cancelled'} onSaved={done} /> },
         { id: 'baixas', label: 'Baixas', content: <ReceivableSettlements receivable={r} onDone={done} onReload={reload} /> },
+        { id: 'boleto', label: 'Boleto', content: <BillingSlipTab receivable={r} canEdit={canEdit} canConfigure={canConfigure} onIssue={issue} onChanged={() => void reload()} onNavigate={(to) => void navigate({ to } as never)} /> },
         { id: 'historico', label: 'Histórico de alterações', content: <RecordHistory entity="Receivable" id={r.id} /> },
       ]} />
+      {dialog === 'billing' ? <IssueBillingSlipDialog receivableId={r.id} open onOpenChange={(o) => !o && setDialog(null)} onNavigate={(to) => void navigate({ to } as never)} onShowSlip={() => setTab('boleto')}
+        onIssued={() => { setDialog(null); void reload(); setTab('boleto') }} /> : null}
       {dialog === 'settle' ? <SettleDialog receivable={r} open onOpenChange={(o) => !o && setDialog(null)} onDone={done} onReload={reload} /> : null}
       {dialog === 'writeoff' ? <WriteOffDialog receivable={r} open onOpenChange={(o) => !o && setDialog(null)} onDone={done} onReload={reload} /> : null}
       {dialog === 'due' ? <DueDateDialog receivable={r} open onOpenChange={(o) => !o && setDialog(null)} onDone={done} onReload={reload} /> : null}

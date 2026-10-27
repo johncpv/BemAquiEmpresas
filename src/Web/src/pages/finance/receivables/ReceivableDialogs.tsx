@@ -8,6 +8,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { DialogMessage } from '@/components/ui/dialog-message'
 import { Money } from '@/components/ui/money'
 import { useCan } from '@/pages/use-can'
+import { BILLING_SLIP_OPEN } from './billing-slips'
 import { today } from './receivables'
 
 interface Base { receivable: ReceivableDetail; open: boolean; onOpenChange: (o: boolean) => void; onDone: (r: ReceivableDetail) => void; onReload: () => Promise<unknown> }
@@ -31,7 +32,9 @@ export function WriteOffDialog({ receivable, open, onOpenChange, onDone, onReloa
       description="O saldo vira desconto e o título fica pago. Nada entra na conta." onReload={onReload}
       preconditions={[{ ok: !over || canApprove, text: 'O desconto passa do limite: só quem aprova em Caixa e pagamentos pode confirmar.' }]}
       impact={<dl className="grid grid-cols-2 gap-1"><dt>Desconto</dt><dd className="text-right"><Money value={receivable.balance} /></dd><dt>Entra na conta</dt><dd className="text-right"><Money value={0} /></dd></dl>}
-      onConfirm={async () => onDone(await writeOffReceivable(receivable.id, { date: today(), backdateReason: null, version: receivable.version }))} />
+      onConfirm={async () => onDone(await writeOffReceivable(receivable.id, { date: today(), backdateReason: null, version: receivable.version }))}
+      recovery={{ verb: 'Cancelar o boleto e quitar', done: 'Saldo quitado', when: (code) => code === BILLING_SLIP_OPEN,
+        onSelect: async () => onDone(await writeOffReceivable(receivable.id, { date: today(), backdateReason: null, version: receivable.version, cancelBillingSlip: true })) }} />
   )
 }
 

@@ -5,12 +5,60 @@ import { ApiError } from '@/api/http'
 import { cn } from '@/lib/utils'
 import { DialogMessage } from './dialog-message'
 import { notifySuccess } from './messages'
+import { remainingText } from './remaining-text'
 
 /** Pré-condição de uma ação (FND-09e CA 5): o que falta aparece antes de confirmar, com o caminho para corrigir. */
 export interface Precondition {
   ok: boolean
   text: string
-  fix?: { label: string; onSelect: () => void }
+  /** `keepOpen`: a correção acontece no próprio diálogo (ex.: "Usar os valores padrão"). */
+  fix?: { label: string; onSelect: () => void; keepOpen?: boolean }
+}
+
+/** Item do impacto em lista (D18, padrão 7): o que a ação afeta, com o detalhe numa segunda linha. */
+export interface ImpactItem {
+  key: string
+  primary: ReactNode
+  secondary?: ReactNode
+}
+
+/** Item recusado do lote, com o motivo. */
+export interface RefusedItem {
+  key: string
+  primary: ReactNode
+  reason: string
+}
+
+/** Impacto em lista (ações em lote): afetados, recusados com o motivo e o total. */
+export interface ImpactList {
+  items: ImpactItem[]
+  refused?: RefusedItem[]
+  total?: ReactNode
+  /** Rótulo dos afetados (ex.: "Vão receber boleto"). */
+  label?: string
+}
+
+/** Confirmação digitada (LGPD-01b): o botão só habilita depois de digitar exatamente `word`. */
+export interface TypedConfirmation {
+  word: string
+  label?: string
+}
+
+/** Contagem de prazo (FIS-03b): "Restam 3 h 12 min para cancelar", atualizada a cada minuto; zerado, bloqueia. */
+export interface Deadline {
+  until: Date | string
+  /** Fim da frase (ex.: "para cancelar"). */
+  purpose: string
+}
+
+function useNow(active: boolean) {
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    if (!active) return
+    const timer = window.setInterval(() => setNow(Date.now()), 60_000)
+    return () => window.clearInterval(timer)
+  }, [active])
+  return now
 }
 
 interface ConfirmDialogProps {
@@ -48,6 +96,12 @@ interface ConfirmDialogProps {
   onReload?: () => Promise<unknown>
   /** Quem aprova ou paga sem o 2FA configurado (regra da FND-06c CA 12): estado único, sem confirmar (CA 7). */
   twoFactorRequired?: boolean
+  /** Impacto em lista (D18): itens afetados e recusados com o motivo, e o total. */
+  impactList?: ImpactList
+  /** Confirmação digitada (D18): a palavra ou o número a digitar. */
+  typed?: TypedConfirmation
+  /** Contagem de prazo (D18): bloqueia ao zerar. */
+  deadline?: Deadline
 }
 
 const TWO_FACTOR_SETUP = '/app/conta/seguranca'
@@ -61,7 +115,7 @@ const contentClass = (size: 'md' | 'lg', centered: boolean) => cn(
 
 /** Confirmação com o mesmo verbo da ação (FND-09c CA 11); erro do servidor fica no diálogo, com o motivo e o foco. */
 export function ConfirmDialog(props: ConfirmDialogProps) {
-  const { verb, done, title, description, destructive, onConfirm, trigger, recovery, children, onOpen, open: controlled, onOpenChange, size = 'md', impact, preconditions = [], onFieldErrors, onReload, twoFactorRequired } = props
+  const { verb, done, title, description, destructive, onConfirm, trigger, recovery, children, onOpen, open: controlled, onOpenChange, size = 'md', impact, preconditions = [], onFieldErrors, onReload, twoFactorRequired, impactList, typed, deadline } = props
   const [own, setOwn] = useState(false)
   const open = controlled ?? own
   const setOpen = (o: boolean) => { setOwn(o); onOpenChange?.(o) }
@@ -69,8 +123,14 @@ export function ConfirmDialog(props: ConfirmDialogProps) {
   const [error, setError] = useState<{ message: string; code?: string } | null>(null)
   const alertRef = useRef<HTMLDivElement>(null)
   const pendingId = useId()
+  const [typedValue, setTypedValue] = useState('')
+  const typedId = useId()
+  const now = useNow(open && !!deadline)
+  const remaining = deadline ? new Date(deadline.until).getTime() - now : Infinity
+  const expired = remaining <= 0
   const pending = preconditions.filter((p) => !p.ok)
-  const blocked = pending.length > 0 || !!twoFactorRequired
+  const typedMissing = !!typed && typedValue.trim() !== typed.word
+  const blocked = pending.length > 0 || !!twoFactorRequired || typedMissing || expired
 
   useEffect(() => {
     if (error) alertRef.current?.focus()
@@ -112,7 +172,7 @@ export function ConfirmDialog(props: ConfirmDialogProps) {
 
   const button = 'rounded-md border border-border bg-card px-3 py-1.5 font-semibold text-foreground'
   return (
-    <Dialog.Root open={open} onOpenChange={(o) => { setOpen(o); setError(null); if (o) onOpen?.() }}>
+    <Dialog.Root open={open} onOpenChange={(o) => { setOpen(o); setError(null); setTypedValue(''); if (o) onOpen?.() }}>
       {trigger ? <Dialog.Trigger asChild>{trigger}</Dialog.Trigger> : null}
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-foreground/30" />
@@ -130,7 +190,19 @@ export function ConfirmDialog(props: ConfirmDialogProps) {
               </div>
             ) : null}
             {children ? <div className="mt-4 space-y-3">{children}</div> : null}
+            {deadline ? (
+              <p role="timer" aria-live="polite" className={cn('mt-4 rounded-md border px-3 py-2 text-sm font-semibold tabular-nums', expired ? 'border-crit-soft bg-crit-soft text-crit-ink' : 'border-warn-soft bg-warn-soft text-warn-ink')}>
+                {expired ? `O prazo ${deadline.purpose} terminou.` : `Restam ${remainingText(remaining)} ${deadline.purpose}`}
+              </p>
+            ) : null}
+            {impactList ? <ImpactListView list={impactList} /> : null}
             {impact ? <div role="group" aria-label="Impacto" className="mt-4 rounded-md border border-border bg-muted px-3 py-2 text-sm tabular-nums">{impact}</div> : null}
+            {typed ? (
+              <div className="mt-4 space-y-1 text-sm">
+                <label htmlFor={typedId} className="font-semibold">{typed.label ?? `Para confirmar, digite ${typed.word}`}</label>
+                <input id={typedId} value={typedValue} onChange={(e) => setTypedValue(e.target.value)} autoComplete="off" spellCheck={false} className="min-h-11 w-full rounded-md border border-input bg-background px-3 py-2" />
+              </div>
+            ) : null}
             {pending.length > 0 ? (
               <div id={pendingId} className="mt-4 space-y-1 text-sm">
                 <p className="font-semibold">Antes de {verb.toLowerCase()}:</p>
@@ -138,7 +210,7 @@ export function ConfirmDialog(props: ConfirmDialogProps) {
                   {pending.map((p) => (
                     <li key={p.text}>
                       {p.text}
-                      {p.fix ? <> <button type="button" onClick={() => { setOpen(false); p.fix?.onSelect() }} className="font-semibold text-primary underline">{p.fix.label}</button></> : null}
+                      {p.fix ? <> <button type="button" onClick={() => { if (!p.fix?.keepOpen) setOpen(false); p.fix?.onSelect() }} className="font-semibold text-primary underline">{p.fix.label}</button></> : null}
                     </li>
                   ))}
                 </ul>
@@ -166,5 +238,39 @@ export function ConfirmDialog(props: ConfirmDialogProps) {
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
+  )
+}
+
+/** Impacto em lista (D18, padrão 7): afetados, recusados com o motivo e o total, numa lista legível por leitor de tela. */
+function ImpactListView({ list }: { list: ImpactList }) {
+  const refused = list.refused ?? []
+  return (
+    <div className="mt-4 space-y-3 text-sm">
+      <section aria-label={list.label ?? 'Itens afetados'} className="rounded-md border border-border bg-muted">
+        <p className="border-b border-border px-3 py-2 font-semibold">{list.label ?? 'Itens afetados'} ({list.items.length})</p>
+        <ul className="max-h-64 divide-y divide-border overflow-y-auto">
+          {list.items.map((item) => (
+            <li key={item.key} className="px-3 py-2 tabular-nums">
+              <span className="block font-medium">{item.primary}</span>
+              {item.secondary ? <span className="block text-muted-foreground">{item.secondary}</span> : null}
+            </li>
+          ))}
+        </ul>
+        {list.total ? <p className="border-t border-border px-3 py-2 font-semibold tabular-nums">Total: {list.total}</p> : null}
+      </section>
+      {refused.length > 0 ? (
+        <section aria-label="Recusados" className="rounded-md border border-warn-soft bg-warn-soft text-warn-ink">
+          <p className="border-b border-warn-soft px-3 py-2 font-semibold">Ficam de fora ({refused.length})</p>
+          <ul className="max-h-48 divide-y divide-warn-soft overflow-y-auto">
+            {refused.map((item) => (
+              <li key={item.key} className="px-3 py-2">
+                <span className="block font-medium">{item.primary}</span>
+                <span className="block">{item.reason}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+    </div>
   )
 }
