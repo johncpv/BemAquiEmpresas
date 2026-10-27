@@ -10,6 +10,8 @@ const TABS = [
   { to: '/app/configuracoes/importacao', label: 'Importação do Dolibarr' },
   // FND-16: só com a visualização do módulo dono de algum provedor (finance.view ou fiscal.view); sem ela, a aba some (CA 16).
   { to: '/app/configuracoes/integracoes', label: 'Integrações', slug: 'integracoes' },
+  // BNK-01b: com finance.view ou settings.view; módulo Financeiro não liberado mostra a tela padrão.
+  { to: '/app/configuracoes/cobranca', label: 'Cobrança', slug: 'cobranca' },
 ] as const
 
 /** Abas de Configurações: cada aba é uma rota própria (FND-09b CA 8). */

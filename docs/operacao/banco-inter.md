@@ -115,3 +115,59 @@ Tudo foi provado contra o fake do Inter e contra arquivos OFX gerados nos testes
 7. **OFX de outros bancos:** importe um OFX real de cada banco usado pela Konebras e confira `BANKID`/`ACCTID` (com ou sem dígito e agência),
    o encoding (acentos) e o `FITID`.
 8. **Log:** procure no log do `demo` uma descrição ou um nome de contraparte importado: não pode aparecer.
+
+# Boleto com Pix (BNK-01b)
+
+## O que a BNK-01b entregou
+- **Configurações → Cobrança** (`/app/configuracoes/cobranca`, `finance.parameters`): multa 2,00%, juros de mora 1,00% a.m., desconto
+  padrão 0,00%, "Enviar o boleto por e-mail ao emitir" ligado, limite diário de 200 e-mails (somando orçamentos, pedidos e boletos) e a
+  regra do vencido (multa e juros do vencimento original). Multa, juros e a regra do vencido nascem **"A confirmar com a contadora"**
+  (ADR 0042); "Marcar como conferido" grava quem e quando. Seed nos tenants existentes sem sobrescrever.
+- **Emissão** (`POST /api/v1/finance/receivables/{id}/billing-slips`, `Idempotency-Key`): grava `finance.billing_slips` em `Requested`
+  com o "seu número" da sequência da conta (`finance.billing_reference_sequences`, base 36, 6 caracteres no mínimo) e enfileira o
+  `IssueBillingSlipJob` (fila `default`, só `tenantId` e o id do boleto). O job cria a cobrança, consulta até ter linha digitável e Pix
+  (3 consultas por rodada, nova rodada a cada 30 s, falha depois de 20 rodadas), baixa o PDF (até 2 MB, dono de anexo `BillingSlip`) e
+  passa a `Issued`. O título nunca muda (valor, situação, vencimento).
+- **Falha** (`Failed`): motivo traduzido sem dado do pagador e notificação a quem pediu. "Tentar de novo" reusa o "seu número" e, se a
+  tentativa anterior chegou ao banco, **procura pelo "seu número" antes de criar** outra cobrança.
+- **Cancelamento** manual (motivo da lista) e automático (título cancelado, valor ou vencimento alterado, baixa manual): o
+  `CancelBillingSlipJob` consulta e cancela no Inter; só depois o boleto fica `Cancelled` e o título fica sem boleto.
+- **E-mail** `billing-slip-issued` pela fila com o PDF (só depois do `Clean`); acima do limite diário, o envio fica para o dia seguinte às
+  08:00 (`SendBillingSlipEmailJob`).
+- `provider_payload` guarda só ids, situação, datas e valores do retorno do Inter (nunca o pagador) e nunca sai pela API.
+
+## Caminhos usados (API de Cobrança v3, relativos à URL base fixa)
+| Operação | Método e caminho |
+|---|---|
+| Emitir | `POST cobranca/v3/cobrancas` → `codigoSolicitacao` |
+| Consultar | `GET cobranca/v3/cobrancas/{codigoSolicitacao}` (`cobranca`, `boleto`, `pix`) |
+| Procurar pelo "seu número" | `GET cobranca/v3/cobrancas?dataInicial=…&dataFinal=…&filtrarDataPor=EMISSAO&seuNumero=…` |
+| PDF | `GET cobranca/v3/cobrancas/{codigoSolicitacao}/pdf` (`pdf` em base64) |
+| Cancelar | `POST cobranca/v3/cobrancas/{codigoSolicitacao}/cancelar` (`motivoCancelamento`) |
+
+Situações traduzidas: `A_RECEBER`/`ATRASADO`/`PROTESTO` → emitido; `RECEBIDO`/`MARCADO_RECEBIDO` → pago (baixa na BNK-02); `CANCELADO`;
+`EXPIRADO`; `FALHA_EMISSAO` → falha; qualquer outra (ex.: `EM_PROCESSAMENTO`) → aguardando.
+
+## Pré-condição externa: conferir no sandbox (tenant `demo`, P-08)
+Tudo foi provado contra o fake (`tests/.../Finance/FakeInterBilling.cs`). Com a credencial de sandbox, no `demo`, confira e registre na
+story (Change Log):
+1. **Fluxo completo:** emitir um boleto de um título de teste, ver a linha digitável, o Pix copia-e-cola e o QR Code, baixar o PDF,
+   enviar ao cliente (e-mail de teste) e cancelar. Confira no Internet Banking que a cobrança aparece e some ao cancelar.
+2. **Limite do "seu número":** confirme o tamanho máximo aceito (o código usa até 15, `BillingReference.MaxLength`) e se letras
+   maiúsculas são aceitas; se não forem, troque a base (mudança de código).
+3. **Campos da emissão:** nomes de `multa` (`PERCENTUAL`, `taxa`), `mora` (`TAXAMENSAL`, `taxa`), `desconto` (`VALORFIXODATAINFORMADA`,
+   `valor`, `quantidadeDias`), `mensagem` (`linha1`…`linha3`, até 78 caracteres) e os limites de tamanho do pagador.
+4. **Multa e juros do vencido:** confirme se o Inter conta multa e juros a partir do vencimento do boleto (o título mantém o vencimento
+   original e a BNK-02 divide o valor pago a partir de `billing_slips.fine_from`). Registre o comportamento.
+5. **Dia não útil:** emita com vencimento num sábado e veja a regra do banco (pagamento no dia útil seguinte sem multa?).
+6. **Prazo de baixa (`numDiasAgenda`):** confirme o padrão do Inter e o máximo; o código manda `Inter:BillingExpiryDays` (60). Depois do
+   prazo, a reconsulta vê `EXPIRADO` (CA 18).
+7. **Emissão assíncrona:** quanto tempo até a consulta trazer a linha digitável (ajuste `Inter:BillingRescheduleDelay` e
+   `Inter:BillingMaxPolls` se precisar).
+8. **Recusas:** envie um CEP inválido e um "seu número" repetido e confira o formato do erro (`violacoes[].propriedade`): o mapa das
+   mensagens está em `InterBillingProvider.Refusal`.
+9. **Motivos do cancelamento:** confirme os valores aceitos em `motivoCancelamento` (`APEDIDODOCLIENTE`, `PAGODIRETOAOCLIENTE`,
+   `ACERTOS`, `SUBSTITUICAO`) ou se o campo é texto livre.
+10. **Procura pelo "seu número":** confirme o filtro `seuNumero` na listagem e o intervalo de datas aceito.
+11. **Log sem pagador:** procure o nome e o CPF/CNPJ do cliente de teste no log da API: não podem aparecer (o log traz só operação,
+    situação HTTP e correlação).

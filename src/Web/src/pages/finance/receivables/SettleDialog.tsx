@@ -8,6 +8,7 @@ import { DateInput, MoneyInput } from '@/components/form/inputs'
 import { ConfirmDialog, type Precondition } from '@/components/ui/confirm-dialog'
 import { Money } from '@/components/ui/money'
 import { useCan } from '@/pages/use-can'
+import { BILLING_SLIP_OPEN } from './billing-slips'
 import { RECEIVABLE_DICAS, toNumber, today } from './receivables'
 
 interface Props { receivable: ReceivableDetail; open: boolean; onOpenChange: (o: boolean) => void; onDone: (r: ReceivableDetail) => void; onReload: () => Promise<unknown> }
@@ -35,6 +36,14 @@ export function SettleDialog({ receivable, open, onOpenChange, onDone, onReload 
   const overLimit = !!limits.data && toNumber(discount) > 0 && (pct > limits.data.discountApprovalPct || toNumber(discount) > limits.data.discountApprovalAmount)
   const backdated = !!limits.data && !!date && date < new Date(Date.parse(today() + 'T00:00:00Z') - limits.data.backdateDays * 86_400_000).toISOString().slice(0, 10)
   const preconditions: Precondition[] = [{ ok: !overLimit || canApprove, text: 'Desconto acima do limite: só quem aprova em Caixa e pagamentos pode confirmar.' }]
+  // BNK-01b CA 17: título com boleto aberto: o servidor pergunta (409 billing_slip_open) e a recuperação cancela o boleto e dá a baixa.
+  const settle = async (cancelBillingSlip: boolean) => {
+    setFields({})
+    onDone(await settleReceivable(receivable.id, {
+      bankAccountId: bank || fallback, date, principal: toNumber(principal), interest: toNumber(interest), fine: toNumber(fine), discount: toNumber(discount),
+      backdateReason: reason.trim() || null, version: receivable.version, cancelBillingSlip,
+    }))
+  }
 
   return (
     <ConfirmDialog size="lg" open={open} onOpenChange={(o) => { if (o) reset(); onOpenChange(o) }} verb="Dar baixa" done="Baixa registrada" title={`Dar baixa no título ${receivable.number}`} description={`${receivable.partyName} · ${receivable.description}`}
@@ -47,13 +56,8 @@ export function SettleDialog({ receivable, open, onOpenChange, onDone, onReload 
           <dt className="font-semibold">Entra na conta</dt><dd className="text-right font-semibold"><Money value={Math.max(0, total)} /></dd>
         </dl>
       )}
-      onConfirm={async () => {
-        setFields({})
-        onDone(await settleReceivable(receivable.id, {
-          bankAccountId: bank || fallback, date, principal: toNumber(principal), interest: toNumber(interest), fine: toNumber(fine), discount: toNumber(discount),
-          backdateReason: reason.trim() || null, version: receivable.version,
-        }))
-      }}>
+      onConfirm={() => settle(false)}
+      recovery={{ verb: 'Cancelar o boleto e dar baixa', done: 'Baixa registrada', when: (code) => code === BILLING_SLIP_OPEN, onSelect: () => settle(true) }}>
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="Conta" required error={fields.bankAccountId}>
           {(p) => (

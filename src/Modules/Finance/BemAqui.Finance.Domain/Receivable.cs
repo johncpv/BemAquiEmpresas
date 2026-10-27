@@ -71,6 +71,9 @@ public sealed class Receivable : Entity, IAuditable, IConcurrencyVersioned
 
     public Guid? CreatedBy { get; init; }
 
+    /// <summary>Boleto em andamento do título (BNK-01b): pedido, emitido ou com falha à espera de nova tentativa; nulo sem boleto.</summary>
+    public Guid? BillingSlipId { get; set; }
+
     public uint Version { get; set; }
 
     public decimal Balance => Amount - PaidAmount;

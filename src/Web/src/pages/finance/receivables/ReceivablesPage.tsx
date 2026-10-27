@@ -1,4 +1,6 @@
 import { Link } from '@tanstack/react-router'
+import { Receipt } from 'lucide-react'
+import { useState } from 'react'
 import type { ColumnDef } from '@tanstack/react-table'
 import { useListReceivables } from '@/api/generated/bemaqui'
 import type { ReceivableDetail } from '@/api/generated/model'
@@ -12,6 +14,9 @@ import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
 import { FinanceTabs } from '../FinanceTabs'
 import { Dica } from '@/help/Dica'
+import { useCan } from '@/pages/use-can'
+import { BatchBillingDialog } from './BatchBillingDialog'
+import { slipStatus } from './billing-slips'
 import { DeadLetterBanner } from './DeadLetterBanner'
 import { awaits, RECEIVABLE_DICAS, situation, SITUATION_OPTIONS, today } from './receivables'
 
@@ -37,13 +42,20 @@ function period(value: string | undefined): { dueFrom?: string; dueTo?: string }
 /** Financeiro → A receber (FIN-01): o que os clientes devem, por vencimento; "Vencido" calculado; totais do filtro no rodapé. */
 export function ReceivablesPage() {
   const [search] = useTableSearch()
-  const { situacao, vencimento, cliente, contrato } = useTableFilters(['situacao', 'vencimento', 'cliente', 'contrato'])
-  const query = useListReceivables({ q: search.q, situation: situacao || undefined, partyId: cliente || undefined, contractId: contrato || undefined, ...period(vencimento), page: search.page, pageSize: search.pageSize, sort: search.sort })
+  const { situacao, vencimento, cliente, contrato, boleto } = useTableFilters(['situacao', 'vencimento', 'cliente', 'contrato', 'boleto'])
+  const query = useListReceivables({ q: search.q, situation: situacao || undefined, partyId: cliente || undefined, contractId: contrato || undefined, withBillingSlip: boleto === 'com' ? true : undefined, ...period(vencimento), page: search.page, pageSize: search.pageSize, sort: search.sort })
   const table = { ...query, data: query.data?.page }
   const totals = query.data?.totals
+  const canEdit = useCan('finance.edit')
+  const [selected, setSelected] = useState<string[]>([])
+  const [batch, setBatch] = useState(false)
+  const tooMany = selected.length > 50
 
   const columns: ColumnDef<ReceivableDetail>[] = [
-    { id: 'number', header: 'Número', meta: { sortField: 'number' }, cell: ({ row: { original: r } }) => <span className="font-mono">{r.number}</span> },
+    { id: 'number', header: 'Número', meta: { sortField: 'number' }, cell: ({ row: { original: r } }) => {
+      const slip = r.billingSlipStatus ? slipStatus(r.billingSlipStatus) : null
+      return <span className="inline-flex items-center gap-1.5 font-mono">{r.number}{slip ? <Receipt role="img" aria-label={slip.label} className="size-4 text-muted-foreground" /> : null}</span>
+    } },
     { id: 'party', header: 'Cliente', cell: ({ row: { original: r } }) => r.partyName },
     { id: 'description', header: 'Descrição', meta: { secondary: true }, cell: ({ row: { original: r } }) => <span className="inline-flex items-center gap-1.5">{r.description}{r.origin === 'Opening' ? <Tag>Implantação</Tag> : null}</span> },
     { id: 'due', header: 'Vencimento', meta: { sortField: 'dueDate' }, cell: ({ row: { original: r } }) => <span className="tabular-nums">{r.dueDate ? formatDate(r.dueDate) : '—'}</span> },
@@ -83,15 +95,23 @@ export function ReceivablesPage() {
           <Link to={'/app/financeiro/receber' as never} search={((prev: Record<string, unknown>) => ({ ...prev, cliente: undefined })) as never} className="font-semibold text-primary hover:underline">Ver todos os clientes</Link>
         </p>
       ) : null}
+      {canEdit && selected.length > 0 ? (
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <button type="button" disabled={tooMany} onClick={() => setBatch(true)} className="min-h-11 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60">Emitir boletos</button>
+          {tooMany ? <span role="status" className="text-sm text-warn-ink">Selecione até 50 títulos por vez.</span> : null}
+        </div>
+      ) : null}
+      {batch ? <BatchBillingDialog ids={selected} open onOpenChange={(o) => !o && setBatch(false)} onDone={() => { setBatch(false); setSelected([]); void query.refetch() }} /> : null}
       <DataTable
         label="Títulos a receber"
         columns={columns}
         query={table}
         getRowId={(r) => r.id}
         rowHref={(r) => `/app/financeiro/receber/${r.id}`}
+        selectable={canEdit ? { selected, onChange: setSelected, rowLabel: (r) => `título ${r.number}` } : undefined}
         rowClassName={(r) => (r.isOverdue ? 'border-l-4 border-l-crit' : undefined)}
         searchPlaceholder="Buscar pelo número ou descrição"
-        filters={[{ key: 'situacao', label: 'Situação', options: SITUATION_OPTIONS }, { key: 'vencimento', label: 'Vencimento', options: PERIODS }]}
+        filters={[{ key: 'situacao', label: 'Situação', options: SITUATION_OPTIONS }, { key: 'vencimento', label: 'Vencimento', options: PERIODS }, { key: 'boleto', label: 'Boleto', options: [{ value: 'com', label: 'Com boleto' }] }]}
         totals={totals ? { balance: <span className="block">Em aberto <Money value={totals.open} /><br /><span className="text-crit-ink">Vencido <Money value={totals.overdue} /></span></span> } : undefined}
         empty={{
           title: 'Lance o primeiro título a receber ou aprove um orçamento para gerar as parcelas do contrato.',

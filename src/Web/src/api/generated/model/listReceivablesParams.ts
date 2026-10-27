@@ -12,6 +12,7 @@ partyId?: string;
 dueFrom?: string;
 dueTo?: string;
 contractId?: string;
+withBillingSlip?: boolean;
 page?: number;
 pageSize?: number;
 sort?: string;

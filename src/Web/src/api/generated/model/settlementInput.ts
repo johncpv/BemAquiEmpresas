@@ -15,4 +15,5 @@ export interface SettlementInput {
   /** @nullable */
   backdateReason: string | null;
   version: number;
+  cancelBillingSlip?: boolean;
 }

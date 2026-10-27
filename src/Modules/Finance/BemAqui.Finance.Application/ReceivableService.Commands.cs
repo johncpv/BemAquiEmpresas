@@ -105,6 +105,12 @@ public sealed partial class ReceivableService
         }
 
         Expect(receivable, input.Version);
+        if (input.Amount != receivable.Amount)
+        {
+            // BNK-01b CA 17: o boleto com o valor antigo é cancelado no Inter.
+            await billing.RequestCancelAsync(receivable, BillingSlipCancelReason.AmountChanged, cancellationToken);
+        }
+
         receivable.Description = input.Description.Trim();
         receivable.AccountId = input.AccountId;
         receivable.CostCenterId = input.CostCenterId;
@@ -146,6 +152,11 @@ public sealed partial class ReceivableService
 
         Expect(receivable, input.Version);
         var old = receivable.DueDate;
+        if (old != input.DueDate)
+        {
+            await billing.RequestCancelAsync(receivable, BillingSlipCancelReason.DueDateChanged, cancellationToken);
+        }
+
         receivable.DueDate = input.DueDate;
         await NotifyOwnersAsync($"Vencimento de {receivable.Number} alterado de {old:dd/MM/yyyy} para {input.DueDate:dd/MM/yyyy} por {await WhoAsync(cancellationToken)}: {input.Reason.Trim()}", receivable.Id, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
@@ -207,6 +218,7 @@ public sealed partial class ReceivableService
         receivable.CancelReason = originCancelled ? "Origem cancelada: " + reason : reason;
         receivable.CancelledAt = clock.GetUtcNow();
         receivable.CancelledBy = currentUser.UserId;
+        await billing.RequestCancelAsync(receivable, BillingSlipCancelReason.ReceivableCancelled, cancellationToken);
         await NotifyOwnersAsync($"Título {receivable.Number} de {Money(balance)} cancelado por {await WhoAsync(cancellationToken)}: {reason}", receivable.Id, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         return (await DetailsAsync([receivable], cancellationToken))[0];

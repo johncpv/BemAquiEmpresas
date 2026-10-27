@@ -34,6 +34,7 @@ internal sealed class ReceivableConfiguration : IEntityTypeConfiguration<Receiva
         b.HasIndex(e => e.OriginId).IsUnique().HasFilter("origin = 'Contract'").HasDatabaseName(ReceivableService.ContractMilestoneIndex);
         b.HasIndex(e => e.ContractId);
         b.HasIndex(e => e.ProjectId);
+        b.HasIndex(e => e.BillingSlipId).HasFilter("billing_slip_id IS NOT NULL");
 
         // DRE por competência (FIN-08 CA 17): agregação por conta e data de emissão.
         b.HasIndex(e => new { e.IssueDate, e.AccountId }).IncludeProperties(e => e.Amount).HasDatabaseName("ix_receivables_issue_date");

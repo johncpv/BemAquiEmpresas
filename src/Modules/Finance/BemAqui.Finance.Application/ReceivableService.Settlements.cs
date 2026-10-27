@@ -72,6 +72,11 @@ public sealed partial class ReceivableService
             return overLimit;
         }
 
+        if (await billing.SettlementGuardAsync(receivable, input.CancelBillingSlip, cancellationToken) is { } slipOpen)
+        {
+            return slipOpen;
+        }
+
         Expect(receivable, input.Version);
         var settlement = new ReceivableSettlement
         {
@@ -117,6 +122,11 @@ public sealed partial class ReceivableService
         if (await DiscountErrorAsync(balance, balance, cancellationToken) is { } overLimit)
         {
             return overLimit;
+        }
+
+        if (await billing.SettlementGuardAsync(receivable, input.CancelBillingSlip, cancellationToken) is { } slipOpen)
+        {
+            return slipOpen;
         }
 
         Expect(receivable, input.Version);

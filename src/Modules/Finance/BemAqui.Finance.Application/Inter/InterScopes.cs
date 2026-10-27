@@ -29,6 +29,24 @@ public sealed class InterOptions
 
     /// <summary>Espera antes de descartar o handler antigo, para as chamadas em curso terminarem (ADR 0032 §2).</summary>
     public TimeSpan HandlerDisposeDelay { get; set; } = TimeSpan.FromMinutes(1);
+
+    /// <summary>Consultas seguidas da emissão dentro do mesmo job (BNK-01b, a emissão no Inter é assíncrona).</summary>
+    public int BillingPollsPerRun { get; set; } = 3;
+
+    /// <summary>Espera entre as consultas do mesmo job.</summary>
+    public TimeSpan BillingPollDelay { get; set; } = TimeSpan.FromSeconds(2);
+
+    /// <summary>Sem confirmação no job, nova consulta depois deste tempo (padrão 6: "Demorando").</summary>
+    public TimeSpan BillingRescheduleDelay { get; set; } = TimeSpan.FromSeconds(30);
+
+    /// <summary>Rodadas de consulta até a emissão virar falha ("O Inter não confirmou a emissão"): 20 × 30 s ≈ 10 min.</summary>
+    public int BillingMaxPolls { get; set; } = 20;
+
+    /// <summary>
+    /// Dias depois do vencimento para o Inter baixar o boleto não pago (<c>numDiasAgenda</c>, 0 a 60): o padrão do Inter, conferido no
+    /// sandbox (runbook). Depois disso, a reconsulta vê "Expirado" (CA 18).
+    /// </summary>
+    public int BillingExpiryDays { get; set; } = 60;
 }
 
 /// <summary>Avaliação dos escopos concedidos (CA 7 e 8).</summary>
