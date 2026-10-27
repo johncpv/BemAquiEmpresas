@@ -1,5 +1,6 @@
 using BemAqui.BuildingBlocks.Authorization;
 using BemAqui.BuildingBlocks.Tenancy;
+using BemAqui.BuildingBlocks.Time;
 using BemAqui.BuildingBlocks.Web;
 using BemAqui.Commercial.Domain;
 using BemAqui.Engineering.Contracts;
@@ -16,7 +17,7 @@ namespace BemAqui.Commercial.Application;
 /// orçamento) e a resposta tem só datas e dias (CA 9).
 /// </summary>
 public sealed class QuoteScheduleSimulationService(
-    ICommercialDb db, IProductionSchedule schedule, IRoutingTemplates routings, IPermissionChecker permissions, TenantContextHolder tenant)
+    ICommercialDb db, IProductionSchedule schedule, IRoutingTemplates routings, IPermissionChecker permissions, TenantContextHolder tenant, TimeProvider clock)
 {
     /// <summary>
     /// CA 11: o grupo da rota exige o módulo <c>quotes</c>; a simulação usa o motor do Production, então o módulo <c>production</c> precisa
@@ -80,7 +81,7 @@ public sealed class QuoteScheduleSimulationService(
         if (orders.Count == 0)
         {
             // CA 7: sem horas por centro, o motor nem é chamado.
-            return new QuoteScheduleSimulationView(false, 0, 0, true, default, null, null, null, null, false, quote.DeliveryDays, null, null, 0, null);
+            return new QuoteScheduleSimulationView(false, 0, 0, true, BusinessTime.Today(clock), null, null, null, null, false, quote.DeliveryDays, null, null, 0, null);
         }
 
         var hasInstallation = await costs.Where(c => c.CostType == CostType.Installation).SumAsync(c => (decimal?)c.Total, cancellationToken) > 0m;

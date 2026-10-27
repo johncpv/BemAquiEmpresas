@@ -5,7 +5,7 @@
 | ID | PLN-05 |
 | Título | "Se eu aceitar este orçamento agora, quando entrego?": a partir das horas por centro de trabalho estimadas no orçamento, o motor de agendamento simula um projeto virtual na fila (no fim ou numa posição escolhida) e mostra a data de fim da fabricação, a entrega prevista com a instalação e o efeito nos outros projetos, sem gravar nada e devolvendo só datas a quem tem `quotes.view`; o prazo calculado pode ser usado no orçamento em rascunho |
 | Tamanho | M |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-PLN-5 (simulação a partir das horas estimadas do orçamento, **D**) · R-COML-1 (horas por centro de trabalho no orçamento) · R-PRP-1 · R-PRP-2 |
 | Dependências | PLN-01a (`IProductionSchedule.SimulateAsync`), PLN-01b (prazo de instalação), PLN-02 (posição na fila), COM-01a (composição de custo com horas por centro), PRD-01 (`routing_template_id` no item do orçamento e regra de quais itens geram OS), ENG-01 (ordem das etapas do roteiro) |
 | Bloqueia | — (última da Fase 4; a Fase 5 não depende dela) |
@@ -78,19 +78,19 @@ Decisões da revisão aplicadas: §4.1 (item 6 da Fase 3 fechado; D14 da Fase 3 
 **Pré-condição externa:** nenhuma.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers), desempenho e E2E passando.
-- [ ] Nenhuma migration.
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Diálogo com estados e 400 px.
-- [ ] Ajuda do orçamento atualizada; teste de cobertura passando.
-- [ ] "Usar este prazo" sem gravar sozinho.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] Story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers), desempenho e E2E passando.
+- [x] Nenhuma migration.
+- [x] Permissões só do `ModuleCatalog`.
+- [x] Diálogo com estados e 400 px.
+- [x] Ajuda do orçamento atualizada; teste de cobertura passando.
+- [x] "Usar este prazo" sem gravar sozinho.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] Story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `QuoteScheduleSimulation` no Commercial (projeto virtual) e endpoint `/api/v1/quotes/{id}/schedule-simulation` com a política `planning-simulate`.
-- [ ] Diálogo no orçamento; ajuda.
+- [x] `QuoteScheduleSimulation` no Commercial (projeto virtual) e endpoint `/api/v1/quotes/{id}/schedule-simulation` com a política `planning-simulate`.
+- [x] Diálogo no orçamento; ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, @qa.
