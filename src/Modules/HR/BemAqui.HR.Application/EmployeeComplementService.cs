@@ -34,7 +34,7 @@ public sealed partial class EmployeeComplementService(
     public const string DependentCpfTakenCode = "dependent_cpf_taken";
 
     /// <summary>Dependentes (CA 1 e 3), só com <c>hr.view_sensitive</c> (na rota); a leitura vai para a auditoria.</summary>
-    public async Task<Result<IReadOnlyList<DependentDetail>>> DependentsAsync(Guid employeeId, CancellationToken cancellationToken = default)
+    public async Task<Result<IReadOnlyList<EmployeeDependentDetail>>> DependentsAsync(Guid employeeId, CancellationToken cancellationToken = default)
     {
         if (!await db.Employees.AnyAsync(e => e.Id == employeeId, cancellationToken))
         {
@@ -46,7 +46,7 @@ public sealed partial class EmployeeComplementService(
         return list.Select(ToDetail).ToList();
     }
 
-    public async Task<Result<DependentDetail>> AddDependentAsync(Guid employeeId, DependentInput input, CancellationToken cancellationToken = default)
+    public async Task<Result<EmployeeDependentDetail>> AddDependentAsync(Guid employeeId, EmployeeDependentInput input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         if (!await CanSensitiveAsync(cancellationToken))
@@ -70,7 +70,7 @@ public sealed partial class EmployeeComplementService(
     }
 
     /// <summary>Editar (CA 1 a 3): o dependente precisa ser do funcionário da rota; de outro, 404 (IDOR).</summary>
-    public async Task<Result<DependentDetail>> UpdateDependentAsync(Guid employeeId, Guid dependentId, DependentInput input, CancellationToken cancellationToken = default)
+    public async Task<Result<EmployeeDependentDetail>> UpdateDependentAsync(Guid employeeId, Guid dependentId, EmployeeDependentInput input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         if (!await CanSensitiveAsync(cancellationToken))
@@ -116,7 +116,7 @@ public sealed partial class EmployeeComplementService(
         return Result.Success();
     }
 
-    private async Task<Error?> ApplyDependentAsync(EmployeeDependent dependent, DependentInput input, CancellationToken ct)
+    private async Task<Error?> ApplyDependentAsync(EmployeeDependent dependent, EmployeeDependentInput input, CancellationToken ct)
     {
         var name = (input.Name ?? string.Empty).Trim();
         if (name.Length is 0 or > DependentRules.NameMaxLength)
@@ -156,7 +156,7 @@ public sealed partial class EmployeeComplementService(
         return null;
     }
 
-    private async Task<Result<DependentDetail>> SaveDependentAsync(EmployeeDependent dependent, CancellationToken ct)
+    private async Task<Result<EmployeeDependentDetail>> SaveDependentAsync(EmployeeDependent dependent, CancellationToken ct)
     {
         try
         {
@@ -170,7 +170,7 @@ public sealed partial class EmployeeComplementService(
         return ToDetail(dependent);
     }
 
-    private static DependentDetail ToDetail(EmployeeDependent d) =>
+    private static EmployeeDependentDetail ToDetail(EmployeeDependent d) =>
         new(d.Id, d.Name, d.BirthDate, d.Kinship, d.IrDependent, d.FamilyAllowance, d.Cpf is null ? null : EmployeeBankRules.MaskCpf(d.Cpf), d.Version);
 
     private ValueTask<bool> CanSensitiveAsync(CancellationToken ct) => permissions.HasPermissionAsync("hr", PositionService.SensitiveAction, ct);

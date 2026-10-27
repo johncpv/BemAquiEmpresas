@@ -22,3 +22,5 @@ Ver e alterar os dados gerais do funcionário: nome, matrícula, admissão, jorn
 **Vincular o usuário muda as permissões dele?** Não. O vínculo só diz que aquele login é deste funcionário. Grupos e permissões continuam em Sistema → Usuários.
 
 **Por que não consigo excluir?** Funcionário com linha do tempo, apontamento ou usuário vinculado não é excluído. Registre o desligamento.
+
+**O que é o chip "Conta em quarentena" no topo?** A conta para pagamento foi trocada há menos de 30 dias e ainda não foi revisada. Veja a aba Pagamento e adicionais.

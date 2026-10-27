@@ -5,7 +5,7 @@
 | ID | CAD-04c2 |
 | Título | Complemento do cadastro do funcionário para a folha: dependentes (IR e salário-família), conta de salário (banco e Pix) com troca protegida (2FA de novo, segunda confirmação, aviso ao funcionário e ao Proprietário, quarentena de 30 dias e revisão expressa), adicionais, vale-transporte ("usa / não usa") e documentos extras |
 | Tamanho | M (quebra da CAD-04c, D9) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-RH-1 (dependentes, dados bancários/Pix, vale-transporte, adicionais, documentos) · PRD §6 LGPD · R-SEC-5 · R-SEC-10 |
 | Dependências | CAD-04c1 |
 | Bloqueia | RH-02a, RH-02c (conta de salário e quarentena), LGPD-01a |
@@ -100,23 +100,23 @@ Decisões da revisão aplicadas: §4.3 (anexo autorizado pelo registro e storage
 **Pré-condição externa:** nenhuma.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração, arquitetura e E2E passando.
-- [ ] Migration criada (não destrutiva).
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Abas com estados; ajuda escrita; teste de cobertura passando.
-- [ ] Padrões comuns dos cadastros aplicados.
-- [ ] Auditoria ligada, com `[PersonalData]`, `SensitiveRead` e `AuditReads` no dono `EmployeeDocument`.
-- [ ] 2FA de novo no salvar e na revisão da conta (ADR 0008 adendo).
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado (titular, `bank_changed_at`, quarentena e revisão, `bank_account_version`, `uses_transport_voucher`, regra da LGPD-01a/01b); story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração, arquitetura e E2E passando.
+- [x] Migration criada (não destrutiva).
+- [x] Permissões só do `ModuleCatalog`.
+- [x] Abas com estados; ajuda escrita; teste de cobertura passando.
+- [x] Padrões comuns dos cadastros aplicados.
+- [x] Auditoria ligada, com `[PersonalData]`, `SensitiveRead` e `AuditReads` no dono `EmployeeDocument`.
+- [x] 2FA de novo no salvar e na revisão da conta (ADR 0008 adendo).
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` atualizado (titular, `bank_changed_at`, quarentena e revisão, `bank_account_version`, `uses_transport_voucher`, regra da LGPD-01a/01b); story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `EmployeeDependent`, dados bancários/Pix com titular, quarentena e revisão, adicionais e documentos.
-- [ ] Comandos separados e rotas `/sensitive`; aviso e segunda confirmação de CPF; 2FA de novo; notificação e e-mail da troca de conta.
-- [ ] `BankAccountStatus` no `IEmployees`.
-- [ ] Dono `EmployeeDocument` no `AttachmentOwnerRegistry`, com `AuditReads`.
-- [ ] Abas e ajuda.
+- [x] `EmployeeDependent`, dados bancários/Pix com titular, quarentena e revisão, adicionais e documentos.
+- [x] Comandos separados e rotas `/sensitive`; aviso e segunda confirmação de CPF; 2FA de novo; notificação e e-mail da troca de conta.
+- [x] `BankAccountStatus` no `IEmployees`.
+- [x] Dono `EmployeeDocument` no `AttachmentOwnerRegistry`, com `AuditReads`.
+- [x] Abas e ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, cybersecurity (conta bancária, quarentena, documentos, LGPD), @qa.
@@ -155,3 +155,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.6 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
 | 21/10/2026 | 0.7 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D6, D14, ADR 0036, §4.3, §4.4 padrão 8): conta de salário com 2FA de novo, segunda confirmação, aviso ao funcionário, quarentena de 30 dias e revisão expressa; nova ordem (Marco 6.2, ordem 1); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.8 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 26/10/2026 | 1.0 | Implementada (@dev). Backend: `EmployeeDependent` (`hr.employee_dependents`), conta para pagamento, adicionais, vale-transporte, CNH e reservista no `hr.employees` (migration `EmployeeComplement`, só `AddColumn`, tabela e índices), `EmployeeComplementService` com rotas `/dependents/sensitive`, `/payment/sensitive`, `/bank-account/sensitive`, `/bank-account/status` e `/documents/sensitive` e os comandos próprios, `BankAccountStatus` no `IEmployees`, dono de anexo `EmployeeDocument` e `AttachmentOwnerRules.AuditReads` no BuildingBlocks, template `bank-account-changed`. Front: abas Dependentes, Pagamento e adicionais e Documentos, chip de quarentena no cabeçalho, ajudas e dicas. Desvios: (1) CPF enviado em dependente sem IR responde 422 com o erro no campo (o padrão de validação do projeto), não 400; (2) o 2FA de novo é o código no corpo do comando, conferido pelo `IStepUpTwoFactor` (o mesmo da FND-16, sem reuso do código), com 403 `mfa_step_up_required`; a janela de 5 min (`security.step_up_minutes`) fica para o `RequireRecentTwoFactor` da BNK-01a; (3) os 30 dias da quarentena são constante (`EmployeeBankRules.QuarantineDays`, decisão do PO D14); o parâmetro `hr.bank_account_quarantine_days` da ADR 0036 entra com a tabela `hr.parameters` da RH-02a; (4) revisa quem tem `hr.approve` + `hr.view_sensitive`, como diz a story (a ADR 0036 fala em `finance.approve`); o Proprietário único é o membro do Proprietário sem outro usuário ativo com as duas ações; (5) aviso e quarentena só na troca: a primeira conta não notifica, não manda e-mail e não entra em quarentena; (6) a divergência compara o titular e a chave Pix do tipo CPF (e-mail, celular e aleatória não são comparáveis com o CPF); (7) a conta aceita banco completo, só a chave Pix ou os dois; o titular é sempre obrigatório; (8) para o e-mail anterior, o funcionário ganhou `previous_email` e `email_changed_at`, gravados na troca do e-mail pessoal; (9) leituras sensíveis por entidade: `EmployeeDependent`, `Employee.Payment`, `Employee.BankAccount` ("Mostrar" e o diálogo de troca, que precisa do CPF do funcionário), `Employee.Documents` e `EmployeeDocument` (cada download, com o id do anexo); o `IAuditWriter` passou a gravar o IP em toda leitura sensível; (10) o chip do cabeçalho lê `/bank-account/status` (`hr.view_sensitive`, sem dado bancário e sem `SensitiveRead`); (11) excluir dependente (soft delete) entrou, com `hr.edit` + `hr.view_sensitive`; (12) nenhuma regra desta story depende da contadora: IR e salário-família são só marcas, e a idade, os documentos e o valor ficam na folha ("a confirmar com a contadora" na ajuda); insalubridade e periculosidade juntas não são bloqueadas no cadastro (a folha aplica a regra); (13) os DTOs e enums do HR levam o prefixo `Employee` (`EmployeeBankAccountInput`, `EmployeePixKeyType`, `EmployeeBankAccountStatus` etc.), porque `BankAccountInput` e `PixKeyType` já existem no Finance e o OpenAPI usa o nome curto do tipo. Verificações: `*EmployeesTests*`, `*EmployeeBankRulesTests`, `*PersonalDataTests`, `*HrTests*`, `*EndpointAuthorizationTests`, `*OpenApiDocumentTests` 62/62; `*AttachmentsTests`, `*DocumentDispatchEmailTests`, `*HelpFilesTests` 40/40; vitest 390/390; lint, tsc e build ok; E2E (complemento, funcionários, RH e ajuda, desktop e 400 px) 28/28. | @dev |

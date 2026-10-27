@@ -64,7 +64,7 @@ public interface IEmployees
     /// Situação da conta para pagamento (CAD-04c2 CA 7, ADR 0036), sem nenhum dado bancário: para a folha (RH-02c) tirar a conta em
     /// quarentena do pagamento automático e mostrar "Conta alterada" ou "Novo na folha" no fechamento. Só os funcionários com conta.
     /// </summary>
-    Task<IReadOnlyList<BankAccountStatus>> BankAccountStatusAsync(IReadOnlyCollection<Guid> employeeIds, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<EmployeeBankAccountStatus>> BankAccountStatusAsync(IReadOnlyCollection<Guid> employeeIds, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -72,7 +72,7 @@ public interface IEmployees
 /// "Novo na folha"); <c>ChangedAt</c> é a data do registro ou da troca; <c>QuarantineUntil</c> é o fim da quarentena da troca;
 /// <c>InQuarantine</c> é hoje, sem revisão; <c>Version</c> sobe a cada troca (a RH-02c confere no pagamento).
 /// </summary>
-public sealed record BankAccountStatus(
+public sealed record EmployeeBankAccountStatus(
     Guid EmployeeId,
     bool IsFirstAccount,
     DateTimeOffset ChangedAt,

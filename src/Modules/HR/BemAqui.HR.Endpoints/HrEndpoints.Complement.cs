@@ -17,13 +17,13 @@ internal static partial class HrEndpoints
     private static void MapEmployeeComplement(RouteGroupBuilder employees)
     {
         employees.MapGet("/{id:guid}/dependents/sensitive", async (Guid id, EmployeeComplementService service, CancellationToken ct) => (await service.DependentsAsync(id, ct)).ToHttpResult())
-            .RequirePermission("hr.view_sensitive").WithName("ListEmployeeDependentsSensitive").Produces<IReadOnlyList<DependentDetail>>();
-        employees.MapPost("/{id:guid}/dependents", async (Guid id, DependentInput input, EmployeeComplementService service, CancellationToken ct) =>
+            .RequirePermission("hr.view_sensitive").WithName("ListEmployeeDependentsSensitive").Produces<IReadOnlyList<EmployeeDependentDetail>>();
+        employees.MapPost("/{id:guid}/dependents", async (Guid id, EmployeeDependentInput input, EmployeeComplementService service, CancellationToken ct) =>
                 (await service.AddDependentAsync(id, input, ct)).ToHttpResult(saved => Results.Created($"/api/v1/hr/employees/{id}/dependents/{saved.Id}", saved)))
-            .RequirePermission("hr.edit").WithName("AddEmployeeDependent").Produces<DependentDetail>(StatusCodes.Status201Created);
-        employees.MapPut("/{id:guid}/dependents/{dependentId:guid}", async (Guid id, Guid dependentId, DependentInput input, EmployeeComplementService service, CancellationToken ct) =>
+            .RequirePermission("hr.edit").WithName("AddEmployeeDependent").Produces<EmployeeDependentDetail>(StatusCodes.Status201Created);
+        employees.MapPut("/{id:guid}/dependents/{dependentId:guid}", async (Guid id, Guid dependentId, EmployeeDependentInput input, EmployeeComplementService service, CancellationToken ct) =>
                 (await service.UpdateDependentAsync(id, dependentId, input, ct)).ToHttpResult())
-            .RequirePermission("hr.edit").WithName("UpdateEmployeeDependent").Produces<DependentDetail>();
+            .RequirePermission("hr.edit").WithName("UpdateEmployeeDependent").Produces<EmployeeDependentDetail>();
         employees.MapDelete("/{id:guid}/dependents/{dependentId:guid}", async (Guid id, Guid dependentId, EmployeeComplementService service, CancellationToken ct) =>
                 (await service.DeleteDependentAsync(id, dependentId, ct)).ToHttpResult())
             .RequirePermission("hr.edit").WithName("DeleteEmployeeDependent");
@@ -31,14 +31,14 @@ internal static partial class HrEndpoints
         employees.MapGet("/{id:guid}/payment/sensitive", async (Guid id, EmployeeComplementService service, CancellationToken ct) => (await service.PaymentAsync(id, ct)).ToHttpResult())
             .RequirePermission("hr.view_sensitive").WithName("GetEmployeePaymentSensitive").Produces<EmployeePaymentDetail>();
         employees.MapGet("/{id:guid}/bank-account/status", async (Guid id, EmployeeComplementService service, CancellationToken ct) => (await service.BankStatusAsync(id, ct)).ToHttpResult())
-            .RequirePermission("hr.view_sensitive").WithName("GetEmployeeBankStatus").Produces<BankAccountStatusView>();
+            .RequirePermission("hr.view_sensitive").WithName("GetEmployeeBankStatus").Produces<EmployeeBankStatusView>();
         employees.MapGet("/{id:guid}/bank-account/sensitive", async (Guid id, EmployeeComplementService service, CancellationToken ct) => (await service.RevealBankAsync(id, ct)).ToHttpResult())
-            .RequirePermission("hr.view_sensitive").WithName("RevealEmployeeBankAccount").Produces<BankAccountRevealed>();
-        employees.MapPut("/{id:guid}/bank-account", async (Guid id, BankAccountInput input, EmployeeComplementService service, CancellationToken ct) => (await service.SaveBankAsync(id, input, ct)).ToHttpResult())
+            .RequirePermission("hr.view_sensitive").WithName("RevealEmployeeBankAccount").Produces<EmployeeBankAccountRevealed>();
+        employees.MapPut("/{id:guid}/bank-account", async (Guid id, EmployeeBankAccountInput input, EmployeeComplementService service, CancellationToken ct) => (await service.SaveBankAsync(id, input, ct)).ToHttpResult())
             .RequirePermission("hr.edit").WithName("SaveEmployeeBankAccount").Produces<EmployeePaymentDetail>();
-        employees.MapPost("/{id:guid}/bank-account/review", async (Guid id, BankReviewInput input, EmployeeComplementService service, CancellationToken ct) => (await service.ReviewBankAsync(id, input, ct)).ToHttpResult())
+        employees.MapPost("/{id:guid}/bank-account/review", async (Guid id, EmployeeBankReviewInput input, EmployeeComplementService service, CancellationToken ct) => (await service.ReviewBankAsync(id, input, ct)).ToHttpResult())
             .RequirePermission("hr.approve").WithName("ReviewEmployeeBankAccount").Produces<EmployeePaymentDetail>();
-        employees.MapPut("/{id:guid}/additional", async (Guid id, AdditionalInput input, EmployeeComplementService service, CancellationToken ct) => (await service.SaveAdditionalAsync(id, input, ct)).ToHttpResult())
+        employees.MapPut("/{id:guid}/additional", async (Guid id, EmployeeAdditionalInput input, EmployeeComplementService service, CancellationToken ct) => (await service.SaveAdditionalAsync(id, input, ct)).ToHttpResult())
             .RequirePermission("hr.edit").WithName("SaveEmployeeAdditional").Produces<EmployeePaymentDetail>();
 
         employees.MapGet("/{id:guid}/documents/sensitive", async (Guid id, EmployeeComplementService service, CancellationToken ct) => (await service.DocumentsAsync(id, ct)).ToHttpResult())

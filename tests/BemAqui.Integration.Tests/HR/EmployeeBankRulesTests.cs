@@ -10,26 +10,26 @@ public class EmployeeBankRulesTests
     private const string OtherCpf = "11144477735";
 
     [Theory]
-    [InlineData(PixKeyType.Cpf, "529.982.247-25", "52998224725")]
-    [InlineData(PixKeyType.Cpf, "529.982.247-24", null)]
-    [InlineData(PixKeyType.Email, " Maria.Silva@Empresa.com.br ", "maria.silva@empresa.com.br")]
-    [InlineData(PixKeyType.Email, "maria@empresa", null)]
-    [InlineData(PixKeyType.Email, "maria silva@empresa.com", null)]
-    [InlineData(PixKeyType.Phone, "(11) 98765-4321", "+5511987654321")]
-    [InlineData(PixKeyType.Phone, "+55 11 98765-4321", "+5511987654321")]
-    [InlineData(PixKeyType.Phone, "98765-4321", null)]
-    [InlineData(PixKeyType.Random, "123E4567-E89B-12D3-A456-426614174000", "123e4567-e89b-12d3-a456-426614174000")]
-    [InlineData(PixKeyType.Random, "123e4567e89b12d3a456426614174000", null)]
-    public void Chave_Pix_validada_e_normalizada_pelo_tipo(PixKeyType type, string key, string? expected) =>
+    [InlineData(EmployeePixKeyType.Cpf, "529.982.247-25", "52998224725")]
+    [InlineData(EmployeePixKeyType.Cpf, "529.982.247-24", null)]
+    [InlineData(EmployeePixKeyType.Email, " Maria.Silva@Empresa.com.br ", "maria.silva@empresa.com.br")]
+    [InlineData(EmployeePixKeyType.Email, "maria@empresa", null)]
+    [InlineData(EmployeePixKeyType.Email, "maria silva@empresa.com", null)]
+    [InlineData(EmployeePixKeyType.Phone, "(11) 98765-4321", "+5511987654321")]
+    [InlineData(EmployeePixKeyType.Phone, "+55 11 98765-4321", "+5511987654321")]
+    [InlineData(EmployeePixKeyType.Phone, "98765-4321", null)]
+    [InlineData(EmployeePixKeyType.Random, "123E4567-E89B-12D3-A456-426614174000", "123e4567-e89b-12d3-a456-426614174000")]
+    [InlineData(EmployeePixKeyType.Random, "123e4567e89b12d3a456426614174000", null)]
+    public void Chave_Pix_validada_e_normalizada_pelo_tipo(EmployeePixKeyType type, string key, string? expected) =>
         EmployeeBankRules.NormalizePixKey(type, key).Should().Be(expected);
 
     [Fact]
     public void Divergencia_quando_titular_ou_chave_CPF_nao_sao_do_funcionario()
     {
-        EmployeeBankRules.Mismatches(EmployeeCpf, EmployeeCpf, PixKeyType.Cpf, EmployeeCpf).Should().BeEmpty();
-        EmployeeBankRules.Mismatches(EmployeeCpf, OtherCpf, PixKeyType.Cpf, EmployeeCpf).Should().Equal(BankMismatchKind.Holder);
-        EmployeeBankRules.Mismatches(EmployeeCpf, EmployeeCpf, PixKeyType.Cpf, OtherCpf).Should().Equal(BankMismatchKind.PixKey);
-        EmployeeBankRules.Mismatches(EmployeeCpf, EmployeeCpf, PixKeyType.Email, "x@y.com").Should().BeEmpty("só a chave do tipo CPF é comparada");
+        EmployeeBankRules.Mismatches(EmployeeCpf, EmployeeCpf, EmployeePixKeyType.Cpf, EmployeeCpf).Should().BeEmpty();
+        EmployeeBankRules.Mismatches(EmployeeCpf, OtherCpf, EmployeePixKeyType.Cpf, EmployeeCpf).Should().Equal(EmployeeBankMismatchKind.Holder);
+        EmployeeBankRules.Mismatches(EmployeeCpf, EmployeeCpf, EmployeePixKeyType.Cpf, OtherCpf).Should().Equal(EmployeeBankMismatchKind.PixKey);
+        EmployeeBankRules.Mismatches(EmployeeCpf, EmployeeCpf, EmployeePixKeyType.Email, "x@y.com").Should().BeEmpty("só a chave do tipo CPF é comparada");
     }
 
     [Theory]
@@ -69,9 +69,9 @@ public class EmployeeBankRulesTests
         EmployeeBankRules.MaskCpf("12345678909").Should().Be("***.456.789-**");
         EmployeeBankRules.MaskName("Maria da Silva").Should().Be("M**** d* S****");
         EmployeeBankRules.Tail("123456-7").Should().Be("******-7");
-        EmployeeBankRules.MaskPix(PixKeyType.Email, "maria@empresa.com").Should().Be("m****@empresa.com");
-        EmployeeBankRules.MaskPix(PixKeyType.Phone, "+5511987654321").Should().Be("(**) *****-4321");
-        EmployeeBankRules.MaskPix(PixKeyType.Random, "123e4567-e89b-12d3-a456-426614174000").Should().Be("********4000");
+        EmployeeBankRules.MaskPix(EmployeePixKeyType.Email, "maria@empresa.com").Should().Be("m****@empresa.com");
+        EmployeeBankRules.MaskPix(EmployeePixKeyType.Phone, "+5511987654321").Should().Be("(**) *****-4321");
+        EmployeeBankRules.MaskPix(EmployeePixKeyType.Random, "123e4567-e89b-12d3-a456-426614174000").Should().Be("********4000");
     }
 
     [Fact]

@@ -4,8 +4,8 @@ using BemAqui.SharedKernel;
 namespace BemAqui.HR.Domain;
 
 /// <summary>Tipo da conta para pagamento (CAD-04c2 CA 4).</summary>
-[JsonConverter(typeof(JsonStringEnumConverter<BankAccountType>))]
-public enum BankAccountType
+[JsonConverter(typeof(JsonStringEnumConverter<EmployeeBankAccountType>))]
+public enum EmployeeBankAccountType
 {
     Checking,
     Savings,
@@ -14,8 +14,8 @@ public enum BankAccountType
 }
 
 /// <summary>Tipo da chave Pix (CAD-04c2 CA 4): a chave é validada pelo tipo.</summary>
-[JsonConverter(typeof(JsonStringEnumConverter<PixKeyType>))]
-public enum PixKeyType
+[JsonConverter(typeof(JsonStringEnumConverter<EmployeePixKeyType>))]
+public enum EmployeePixKeyType
 {
     Cpf,
     Email,
@@ -37,8 +37,8 @@ public enum DependentKinship
 }
 
 /// <summary>O que não bate com o CPF do funcionário na conta para pagamento (CAD-04c2 CA 5).</summary>
-[JsonConverter(typeof(JsonStringEnumConverter<BankMismatchKind>))]
-public enum BankMismatchKind
+[JsonConverter(typeof(JsonStringEnumConverter<EmployeeBankMismatchKind>))]
+public enum EmployeeBankMismatchKind
 {
     Holder,
     PixKey,
@@ -134,20 +134,20 @@ public static class EmployeeBankRules
     public const string NotInQuarantineCode = "bank_not_in_quarantine";
 
     /// <summary>Chave normalizada pelo tipo (CA 4), ou null se não vale: CPF com 11 dígitos válidos, e-mail, telefone (+55) ou aleatória (UUID).</summary>
-    public static string? NormalizePixKey(PixKeyType type, string? key)
+    public static string? NormalizePixKey(EmployeePixKeyType type, string? key)
     {
         var text = (key ?? string.Empty).Trim();
         switch (type)
         {
-            case PixKeyType.Cpf:
+            case EmployeePixKeyType.Cpf:
                 var cpf = BrazilianDocuments.Normalize(text);
                 return cpf.Length == 11 && BrazilianDocuments.IsValidCpf(cpf) ? cpf : null;
-            case PixKeyType.Email:
+            case EmployeePixKeyType.Email:
                 var email = text.ToLowerInvariant();
                 var at = email.IndexOf('@', StringComparison.Ordinal);
                 return email.Length is > 5 and <= 77 && at > 0 && at == email.LastIndexOf('@') && email.IndexOf('.', at) > at + 1 && !email.EndsWith('.')
                     && !email.Any(char.IsWhiteSpace) ? email : null;
-            case PixKeyType.Phone:
+            case EmployeePixKeyType.Phone:
                 var digits = new string(text.Where(char.IsAsciiDigit).ToArray());
                 if (digits.Length is 12 or 13 && digits.StartsWith("55", StringComparison.Ordinal))
                 {
@@ -155,7 +155,7 @@ public static class EmployeeBankRules
                 }
 
                 return digits.Length is 10 or 11 && digits[0] != '0' ? "+55" + digits : null;
-            case PixKeyType.Random:
+            case EmployeePixKeyType.Random:
                 return Guid.TryParseExact(text, "D", out var random) ? random.ToString("D") : null;
             default:
                 return null;
@@ -163,17 +163,17 @@ public static class EmployeeBankRules
     }
 
     /// <summary>O que não bate com o CPF do funcionário (CA 5): titular com outro CPF, ou chave Pix do tipo CPF de outra pessoa.</summary>
-    public static IReadOnlyList<BankMismatchKind> Mismatches(string employeeCpf, string? holderCpf, PixKeyType? pixType, string? pixKey)
+    public static IReadOnlyList<EmployeeBankMismatchKind> Mismatches(string employeeCpf, string? holderCpf, EmployeePixKeyType? pixType, string? pixKey)
     {
-        var list = new List<BankMismatchKind>();
+        var list = new List<EmployeeBankMismatchKind>();
         if (holderCpf is not null && holderCpf != employeeCpf)
         {
-            list.Add(BankMismatchKind.Holder);
+            list.Add(EmployeeBankMismatchKind.Holder);
         }
 
-        if (pixType == PixKeyType.Cpf && pixKey is not null && pixKey != employeeCpf)
+        if (pixType == EmployeePixKeyType.Cpf && pixKey is not null && pixKey != employeeCpf)
         {
-            list.Add(BankMismatchKind.PixKey);
+            list.Add(EmployeeBankMismatchKind.PixKey);
         }
 
         return list;
@@ -214,7 +214,7 @@ public static class EmployeeBankRules
     }
 
     /// <summary>Chave Pix mascarada pelo tipo (CA 9).</summary>
-    public static string MaskPix(PixKeyType? type, string? key)
+    public static string MaskPix(EmployeePixKeyType? type, string? key)
     {
         if (string.IsNullOrEmpty(key))
         {
@@ -223,12 +223,12 @@ public static class EmployeeBankRules
 
         switch (type)
         {
-            case PixKeyType.Cpf:
+            case EmployeePixKeyType.Cpf:
                 return MaskCpf(key);
-            case PixKeyType.Email:
+            case EmployeePixKeyType.Email:
                 var at = key.IndexOf('@', StringComparison.Ordinal);
                 return at <= 0 ? Tail(key, 2) : key[0] + new string('*', Math.Max(at - 1, 3)) + key[at..];
-            case PixKeyType.Phone:
+            case EmployeePixKeyType.Phone:
                 return "(**) *****-" + key[^4..];
             default:
                 return new string('*', 8) + key[^4..];

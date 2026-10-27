@@ -101,10 +101,10 @@ public class PersonalDataTests
     public void Situacao_da_conta_sem_dado_bancario_e_dono_EmployeeDocument_com_as_regras_da_ADR()
     {
         var contracts = Solution.Assemblies.Single(a => a.GetName().Name == "BemAqui.HR.Contracts");
-        contracts.GetTypes().Single(t => t.Name == "BankAccountStatus").GetProperties().Select(p => p.Name)
+        contracts.GetTypes().Single(t => t.Name == "EmployeeBankAccountStatus").GetProperties().Select(p => p.Name)
             .Should().BeEquivalentTo(["EmployeeId", "IsFirstAccount", "ChangedAt", "QuarantineUntil", "InQuarantine", "ReviewedAt", "SelfReviewed", "Version"]);
         var application = Solution.Assemblies.Single(a => a.GetName().Name == "BemAqui.HR.Application");
-        application.GetTypes().Single(t => t.Name == "BankAccountStatusView").GetProperties().Select(p => p.Name)
+        application.GetTypes().Single(t => t.Name == "EmployeeBankStatusView").GetProperties().Select(p => p.Name)
             .Should().NotContain(["BankCode", "Agency", "Account", "HolderName", "HolderCpf", "PixKey"], "o chip do cabeçalho não lê dado bancário");
 
         var services = new Microsoft.Extensions.DependencyInjection.ServiceCollection();

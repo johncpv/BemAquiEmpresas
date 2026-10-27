@@ -153,7 +153,7 @@ public sealed class Employee : Entity, IAuditable, ISoftDeletable, IConcurrencyV
     public string? BankAccount { get; set; }
 
     [PersonalData]
-    public BankAccountType? BankAccountType { get; set; }
+    public EmployeeBankAccountType? BankAccountType { get; set; }
 
     [PersonalData]
     public string? BankHolderName { get; set; }
@@ -162,7 +162,7 @@ public sealed class Employee : Entity, IAuditable, ISoftDeletable, IConcurrencyV
     public string? BankHolderCpf { get; set; }
 
     [PersonalData]
-    public PixKeyType? PixKeyType { get; set; }
+    public EmployeePixKeyType? PixKeyType { get; set; }
 
     [PersonalData]
     public string? PixKey { get; set; }

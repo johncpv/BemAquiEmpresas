@@ -532,7 +532,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-6--rh-e-patrimôn
 
 **Quebras:** RH-01 → 01a/01b/01c · RH-02 → 02a/02b/02c · LGPD-01 → 01a/01b · PAT-01 → 01a/01b · PAT-03 → 03a/03b. **Re-estimada (M → G):** RH-02c. Depreciação (R-PAT-6) continua na Fase 9.
 
-**CAD-04c2 [ ] Funcionários: dependentes, banco/Pix, adicionais, vale-transporte e documentos (M)** — 6.2, ordem 1 — `Ready` — [story](stories/CAD-04c2-funcionarios-complemento.md)
+**CAD-04c2 [x] Funcionários: dependentes, banco/Pix, adicionais, vale-transporte e documentos (M)** — 6.2, ordem 1 — `Done` — [story](stories/CAD-04c2-funcionarios-complemento.md)
 - Requisitos: R-RH-1, PRD §6, R-SEC-5, R-SEC-10.
 - CA: dependentes, banco/Pix, adicionais, vale-transporte e documentos; trocar a conta de salário exige `hr.view_sensitive`, 2FA de novo e segunda confirmação quando titular ou Pix não batem com o CPF; aviso ao funcionário e ao Proprietário; quarentena de 30 dias com revisão por quem não fez a troca.
 

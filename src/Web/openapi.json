@@ -5125,6 +5125,517 @@
         }
       }
     },
+    "/api/v1/hr/employees/{id}/dependents/sensitive": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ListEmployeeDependentsSensitive",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EmployeeDependentDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/dependents": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "AddEmployeeDependent",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmployeeDependentInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeDependentDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/dependents/{dependentId}": {
+      "put": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "UpdateEmployeeDependent",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "dependentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmployeeDependentInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeDependentDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "DeleteEmployeeDependent",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "dependentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/payment/sensitive": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetEmployeePaymentSensitive",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeePaymentDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/bank-account/status": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetEmployeeBankStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeBankStatusView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/bank-account/sensitive": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "RevealEmployeeBankAccount",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeBankAccountRevealed"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/bank-account": {
+      "put": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "SaveEmployeeBankAccount",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmployeeBankAccountInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeePaymentDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/bank-account/review": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ReviewEmployeeBankAccount",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmployeeBankReviewInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeePaymentDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/additional": {
+      "put": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "SaveEmployeeAdditional",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmployeeAdditionalInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeePaymentDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/documents/sensitive": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetEmployeeDocumentsSensitive",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeDocumentsDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/documents": {
+      "put": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "SaveEmployeeDocuments",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmployeeDocumentsInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeDocumentsDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/documents/files": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ListEmployeeDocumentFiles",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AttachmentDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/documents/files/{attachmentId}/content": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "DownloadEmployeeDocumentFile",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "attachmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/quotes": {
       "get": {
         "tags": [
@@ -31367,6 +31878,17 @@
         ],
         "default": "None"
       },
+      "DependentKinship": {
+        "enum": [
+          "Child",
+          "Stepchild",
+          "Spouse",
+          "Partner",
+          "Parent",
+          "Ward",
+          "Other"
+        ]
+      },
       "DeviceTheme": {
         "enum": [
           "System",
@@ -32226,6 +32748,400 @@
           }
         }
       },
+      "EmployeeAdditionalInput": {
+        "required": [
+          "insalubrityPct",
+          "hazardPay",
+          "usesTransportVoucher",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "insalubrityPct": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "hazardPay": {
+            "type": "boolean"
+          },
+          "usesTransportVoucher": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EmployeeBankAccountInput": {
+        "required": [
+          "bankCode",
+          "agency",
+          "account",
+          "accountType",
+          "holderName",
+          "holderCpf",
+          "pixKeyType",
+          "pixKey",
+          "checkedWithEmployee",
+          "mismatchReason",
+          "twoFactorCode",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "bankCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "agency": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "account": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "accountType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/EmployeeBankAccountType"
+              }
+            ]
+          },
+          "holderName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "holderCpf": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pixKeyType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/EmployeePixKeyType"
+              }
+            ]
+          },
+          "pixKey": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "checkedWithEmployee": {
+            "type": "boolean"
+          },
+          "mismatchReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "twoFactorCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EmployeeBankAccountMasked": {
+        "required": [
+          "bankCode",
+          "agency",
+          "account",
+          "accountType",
+          "holderName",
+          "holderCpf",
+          "pixKeyType",
+          "pixKey",
+          "mismatches"
+        ],
+        "type": "object",
+        "properties": {
+          "bankCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "agency": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "account": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "accountType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/EmployeeBankAccountType"
+              }
+            ]
+          },
+          "holderName": {
+            "type": "string"
+          },
+          "holderCpf": {
+            "type": "string"
+          },
+          "pixKeyType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/EmployeePixKeyType"
+              }
+            ]
+          },
+          "pixKey": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "mismatches": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EmployeeBankMismatchKind"
+            }
+          }
+        }
+      },
+      "EmployeeBankAccountRevealed": {
+        "required": [
+          "bankCode",
+          "agency",
+          "account",
+          "accountType",
+          "holderName",
+          "holderCpf",
+          "pixKeyType",
+          "pixKey",
+          "employeeName",
+          "employeeCpf"
+        ],
+        "type": "object",
+        "properties": {
+          "bankCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "agency": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "account": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "accountType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/EmployeeBankAccountType"
+              }
+            ]
+          },
+          "holderName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "holderCpf": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pixKeyType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/EmployeePixKeyType"
+              }
+            ]
+          },
+          "pixKey": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "employeeName": {
+            "type": "string"
+          },
+          "employeeCpf": {
+            "type": "string"
+          }
+        }
+      },
+      "EmployeeBankAccountType": {
+        "enum": [
+          "Checking",
+          "Savings",
+          "Salary",
+          "Payment",
+          null
+        ]
+      },
+      "EmployeeBankMismatchKind": {
+        "enum": [
+          "Holder",
+          "PixKey"
+        ]
+      },
+      "EmployeeBankReviewInput": {
+        "required": [
+          "note",
+          "twoFactorCode",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "twoFactorCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EmployeeBankStatusView": {
+        "required": [
+          "hasAccount",
+          "isFirstAccount",
+          "changedAt",
+          "changedByName",
+          "quarantineUntil",
+          "inQuarantine",
+          "reviewedAt",
+          "reviewedByName",
+          "selfReviewed",
+          "accountVersion",
+          "canReview",
+          "cannotReviewReason"
+        ],
+        "type": "object",
+        "properties": {
+          "hasAccount": {
+            "type": "boolean"
+          },
+          "isFirstAccount": {
+            "type": "boolean"
+          },
+          "changedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "changedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "quarantineUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "inQuarantine": {
+            "type": "boolean"
+          },
+          "reviewedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "reviewedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "selfReviewed": {
+            "type": "boolean"
+          },
+          "accountVersion": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "canReview": {
+            "type": "boolean"
+          },
+          "cannotReviewReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "EmployeeCreated": {
         "required": [
           "employee",
@@ -32291,6 +33207,107 @@
               "null",
               "string"
             ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "EmployeeDependentDetail": {
+        "required": [
+          "id",
+          "name",
+          "birthDate",
+          "kinship",
+          "irDependent",
+          "familyAllowance",
+          "cpfMasked",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "birthDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "kinship": {
+            "$ref": "#/components/schemas/DependentKinship"
+          },
+          "irDependent": {
+            "type": "boolean"
+          },
+          "familyAllowance": {
+            "type": "boolean"
+          },
+          "cpfMasked": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "EmployeeDependentInput": {
+        "required": [
+          "name",
+          "birthDate",
+          "kinship",
+          "irDependent",
+          "familyAllowance",
+          "cpf"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "birthDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "kinship": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/DependentKinship"
+              }
+            ]
+          },
+          "irDependent": {
+            "type": "boolean"
+          },
+          "familyAllowance": {
+            "type": "boolean"
+          },
+          "cpf": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "uint32"
           }
         },
         "additionalProperties": false
@@ -32380,6 +33397,89 @@
           }
         }
       },
+      "EmployeeDocumentsDetail": {
+        "required": [
+          "cnhNumber",
+          "cnhCategory",
+          "cnhExpiry",
+          "militaryCertificate",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "cnhNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cnhCategory": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cnhExpiry": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "militaryCertificate": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "EmployeeDocumentsInput": {
+        "required": [
+          "cnhNumber",
+          "cnhCategory",
+          "cnhExpiry",
+          "militaryCertificate",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "cnhNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cnhCategory": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cnhExpiry": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "militaryCertificate": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
       "EmployeeGeneralInput": {
         "required": [
           "name",
@@ -32453,6 +33553,54 @@
           "Other",
           null
         ]
+      },
+      "EmployeePaymentDetail": {
+        "required": [
+          "employeeId",
+          "account",
+          "status",
+          "insalubrityPct",
+          "hazardPay",
+          "usesTransportVoucher",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "account": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/EmployeeBankAccountMasked"
+              }
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/EmployeeBankStatusView"
+          },
+          "insalubrityPct": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "hazardPay": {
+            "type": "boolean"
+          },
+          "usesTransportVoucher": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
       },
       "EmployeePersonalInput": {
         "required": [
@@ -32568,6 +33716,15 @@
           }
         },
         "additionalProperties": false
+      },
+      "EmployeePixKeyType": {
+        "enum": [
+          "Cpf",
+          "Email",
+          "Phone",
+          "Random",
+          null
+        ]
       },
       "EmployeeSensitiveDetail": {
         "required": [

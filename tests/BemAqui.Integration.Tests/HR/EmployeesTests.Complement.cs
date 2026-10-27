@@ -50,7 +50,8 @@ public partial class EmployeesTests
         }
     }
 
-    private async Task<Authenticator> TotpAsync(Guid userId, Tenant? tenant = null)
+    /// <summary>Liga o 2FA (gira o security stamp): o cliente ganha o token novo.</summary>
+    private async Task<Authenticator> TotpAsync(Guid userId, HttpClient client, Tenant? tenant = null)
     {
         var target = tenant ?? tenancy.TenantA;
         var secret = Totp.NewSecret();
@@ -61,6 +62,8 @@ public partial class EmployeesTests
         user.BeginTotpSetup(tenancy.Factory.Services.GetRequiredService<ISecretProtector>().Protect(SecretScope.ForTenant(target.Id), SecretKind.TotpSecret, new Secret(Base32.Encode(secret))));
         user.EnableTotp(Totp.StepAt(DateTimeOffset.UtcNow) - 10);
         await db.SaveChangesAsync();
+        var host = target.Id == tenancy.TenantB.Id ? "b.localhost" : Host;
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", TestTokens.Create(target.Id, host, userId: userId, stamp: user.SecurityStamp));
         return new Authenticator(secret);
     }
 
@@ -145,7 +148,7 @@ public partial class EmployeesTests
     {
         var (ownerId, owner) = await ActorAsync(Group.OwnerSeedKey);
         var (_, noTotp) = await ActorAsync(Group.OwnerSeedKey);
-        var totp = await TotpAsync(ownerId);
+        var totp = await TotpAsync(ownerId, owner);
         var position = await PositionAsync(owner);
         var cpf = NewCpf();
         var id = await CreatedAsync(await owner.PostAsJsonAsync("/api/v1/hr/employees", NewEmployee(position, cpf)));
@@ -204,8 +207,8 @@ public partial class EmployeesTests
         var (ownerId, ownerClient) = await ActorAsync(Group.OwnerSeedKey);
         var owner = factory.CreateClient();
         owner.DefaultRequestHeaders.Host = Host;
+        var totp = await TotpAsync(ownerId, ownerClient);
         owner.DefaultRequestHeaders.Authorization = ownerClient.DefaultRequestHeaders.Authorization;
-        var totp = await TotpAsync(ownerId);
         var position = await PositionAsync(owner);
         var cpf = NewCpf();
         var id = await CreatedAsync(await owner.PostAsJsonAsync("/api/v1/hr/employees", NewEmployee(position, cpf, name: "Rui Conta " + Guid.NewGuid().ToString("N")[..5])));
@@ -249,7 +252,7 @@ public partial class EmployeesTests
 
         // Sem e-mail pessoal: o Proprietário é avisado para falar pessoalmente.
         var (secondId, second) = await ActorAsync(Group.OwnerSeedKey);
-        var secondCodes = await TotpAsync(secondId);
+        var secondCodes = await TotpAsync(secondId, second);
         var cpf2 = NewCpf();
         var silent = await CreatedAsync(await second.PostAsJsonAsync("/api/v1/hr/employees", NewEmployee(position, cpf2)));
         (await second.PutAsJsonAsync(Emp(silent, "/bank-account"), Bank(await VersionAsync(second, silent), secondCodes.Next(), cpf2))).EnsureSuccessStatusCode();
@@ -264,8 +267,8 @@ public partial class EmployeesTests
         var (authorId, author) = await ActorAsync(Group.OwnerSeedKey);
         var (reviewerId, reviewer) = await ActorAsync(Group.OwnerSeedKey);
         var (_, sensitiveOnly) = await ActorAsync("hr:view,edit,view_sensitive");
-        var authorCodes = await TotpAsync(authorId);
-        var reviewerCodes = await TotpAsync(reviewerId);
+        var authorCodes = await TotpAsync(authorId, author);
+        var reviewerCodes = await TotpAsync(reviewerId, reviewer);
         var position = await PositionAsync(author);
         var cpf = NewCpf();
         var id = await CreatedAsync(await author.PostAsJsonAsync("/api/v1/hr/employees", NewEmployee(position, cpf)));
@@ -308,10 +311,10 @@ public partial class EmployeesTests
             await identity.SaveChangesAsync();
         }
 
-        var codes = await TotpAsync(soleId, tenancy.TenantB);
         var sole = tenancy.Factory.CreateClient();
         sole.DefaultRequestHeaders.Host = "b.localhost";
         sole.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", TestTokens.Create(tenancy.TenantB.Id, "b.localhost", userId: soleId, stamp: stamp));
+        var codes = await TotpAsync(soleId, sole, tenancy.TenantB);
         var position = await PositionAsync(sole);
         var cpf = NewCpf();
         var id = await CreatedAsync(await sole.PostAsJsonAsync("/api/v1/hr/employees", NewEmployee(position, cpf)));

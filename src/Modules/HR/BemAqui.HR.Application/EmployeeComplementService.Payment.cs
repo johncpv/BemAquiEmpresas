@@ -37,14 +37,14 @@ public sealed partial class EmployeeComplementService
     }
 
     /// <summary>Situação da conta sem dado bancário (CA 7), para o chip do cabeçalho; não é leitura sensível.</summary>
-    public async Task<Result<BankAccountStatusView>> BankStatusAsync(Guid employeeId, CancellationToken cancellationToken = default)
+    public async Task<Result<EmployeeBankStatusView>> BankStatusAsync(Guid employeeId, CancellationToken cancellationToken = default)
     {
         var e = await db.Employees.AsNoTracking().FirstOrDefaultAsync(x => x.Id == employeeId, cancellationToken);
         return e is null ? NotFound() : await StatusAsync(e, cancellationToken);
     }
 
     /// <summary>Conta em claro ("Mostrar" e o diálogo de troca, CA 9), com o nome e o CPF do funcionário; cada leitura vai para a auditoria.</summary>
-    public async Task<Result<BankAccountRevealed>> RevealBankAsync(Guid employeeId, CancellationToken cancellationToken = default)
+    public async Task<Result<EmployeeBankAccountRevealed>> RevealBankAsync(Guid employeeId, CancellationToken cancellationToken = default)
     {
         var e = await db.Employees.AsNoTracking().FirstOrDefaultAsync(x => x.Id == employeeId, cancellationToken);
         if (e is null)
@@ -53,7 +53,7 @@ public sealed partial class EmployeeComplementService
         }
 
         await audit.RecordReadAsync(nameof(Employee) + ".BankAccount", employeeId.ToString(), cancellationToken);
-        return new BankAccountRevealed(e.BankCode, e.BankAgency, e.BankAccount, e.BankAccountType, e.BankHolderName, e.BankHolderCpf, e.PixKeyType, e.PixKey, e.Name, e.Cpf);
+        return new EmployeeBankAccountRevealed(e.BankCode, e.BankAgency, e.BankAccount, e.BankAccountType, e.BankHolderName, e.BankHolderCpf, e.PixKeyType, e.PixKey, e.Name, e.Cpf);
     }
 
     /// <summary>
@@ -61,7 +61,7 @@ public sealed partial class EmployeeComplementService
     /// então, a gravação. A troca (banco, agência, conta, titular ou chave) entra em quarentena, avisa o Proprietário pelo sino e
     /// enfileira o e-mail ao funcionário, tudo na mesma transação; a primeira conta não entra em quarentena.
     /// </summary>
-    public async Task<Result<EmployeePaymentDetail>> SaveBankAsync(Guid employeeId, BankAccountInput input, CancellationToken cancellationToken = default)
+    public async Task<Result<EmployeePaymentDetail>> SaveBankAsync(Guid employeeId, EmployeeBankAccountInput input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         if (!await CanSensitiveAsync(cancellationToken))
@@ -131,7 +131,7 @@ public sealed partial class EmployeeComplementService
     /// Revisão expressa (CA 8): <c>hr.approve</c> (na rota) e <c>hr.view_sensitive</c>, por quem não fez a troca (exceção do
     /// Proprietário único, com a marca "autorrevisado"), com como conferiu (até 200) e o 2FA de novo. Avisa o Proprietário.
     /// </summary>
-    public async Task<Result<EmployeePaymentDetail>> ReviewBankAsync(Guid employeeId, BankReviewInput input, CancellationToken cancellationToken = default)
+    public async Task<Result<EmployeePaymentDetail>> ReviewBankAsync(Guid employeeId, EmployeeBankReviewInput input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         if (!await CanSensitiveAsync(cancellationToken))
@@ -188,7 +188,7 @@ public sealed partial class EmployeeComplementService
     }
 
     /// <summary>Adicionais e vale-transporte (CA 10): insalubridade 10, 20 ou 40 (ou nenhuma), periculosidade e "usa vale-transporte".</summary>
-    public async Task<Result<EmployeePaymentDetail>> SaveAdditionalAsync(Guid employeeId, AdditionalInput input, CancellationToken cancellationToken = default)
+    public async Task<Result<EmployeePaymentDetail>> SaveAdditionalAsync(Guid employeeId, EmployeeAdditionalInput input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         if (!await CanSensitiveAsync(cancellationToken))
@@ -251,12 +251,12 @@ public sealed partial class EmployeeComplementService
     private async Task<EmployeePaymentDetail> PaymentAfterSaveAsync(Employee e, CancellationToken ct) =>
         new(e.Id, Masked(e), await StatusAsync(e, ct), e.InsalubrityPct, e.HazardPay, e.UsesTransportVoucher, e.Version);
 
-    private async Task<BankAccountStatusView> StatusAsync(Employee e, CancellationToken ct)
+    private async Task<EmployeeBankStatusView> StatusAsync(Employee e, CancellationToken ct)
     {
         var now = clock.GetUtcNow();
         var inQuarantine = EmployeeBankRules.InQuarantine(e.BankQuarantineUntil, e.BankReviewedAt, now);
         var (canReview, reason) = await CanReviewAsync(e, inQuarantine, ct);
-        return new BankAccountStatusView(
+        return new EmployeeBankStatusView(
             e.BankAccountVersion > 0,
             e.BankAccountVersion == 1,
             e.BankChangedAt,
@@ -299,7 +299,7 @@ public sealed partial class EmployeeComplementService
         return SoleOwnerRule.NoOtherEligible(reviewers, me, [me]);
     }
 
-    private static BankAccountMasked? Masked(Employee e) => e.BankAccountVersion == 0 ? null : new BankAccountMasked(
+    private static EmployeeBankAccountMasked? Masked(Employee e) => e.BankAccountVersion == 0 ? null : new EmployeeBankAccountMasked(
         e.BankCode,
         e.BankAgency is null ? null : EmployeeBankRules.Tail(e.BankAgency),
         e.BankAccount is null ? null : EmployeeBankRules.Tail(e.BankAccount),
@@ -312,13 +312,13 @@ public sealed partial class EmployeeComplementService
 
     private static string PaymentLink(Guid employeeId) => "/app/rh/funcionarios/" + employeeId + "?aba=pagamento";
 
-    private sealed record BankFields(string? BankCode, string? Agency, string? Account, BankAccountType? AccountType, string HolderName, string HolderCpf, PixKeyType? PixType, string? PixKey);
+    private sealed record BankFields(string? BankCode, string? Agency, string? Account, EmployeeBankAccountType? AccountType, string HolderName, string HolderCpf, EmployeePixKeyType? PixType, string? PixKey);
 
     /// <summary>
     /// Validação (CA 4): banco completo (COMPE de 3 dígitos, agência, conta e tipo), Pix completo (tipo e chave válida pelo tipo),
     /// ou os dois; titular (nome e CPF) sempre.
     /// </summary>
-    private static Error? BankError(BankAccountInput input, out BankFields fields)
+    private static Error? BankError(EmployeeBankAccountInput input, out BankFields fields)
     {
         fields = null!;
         var code = Digits(input.BankCode);
@@ -355,9 +355,9 @@ public sealed partial class EmployeeComplementService
             {
                 return DependentRules.Field("pixKey", pixType switch
                 {
-                    PixKeyType.Cpf => "Chave Pix inválida: informe um CPF válido.",
-                    PixKeyType.Email => "Chave Pix inválida: informe um e-mail válido.",
-                    PixKeyType.Phone => "Chave Pix inválida: informe o celular com DDD.",
+                    EmployeePixKeyType.Cpf => "Chave Pix inválida: informe um CPF válido.",
+                    EmployeePixKeyType.Email => "Chave Pix inválida: informe um e-mail válido.",
+                    EmployeePixKeyType.Phone => "Chave Pix inválida: informe o celular com DDD.",
                     _ => "Chave Pix inválida: copie a chave aleatória do app do banco (36 caracteres, com hifens).",
                 });
             }
