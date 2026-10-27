@@ -5830,6 +5830,913 @@
         }
       }
     },
+    "/api/v1/hr/payroll-items": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ListPayrollItems",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PayrollItemDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "CreatePayrollItem",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayrollItemInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollItemDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-items/{id}": {
+      "put": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "UpdatePayrollItem",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayrollItemInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollItemDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "DeletePayrollItem",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-items/{id}/inactivate": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "InactivatePayrollItem",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollItemDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-items/{id}/reactivate": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ReactivatePayrollItem",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollItemDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-items/{id}/confirm": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ConfirmPayrollItem",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollItemDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/parameters": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetHrParameters",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HrParametersView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "UpdateHrParameters",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HrParametersInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HrParametersView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/parameters/confirm": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ConfirmHrParameter",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HrParameterConfirmInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HrParametersView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/parameters/payees": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "SearchPayrollPayees",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PayrollPayeeOption"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-runs": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ListPayrollRuns",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PayrollRunSummary"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "CreatePayrollRun",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayrollRunCreateInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollRunSummary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-runs/sensitive": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ListPayrollRunTotalsSensitive",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PayrollRunTotals"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-runs/eligible": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ListPayrollEligibleEmployees",
+        "parameters": [
+          {
+            "name": "period",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PayrollEligibleEmployee"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-runs/{id}": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetPayrollRun",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollRunSummary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-runs/{id}/payslips/sensitive": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ListPayslipsSensitive",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PayslipRow"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-runs/{id}/payslips/{payslipId}/sensitive": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetPayslipSensitive",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "payslipId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayslipDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-runs/{id}/payslips/{payslipId}/previous/sensitive": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetPreviousPayslipSensitive",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "payslipId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayslipPrevious"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-runs/{id}/payslips/{payslipId}": {
+      "put": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "SavePayslip",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "payslipId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayslipInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayslipDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-runs/{id}/charges/sensitive": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ListPayrollChargesSensitive",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollChargesView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-runs/{id}/charges": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "AddPayrollCharge",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayrollChargeInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollChargesView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-runs/{id}/charges/{chargeId}": {
+      "put": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "UpdatePayrollCharge",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "chargeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayrollChargeInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollChargesView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "DeletePayrollCharge",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "chargeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollChargesView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-runs/{id}/import/preview": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "PreviewPayrollImport",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "$ref": "#/components/schemas/IFormFile"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollImportPreview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-runs/{id}/import": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ImportPayrollEntries",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "$ref": "#/components/schemas/IFormFile"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollImportResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-runs/{id}/review/sensitive": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetPayrollReviewSensitive",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollReview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/quotes": {
       "get": {
         "tags": [
@@ -38813,6 +39720,178 @@
         },
         "additionalProperties": false
       },
+      "HrParameterChange": {
+        "required": [
+          "key",
+          "value",
+          "partyId"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "value": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "partyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "HrParameterConfirmInput": {
+        "required": [
+          "key"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          }
+        }
+      },
+      "HrParameterItem": {
+        "required": [
+          "key",
+          "label",
+          "description",
+          "kind",
+          "value",
+          "min",
+          "max",
+          "partyId",
+          "partyName",
+          "legal",
+          "confirmed",
+          "confirmedByName",
+          "confirmedAt",
+          "parameterId"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/HrParameterKind"
+          },
+          "value": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "min": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "max": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "partyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "legal": {
+            "type": "boolean"
+          },
+          "confirmed": {
+            "type": "boolean"
+          },
+          "confirmedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "confirmedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "parameterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "HrParameterKind": {
+        "enum": [
+          "Percent",
+          "DayOfMonth",
+          "Days",
+          "Party"
+        ]
+      },
+      "HrParametersInput": {
+        "required": [
+          "changes"
+        ],
+        "type": "object",
+        "properties": {
+          "changes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HrParameterChange"
+            }
+          }
+        }
+      },
+      "HrParametersView": {
+        "required": [
+          "items",
+          "pendingCount"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HrParameterItem"
+            }
+          },
+          "pendingCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "HttpValidationProblemDetails": {
         "type": "object",
         "properties": {
@@ -48922,6 +50001,161 @@
           }
         }
       },
+      "PayrollChargeDefault": {
+        "required": [
+          "kind",
+          "label",
+          "dueDate",
+          "dueDateConfirmed",
+          "payeePartyId",
+          "payeeName"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/PayrollChargeKind"
+          },
+          "label": {
+            "type": "string"
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "dueDateConfirmed": {
+            "type": "boolean"
+          },
+          "payeePartyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "payeeName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PayrollChargeDetail": {
+        "required": [
+          "id",
+          "kind",
+          "description",
+          "amount",
+          "dueDate",
+          "payeePartyId",
+          "payeeName",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PayrollChargeKind"
+          },
+          "description": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "payeePartyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "payeeName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "PayrollChargeInput": {
+        "required": [
+          "kind",
+          "description",
+          "amount",
+          "dueDate",
+          "payeePartyId",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PayrollChargeKind"
+              }
+            ]
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "payeePartyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "version": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "uint32"
+          }
+        }
+      },
+      "PayrollChargeKind": {
+        "enum": [
+          "Fgts",
+          "Inss",
+          "Irrf",
+          "Union",
+          "Other"
+        ]
+      },
       "PayrollChargesInput": {
         "required": [
           "pct"
@@ -48931,6 +50165,982 @@
           "pct": {
             "type": "number",
             "format": "double"
+          }
+        }
+      },
+      "PayrollChargesView": {
+        "required": [
+          "items",
+          "defaults",
+          "payslipsFgts",
+          "fgtsCharges",
+          "fgtsMismatch",
+          "editable"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollChargeDetail"
+            }
+          },
+          "defaults": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollChargeDefault"
+            }
+          },
+          "payslipsFgts": {
+            "type": "number",
+            "format": "double"
+          },
+          "fgtsCharges": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "fgtsMismatch": {
+            "type": "boolean"
+          },
+          "editable": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PayrollEligibleEmployee": {
+        "required": [
+          "id",
+          "name",
+          "registration",
+          "admissionDate",
+          "terminationDate"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "registration": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "admissionDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "terminationDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          }
+        }
+      },
+      "PayrollImportItemTotal": {
+        "required": [
+          "code",
+          "name",
+          "kind",
+          "lines",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PayrollItemKind"
+          },
+          "lines": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "PayrollImportPreview": {
+        "required": [
+          "employees",
+          "employeeNames",
+          "lines",
+          "byItem",
+          "gross",
+          "deductions",
+          "net",
+          "errors",
+          "errorCount",
+          "canImport"
+        ],
+        "type": "object",
+        "properties": {
+          "employees": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "employeeNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "lines": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "byItem": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollImportItemTotal"
+            }
+          },
+          "gross": {
+            "type": "number",
+            "format": "double"
+          },
+          "deductions": {
+            "type": "number",
+            "format": "double"
+          },
+          "net": {
+            "type": "number",
+            "format": "double"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "errorCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "canImport": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PayrollImportResult": {
+        "required": [
+          "lines",
+          "employees"
+        ],
+        "type": "object",
+        "properties": {
+          "lines": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "employees": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PayrollItemDetail": {
+        "required": [
+          "id",
+          "code",
+          "name",
+          "kind",
+          "inssBase",
+          "fgtsBase",
+          "irrfBase",
+          "isActive",
+          "isStandard",
+          "confirmed",
+          "confirmedByName",
+          "confirmedAt",
+          "inUse",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PayrollItemKind"
+          },
+          "inssBase": {
+            "type": "boolean"
+          },
+          "fgtsBase": {
+            "type": "boolean"
+          },
+          "irrfBase": {
+            "type": "boolean"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "isStandard": {
+            "type": "boolean"
+          },
+          "confirmed": {
+            "type": "boolean"
+          },
+          "confirmedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "confirmedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "inUse": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "PayrollItemInput": {
+        "required": [
+          "code",
+          "name",
+          "kind",
+          "inssBase",
+          "fgtsBase",
+          "irrfBase",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "kind": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PayrollItemKind"
+              }
+            ]
+          },
+          "inssBase": {
+            "type": "boolean"
+          },
+          "fgtsBase": {
+            "type": "boolean"
+          },
+          "irrfBase": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "uint32"
+          }
+        }
+      },
+      "PayrollItemKind": {
+        "enum": [
+          "Earning",
+          "Deduction",
+          "Information"
+        ]
+      },
+      "PayrollPayeeOption": {
+        "required": [
+          "id",
+          "name",
+          "document"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "document": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PayrollReview": {
+        "required": [
+          "payslipCount",
+          "gross",
+          "deductions",
+          "net",
+          "alertPct",
+          "previousPeriod",
+          "byItem",
+          "variations",
+          "empty",
+          "newcomers",
+          "accountChanged"
+        ],
+        "type": "object",
+        "properties": {
+          "payslipCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "gross": {
+            "type": "number",
+            "format": "double"
+          },
+          "deductions": {
+            "type": "number",
+            "format": "double"
+          },
+          "net": {
+            "type": "number",
+            "format": "double"
+          },
+          "alertPct": {
+            "type": "number",
+            "format": "double"
+          },
+          "previousPeriod": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "byItem": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollReviewItem"
+            }
+          },
+          "variations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollReviewVariation"
+            }
+          },
+          "empty": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollReviewEmployee"
+            }
+          },
+          "newcomers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollReviewEmployee"
+            }
+          },
+          "accountChanged": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollReviewEmployee"
+            }
+          }
+        }
+      },
+      "PayrollReviewEmployee": {
+        "required": [
+          "payslipId",
+          "employeeId",
+          "employeeName",
+          "quarantineUntil"
+        ],
+        "type": "object",
+        "properties": {
+          "payslipId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "employeeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "employeeName": {
+            "type": "string"
+          },
+          "quarantineUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "PayrollReviewItem": {
+        "required": [
+          "payrollItemId",
+          "code",
+          "name",
+          "kind",
+          "total",
+          "payslips"
+        ],
+        "type": "object",
+        "properties": {
+          "payrollItemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PayrollItemKind"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "payslips": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollReviewPayslip"
+            }
+          }
+        }
+      },
+      "PayrollReviewPayslip": {
+        "required": [
+          "payslipId",
+          "employeeName",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "payslipId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "employeeName": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "PayrollReviewVariation": {
+        "required": [
+          "payslipId",
+          "employeeId",
+          "employeeName",
+          "net",
+          "previousNet",
+          "variationPct",
+          "alert"
+        ],
+        "type": "object",
+        "properties": {
+          "payslipId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "employeeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "employeeName": {
+            "type": "string"
+          },
+          "net": {
+            "type": "number",
+            "format": "double"
+          },
+          "previousNet": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "variationPct": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "alert": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PayrollRunCreateInput": {
+        "required": [
+          "period",
+          "type",
+          "employeeIds"
+        ],
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "type": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PayrollRunType"
+              }
+            ]
+          },
+          "employeeIds": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        }
+      },
+      "PayrollRunMode": {
+        "enum": [
+          "Entered",
+          "Calculated"
+        ]
+      },
+      "PayrollRunStatus": {
+        "enum": [
+          "Draft",
+          "Closed",
+          "Paid"
+        ]
+      },
+      "PayrollRunSummary": {
+        "required": [
+          "id",
+          "period",
+          "type",
+          "mode",
+          "status",
+          "payslipCount",
+          "createdAt",
+          "closedAt",
+          "closedByName",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "period": {
+            "type": "string",
+            "format": "date"
+          },
+          "type": {
+            "$ref": "#/components/schemas/PayrollRunType"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/PayrollRunMode"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PayrollRunStatus"
+          },
+          "payslipCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "closedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "closedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "PayrollRunTotals": {
+        "required": [
+          "runId",
+          "gross",
+          "deductions",
+          "net"
+        ],
+        "type": "object",
+        "properties": {
+          "runId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "gross": {
+            "type": "number",
+            "format": "double"
+          },
+          "deductions": {
+            "type": "number",
+            "format": "double"
+          },
+          "net": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "PayrollRunType": {
+        "enum": [
+          "Monthly",
+          "Advance",
+          "Vacation",
+          "Thirteenth1",
+          "Thirteenth2",
+          "Termination"
+        ]
+      },
+      "PayslipDetail": {
+        "required": [
+          "id",
+          "payrollRunId",
+          "employeeId",
+          "employeeName",
+          "registration",
+          "lines",
+          "gross",
+          "deductions",
+          "net",
+          "inssBase",
+          "fgtsBase",
+          "irrfBase",
+          "fgtsAmount",
+          "editable",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "payrollRunId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "employeeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "employeeName": {
+            "type": "string"
+          },
+          "registration": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayslipLineDetail"
+            }
+          },
+          "gross": {
+            "type": "number",
+            "format": "double"
+          },
+          "deductions": {
+            "type": "number",
+            "format": "double"
+          },
+          "net": {
+            "type": "number",
+            "format": "double"
+          },
+          "inssBase": {
+            "type": "number",
+            "format": "double"
+          },
+          "fgtsBase": {
+            "type": "number",
+            "format": "double"
+          },
+          "irrfBase": {
+            "type": "number",
+            "format": "double"
+          },
+          "fgtsAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "editable": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "PayslipInput": {
+        "required": [
+          "lines",
+          "inssBase",
+          "fgtsBase",
+          "irrfBase",
+          "fgtsAmount",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "lines": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/PayslipLineInput"
+            }
+          },
+          "inssBase": {
+            "type": "number",
+            "format": "double"
+          },
+          "fgtsBase": {
+            "type": "number",
+            "format": "double"
+          },
+          "irrfBase": {
+            "type": "number",
+            "format": "double"
+          },
+          "fgtsAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "PayslipLineDetail": {
+        "required": [
+          "payrollItemId",
+          "code",
+          "description",
+          "type",
+          "reference",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "payrollItemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/PayrollItemKind"
+          },
+          "reference": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "PayslipLineInput": {
+        "required": [
+          "payrollItemId",
+          "reference",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "payrollItemId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "reference": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "PayslipPrevious": {
+        "required": [
+          "period",
+          "lines",
+          "inssBase",
+          "fgtsBase",
+          "irrfBase",
+          "fgtsAmount"
+        ],
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayslipLineDetail"
+            }
+          },
+          "inssBase": {
+            "type": "number",
+            "format": "double"
+          },
+          "fgtsBase": {
+            "type": "number",
+            "format": "double"
+          },
+          "irrfBase": {
+            "type": "number",
+            "format": "double"
+          },
+          "fgtsAmount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "PayslipRow": {
+        "required": [
+          "id",
+          "employeeId",
+          "employeeName",
+          "registration",
+          "gross",
+          "deductions",
+          "net",
+          "lineCount",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "employeeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "employeeName": {
+            "type": "string"
+          },
+          "registration": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "gross": {
+            "type": "number",
+            "format": "double"
+          },
+          "deductions": {
+            "type": "number",
+            "format": "double"
+          },
+          "net": {
+            "type": "number",
+            "format": "double"
+          },
+          "lineCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
           }
         }
       },
