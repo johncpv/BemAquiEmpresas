@@ -52,10 +52,24 @@ public sealed class DashboardCache(TimeProvider clock) : IDisposable
             return cached;
         }
 
-        var entry = new CachedCard(await compute(cancellationToken), now);
-        _memory.Set(key, entry, new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = Ttl, Size = 1 });
-        return entry;
+        // DSH-01b CA 10: pedidos simultâneos da mesma chave (os cards de projeto leem a mesma carteira) esperam um cálculo só.
+        var flight = _inflight.GetOrAdd(key, _ => new Lazy<Task<CachedCard>>(async () =>
+        {
+            var entry = new CachedCard(await compute(cancellationToken), clock.GetUtcNow());
+            _memory.Set(key, entry, new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = Ttl, Size = 1 });
+            return entry;
+        }));
+        try
+        {
+            return await flight.Value;
+        }
+        finally
+        {
+            _inflight.TryRemove(new KeyValuePair<string, Lazy<Task<CachedCard>>>(key, flight));
+        }
     }
+
+    private readonly ConcurrentDictionary<string, Lazy<Task<CachedCard>>> _inflight = new(StringComparer.Ordinal);
 
     public void Dispose() => _memory.Dispose();
 }

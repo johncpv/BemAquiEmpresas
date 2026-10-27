@@ -159,3 +159,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 - "Ver origem" de Carteira e Entregas vai à lista de projetos em andamento: a lista ainda não filtra por risco nem por "a faturar".
 - Desempenho: o teste mede a melhor de três com usuário novo e 50% de folga (3 s no painel, 2,25 s por card, 3 s no resultado por projeto), como no DSH-02 CA 18, porque a suíte roda sob carga.
 - O aviso de custo do projeto sobe a geração quando chega; o Commercial pode gravar a razão logo depois (outbox sem ordem): os 60 s do cache cobrem a diferença.
+- Desempenho (CA 10), recomendação aceita (PO 24/10): o `DashboardCache` passou a fazer um cálculo só por chave em pedidos simultâneos (os cards de projeto leem a mesma carteira ao mesmo tempo), e o resultado por projeto, com 500 projetos ou mais, lê a receita e os títulos a pagar em escopos próprios do tenant (outras conexões), em paralelo com a razão, como no `ProjectMarginService.ComputeAsync`.

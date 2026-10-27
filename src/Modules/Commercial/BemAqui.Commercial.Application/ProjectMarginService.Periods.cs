@@ -3,6 +3,7 @@ using BemAqui.Commercial.Domain;
 using BemAqui.Finance.Contracts;
 using BemAqui.SharedKernel;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace BemAqui.Commercial.Application;
 
@@ -28,6 +29,8 @@ public sealed partial class ProjectMarginService
         }
 
         var ids = projectIds.Distinct().ToArray();
+        // Muitos projetos (o resultado por projeto): os títulos do Finance numa conexão própria, em paralelo com a razão (como no ComputeAsync).
+        var parallelPayables = ids.Length >= ParallelPayablesFrom && tenant.Tenant is { } current ? SeparateConfirmedAsync(current, ids, from, to, cancellationToken) : null;
         var ledger = await db.ProjectCosts.AsNoTracking()
             .Where(c => EF.Parameter(ids).Contains(c.ProjectId) && c.OccurredOn >= from && c.OccurredOn <= to)
             .GroupBy(c => new
@@ -39,7 +42,7 @@ public sealed partial class ProjectMarginService
             })
             .Select(g => new { g.Key.ProjectId, g.Key.CostType, g.Key.Year, g.Key.Month, Amount = g.Sum(c => c.Amount) })
             .ToListAsync(cancellationToken);
-        var payables = await payableCosts.ConfirmedByMonthAsync(ids, from, to, cancellationToken);
+        var payables = parallelPayables is null ? await payableCosts.ConfirmedByMonthAsync(ids, from, to, cancellationToken) : await parallelPayables;
         var rows = ledger.Select(l => (l.ProjectId, l.CostType, l.Year, l.Month, l.Amount))
             .Concat(payables.Select(p => (p.ProjectId, p.CostType, p.Year, p.Month, p.Amount)))
             .GroupBy(r => (r.ProjectId, r.CostType, r.Year, r.Month))
@@ -48,6 +51,12 @@ public sealed partial class ProjectMarginService
             .OrderBy(r => r.ProjectId).ThenBy(r => r.Year).ThenBy(r => r.Month).ThenBy(r => r.CostType)
             .ToList();
         return Result<IReadOnlyList<ProjectRealizedByPeriod>>.Success(rows);
+    }
+
+    private async Task<IReadOnlyList<ProjectPayableCostByMonth>> SeparateConfirmedAsync(BemAqui.BuildingBlocks.Tenancy.TenantInfo current, Guid[] ids, DateOnly from, DateOnly to, CancellationToken ct)
+    {
+        await using var scope = await scopes.CreateScopeAsync(current, ct);
+        return await scope.ServiceProvider.GetRequiredService<IProjectPayableCosts>().ConfirmedByMonthAsync(ids, from, to, ct);
     }
 
     /// <summary>

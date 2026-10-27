@@ -1,10 +1,12 @@
 using System.Globalization;
 using BemAqui.BuildingBlocks.Paging;
+using BemAqui.BuildingBlocks.Tenancy;
 using BemAqui.BuildingBlocks.Time;
 using BemAqui.Commercial.Contracts;
 using BemAqui.Finance.Contracts;
 using BemAqui.Parties.Contracts;
 using BemAqui.SharedKernel;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace BemAqui.Dashboard.Application;
 
@@ -15,7 +17,8 @@ namespace BemAqui.Dashboard.Application;
 /// As rotas exigem <c>projects.view_cost</c> e <c>finance.view</c>; a lista e a visão passam pelo cache de 60 s do painel.
 /// </summary>
 public sealed class ProjectResultsService(
-    DashboardAccess access, IProjects projects, IProjectMargins margins, IRevenueSummary revenue, IParties parties, TimeProvider clock)
+    DashboardAccess access, IProjects projects, IProjectMargins margins, IRevenueSummary revenue, IParties parties, TimeProvider clock, ITenantContext tenant,
+    ITenantScopeFactory scopes)
 {
     public async Task<Result<ProjectResultsPage>> ListAsync(
         string? situation, Guid? partyId, string? from, string? to, string? sort, PageRequest page, CancellationToken cancellationToken = default)
@@ -44,8 +47,11 @@ public sealed class ProjectResultsService(
         {
             var list = await projects.ListAsync(statuses, partyId, ct);
             var ids = list.Select(p => p.Id).ToList();
-            var monthly = await revenue.GrossRevenueByProjectsAsync(ids, period.From, period.To, ct);
+            // CA 10: a receita num escopo próprio do tenant (outra conexão), em paralelo com os custos.
+            var separate = ids.Count >= 500 && tenant.Tenant is not null;
+            var revenueTask = separate ? SeparateRevenueAsync(ids, period.From, period.To, ct) : null;
             var costs = await margins.RealizedByPeriodAsync(ids, period.From, period.To, ct);
+            var monthly = revenueTask is null ? await revenue.GrossRevenueByProjectsAsync(ids, period.From, period.To, ct) : await revenueTask;
             if (costs.IsFailure)
             {
                 throw new InvalidOperationException("O realizado por período recusou o pedido: " + costs.Error!.Message);
@@ -145,6 +151,13 @@ public sealed class ProjectResultsService(
 
         var costEntries = realized.Value.Select(e => new ProjectResultEntry(e.Kind, e.Document, e.Date, e.Amount, e.Hours, null, e.Link)).ToList();
         return new ProjectResultCell(type.ToString(), ProjectResultRules.CostLabel(type), MonthOrNull(month), costEntries.Sum(e => e.Amount), costEntries);
+    }
+
+    /// <summary>A receita num escopo próprio do mesmo tenant (outro DbContext e outra conexão), para rodar junto com os custos.</summary>
+    private async Task<IReadOnlyList<ProjectMonthlyRevenue>> SeparateRevenueAsync(List<Guid> ids, DateOnly from, DateOnly to, CancellationToken ct)
+    {
+        await using var scope = await scopes.CreateScopeAsync(tenant.Tenant!, ct);
+        return await scope.ServiceProvider.GetRequiredService<IRevenueSummary>().GrossRevenueByProjectsAsync(ids, from, to, ct);
     }
 
     private static string? MonthOrNull(string? month) => string.IsNullOrWhiteSpace(month) ? null : month;
