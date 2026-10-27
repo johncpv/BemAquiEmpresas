@@ -7,6 +7,7 @@ import { Money } from '@/components/ui/money'
 import { NextSteps } from '@/components/ui/next-steps'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { Tag } from '@/components/ui/tag'
+import { UrlTabs } from '@/components/ui/url-tabs'
 import { Dica } from '@/help/Dica'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
@@ -14,6 +15,7 @@ import { today } from '../receivables/receivables'
 import { FinanceTabs } from '../FinanceTabs'
 import { EntryDialog } from './EntryDialog'
 import { StatementTable } from './StatementTable'
+import { BankStatementTab } from './BankStatementTab'
 import { TransferDialog } from './TransferDialog'
 
 const monthStart = (iso: string) => iso.slice(0, 8) + '01'
@@ -82,12 +84,20 @@ export function StatementPage() {
       <div className="mb-3 flex flex-wrap items-end gap-3">
         <label className="space-y-1 text-sm font-medium">De<DateInput value={from} onChange={(v) => { if (v) set({ de: v, page: undefined }) }} /></label>
         <label className="space-y-1 text-sm font-medium">Até<DateInput value={to} onChange={(v) => { if (v) set({ ate: v, page: undefined }) }} /></label>
-        <label className="flex items-center gap-2 pb-2 text-sm">
-          <input type="checkbox" checked={search.semOp === '1'} onChange={(e) => set({ semOp: e.target.checked ? '1' : undefined, page: undefined })} className="size-4 accent-primary" />
-          Só movimentos sem OP<Dica nome="Sem OP" texto="Tarifas, IOF, juros e rendimentos lançados direto na conta, sem ordem de pagamento. O Proprietário é avisado de cada um." />
-        </label>
       </div>
-      {body}
+      {/* BNK-03a: o extrato do banco (API do Inter ou OFX) fica na aba ao lado do extrato do sistema, com o mesmo período. */}
+      <UrlTabs label="Extratos da conta" fallback="extrato" tabs={[
+        { id: 'extrato', label: 'Extrato do sistema', content: (
+          <div className="space-y-3 pt-3">
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={search.semOp === '1'} onChange={(e) => set({ semOp: e.target.checked ? '1' : undefined, page: undefined })} className="size-4 accent-primary" />
+              Só movimentos sem OP<Dica nome="Sem OP" texto="Tarifas, IOF, juros e rendimentos lançados direto na conta, sem ordem de pagamento. O Proprietário é avisado de cada um." />
+            </label>
+            {body}
+          </div>
+        ) },
+        { id: 'extrato-banco', label: 'Extrato do banco', content: <div className="pt-3"><BankStatementTab accountId={id} from={from} to={to} /></div> },
+      ]} />
     </>
   )
 }

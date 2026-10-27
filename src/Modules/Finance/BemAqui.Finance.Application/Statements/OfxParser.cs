@@ -56,7 +56,14 @@ public static class OfxParser
         }
 
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        timeout.CancelAfter(limits.Timeout);
+        if (limits.Timeout > TimeSpan.Zero)
+        {
+            timeout.CancelAfter(limits.Timeout);
+        }
+        else
+        {
+            timeout.Cancel();
+        }
         try
         {
             timeout.Token.ThrowIfCancellationRequested();
@@ -74,7 +81,7 @@ public static class OfxParser
                 }
 
                 var body = trimmed[start..];
-                if (body.Contains("<!", StringComparison.Ordinal))
+                if (trimmed.Contains("<!", StringComparison.Ordinal))
                 {
                     return Invalid("ofx_dtd", DtdRefused);
                 }

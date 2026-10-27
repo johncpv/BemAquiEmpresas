@@ -53,6 +53,17 @@ public sealed class FakeInterAccount
 
     /// <summary>Só aceita este certificado no mTLS (thumbprint); nulo aceita qualquer.</summary>
     public string? RequiredThumbprint { get; set; }
+
+    /// <summary>BNK-03a: lançamentos do extrato (<c>banking/v2/extrato/completo</c>), devolvidos pela data pedida, um por página de 2.</summary>
+    public ConcurrentQueue<FakeInterTransaction> Statement { get; } = new();
+
+    /// <summary>BNK-03a: saldo devolvido por <c>banking/v2/saldo?dataSaldo=</c> (o padrão é 1500,25).</summary>
+    public ConcurrentDictionary<DateOnly, decimal> Balances { get; } = new();
+
+    public HttpStatusCode StatementStatus { get; set; } = HttpStatusCode.OK;
+
+    /// <summary>Lançamentos por página na resposta do extrato do fake (força a paginação).</summary>
+    public int StatementPageSize { get; set; } = 2;
 }
 
 /// <summary>
@@ -138,6 +149,31 @@ public sealed class FakeInter : IInterHandlerFactory
                 return Json(HttpStatusCode.Unauthorized, "{}");
             }
 
+            var query = request.RequestUri.Query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries).Select(p => p.Split('=', 2))
+                .ToDictionary(p => p[0], p => p.Length > 1 ? Uri.UnescapeDataString(p[1]) : string.Empty, StringComparer.Ordinal);
+            if (request.RequestUri.AbsolutePath == "/banking/v2/extrato/completo")
+            {
+                if (owner.StatementStatus != HttpStatusCode.OK)
+                {
+                    return Json(owner.StatementStatus, "{}");
+                }
+
+                var from = DateOnly.Parse(query["dataInicio"], System.Globalization.CultureInfo.InvariantCulture);
+                var to = DateOnly.Parse(query["dataFim"], System.Globalization.CultureInfo.InvariantCulture);
+                var page = int.Parse(query.GetValueOrDefault("pagina") ?? "0", System.Globalization.CultureInfo.InvariantCulture);
+                var all = owner.Statement.Where(t => t.Date >= from && t.Date <= to).ToList();
+                var size = Math.Max(1, owner.StatementPageSize);
+                var pages = Math.Max(1, (int)Math.Ceiling(all.Count / (double)size));
+                var items = string.Join(',', all.Skip(page * size).Take(size).Select(t => t.Json()));
+                return Json(HttpStatusCode.OK, $"{{\"totalPaginas\":{pages},\"totalElementos\":{all.Count},\"ultimaPagina\":{(page + 1 >= pages ? "true" : "false")},\"transacoes\":[{items}]}}");
+            }
+
+            if (request.RequestUri.AbsolutePath == "/banking/v2/saldo" && query.TryGetValue("dataSaldo", out var day))
+            {
+                var value = owner.Balances.TryGetValue(DateOnly.Parse(day, System.Globalization.CultureInfo.InvariantCulture), out var b) ? b : 1500.25m;
+                return Json(owner.BalanceStatus, $"{{\"disponivel\":{value.ToString(System.Globalization.CultureInfo.InvariantCulture)},\"bloqueadoCheque\":0,\"limite\":5000}}");
+            }
+
             var response = Json(owner.BalanceStatus, "{\"disponivel\":1500.25,\"pagador\":{\"nome\":\"Maria da Silva\",\"cpf\":\"52998224725\"}}");
             response.Headers.Add("x-correlation-id", "corr-" + Guid.NewGuid().ToString("N")[..8]);
             return response;
@@ -155,5 +191,19 @@ public sealed class FakeInter : IInterHandlerFactory
 
         private static HttpResponseMessage Json(HttpStatusCode status, string body) =>
             new(status) { Content = new StringContent(body, Encoding.UTF8, "application/json") };
+    }
+}
+
+/// <summary>Lançamento do extrato do fake do Inter (formato do <c>extrato/completo</c>; o valor vai como texto, como no Inter).</summary>
+public sealed record FakeInterTransaction(string Id, DateOnly Date, decimal Amount, string Type = "PIX", string Title = "Pix recebido", string Description = "PIX RECEBIDO - Cp :12345678",
+    string? Name = "Maria da Silva", string? Document = "52998224725")
+{
+    public string Json()
+    {
+        var operation = Amount < 0 ? "D" : "C";
+        var role = Amount < 0 ? "Recebedor" : "Pagador";
+        var details = Name is null ? "{}" : $"{{\"nome{role}\":\"{Name}\",\"cpfCnpj{role}\":\"{Document}\"}}";
+        return $"{{\"idTransacao\":\"{Id}\",\"dataInclusao\":\"{Date:yyyy-MM-dd} 10:00:00\",\"dataTransacao\":\"{Date:yyyy-MM-dd}\",\"tipoTransacao\":\"{Type}\",\"tipoOperacao\":\"{operation}\","
+            + $"\"valor\":\"{Math.Abs(Amount).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)}\",\"titulo\":\"{Title}\",\"descricao\":\"{Description}\",\"detalhes\":{details}}}";
     }
 }

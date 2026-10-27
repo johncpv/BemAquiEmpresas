@@ -206,7 +206,7 @@ public sealed partial class BankStatementImportService
     /// Conta do arquivo (<c>BANKID</c>/<c>ACCTID</c>) contra a escolhida (CA 4): o banco pelo código COMPE; a conta pelos dígitos, com ou
     /// sem o dígito verificador e com ou sem a agência na frente (bancos exportam dos dois jeitos).
     /// </summary>
-    internal static Error? AccountCheck(BankAccount account, OfxStatement statement)
+    public static Error? AccountCheck(BankAccount account, OfxStatement statement)
     {
         var file = Digits(statement.AccountId);
         if (file.Length == 0)

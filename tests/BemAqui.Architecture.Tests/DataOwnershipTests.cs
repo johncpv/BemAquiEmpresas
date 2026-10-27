@@ -25,6 +25,7 @@ public partial class DataOwnershipTests
         ["Migrations/BemAqui.Migrations.Application/ImportSession.cs"] = "xmin gravado na staging da importação",
         ["Production/BemAqui.Production.Application/ScheduleService.cs"] = "substituição do plano (schedule_allocations e schedule_step_forecasts) numa transação; as tabelas do plano ficam fora da auditoria e o histórico é a schedule_runs (PLN-01a, ADR 0029)",
         ["Inventory/BemAqui.Inventory.Application/StockLedger.cs"] = "trava do motor de estoque: INSERT … ON CONFLICT DO NOTHING da posição, do lote e do saldo por lote antes do SELECT … FOR UPDATE (ADR 0023 §2); o movimento é a trilha",
+        ["Finance/BemAqui.Finance.Application/Statements/BankStatementImportService.Commands.cs"] = "\"Desfazer importação\" (BNK-03a CA 9): as linhas do lote viram Undone e o saldo trazido pelo lote sai numa transação; o lote desfeito (quem, quando, motivo) é a trilha auditada",
     };
 
     [GeneratedRegex(@"\.(ExecuteUpdate|ExecuteDelete|ExecuteSql)\w*\(")]

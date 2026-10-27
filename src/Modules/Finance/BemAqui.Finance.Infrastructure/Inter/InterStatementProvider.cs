@@ -107,7 +107,7 @@ public sealed class InterStatementProvider(IInterApiClient inter, IOptions<BankS
     }
 
     /// <summary>Um item de <c>transacoes</c>: <c>idTransacao</c>, <c>dataTransacao</c> (ou <c>dataInclusao</c>), <c>tipoOperacao</c> C/D, <c>valor</c>.</summary>
-    internal static ProviderStatementLine? Line(JsonElement item)
+    public static ProviderStatementLine? Line(JsonElement item)
     {
         var id = Text(item, "idTransacao");
         var date = Date(Text(item, "dataTransacao")) ?? Date(Text(item, "dataEntrada")) ?? Date(Text(item, "dataInclusao"));

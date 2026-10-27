@@ -43,6 +43,11 @@ public sealed class BankIntegrationFixture : IAsyncLifetime
 
     public FakeInter Inter { get; } = new();
 
+    /// <summary>Antivírus do extrato OFX (BNK-03a CA 4): limpo por padrão; o teste troca o veredito.</summary>
+    public BemAqui.Integration.Tests.Attachments.FakeScanner Scanner { get; } = new();
+
+    public string FilesRoot { get; } = Directory.CreateTempSubdirectory("bemaqui-inter-files-").FullName;
+
     public MemorySink Logs { get; } = new();
 
     public CapturingAlertSink Alerts { get; } = new();
@@ -60,6 +65,8 @@ public sealed class BankIntegrationFixture : IAsyncLifetime
                 s.AddSingleton<ILogEventSink>(Logs);
                 s.RemoveAll<IAlertSink>();
                 s.AddSingleton<IAlertSink>(Alerts);
+                s.AddSingleton<BemAqui.BuildingBlocks.Attachments.IVirusScanner>(Scanner);
+                s.Configure<BemAqui.BuildingBlocks.Attachments.FileStorageOptions>(o => o.Root = FilesRoot);
             });
         });
         _ = Factory.Server;
