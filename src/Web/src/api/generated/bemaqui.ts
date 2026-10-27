@@ -60,9 +60,13 @@ import type {
   BalancesCard,
   BankAccountDetail,
   BankAccountInput,
+  BankConnectionTest,
   BankEntryDetail,
   BankEntryInput,
   BankInfo,
+  BankIntegrationDetail,
+  BankIntegrationForm,
+  BankIntegrationList,
   BankTransferDetail,
   BomComparison,
   BomCopyInput,
@@ -126,6 +130,7 @@ import type {
   DecisionsCard,
   DeleteQuoteParams,
   DeviceThemeInput,
+  DisableBankIntegrationParams,
   DisableTwoFactorRequest,
   DiscountsAndCancellations,
   DocumentCheck,
@@ -660,6 +665,8 @@ import type {
   SplitPreviewInput,
   SplitPreviewRequest,
   StatementResult,
+  StepUpRequest,
+  StepUpResponse,
   StockAdjustmentDecisionInput,
   StockAdjustmentDetail,
   StockAdjustmentInput,
@@ -5035,6 +5042,88 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getDisableTwoFactorMutationOptions(options), queryClient);
+    }
+
+export const getStepUpTwoFactorUrl = () => {
+
+
+
+
+  return `/api/v1/me/2fa/step-up`
+}
+
+export const stepUpTwoFactor = async (stepUpRequest: StepUpRequest, options?: Parameters<typeof apiFetch>[1]): Promise<StepUpResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<StepUpResponse>(getStepUpTwoFactorUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(stepUpRequest)
+  }
+);}
+
+
+
+
+
+export const getStepUpTwoFactorMutationKey = () => ['stepUpTwoFactor'] as const;
+
+export const getStepUpTwoFactorMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stepUpTwoFactor>>, TError,StepUpTwoFactorMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof stepUpTwoFactor>>, TError,StepUpTwoFactorMutationVariables, TContext> => {
+
+const mutationKey = getStepUpTwoFactorMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof stepUpTwoFactor>>, StepUpTwoFactorMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  stepUpTwoFactor(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StepUpTwoFactorMutationResult = NonNullable<Awaited<ReturnType<typeof stepUpTwoFactor>>>
+    export type StepUpTwoFactorMutationBody = StepUpRequest
+    export type StepUpTwoFactorMutationError = unknown
+    export type StepUpTwoFactorMutationVariables = {data: StepUpRequest}
+
+    export const useStepUpTwoFactor = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stepUpTwoFactor>>, TError,StepUpTwoFactorMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof stepUpTwoFactor>>,
+        TError,
+        StepUpTwoFactorMutationVariables,
+        TContext
+      > => {
+      return useMutation(getStepUpTwoFactorMutationOptions(options), queryClient);
     }
 
 export const getListGroupsUrl = () => {
@@ -60221,6 +60310,541 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getReversePaymentOrderMutationOptions(options), queryClient);
+    }
+
+export const getListBankIntegrationsUrl = () => {
+
+
+
+
+  return `/api/v1/settings/integrations/inter`
+}
+
+export const listBankIntegrations = async ( options?: Parameters<typeof apiFetch>[1]): Promise<BankIntegrationList> => {
+
+  return apiFetch<BankIntegrationList>(getListBankIntegrationsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListBankIntegrationsQueryKey = () => {
+    return [
+    `/api/v1/settings/integrations/inter`
+    ] as const;
+    }
+
+
+export const getListBankIntegrationsQueryOptions = <TData = Awaited<ReturnType<typeof listBankIntegrations>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBankIntegrations>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListBankIntegrationsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listBankIntegrations>>> = ({ signal }) => listBankIntegrations({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listBankIntegrations>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListBankIntegrationsQueryResult = NonNullable<Awaited<ReturnType<typeof listBankIntegrations>>>
+export type ListBankIntegrationsQueryError = unknown
+
+
+export function useListBankIntegrations<TData = Awaited<ReturnType<typeof listBankIntegrations>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBankIntegrations>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listBankIntegrations>>,
+          TError,
+          Awaited<ReturnType<typeof listBankIntegrations>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListBankIntegrations<TData = Awaited<ReturnType<typeof listBankIntegrations>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBankIntegrations>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listBankIntegrations>>,
+          TError,
+          Awaited<ReturnType<typeof listBankIntegrations>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListBankIntegrations<TData = Awaited<ReturnType<typeof listBankIntegrations>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBankIntegrations>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListBankIntegrations<TData = Awaited<ReturnType<typeof listBankIntegrations>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBankIntegrations>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListBankIntegrationsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetBankIntegrationUrl = (bankAccountId: string,) => {
+
+
+
+
+  return `/api/v1/settings/integrations/inter/${bankAccountId}`
+}
+
+export const getBankIntegration = async (bankAccountId: string, options?: Parameters<typeof apiFetch>[1]): Promise<BankIntegrationDetail> => {
+
+  return apiFetch<BankIntegrationDetail>(getGetBankIntegrationUrl(bankAccountId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBankIntegrationQueryKey = (bankAccountId: string,) => {
+    return [
+    `/api/v1/settings/integrations/inter/${bankAccountId}`
+    ] as const;
+    }
+
+
+export const getGetBankIntegrationQueryOptions = <TData = Awaited<ReturnType<typeof getBankIntegration>>, TError = unknown>(bankAccountId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBankIntegration>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBankIntegrationQueryKey(bankAccountId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBankIntegration>>> = ({ signal }) => getBankIntegration(bankAccountId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: bankAccountId !== null && bankAccountId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBankIntegration>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetBankIntegrationQueryResult = NonNullable<Awaited<ReturnType<typeof getBankIntegration>>>
+export type GetBankIntegrationQueryError = unknown
+
+
+export function useGetBankIntegration<TData = Awaited<ReturnType<typeof getBankIntegration>>, TError = unknown>(
+ bankAccountId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBankIntegration>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBankIntegration>>,
+          TError,
+          Awaited<ReturnType<typeof getBankIntegration>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetBankIntegration<TData = Awaited<ReturnType<typeof getBankIntegration>>, TError = unknown>(
+ bankAccountId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBankIntegration>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBankIntegration>>,
+          TError,
+          Awaited<ReturnType<typeof getBankIntegration>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetBankIntegration<TData = Awaited<ReturnType<typeof getBankIntegration>>, TError = unknown>(
+ bankAccountId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBankIntegration>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetBankIntegration<TData = Awaited<ReturnType<typeof getBankIntegration>>, TError = unknown>(
+ bankAccountId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBankIntegration>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetBankIntegrationQueryOptions(bankAccountId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSaveBankIntegrationUrl = (bankAccountId: string,) => {
+
+
+
+
+  return `/api/v1/settings/integrations/inter/${bankAccountId}`
+}
+
+export const saveBankIntegration = async (bankAccountId: string,
+    bankIntegrationForm: BankIntegrationForm, options?: Parameters<typeof apiFetch>[1]): Promise<BankIntegrationDetail> => {
+    const formData = new FormData();
+if(bankIntegrationForm.environment !== undefined && bankIntegrationForm.environment !== null) {
+ formData.append(`environment`, bankIntegrationForm.environment);
+ }
+if(bankIntegrationForm.clientId !== undefined && bankIntegrationForm.clientId !== null) {
+ formData.append(`clientId`, bankIntegrationForm.clientId);
+ }
+if(bankIntegrationForm.clientSecret !== undefined && bankIntegrationForm.clientSecret !== null) {
+ formData.append(`clientSecret`, bankIntegrationForm.clientSecret);
+ }
+if(bankIntegrationForm.accountNumber !== undefined && bankIntegrationForm.accountNumber !== null) {
+ formData.append(`accountNumber`, bankIntegrationForm.accountNumber);
+ }
+if(bankIntegrationForm.certificate !== undefined && bankIntegrationForm.certificate !== null) {
+ formData.append(`certificate`, bankIntegrationForm.certificate);
+ }
+if(bankIntegrationForm.privateKey !== undefined && bankIntegrationForm.privateKey !== null) {
+ formData.append(`privateKey`, bankIntegrationForm.privateKey);
+ }
+if(bankIntegrationForm.pfx !== undefined && bankIntegrationForm.pfx !== null) {
+ formData.append(`pfx`, bankIntegrationForm.pfx);
+ }
+if(bankIntegrationForm.pfxPassword !== undefined && bankIntegrationForm.pfxPassword !== null) {
+ formData.append(`pfxPassword`, bankIntegrationForm.pfxPassword);
+ }
+if(bankIntegrationForm.confirmProduction !== undefined) {
+ formData.append(`confirmProduction`, bankIntegrationForm.confirmProduction.toString())
+ }
+if(bankIntegrationForm.version !== undefined && bankIntegrationForm.version !== null) {
+ formData.append(`version`, bankIntegrationForm.version.toString())
+ }
+
+  return apiFetch<BankIntegrationDetail>(getSaveBankIntegrationUrl(bankAccountId),
+  {
+    ...options,
+    method: 'PUT'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getSaveBankIntegrationMutationKey = () => ['saveBankIntegration'] as const;
+
+export const getSaveBankIntegrationMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveBankIntegration>>, TError,SaveBankIntegrationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveBankIntegration>>, TError,SaveBankIntegrationMutationVariables, TContext> => {
+
+const mutationKey = getSaveBankIntegrationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveBankIntegration>>, SaveBankIntegrationMutationVariables> = (props) => {
+          const {bankAccountId,data} = props ?? {};
+
+          return  saveBankIntegration(bankAccountId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveBankIntegrationMutationResult = NonNullable<Awaited<ReturnType<typeof saveBankIntegration>>>
+    export type SaveBankIntegrationMutationBody = BankIntegrationForm
+    export type SaveBankIntegrationMutationError = unknown
+    export type SaveBankIntegrationMutationVariables = {bankAccountId: string;data: BankIntegrationForm}
+
+    export const useSaveBankIntegration = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveBankIntegration>>, TError,SaveBankIntegrationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof saveBankIntegration>>,
+        TError,
+        SaveBankIntegrationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSaveBankIntegrationMutationOptions(options), queryClient);
+    }
+
+export const getDisableBankIntegrationUrl = (bankAccountId: string,
+    params?: DisableBankIntegrationParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/settings/integrations/inter/${bankAccountId}?${stringifiedParams}` : `/api/v1/settings/integrations/inter/${bankAccountId}`
+}
+
+export const disableBankIntegration = async (bankAccountId: string,
+    params?: DisableBankIntegrationParams, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDisableBankIntegrationUrl(bankAccountId,params),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDisableBankIntegrationMutationKey = () => ['disableBankIntegration'] as const;
+
+export const getDisableBankIntegrationMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof disableBankIntegration>>, TError,DisableBankIntegrationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof disableBankIntegration>>, TError,DisableBankIntegrationMutationVariables, TContext> => {
+
+const mutationKey = getDisableBankIntegrationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof disableBankIntegration>>, DisableBankIntegrationMutationVariables> = (props) => {
+          const {bankAccountId,params} = props ?? {};
+
+          return  disableBankIntegration(bankAccountId,params,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DisableBankIntegrationMutationResult = NonNullable<Awaited<ReturnType<typeof disableBankIntegration>>>
+
+    export type DisableBankIntegrationMutationError = unknown
+    export type DisableBankIntegrationMutationVariables = {bankAccountId: string;params?: DisableBankIntegrationParams}
+
+    export const useDisableBankIntegration = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof disableBankIntegration>>, TError,DisableBankIntegrationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof disableBankIntegration>>,
+        TError,
+        DisableBankIntegrationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDisableBankIntegrationMutationOptions(options), queryClient);
+    }
+
+export const getRotateBankIntegrationUrl = (bankAccountId: string,) => {
+
+
+
+
+  return `/api/v1/settings/integrations/inter/${bankAccountId}/rotate`
+}
+
+export const rotateBankIntegration = async (bankAccountId: string,
+    bankIntegrationForm: BankIntegrationForm, options?: Parameters<typeof apiFetch>[1]): Promise<BankIntegrationDetail> => {
+    const formData = new FormData();
+if(bankIntegrationForm.environment !== undefined && bankIntegrationForm.environment !== null) {
+ formData.append(`environment`, bankIntegrationForm.environment);
+ }
+if(bankIntegrationForm.clientId !== undefined && bankIntegrationForm.clientId !== null) {
+ formData.append(`clientId`, bankIntegrationForm.clientId);
+ }
+if(bankIntegrationForm.clientSecret !== undefined && bankIntegrationForm.clientSecret !== null) {
+ formData.append(`clientSecret`, bankIntegrationForm.clientSecret);
+ }
+if(bankIntegrationForm.accountNumber !== undefined && bankIntegrationForm.accountNumber !== null) {
+ formData.append(`accountNumber`, bankIntegrationForm.accountNumber);
+ }
+if(bankIntegrationForm.certificate !== undefined && bankIntegrationForm.certificate !== null) {
+ formData.append(`certificate`, bankIntegrationForm.certificate);
+ }
+if(bankIntegrationForm.privateKey !== undefined && bankIntegrationForm.privateKey !== null) {
+ formData.append(`privateKey`, bankIntegrationForm.privateKey);
+ }
+if(bankIntegrationForm.pfx !== undefined && bankIntegrationForm.pfx !== null) {
+ formData.append(`pfx`, bankIntegrationForm.pfx);
+ }
+if(bankIntegrationForm.pfxPassword !== undefined && bankIntegrationForm.pfxPassword !== null) {
+ formData.append(`pfxPassword`, bankIntegrationForm.pfxPassword);
+ }
+if(bankIntegrationForm.confirmProduction !== undefined) {
+ formData.append(`confirmProduction`, bankIntegrationForm.confirmProduction.toString())
+ }
+if(bankIntegrationForm.version !== undefined && bankIntegrationForm.version !== null) {
+ formData.append(`version`, bankIntegrationForm.version.toString())
+ }
+
+  return apiFetch<BankIntegrationDetail>(getRotateBankIntegrationUrl(bankAccountId),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getRotateBankIntegrationMutationKey = () => ['rotateBankIntegration'] as const;
+
+export const getRotateBankIntegrationMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rotateBankIntegration>>, TError,RotateBankIntegrationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof rotateBankIntegration>>, TError,RotateBankIntegrationMutationVariables, TContext> => {
+
+const mutationKey = getRotateBankIntegrationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof rotateBankIntegration>>, RotateBankIntegrationMutationVariables> = (props) => {
+          const {bankAccountId,data} = props ?? {};
+
+          return  rotateBankIntegration(bankAccountId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RotateBankIntegrationMutationResult = NonNullable<Awaited<ReturnType<typeof rotateBankIntegration>>>
+    export type RotateBankIntegrationMutationBody = BankIntegrationForm
+    export type RotateBankIntegrationMutationError = unknown
+    export type RotateBankIntegrationMutationVariables = {bankAccountId: string;data: BankIntegrationForm}
+
+    export const useRotateBankIntegration = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rotateBankIntegration>>, TError,RotateBankIntegrationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof rotateBankIntegration>>,
+        TError,
+        RotateBankIntegrationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRotateBankIntegrationMutationOptions(options), queryClient);
+    }
+
+export const getTestBankIntegrationUrl = (bankAccountId: string,) => {
+
+
+
+
+  return `/api/v1/settings/integrations/inter/${bankAccountId}/test`
+}
+
+export const testBankIntegration = async (bankAccountId: string, options?: Parameters<typeof apiFetch>[1]): Promise<BankConnectionTest> => {
+
+  return apiFetch<BankConnectionTest>(getTestBankIntegrationUrl(bankAccountId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getTestBankIntegrationMutationKey = () => ['testBankIntegration'] as const;
+
+export const getTestBankIntegrationMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof testBankIntegration>>, TError,TestBankIntegrationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof testBankIntegration>>, TError,TestBankIntegrationMutationVariables, TContext> => {
+
+const mutationKey = getTestBankIntegrationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof testBankIntegration>>, TestBankIntegrationMutationVariables> = (props) => {
+          const {bankAccountId} = props ?? {};
+
+          return  testBankIntegration(bankAccountId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TestBankIntegrationMutationResult = NonNullable<Awaited<ReturnType<typeof testBankIntegration>>>
+
+    export type TestBankIntegrationMutationError = unknown
+    export type TestBankIntegrationMutationVariables = {bankAccountId: string}
+
+    export const useTestBankIntegration = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof testBankIntegration>>, TError,TestBankIntegrationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof testBankIntegration>>,
+        TError,
+        TestBankIntegrationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getTestBankIntegrationMutationOptions(options), queryClient);
     }
 
 export const getListImportRunsUrl = (params?: ListImportRunsParams,) => {
