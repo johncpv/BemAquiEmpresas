@@ -26,11 +26,16 @@ public sealed class EmployeeBankAccountsContract(IHrDb db, IPermissionChecker pe
         var now = clock.GetUtcNow();
         var rows = await db.Employees.IgnoreQueryFilters().AsNoTracking().Where(e => ids.Contains(e.Id))
             .Select(e => new { e.Id, e.Name, e.Registration, e.BankAccountVersion, e.BankAccount, e.PixKeyType, e.BankQuarantineUntil, e.BankReviewedAt }).ToListAsync(cancellationToken);
-        // "Novo na folha": nenhum holerite numa folha já fechada ou paga.
-        var veterans = (await (from p in db.Payslips.AsNoTracking()
-                               join r in db.PayrollRuns.AsNoTracking() on p.PayrollRunId equals r.Id
-                               where ids.Contains(p.EmployeeId) && r.Status != PayrollRunStatus.Draft
-                               select p.EmployeeId).Distinct().ToListAsync(cancellationToken)).ToHashSet();
+        // "Novo na folha": nenhum holerite em outra folha fechada ou paga. O salário pago vem de uma folha fechada, que já conta uma vez;
+        // veterano é quem aparece em duas ou mais.
+        var closedRuns = (from p in db.Payslips.AsNoTracking()
+                          join r in db.PayrollRuns.AsNoTracking() on p.PayrollRunId equals r.Id
+                          where ids.Contains(p.EmployeeId) && r.Status != PayrollRunStatus.Draft
+                          select new { p.EmployeeId, RunId = r.Id }).Distinct();
+        var veterans = (await (from x in closedRuns
+                               group x by x.EmployeeId into g
+                               where g.Count() > 1
+                               select g.Key).ToListAsync(cancellationToken)).ToHashSet();
         return rows.Select(r => new EmployeeBankAccountSummary(r.Id, r.Name, r.Registration, r.BankAccountVersion, Tail(r.BankAccount, r.PixKeyType), !veterans.Contains(r.Id),
             EmployeeBankRules.InQuarantine(r.BankQuarantineUntil, r.BankReviewedAt, now), r.BankQuarantineUntil, r.BankReviewedAt)).ToList();
     }

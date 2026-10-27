@@ -112,9 +112,11 @@ public partial class PayrollClosingTests
         var key = Guid.NewGuid();
         var (runB, _, _, _) = await ReadyRunAsync(owner, "2035-03");
         var v = await RunVersionAsync(owner.Client, runB);
-        var once = await owner.Client.SendAsync(Post($"{Runs}/{runB}/close", new { paymentDate = "2035-03-30", twoFactorCode = owner.Codes!.Next(), version = v }, key));
+        // O reenvio leva o mesmo corpo (mesmo código 2FA): corpo diferente com a mesma chave é 422 idempotency_key_reused.
+        var body = new { paymentDate = "2035-03-30", twoFactorCode = owner.Codes!.Next(), version = v };
+        var once = await owner.Client.SendAsync(Post($"{Runs}/{runB}/close", body, key));
         once.StatusCode.Should().Be(HttpStatusCode.OK, await once.Content.ReadAsStringAsync());
-        var again = await owner.Client.SendAsync(Post($"{Runs}/{runB}/close", new { paymentDate = "2035-03-30", twoFactorCode = owner.Codes!.Next(), version = v }, key));
+        var again = await owner.Client.SendAsync(Post($"{Runs}/{runB}/close", body, key));
         again.StatusCode.Should().Be(HttpStatusCode.OK);
         (await PayrollPayablesAsync(runB)).Should().HaveCount(3);
 

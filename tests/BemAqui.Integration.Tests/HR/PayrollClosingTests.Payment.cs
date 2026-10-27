@@ -82,14 +82,15 @@ public partial class PayrollClosingTests
         var order = await JsonAsync(submitted);
         var orderId = order.GetProperty("summary").GetProperty("id").GetGuid();
         var snapshot = await DbAsync(db => db.PaymentOrderItems.Where(i => i.PayableId == salaryA.Id).Select(i => i.PayeeSnapshot).SingleAsync());
-        snapshot.Should().NotContain(AccountCanary).And.Contain("\"agency\": null").And.Contain("****-71").And.Contain("\"bankAccountVersion\":1");
+        snapshot.Should().NotContain(AccountCanary).And.Contain("\"agency\": null").And.Contain("****-71").And.Contain("\"bankAccountVersion\": 1");
         order.GetProperty("items").EnumerateArray().Single(i => i.GetProperty("payableId").GetGuid() == salaryA.Id).GetProperty("warnings").EnumerateArray()
             .Select(w => w.GetString()).Should().Contain("Novo na folha.");
 
         var approved = await approver.Client.PostAsJsonAsync($"{Orders}/{orderId}/approve", new { comment = (string?)null, version = order.GetProperty("version").GetUInt32() });
         approved.StatusCode.Should().Be(HttpStatusCode.OK, await approved.Content.ReadAsStringAsync());
-        var version = (await JsonAsync(approved)).GetProperty("version").GetUInt32();
-        var items = (await JsonAsync(approved)).GetProperty("items").EnumerateArray().Select(i => new { itemId = i.GetProperty("id").GetGuid(), interest = 0m, fine = 0m, discount = 0m }).ToList();
+        var approvedBody = await JsonAsync(approved);
+        var version = approvedBody.GetProperty("version").GetUInt32();
+        var items = approvedBody.GetProperty("items").EnumerateArray().Select(i => new { itemId = i.GetProperty("id").GetGuid(), interest = 0m, fine = 0m, discount = 0m }).ToList();
         var bank = await BankAsync(owner.Client);
 
         // CA 10: a conta em claro só no "Pagar", com no-store e SensitiveRead com o número da OP; só com finance.pay.
