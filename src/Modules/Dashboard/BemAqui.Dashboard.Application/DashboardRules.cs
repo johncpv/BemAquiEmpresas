@@ -81,9 +81,10 @@ public static class DashboardRules
     /// <summary>
     /// Faixa "Atenção" (CA 10): caixa ajustado negativo nos próximos 90 dias (crítico), decisões aguardando (alerta, com total e
     /// o primeiro vencimento) e o maior título vencido (alerta, com dias e o atraso médio do cliente). Cada alerta leva à ação
-    /// (R-PRP-5); sem alerta, a lista vem vazia e a faixa não aparece.
+    /// (R-PRP-5); sem alerta, a lista vem vazia e a faixa não aparece. A DSH-01b (CA 4) põe o projeto que mais vai atrasar em relação ao
+    /// prometido (crítico, com o link para o cronograma) logo depois do caixa: caixa → projeto → decisões → maior vencido.
     /// </summary>
-    public static IReadOnlyList<AttentionAlert> Attention(DateOnly today, CashForecastCard? cash, DecisionsCard? decisions, OverdueCard? overdue)
+    public static IReadOnlyList<AttentionAlert> Attention(DateOnly today, CashForecastCard? cash, DecisionsCard? decisions, OverdueCard? overdue, DeliveriesCard? deliveries = null)
     {
         var alerts = new List<AttentionAlert>();
         if (cash is { Available: true, FirstAdjustedNegative: { } negative } && negative.Date <= today.AddDays(NegativeCashHorizonDays))
@@ -91,6 +92,16 @@ public static class DashboardRules
             alerts.Add(new AttentionAlert("cash_negative", "crit", $"O caixa ajustado fica negativo em {Day(negative.Date)}",
                 $"Saldo previsto de {Money(negative.Balance)} nesse dia, contando o atraso histórico de cada cliente. Veja o que vence e o que dá para adiar.",
                 "/app/financeiro/fluxo-de-caixa?cenario=ajustado"));
+        }
+
+        if (deliveries?.MostDelayed is { } late)
+        {
+            var name = string.IsNullOrWhiteSpace(late.Name) ? late.Number : late.Name;
+            var detail = late.ForecastDate is { } f && late.PromisedDate is { } p
+                ? $"Previsão {Day(f)}, prometido ao cliente {Day(p)}."
+                : "A previsão passou da data prometida ao cliente.";
+            alerts.Add(new AttentionAlert("project_late", "crit", $"{name} vai atrasar {late.DelayDays} {(late.DelayDays == 1 ? "dia" : "dias")}", detail,
+                $"/app/projetos/{late.ProjectId}?aba=cronograma"));
         }
 
         if (decisions is { Available: true, Total: > 0 })

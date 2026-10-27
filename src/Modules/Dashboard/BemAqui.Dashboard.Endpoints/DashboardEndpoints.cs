@@ -45,6 +45,8 @@ internal static class DashboardEndpoints
         cards.MapGet("/decisions", async (DashboardService service, CancellationToken ct) => Results.Ok(await service.DecisionsAsync(ct)))
             .RequireAnyPermissionOf("finance.approve", "projects.approve", "production.approve_quality", "purchasing.approve", "hr.approve")
             .WithName("GetDashboardDecisions").Produces<DecisionsCard>();
+        cards.MapOwnerCards();
+        dashboard.MapProjectResults();
         return api;
     }
 }

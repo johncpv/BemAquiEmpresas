@@ -26,6 +26,24 @@ public sealed class InstallationOrdersContract(IProductionDb db) : IInstallation
         await db.ProductionOrders.AsNoTracking().Where(o => o.Id == orderId && o.Type == ProductionOrderType.Installation).Select(o => (ProductionOrderStatus?)o.Status)
             .FirstOrDefaultAsync(cancellationToken) is { } status ? State(status) : null;
 
+    public async Task<IReadOnlyDictionary<Guid, DateOnly>> LatestPlannedEndsAsync(IReadOnlyCollection<Guid> projectIds, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(projectIds);
+        if (projectIds.Count == 0)
+        {
+            return new Dictionary<Guid, DateOnly>();
+        }
+
+        var ids = projectIds.Distinct().ToArray();
+        // Mesma regra do ByProjectAsync lido um a um: fim sem data conta como a data mínima.
+        var rows = await db.ProductionOrders.AsNoTracking()
+            .Where(o => EF.Parameter(ids).Contains(o.ProjectId) && o.Type == ProductionOrderType.Installation && o.Status != ProductionOrderStatus.Cancelled)
+            .GroupBy(o => o.ProjectId)
+            .Select(g => new { g.Key, End = g.Max(o => o.PlannedEnd) })
+            .ToListAsync(cancellationToken);
+        return rows.ToDictionary(r => r.Key, r => r.End ?? default);
+    }
+
     /// <summary>Mapeamento explícito (PRD-01 CA 19): as situações da fabricação nunca lançam exceção aqui.</summary>
     internal static InstallationState State(ProductionOrderStatus status) => status switch
     {

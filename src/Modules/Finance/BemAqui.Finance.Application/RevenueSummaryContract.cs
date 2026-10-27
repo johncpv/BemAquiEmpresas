@@ -40,4 +40,18 @@ public sealed class RevenueSummaryContract(DreService dre, RevenueRecognitionRou
             .GroupBy(a => (Project: a.ProjectId!.Value, Month: DreBuilder.MonthOf(a.Date))).ToDictionary(g => g.Key, g => g.Sum(a => a.Amount));
         return projectIds.Distinct().SelectMany(p => months.Select(m => new ProjectMonthlyRevenue(p, m.Year, m.Month, sums.GetValueOrDefault((p, m)), routed.IsProvisional(m)))).ToList();
     }
+
+    public async Task<IReadOnlyList<ProjectRevenueDocument>> GrossRevenueDocumentsAsync(Guid projectId, DateOnly from, DateOnly to, CancellationToken cancellationToken = default)
+    {
+        var (accounts, _) = await dre.AccountsAsync(cancellationToken);
+        var gross = accounts.Where(a => a.Group == DreGroup.GrossRevenue).Select(a => a.Id).ToList();
+        if (gross.Count == 0)
+        {
+            return [];
+        }
+
+        var documents = await revenue.DocumentsAsync(gross, from, to, cancellationToken);
+        return documents.Where(d => d.ProjectId == projectId).OrderBy(d => d.Date).ThenBy(d => d.Number, StringComparer.Ordinal)
+            .Select(d => new ProjectRevenueDocument(d.Kind, d.DocumentId, d.Number, d.Date, d.Amount, d.Note, d.Link)).ToList();
+    }
 }

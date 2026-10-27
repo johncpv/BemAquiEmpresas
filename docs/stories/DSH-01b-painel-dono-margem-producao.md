@@ -5,7 +5,7 @@
 | ID | DSH-01b |
 | Título | Os cards que completam o painel do dono: margem projetada (com custos reais) dos projetos em andamento e realizada dos encerrados, com a orçada como contexto, e os piores projetos; projetos em andamento (etapa, entrega, contratado, margem, recebido); carteira a produzir e a faturar; produção (projetos em andamento, OS atrasadas, ocupação da semana atual e das próximas 4) e entregas (previstas no mês, em risco), com os alertas de projeto na faixa "Atenção"; e o "Resultado gerencial por projeto" (receita × custos diretos por período), que saiu do DRE (ADR 0028) |
 | Tamanho | G (re-estimada de M: recebe o "Resultado gerencial por projeto" que saiu da FIN-08, com a lista, a visão mês a mês do projeto e o drill-down) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | PRD §5.14 (Margem; Carteira; Produção; Entregas; cada card leva ao detalhe) · R-FIN-13 (DRE gerencial por projeto) · R-PRJ-5 · R-PLN-4 · R-PLN-6 · R-PRP-5 · PRD §6 (Desempenho) |
 | Dependências | DSH-01a (módulo `Dashboard`, cache, `DashboardCard`, `Kpi`, faixa Atenção), DSH-02 (`IProjectMargins`, `ColumnChart`), FIN-08 (`IRevenueSummary.GrossRevenueByProjectsAsync`, `TreeTable`), PLN-01b (previsão e risco), PLN-04 (`IFactoryLoad`), PRD-02 (OS atrasadas), COM-05 (lista de projetos), FIN-01 (recebido) |
 | Bloqueia | — (fecha o painel do dono) |
@@ -95,20 +95,20 @@ Decisões da revisão aplicadas: D9 e ADR 0028 (§1 a §4); D18 (`ColumnChart`, 
 **Pré-condição externa:** nenhuma.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers, dataset fixo comparado com as origens), arquitetura, desempenho e E2E passando.
-- [ ] Nenhuma migration.
-- [ ] Permissões só do `ModuleCatalog`; cada card com a permissão e o módulo do dono.
-- [ ] Cards e resultado por projeto com estados e 400 px.
-- [ ] Ajudas do painel e do resultado por projeto; teste de cobertura passando.
-- [ ] Alertas de projeto acionáveis.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/04-fluxos-estados.md` (resultado por projeto × DRE) atualizado; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers, dataset fixo comparado com as origens), arquitetura, desempenho e E2E passando.
+- [x] Nenhuma migration.
+- [x] Permissões só do `ModuleCatalog`; cada card com a permissão e o módulo do dono.
+- [x] Cards e resultado por projeto com estados e 400 px.
+- [x] Ajudas do painel e do resultado por projeto; teste de cobertura passando.
+- [x] Alertas de projeto acionáveis.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/04-fluxos-estados.md` (resultado por projeto × DRE) atualizado; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] Contratos de resumo (carteira, entregas, contagens de OS, recebido por projeto) em lote; `IProjectMargins.RealizedByPeriodAsync`.
-- [ ] Endpoints dos cards e do resultado por projeto no módulo `Dashboard`; faixa Atenção ampliada.
-- [ ] Telas do painel e do resultado por projeto; ajudas.
+- [x] Contratos de resumo (carteira, entregas, contagens de OS, recebido por projeto) em lote; `IProjectMargins.RealizedByPeriodAsync`.
+- [x] Endpoints dos cards e do resultado por projeto no módulo `Dashboard`; faixa Atenção ampliada.
+- [x] Telas do painel e do resultado por projeto; ajudas.
 
 ## Quality gates
 - Agentes previstos: @dev, @qa, design (painel completo e resultado por projeto), cybersecurity (margem por permissão).
@@ -142,3 +142,21 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D4, D9, D18, tabela 3.1 pontos 12, 23 e 24, §4.3, §4.4 padrões 1, 2 e 3; ADR 0028); resultado gerencial por projeto vindo da FIN-08; re-estimada de M para G; ordem mantida (Marco 4.5, ordem 14); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 26/10/2026 | 1.0 | Implementada, `Done`. Entrega, desvios e recomendações abaixo | Dex (dev) |
+
+**Entrega (1.0, 26/10/2026)**
+- **Contratos (só `*.Contracts`, sem tabela nova nem migration):** `IProjectMargins.SummaryAsync` (consolidado + os N piores de um cálculo só), `RealizedByPeriodAsync` e `RealizedEntriesAsync` (realizado do DSH-02 pela data de cada lançamento: razão por `occurred_on`, imposto da nota em Impostos, títulos `Confirmed` pela emissão); `ProjectMarginFilter` com a situação `concluido` (entregues e encerrados) e `DeliveredFrom/To`, também nas rotas do Orçado × realizado; `IProjects.PortfolioAsync` (carteira com contratado = contrato + aditivos aprovados e a previsão pela função única) e `ListAsync`; `IReceivables.ReceivedByProjectsAsync` (em lote); `IRevenueSummary.GrossRevenueDocumentsAsync` (drill-down da receita); `IProjectPayableCosts.ConfirmedByMonthAsync`; `IInstallationOrders.LatestPlannedEndsAsync` (fim das OS de instalação em lote: a previsão da lista e do Projeto 360 deixou de fazer uma consulta por projeto em instalação).
+- **Dashboard:** `OwnerProjectsService` (cards Margem, Projetos em andamento + colunas de margem e recebido, Carteira, Produção e Entregas), `ProjectResultsService` (lista, visão mês a mês e célula), `DashboardAccess` (permissão do dono com o módulo e o cache de 60 s), regras puras em `OwnerRules` e `ProjectResultRules`; faixa "Atenção" com `project_late` (caixa → projeto → decisões → maior vencido, até 3); geração do cache também por `ProjectForecastChanged`, `StockIssued`, `StockReturned`, `LaborEntryClosed` e `LaborEntryCorrected`.
+- **Rotas** (grupo `/dashboard`, `dashboard` + `dashboard.view`; cada uma num grupo com um `RequireModule`): `cards/margin` (projects + `projects.view_cost`), `cards/active-projects` (projects + `projects.view`), `.../margins` (+ `projects.view_cost`), `.../received` (finance + `finance.view`), `cards/backlog` e `cards/deliveries` (projects + `projects.view`; o "a faturar" só com `finance.view`), `cards/production` (production + `production.view`), `project-results`, `project-results/{id}` e `.../cell` (projects + `projects.view_cost` e finance + `finance.view`). Nenhuma permissão nova no `ModuleCatalog`.
+- **DTO por forma de permissão (ADR 0028 §2):** marca `[CostDto]` nos tipos com custo; `CompositionRulesTests` exige a marca em todo tipo com custo e que nenhum DTO sem custo alcance um com; `OwnerPanelTests.Rotas_que_devolvem_DTO_com_custo_exigem_projects_view_cost` confere a policy das rotas.
+- **Front:** `MarginKpi` na linha de KPIs, `ActiveProjectsPanel` abaixo do caixa (a 400 px, projeto, etapa e entrega; o resto em "Valores"), `ProductionPanel` (`ColumnChart` de ocupação com a referência "capacidade"), `BacklogPanel` e `DeliveriesPanel`; `/app/painel/resultado-por-projeto` (lista com filtros na URL e a nota fixa) e `/app/painel/resultado-por-projeto/$id` (`ColumnChart` e `TreeTable` com coluna fixa, navegação por célula, um mês por vez a 400 px, drill-down no `SidePanel`). Orçado × realizado com "Entregues e encerrados" e o filtro de entrega (drill-down da margem realizada). Ajudas `painel.md` (atualizada), `painel-resultado-por-projeto.md` e `painel-resultado-do-projeto.md`; `docs/04` §3.9.
+- **Testes:** `OwnerRulesTests` 6/6 (ordem da tabela, carteira, entregas, faixa Atenção, período e montagem); `OwnerPanelTests` 9/9 (Margem = relatório com o filtro, carteira por delta e pela lista de origem, projetos/entregas/Atenção, Produção = Kanban e ocupação, geração por evento, visibilidade por permissão e por módulo, rotas com custo, resultado por projeto centavo a centavo com a planilha, DRE e drill-down, realizado por período = realizado do DSH-02); `OwnerPanelPerformanceTests` (5 mil projetos, 200 mil custos, 300 OS); vitest e E2E `owner-panel.spec.ts` (desktop e celular).
+
+**Desvios e recomendações aceitas (PO 24/10)**
+- OS atrasadas e em risco do card Produção pelo `IProductionBoard.SummaryAsync` da DSH-03 (mesma contagem do Kanban), em vez de contagens novas no `IProductionOrders` — recomendação aceita (PO 24/10).
+- "Margem realizada dos encerrados no ano" = entregues ou encerrados com a data de entrega (sem ela, a do encerramento) no ano — recomendação aceita (PO 24/10).
+- % recebido do card sobre o contratado com os aditivos (a coluna da lista de projetos da COM-05 usa o contrato sem aditivo); a lista não mudou — recomendação aceita (PO 24/10).
+- "Ver origem" de Carteira e Entregas vai à lista de projetos em andamento: a lista ainda não filtra por risco nem por "a faturar".
+- Desempenho: o teste mede a melhor de três com usuário novo e 50% de folga (3 s no painel, 2,25 s por card, 3 s no resultado por projeto), como no DSH-02 CA 18, porque a suíte roda sob carga.
+- O aviso de custo do projeto sobe a geração quando chega; o Commercial pode gravar a razão logo depois (outbox sem ordem): os 60 s do cache cobrem a diferença.
+- Desempenho (CA 10), recomendação aceita (PO 24/10): o `DashboardCache` passou a fazer um cálculo só por chave em pedidos simultâneos (os cards de projeto leem a mesma carteira ao mesmo tempo), e o resultado por projeto, com 500 projetos ou mais, lê a receita e os títulos a pagar em escopos próprios do tenant (outras conexões), em paralelo com a razão, como no `ProjectMarginService.ComputeAsync`.

@@ -66,4 +66,13 @@ public interface IProjectPayableCosts
 
     /// <summary>Títulos não cancelados do projeto na natureza, com a classe, do mais antigo ao mais novo.</summary>
     Task<IReadOnlyList<ProjectPayableCostEntry>> CostEntriesAsync(Guid projectId, CostType costType, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Títulos <c>Confirmed</c> (o realizado do projeto pela <see cref="PayableCostRules"/>) por projeto, natureza e mês da emissão, de
+    /// <paramref name="from"/> a <paramref name="to"/> (DSH-01b, resultado por projeto). Agregado no banco; sem guia de imposto nem compra estocável.
+    /// </summary>
+    Task<IReadOnlyList<ProjectPayableCostByMonth>> ConfirmedByMonthAsync(IReadOnlyCollection<Guid> projectIds, DateOnly from, DateOnly to, CancellationToken cancellationToken = default);
 }
+
+/// <summary>Soma dos títulos confirmados de um projeto numa natureza e num mês da emissão (DSH-01b).</summary>
+public sealed record ProjectPayableCostByMonth(Guid ProjectId, CostType CostType, int Year, int Month, decimal Amount);

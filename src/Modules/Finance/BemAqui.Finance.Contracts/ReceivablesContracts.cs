@@ -60,6 +60,12 @@ public interface IReceivables
 
     /// <summary>Títulos a receber do projeto (COM-05), na ordem do vencimento.</summary>
     Task<IReadOnlyList<ContractReceivable>> ByProjectAsync(Guid projectId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Recebido por projeto em lote (DSH-01b, card Projetos em andamento): Σ (valor − saldo) dos títulos não cancelados, numa consulta agrupada;
+    /// projeto sem título fica fora (recebido 0).
+    /// </summary>
+    Task<IReadOnlyDictionary<Guid, decimal>> ReceivedByProjectsAsync(IReadOnlyCollection<Guid> projectIds, CancellationToken cancellationToken = default);
 }
 
 /// <summary>Parcela do contrato vista pelo Commercial (COM-04b CA 14 e 16): o marco é o <c>origin_id</c>.</summary>

@@ -42,11 +42,28 @@ public sealed record ProjectMarginPortfolio(int ProjectCount, ProjectMarginFigur
 
 /// <summary>
 /// Filtro do relatório (DSH-02 CA 9 e 11): situação (<c>andamento</c>, o padrão: <c>Planned</c>, <c>InProgress</c>, <c>Fabricated</c>,
-/// <c>Installing</c>; <c>entregue</c>, <c>encerrado</c>, <c>cancelado</c>, <c>todos</c>), cliente, responsável, período de assinatura e "Só com
-/// margem abaixo da orçada".
+/// <c>Installing</c>; <c>entregue</c>, <c>encerrado</c>, <c>concluido</c> = entregues e encerrados, <c>cancelado</c>, <c>todos</c>), cliente,
+/// responsável, período de assinatura, "Só com margem abaixo da orçada" e o período da entrega (DSH-01b: os encerrados no ano do card Margem;
+/// sem data de entrega, vale a do encerramento).
 /// </summary>
 public sealed record ProjectMarginFilter(
-    string? Situation = null, Guid? PartyId = null, Guid? ManagerId = null, DateOnly? SignedFrom = null, DateOnly? SignedTo = null, bool BelowBudgetOnly = false);
+    string? Situation = null, Guid? PartyId = null, Guid? ManagerId = null, DateOnly? SignedFrom = null, DateOnly? SignedTo = null, bool BelowBudgetOnly = false,
+    DateOnly? DeliveredFrom = null, DateOnly? DeliveredTo = null);
+
+/// <summary>Consolidado e os piores projetos pelo desvio da margem (DSH-01b, card Margem), de um cálculo só: o mesmo do relatório com o filtro.</summary>
+public sealed record ProjectMarginSummary(ProjectMarginPortfolio Portfolio, IReadOnlyList<ProjectMarginRow> Worst);
+
+/// <summary>
+/// Custo realizado de um projeto num mês e numa natureza (DSH-01b, resultado gerencial por projeto): a mesma regra do realizado do DSH-02, pela
+/// data de cada lançamento (baixa, devolução e horas pela data da razão, imposto pela data da nota, título confirmado pela emissão).
+/// </summary>
+public sealed record ProjectRealizedByPeriod(Guid ProjectId, int Year, int Month, CostType CostType, decimal Amount);
+
+/// <summary>
+/// Lançamento do realizado num período (DSH-01b CA 8): tipo (o nome de <c>ProjectCostEntryKind</c> do DSH-02), natureza, documento, data, valor
+/// com sinal, horas (agregadas por OS e centro, sem nome) e o link só com a permissão do módulo dono do documento.
+/// </summary>
+public sealed record ProjectRealizedEntry(string Kind, CostType CostType, string Document, DateOnly? Date, decimal Amount, decimal? Hours, string? Link);
 
 /// <summary>
 /// Orçado × realizado e margem para os outros módulos (DSH-02 CA 1; painel do dono, DSH-01a/01b): um cálculo só, o mesmo da aba Custos e do
@@ -59,4 +76,16 @@ public interface IProjectMargins
     Task<Result<IReadOnlyList<ProjectMarginRow>>> ForProjectsAsync(IReadOnlyCollection<Guid> projectIds, CancellationToken cancellationToken = default);
 
     Task<Result<ProjectMarginPortfolio>> PortfolioAsync(ProjectMarginFilter filter, CancellationToken cancellationToken = default);
+
+    /// <summary>Consolidado do filtro e os <paramref name="worst"/> piores pelo desvio da margem, na ordem do relatório (DSH-01b, card Margem).</summary>
+    Task<Result<ProjectMarginSummary>> SummaryAsync(ProjectMarginFilter filter, int worst, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Realizado por projeto, mês e natureza de <paramref name="from"/> a <paramref name="to"/> (DSH-01b CA 6): só os valores diferentes de zero;
+    /// somado em todos os meses, é o realizado do DSH-02. Não inclui comprometido nem projetado.
+    /// </summary>
+    Task<Result<IReadOnlyList<ProjectRealizedByPeriod>>> RealizedByPeriodAsync(IReadOnlyCollection<Guid> projectIds, DateOnly from, DateOnly to, CancellationToken cancellationToken = default);
+
+    /// <summary>Lançamentos do realizado do projeto no período (uma natureza ou todas), com o total igual ao do <see cref="RealizedByPeriodAsync"/> (DSH-01b CA 8).</summary>
+    Task<Result<IReadOnlyList<ProjectRealizedEntry>>> RealizedEntriesAsync(Guid projectId, CostType? costType, DateOnly from, DateOnly to, CancellationToken cancellationToken = default);
 }

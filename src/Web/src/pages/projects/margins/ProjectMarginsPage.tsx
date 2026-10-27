@@ -13,7 +13,7 @@ import { Money } from '@/components/ui/money'
 import { StageIndicator } from '@/components/ui/stage-indicator'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Dica } from '@/help/Dica'
-import { formatMoney } from '@/lib/format'
+import { formatDate, formatMoney } from '@/lib/format'
 import { AccessDenied } from '@/pages/ModulePage'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
@@ -26,11 +26,12 @@ const SITUATIONS = [
   { value: '', label: 'Em andamento' },
   { value: 'entregue', label: 'Entregues' },
   { value: 'encerrado', label: 'Encerrados' },
+  { value: 'concluido', label: 'Entregues e encerrados' },
   { value: 'cancelado', label: 'Cancelados' },
   { value: 'todos', label: 'Todos' },
 ]
 
-const FILTER_KEYS = ['situacao', 'cliente', 'clienteNome', 'responsavel', 'responsavelNome', 'assinadoDe', 'assinadoAte', 'abaixo'] as const
+const FILTER_KEYS = ['situacao', 'cliente', 'clienteNome', 'responsavel', 'responsavelNome', 'assinadoDe', 'assinadoAte', 'abaixo', 'entregueDe', 'entregueAte'] as const
 type Filters = Partial<Record<(typeof FILTER_KEYS)[number], string>>
 
 function useFilters(): [Filters, (patch: Filters) => void] {
@@ -61,6 +62,7 @@ export function ProjectMarginsPage() {
   const params: GetProjectMarginPortfolioParams = {
     situation: filters.situacao || undefined, partyId: filters.cliente || undefined, managerId: filters.responsavel || undefined,
     signedFrom: filters.assinadoDe || undefined, signedTo: filters.assinadoAte || undefined, belowBudget: filters.abaixo === 'true' || undefined,
+    deliveredFrom: filters.entregueDe || undefined, deliveredTo: filters.entregueAte || undefined,
   }
   const portfolio = useGetProjectMarginPortfolio(params, { query: { enabled: canCost } })
   const ranking = useListProjectMarginRanking({ ...params, sort: search.sort, page: search.page, pageSize: search.pageSize }, { query: { enabled: canCost } })
@@ -138,6 +140,11 @@ export function ProjectMarginsPage() {
         {filters.cliente ? (
           <button type="button" onClick={() => setFilters({ cliente: undefined, clienteNome: undefined })} className="inline-flex min-h-[44px] items-center gap-1 rounded-full border border-border px-3 text-xs sm:min-h-0 sm:py-1">
             Cliente: {filters.clienteNome || 'selecionado'} <X aria-hidden="true" className="size-3" /><span className="sr-only">(tirar filtro)</span>
+          </button>
+        ) : null}
+        {filters.entregueDe || filters.entregueAte ? (
+          <button type="button" onClick={() => setFilters({ entregueDe: undefined, entregueAte: undefined })} className="inline-flex min-h-[44px] items-center gap-1 rounded-full border border-border px-3 text-xs sm:min-h-0 sm:py-1">
+            Entregues {filters.entregueDe ? `de ${formatDate(filters.entregueDe)}` : ''}{filters.entregueAte ? ` até ${formatDate(filters.entregueAte)}` : ''} <X aria-hidden="true" className="size-3" /><span className="sr-only">(tirar filtro)</span>
           </button>
         ) : null}
         {filters.responsavel ? (

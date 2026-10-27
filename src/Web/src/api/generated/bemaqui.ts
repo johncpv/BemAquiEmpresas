@@ -30,6 +30,9 @@ import type {
   AccountDetail,
   AccountInput,
   AccountSuggestion,
+  ActiveProjectMarginRow,
+  ActiveProjectReceivedItem,
+  ActiveProjectsCard,
   AddHolidaysInput,
   AddHolidaysResult,
   AddressData,
@@ -57,6 +60,7 @@ import type {
   ApproverOption,
   AskHelpRequest,
   AttachmentDto,
+  BacklogCard,
   BalancesCard,
   BankAccountDetail,
   BankAccountInput,
@@ -129,6 +133,7 @@ import type {
   DecisionInput,
   DecisionsCard,
   DeleteQuoteParams,
+  DeliveriesCard,
   DeviceThemeInput,
   DisableBankIntegrationParams,
   DisableTwoFactorRequest,
@@ -186,6 +191,8 @@ import type {
   GetCashFlowParams,
   GetCashForecastSummaryParams,
   GetCentersGanttParams,
+  GetDashboardProjectResultCellParams,
+  GetDashboardProjectResultParams,
   GetDiscountsAndCancellationsParams,
   GetDreCellParams,
   GetDreChangesParams,
@@ -243,6 +250,7 @@ import type {
   HelpDocument,
   HolidaySuggestion,
   HourlyCostInput,
+  HttpValidationProblemDetails,
   ImportRunDetail,
   InstallationAcceptInput,
   InstallationAcceptResult,
@@ -308,6 +316,7 @@ import type {
   ListBomsParams,
   ListCalendarExceptionsParams,
   ListContractsParams,
+  ListDashboardProjectResultsParams,
   ListEmployeesParams,
   ListFabricationOrdersParams,
   ListFabricationProductOptionsParams,
@@ -383,6 +392,7 @@ import type {
   ManualPostingDetail,
   ManualPostingInput,
   ManualPostingLineView,
+  MarginOverview,
   MaterialCost,
   MessageResponse,
   ModuleRelease,
@@ -505,6 +515,7 @@ import type {
   ProblemDetails,
   ProductionBoard,
   ProductionCapacityView,
+  ProductionCard,
   ProductionParametersInput,
   ProductionParametersView,
   ProjectBudgetLine,
@@ -519,6 +530,9 @@ import type {
   ProjectMarginPortfolio,
   ProjectMarginRanking,
   ProjectReceived,
+  ProjectResultCell,
+  ProjectResultDetail,
+  ProjectResultsPage,
   ProjectTimelineEntry,
   ProjectUpdateInput,
   ProvisionAccepted,
@@ -63995,6 +64009,993 @@ export function useGetDashboardDecisions<TData = Awaited<ReturnType<typeof getDa
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetDashboardDecisionsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetDashboardMarginUrl = () => {
+
+
+
+
+  return `/api/v1/dashboard/cards/margin`
+}
+
+export const getDashboardMargin = async ( options?: Parameters<typeof apiFetch>[1]): Promise<MarginOverview> => {
+
+  return apiFetch<MarginOverview>(getGetDashboardMarginUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDashboardMarginQueryKey = () => {
+    return [
+    `/api/v1/dashboard/cards/margin`
+    ] as const;
+    }
+
+
+export const getGetDashboardMarginQueryOptions = <TData = Awaited<ReturnType<typeof getDashboardMargin>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardMargin>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDashboardMarginQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDashboardMargin>>> = ({ signal }) => getDashboardMargin({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDashboardMargin>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetDashboardMarginQueryResult = NonNullable<Awaited<ReturnType<typeof getDashboardMargin>>>
+export type GetDashboardMarginQueryError = unknown
+
+
+export function useGetDashboardMargin<TData = Awaited<ReturnType<typeof getDashboardMargin>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardMargin>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDashboardMargin>>,
+          TError,
+          Awaited<ReturnType<typeof getDashboardMargin>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDashboardMargin<TData = Awaited<ReturnType<typeof getDashboardMargin>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardMargin>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDashboardMargin>>,
+          TError,
+          Awaited<ReturnType<typeof getDashboardMargin>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDashboardMargin<TData = Awaited<ReturnType<typeof getDashboardMargin>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardMargin>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetDashboardMargin<TData = Awaited<ReturnType<typeof getDashboardMargin>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardMargin>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetDashboardMarginQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetDashboardActiveProjectsUrl = () => {
+
+
+
+
+  return `/api/v1/dashboard/cards/active-projects`
+}
+
+export const getDashboardActiveProjects = async ( options?: Parameters<typeof apiFetch>[1]): Promise<ActiveProjectsCard> => {
+
+  return apiFetch<ActiveProjectsCard>(getGetDashboardActiveProjectsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDashboardActiveProjectsQueryKey = () => {
+    return [
+    `/api/v1/dashboard/cards/active-projects`
+    ] as const;
+    }
+
+
+export const getGetDashboardActiveProjectsQueryOptions = <TData = Awaited<ReturnType<typeof getDashboardActiveProjects>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardActiveProjects>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDashboardActiveProjectsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDashboardActiveProjects>>> = ({ signal }) => getDashboardActiveProjects({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDashboardActiveProjects>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetDashboardActiveProjectsQueryResult = NonNullable<Awaited<ReturnType<typeof getDashboardActiveProjects>>>
+export type GetDashboardActiveProjectsQueryError = unknown
+
+
+export function useGetDashboardActiveProjects<TData = Awaited<ReturnType<typeof getDashboardActiveProjects>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardActiveProjects>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDashboardActiveProjects>>,
+          TError,
+          Awaited<ReturnType<typeof getDashboardActiveProjects>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDashboardActiveProjects<TData = Awaited<ReturnType<typeof getDashboardActiveProjects>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardActiveProjects>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDashboardActiveProjects>>,
+          TError,
+          Awaited<ReturnType<typeof getDashboardActiveProjects>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDashboardActiveProjects<TData = Awaited<ReturnType<typeof getDashboardActiveProjects>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardActiveProjects>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetDashboardActiveProjects<TData = Awaited<ReturnType<typeof getDashboardActiveProjects>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardActiveProjects>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetDashboardActiveProjectsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListDashboardActiveProjectMarginsUrl = () => {
+
+
+
+
+  return `/api/v1/dashboard/cards/active-projects/margins`
+}
+
+export const listDashboardActiveProjectMargins = async ( options?: Parameters<typeof apiFetch>[1]): Promise<ActiveProjectMarginRow[]> => {
+
+  return apiFetch<ActiveProjectMarginRow[]>(getListDashboardActiveProjectMarginsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListDashboardActiveProjectMarginsQueryKey = () => {
+    return [
+    `/api/v1/dashboard/cards/active-projects/margins`
+    ] as const;
+    }
+
+
+export const getListDashboardActiveProjectMarginsQueryOptions = <TData = Awaited<ReturnType<typeof listDashboardActiveProjectMargins>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDashboardActiveProjectMargins>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListDashboardActiveProjectMarginsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listDashboardActiveProjectMargins>>> = ({ signal }) => listDashboardActiveProjectMargins({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listDashboardActiveProjectMargins>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListDashboardActiveProjectMarginsQueryResult = NonNullable<Awaited<ReturnType<typeof listDashboardActiveProjectMargins>>>
+export type ListDashboardActiveProjectMarginsQueryError = unknown
+
+
+export function useListDashboardActiveProjectMargins<TData = Awaited<ReturnType<typeof listDashboardActiveProjectMargins>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDashboardActiveProjectMargins>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listDashboardActiveProjectMargins>>,
+          TError,
+          Awaited<ReturnType<typeof listDashboardActiveProjectMargins>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListDashboardActiveProjectMargins<TData = Awaited<ReturnType<typeof listDashboardActiveProjectMargins>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDashboardActiveProjectMargins>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listDashboardActiveProjectMargins>>,
+          TError,
+          Awaited<ReturnType<typeof listDashboardActiveProjectMargins>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListDashboardActiveProjectMargins<TData = Awaited<ReturnType<typeof listDashboardActiveProjectMargins>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDashboardActiveProjectMargins>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListDashboardActiveProjectMargins<TData = Awaited<ReturnType<typeof listDashboardActiveProjectMargins>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDashboardActiveProjectMargins>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListDashboardActiveProjectMarginsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListDashboardActiveProjectsReceivedUrl = () => {
+
+
+
+
+  return `/api/v1/dashboard/cards/active-projects/received`
+}
+
+export const listDashboardActiveProjectsReceived = async ( options?: Parameters<typeof apiFetch>[1]): Promise<ActiveProjectReceivedItem[]> => {
+
+  return apiFetch<ActiveProjectReceivedItem[]>(getListDashboardActiveProjectsReceivedUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListDashboardActiveProjectsReceivedQueryKey = () => {
+    return [
+    `/api/v1/dashboard/cards/active-projects/received`
+    ] as const;
+    }
+
+
+export const getListDashboardActiveProjectsReceivedQueryOptions = <TData = Awaited<ReturnType<typeof listDashboardActiveProjectsReceived>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDashboardActiveProjectsReceived>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListDashboardActiveProjectsReceivedQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listDashboardActiveProjectsReceived>>> = ({ signal }) => listDashboardActiveProjectsReceived({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listDashboardActiveProjectsReceived>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListDashboardActiveProjectsReceivedQueryResult = NonNullable<Awaited<ReturnType<typeof listDashboardActiveProjectsReceived>>>
+export type ListDashboardActiveProjectsReceivedQueryError = unknown
+
+
+export function useListDashboardActiveProjectsReceived<TData = Awaited<ReturnType<typeof listDashboardActiveProjectsReceived>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDashboardActiveProjectsReceived>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listDashboardActiveProjectsReceived>>,
+          TError,
+          Awaited<ReturnType<typeof listDashboardActiveProjectsReceived>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListDashboardActiveProjectsReceived<TData = Awaited<ReturnType<typeof listDashboardActiveProjectsReceived>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDashboardActiveProjectsReceived>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listDashboardActiveProjectsReceived>>,
+          TError,
+          Awaited<ReturnType<typeof listDashboardActiveProjectsReceived>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListDashboardActiveProjectsReceived<TData = Awaited<ReturnType<typeof listDashboardActiveProjectsReceived>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDashboardActiveProjectsReceived>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListDashboardActiveProjectsReceived<TData = Awaited<ReturnType<typeof listDashboardActiveProjectsReceived>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDashboardActiveProjectsReceived>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListDashboardActiveProjectsReceivedQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetDashboardBacklogUrl = () => {
+
+
+
+
+  return `/api/v1/dashboard/cards/backlog`
+}
+
+export const getDashboardBacklog = async ( options?: Parameters<typeof apiFetch>[1]): Promise<BacklogCard> => {
+
+  return apiFetch<BacklogCard>(getGetDashboardBacklogUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDashboardBacklogQueryKey = () => {
+    return [
+    `/api/v1/dashboard/cards/backlog`
+    ] as const;
+    }
+
+
+export const getGetDashboardBacklogQueryOptions = <TData = Awaited<ReturnType<typeof getDashboardBacklog>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardBacklog>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDashboardBacklogQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDashboardBacklog>>> = ({ signal }) => getDashboardBacklog({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDashboardBacklog>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetDashboardBacklogQueryResult = NonNullable<Awaited<ReturnType<typeof getDashboardBacklog>>>
+export type GetDashboardBacklogQueryError = unknown
+
+
+export function useGetDashboardBacklog<TData = Awaited<ReturnType<typeof getDashboardBacklog>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardBacklog>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDashboardBacklog>>,
+          TError,
+          Awaited<ReturnType<typeof getDashboardBacklog>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDashboardBacklog<TData = Awaited<ReturnType<typeof getDashboardBacklog>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardBacklog>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDashboardBacklog>>,
+          TError,
+          Awaited<ReturnType<typeof getDashboardBacklog>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDashboardBacklog<TData = Awaited<ReturnType<typeof getDashboardBacklog>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardBacklog>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetDashboardBacklog<TData = Awaited<ReturnType<typeof getDashboardBacklog>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardBacklog>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetDashboardBacklogQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetDashboardDeliveriesUrl = () => {
+
+
+
+
+  return `/api/v1/dashboard/cards/deliveries`
+}
+
+export const getDashboardDeliveries = async ( options?: Parameters<typeof apiFetch>[1]): Promise<DeliveriesCard> => {
+
+  return apiFetch<DeliveriesCard>(getGetDashboardDeliveriesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDashboardDeliveriesQueryKey = () => {
+    return [
+    `/api/v1/dashboard/cards/deliveries`
+    ] as const;
+    }
+
+
+export const getGetDashboardDeliveriesQueryOptions = <TData = Awaited<ReturnType<typeof getDashboardDeliveries>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardDeliveries>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDashboardDeliveriesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDashboardDeliveries>>> = ({ signal }) => getDashboardDeliveries({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDashboardDeliveries>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetDashboardDeliveriesQueryResult = NonNullable<Awaited<ReturnType<typeof getDashboardDeliveries>>>
+export type GetDashboardDeliveriesQueryError = unknown
+
+
+export function useGetDashboardDeliveries<TData = Awaited<ReturnType<typeof getDashboardDeliveries>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardDeliveries>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDashboardDeliveries>>,
+          TError,
+          Awaited<ReturnType<typeof getDashboardDeliveries>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDashboardDeliveries<TData = Awaited<ReturnType<typeof getDashboardDeliveries>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardDeliveries>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDashboardDeliveries>>,
+          TError,
+          Awaited<ReturnType<typeof getDashboardDeliveries>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDashboardDeliveries<TData = Awaited<ReturnType<typeof getDashboardDeliveries>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardDeliveries>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetDashboardDeliveries<TData = Awaited<ReturnType<typeof getDashboardDeliveries>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardDeliveries>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetDashboardDeliveriesQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetDashboardProductionUrl = () => {
+
+
+
+
+  return `/api/v1/dashboard/cards/production`
+}
+
+export const getDashboardProduction = async ( options?: Parameters<typeof apiFetch>[1]): Promise<ProductionCard> => {
+
+  return apiFetch<ProductionCard>(getGetDashboardProductionUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDashboardProductionQueryKey = () => {
+    return [
+    `/api/v1/dashboard/cards/production`
+    ] as const;
+    }
+
+
+export const getGetDashboardProductionQueryOptions = <TData = Awaited<ReturnType<typeof getDashboardProduction>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardProduction>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDashboardProductionQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDashboardProduction>>> = ({ signal }) => getDashboardProduction({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDashboardProduction>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetDashboardProductionQueryResult = NonNullable<Awaited<ReturnType<typeof getDashboardProduction>>>
+export type GetDashboardProductionQueryError = unknown
+
+
+export function useGetDashboardProduction<TData = Awaited<ReturnType<typeof getDashboardProduction>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardProduction>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDashboardProduction>>,
+          TError,
+          Awaited<ReturnType<typeof getDashboardProduction>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDashboardProduction<TData = Awaited<ReturnType<typeof getDashboardProduction>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardProduction>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDashboardProduction>>,
+          TError,
+          Awaited<ReturnType<typeof getDashboardProduction>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDashboardProduction<TData = Awaited<ReturnType<typeof getDashboardProduction>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardProduction>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetDashboardProduction<TData = Awaited<ReturnType<typeof getDashboardProduction>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardProduction>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetDashboardProductionQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListDashboardProjectResultsUrl = (params?: ListDashboardProjectResultsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/dashboard/project-results?${stringifiedParams}` : `/api/v1/dashboard/project-results`
+}
+
+export const listDashboardProjectResults = async (params?: ListDashboardProjectResultsParams, options?: Parameters<typeof apiFetch>[1]): Promise<ProjectResultsPage> => {
+
+  return apiFetch<ProjectResultsPage>(getListDashboardProjectResultsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListDashboardProjectResultsQueryKey = (params?: ListDashboardProjectResultsParams,) => {
+    return [
+    `/api/v1/dashboard/project-results`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListDashboardProjectResultsQueryOptions = <TData = Awaited<ReturnType<typeof listDashboardProjectResults>>, TError = HttpValidationProblemDetails>(params?: ListDashboardProjectResultsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDashboardProjectResults>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListDashboardProjectResultsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listDashboardProjectResults>>> = ({ signal }) => listDashboardProjectResults(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listDashboardProjectResults>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListDashboardProjectResultsQueryResult = NonNullable<Awaited<ReturnType<typeof listDashboardProjectResults>>>
+export type ListDashboardProjectResultsQueryError = HttpValidationProblemDetails
+
+
+export function useListDashboardProjectResults<TData = Awaited<ReturnType<typeof listDashboardProjectResults>>, TError = HttpValidationProblemDetails>(
+ params: undefined |  ListDashboardProjectResultsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDashboardProjectResults>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listDashboardProjectResults>>,
+          TError,
+          Awaited<ReturnType<typeof listDashboardProjectResults>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListDashboardProjectResults<TData = Awaited<ReturnType<typeof listDashboardProjectResults>>, TError = HttpValidationProblemDetails>(
+ params?: ListDashboardProjectResultsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDashboardProjectResults>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listDashboardProjectResults>>,
+          TError,
+          Awaited<ReturnType<typeof listDashboardProjectResults>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListDashboardProjectResults<TData = Awaited<ReturnType<typeof listDashboardProjectResults>>, TError = HttpValidationProblemDetails>(
+ params?: ListDashboardProjectResultsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDashboardProjectResults>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListDashboardProjectResults<TData = Awaited<ReturnType<typeof listDashboardProjectResults>>, TError = HttpValidationProblemDetails>(
+ params?: ListDashboardProjectResultsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDashboardProjectResults>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListDashboardProjectResultsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetDashboardProjectResultUrl = (projectId: string,
+    params?: GetDashboardProjectResultParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/dashboard/project-results/${projectId}?${stringifiedParams}` : `/api/v1/dashboard/project-results/${projectId}`
+}
+
+export const getDashboardProjectResult = async (projectId: string,
+    params?: GetDashboardProjectResultParams, options?: Parameters<typeof apiFetch>[1]): Promise<ProjectResultDetail> => {
+
+  return apiFetch<ProjectResultDetail>(getGetDashboardProjectResultUrl(projectId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDashboardProjectResultQueryKey = (projectId: string,
+    params?: GetDashboardProjectResultParams,) => {
+    return [
+    `/api/v1/dashboard/project-results/${projectId}`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetDashboardProjectResultQueryOptions = <TData = Awaited<ReturnType<typeof getDashboardProjectResult>>, TError = HttpValidationProblemDetails | ProblemDetails>(projectId: string,
+    params?: GetDashboardProjectResultParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardProjectResult>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDashboardProjectResultQueryKey(projectId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDashboardProjectResult>>> = ({ signal }) => getDashboardProjectResult(projectId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: projectId !== null && projectId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDashboardProjectResult>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetDashboardProjectResultQueryResult = NonNullable<Awaited<ReturnType<typeof getDashboardProjectResult>>>
+export type GetDashboardProjectResultQueryError = HttpValidationProblemDetails | ProblemDetails
+
+
+export function useGetDashboardProjectResult<TData = Awaited<ReturnType<typeof getDashboardProjectResult>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ projectId: string,
+    params: undefined |  GetDashboardProjectResultParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardProjectResult>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDashboardProjectResult>>,
+          TError,
+          Awaited<ReturnType<typeof getDashboardProjectResult>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDashboardProjectResult<TData = Awaited<ReturnType<typeof getDashboardProjectResult>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ projectId: string,
+    params?: GetDashboardProjectResultParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardProjectResult>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDashboardProjectResult>>,
+          TError,
+          Awaited<ReturnType<typeof getDashboardProjectResult>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDashboardProjectResult<TData = Awaited<ReturnType<typeof getDashboardProjectResult>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ projectId: string,
+    params?: GetDashboardProjectResultParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardProjectResult>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetDashboardProjectResult<TData = Awaited<ReturnType<typeof getDashboardProjectResult>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ projectId: string,
+    params?: GetDashboardProjectResultParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardProjectResult>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetDashboardProjectResultQueryOptions(projectId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetDashboardProjectResultCellUrl = (projectId: string,
+    params?: GetDashboardProjectResultCellParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/dashboard/project-results/${projectId}/cell?${stringifiedParams}` : `/api/v1/dashboard/project-results/${projectId}/cell`
+}
+
+export const getDashboardProjectResultCell = async (projectId: string,
+    params?: GetDashboardProjectResultCellParams, options?: Parameters<typeof apiFetch>[1]): Promise<ProjectResultCell> => {
+
+  return apiFetch<ProjectResultCell>(getGetDashboardProjectResultCellUrl(projectId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDashboardProjectResultCellQueryKey = (projectId: string,
+    params?: GetDashboardProjectResultCellParams,) => {
+    return [
+    `/api/v1/dashboard/project-results/${projectId}/cell`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetDashboardProjectResultCellQueryOptions = <TData = Awaited<ReturnType<typeof getDashboardProjectResultCell>>, TError = HttpValidationProblemDetails | ProblemDetails>(projectId: string,
+    params?: GetDashboardProjectResultCellParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardProjectResultCell>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDashboardProjectResultCellQueryKey(projectId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDashboardProjectResultCell>>> = ({ signal }) => getDashboardProjectResultCell(projectId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: projectId !== null && projectId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDashboardProjectResultCell>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetDashboardProjectResultCellQueryResult = NonNullable<Awaited<ReturnType<typeof getDashboardProjectResultCell>>>
+export type GetDashboardProjectResultCellQueryError = HttpValidationProblemDetails | ProblemDetails
+
+
+export function useGetDashboardProjectResultCell<TData = Awaited<ReturnType<typeof getDashboardProjectResultCell>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ projectId: string,
+    params: undefined |  GetDashboardProjectResultCellParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardProjectResultCell>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDashboardProjectResultCell>>,
+          TError,
+          Awaited<ReturnType<typeof getDashboardProjectResultCell>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDashboardProjectResultCell<TData = Awaited<ReturnType<typeof getDashboardProjectResultCell>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ projectId: string,
+    params?: GetDashboardProjectResultCellParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardProjectResultCell>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDashboardProjectResultCell>>,
+          TError,
+          Awaited<ReturnType<typeof getDashboardProjectResultCell>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDashboardProjectResultCell<TData = Awaited<ReturnType<typeof getDashboardProjectResultCell>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ projectId: string,
+    params?: GetDashboardProjectResultCellParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardProjectResultCell>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetDashboardProjectResultCell<TData = Awaited<ReturnType<typeof getDashboardProjectResultCell>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ projectId: string,
+    params?: GetDashboardProjectResultCellParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardProjectResultCell>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetDashboardProjectResultCellQueryOptions(projectId,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

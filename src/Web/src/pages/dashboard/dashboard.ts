@@ -12,6 +12,12 @@ export const MOBILE_ORDER: Record<string, string> = {
   revenue: 'order-4',
   overdue: 'order-5',
   commercial: 'order-6',
+  // DSH-01b: depois dos cards da DSH-01a, empilhados.
+  margin: 'order-7',
+  'active-projects': 'order-8',
+  production: 'order-9',
+  backlog: 'order-10',
+  deliveries: 'order-11',
 }
 
 /** "Como calculamos" de cada card (CA 8): a regra em uma ou duas frases. */
@@ -23,7 +29,16 @@ export const HOW = {
   overdue: 'Saldo em aberto dos títulos a receber com vencimento antes de hoje, separado pelos dias de atraso, como na tela Inadimplência.',
   commercial: 'Orçamentos que nasceram nos últimos 90 dias. Em aberto: rascunhos e enviados, ainda sem decisão. Conversão: aprovados ÷ decididos. Vencendo: enviados que vencem em até 7 dias.',
   decisions: 'O que espera a sua decisão na pauta: ordens de pagamento, aditivos, qualidade, pedidos de compra e ajustes de ponto. Cada item só aparece para quem pode decidir.',
-  updated: 'O painel guarda cada número por até 1 minuto. Quando um recebimento, uma ordem de pagamento ou um contrato muda, os números são recalculados. "Atualizar" lê tudo de novo.',
+  margin: 'Margem projetada (com custos reais): receita contratada menos o custo projetado dos projetos em andamento (realizado mais o que falta do orçado ou o comprometido), sobre a receita. Margem realizada: a dos projetos entregues ou encerrados no ano, só com o custo já gasto. As duas são ponderadas pela receita e vêm do relatório Orçado × realizado.',
+  activeProjects: 'Projetos planejados, em produção, fabricados ou em instalação. Os atrasados (prometido já passou) e os em risco (previsão depois do prometido) vêm primeiro.',
+  backlog: 'A produzir: receita contratada (contrato mais aditivos) dos projetos planejados ou em produção. A faturar: contratado dos contratos ativos menos a receita já reconhecida desses projetos, a mesma regra do DRE.',
+  production: 'OS atrasadas e em risco pela mesma regra do Kanban. Ocupação: horas comprometidas pelo plano sobre a capacidade da fábrica em cada semana, como em Planejamento → Ocupação.',
+  deliveries: 'Previstas no mês: projetos com a data prevista neste mês e ainda não entregues. Em risco: a previsão passou da data prometida ao cliente. Atrasados: a data prometida já passou.',
+  toProduce: 'Receita contratada dos projetos que ainda não foram fabricados (planejados ou em produção).',
+  toInvoice: 'Contratado dos contratos ativos menos o que já virou receita desses projetos (títulos emitidos, até as notas reais; depois, as notas autorizadas).',
+  realizedMargin: 'Margem dos projetos entregues ou encerrados no ano, com o custo já gasto (sem projeção).',
+  atRisk: 'A data prevista de entrega passou da data prometida ao cliente.',
+  updated: 'O painel guarda cada número por até 1 minuto. Quando um recebimento, uma ordem de pagamento, um contrato, a previsão de um projeto ou um custo do projeto muda, os números são recalculados. "Atualizar" lê tudo de novo.',
 }
 
 export type Scenario = 'both' | 'base' | 'adjusted'

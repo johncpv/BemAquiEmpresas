@@ -97,6 +97,12 @@ public static class HostEvents
             .AddHandler<BemAqui.Commercial.Contracts.ContractSigned, BemAqui.Dashboard.Application.DashboardGenerationConsumer>()
             .AddHandler<BemAqui.Commercial.Contracts.ContractAmended, BemAqui.Dashboard.Application.DashboardGenerationConsumer>()
             .AddHandler<BemAqui.Commercial.Contracts.QuoteApproved, BemAqui.Dashboard.Application.DashboardGenerationConsumer>()
-            .AddHandler<BemAqui.Finance.Contracts.RevenueTargetsChanged, BemAqui.Dashboard.Application.DashboardGenerationConsumer>();
+            .AddHandler<BemAqui.Finance.Contracts.RevenueTargetsChanged, BemAqui.Dashboard.Application.DashboardGenerationConsumer>()
+            // DSH-01b CA 5: a previsão do projeto e os eventos de custo do projeto também sobem a geração.
+            .AddHandler<BemAqui.Production.Contracts.ProjectForecastChanged, BemAqui.Dashboard.Application.DashboardGenerationConsumer>()
+            .AddHandler<BemAqui.Inventory.Contracts.StockIssued, BemAqui.Dashboard.Application.DashboardGenerationConsumer>()
+            .AddHandler<BemAqui.Inventory.Contracts.StockReturned, BemAqui.Dashboard.Application.DashboardGenerationConsumer>()
+            .AddHandler<BemAqui.Production.Contracts.LaborEntryClosed, BemAqui.Dashboard.Application.DashboardGenerationConsumer>()
+            .AddHandler<BemAqui.Production.Contracts.LaborEntryCorrected, BemAqui.Dashboard.Application.DashboardGenerationConsumer>();
     }
 }

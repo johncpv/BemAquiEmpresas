@@ -12,4 +12,6 @@ managerId?: string;
 signedFrom?: string;
 signedTo?: string;
 belowBudget?: boolean;
+deliveredFrom?: string;
+deliveredTo?: string;
 };

@@ -27,6 +27,8 @@ import { KioskScreensPage } from '@/pages/kiosk/KioskScreensPage'
 import { FabEntryPage } from '@/pages/shopfloor/FabEntryPage'
 import { Inicio } from '@/pages/Inicio'
 import { DashboardPage } from '@/pages/dashboard/DashboardPage'
+import { ProjectResultPage } from '@/pages/dashboard/results/ProjectResultPage'
+import { ProjectResultsPage } from '@/pages/dashboard/results/ProjectResultsPage'
 import { ModulePage, NotFound } from '@/pages/ModulePage'
 import { getPlatformCurrentAdmin } from '@/api/generated/bemaqui'
 import { PlatformLayout } from '@/platform/PlatformLayout'
@@ -174,6 +176,9 @@ const appRoute = createRoute({
 const appIndexRoute = createRoute({ getParentRoute: () => appRoute, path: '/', component: Inicio })
 // Painel do proprietário (DSH-01a): cenário do caixa na URL (?cenario=base|ajustado).
 const dashboardRoute = createRoute({ getParentRoute: () => appRoute, path: 'painel', component: () => <ModuleGate code="dashboard"><DashboardPage /></ModuleGate>, validateSearch: (s: Record<string, unknown>): { cenario?: string } => ({ cenario: text(s.cenario) }) })
+// Resultado gerencial por projeto (DSH-01b CA 6 a 8): filtros na URL (?situacao, ?cliente, ?de=aaaa-mm, ?ate=aaaa-mm); projects.view_cost e finance.view na tela e na API.
+const projectResultsRoute = createRoute({ getParentRoute: () => appRoute, path: 'painel/resultado-por-projeto', component: () => <ModuleGate code="dashboard"><ProjectResultsPage /></ModuleGate> })
+const projectResultRoute = createRoute({ getParentRoute: () => appRoute, path: 'painel/resultado-por-projeto/$id', component: () => <ModuleGate code="dashboard"><ProjectResultPage /></ModuleGate> })
 const accountRoute = createRoute({ getParentRoute: () => appRoute, path: 'conta', component: AccountPage })
 const accountSecurityRoute = createRoute({ getParentRoute: () => appRoute, path: 'conta/seguranca', component: AccountSecurityPage })
 // Telas reais de módulo: mesmas regras do menu (ModuleGate) e rota própria por aba (FND-09b CA 8).
@@ -415,7 +420,7 @@ export const routeTree = rootRoute.addChildren([
   forgotRoute,
   resetRoute,
   inviteRoute,
-  appRoute.addChildren([appIndexRoute, dashboardRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute,
+  appRoute.addChildren([appIndexRoute, dashboardRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute, projectResultsRoute, projectResultRoute,
     aiSettingsRoute, importRunsRoute, importRunRoute, integrationsRoute, integrationEventsRoute, interAccountsRoute, interAccountRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute,
     inventoryRootRoute, balancesRoute, movementsRoute, movementRoute, manualPostingsRoute, manualPostingRoute, shortagesRoute, requisitionsRoute, requisitionRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, bomsRoute, productionRootRoute, fabricationOrdersRoute, fabricationOrderRoute, kanbanRoute, openLaborRoute, operatorRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute, qualityRoute, qualityStepRoute, nonConformitiesRoute, nonConformityRoute, purchasingRootRoute, purchaseRequestsRoute, newPurchaseRequestRoute, purchaseRequestRoute, purchaseOrdersRoute, newPurchaseOrderRoute, purchaseOrderRoute, editPurchaseOrderRoute, shipmentsRoute, newShipmentRoute, shipmentRoute, traceabilityRoute, adjustmentsRoute, adjustmentRoute, goodsReceiptsRoute, goodsReceiptRoute, newGoodsReceiptRoute, rfqsRoute, newRfqRoute, rfqRoute, inventoryCountsRoute, inventoryCountRoute, capacityRoute, planningRoute, supervisorRoute,
     financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, payablesRoute, newPayableRoute, payableRoute, recurringRoute, approvalRulesRoute, openingRoute, cashFlowRoute, dreRoute, agingRoute, paymentOrdersRoute, newPaymentOrderRoute, paymentOrderRoute, statementRoute, quotesRoute, quoteFunnelRoute, quoteRoute, quoteCompareRoute, contractsRoute, contractRoute, amendmentRoute, projectsRoute, projectMarginsRoute, projectRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, kioskScreensRoute, kioskPreviewRoute, ...devRoutes, moduleRoute, moduleTabRoute]),

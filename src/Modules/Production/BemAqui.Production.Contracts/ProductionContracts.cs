@@ -85,6 +85,26 @@ public interface IInstallationOrders
 
     /// <summary>Situação da OS; null se não existe.</summary>
     Task<InstallationState?> StatusAsync(Guid orderId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Maior fim planejado das OS de instalação não canceladas de cada projeto, em lote (DSH-01b: a previsão dos projetos em instalação na
+    /// carteira do painel, sem uma consulta por projeto); projeto sem OS fica fora.
+    /// </summary>
+    async Task<IReadOnlyDictionary<Guid, DateOnly>> LatestPlannedEndsAsync(IReadOnlyCollection<Guid> projectIds, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(projectIds);
+        var result = new Dictionary<Guid, DateOnly>();
+        foreach (var id in projectIds.Distinct())
+        {
+            var ends = (await ByProjectAsync(id, cancellationToken)).Where(o => o.Status != InstallationState.Cancelled).Select(o => o.PlannedEnd).ToList();
+            if (ends.Count > 0)
+            {
+                result[id] = ends.Max();
+            }
+        }
+
+        return result;
+    }
 }
 
 /// <summary>Tipo da OS para os outros módulos (PRD-01 CA 21).</summary>

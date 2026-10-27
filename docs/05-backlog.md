@@ -440,7 +440,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-4--planejamento-p
 - Requisitos: PRD §5.14 (Painel do supervisor), R-PRD-2, R-PRD-6, R-PLN-6, R-EST-4, R-CMP-1, R-PRP-4, R-PRP-5, PRD §6.
 - CA: blocos Quadro, Capacidade, Qualidade (`production.approve_quality`), Faltas nos próximos 5 dias úteis (situação da compra só leitura, "Gerar solicitação" com `purchasing.create`) e Indicadores (horas paradas e taxa de NC); composição no `Dashboard`; menos de 1,5 s.
 
-**DSH-01b [ ] Painel do proprietário: margem, carteira, produção, entregas e resultado gerencial por projeto (G)** — 4.5, ordem 14 — re-estimada de M — `Ready` — [story](stories/DSH-01b-painel-dono-margem-producao.md)
+**DSH-01b [x] Painel do proprietário: margem, carteira, produção, entregas e resultado gerencial por projeto (G)** — 4.5, ordem 14 — re-estimada de M — `Done` — [story](stories/DSH-01b-painel-dono-margem-producao.md)
 - Requisitos: PRD §5.14, R-PRJ-5, R-PLN-4, R-PLN-6, R-PRP-5, PRD §6.
 - CA: margem projetada (com custos reais) nos em andamento e realizada nos encerrados, com a orçada como contexto; carteira a produzir e a faturar (contratado − notas depois do go-live); produção e entregas; "Resultado gerencial por projeto" vindo da FIN-08, com a nota de que não fecha com o DRE mensal; números iguais às origens.
 
