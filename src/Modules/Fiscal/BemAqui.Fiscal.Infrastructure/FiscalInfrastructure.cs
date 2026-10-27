@@ -3,8 +3,10 @@ using BemAqui.BuildingBlocks.Attachments;
 using BemAqui.BuildingBlocks.Persistence.Auditing;
 using BemAqui.BuildingBlocks.Webhooks;
 using BemAqui.Fiscal.Application;
+using BemAqui.Fiscal.Application.Certificates;
 using BemAqui.Fiscal.Application.Emitter;
 using BemAqui.Fiscal.Application.Invoices;
+using BemAqui.Fiscal.Application.Settings;
 using BemAqui.Fiscal.Domain;
 using BemAqui.Fiscal.Infrastructure.Emissor;
 using BemAqui.SharedKernel;
@@ -42,6 +44,19 @@ public static class FiscalInfrastructure
         services.AddWebhookProvider(EmissorFiscalWebhook.Provider);
         services.AddAuditableEntity<FiscalIntegrationSettings>("settings");
         services.AddAuditableEntity<OutgoingInvoice>("fiscal");
+
+        // FIS-02a: Configurações → Fiscal, certificado digital, vencimento e pauta; a tela é de Configurações (histórico com settings.view).
+        services.AddMemoryCache();
+        services.TryAddScoped<FiscalSettingsService>();
+        services.TryAddScoped<IFiscalSettings>(sp => sp.GetRequiredService<FiscalSettingsService>());
+        services.TryAddScoped<FiscalSettingsExport>();
+        services.TryAddScoped<FiscalCertificateService>();
+        services.TryAddScoped<FiscalCertificateExpiryChecker>();
+        services.TryAddTransient<FiscalCertificateExpiryJob>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Agenda.IAgendaSource, FiscalAgendaSource>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Tenancy.ITenantSeeder, FiscalSettingsSeeder>());
+        services.AddAuditableEntity<FiscalSettings>("settings");
+        services.AddAuditableEntity<SettingConfirmation>("settings");
         services.AddAttachmentOwner(OutgoingInvoiceReconciler.AttachmentOwner, new AttachmentOwnerRules("fiscal", ["application/xml"], 5 * 1024 * 1024,
             OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IFiscalDb>().OutgoingInvoices.AnyAsync(i => i.Id == id, ct),
             CanAttach: (_, _, _) => Task.FromResult<Error?>(Error.Forbidden(Error.Codes.Forbidden, "O XML da nota é guardado pelo sistema."))));

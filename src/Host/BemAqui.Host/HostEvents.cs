@@ -15,6 +15,8 @@ public static class HostEvents
             // CAD-06 → CAD-04a: o % de encargos recalcula o custo-hora dos cargos.
             .AddHandler<PayrollChargesChanged, BemAqui.HR.Application.PayrollChargesChangedHandler>()
             .AddEvent<BemAqui.HR.Contracts.HourlyCostChanged>()
+            // FIS-02a: aviso de que valores fiscais mudaram (a FIS-02b lista as regras a revisar).
+            .AddEvent<BemAqui.Fiscal.Contracts.FiscalSettingsChanged>()
             .AddEvent<BemAqui.HR.Contracts.EmployeeTerminated>()
             .AddEvent<BemAqui.HR.Contracts.EmployeeSalaryChanged>()
             // Orçamentos e contratos (COM-01b a COM-04b).

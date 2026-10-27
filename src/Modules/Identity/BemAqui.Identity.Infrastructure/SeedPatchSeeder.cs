@@ -89,6 +89,13 @@ public sealed class SeedPatchSeeder : ITenantSeeder
         [
             ("production_supervision", "kiosk", ["delete"]),
         ]),
+        // FIS-02a CA 1 (D12, ADR 0003 adendo de 21/10/2026): o Financeiro opera as notas e o Almoxarifado vê e importa a nota de entrada;
+        // fiscal.approve (cancelar, inutilizar, ativar regra) fica só com o Proprietário.
+        new("fiscal-permissions",
+        [
+            ("finance", "fiscal", ["view", "create", "edit"]),
+            ("warehouse", "fiscal", ["view", "import_incoming"]),
+        ]),
     ];
 
     public int Order => 25;

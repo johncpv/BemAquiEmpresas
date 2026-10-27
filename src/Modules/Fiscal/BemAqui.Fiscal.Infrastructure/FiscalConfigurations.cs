@@ -57,3 +57,78 @@ internal sealed class OutgoingInvoiceConfiguration : IEntityTypeConfiguration<Ou
         b.Ignore(e => e.IsFinal);
     }
 }
+
+/// <summary>
+/// Configuração fiscal (FIS-02a): uma linha por tenant (<c>slot</c> único); alíquotas em <c>numeric(7,4)</c>, CNAEs e tributos do custo em
+/// <c>text[]</c>; do certificado A1 só os metadados (D12).
+/// </summary>
+internal sealed class FiscalSettingsConfiguration : IEntityTypeConfiguration<FiscalSettings>
+{
+    public void Configure(EntityTypeBuilder<FiscalSettings> b)
+    {
+        b.ToTable("fiscal_settings", FiscalSchema.Name, t =>
+        {
+            t.HasCheckConstraint("ck_fiscal_settings_slot", "slot = 1");
+            t.HasCheckConstraint("ck_fiscal_settings_nfe_series", "nfe_series IS NULL OR nfe_series BETWEEN 1 AND 999");
+            t.HasCheckConstraint("ck_fiscal_settings_cancellation_window", "cancellation_window_hours BETWEEN 1 AND 168");
+        });
+        b.HasIndex(e => e.Slot).IsUnique().HasDatabaseName("ux_fiscal_settings_slot");
+        b.Property(e => e.Regime).HasConversion<string>().HasMaxLength(32);
+        b.Property(e => e.Environment).HasConversion<string>().HasMaxLength(16);
+        b.Property(e => e.MixedSale).HasConversion<string>().HasMaxLength(40);
+        b.Property(e => e.NfseIssLocation).HasConversion<string>().HasMaxLength(16);
+        b.Property(e => e.CnaeMain).HasMaxLength(7);
+        foreach (var cfop in new[] { nameof(FiscalSettings.CfopSaleInStateContributor), nameof(FiscalSettings.CfopSaleInStateFinal), nameof(FiscalSettings.CfopSaleInterstateContributor),
+                     nameof(FiscalSettings.CfopSaleInterstateFinal), nameof(FiscalSettings.CfopResaleInState), nameof(FiscalSettings.CfopResaleInterstate) })
+        {
+            b.Property<string>(cfop).HasMaxLength(4);
+        }
+
+        b.Property(e => e.CstIcms).HasMaxLength(3);
+        b.Property(e => e.CstPisCofins).HasMaxLength(2);
+        b.Property(e => e.CstIpi).HasMaxLength(2);
+        foreach (var rate in new[] { nameof(FiscalSettings.IcmsInternalRate), nameof(FiscalSettings.IcmsInterstateSouthSoutheastRate), nameof(FiscalSettings.IcmsInterstateOtherRate),
+                     nameof(FiscalSettings.IcmsImportedRate), nameof(FiscalSettings.PisRate), nameof(FiscalSettings.CofinsRate), nameof(FiscalSettings.NfseIssRate),
+                     nameof(FiscalSettings.CbsRate), nameof(FiscalSettings.IbsRate) })
+        {
+            b.Property<decimal>(rate).HasPrecision(7, 4);
+        }
+
+        b.Property(e => e.NfseServiceItem).HasMaxLength(5);
+        b.Property(e => e.NfseMunicipalCode).HasMaxLength(8);
+        b.Property(e => e.NfseCtn).HasMaxLength(20);
+        b.Property(e => e.NfseNbs).HasMaxLength(20);
+        b.Property(e => e.IbsCbsCst).HasMaxLength(3);
+        b.Property(e => e.IbsCbsClassification).HasMaxLength(6);
+        b.Property(e => e.VolumeSpecies).HasMaxLength(60);
+        b.Property(e => e.CertificateSubject).HasMaxLength(300);
+        b.Property(e => e.CertificateDocument).HasMaxLength(14);
+        b.Property(e => e.CertificateThumbprint).HasMaxLength(64);
+    }
+}
+
+/// <summary>Conferência por chave (FIS-02a CA 5): única por <c>setting_key</c>, com o hash do valor conferido.</summary>
+internal sealed class SettingConfirmationConfiguration : IEntityTypeConfiguration<SettingConfirmation>
+{
+    public void Configure(EntityTypeBuilder<SettingConfirmation> b)
+    {
+        b.ToTable("setting_confirmations", FiscalSchema.Name, t => t.HasCheckConstraint("ck_setting_confirmations_hash", "length(value_hash) = 64"));
+        b.Property(e => e.SettingKey).HasMaxLength(60);
+        b.Property(e => e.ValueHash).HasMaxLength(64);
+        b.HasIndex(e => e.SettingKey).IsUnique().HasDatabaseName("ux_setting_confirmations_key");
+    }
+}
+
+/// <summary>Histórico das trocas de certificado (FIS-02a CA 13): só metadados.</summary>
+internal sealed class CertificateUploadConfiguration : IEntityTypeConfiguration<CertificateUpload>
+{
+    public void Configure(EntityTypeBuilder<CertificateUpload> b)
+    {
+        b.ToTable("certificate_uploads", FiscalSchema.Name);
+        b.Property(e => e.Thumbprint).HasMaxLength(64);
+        b.Property(e => e.Subject).HasMaxLength(300);
+        b.Property(e => e.Document).HasMaxLength(14);
+        b.Property(e => e.Source).HasMaxLength(16);
+        b.HasIndex(e => e.At).HasDatabaseName("ix_certificate_uploads_at");
+    }
+}

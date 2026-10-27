@@ -130,6 +130,8 @@ public sealed class FiscalFixture : IAsyncLifetime
         fake.Scopes = ["consultar", "nfe:emitir", "nfe:eventos"];
         fake.Environment = FiscalEnvironment.Homologation;
         fake.Accounts.Clear();
+        fake.Certificate = null;
+        fake.RejectCertificate = false;
         await using var scope = await ScopeAsync(tenant);
         var db = scope.ServiceProvider.GetRequiredService<IFiscalDb>();
         var shared = scope.ServiceProvider.GetRequiredService<BemAquiDbContext>();

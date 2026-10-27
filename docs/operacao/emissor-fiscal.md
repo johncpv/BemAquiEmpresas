@@ -90,3 +90,16 @@ O lado do BemAqui foi feito contra o contrato do guia de integração do Emissor
 | "O Emissor Fiscal não respondeu." | `docker network inspect bqe-fiscal` (a API e o `emissor-fiscal` estão nela?); `docker compose ps` do Emissor |
 | Aviso recusado (401) em "Eventos recebidos" não aparece | Segredo diferente nos dois lados ou relógio da VPS fora (janela de 5 min): `timedatectl` |
 | Nota parada em "esperando a SEFAZ" | A conferência roda a cada 10 min; depois de 2 h em contingência sai alerta. Não emita de novo |
+
+## 9. Configuração fiscal e certificado digital (FIS-02a)
+A FIS-02a foi provada contra o fake do Emissor (`FakeFiscalEmitter`, testes de integração). A validação real fica para o tenant `demo`, em homologação, com o Emissor já homologado:
+
+1. **Configurações → Fiscal** (`/app/configuracoes/fiscal`): confira que a tela abre com os valores do seed `fiscal-defaults` (Lucro Presumido, CRT 3, série 2, CFOP 5101/5101/6101/6107/5102/6102, ICMS 18/12/7/4%, PIS 0,65%, COFINS 3%, item 7.02, ISS 5%, IBS/CBS 000/000001 com 0,9%/0,1%, 24 h, frete 0, "VOLUME") e todos com "A confirmar com a contadora". Em homologação, nada bloqueia.
+2. **Baixar para a contadora**: o PDF sai com os 40 campos, o valor, a situação e a coluna da resposta. É o roteiro da conversa com a contadora (P-01, P-02, P-03, série, códigos da NFS-e de Caçapava).
+3. **Certificado digital** (`/app/configuracoes/fiscal/certificado`), com a integração do `demo` testada:
+   - envie o A1 de teste do `demo` com o código do autenticador; o BemAqui confere chave privada, política A1 da ICP-Brasil (`2.16.76.1.2.1.*`), validade e o CNPJ do titular (`otherName` 2.16.76.1.3.3 ou o fim do CN) antes de repassar;
+   - o Emissor recebe em `POST /api/v1/emitentes/{cnpj}/certificado` (multipart `arquivo` e `senha`, escopo próprio sem `admin`, lacuna L-h) e confere o CNPJ de novo; o thumbprint e a validade devolvidos aparecem na tela;
+   - troque o certificado direto no painel do Emissor e use **Conferir no Emissor Fiscal**: a tela mostra "O certificado no Emissor Fiscal mudou em {data}" e os dados novos (o `GET /me` fica em cache por 1 h).
+4. **Vencimento**: o recorrente `fiscal-certificate-expiry` roda às 08:00 de São Paulo (fila `fiscal`). Para conferir sem esperar, dispare-o pelo painel do Hangfire e veja o aviso em 30, 15 e 7 dias aos membros do Proprietário e o item "Certificado digital vencendo" na pauta; vencido, sai o alerta `fiscal_integration`.
+5. **Produção** só na GOL-01b: com `catalog.tenants.fiscal_environment_allowed = Production`, todos os campos críticos da NF-e conferidos e o código do autenticador no diálogo "Ligar a emissão com valor fiscal". Sem a marca, a tela responde "A emissão desta empresa só liga na virada para a produção.".
+6. O `.pfx` e a senha nunca aparecem em log, auditoria, outbox ou resposta; confira no Seq que o envio só registra "Certificado digital do tenant {id} trocado, válido até {data}".

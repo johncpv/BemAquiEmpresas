@@ -57,6 +57,7 @@ public static class IdentityInfrastructure
         services.TryAddScoped<CompanySettings>();
         services.TryAddScoped<BemAqui.BuildingBlocks.Tenancy.ITenantBranding>(sp => sp.GetRequiredService<CompanySettings>());
         services.TryAddScoped<BemAqui.Identity.Contracts.ICompanyIdentity>(sp => sp.GetRequiredService<CompanySettings>());
+        services.TryAddScoped<BemAqui.Identity.Contracts.ICompanyFiscalProfile>(sp => sp.GetRequiredService<CompanySettings>());
         services.TryAddScoped<TenantParametersService>();
         services.TryAddScoped<BemAqui.Identity.Contracts.ITenantParameters>(sp => sp.GetRequiredService<TenantParametersService>());
         services.TryAddScoped<BemAqui.Identity.Contracts.IUserEmployeeLink, UserEmployeeLink>();

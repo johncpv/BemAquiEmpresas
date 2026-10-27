@@ -83,9 +83,10 @@ public class WebhookRulesTests
     }
 
     [Fact]
-    public void Corpo_do_Fiscal_fica_so_com_o_Proprietario_ate_existir_fiscal_approve()
+    public void Corpo_do_Fiscal_passa_a_exigir_fiscal_approve_que_nasce_na_FIS_02a()
     {
-        Provider(validator: new HmacSha256Validator(), owner: "fiscal").ContentPermission.Should().BeNull();
+        Provider(validator: new HmacSha256Validator(), owner: "fiscal").ContentPermission.Should().Be("fiscal.approve");
+        Provider(validator: new HmacSha256Validator(), owner: "settings").ContentPermission.Should().BeNull("sem approve no catálogo, só o Proprietário");
     }
 
     [Fact]
