@@ -29,6 +29,7 @@ public static class PersistenceServiceCollectionExtensions
         services.TryAddScoped<IPermissionChecker, DenyAllPermissionChecker>();
         services.TryAddScoped<AuditHistory>();
         services.TryAddScoped<IAuditWriter, AuditWriter>();
+        services.TryAddScoped<IAuditReader, AuditReader>();
         // Donos de anexo inscritos pelos módulos (AddAttachmentOwner); testes ainda podem registrar direto no registry.
         services.TryAddSingleton(sp =>
         {

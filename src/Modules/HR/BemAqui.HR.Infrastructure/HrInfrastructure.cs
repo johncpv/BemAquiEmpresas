@@ -102,6 +102,12 @@ public static class HrInfrastructure
         services.TryAddScoped<PayrollClosingService>();
         services.TryAddScoped<IEmployeeBankAccounts, EmployeeBankAccountsContract>();
         services.AddAuditableEntity<PayrollForecast>("hr", PositionService.SensitiveAction);
+        // Pacote para a contadora (RH-03): um layout (o padrão v1) e as seções dele; a RH-01c registra a do ponto.
+        services.TryAddScoped<AccountantExportService>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IAccountantExport, StandardAccountantExport>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IAccountantExportSection, AccountantMovementsSection>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IAccountantExportSection, AccountantPayrollSection>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IAccountantExportSection, AccountantTimeclockPendingSection>());
         services.AddAuditableEntity<EmployeeDependent>("hr", PositionService.SensitiveAction);
         services.AddAuditableEntity<Employee>("hr", PositionService.SensitiveAction);
         services.AddAuditableEntity<EmployeeHistoryEntry>("hr", PositionService.SensitiveAction);
