@@ -320,6 +320,18 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<EmployeeDependent> EmployeeDependents => Set<EmployeeDependent>();
 
+    public DbSet<PayrollItem> PayrollItems => Set<PayrollItem>();
+
+    public DbSet<PayrollRun> PayrollRuns => Set<PayrollRun>();
+
+    public DbSet<Payslip> Payslips => Set<Payslip>();
+
+    public DbSet<PayslipLine> PayslipLines => Set<PayslipLine>();
+
+    public DbSet<PayrollRunCharge> PayrollRunCharges => Set<PayrollRunCharge>();
+
+    public DbSet<HrParameter> HrParameters => Set<HrParameter>();
+
     public DbSet<ImportRun> ImportRuns => Set<ImportRun>();
 
     public DbSet<ImportItem> ImportItems => Set<ImportItem>();

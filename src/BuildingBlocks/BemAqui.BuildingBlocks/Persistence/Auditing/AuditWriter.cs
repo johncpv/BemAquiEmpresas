@@ -22,6 +22,12 @@ public interface IAuditWriter
     /// hora, como a leitura sensível.
     /// </summary>
     Task RecordExportAsync(string entity, string entityId, string format, int rows, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Importação de arquivo (<c>Imported</c>, RH-02a CA 9): quem importou, quando, em qual registro, o formato, quantas linhas e quantos
+    /// registros mudaram, sem o arquivo nem os valores. Grava junto com o que estiver pendente no contexto (uma transação).
+    /// </summary>
+    Task RecordImportAsync(string entity, string entityId, string format, int rows, int records, CancellationToken cancellationToken = default);
 }
 
 public sealed class AuditWriter(BemAquiDbContext db, ICurrentUser currentUser, TimeProvider clock) : IAuditWriter
@@ -43,6 +49,18 @@ public sealed class AuditWriter(BemAquiDbContext db, ICurrentUser currentUser, T
     {
         var changes = System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, object> { ["format"] = new { old = (string?)null, @new = format }, ["rows"] = new { old = (int?)null, @new = rows } });
         db.AuditEntries.Add(new AuditEntry { Entity = entity, EntityId = entityId, Action = AuditActions.Exported, UserId = currentUser.UserId, At = clock.GetUtcNow(), Changes = changes });
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task RecordImportAsync(string entity, string entityId, string format, int rows, int records, CancellationToken cancellationToken = default)
+    {
+        var changes = System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, object>
+        {
+            ["format"] = new { old = (string?)null, @new = format },
+            ["rows"] = new { old = (int?)null, @new = rows },
+            ["records"] = new { old = (int?)null, @new = records },
+        });
+        db.AuditEntries.Add(new AuditEntry { Entity = entity, EntityId = entityId, Action = AuditActions.Imported, UserId = currentUser.UserId, At = clock.GetUtcNow(), Ip = currentUser.IpAddress, Changes = changes });
         await db.SaveChangesAsync(cancellationToken);
     }
 }

@@ -35,4 +35,7 @@ public static class AuditActions
 
     /// <summary>Exportação de dados (EST-04 CA 4): quem, quando, o quê e quantas linhas, sem o conteúdo exportado.</summary>
     public const string Exported = "Exported";
+
+    /// <summary>Importação de arquivo (RH-02a CA 9): quem, quando, onde, o formato e quantas linhas, sem o arquivo nem os valores.</summary>
+    public const string Imported = "Imported";
 }

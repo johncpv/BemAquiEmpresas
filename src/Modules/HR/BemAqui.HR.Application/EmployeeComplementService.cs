@@ -26,6 +26,7 @@ public sealed partial class EmployeeComplementService(
     INotificationService notifications,
     IEmailSender email,
     AttachmentService attachments,
+    HrParametersService parameters,
     ICurrentUser currentUser,
     TimeProvider clock)
 {
