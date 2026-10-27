@@ -182,6 +182,26 @@ public sealed class KioskScreenService(
         return await RowAsync(screen, cancellationToken);
     }
 
+    /// <summary>
+    /// Prévia no backoffice (PNL-01b CA 10, ADR 0030 §5): o escopo da tela (nome, linha, visões e rotação), como a TV receberia, sem abrir
+    /// sessão de quiosque. Tela revogada não tem prévia.
+    /// </summary>
+    public async Task<Result<KioskScreenContext>> PreviewAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var screen = await db.KioskScreens.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+        if (screen is null)
+        {
+            return Error.NotFound(Error.Codes.NotFound, "Tela não encontrada.");
+        }
+
+        if (screen.IsRevoked)
+        {
+            return Error.Conflict("kiosk_revoked", "Esta tela foi revogada. Crie uma tela nova.");
+        }
+
+        return new KioskScreenContext(screen.Name, screen.Line, screen.Views.Length == 0 ? KioskViews.All : screen.Views, screen.RotationSeconds, notices.CompanyName, clock.GetUtcNow());
+    }
+
     internal async Task<int> RevokeSessionsAsync(Guid screenId, CancellationToken cancellationToken)
     {
         var now = clock.GetUtcNow();

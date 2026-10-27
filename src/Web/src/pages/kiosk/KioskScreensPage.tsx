@@ -1,6 +1,7 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import { useQueryClient } from '@tanstack/react-query'
-import { Copy, MonitorPlay, Plus, X } from 'lucide-react'
+import { Link, useNavigate } from '@tanstack/react-router'
+import { Copy, Eye, MonitorPlay, Plus, X } from 'lucide-react'
 import { useState } from 'react'
 import { getListKioskScreensQueryKey, regenerateKioskScreenLink, revokeKioskScreen, useListKioskScreens } from '@/api/generated/bemaqui'
 import type { KioskScreenLink, KioskScreenRow } from '@/api/generated/model'
@@ -29,16 +30,18 @@ export function KioskScreensPage() {
   const canViewProduction = useCan('production.view')
   const canWrite = canCreate && canViewProduction // quem não vê a produção não a publica numa TV (ADR 0030 §4)
   const canRevoke = useCan('kiosk.delete')
+  const canPreview = useCan('kiosk.view') && canViewProduction // prévia: kiosk.view e production.view (PNL-01b CA 10)
+  const navigate = useNavigate()
   const [panel, setPanel] = useState<{ screen: KioskScreenRow | null } | null>(null)
   const [link, setLink] = useState<{ value: string; name: string; created: boolean } | null>(null)
-  const [next, setNext] = useState<{ value: string; name: string } | null>(null)
+  const [next, setNext] = useState<{ value: string; name: string; id: string } | null>(null)
   const reload = () => client.invalidateQueries({ queryKey: getListKioskScreensQueryKey() })
 
   const created = (result: KioskScreenLink) => {
     setPanel(null)
     void reload()
     setLink({ value: result.link, name: result.screen.name, created: true })
-    setNext({ value: result.link, name: result.screen.name })
+    setNext({ value: result.link, name: result.screen.name, id: result.screen.id })
   }
 
   const newLink = async (screen: KioskScreenRow) => {
@@ -59,7 +62,10 @@ export function KioskScreensPage() {
       </PageHeading>
       <div className="space-y-4">
         {next ? (
-          <NextSteps steps={[{ label: 'Copiar link', icon: <Copy aria-hidden="true" className="size-3.5" />, onSelect: () => void copy(next.value) }]} onDismiss={() => setNext(null)} />
+          <NextSteps steps={[
+            { label: 'Copiar link', icon: <Copy aria-hidden="true" className="size-3.5" />, onSelect: () => void copy(next.value) },
+            ...(canPreview ? [{ label: 'Ver prévia', icon: <Eye aria-hidden="true" className="size-3.5" />, onSelect: () => void navigate({ to: '/app/painel-tv/$id/previa' as never, params: { id: next.id } as never }) }] : []),
+          ]} onDismiss={() => setNext(null)} />
         ) : null}
         {canWrite ? (
           <div className="flex justify-end">
@@ -75,7 +81,7 @@ export function KioskScreensPage() {
         ) : (
           <ul aria-label="Telas de TV" className="grid gap-3">
             {list.data.screens.map((s) => (
-              <ScreenCard key={s.id} screen={s} canWrite={canWrite} canRevoke={canRevoke}
+              <ScreenCard key={s.id} screen={s} canWrite={canWrite} canRevoke={canRevoke} canPreview={canPreview}
                 onEdit={() => setPanel({ screen: s })} onNewLink={() => newLink(s)} onRevoke={() => revoke(s)} onReload={reload} />
             ))}
           </ul>
@@ -90,10 +96,11 @@ export function KioskScreensPage() {
   )
 }
 
-function ScreenCard({ screen: s, canWrite, canRevoke, onEdit, onNewLink, onRevoke, onReload }: {
+function ScreenCard({ screen: s, canWrite, canRevoke, canPreview, onEdit, onNewLink, onRevoke, onReload }: {
   screen: KioskScreenRow
   canWrite: boolean
   canRevoke: boolean
+  canPreview: boolean
   onEdit: () => void
   onNewLink: () => Promise<unknown>
   onRevoke: () => Promise<unknown>
@@ -126,6 +133,11 @@ function ScreenCard({ screen: s, canWrite, canRevoke, onEdit, onNewLink, onRevok
         </div>
         {active ? (
           <div className="flex flex-wrap gap-2">
+            {canPreview ? (
+              <Link to={'/app/painel-tv/$id/previa' as never} params={{ id: s.id } as never} className={button}>
+                <Eye aria-hidden="true" className="size-4" /> Ver prévia
+              </Link>
+            ) : null}
             {canWrite ? <button type="button" onClick={onEdit} className={button}>Editar</button> : null}
             {canWrite ? (
               <span className="inline-flex items-center">

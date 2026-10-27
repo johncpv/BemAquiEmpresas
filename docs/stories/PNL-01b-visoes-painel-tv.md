@@ -5,7 +5,7 @@
 | ID | PNL-01b |
 | Título | As visões do painel de produção na TV para leitura a distância — quadro por etapa (cartão de 4 linhas: OS e projeto, operador pelo primeiro nome e inicial, tempo na etapa e horas, previsto ou atraso; até 3 cartões por coluna), fila com as próximas entradas e a previsão × prometido, e atrasos e riscos —, com rotação automática, filtro pela linha do token, cliente nunca exibido, sempre escuro, atualização em menos de 2 s depois do apontamento e prévia no backoffice (ADR 0030) |
 | Tamanho | M (quebra da PNL-01) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | PRD §5.14 (Painel de produção: OS por etapa, operador atual, tempo na etapa, previsto × real, atrasos destacados, próximos projetos da fila e previsão de entrega; rotação automática; modo escuro e fonte grande) · R-PRD-2 · R-PLN-4 · PRD §6 (painel atualiza em < 2 s após apontamento) |
 | Dependências | PNL-01a (sessão, `KioskHub`, superfície `/tv`, kit TV base), PRD-02 (consulta do quadro, etapa atual), PRD-03a (apontamento, operador, início da etapa), PLN-01a (datas previstas), PLN-01b (previsão do projeto, risco e `ScheduleChanged`), PLN-02 (`IPlanningQueue`) |
 | Bloqueia | — |
@@ -94,18 +94,18 @@ Decisões da revisão aplicadas: D11 e ADR 0030 (leitura a distância 32/28/48 p
 **Pré-condição externa:** nenhuma (a TV é da Konebras, P-12 decidida).
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers), desempenho e E2E (< 2 s, prévia e visual) passando.
-- [ ] Nenhuma migration.
-- [ ] Sem cor literal: tokens do tema escuro da TV; medidas mínimas conferidas no teste visual.
-- [ ] Ajudas atualizadas (inclusive a da prévia); teste de cobertura passando.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] Story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers), desempenho e E2E (< 2 s, prévia e visual) passando.
+- [x] Nenhuma migration.
+- [x] Sem cor literal: tokens do tema escuro da TV; medidas mínimas conferidas no teste visual.
+- [x] Ajudas atualizadas (inclusive a da prévia); teste de cobertura passando.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] Story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] Endpoints `/api/v1/kiosk/*` no Production com a policy `kiosk` e o 404 por linha; DTOs do painel sem cliente nem produto.
-- [ ] Endpoints da prévia e a rota `/app/painel-tv/$id/previa`.
-- [ ] Componentes `TvCard`, `TvColumn`, `TvQueueRow`, `TvViewIndicator`; rotação e relógio; recarga agrupada; ajudas.
+- [x] Endpoints `/api/v1/kiosk/*` no Production com a policy `kiosk` e o 404 por linha; DTOs do painel sem cliente nem produto.
+- [x] Endpoints da prévia e a rota `/app/painel-tv/$id/previa`.
+- [x] Componentes `TvCard`, `TvColumn`, `TvQueueRow`, `TvViewIndicator`; rotação e relógio; recarga agrupada; ajudas.
 
 ## Quality gates
 - Agentes previstos: @dev, design (TV, legibilidade a distância e contraste), cybersecurity (DTO e escopo), @qa.
@@ -139,3 +139,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D11, D18, tabela 3.1 pontos 48–50, §4.1, §4.3, §4.4 padrão 4; ADR 0030); ordem mantida (Marco 4.4, ordem 12); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 26/10/2026 | 1.0 | Implementada (`Done`). **Backend:** contrato `IKioskPanel` no `Production.Contracts` (DTO de allowlist `KioskBoard`, `KioskColumn`, `KioskCard`, `KioskQueueView`, `KioskQueueRow`, `KioskDelays`, `KioskDelayRow`), `KioskPanelService` com as regras do quadro da PRD-02 (etapa atual, coluna pelo código, linha pelo centro da etapa atual, `ProductionOrderRisk`) e sem ler cliente nem produto (sem `IParties`/`IItems`); endpoints `GET /api/v1/kiosk/board`, `/board/orders/{id}`, `/queue`, `/delays` no Production com `RequireModule("kiosk")` no grupo e `RequireKiosk()`; prévia `GET /api/v1/kiosk-screens/{id}/preview` e `/preview/board`, `/preview/board/orders/{orderId}`, `/preview/queue`, `/preview/delays` no grupo do Identity com `kiosk.view` + `production.view` (mesmo `IKioskPanel`); `ScheduleChanged` ligado ao `KioskHub` (a porta desligada da PNL-01a saiu). Nenhuma migration, nenhuma permissão nova no catálogo. **Front:** `TvCard`, `TvColumn`, `TvQueueRow`, `TvDelayRow`, `TvViewIndicator` (`components/tv/panel.tsx`), `TvSurface`, rotação (`useRotation`), recarga agrupada por cartão em 300 ms (`useTvData`, `patchBoard`), `KioskPreviewPage` em `/app/painel-tv/$id/previa` (1920 × 1080 escalado, tokens de 1080 linhas, "Visão anterior", "Próxima visão", "Pausar rotação"), "Ver prévia" na lista e no próximo passo; ajudas `tv.md`, `painel-tv.md` e `painel-tv-previa.md`. **Decisões onde a story não detalhava (recomendação aceita, PO 24/10):** (1) visão fora das visões da tela responde o mesmo 404 da OS de outra linha (menor privilégio), na TV e na prévia; (2) "etapa que define a entrega" (CA 6) = a etapa da OS que termina por último no plano (PLN-01a), com o fim previsto; (3) "quantos dias" (CA 6): atrasada, dias desde o prometido; em risco, quanto a previsão passa do prometido; atrasadas antes das em risco; (4) nome curto: 27 caracteres + "…" quando passa de 28; (5) operadores distintos pelo primeiro nome e inicial, o primeiro a entrar na etapa e "+{n}"; (6) colunas só com OS da linha ("Sem roteiro" e "Pronta para concluir" só quando têm OS); (7) a TV também desliga quando uma visão responde 401/403 do quiosque, sem esperar a revalidação de 30 s; (8) a TV mostra o nome da tela ao lado do indicador da visão; (9) cartão com `leading-[1.15]` para caber 3 cartões a 768 linhas mantendo 28 px. **Desvios:** (a) E2E do CA 8: o hub do SignalR é simulado no Playwright (negociação e WebSocket) e o "apontamento no PWA" é a mudança no mock seguida do `OrderBoardChanged`; o caminho commit → `OrderBoardChanged` no `KioskHub` está coberto pela integração da PNL-01a (`KioskTests.Hub`); medição do push à tela < 2 s; (b) "teste visual" a 1920 × 1080 e 1366 × 768 por medidas (fontes ≥ 32/28/48 px, cartões dentro da tela, sem rolagem horizontal) e captura anexada ao relatório, sem baseline de pixels (depende da fonte e do SO); (c) carga do CA 12: 300 OS e 20 sessões de TV na integração (cada visão < 500 ms; 20 recargas simultâneas com vazão < 500 ms por TV); o efeito no Kanban dos usuários não é medido à parte; (d) o teste do PNL-01a "criar a tela... revogar" (`e2e/kiosk.spec.ts`) ganhou `test.slow()`: cinco cargas de página no servidor de desenvolvimento passam dos 30 s. | Dex (Dev) |

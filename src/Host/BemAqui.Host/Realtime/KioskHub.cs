@@ -18,7 +18,7 @@ public sealed class KioskHub(KioskConnectionRegistry registry) : Hub
     public const string Path = BemAqui.BuildingBlocks.Web.KioskEndpoints.HubPath;
     public const string OrderBoardChanged = ProductionHub.OrderBoardChanged;
 
-    /// <summary>Plano mudou (PLN-01b): porta desligada até a PLN-01b/PNL-01b chamar <see cref="SignalRKioskRealtime.ScheduleChangedAsync"/>.</summary>
+    /// <summary>Plano mudou (PLN-01b CA 4): o <c>SignalRProductionBoardPush</c> manda também às TVs (PNL-01b CA 8).</summary>
     public const string ScheduleChanged = "ScheduleChanged";
     public const string KioskConfigChanged = "KioskConfigChanged";
     public const string KioskRevoked = "KioskRevoked";
@@ -109,10 +109,6 @@ public sealed class SignalRKioskRealtime(IHubContext<KioskHub> hub, KioskConnect
         await hub.Clients.Group(KioskHub.ScreenGroup(tenantId, kioskId)).SendAsync(KioskHub.KioskRevoked, Message(reason, companyName), CancellationToken.None);
         _ = Task.Delay(CloseDelay, CancellationToken.None).ContinueWith(_ => registry.CloseFor(tenantId, kioskId), TaskScheduler.Default);
     }
-
-    /// <summary>Porta do <c>ScheduleChanged</c> (PLN-01b, desligada nesta story): avisa as TVs do tenant que o plano mudou.</summary>
-    public Task ScheduleChangedAsync(Guid tenantId, CancellationToken cancellationToken = default) =>
-        hub.Clients.Group(KioskHub.ProductionGroup(tenantId)).SendAsync(KioskHub.ScheduleChanged, cancellationToken);
 
     public static KioskEndedMessage Message(KioskEndReason reason, string companyName) => new(reason switch
     {

@@ -8,7 +8,7 @@ export const STATUS: Record<string, { label: string; tone: 'ok' | 'warn' | 'crit
   Revoked: { label: 'Revogada', tone: 'neutral' },
 }
 
-export const VIEW_LABELS: Record<string, string> = { board: 'Quadro por etapa', queue: 'Fila e previsões', late: 'Atrasos' }
+export const VIEW_LABELS: Record<string, string> = { board: 'Quadro por etapa', queue: 'Fila e previsões', late: 'Atrasos e riscos' }
 
 export const DEFAULT_ROTATION = 20
 export const MAX_NETWORKS = 5

@@ -257,6 +257,10 @@ import type {
   ItemLotRow,
   ItemSearchHit,
   ItemType,
+  KioskBoard,
+  KioskCard,
+  KioskDelays,
+  KioskQueueView,
   KioskScreenContext,
   KioskScreenInput,
   KioskScreenLink,
@@ -9103,6 +9107,489 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getRevokeKioskScreenMutationOptions(options), queryClient);
     }
+
+export const getGetKioskScreenPreviewUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/kiosk-screens/${id}/preview`
+}
+
+export const getKioskScreenPreview = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<KioskScreenContext> => {
+
+  return apiFetch<KioskScreenContext>(getGetKioskScreenPreviewUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetKioskScreenPreviewQueryKey = (id: string,) => {
+    return [
+    `/api/v1/kiosk-screens/${id}/preview`
+    ] as const;
+    }
+
+
+export const getGetKioskScreenPreviewQueryOptions = <TData = Awaited<ReturnType<typeof getKioskScreenPreview>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskScreenPreview>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetKioskScreenPreviewQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getKioskScreenPreview>>> = ({ signal }) => getKioskScreenPreview(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getKioskScreenPreview>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetKioskScreenPreviewQueryResult = NonNullable<Awaited<ReturnType<typeof getKioskScreenPreview>>>
+export type GetKioskScreenPreviewQueryError = unknown
+
+
+export function useGetKioskScreenPreview<TData = Awaited<ReturnType<typeof getKioskScreenPreview>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskScreenPreview>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getKioskScreenPreview>>,
+          TError,
+          Awaited<ReturnType<typeof getKioskScreenPreview>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetKioskScreenPreview<TData = Awaited<ReturnType<typeof getKioskScreenPreview>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskScreenPreview>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getKioskScreenPreview>>,
+          TError,
+          Awaited<ReturnType<typeof getKioskScreenPreview>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetKioskScreenPreview<TData = Awaited<ReturnType<typeof getKioskScreenPreview>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskScreenPreview>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetKioskScreenPreview<TData = Awaited<ReturnType<typeof getKioskScreenPreview>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskScreenPreview>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetKioskScreenPreviewQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetKioskPreviewBoardUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/kiosk-screens/${id}/preview/board`
+}
+
+export const getKioskPreviewBoard = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<KioskBoard> => {
+
+  return apiFetch<KioskBoard>(getGetKioskPreviewBoardUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetKioskPreviewBoardQueryKey = (id: string,) => {
+    return [
+    `/api/v1/kiosk-screens/${id}/preview/board`
+    ] as const;
+    }
+
+
+export const getGetKioskPreviewBoardQueryOptions = <TData = Awaited<ReturnType<typeof getKioskPreviewBoard>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskPreviewBoard>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetKioskPreviewBoardQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getKioskPreviewBoard>>> = ({ signal }) => getKioskPreviewBoard(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getKioskPreviewBoard>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetKioskPreviewBoardQueryResult = NonNullable<Awaited<ReturnType<typeof getKioskPreviewBoard>>>
+export type GetKioskPreviewBoardQueryError = unknown
+
+
+export function useGetKioskPreviewBoard<TData = Awaited<ReturnType<typeof getKioskPreviewBoard>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskPreviewBoard>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getKioskPreviewBoard>>,
+          TError,
+          Awaited<ReturnType<typeof getKioskPreviewBoard>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetKioskPreviewBoard<TData = Awaited<ReturnType<typeof getKioskPreviewBoard>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskPreviewBoard>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getKioskPreviewBoard>>,
+          TError,
+          Awaited<ReturnType<typeof getKioskPreviewBoard>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetKioskPreviewBoard<TData = Awaited<ReturnType<typeof getKioskPreviewBoard>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskPreviewBoard>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetKioskPreviewBoard<TData = Awaited<ReturnType<typeof getKioskPreviewBoard>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskPreviewBoard>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetKioskPreviewBoardQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetKioskPreviewBoardOrderUrl = (id: string,
+    orderId: string,) => {
+
+
+
+
+  return `/api/v1/kiosk-screens/${id}/preview/board/orders/${orderId}`
+}
+
+export const getKioskPreviewBoardOrder = async (id: string,
+    orderId: string, options?: Parameters<typeof apiFetch>[1]): Promise<KioskCard> => {
+
+  return apiFetch<KioskCard>(getGetKioskPreviewBoardOrderUrl(id,orderId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetKioskPreviewBoardOrderQueryKey = (id: string,
+    orderId: string,) => {
+    return [
+    `/api/v1/kiosk-screens/${id}/preview/board/orders/${orderId}`
+    ] as const;
+    }
+
+
+export const getGetKioskPreviewBoardOrderQueryOptions = <TData = Awaited<ReturnType<typeof getKioskPreviewBoardOrder>>, TError = unknown>(id: string,
+    orderId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskPreviewBoardOrder>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetKioskPreviewBoardOrderQueryKey(id,orderId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getKioskPreviewBoardOrder>>> = ({ signal }) => getKioskPreviewBoardOrder(id,orderId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && orderId !== null && orderId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getKioskPreviewBoardOrder>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetKioskPreviewBoardOrderQueryResult = NonNullable<Awaited<ReturnType<typeof getKioskPreviewBoardOrder>>>
+export type GetKioskPreviewBoardOrderQueryError = unknown
+
+
+export function useGetKioskPreviewBoardOrder<TData = Awaited<ReturnType<typeof getKioskPreviewBoardOrder>>, TError = unknown>(
+ id: string,
+    orderId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskPreviewBoardOrder>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getKioskPreviewBoardOrder>>,
+          TError,
+          Awaited<ReturnType<typeof getKioskPreviewBoardOrder>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetKioskPreviewBoardOrder<TData = Awaited<ReturnType<typeof getKioskPreviewBoardOrder>>, TError = unknown>(
+ id: string,
+    orderId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskPreviewBoardOrder>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getKioskPreviewBoardOrder>>,
+          TError,
+          Awaited<ReturnType<typeof getKioskPreviewBoardOrder>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetKioskPreviewBoardOrder<TData = Awaited<ReturnType<typeof getKioskPreviewBoardOrder>>, TError = unknown>(
+ id: string,
+    orderId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskPreviewBoardOrder>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetKioskPreviewBoardOrder<TData = Awaited<ReturnType<typeof getKioskPreviewBoardOrder>>, TError = unknown>(
+ id: string,
+    orderId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskPreviewBoardOrder>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetKioskPreviewBoardOrderQueryOptions(id,orderId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetKioskPreviewQueueUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/kiosk-screens/${id}/preview/queue`
+}
+
+export const getKioskPreviewQueue = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<KioskQueueView> => {
+
+  return apiFetch<KioskQueueView>(getGetKioskPreviewQueueUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetKioskPreviewQueueQueryKey = (id: string,) => {
+    return [
+    `/api/v1/kiosk-screens/${id}/preview/queue`
+    ] as const;
+    }
+
+
+export const getGetKioskPreviewQueueQueryOptions = <TData = Awaited<ReturnType<typeof getKioskPreviewQueue>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskPreviewQueue>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetKioskPreviewQueueQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getKioskPreviewQueue>>> = ({ signal }) => getKioskPreviewQueue(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getKioskPreviewQueue>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetKioskPreviewQueueQueryResult = NonNullable<Awaited<ReturnType<typeof getKioskPreviewQueue>>>
+export type GetKioskPreviewQueueQueryError = unknown
+
+
+export function useGetKioskPreviewQueue<TData = Awaited<ReturnType<typeof getKioskPreviewQueue>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskPreviewQueue>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getKioskPreviewQueue>>,
+          TError,
+          Awaited<ReturnType<typeof getKioskPreviewQueue>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetKioskPreviewQueue<TData = Awaited<ReturnType<typeof getKioskPreviewQueue>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskPreviewQueue>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getKioskPreviewQueue>>,
+          TError,
+          Awaited<ReturnType<typeof getKioskPreviewQueue>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetKioskPreviewQueue<TData = Awaited<ReturnType<typeof getKioskPreviewQueue>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskPreviewQueue>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetKioskPreviewQueue<TData = Awaited<ReturnType<typeof getKioskPreviewQueue>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskPreviewQueue>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetKioskPreviewQueueQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetKioskPreviewDelaysUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/kiosk-screens/${id}/preview/delays`
+}
+
+export const getKioskPreviewDelays = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<KioskDelays> => {
+
+  return apiFetch<KioskDelays>(getGetKioskPreviewDelaysUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetKioskPreviewDelaysQueryKey = (id: string,) => {
+    return [
+    `/api/v1/kiosk-screens/${id}/preview/delays`
+    ] as const;
+    }
+
+
+export const getGetKioskPreviewDelaysQueryOptions = <TData = Awaited<ReturnType<typeof getKioskPreviewDelays>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskPreviewDelays>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetKioskPreviewDelaysQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getKioskPreviewDelays>>> = ({ signal }) => getKioskPreviewDelays(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getKioskPreviewDelays>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetKioskPreviewDelaysQueryResult = NonNullable<Awaited<ReturnType<typeof getKioskPreviewDelays>>>
+export type GetKioskPreviewDelaysQueryError = unknown
+
+
+export function useGetKioskPreviewDelays<TData = Awaited<ReturnType<typeof getKioskPreviewDelays>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskPreviewDelays>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getKioskPreviewDelays>>,
+          TError,
+          Awaited<ReturnType<typeof getKioskPreviewDelays>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetKioskPreviewDelays<TData = Awaited<ReturnType<typeof getKioskPreviewDelays>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskPreviewDelays>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getKioskPreviewDelays>>,
+          TError,
+          Awaited<ReturnType<typeof getKioskPreviewDelays>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetKioskPreviewDelays<TData = Awaited<ReturnType<typeof getKioskPreviewDelays>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskPreviewDelays>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetKioskPreviewDelays<TData = Awaited<ReturnType<typeof getKioskPreviewDelays>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskPreviewDelays>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetKioskPreviewDelaysQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getOpenKioskSessionUrl = () => {
 
@@ -35056,6 +35543,386 @@ export function useDownloadShopfloorAttachment<TData = Awaited<ReturnType<typeof
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getDownloadShopfloorAttachmentQueryOptions(stepId,attachmentId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetKioskBoardUrl = () => {
+
+
+
+
+  return `/api/v1/kiosk/board`
+}
+
+export const getKioskBoard = async ( options?: Parameters<typeof apiFetch>[1]): Promise<KioskBoard> => {
+
+  return apiFetch<KioskBoard>(getGetKioskBoardUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetKioskBoardQueryKey = () => {
+    return [
+    `/api/v1/kiosk/board`
+    ] as const;
+    }
+
+
+export const getGetKioskBoardQueryOptions = <TData = Awaited<ReturnType<typeof getKioskBoard>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskBoard>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetKioskBoardQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getKioskBoard>>> = ({ signal }) => getKioskBoard({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getKioskBoard>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetKioskBoardQueryResult = NonNullable<Awaited<ReturnType<typeof getKioskBoard>>>
+export type GetKioskBoardQueryError = unknown
+
+
+export function useGetKioskBoard<TData = Awaited<ReturnType<typeof getKioskBoard>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskBoard>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getKioskBoard>>,
+          TError,
+          Awaited<ReturnType<typeof getKioskBoard>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetKioskBoard<TData = Awaited<ReturnType<typeof getKioskBoard>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskBoard>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getKioskBoard>>,
+          TError,
+          Awaited<ReturnType<typeof getKioskBoard>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetKioskBoard<TData = Awaited<ReturnType<typeof getKioskBoard>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskBoard>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetKioskBoard<TData = Awaited<ReturnType<typeof getKioskBoard>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskBoard>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetKioskBoardQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetKioskBoardOrderUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/kiosk/board/orders/${id}`
+}
+
+export const getKioskBoardOrder = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<KioskCard> => {
+
+  return apiFetch<KioskCard>(getGetKioskBoardOrderUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetKioskBoardOrderQueryKey = (id: string,) => {
+    return [
+    `/api/v1/kiosk/board/orders/${id}`
+    ] as const;
+    }
+
+
+export const getGetKioskBoardOrderQueryOptions = <TData = Awaited<ReturnType<typeof getKioskBoardOrder>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskBoardOrder>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetKioskBoardOrderQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getKioskBoardOrder>>> = ({ signal }) => getKioskBoardOrder(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getKioskBoardOrder>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetKioskBoardOrderQueryResult = NonNullable<Awaited<ReturnType<typeof getKioskBoardOrder>>>
+export type GetKioskBoardOrderQueryError = unknown
+
+
+export function useGetKioskBoardOrder<TData = Awaited<ReturnType<typeof getKioskBoardOrder>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskBoardOrder>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getKioskBoardOrder>>,
+          TError,
+          Awaited<ReturnType<typeof getKioskBoardOrder>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetKioskBoardOrder<TData = Awaited<ReturnType<typeof getKioskBoardOrder>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskBoardOrder>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getKioskBoardOrder>>,
+          TError,
+          Awaited<ReturnType<typeof getKioskBoardOrder>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetKioskBoardOrder<TData = Awaited<ReturnType<typeof getKioskBoardOrder>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskBoardOrder>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetKioskBoardOrder<TData = Awaited<ReturnType<typeof getKioskBoardOrder>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskBoardOrder>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetKioskBoardOrderQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetKioskQueueUrl = () => {
+
+
+
+
+  return `/api/v1/kiosk/queue`
+}
+
+export const getKioskQueue = async ( options?: Parameters<typeof apiFetch>[1]): Promise<KioskQueueView> => {
+
+  return apiFetch<KioskQueueView>(getGetKioskQueueUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetKioskQueueQueryKey = () => {
+    return [
+    `/api/v1/kiosk/queue`
+    ] as const;
+    }
+
+
+export const getGetKioskQueueQueryOptions = <TData = Awaited<ReturnType<typeof getKioskQueue>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskQueue>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetKioskQueueQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getKioskQueue>>> = ({ signal }) => getKioskQueue({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getKioskQueue>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetKioskQueueQueryResult = NonNullable<Awaited<ReturnType<typeof getKioskQueue>>>
+export type GetKioskQueueQueryError = unknown
+
+
+export function useGetKioskQueue<TData = Awaited<ReturnType<typeof getKioskQueue>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskQueue>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getKioskQueue>>,
+          TError,
+          Awaited<ReturnType<typeof getKioskQueue>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetKioskQueue<TData = Awaited<ReturnType<typeof getKioskQueue>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskQueue>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getKioskQueue>>,
+          TError,
+          Awaited<ReturnType<typeof getKioskQueue>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetKioskQueue<TData = Awaited<ReturnType<typeof getKioskQueue>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskQueue>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetKioskQueue<TData = Awaited<ReturnType<typeof getKioskQueue>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskQueue>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetKioskQueueQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetKioskDelaysUrl = () => {
+
+
+
+
+  return `/api/v1/kiosk/delays`
+}
+
+export const getKioskDelays = async ( options?: Parameters<typeof apiFetch>[1]): Promise<KioskDelays> => {
+
+  return apiFetch<KioskDelays>(getGetKioskDelaysUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetKioskDelaysQueryKey = () => {
+    return [
+    `/api/v1/kiosk/delays`
+    ] as const;
+    }
+
+
+export const getGetKioskDelaysQueryOptions = <TData = Awaited<ReturnType<typeof getKioskDelays>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskDelays>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetKioskDelaysQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getKioskDelays>>> = ({ signal }) => getKioskDelays({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getKioskDelays>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetKioskDelaysQueryResult = NonNullable<Awaited<ReturnType<typeof getKioskDelays>>>
+export type GetKioskDelaysQueryError = unknown
+
+
+export function useGetKioskDelays<TData = Awaited<ReturnType<typeof getKioskDelays>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskDelays>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getKioskDelays>>,
+          TError,
+          Awaited<ReturnType<typeof getKioskDelays>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetKioskDelays<TData = Awaited<ReturnType<typeof getKioskDelays>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskDelays>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getKioskDelays>>,
+          TError,
+          Awaited<ReturnType<typeof getKioskDelays>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetKioskDelays<TData = Awaited<ReturnType<typeof getKioskDelays>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskDelays>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetKioskDelays<TData = Awaited<ReturnType<typeof getKioskDelays>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getKioskDelays>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetKioskDelaysQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

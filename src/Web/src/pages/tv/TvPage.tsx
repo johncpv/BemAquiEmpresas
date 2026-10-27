@@ -1,11 +1,17 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { getGetKioskScreenQueryKey, openKioskSession, useGetKioskScreen } from '@/api/generated/bemaqui'
-import type { KioskScreenContext } from '@/api/generated/model'
-import { FullscreenButton, TvHeader, TvNotice } from '@/components/tv/kit'
+import { ApiError } from '@/api/http'
+import { FullscreenButton, TvNotice } from '@/components/tv/kit'
 import { useWakeLock } from '@/components/tv/wake-lock'
+import { rotationViews } from './panel'
+import { TvSurface } from './TvSurface'
 import { stateOfEnd, stateOfError, takeFragmentToken, TV_TEXT, revokedText, type TvState } from './tv'
 import { useKioskLive } from './useKioskLive'
+import { useRotation } from './useRotation'
+import { type TvSource, useTvData } from './useTvData'
+
+const KIOSK_SOURCE: TvSource = { kind: 'kiosk' }
 
 /** Revalidação da sessão a cada 30 s (ADR 0030 §2) e recarga de reserva a cada 60 s sem tempo real (ADR 0009). */
 export const REVALIDATE_MS = 30_000
@@ -13,8 +19,6 @@ export const FALLBACK_RELOAD_MS = 60_000
 
 /** Troca do token desta carga da página (no máximo uma). */
 let pairing: Promise<void> | null = null
-
-const VIEW_LABELS: Record<string, string> = { board: 'Quadro por etapa', queue: 'Fila e previsões', late: 'Atrasos' }
 
 /** Estados em que a TV para de chamar a API: só um link novo (ou outra tela) resolve. */
 const terminal = (state: TvState) => state.kind === 'invalid' || state.kind === 'legacy' || state.kind === 'revoked' || state.kind === 'reconnect'
@@ -57,17 +61,32 @@ export function TvPage() {
     },
   })
   const company = screen.data?.companyName ?? 'a empresa'
-  const state: TvState = ended ?? (screen.isError ? stateOfError(screen.error, company) : screen.data ? { kind: 'panel' } : { kind: 'connecting' })
-  const updatedAt = screen.dataUpdatedAt > 0 ? new Date(screen.dataUpdatedAt) : null
+  const screenState: TvState = ended ?? (screen.isError ? stateOfError(screen.error, company) : screen.data ? { kind: 'panel' } : { kind: 'connecting' })
+  const tv = useTvData(KIOSK_SOURCE, screen.data?.views ?? [], screenState.kind === 'panel')
+  // Visão recusada pela sessão (revogada, vencida, rede, módulo): a TV desliga como no hub, sem esperar a revalidação de 30 s.
+  const refused = tv.errors.find((e) => e instanceof ApiError && (e.status === 401 || e.status === 403))
+  const dataEnd = refused ? stateOfError(refused, company) : null
+  const state: TvState = screenState.kind === 'panel' && dataEnd ? dataEnd : screenState
+  const updatedAt = tv.updatedAt ?? (screen.dataUpdatedAt > 0 ? new Date(screen.dataUpdatedAt) : null)
   useWakeLock(state.kind === 'panel')
 
-  const reload = useCallback(() => void client.invalidateQueries({ queryKey: getGetKioskScreenQueryKey() }), [client])
+  const { reloadAll, reloadPlan, onOrder } = tv
+  const reloadScreen = useCallback(() => void client.invalidateQueries({ queryKey: getGetKioskScreenQueryKey() }), [client])
+  const reload = useCallback(() => {
+    reloadScreen()
+    reloadAll()
+  }, [reloadScreen, reloadAll])
   const handlers = useMemo(() => ({
     onChange: reload,
-    onConfig: reload,
+    onOrder,
+    onSchedule: reloadPlan,
+    onConfig: reloadScreen,
     onEnded: (reason: string | undefined, name: string | undefined) => setEnded(stateOfEnd(reason, name ?? company)),
-  }), [reload, company])
+  }), [reload, onOrder, reloadPlan, reloadScreen, company])
   const live = useKioskLive(state.kind === 'panel', handlers)
+  const width = useViewportWidth()
+  const views = rotationViews(screen.data?.views ?? [], tv.data.delays.data)
+  const rotation = useRotation(views.length, screen.data?.rotationSeconds ?? 20, false)
 
   // Reserva sem tempo real: recarrega a cada 60 s enquanto o hub está fora.
   useEffect(() => {
@@ -96,23 +115,21 @@ export function TvPage() {
     case 'network':
       return <TvNotice title={TV_TEXT.network} tone="crit" />
     default:
-      return screen.data ? <TvPanel screen={screen.data} status={live} updatedAt={updatedAt} /> : <TvNotice title={TV_TEXT.connecting} />
+      return screen.data
+        ? <TvSurface screen={screen.data} data={tv.data} status={live} updatedAt={updatedAt} width={width} views={views} rotation={rotation} actions={<FullscreenButton />} />
+        : <TvNotice title={TV_TEXT.connecting} />
   }
 }
 
-/** Base do painel conectado: cabeçalho do kit TV e a área das visões (preenchida pela PNL-01b). */
-function TvPanel({ screen, status, updatedAt }: { screen: KioskScreenContext; status: 'connecting' | 'live' | 'offline'; updatedAt: Date | null }) {
-  return (
-    <div className="flex min-h-[calc(100dvh-64px)] flex-col gap-8">
-      <TvHeader title={screen.line ?? 'Todas as linhas'} status={status} updatedAt={updatedAt} actions={<FullscreenButton />} />
-      <section aria-label="Visões do painel" className="grid flex-1 place-items-center rounded-md border border-dashed border-border p-8 text-center">
-        <div className="space-y-4">
-          <p className="font-display text-[length:var(--tv-title)] font-extrabold font-wider">{screen.name}</p>
-          <p className="text-[length:var(--tv-line)] text-muted-foreground">Tela conectada. As visões aparecem aqui: {(screen.views ?? []).map((v) => VIEW_LABELS[v] ?? v).join(', ')}.</p>
-        </div>
-      </section>
-    </div>
-  )
+/** Largura útil da TV (a página tem 32 px de margem de cada lado): decide quantas colunas do quadro cabem. */
+function useViewportWidth(): number {
+  const [width, setWidth] = useState(() => (typeof window === 'undefined' ? 1920 : window.innerWidth) - 64)
+  useEffect(() => {
+    const resize = () => setWidth(window.innerWidth - 64)
+    window.addEventListener('resize', resize)
+    return () => window.removeEventListener('resize', resize)
+  }, [])
+  return width
 }
 
 /** /tv/{qualquer coisa}: o link antigo, com o token no caminho, foi desligado (CA 17). Nenhuma chamada à API. */

@@ -10,8 +10,12 @@ export const KIOSK_REVOKED = 'KioskRevoked'
 const RESTART_MS = 15_000
 
 export interface KioskLiveHandlers {
-  /** Quadro ou plano mudou: a TV recarrega pela API de quiosque (a mensagem leva só o id). */
+  /** Reconectou: a TV recarrega tudo pela API de quiosque. */
   onChange: () => void
+  /** OS mudou (OrderBoardChanged, só o id): a TV recarrega o cartão dela, agrupado em 300 ms (PNL-01b CA 8 e 9). */
+  onOrder: (orderId: string) => void
+  /** Plano novo (ScheduleChanged, sem corpo): a fila, os atrasos e as datas previstas recarregam (PNL-01b CA 8). */
+  onSchedule: () => void
   /** Configuração nova da tela (linha, visões, rotação). */
   onConfig: () => void
   /** Fim da sessão: revogada, novo link ou painel indisponível. */
@@ -57,8 +61,11 @@ export function useKioskLive(enabled: boolean, handlers: KioskLiveHandlers): TvC
       }
     }
 
-    connection.on(ORDER_BOARD_CHANGED, () => ref.current.onChange())
-    connection.on(SCHEDULE_CHANGED, () => ref.current.onChange())
+    connection.on(ORDER_BOARD_CHANGED, (message: { productionOrderId?: string } | undefined) => {
+      if (message?.productionOrderId) ref.current.onOrder(message.productionOrderId)
+      else ref.current.onChange()
+    })
+    connection.on(SCHEDULE_CHANGED, () => ref.current.onSchedule())
     connection.on(KIOSK_CONFIG_CHANGED, () => ref.current.onConfig())
     connection.on(KIOSK_REVOKED, (message: { reason?: string; companyName?: string } | undefined) => ref.current.onEnded(message?.reason, message?.companyName))
     connection.onreconnecting(() => setStatus('offline'))
