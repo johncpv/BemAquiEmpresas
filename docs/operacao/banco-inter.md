@@ -77,3 +77,41 @@ válido. (O health `ready` ainda não confere a deriva: pendência registrada na
 ## Desligar e suspeita de vazamento
 - **Desligar integração** apaga (sobrescreve com nulo) client id, client secret, certificado, chave e senha; a conta volta a `provider = None`.
 - Suspeita de vazamento da credencial: desligue na tela, revogue a integração no Internet Banking do Inter e gere uma nova.
+
+## Extrato do banco (BNK-03a)
+A aba **Contas e extrato → conta → Extrato → Extrato do banco** (`/app/financeiro/contas/{id}/extrato?aba=extrato-banco`) mostra as linhas do
+banco (`finance.bank_statement_lines`), o saldo do banco por dia (`bank_statement_balances`) e as importações (`bank_statement_batches`).
+
+- **API do Inter:** recorrente global `inter-statement-import` às **06:30** de São Paulo (um job por tenant com o `finance` liberado) e o botão
+  "Buscar agora" (`finance.edit`, no máximo 1 vez a cada 5 min por conta). Busca desde a última linha da API menos 3 dias (nunca antes da
+  data de corte da FIN-00; sem linha anterior, 30 dias), em janelas de 30 dias e páginas de 1000. Chamadas:
+  `GET banking/v2/extrato/completo?dataInicio=&dataFim=&pagina=&tamanhoPagina=` e `GET banking/v2/saldo?dataSaldo=` (últimos 5 dias e hoje).
+- **Sem duplicar:** índice único `(conta, origem, external_id)` entre as linhas não desfeitas e advisory lock por conta (job e "Buscar agora" ao
+  mesmo tempo esperam um pelo outro).
+- **Produção:** sem `bank_production_allowed`, "Buscar agora" responde 409 `bank_production_not_allowed` e o job pula a conta (fica no log).
+- **OFX:** contas sem API, até 5 MB e 20 mil lançamentos, antivírus antes da leitura (indisponível recusa), parser próprio sem DTD, 10 s de limite.
+  Em conta com API, só com a contingência liberada (`finance.approve`, até 30 dias); as linhas entram "não verificadas pelo banco".
+- **Parâmetros** (seção `BankStatement`, valores padrão no código): `FetchCooldown` (00:05:00), `OverlapDays` (3), `InitialDays` (30),
+  `WindowDays` (30), `BalanceDays` (5), `DifferenceAlertDays` (2), `InterPageSize` (1000), `OfxMaxBytes`, `OfxMaxTransactions`,
+  `OfxParseTimeout`, `ContingencyMaxDays` (30).
+- **Log:** só conta, origem, período, contagens e duração (`Extrato do banco importado…`); nunca descrição, contraparte ou valor de linha.
+
+### Pré-condição externa: conferir no sandbox (tenant `demo`) quando a credencial chegar
+Tudo foi provado contra o fake do Inter e contra arquivos OFX gerados nos testes. No sandbox real, confira e registre na story:
+
+1. **Caminho e parâmetros do extrato:** `banking/v2/extrato/completo` responde 200 com `extrato.read`; nomes `dataInicio`, `dataFim`, `pagina`,
+   `tamanhoPagina`; o maior `tamanhoPagina` aceito (se 1000 for recusado, ajuste `BankStatement:InterPageSize`) e o maior período por chamada
+   (se 30 dias for recusado, ajuste `BankStatement:WindowDays`).
+2. **Campos de cada transação:** `idTransacao` (estável entre chamadas? é a chave anti-duplicação), `dataTransacao` (ou só `dataInclusao`),
+   `tipoOperacao` C/D, `valor` (texto ou número), `tipoTransacao`, `titulo`, `descricao` e, em `detalhes`, os nomes do pagador/recebedor e
+   do CPF/CNPJ (`nomePagador`, `cpfCnpjPagador`, `nomeRecebedor`, `cpfCnpjRecebedor`). Campo com outro nome: ajuste o `InterStatementProvider`.
+3. **Paginação:** `totalPaginas` e `ultimaPagina` presentes.
+4. **Saldo por dia:** `banking/v2/saldo?dataSaldo=AAAA-MM-DD` devolve o saldo do fim daquele dia (e não o atual); campos `disponivel`,
+   `bloqueadoCheque`, `bloqueadoJudicialmente`, `bloqueadoAdministrativo` (o sistema soma o disponível com os bloqueados; o `limite` fica fora).
+5. **Sobreposição:** rode "Buscar agora" duas vezes (com 5 min entre elas): a segunda deve mostrar "0 novas, N já importadas".
+6. **OFX do Inter na contingência:** exporte o OFX do mesmo período pelo Internet Banking e importe com a contingência liberada; confira se o
+   `FITID` do OFX é igual ao `idTransacao` da API (se for, as linhas coincidentes são ignoradas; se não for, elas entram como não verificadas e a
+   conciliação da BNK-03b as separa — registre o resultado).
+7. **OFX de outros bancos:** importe um OFX real de cada banco usado pela Konebras e confira `BANKID`/`ACCTID` (com ou sem dígito e agência),
+   o encoding (acentos) e o `FITID`.
+8. **Log:** procure no log do `demo` uma descrição ou um nome de contraparte importado: não pode aparecer.
