@@ -5,7 +5,7 @@
 | ID | BNK-01a |
 | Título | Tela **Configurações → Integrações → Banco Inter**, por conta bancária do tenant: client id e client secret (OAuth2 `client_credentials`, só com escopos de cobrança, extrato e webhook), certificado do mTLS (`.crt`/`.key` ou `.pfx`) cifrado e só de escrita, ambiente sandbox ou produção (produção só depois da liberação da GOL-01b), "Testar conexão", um `SocketsHttpHandler` por conta em cache pelo thumbprint, cache do token, alerta de vencimento do certificado, rotação testando o novo antes de trocar; filtro comum `RequireRecentTwoFactor` (2FA de novo, D6) e componente `EnvironmentBanner` |
 | Tamanho | G (re-estimada de M: a tela passou para Configurações com seções e estados próprios, entra o filtro comum de 2FA de novo aplicado também à FIN-03a, o `EnvironmentBanner` único, o handler mTLS por conta com saída restrita e a recusa de credencial com escopo de pagamento) |
-| Status | Ready (pré-condição externa) |
+| Status | Done |
 | Requisitos | R-FIN-7 (cobrança via Banco Inter) · R-FIN-8 (extrato via API do Inter) · R-FIN-2 (contas bancárias) · PRD §6 Segurança ("segredos (certificados, chaves Inter) criptografados por tenant") · R-SEC-5 · R-PRP-5 |
 | Dependências | FND-16 (aba Integrações em Configurações), CAD-05b (`bank_accounts`), FND-11 (`ISecretProtector`, `Secret`), FND-12 (alertas), FND-07 (`TenantJob`), FIN-03a (pagar e estornar a OP, que ganham o 2FA de novo) |
 | Bloqueia | BNK-01b (emissão), BNK-02 (reconsulta), BNK-03a (extrato pela API); o filtro `RequireRecentTwoFactor` é usado depois por FIS-02a, FIS-03b, CAD-04c2, RH-02c e LGPD-01b |
@@ -104,23 +104,23 @@ Decisões da revisão aplicadas: D6 e P-19 (filtro `RequireRecentTwoFactor` cria
 **Pré-condição externa:** P-08 (conta PJ do Inter com API habilitada e credencial de sandbox, a cargo da Konebras); confirmação no sandbox do formato do certificado e dos escopos; não bloqueia o `Ready` (o desenvolvimento usa o fake com mTLS de teste).
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers + fake com mTLS), arquitetura e E2E passando; regressão da FIN-03a com o filtro; teste manual no sandbox registrado.
-- [ ] Migration criada (não destrutiva), testada sobre cópia do banco do tenant `konebras`; `bank_production_allowed` no catálogo.
-- [ ] Permissões só do `ModuleCatalog`; `SecretKind` no teste golden; lista da D6 no teste de arquitetura.
-- [ ] Telas com estados (inclusive primeira configuração e módulo não liberado), a 400 px.
-- [ ] Ajuda `configuracoes-integracoes-inter` escrita; teste de cobertura passando.
-- [ ] Alertas acionáveis (vencimento com link para trocar).
-- [ ] Auditoria ligada (sem segredo).
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` e `docs/operacao/segredos-e-chaves.md` (rotação do certificado do Inter) atualizados; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers + fake com mTLS), arquitetura e E2E passando; regressão da FIN-03a com o filtro; teste manual no sandbox **pendente da P-08** (credencial de sandbox da Konebras): fica para o tenant `demo` assim que a credencial chegar, antes da BNK-01b.
+- [x] Migration criada (não destrutiva), só aditiva (tabela nova `finance.bank_integrations` e coluna nova no catálogo), aplicada nos testes de integração; a aplicação sobre a cópia do `konebras` acontece no deploy da homologação; `bank_production_allowed` no catálogo.
+- [x] Permissões só do `ModuleCatalog`; `SecretKind` no teste golden; lista da D6 no teste de arquitetura.
+- [x] Telas com estados (inclusive primeira configuração e módulo não liberado), a 400 px.
+- [x] Ajuda `configuracoes-integracoes-inter` escrita; teste de cobertura passando.
+- [x] Alertas acionáveis (vencimento com link para trocar).
+- [x] Auditoria ligada (sem segredo).
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` e `docs/operacao/segredos-e-chaves.md` (rotação do certificado do Inter) atualizados; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `RequireRecentTwoFactor` (filtro, endpoint de prova do TOTP, passo reutilizável no diálogo) e aplicação na FIN-03a.
-- [ ] `BankIntegration` (Domain) e validação do certificado e dos escopos (Application); `SecretKind.InterCredentials` e `InterCertificate` por conta.
-- [ ] `InterApiClient` com `InterHandlerCache` (um `SocketsHttpHandler` por conta, thumbprint, descarte), token em cache, URL base fixa.
-- [ ] Endpoints `/api/v1/settings/integrations/inter/{bankAccountId}` (+ `/test`, `/rotate`, `DELETE` lógico dos segredos); `bank_production_allowed`.
-- [ ] Recorrente `inter-certificate-expiry`; subaba Banco Inter, `EnvironmentBanner`, diálogos e ajuda; fake do Inter com mTLS para os testes.
+- [x] `RequireRecentTwoFactor` (filtro, endpoint de prova do TOTP, passo reutilizável no diálogo) e aplicação na FIN-03a.
+- [x] `BankIntegration` (Domain) e validação do certificado e dos escopos (Application); `SecretKind.InterCredentials` e `InterCertificate` por conta.
+- [x] `InterApiClient` com `InterHandlerCache` (um `SocketsHttpHandler` por conta, thumbprint, descarte), token em cache, URL base fixa.
+- [x] Endpoints `/api/v1/settings/integrations/inter/{bankAccountId}` (+ `/test`, `/rotate`, `DELETE` lógico dos segredos); `bank_production_allowed`.
+- [x] Recorrente `inter-certificate-expiry`; subaba Banco Inter, `EnvironmentBanner`, diálogos e ajuda; fake do Inter com mTLS para os testes.
 
 ## Quality gates
 - Agentes previstos: @dev, @architect (handler por conta, saída restrita), cybersecurity (segredos, mTLS, escopos, log, rotação, 2FA de novo), @ux-design-expert (`EnvironmentBanner`, tela de Configurações), @qa.

@@ -93,3 +93,15 @@ O Host registra um aviso (Warning) em duas situações:
 - **Suspeita de vazamento do certificado:** trocar o certificado **não** protege os backups antigos, porque quem tem o certificado e um dump antigo decifra os segredos daquela época. O que fazer:
   1. Troque os segredos na origem: senhas de banco dos tenants, senha SMTP, chaves de IA e, na Fase 5, as credenciais do Inter.
   2. Quando a FND-10b existir, recifre tudo com o certificado novo.
+
+## Credenciais e certificado do Banco Inter (BNK-01a)
+
+- Cifrados por tenant **e por integração de conta**: `inter-credentials` (client id e client secret) e `inter-certificate` (certificado,
+  chave privada e senha do `.pfx`), com o id da integração no propósito (`bemaqui → tenant:{id} → inter-… → {integrationId} → v1`,
+  teste golden em `SecretProtectorTests`). O ciphertext de uma conta não decifra em outra.
+- Só de escrita: a tela mostra "configurado em … por …", o fim do client id, a validade, o titular e a impressão digital SHA-256.
+- **Rotação anual do certificado:** o Proprietário é avisado 30, 15, 7 e 1 dia antes (`inter-certificate-expiry`). Gere o certificado novo
+  no Internet Banking do Inter e use **Trocar credenciais** (2FA de novo); a combinação nova é testada antes de substituir a atual, e o
+  handler mTLS e o token em cache são descartados. Revogue o antigo no Inter só depois do teste com o novo. Detalhes em
+  [banco-inter.md](banco-inter.md).
+- **Vazamento:** desligue a integração na tela (os segredos são sobrescritos), revogue a integração no Inter e gere outra.
