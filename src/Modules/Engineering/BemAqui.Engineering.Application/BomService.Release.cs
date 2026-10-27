@@ -81,7 +81,9 @@ public sealed partial class BomService
             lines.Single(l => l.Id == line.Id).RequiredQuantity = required;
         }
 
-        var previous = await db.Boms.FirstOrDefaultAsync(b => b.ProductionOrderId == bom.ProductionOrderId && b.Status == BomStatus.Released, cancellationToken);
+        // A própria revisão fica de fora: se outra liberação dela acabou de gravar, o banco já a vê liberada, mas a instância rastreada
+        // ainda é o rascunho — a versão (xmin) é que decide, abaixo.
+        var previous = await db.Boms.FirstOrDefaultAsync(b => b.ProductionOrderId == bom.ProductionOrderId && b.Status == BomStatus.Released && b.Id != bom.Id, cancellationToken);
         var before = previous is null ? [] : await db.BomLines.AsNoTracking().Where(l => l.BomId == previous.Id).ToListAsync(cancellationToken);
         try
         {
@@ -106,7 +108,7 @@ public sealed partial class BomService
             await db.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
         }
-        catch (DbUpdateException ex) when (DbErrors.IsUniqueViolation(ex, ReleasedIndex))
+        catch (DbUpdateException ex) when (ex is DbUpdateConcurrencyException || DbErrors.IsUniqueViolation(ex, ReleasedIndex))
         {
             return Error.Conflict("bom_conflict", "Outra revisão da BOM desta OS foi liberada agora. Recarregue.");
         }
