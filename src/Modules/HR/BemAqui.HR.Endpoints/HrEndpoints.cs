@@ -33,6 +33,7 @@ internal static partial class HrEndpoints
         MapPayrollRuns(runs);
         MapPayslipDocuments(runs);
         MapAccountantExports(hr.MapGroup("/accountant-exports"));
+        MapTimeEntries(hr, employees);
 
         // Autoatendimento do funcionário (RH-02b, ADR 0035): camada 1 no grupo; o vínculo ativo em cada endpoint.
         var me = api.MapGroup("/me/hr").WithTags("Autoatendimento").RequireModule("hr")
@@ -42,6 +43,7 @@ internal static partial class HrEndpoints
                 return await next(context);
             });
         MapMyPayslips(me);
+        MapMyTimeClock(me);
         return api;
     }
 

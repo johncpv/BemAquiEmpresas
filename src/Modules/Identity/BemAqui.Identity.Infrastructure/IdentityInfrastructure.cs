@@ -72,6 +72,8 @@ public static class IdentityInfrastructure
         services.TryAddScoped<Application.Shopfloor.ShopfloorDeviceGate>();
         services.TryAddScoped<Application.Shopfloor.ShopfloorDeviceService>();
         services.TryAddScoped<Application.Shopfloor.PinService>();
+        // Ponto no tablet (RH-01a): o aparelho da marcação e o fim da sessão por PIN depois de marcar.
+        services.TryAddScoped<BemAqui.Identity.Contracts.IShopfloorDevices, Application.Shopfloor.ShopfloorDevicesContract>();
         services.TryAddScoped<BemAqui.BuildingBlocks.Identity.IPinSessionValidator, Application.Shopfloor.PinSessionValidator>();
         services.AddAuditableEntity<ShopfloorDevice>("settings");
         services.AddAuditableEntity<UserPin>("identity");

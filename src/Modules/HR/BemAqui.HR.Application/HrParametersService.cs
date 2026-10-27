@@ -38,6 +38,9 @@ public enum HrParameterKind
 
     /// <summary>Layout do pacote para a contadora (RH-03, P-06), pelo código ("v1").</summary>
     ExportLayout,
+
+    /// <summary>Geolocalização do ponto (RH-01a CA 9): <c>Off</c> ou <c>Ask</c>.</summary>
+    Geolocation,
 }
 
 /// <summary>
@@ -67,7 +70,7 @@ public sealed record HrCodeOption(string Code, string Name);
 
 /// <summary>Os parâmetros, quantos valores legais estão "A confirmar com a contadora" e as contas e os centros para escolher.</summary>
 public sealed record HrParametersView(
-    IReadOnlyList<HrParameterItem> Items, int PendingCount, IReadOnlyList<HrCodeOption>? Accounts = null, IReadOnlyList<HrCodeOption>? CostCenters = null, IReadOnlyList<HrCodeOption>? ExportLayouts = null);
+    IReadOnlyList<HrParameterItem> Items, int PendingCount, IReadOnlyList<HrCodeOption>? Accounts = null, IReadOnlyList<HrCodeOption>? CostCenters = null, IReadOnlyList<HrCodeOption>? ExportLayouts = null, IReadOnlyList<HrCodeOption>? GeolocationModes = null);
 
 /// <summary>Uma troca: número em <c>Value</c>, o órgão em <c>PartyId</c> (nulo limpa o órgão padrão) ou o código da conta ou do centro em <c>Code</c>.</summary>
 public sealed record HrParameterChange(string Key, decimal? Value, Guid? PartyId, string? Code = null);
@@ -109,6 +112,9 @@ public sealed class HrParametersService(
 
     /// <summary>Layout do pacote para a contadora (RH-03): padrão <c>v1</c>, "A confirmar com a contadora" (ADR 0042).</summary>
     public const string AccountantExportLayout = "hr.accountant_export_layout";
+
+    /// <summary>Geolocalização do ponto (RH-01a CA 9): <c>Off</c> (padrão) ou <c>Ask</c>; editada com <c>settings.edit</c>, auditada.</summary>
+    public const string TimeClockGeolocationKey = "hr.time_clock_geolocation";
 
     public const decimal DefaultAlertPct = 10m;
     public const int DefaultDueDay = 20;
@@ -156,9 +162,11 @@ public sealed class HrParametersService(
         new(CostCenterAdmin, "Centro de custo do pessoal administrativo", "Centro de custo dos salários dos demais cargos.", HrParameterKind.CostCenter, null, null, null, true, "1"),
         new(AccountantExportLayout, "Layout do pacote para a contadora", "Arquivos e colunas do pacote mensal que o RH gera para a contadora (RH → Exportar para a contadora). O padrão do sistema é o v1, descrito na ajuda; confira as colunas com a contadora.",
             HrParameterKind.ExportLayout, null, null, null, true, AccountantLayouts.Default),
+        new(TimeClockGeolocationKey, "Localização no ponto", "Pedir a localização do celular ou do computador ao marcar o ponto, como indício de onde a marcação foi feita. O funcionário vê antes para que serve e pode negar; sem localização, a marcação entra do mesmo jeito. O tablet registrado da fábrica nunca pede. Só quem tem permissão de ver dados sensíveis do RH vê a localização.",
+            HrParameterKind.Geolocation, null, null, null, false, nameof(TimeClockGeolocation.Off)),
     ];
 
-    private static readonly HrParameterKind[] CodeKinds = [HrParameterKind.Account, HrParameterKind.CostCenter, HrParameterKind.ExportLayout];
+    private static readonly HrParameterKind[] CodeKinds = [HrParameterKind.Account, HrParameterKind.CostCenter, HrParameterKind.ExportLayout, HrParameterKind.Geolocation];
 
     /// <summary>Vencimentos da folha (RH-02c CA 1); fora do intervalo, o padrão.</summary>
     public async Task<PayrollDueParameters> DueParametersAsync(CancellationToken cancellationToken = default)
@@ -185,6 +193,13 @@ public sealed class HrParametersService(
     }
 
     private static List<HrCodeOption> ExportLayoutOptions() => AccountantLayouts.Available.Select(l => new HrCodeOption(l.Code, l.Name)).ToList();
+
+    private static List<HrCodeOption> GeolocationOptions() => [new(nameof(TimeClockGeolocation.Off), "Desligada"), new(nameof(TimeClockGeolocation.Ask), "Pedir a localização ao marcar")];
+
+    /// <summary>Geolocalização do ponto (RH-01a CA 9); valor desconhecido vale como desligada.</summary>
+    public async Task<TimeClockGeolocation> TimeClockGeolocationAsync(CancellationToken cancellationToken = default) =>
+        await db.HrParameters.AsNoTracking().Where(p => p.Key == TimeClockGeolocationKey).Select(p => p.Text).FirstOrDefaultAsync(cancellationToken) == nameof(TimeClockGeolocation.Ask)
+            ? TimeClockGeolocation.Ask : TimeClockGeolocation.Off;
 
     private static bool ValidMonthDay(decimal value)
     {
@@ -240,17 +255,18 @@ public sealed class HrParametersService(
         var accounts = (await chart.PostableAsync(BemAqui.Finance.Contracts.AccountType.Expense, cancellationToken)).Select(a => new HrCodeOption(a.Code, a.Name)).ToList();
         var centers = (await chart.CostCentersAsync(cancellationToken)).Select(c => new HrCodeOption(c.Code, c.Name)).ToList();
         var exportLayouts = ExportLayoutOptions();
+        var geolocation = GeolocationOptions();
         var items = Definitions.Select(d =>
         {
             var p = stored.GetValueOrDefault(d.Key);
             Guid? party = d.Kind == HrParameterKind.Party && Guid.TryParse(p?.Text, out var id) ? id : null;
             var code = CodeKinds.Contains(d.Kind) ? p?.Text ?? d.DefaultCode : null;
-            var codeName = code is null ? null : (d.Kind switch { HrParameterKind.Account => accounts, HrParameterKind.CostCenter => centers, _ => exportLayouts }).FirstOrDefault(o => o.Code == code)?.Name;
+            var codeName = code is null ? null : (d.Kind switch { HrParameterKind.Account => accounts, HrParameterKind.CostCenter => centers, HrParameterKind.Geolocation => geolocation, _ => exportLayouts }).FirstOrDefault(o => o.Code == code)?.Name;
             return new HrParameterItem(d.Key, d.Label, d.Description, d.Kind, d.Kind == HrParameterKind.Party || CodeKinds.Contains(d.Kind) ? null : p?.Value ?? d.Default, d.Min, d.Max, party,
                 party is { } pid ? names.GetValueOrDefault(pid) : null, d.Legal, d.Legal && p?.ConfirmedAt is not null,
                 p?.ConfirmedBy is { } by ? reviewers.GetValueOrDefault(by) : null, d.Legal ? p?.ConfirmedAt : null, p?.Id, code, codeName);
         }).ToList();
-        return new HrParametersView(items, items.Count(i => i.Legal && !i.Confirmed), accounts, centers, exportLayouts);
+        return new HrParametersView(items, items.Count(i => i.Legal && !i.Confirmed), accounts, centers, exportLayouts, geolocation);
     }
 
     /// <summary>Só o que veio muda; o valor legal trocado volta para "A confirmar com a contadora" (ADR 0042 §1).</summary>
@@ -283,6 +299,13 @@ public sealed class HrParametersService(
                 if ((await chart.PostableAsync(BemAqui.Finance.Contracts.AccountType.Expense, cancellationToken)).All(a => a.Code != change.Code))
                 {
                     return PayrollRules.Field(change.Key, "Escolha uma conta de despesa analítica ativa.");
+                }
+            }
+            else if (definition.Kind == HrParameterKind.Geolocation)
+            {
+                if (GeolocationOptions().All(o => o.Code != change.Code))
+                {
+                    return PayrollRules.Field(change.Key, "Escolha desligada ou pedir a localização ao marcar.");
                 }
             }
             else if (definition.Kind == HrParameterKind.ExportLayout)

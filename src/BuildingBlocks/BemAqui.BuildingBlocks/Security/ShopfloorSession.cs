@@ -23,3 +23,8 @@ public static class ShopfloorDeviceCookie
 {
     public const string Name = "__Host-bq_dev";
 }
+/// <summary>Cookie do refresh da sessão (FND-04): o módulo que encerra a sessão por PIN (RH-01a, marcação de ponto) apaga o cookie na resposta.</summary>
+public static class SessionCookie
+{
+    public const string Refresh = "__Host-bq_rt";
+}
