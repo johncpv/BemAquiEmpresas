@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
+import { CalendarClock } from 'lucide-react'
 import { useState } from 'react'
 import { deleteQuote, getGetQuoteCostsQueryKey, getGetQuoteQueryKey, markQuoteSent, useGetQuote, useGetQuoteContract, useGetQuoteCosts } from '@/api/generated/bemaqui'
 import type { ApprovalResult } from '@/api/generated/model'
@@ -9,6 +10,8 @@ import { NextSteps } from '@/components/ui/next-steps'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
 import { UrlTabs } from '@/components/ui/url-tabs'
+import { Dica } from '@/help/Dica'
+import { useNavigation } from '@/navigation/navigation-context'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { ApproveDialog } from './ApproveDialog'
@@ -23,12 +26,14 @@ import { QuoteTotals } from './QuoteTotals'
 import { RefreshCostsDialog } from './RefreshCostsDialog'
 import { RevisionActions } from './RevisionActions'
 import { RevisionsTab } from './RevisionsTab'
+import { SIMULATION_DICAS } from './schedule-simulation'
+import { ScheduleSimulationPanel } from './ScheduleSimulationPanel'
 
 /** Orçamento (COM-01a): abas Dados, Itens e Histórico; rodapé fixo de totais; custo só com quotes.view_cost. */
 
 export function QuotePage() {
   const { id } = useParams({ strict: false }) as { id: string }
-  const { novo, aprovar, acao } = useSearch({ strict: false }) as { novo?: string; aprovar?: string | number; acao?: string }
+  const { novo, aprovar, acao, prazo } = useSearch({ strict: false }) as { novo?: string; aprovar?: string | number; acao?: string; prazo?: string | number }
   const navigate = useNavigate()
   const client = useQueryClient()
   const canCost = useCan('quotes.view_cost')
@@ -40,10 +45,26 @@ export function QuotePage() {
   const [steps, setSteps] = useState(novo === '1')
   const [approved, setApproved] = useState<ApprovalResult | null>(null)
   const contract = useGetQuoteContract(id, { query: { enabled: query.data?.status === 'Approved' } })
+  const { all } = useNavigation()
+  const productionReleased = all.some((m) => m.code === 'production' && m.released)
+  const [simulating, setSimulating] = useState(false)
+  // PLN-05 CA 6: "Usar este prazo" só preenche o campo; vindo da nova revisão, o prazo chega em ?prazo=.
+  const [proposed, setProposed] = useState<{ days: number; nonce: number } | null>(null)
+  const fromUrl = prazo !== undefined && prazo !== '' && Number.isInteger(Number(prazo)) && Number(prazo) >= 0 ? Number(prazo) : null
+  const proposal = proposed ?? (fromUrl === null ? null : { days: fromUrl, nonce: -1 - fromUrl })
   if (query.isPending) return <Skeleton className="h-96" />
   if (query.isError) return <ErrorState title="Não foi possível carregar o orçamento." onRetry={() => query.refetch()} />
   const quote = query.data
   const editable = canEdit && quote.status === 'Draft'
+  const simulable = productionReleased && quote.isCurrent && (quote.status === 'Draft' || quote.status === 'Sent')
+  const applyDays = (days: number) => {
+    setProposed({ days, nonce: Date.now() })
+    void navigate({ to: '.', search: (prev: Record<string, unknown>) => ({ ...prev, aba: undefined }) } as never)
+  }
+  const proposalSaved = () => {
+    setProposed(null)
+    if (prazo !== undefined) void navigate({ to: '.', search: (prev: Record<string, unknown>) => ({ ...prev, prazo: undefined }) } as never)
+  }
   const refresh = async () => {
     await client.invalidateQueries({ queryKey: getGetQuoteQueryKey(id) })
     if (canCost) await client.invalidateQueries({ queryKey: getGetQuoteCostsQueryKey(id) })
@@ -55,6 +76,12 @@ export function QuotePage() {
         <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
           <StatusChip tone={QUOTE_STATUS[quote.status]?.tone ?? 'neutral'}>{QUOTE_STATUS[quote.status]?.label ?? quote.status}</StatusChip>
           <span className="flex flex-wrap gap-2">
+            {simulable ? (
+              <span className="inline-flex items-center">
+                <button type="button" onClick={() => setSimulating(true)} className="inline-flex min-h-[44px] items-center gap-1.5 rounded-md border border-border px-3 py-2 text-sm font-semibold"><CalendarClock aria-hidden="true" className="size-4" />Simular prazo</button>
+                <Dica nome="Simular prazo" texto={SIMULATION_DICAS.simular} />
+              </span>
+            ) : null}
             {canEdit && quote.isCurrent && (quote.status === 'Sent' || quote.status === 'Expired') ? <RevisionActions quote={quote} refresh={refresh} action={acao === 'prorrogar' || acao === 'revisar' ? acao : undefined} /> : null}
             {quote.status === 'Sent' && canApprove && quote.isCurrent
               ? <ApproveDialog quote={quote} {...(String(aprovar) === '1' ? { open: true, onOpenChange: (v: boolean) => { if (!v) void navigate({ to: '/app/orcamentos/$id', params: { id }, search: {} } as never) } } : {})} onApproved={async (r) => { setApproved(r); await navigate({ to: '/app/orcamentos/$id', params: { id }, search: {} } as never); await refresh() }} />
@@ -76,7 +103,10 @@ export function QuotePage() {
           </span>
         </div>
       </PageHeading>
-      {steps ? <div className="mb-4"><NextSteps onDismiss={() => setSteps(false)} steps={[{ label: 'Adicionar item', onSelect: () => { setSteps(false); document.querySelector<HTMLInputElement>('input[placeholder^="Ex.: Elevador"]')?.focus() } }]} /></div> : null}
+      {steps ? <div className="mb-4"><NextSteps onDismiss={() => setSteps(false)} steps={[
+        { label: 'Adicionar item', onSelect: () => { setSteps(false); document.querySelector<HTMLInputElement>('input[placeholder^="Ex.: Elevador"]')?.focus() } },
+        ...(simulable ? [{ label: 'Simular prazo', onSelect: () => setSimulating(true) }] : []),
+      ]} /></div> : null}
       {costs.data?.staleLaborCosts && quote.copiedFromNumber ? <p role="note" className="mb-4 rounded-md border border-warn-soft bg-warn-soft px-3 py-2 text-sm text-warn-ink">Custos copiados de {quote.copiedFromNumber}. Confira com 'Atualizar custos'.</p> : null}
       {approved ? (
         <div className="mb-4"><NextSteps onDismiss={() => setApproved(null)} steps={[
@@ -95,7 +125,7 @@ export function QuotePage() {
       {!quote.isCurrent ? <p role="note" className="mb-4 rounded-md border border-border bg-muted px-3 py-2 text-sm">Há uma revisão mais recente deste orçamento. Esta fica só para consulta; veja a aba Revisões.</p> : null}
       {quote.status === 'Sent' && quote.isCurrent ? <p role="note" className="mb-4 rounded-md border border-border bg-muted px-3 py-2 text-sm">Orçamento enviado: só para consulta. Para mudar, crie uma nova revisão.</p> : null}
       <UrlTabs label="Seções do orçamento" fallback="dados" tabs={[
-        { id: 'dados', label: 'Dados', content: <QuoteHeaderTab key={quote.version} quote={quote} editable={editable} refresh={refresh} /> },
+        { id: 'dados', label: 'Dados', content: <QuoteHeaderTab key={quote.version} quote={quote} editable={editable} refresh={refresh} proposedDays={proposal} onSaved={proposalSaved} /> },
         { id: 'itens', label: 'Itens', content: <ItemsTab quote={quote} costs={costs.data} editable={editable} refresh={refresh} /> },
         { id: 'condicoes', label: 'Condições', content: <ConditionsTab quote={quote} editable={editable} refresh={refresh} /> },
         { id: 'documentos', label: 'Documentos', content: <DocumentsTab quote={quote} refresh={refresh} /> },
@@ -103,6 +133,7 @@ export function QuotePage() {
         { id: 'historico', label: 'Histórico de alterações', content: <RecordHistory entity="Quote" id={id} /> },
       ]} />
       <QuoteTotals quote={quote} costs={canCost ? costs.data : undefined} />
+      {simulable ? <ScheduleSimulationPanel quote={quote} open={simulating} onOpenChange={setSimulating} onUseDays={applyDays} /> : null}
     </>
   )
 }

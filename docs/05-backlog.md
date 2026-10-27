@@ -444,7 +444,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-4--planejamento-p
 - Requisitos: PRD §5.14, R-PRJ-5, R-PLN-4, R-PLN-6, R-PRP-5, PRD §6.
 - CA: margem projetada (com custos reais) nos em andamento e realizada nos encerrados, com a orçada como contexto; carteira a produzir e a faturar (contratado − notas depois do go-live); produção e entregas; "Resultado gerencial por projeto" vindo da FIN-08, com a nota de que não fecha com o DRE mensal; números iguais às origens.
 
-**PLN-05 [ ] Simulação de prazo do orçamento (M)** — 4.5, ordem 15 — `Ready` — [story](stories/PLN-05-simulacao-prazo-orcamento.md)
+**PLN-05 [x] Simulação de prazo do orçamento (M)** — 4.5, ordem 15 — `Done` — [story](stories/PLN-05-simulacao-prazo-orcamento.md)
 - Requisitos: R-PLN-5, R-COML-1, R-PRP-1, R-PRP-2.
 - CA: projeto virtual pelas horas por centro do orçamento (etapas sem roteiro na ordem das linhas), simulado sem gravar; simular com `quotes.view`, só datas; "Usar este prazo" só preenche o formulário; rate limit por política nomeada; menos de 2 s.
 

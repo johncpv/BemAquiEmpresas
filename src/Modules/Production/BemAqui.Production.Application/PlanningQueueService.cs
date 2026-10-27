@@ -20,11 +20,11 @@ public sealed class PlanningQueueService(
     ProjectForecastBuilder forecasts, IScheduleTrigger trigger, TimeProvider clock)
 {
     /// <summary>Política nomeada do rate limit da prévia (CA 10): 20 por minuto por usuário.</summary>
-    public const string SimulatePolicy = "planning-simulate";
+    public const string SimulatePolicy = Contracts.PlanningRateLimits.SimulatePolicy;
 
-    public const int SimulatePerMinute = 20;
+    public const int SimulatePerMinute = Contracts.PlanningRateLimits.SimulatePerMinute;
 
-    public const string SimulateLimitMessage = "Aguarde alguns segundos para simular de novo.";
+    public const string SimulateLimitMessage = Contracts.PlanningRateLimits.SimulateLimitMessage;
 
     public const string ManualReason = "Ordem alterada";
 

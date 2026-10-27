@@ -66,9 +66,11 @@ public static class AuthRateLimiting
                             QueueLimit = 0,
                         })
                         : RateLimitPartition.GetNoLimiter(string.Empty)));
-            // Prévia da fila (PLN-02 CA 10): política nomeada, por usuário dentro do tenant (o limiter roda depois da autenticação).
+            // Simulações do motor (PLN-02 CA 10, PLN-05 CA 10): política nomeada, por usuário dentro do tenant e por rota (a prévia da fila e a
+            // simulação do orçamento contam separado; o limiter roda depois da autenticação).
             o.AddPolicy(PlanningQueueService.SimulatePolicy, http => RateLimitPartition.GetFixedWindowLimiter(
-                "plan-sim|" + TenantKey(http) + "|" + (http.RequestServices.GetService<ICurrentUser>()?.UserId?.ToString() ?? http.Connection.RemoteIpAddress?.ToString() ?? "-"),
+                "plan-sim|" + TenantKey(http) + "|" + ((http.GetEndpoint() as Microsoft.AspNetCore.Routing.RouteEndpoint)?.RoutePattern.RawText ?? "-") + "|"
+                + (http.RequestServices.GetService<ICurrentUser>()?.UserId?.ToString() ?? http.Connection.RemoteIpAddress?.ToString() ?? "-"),
                 _ => new FixedWindowRateLimiterOptions { PermitLimit = PlanningQueueService.SimulatePerMinute, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
             // Política nomeada do quiosque (ADR 0030 §1): 10 trocas de token por minuto por IP e tenant; o 401 já tem tempo uniforme.
             o.AddPolicy(BemAqui.BuildingBlocks.Web.KioskEndpoints.SessionRateLimitPolicy, http =>

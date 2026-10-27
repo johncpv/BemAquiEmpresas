@@ -5,7 +5,7 @@
 | ID | PLN-05 |
 | Título | "Se eu aceitar este orçamento agora, quando entrego?": a partir das horas por centro de trabalho estimadas no orçamento, o motor de agendamento simula um projeto virtual na fila (no fim ou numa posição escolhida) e mostra a data de fim da fabricação, a entrega prevista com a instalação e o efeito nos outros projetos, sem gravar nada e devolvendo só datas a quem tem `quotes.view`; o prazo calculado pode ser usado no orçamento em rascunho |
 | Tamanho | M |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-PLN-5 (simulação a partir das horas estimadas do orçamento, **D**) · R-COML-1 (horas por centro de trabalho no orçamento) · R-PRP-1 · R-PRP-2 |
 | Dependências | PLN-01a (`IProductionSchedule.SimulateAsync`), PLN-01b (prazo de instalação), PLN-02 (posição na fila), COM-01a (composição de custo com horas por centro), PRD-01 (`routing_template_id` no item do orçamento e regra de quais itens geram OS), ENG-01 (ordem das etapas do roteiro) |
 | Bloqueia | — (última da Fase 4; a Fase 5 não depende dela) |
@@ -78,19 +78,19 @@ Decisões da revisão aplicadas: §4.1 (item 6 da Fase 3 fechado; D14 da Fase 3 
 **Pré-condição externa:** nenhuma.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers), desempenho e E2E passando.
-- [ ] Nenhuma migration.
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Diálogo com estados e 400 px.
-- [ ] Ajuda do orçamento atualizada; teste de cobertura passando.
-- [ ] "Usar este prazo" sem gravar sozinho.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] Story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers), desempenho e E2E passando.
+- [x] Nenhuma migration.
+- [x] Permissões só do `ModuleCatalog`.
+- [x] Diálogo com estados e 400 px.
+- [x] Ajuda do orçamento atualizada; teste de cobertura passando.
+- [x] "Usar este prazo" sem gravar sozinho.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] Story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `QuoteScheduleSimulation` no Commercial (projeto virtual) e endpoint `/api/v1/quotes/{id}/schedule-simulation` com a política `planning-simulate`.
-- [ ] Diálogo no orçamento; ajuda.
+- [x] `QuoteScheduleSimulation` no Commercial (projeto virtual) e endpoint `/api/v1/quotes/{id}/schedule-simulation` com a política `planning-simulate`.
+- [x] Diálogo no orçamento; ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, @qa.
@@ -124,3 +124,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (tabela 3.1 pontos 54–56, §4.1, §4.3, §4.4 padrão 7); ordem mantida (Marco 4.5, ordem 15); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 26/10/2026 | 1.0 | Implementada (`Done`). **Backend:** `IProductionSchedule.SimulateDeliveryAsync(SimulatedProject, hasInstallationBudget)` no `Production.Contracts` (novo `DeliverySimulation`, só ids e datas), implementado no `ProductionScheduleContract`: lê a fila pelo `IPlanningQueue` (sem advisory lock), monta a entrada do motor uma vez e roda o `FiniteScheduler` duas vezes em memória (fila de hoje e com o virtual na posição; os reais andam uma casa, `DeliverySimulationRules`), calcula a entrega dos reais pelo `ProjectForecastBuilder.BuildManyAsync` e a do virtual pelo novo `ProjectForecastBuilder.VirtualAsync` (fim + `planning.installation_days` em dias úteis quando o orçamento tem custo de instalação); "passa a atrasar" = a mesma regra `Worsened` da PLN-02. No Commercial, `QuoteScheduleSimulation` (puro: itens que geram OS pela D14, uma etapa por centro com Σ horas × quantidade, ordem pelo roteiro e sem roteiro pela ordem das linhas, centros fora do roteiro no fim) e `QuoteScheduleSimulationService` (IDOR: orçamento corrente em `Draft`/`Sent`, senão 404/409 `quote_not_current`/`quote_not_simulable`; módulo `production` liberado conferido no serviço; números e nomes de quem atrasa só com `projects.view`). Endpoint `POST /api/v1/quotes/{id}/schedule-simulation` (`SimulateQuoteSchedule`) no grupo do `RequireModule("quotes")`, `quotes.view`, política `planning-simulate`. Sem migration, sem permissão nova, sem evento. **Front:** "Simular prazo" (com `<Dica>`) no cabeçalho do orçamento e no `NextSteps` do rascunho novo, só com o módulo Produção liberado; painel `SidePanel` (tela cheia a 400 px, fatos em 1 coluna, alvos de 44 px) com "No fim da fila"/"Na posição" (`<Dica>`), estados (calculando, sem horas com link para a composição, erro com "Tentar de novo", limite 429, fábrica livre), frase do resultado, prazo prometido com chip, quem passa a atrasar, aviso de material com "Ver capacidade de produzir"; "Usar este prazo" só preenche o campo (grava no "Salvar orçamento"); no enviado, "Criar nova revisão com este prazo" cria a revisão (COM-02) e abre com `?prazo=` no campo. Ajuda `comercial-orcamento.md` atualizada; `04-fluxos` §3.4 item 9. **Testes:** unidade (`QuoteScheduleSimulationTests`, `DeliverySimulationRulesTests` com o cenário fixo 30/10/2026 + feriado 02/11), arquitetura (`QuoteSimulationRulesTests`), integração (`FabricationTests.QuoteSimulation`: fim × posição 1 com projetos reais que passam a atrasar, nada gravado, instalação, sem horas, IDOR, três camadas, rate limit, DTO só datas; `PlanningTests`: 50 projetos/300 OS < 2 s, nada gravado e sem esperar os locks do plano e da fila), Vitest e E2E desktop e 400 px. **Desvios / recomendações aceitas (PO 24/10):** (1) a story cita só o `SimulateAsync`; foi criado o `SimulateDeliveryAsync` no mesmo contrato porque a entrega com instalação e "quem passa a atrasar" dependem do prazo de instalação, do calendário e da previsão dos projetos, que são do Production (o Commercial continua montando o projeto virtual; o `SimulateAsync` ficou como estava). (2) Roteiro para a ordem das etapas: o do item, o vinculado ao produto ou o único ativo (como a PRD-01), sem o "último usado com o produto", que é dado das OS do Production. (3) O rate limit `planning-simulate` passou a ser particionado também pela rota (a prévia da fila e a simulação do orçamento contam separado, 20 por minuto cada); as constantes foram para `PlanningRateLimits` no contrato. (4) Item sem quantidade ou com hora 0 não vira etapa. (5) A resposta sem horas é 200 com `simulated = false` (o motor não é chamado). | Dex (dev) |

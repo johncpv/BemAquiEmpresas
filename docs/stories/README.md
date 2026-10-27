@@ -684,7 +684,7 @@ Achados pontuais da §4.4 aplicados nas stories: conciliação com uma linha por
 | 12 (4.4) | PNL-01b | Visões do painel da TV | M | Ready | PRD §5.14, R-PRD-2, R-PLN-4, PRD §6 | PNL-01a, PRD-02, PRD-03a, PLN-01a, PLN-01b, PLN-02 | [PNL-01b](PNL-01b-visoes-painel-tv.md) |
 | 13 (4.4) | DSH-03 | Painel do supervisor | M | Done | PRD §5.14, R-PRD-2, R-PRD-6, R-PLN-6, R-EST-4, R-CMP-1 | PRD-02, PLN-04, PLN-01b, PRD-05, EST-02, CMP-01, PRD-03a | [DSH-03](DSH-03-painel-supervisor.md) |
 | 14 (4.5) | DSH-01b | Painel do proprietário: margem, carteira, produção, entregas e resultado gerencial por projeto | G (re-estimada de M) | Ready | PRD §5.14, R-FIN-13, R-PRJ-5, R-PLN-4, R-PLN-6, R-PRP-5 | DSH-01a, DSH-02, FIN-08, PLN-01b, PLN-04, PRD-02, COM-05 | [DSH-01b](DSH-01b-painel-dono-margem-producao.md) |
-| 15 (4.5) | PLN-05 | Simulação de prazo do orçamento | M | Ready | R-PLN-5, R-COML-1, R-PRP-1, R-PRP-2 | PLN-01a, PLN-01b, PLN-02, COM-01a, PRD-01, ENG-01 | [PLN-05](PLN-05-simulacao-prazo-orcamento.md) |
+| 15 (4.5) | PLN-05 | Simulação de prazo do orçamento | M | Done | R-PLN-5, R-COML-1, R-PRP-1, R-PRP-2 | PLN-01a, PLN-01b, PLN-02, COM-01a, PRD-01, ENG-01 | [PLN-05](PLN-05-simulacao-prazo-orcamento.md) |
 
 Total da Fase 4: 15 stories (M: 8 · G: 7), todas `Ready`; 2 com pré-condição externa explícita, que não bloqueia.
 

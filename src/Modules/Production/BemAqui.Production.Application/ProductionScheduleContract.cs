@@ -8,7 +8,8 @@ namespace BemAqui.Production.Application;
 /// Implementação de <see cref="IProductionSchedule"/> (PLN-01a CA 15): lê as tabelas do plano pelas vistas sem rastreamento do
 /// <see cref="IProductionDb"/> e simula rodando o <see cref="FiniteScheduler"/> em memória, sem gravar nada.
 /// </summary>
-public sealed class ProductionScheduleContract(IProductionDb db, ScheduleInputBuilder builder) : IProductionSchedule
+public sealed class ProductionScheduleContract(
+    IProductionDb db, ScheduleInputBuilder builder, IPlanningQueue queue, ProjectForecastBuilder forecasts, BemAqui.Commercial.Contracts.IProjects projects) : IProductionSchedule
 {
     public async Task<IReadOnlyList<OrderForecastInfo>> ForOrdersAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken cancellationToken = default)
     {
@@ -71,6 +72,36 @@ public sealed class ProductionScheduleContract(IProductionDb db, ScheduleInputBu
         var orders = result.Orders.Select(o => new OrderForecastInfo(o.OrderId, o.Start, o.End, o.NoForecastReason,
             [.. steps[o.OrderId].Select(s => new StepForecastInfo(s.StepId, s.Sequence, s.Hours, s.Start, s.End, s.NoForecastReason))])).ToList();
         return new ScheduleSimulation(orders, [.. result.Projects.Select(p => new ProjectFabricationForecast(p.ProjectId, p.FabricationEnd, p.NoForecastReason))]);
+    }
+
+    /// <summary>
+    /// PLN-05 CA 3 a 5: uma leitura da entrada do motor e duas execuções em memória (a fila de hoje e a fila com o virtual na posição), como a
+    /// prévia da PLN-02; a entrega de cada projeto real sai do mesmo cálculo do recálculo (fim da fabricação + instalação) e a do virtual do
+    /// prazo de instalação quando o orçamento tem custo de instalação. Só lê a fila (<see cref="IPlanningQueue"/>, sem o advisory lock).
+    /// </summary>
+    public async Task<DeliverySimulation> SimulateDeliveryAsync(SimulatedProject project, bool hasInstallationBudget, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(project);
+        var order = await queue.OrderAsync(cancellationToken);
+        var position = DeliverySimulationRules.Position(project.QueuePosition, order.Count);
+        var baseline = await builder.BuildAsync(order, cancellationToken);
+        var ranks = DeliverySimulationRules.ShiftedPositions(order, position);
+        var shifted = baseline with
+        {
+            Projects = [.. baseline.Projects.Select(p => p with { QueuePosition = ranks.TryGetValue(p.ProjectId, out var at) ? at : null })],
+        };
+        var withVirtual = await WithVirtualAsync(shifted, project with { QueuePosition = position }, cancellationToken);
+        var after = FiniteScheduler.Run(withVirtual);
+        var results = await forecasts.BuildManyAsync([FiniteScheduler.Run(baseline), after], cancellationToken);
+        var simulated = await forecasts.VirtualAsync(after, project.ProjectId, hasInstallationBudget, cancellationToken);
+
+        var before = results[0].ToDictionary(f => f.ProjectId, f => f.ForecastDate);
+        var promised = (await projects.FindManyAsync([.. results[1].Select(f => f.ProjectId)], cancellationToken)).ToDictionary(p => p.Id, p => p.PromisedDate);
+        var late = results[1]
+            .Where(f => PlanningQueueService.Worsened(promised.GetValueOrDefault(f.ProjectId), before.GetValueOrDefault(f.ProjectId), f.ForecastDate))
+            .OrderBy(f => ranks.TryGetValue(f.ProjectId, out var at) ? at : int.MaxValue).ThenBy(f => f.ProjectId)
+            .Select(f => f.ProjectId).ToList();
+        return new DeliverySimulation(order.Count, position, baseline.Today, simulated.FabricationEnd, simulated.ForecastDate, simulated.Reason, hasInstallationBudget, late);
     }
 
     public async Task<IReadOnlyList<ProjectDeliveryForecast>> ProjectForecastsAsync(IReadOnlyCollection<Guid> projectIds, CancellationToken cancellationToken = default)

@@ -7,18 +7,32 @@ import { inputClass } from '@/components/form/form-utils'
 import { notifySuccess } from '@/components/ui/messages'
 
 /** Aba Dados (CA 4 a 6): contato e obra do cliente, prazo prometido e observações. */
-export function QuoteHeaderTab({ quote, editable, refresh }: { quote: QuoteDetail; editable: boolean; refresh: () => Promise<void> }) {
+/** `proposedDays`: o prazo da simulação (PLN-05 CA 6) entra no campo, sem gravar; só "Salvar orçamento" grava. */
+export function QuoteHeaderTab({ quote, editable, refresh, proposedDays, onSaved }: {
+  quote: QuoteDetail
+  editable: boolean
+  refresh: () => Promise<void>
+  proposedDays?: { days: number; nonce: number } | null
+  onSaved?: () => void
+}) {
   const contacts = useListQuoteCustomerContacts(quote.partyId)
   const addresses = useListQuoteCustomerAddresses(quote.partyId)
   const [contact, setContact] = useState(quote.contactId ?? '')
   const [site, setSite] = useState(quote.siteAddressId ?? '')
   const [days, setDays] = useState(quote.deliveryDays === null || quote.deliveryDays === undefined ? '' : String(quote.deliveryDays))
   const [notes, setNotes] = useState(quote.notes ?? '')
+  const [applied, setApplied] = useState<number | null>(null)
+  if (editable && proposedDays && proposedDays.nonce !== applied) {
+    setApplied(proposedDays.nonce)
+    setDays(String(proposedDays.days))
+  }
+  const fromSimulation = applied !== null && proposedDays?.nonce === applied && days === String(proposedDays.days)
   const [error, setError] = useState<{ message: string; fields: Record<string, string[]> } | null>(null)
   const save = async () => {
     try {
       await updateQuote(quote.id, { contactId: contact || null, siteAddressId: site || null, deliveryDays: days === '' ? null : Number(days), notes: notes.trim() || null, version: quote.version })
       notifySuccess('Orçamento salvo')
+      onSaved?.()
       setError(null)
       await refresh()
     } catch (e) {
@@ -38,7 +52,7 @@ export function QuoteHeaderTab({ quote, editable, refresh }: { quote: QuoteDetai
         <Field label="Endereço da obra" error={field('siteAddressId')} hint="Vem com o endereço de obra padrão do cliente.">
           {(p) => <select {...p} value={site} onChange={(e) => setSite(e.target.value)} className={inputClass}><option value="">Sem endereço</option>{(addresses.data ?? []).map((a) => <option key={a.id} value={a.id}>{a.street}, {a.number} · {a.city}/{a.state}</option>)}</select>}
         </Field>
-        <Field label="Prazo de entrega prometido (dias)" error={field('deliveryDays')} hint="Dias corridos depois da aprovação.">
+        <Field label="Prazo de entrega prometido (dias)" error={field('deliveryDays')} hint={fromSimulation ? 'Preenchido pela simulação de prazo. Salve o orçamento para gravar.' : 'Dias corridos depois da aprovação.'}>
           {(p) => <input {...p} inputMode="numeric" maxLength={4} value={days} onChange={(e) => setDays(e.target.value.replace(/\D/g, ''))} className={inputClass + ' tabular-nums'} />}
         </Field>
       </div>
