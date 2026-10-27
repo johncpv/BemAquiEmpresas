@@ -73,6 +73,7 @@ namespace BemAqui.Host.Persistence.Migrations
                     ibs_cbs_classification = table.Column<string>(type: "character varying(6)", maxLength: 6, nullable: false),
                     cbs_rate = table.Column<decimal>(type: "numeric(7,4)", precision: 7, scale: 4, nullable: false),
                     ibs_rate = table.Column<decimal>(type: "numeric(7,4)", precision: 7, scale: 4, nullable: false),
+                    ibs_city_rate = table.Column<decimal>(type: "numeric(7,4)", precision: 7, scale: 4, nullable: false),
                     cancellation_window_hours = table.Column<int>(type: "integer", nullable: false),
                     freight_mode = table.Column<int>(type: "integer", nullable: false),
                     volume_species = table.Column<string>(type: "character varying(60)", maxLength: 60, nullable: false),

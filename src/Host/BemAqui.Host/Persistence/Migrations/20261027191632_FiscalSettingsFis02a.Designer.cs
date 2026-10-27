@@ -4780,6 +4780,11 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("character varying(3)")
                         .HasColumnName("ibs_cbs_cst");
 
+                    b.Property<decimal>("IbsCityRate")
+                        .HasPrecision(7, 4)
+                        .HasColumnType("numeric(7,4)")
+                        .HasColumnName("ibs_city_rate");
+
                     b.Property<decimal>("IbsRate")
                         .HasPrecision(7, 4)
                         .HasColumnType("numeric(7,4)")

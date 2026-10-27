@@ -42,6 +42,7 @@ public sealed record FiscalSettingsValues(
     string IbsCbsClassification,
     decimal CbsRate,
     decimal IbsRate,
+    decimal IbsCityRate,
     int CancellationWindowHours,
     int FreightMode,
     string VolumeSpecies,
