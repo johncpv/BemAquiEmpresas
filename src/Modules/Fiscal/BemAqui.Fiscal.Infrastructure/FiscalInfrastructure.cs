@@ -30,6 +30,7 @@ public static class FiscalInfrastructure
         services.AddHttpClient(EmissorFiscalEmitterFactory.ClientName)
             .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false, AutomaticDecompression = DecompressionMethods.All, UseProxy = false })
             .RemoveAllLoggers();
+        services.TryAddSingleton<EmissorFiscalRateGate>(); // um limite para o processo inteiro (10 req/s por IP no Emissor)
         services.TryAddScoped<IFiscalEmitterFactory, EmissorFiscalEmitterFactory>();
         services.TryAddScoped<FiscalEmitterAccess>();
         services.TryAddScoped<FiscalAlerts>();

@@ -29,6 +29,9 @@ public sealed class FakeEmissorServer : IAsyncDisposable
 
     public ConcurrentQueue<(string Method, string Path, string? ApiKey, string? Idempotency, string Body)> Requests { get; } = new();
 
+    /// <summary>Quando cada pedido chegou (<see cref="System.Diagnostics.Stopwatch"/>), para conferir o limite por segundo.</summary>
+    public ConcurrentQueue<long> Arrivals { get; } = new();
+
     public int ReadFailuresBeforeSuccess { get; set; }
 
     private FakeEmissorServer(WebApplication app) => _app = app;
@@ -67,6 +70,7 @@ public sealed class FakeEmissorServer : IAsyncDisposable
 
     private async Task<string> RecordAsync(HttpContext http)
     {
+        Arrivals.Enqueue(System.Diagnostics.Stopwatch.GetTimestamp());
         http.Request.EnableBuffering();
         using var reader = new StreamReader(http.Request.Body, Encoding.UTF8, leaveOpen: true);
         var body = await reader.ReadToEndAsync();

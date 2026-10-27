@@ -16,7 +16,7 @@ using Microsoft.Extensions.Options;
 namespace BemAqui.Fiscal.Infrastructure.Emissor;
 
 /// <summary>Cria o adaptador HTTP de uma conexão (cliente nomeado <c>emissor-fiscal</c>: sem redirect e sem log do HttpClient).</summary>
-internal sealed class EmissorFiscalEmitterFactory(IHttpClientFactory clients, IOptions<FiscalIntegrationOptions> options, IntegrationHealthTracker health, TimeProvider clock, ILogger<EmissorFiscalHttpEmitter> logger)
+internal sealed class EmissorFiscalEmitterFactory(IHttpClientFactory clients, IOptions<FiscalIntegrationOptions> options, EmissorFiscalRateGate gate, IntegrationHealthTracker health, TimeProvider clock, ILogger<EmissorFiscalHttpEmitter> logger)
     : IFiscalEmitterFactory
 {
     public const string ClientName = "emissor-fiscal";
@@ -27,19 +27,21 @@ internal sealed class EmissorFiscalEmitterFactory(IHttpClientFactory clients, IO
         var client = clients.CreateClient(ClientName);
         client.BaseAddress = connection.BaseUrl;
         client.Timeout = Timeout.InfiniteTimeSpan; // o limite é por chamada (CA 4), com o cancelamento abaixo
-        return new EmissorFiscalHttpEmitter(client, connection, options.Value, health, clock, logger);
+        return new EmissorFiscalHttpEmitter(client, connection, options.Value, gate, health, clock, logger);
     }
 }
 
 /// <summary>
 /// Adaptador HTTP do EmissorFiscal (FIS-01 CA 4, ADR 0027): <c>X-Api-Key</c> e <c>Idempotency-Key</c>, JSON do guia de integração,
-/// tempo limite de 30 s por chamada e nova tentativa só em leitura (uma, em falha transitória ou 429 com <c>Retry-After</c> curto).
+/// tempo limite de 30 s por chamada e nova tentativa só em leitura (uma, em falha transitória ou 429 com <c>Retry-After</c> curto). Toda chamada
+/// espera a vez no <see cref="EmissorFiscalRateGate"/> (no máximo <c>MaxRequestsPerSecond</c> por processo, sem rajada); o 429 pausa todas pelo
+/// <c>Retry-After</c>.
 /// Tradução: 201/202/422 da emissão viram documento; 400 vira erro campo a campo; 401/403, <c>fiscal_integration_misconfigured</c>;
 /// 404, <c>fiscal_not_found</c>; 409, conflito; 429, <c>fiscal_rate_limited</c> com o <c>Retry-After</c>; rede, tempo limite e 5xx,
 /// <c>fiscal_unavailable</c>. O log leva só tenant, operação, situação HTTP, código de rejeição e duração (CA 12): nunca a chave, o
 /// payload, a URL com a chave de acesso ou o XML.
 /// </summary>
-internal sealed partial class EmissorFiscalHttpEmitter(HttpClient http, FiscalEmitterConnection connection, FiscalIntegrationOptions options, IntegrationHealthTracker health, TimeProvider clock, ILogger logger)
+internal sealed partial class EmissorFiscalHttpEmitter(HttpClient http, FiscalEmitterConnection connection, FiscalIntegrationOptions options, EmissorFiscalRateGate gate, IntegrationHealthTracker health, TimeProvider clock, ILogger logger)
     : IFiscalEmitter
 {
     public const string Integration = "emissor-fiscal";
@@ -250,6 +252,12 @@ internal sealed partial class EmissorFiscalHttpEmitter(HttpClient http, FiscalEm
     {
         for (var attempt = 1; ; attempt++)
         {
+            if (!await WaitTurnAsync(cancellationToken))
+            {
+                LogThrottled(logger, operation, connection.TenantId);
+                return RateLimited(gate.PausedFor() is var left && left > TimeSpan.Zero ? left : null);
+            }
+
             var started = clock.GetTimestamp();
             using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             timeout.CancelAfter(options.Timeout);
@@ -261,12 +269,16 @@ internal sealed partial class EmissorFiscalHttpEmitter(HttpClient http, FiscalEm
                 request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 using var response = await http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, timeout.Token);
                 status = (int)response.StatusCode;
+                if (response.StatusCode == HttpStatusCode.TooManyRequests)
+                {
+                    gate.Pause(RetryAfter(response)); // ninguém deste processo chama até passar o Retry-After
+                }
+
                 if (kind == Kind.Read && attempt == 1 && response.StatusCode == HttpStatusCode.TooManyRequests && RetryAfter(response) is { } wait && wait <= options.MaxReadRetryAfter)
                 {
                     var ms1 = clock.GetElapsedTime(started).TotalMilliseconds;
                     LogCall(logger, operation, connection.TenantId, status.Value, null, ms1);
-                    await Task.Delay(wait, cancellationToken);
-                    continue;
+                    continue; // a vez seguinte no gate já espera o Retry-After
                 }
 
                 if (kind == Kind.Read && attempt == 1 && status >= 500)
@@ -314,13 +326,31 @@ internal sealed partial class EmissorFiscalHttpEmitter(HttpClient http, FiscalEm
             HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden => Error.Unavailable(FiscalErrorCodes.IntegrationMisconfigured, "O Emissor Fiscal recusou a chave desta empresa. Confira a integração fiscal."),
             HttpStatusCode.NotFound => Error.NotFound(FiscalErrorCodes.NotFound, "O Emissor Fiscal não encontrou o documento."),
             HttpStatusCode.Conflict => Error.Conflict(FiscalErrorCodes.Conflict, problem?.Detail ?? "A situação da nota no Emissor Fiscal não permite esta operação."),
-            HttpStatusCode.TooManyRequests => new Error(FiscalErrorCodes.RateLimited, "Muitas chamadas ao Emissor Fiscal. Tente de novo em instantes.", ErrorType.TooManyRequests)
-            {
-                Data = new Dictionary<string, object?> { ["retryAfterSeconds"] = RetryAfter(response) is { } wait ? (int)Math.Ceiling(wait.TotalSeconds) : null },
-            },
+            HttpStatusCode.TooManyRequests => RateLimited(RetryAfter(response)),
             _ => Error.Unavailable(FiscalErrorCodes.Unavailable, "O Emissor Fiscal está indisponível (" + ((int)response.StatusCode).ToString(CultureInfo.InvariantCulture) + ")."),
         };
     }
+
+    /// <summary>Espera a vez no limite do processo, até o tempo limite de uma chamada; falso quando não deu (fila cheia ou espera longa).</summary>
+    private async Task<bool> WaitTurnAsync(CancellationToken cancellationToken)
+    {
+        using var wait = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        wait.CancelAfter(options.Timeout);
+        try
+        {
+            return await gate.WaitAsync(wait.Token);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            return false;
+        }
+    }
+
+    private static Error RateLimited(TimeSpan? retryAfter) =>
+        new(FiscalErrorCodes.RateLimited, "Muitas chamadas ao Emissor Fiscal. Tente de novo em instantes.", ErrorType.TooManyRequests)
+        {
+            Data = new Dictionary<string, object?> { ["retryAfterSeconds"] = retryAfter is { } wait ? (int)Math.Ceiling(wait.TotalSeconds) : null },
+        };
 
     /// <summary>"emitente: CNPJ inválido. itens: informe ao menos um item." → campo a campo.</summary>
     internal static Dictionary<string, string[]>? Fields(string? detail)
@@ -390,6 +420,9 @@ internal sealed partial class EmissorFiscalHttpEmitter(HttpClient http, FiscalEm
 
     [LoggerMessage(Level = LogLevel.Information, Message = "EmissorFiscal {Operation} do tenant {TenantId}: HTTP {Status}, rejeição {RejectionCode}, {Elapsed:0.0} ms")]
     private static partial void LogCall(ILogger logger, string operation, Guid tenantId, int status, int? rejectionCode, double elapsed);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "EmissorFiscal {Operation} do tenant {TenantId}: sem vez no limite de chamadas; não chamou")]
+    private static partial void LogThrottled(ILogger logger, string operation, Guid tenantId);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "EmissorFiscal {Operation} do tenant {TenantId}: falha {Error} (HTTP {Status}) em {Elapsed:0.0} ms")]
     private static partial void LogFailure(ILogger logger, string operation, Guid tenantId, int? status, string error, double elapsed);
