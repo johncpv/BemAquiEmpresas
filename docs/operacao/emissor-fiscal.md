@@ -1,6 +1,6 @@
 # Runbook: integração com o EmissorFiscal (FIS-01, ADR 0027)
 
-O BemAqui fala com o EmissorFiscal (`D:\GIT\EmissorFiscal`, implantado pelo PO) **só** pelo `IFiscalEmitter`, por HTTP, na rede Docker dedicada `bqe-fiscal`. Nenhum código do Emissor é copiado ou referenciado (teste de arquitetura). O certificado A1 fica no cofre do Emissor; o BemAqui guarda a chave de API (`SecretKind.FiscalApiKey`, propósito `fiscal-api-key`) e o segredo do aviso (`SecretKind.WebhookSecret`, credencial do provedor `emissor-fiscal` da FND-16), cifrados e só de escrita.
+O BemAqui fala com o EmissorFiscal (`D:\GIT\EmissorFiscal`, implantado pelo PO) **só** pelo `IFiscalEmitter`, pela **API pública em HTTPS** `https://api.fiscal.bemaquiapp.com.br` (ADR 0027, adendo de 27/10/2026). O Emissor é um SaaS multi-cliente e o BemAqui é só mais um cliente: não há rede Docker privada entre os dois. Nenhum código do Emissor é copiado ou referenciado (teste de arquitetura). O certificado A1 fica no cofre do Emissor; o BemAqui guarda a chave de API (`SecretKind.FiscalApiKey`, propósito `fiscal-api-key`) e o segredo do aviso (`SecretKind.WebhookSecret`, credencial do provedor `emissor-fiscal` da FND-16), cifrados e só de escrita.
 
 ## 1. Mapa de tenants
 
@@ -24,18 +24,63 @@ UPDATE catalog.tenants SET fiscal_environment_allowed = 'Homologation' WHERE key
 
 A produção (`Production`) só é ligada no checklist da GOL-01b.
 
-## 2. Rede `bqe-fiscal`
+## 2. Endereços, limite e nginx
 
-- Criada uma vez na VPS, **sem saída para a internet**: `docker network create --internal bqe-fiscal`. O `deploy.sh` cria se faltar e **para o deploy** se a rede existir sem `--internal`.
-- Só entram nela a `bqe-<ambiente>-api` (compose do BemAqui) e o `emissor-fiscal` (compose do Emissor). O banco, o painel e o portal do Emissor ficam fora; o banco do BemAqui também. O `scripts/check-compose.mjs` (CI) reprova outro serviço nela, porta publicada no serviço do Emissor e Swagger ligado.
-- A API do BemAqui chama `http://emissor-fiscal:8080` (lista `Fiscal:Emissor:AllowedHosts`; a tela recusa IP, `localhost` e outros nomes).
-- O Emissor avisa a API em `http://bqe-<ambiente>-api:8080/webhooks/emissor-fiscal/{tenantKey}` (host interno em `Webhooks:InternalHosts`); esse caminho, e só ele, dispensa o `stack-nginx`. A origem é provada pela assinatura.
+- **API do Emissor:** `https://api.fiscal.bemaquiapp.com.br`, a mesma para homologação e produção (o ambiente vem do cadastro do emitente, não da URL nem da chave). Fica na configuração (`Fiscal:Emissor:BaseUrl`, padrão do `appsettings.json`), conferida contra `Fiscal:Emissor:AllowedHosts` (só HTTPS, porta padrão, nunca IP ou `localhost`). A tela mostra o endereço só para leitura e a API recusa outro. A API do BemAqui sai para a internet pela `stack_stack`, como já faz para o SMTP.
+- **Trocar o endereço** (só se o Emissor mudar de host): `Fiscal__Emissor__BaseUrl` e `Fiscal__Emissor__AllowedHosts__0` no compose (o `check-compose.mjs` exige HTTPS). Toda integração salva com o endereço antigo fica **Aguardando o teste** até o Proprietário clicar em **Testar conexão**; nenhuma nota sai antes disso. Foi o que aconteceu com o `http://emissor-fiscal:8080` da versão 1.x.
+- **Limite:** o Emissor aceita 10 requisições por segundo por IP (e o limite da chave); acima, 429. O BemAqui manda no máximo `Fiscal:Emissor:MaxRequestsPerSecond` (padrão **4**) por processo, com fila, e pausa todas as chamadas pelo `Retry-After` de um 429. Homologação e produção saem do mesmo IP da VPS: 4 + 4 = 8. Se outro sistema da VPS (o Dolibarr) também chamar o Emissor pelo mesmo IP, baixe para 3 nos dois ambientes.
+- **Aviso (webhook):** o Emissor só entrega em HTTPS pública. O endereço é o do **host da plataforma**, um por tenant:
+
+  | Ambiente | Endereço do aviso (cadastrar no painel do Emissor) |
+  |---|---|
+  | Homologação (`demo`) | `https://plataforma-homolog.bemaquiapp.com.br/webhooks/emissor-fiscal/{tenantKey}` |
+  | Produção (`konebras`, na GOL-01b) | `https://plataforma.bemaquiapp.com.br/webhooks/emissor-fiscal/{tenantKey}` |
+
+  O `{tenantKey}` é opaco e próprio de cada tenant: copie o endereço inteiro da tela **Configurações → Integrações → Emissor fiscal** (aparece depois de salvar). O host vem de `Webhooks__PublicBaseUrl` (`https://${PLATFORM_HOST}` no compose). No host do tenant (`homolog.konebras.com.br`) e no host interno da API (`bqe-homolog-api`) a rota `/webhooks/` **não existe** (404), de propósito: o `tenantKey` só vale no host da plataforma (ADR 0031).
+
+### Location do nginx (no `stack-nginx`, feito pelo PO na VPS)
+
+No server `plataforma-homolog.bemaquiapp.com.br` (e no da produção, com `bqe-prod-api`), a allowlist de IP do painel **não pode** valer para `/webhooks/`. No `deploy/nginx/bemaqui-empresas-homolog.conf` o `if ($bqe_homolog_platform_allowed = 0) { return 404; }` está no nível do server e barra tudo; ele vai para dentro das locations do painel, e a `/webhooks/` entra sem ele:
+
+```nginx
+server {
+    server_name plataforma-homolog.bemaquiapp.com.br;
+    # listen, ssl, resolver e set $bqe_api/$bqe_web como hoje; SEM o "if" da allowlist no nível do server.
+
+    # Webhooks (FND-16, ADR 0031; EmissorFiscal, ADR 0027 adendo de 27/10/2026): fora da allowlist, só GET/POST, corpo pequeno.
+    location /webhooks/ {
+        limit_except GET POST { deny all; }
+        client_max_body_size 64k;
+        proxy_pass $bqe_api;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 30s;
+    }
+
+    location ~ ^/(api|health|hangfire)(/|$) {
+        if ($bqe_homolog_platform_allowed = 0) { return 404; }
+        # proxy_pass $bqe_api e cabeçalhos como hoje
+    }
+
+    location / {
+        if ($bqe_homolog_platform_allowed = 0) { return 404; }
+        # proxy_pass $bqe_web e cabeçalhos como hoje
+    }
+}
+```
+
+- `proxy_set_header Host $host` é obrigatório: a API só aceita `/webhooks/` no host da plataforma. O `X-Forwarded-For $remote_addr` mantém o rate limit por IP real (política `webhooks`, 60 por minuto por IP e provedor). O timeout de entrega do Emissor é 15 s; a API responde em milissegundos (só grava).
+- O log `bqe_masked` já grava só o caminho; a API mascara o `tenantKey` no log dela.
+- Conferir depois do `nginx -t` e do reload, de um IP **fora** da allowlist: `curl -s -o /dev/null -w '%{http_code}\n' -X POST -H 'Content-Type: application/json' -d '{}' https://plataforma-homolog.bemaquiapp.com.br/webhooks/emissor-fiscal/AAAAAAAAAAAAAAAAAAAAAA` tem de dar **401** (chegou na API e a assinatura foi recusada). 404 quer dizer que a location não está fora da allowlist.
+- A rede `bqe-fiscal` antiga pode ser apagada na VPS depois do deploy desta versão: `docker network rm bqe-fiscal` (se nenhum container estiver nela).
 
 ## 3. Configurar um tenant
 
 1. No painel do Emissor: criar o tenant, o emitente (CNPJ do tenant) e a `ClientApplication` com os escopos da tabela. Copiar a chave (aparece uma vez).
-2. No BemAqui, como Proprietário: **Configurações → Integrações → Emissor fiscal → Configurar**: endereço `http://emissor-fiscal:8080`, a chave e, por enquanto, um segredo provisório; **Salvar integração fiscal** (pede o código do autenticador).
-3. A tela mostra o **Endereço do aviso**. No painel do Emissor: **Webhooks → Novo webhook** com esse endereço e todos os eventos. Copiar o segredo que o Emissor mostra e colar em **Trocar o segredo** no BemAqui.
+2. No BemAqui, como Proprietário: **Configurações → Integrações → Emissor fiscal → Configurar**: a chave e, por enquanto, um segredo provisório (o endereço do Emissor já vem do sistema); **Salvar integração fiscal** (pede o código do autenticador).
+3. A tela mostra o **Endereço do aviso** (`https://plataforma-homolog.bemaquiapp.com.br/webhooks/emissor-fiscal/{tenantKey}` na homologação). No painel do Emissor: **Webhooks → Novo webhook** com esse endereço e todos os eventos (ou ao menos `nfe.autorizada`, `nfe.rejeitada`, `nfe.cancelada` e `nfe.denegada`). Copiar o segredo que o Emissor mostra e colar em **Trocar o segredo** no BemAqui.
 4. **Testar conexão**: confere o `GET /api/v1/me` (sem `admin`, com os escopos, CNPJ do emitente igual ao do tenant, ambiente dentro do permitido). Aprovado, a integração fica **Ativa**.
 
 ## 4. Rotação
@@ -55,11 +100,11 @@ A produção (`Production`) só é ligada no checklist da GOL-01b.
 Fora do CI padrão (pula sem as variáveis). Rodar uma vez com o Emissor de homologação no ar e registrar o resultado aqui:
 
 ```sh
-EMISSOR_HOMOLOG_URL=http://emissor-fiscal:8080 EMISSOR_HOMOLOG_KEY=<chave do demo> \
+EMISSOR_HOMOLOG_URL=https://api.fiscal.bemaquiapp.com.br EMISSOR_HOMOLOG_KEY=<chave do demo> \
   sh scripts/test-docker.sh --filter-class "*EmissorHomologContractTests"
 ```
 
-(rodar de um container na rede `bqe-fiscal`, ou com um túnel até ela; **nunca** com a chave do `konebras`). Confere: `GET /me` sem `admin` e com os escopos; emitente só em homologação; prévia aceita `tipoOperacao` 1 (saída) e 0 (entrada) (lacuna L-l).
+(roda de qualquer lugar, pela API pública; **nunca** com a chave do `konebras`). Confere: `GET /me` sem `admin` e com os escopos; emitente só em homologação; prévia aceita `tipoOperacao` 1 (saída) e 0 (entrada) (lacuna L-l).
 
 | Data | Versão do Emissor | Resultado | Quem |
 |---|---|---|---|
@@ -76,7 +121,7 @@ O lado do BemAqui foi feito contra o contrato do guia de integração do Emissor
 | L-f `nfe:eventos` | Cancelar, corrigir e inutilizar exigem `nfe:eventos` | Documentado |
 | L-g timestamp no HMAC | `X-BemAqui-Signature: t={ts},v1={hex}[,v1=…]` sobre `{ts}.{corpo}`, `X-BemAqui-Timestamp`, janela de 5 min, `X-BemAqui-Delivery-Id`, `X-BemAqui-Event` | Documentado (formato do Stripe). O validador do BemAqui é o `TimestampedSignatureValidator` |
 | L-c DANFE em PDF | `GET /nfe/{chave}/danfe` com `application/pdf`; HTML é recusado pelo adaptador | Documentado (503 sem o conversor) |
-| L-i rede e Swagger | Emissor na `bqe-fiscal`, sem porta publicada, Swagger desligado em produção | Documentado no guia de implantação de lá |
+| L-i exposição | Por fora, só `/api/` e `/health` (sem `/api/v1/admin/*` e sem Swagger); 10 req/s por IP com 429 e `Retry-After` | Documentado (ADR 007 de lá). A rede dedicada saiu (ADR 0027, adendo de 27/10/2026) |
 | L-j tenant por tenant | Uma `ClientApplication` por tenant do BemAqui, sem `admin` | Procedimento acima |
 | L-l `tipoOperacao` | `0` entrada, `1` saída | Documentado; conferir pela suíte `emissor-homolog` |
 | L-b, L-d, L-h, L-k, L-m | IBS/CBS, `transp`, A1 sem `admin`, cópia offline da chave-mestra, NFS-e de Caçapava | Antes da FIS-03a, FIS-02a, GOL-01a e FIS-06 |
@@ -87,6 +132,8 @@ O lado do BemAqui foi feito contra o contrato do guia de integração do Emissor
 | Sintoma | Onde olhar |
 |---|---|
 | "O Emissor Fiscal recusou a chave." | Chave errada, desativada ou de outro cliente: gere outra no Emissor e troque |
-| "O Emissor Fiscal não respondeu." | `docker network inspect bqe-fiscal` (a API e o `emissor-fiscal` estão nela?); `docker compose ps` do Emissor |
+| "O Emissor Fiscal não respondeu." | `docker exec bqe-homolog-api wget -qO- https://api.fiscal.bemaquiapp.com.br/health` (DNS e saída pela `stack_stack`); situação do Emissor com o time dele |
+| "Muitas chamadas ao Emissor Fiscal." | 429 do Emissor ou fila cheia no BemAqui (log "sem vez no limite de chamadas"): confira `Fiscal__Emissor__MaxRequestsPerSecond` nos dois ambientes e se outro sistema usa o mesmo IP |
+| Aviso não chega (nada em "Eventos recebidos") | No painel do Emissor, o webhook está "Desativado por falhas" (10 falhas seguidas)? O endereço tem o host da plataforma e o `tenantKey` certo? O `curl` do §2 dá 401? Se der 404, falta a location `/webhooks/` fora da allowlist |
 | Aviso recusado (401) em "Eventos recebidos" não aparece | Segredo diferente nos dois lados ou relógio da VPS fora (janela de 5 min): `timedatectl` |
 | Nota parada em "esperando a SEFAZ" | A conferência roda a cada 10 min; depois de 2 h em contingência sai alerta. Não emita de novo |

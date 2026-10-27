@@ -9,7 +9,7 @@
 ### 1. Rota e tenant
 - **`POST /webhooks/{provider}/{tenantKey}`**, fora de `/api/v1` (a URL fica cadastrada no provedor e não muda com a versão da API), sem cookie, sem CSRF, sem usuário. Outros métodos: 405, com uma exceção: o **GET de verificação** do provedor que o declara no registro (`SupportsVerificationGet`). O `whatsapp` (ADR 0041, WPP-01) precisa dele: a Meta confirma a URL com `GET ?hub.mode=subscribe&hub.verify_token=…&hub.challenge=…`; o verify token é guardado só como hash e comparado em tempo constante, a resposta é o `hub.challenge` em `text/plain` e nada é gravado em `webhook_events`; token errado devolve a resposta uniforme de recusa.
 - **`tenantKey` opaco** (aleatório, guardado no catálogo), nunca o nome nem o host do tenant. O tenant é resolvido pela chave, só se estiver `Active`.
-- Atende no **host da plataforma** (ADR 0005 D2), com a location `/webhooks/` **fora da allowlist de IP** do painel da plataforma, e no host interno da API na rede `bqe-fiscal` para o EmissorFiscal (ADR 0027).
+- Atende no **host da plataforma** (ADR 0005 D2), com a location `/webhooks/` **fora da allowlist de IP** do painel da plataforma. O EmissorFiscal também chega por ali, pela URL pública (ADR 0027, adendo de 27/10/2026, que tirou o host interno da API e a rede `bqe-fiscal`).
 - **`/webhooks/*` fica fora do middleware de tenant por host**, com teste: a rota nunca resolve tenant pelo `Host` e nenhuma outra rota resolve tenant pelo `tenantKey`.
 - Todo provedor do `WebhookProviderRegistry` declara um **validador de origem** (HMAC com timestamp, token na URL ou outro); o teste de arquitetura reprova provedor sem validador. Rate limit por política nomeada, por provedor e tenant.
 
