@@ -1,4 +1,5 @@
 import { getAccessToken, setAccessToken, trackPermVersion } from './session'
+import { requestStepUp, STEP_UP_URL, TWO_FACTOR_REQUIRED } from './step-up'
 
 /** Erro da API no formato ProblemDetails (RFC 9457) com code e errors por campo (FND-07). */
 export class ApiError extends Error {
@@ -75,11 +76,8 @@ async function send(url: string, options: RequestInit): Promise<Response> {
   }
 }
 
-/**
- * Mutator único do Orval (CLAUDE.md: nenhum fetch à mão fora daqui). Mesma origem, token em memória, anti-CSRF, refresh
- * silencioso no 401 e ProblemDetails convertido em ApiError.
- */
-export async function apiFetch<T>(url: string, options: RequestInit = {}): Promise<T> {
+/** Uma ida à API com o refresh silencioso no 401; devolve a resposta e o corpo já lido. */
+async function exchange(url: string, options: RequestInit): Promise<{ response: Response; body: unknown }> {
   let response = await send(url, options)
   // Plataforma (FND-13): a sessão é o cookie do super admin, sem refresh; 401 leva ao login da plataforma.
   if (response.status === 401 && url.startsWith(PLATFORM) && !url.startsWith(PLATFORM + 'auth/')) {
@@ -96,7 +94,23 @@ export async function apiFetch<T>(url: string, options: RequestInit = {}): Promi
 
   trackPermVersion(response.headers.get('X-Perm-Version'))
   const text = response.status === 204 ? '' : await response.text()
-  const body: unknown = text ? JSON.parse(text) : undefined
+  return { response, body: text ? JSON.parse(text) : undefined }
+}
+
+/**
+ * Mutator único do Orval (CLAUDE.md: nenhum fetch à mão fora daqui). Mesma origem, token em memória, anti-CSRF, refresh
+ * silencioso no 401 e ProblemDetails convertido em ApiError. No 403 two_factor_required (BNK-01a CA 1), abre o passo
+ * "Confirme o código" e, confirmado, repete a mesma requisição uma vez (a recusa não gravou nada).
+ */
+export async function apiFetch<T>(url: string, options: RequestInit = {}): Promise<T> {
+  let result = await exchange(url, options)
+  const problem = (result.body ?? {}) as { code?: string; enrolled?: boolean }
+  if (result.response.status === 403 && problem.code === TWO_FACTOR_REQUIRED && url !== STEP_UP_URL && (await requestStepUp(problem.enrolled === true))) {
+    result = await exchange(url, options)
+  }
+
+  const { response, body } = result
+
   if (!response.ok) {
     throw new ApiError(response.status, (body ?? {}) as ConstructorParameters<typeof ApiError>[1])
   }

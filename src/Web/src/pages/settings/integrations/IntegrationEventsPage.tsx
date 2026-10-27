@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
 import { ShieldCheck } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
@@ -17,18 +17,8 @@ import { Dica } from '@/help/Dica'
 import { formatDateTime } from '@/lib/format'
 import { PageHeading } from '@/shell/PageHeading'
 import { SettingsTabs } from '../SettingsTabs'
+import { IntegrationsNav } from './IntegrationsNav'
 import { CONTENT_HINT, defaultStatus, EVENT_STATUS, STALLED_HINT, STATUS_OPTIONS } from './events'
-
-/** Subnavegação de Integrações: "Eventos recebidos" agora; "Banco Inter" na BNK-01a e "WhatsApp" na WPP-01. */
-function IntegrationsNav() {
-  return (
-    <nav aria-label="Integrações" className="mb-4 flex gap-2 text-sm">
-      <Link to="/app/configuracoes/integracoes/eventos" activeProps={{ 'aria-current': 'page' }} className="rounded-md border border-border px-3 py-1.5 font-semibold text-muted-foreground aria-[current=page]:border-primary aria-[current=page]:text-foreground">
-        Eventos recebidos
-      </Link>
-    </nav>
-  )
-}
 
 function Status({ row }: { row: WebhookEventRow }) {
   const s = EVENT_STATUS[row.status] ?? { label: row.status, tone: 'neutral' as const }

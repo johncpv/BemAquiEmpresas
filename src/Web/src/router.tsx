@@ -17,6 +17,8 @@ import { ParametersPage } from '@/pages/settings/parameters/ParametersPage'
 import { AiSettingsPage } from '@/pages/settings/AiSettingsPage'
 import { ImportRunPage } from '@/pages/settings/import/ImportRunPage'
 import { IntegrationEventsPage } from '@/pages/settings/integrations/IntegrationEventsPage'
+import { InterAccountPage } from '@/pages/settings/integrations/InterAccountPage'
+import { InterAccountsPage } from '@/pages/settings/integrations/InterAccountsPage'
 import { ImportRunsPage } from '@/pages/settings/import/ImportRunsPage'
 import { ShopfloorLayout, TvLayout } from '@/pages/DedicatedLayouts'
 import { TvLegacyPage, TvPage } from '@/pages/tv/TvPage'
@@ -189,6 +191,9 @@ const aiSettingsRoute = createRoute({ getParentRoute: () => appRoute, path: 'con
 // Integrações (FND-16): Eventos recebidos; Banco Inter (BNK-01a) e WhatsApp (WPP-01) entram como sub-telas.
 const integrationsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/integracoes', beforeLoad: () => { throw redirect({ to: '/app/configuracoes/integracoes/eventos' }) } })
 const integrationEventsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/integracoes/eventos', component: gated('settings', IntegrationEventsPage) })
+// Banco Inter (BNK-01a): contas 077 e o detalhe da integração; ?acao=trocar abre direto em "Trocar credenciais" (alerta de vencimento).
+const interAccountsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/integracoes/inter', component: gated('settings', InterAccountsPage) })
+const interAccountRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/integracoes/inter/$contaId', component: gated('settings', InterAccountPage), validateSearch: (s: Record<string, unknown>): { acao?: string } => ({ acao: text(s.acao) }) })
 const importRunsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/importacao', component: gated('settings', ImportRunsPage) })
 const importRunRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/importacao/$id', component: gated('settings', ImportRunPage) })
 // Cadastros (CAD-01a): /app/cadastros leva à primeira aba do módulo.
@@ -408,7 +413,7 @@ export const routeTree = rootRoute.addChildren([
   resetRoute,
   inviteRoute,
   appRoute.addChildren([appIndexRoute, dashboardRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute,
-    aiSettingsRoute, importRunsRoute, importRunRoute, integrationsRoute, integrationEventsRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute,
+    aiSettingsRoute, importRunsRoute, importRunRoute, integrationsRoute, integrationEventsRoute, interAccountsRoute, interAccountRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute,
     inventoryRootRoute, balancesRoute, movementsRoute, movementRoute, manualPostingsRoute, manualPostingRoute, shortagesRoute, requisitionsRoute, requisitionRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, bomsRoute, productionRootRoute, fabricationOrdersRoute, fabricationOrderRoute, kanbanRoute, openLaborRoute, operatorRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute, qualityRoute, qualityStepRoute, nonConformitiesRoute, nonConformityRoute, purchasingRootRoute, purchaseRequestsRoute, newPurchaseRequestRoute, purchaseRequestRoute, purchaseOrdersRoute, newPurchaseOrderRoute, purchaseOrderRoute, editPurchaseOrderRoute, shipmentsRoute, newShipmentRoute, shipmentRoute, traceabilityRoute, adjustmentsRoute, adjustmentRoute, goodsReceiptsRoute, goodsReceiptRoute, newGoodsReceiptRoute, rfqsRoute, newRfqRoute, rfqRoute, inventoryCountsRoute, inventoryCountRoute, capacityRoute, planningRoute, supervisorRoute,
     financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, payablesRoute, newPayableRoute, payableRoute, recurringRoute, approvalRulesRoute, openingRoute, cashFlowRoute, dreRoute, agingRoute, paymentOrdersRoute, newPaymentOrderRoute, paymentOrderRoute, statementRoute, quotesRoute, quoteFunnelRoute, quoteRoute, quoteCompareRoute, contractsRoute, contractRoute, amendmentRoute, projectsRoute, projectMarginsRoute, projectRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, kioskScreensRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
   platformLoginRoute,
