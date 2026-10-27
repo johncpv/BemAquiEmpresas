@@ -20,12 +20,18 @@ const PENDING_DICA = 'Valor sugerido pelo sistema. Confira com a contadora e cli
 const searchPayees = async (term: string): Promise<ComboOption[]> =>
   (await searchPayrollPayees({ q: term })).map((p) => ({ id: p.id, label: p.name, hint: p.document ?? undefined }))
 
-type Value = { value: string; party: ComboOption | null }
+type Value = { value: string; party: ComboOption | null; code: string }
+
+const CODE_KINDS = new Set(['Account', 'CostCenter'])
+
+/** 1130 → "30/11" e de volta (dia e mês do ano, RH-02c). */
+const monthDayText = (v: number) => `${String(v % 100).padStart(2, '0')}/${String(Math.floor(v / 100)).padStart(2, '0')}`
+const monthDayValue = (t: string) => { const [d, m] = t.split('/').map(Number); return d && m ? m * 100 + d : null }
 
 const initialOf = (items: HrParameterItem[]) =>
-  Object.fromEntries(items.map((i) => [i.key, { value: i.value == null ? '' : String(i.value), party: i.partyId ? { id: i.partyId, label: i.partyName ?? '' } : null } satisfies Value]))
+  Object.fromEntries(items.map((i) => [i.key, { value: i.value == null ? '' : i.kind === 'MonthDay' ? monthDayText(i.value) : String(i.value), code: i.code ?? '', party: i.partyId ? { id: i.partyId, label: i.partyName ?? '' } : null } satisfies Value]))
 
-const suffix = (i: HrParameterItem) => (i.kind === 'Percent' ? '%' : i.kind === 'DayOfMonth' ? 'dia do mês seguinte' : i.kind === 'Days' ? 'dias' : '')
+const suffix = (i: HrParameterItem) => (i.kind === 'Percent' ? '%' : i.kind === 'DayOfMonth' ? 'dia do mês seguinte' : i.kind === 'Days' ? 'dias' : i.kind === 'BusinessDay' ? 'º dia útil do mês seguinte' : i.kind === 'DayOfPeriod' ? 'dia da competência' : i.kind === 'Months' ? 'meses' : i.kind === 'MonthDay' ? 'dia/mês' : '')
 
 /**
  * Configurações → Parâmetros → RH (RH-02a CA 3, ADR 0042, dono HR): alerta de variação do líquido, vencimento e órgão padrão de cada
@@ -38,7 +44,7 @@ export function HrParametersSection({ canEdit }: { canEdit: boolean }) {
   if (!canSee) return null
   if (query.isPending) return <Skeleton className="h-48" />
   if (query.isError || !query.data?.items) return null
-  return <HrForm key={JSON.stringify(query.data.items.map((i) => [i.value, i.partyId, i.confirmed]))} view={query.data} canEdit={canEdit} />
+  return <HrForm key={JSON.stringify(query.data.items.map((i) => [i.value, i.partyId, i.code, i.confirmed]))} view={query.data} canEdit={canEdit} />
 }
 
 function HrForm({ view, canEdit }: { view: HrParametersView; canEdit: boolean }) {
@@ -46,7 +52,7 @@ function HrForm({ view, canEdit }: { view: HrParametersView; canEdit: boolean })
   const initial = initialOf(view.items)
   const [draft, setDraft] = useState<Record<string, Value>>(initial)
   const [error, setError] = useState<{ message: string; fields: Record<string, string[]> } | null>(null)
-  const changed = view.items.filter((i) => draft[i.key].value !== initial[i.key].value || draft[i.key].party?.id !== initial[i.key].party?.id)
+  const changed = view.items.filter((i) => draft[i.key].value !== initial[i.key].value || draft[i.key].party?.id !== initial[i.key].party?.id || draft[i.key].code !== initial[i.key].code)
   const saved = (next: HrParametersView, message: string) => {
     client.setQueryData(getGetHrParametersQueryKey(), next)
     void client.invalidateQueries({ predicate: (q) => String(q.queryKey[0]).startsWith('/api/v1/audit/HrParameter/') })
@@ -56,7 +62,7 @@ function HrForm({ view, canEdit }: { view: HrParametersView; canEdit: boolean })
   const fail = (e: unknown, fallback: string) => setError(e instanceof ApiError ? { message: e.message, fields: e.fields } : { message: fallback, fields: {} })
   const save = async () => {
     try {
-      saved(await updateHrParameters({ changes: changed.map((i) => (i.kind === 'Party' ? { key: i.key, value: null, partyId: draft[i.key].party?.id ?? null } : { key: i.key, value: draft[i.key].value === '' ? null : Number(draft[i.key].value.replace(',', '.')), partyId: null })) }), 'Parâmetros do RH salvos')
+      saved(await updateHrParameters({ changes: changed.map((i) => (CODE_KINDS.has(i.kind) ? { key: i.key, value: null, partyId: null, code: draft[i.key].code } : i.kind === 'MonthDay' ? { key: i.key, value: monthDayValue(draft[i.key].value), partyId: null } : i.kind === 'Party' ? { key: i.key, value: null, partyId: draft[i.key].party?.id ?? null } : { key: i.key, value: draft[i.key].value === '' ? null : Number(draft[i.key].value.replace(',', '.')), partyId: null })) }), 'Parâmetros do RH salvos')
     } catch (e) {
       fail(e, 'Não foi possível salvar os parâmetros do RH.')
     }
@@ -71,7 +77,7 @@ function HrForm({ view, canEdit }: { view: HrParametersView; canEdit: boolean })
 
   return (
     <section id="secao-rh" aria-label="RH">
-      <FormSection title="RH: folha" description={`Alerta da conferência, vencimento e órgão de cada guia e a quarentena da conta trocada. Contribuição sindical e "Outros" têm o vencimento informado na folha; o dia não útil antecipa pelo calendário padrão. ${view.pendingCount > 0 ? `${view.pendingCount} ${view.pendingCount === 1 ? 'valor a confirmar' : 'valores a confirmar'} com a contadora.` : 'Tudo conferido com a contadora.'}`}>
+      <FormSection title="RH: folha" description={`Alerta da conferência, vencimento e órgão de cada guia, a quarentena da conta trocada, o pagamento dos salários, a folha prevista e a conta e o centro de custo dos títulos da folha. Contribuição sindical e "Outros" têm o vencimento informado na folha; o dia não útil antecipa pelo calendário padrão. ${view.pendingCount > 0 ? `${view.pendingCount} ${view.pendingCount === 1 ? 'valor a confirmar' : 'valores a confirmar'} com a contadora.` : 'Tudo conferido com a contadora.'}`}>
         <div className="space-y-3 sm:col-span-2">
           <FormError message={error && Object.keys(error.fields).length === 0 ? error.message : undefined} />
           {view.items.map((item) => {
@@ -94,6 +100,18 @@ function HrForm({ view, canEdit }: { view: HrParametersView; canEdit: boolean })
                 {item.kind === 'Party' ? (
                   <Combobox id={id} queryKey={['payroll-payees']} search={searchPayees} value={draft[item.key].party?.id ?? null} selected={draft[item.key].party} disabled={!canEdit}
                     placeholder="Sem órgão padrão: busque pelo nome" aria-invalid={fieldError ? true : undefined} onChange={(party) => setDraft((d) => ({ ...d, [item.key]: { ...d[item.key], party } }))} />
+                ) : CODE_KINDS.has(item.kind) ? (
+                  <select id={id} disabled={!canEdit} value={draft[item.key].code} onChange={(e) => setDraft((d) => ({ ...d, [item.key]: { ...d[item.key], code: e.target.value } }))}
+                    aria-invalid={fieldError ? true : undefined} className={inputClass + ' max-w-md'}>
+                    {((item.kind === 'Account' ? view.accounts : view.costCenters) ?? []).map((o) => <option key={o.code} value={o.code}>{o.code} {o.name}</option>)}
+                    {draft[item.key].code && !((item.kind === 'Account' ? view.accounts : view.costCenters) ?? []).some((o) => o.code === draft[item.key].code) ? <option value={draft[item.key].code}>{draft[item.key].code} (não encontrado)</option> : null}
+                  </select>
+                ) : item.kind === 'MonthDay' ? (
+                  <span className="flex items-center gap-2">
+                    <input id={id} inputMode="numeric" placeholder="dd/mm" maxLength={5} disabled={!canEdit} value={draft[item.key].value} onChange={(e) => setDraft((d) => ({ ...d, [item.key]: { ...d[item.key], value: e.target.value.replace(/[^0-9/]/g, '') } }))}
+                      aria-invalid={fieldError ? true : undefined} aria-describedby={fieldError ? `${id}-error` : undefined} className={inputClass + ' max-w-28 tabular-nums'} />
+                    <span className="text-sm text-muted-foreground">{suffix(item)}</span>
+                  </span>
                 ) : (
                   <span className="flex items-center gap-2">
                     <input id={id} inputMode="decimal" disabled={!canEdit} value={draft[item.key].value} onChange={(e) => setDraft((d) => ({ ...d, [item.key]: { ...d[item.key], value: e.target.value.replace(/[^0-9,.]/g, '') } }))}

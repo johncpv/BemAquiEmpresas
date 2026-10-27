@@ -1,7 +1,8 @@
 import { Link, useParams, useSearch } from '@tanstack/react-router'
 import { Lock } from 'lucide-react'
 import { useState } from 'react'
-import { useGetPayrollRun } from '@/api/generated/bemaqui'
+import { useQueryClient } from '@tanstack/react-query'
+import { getGetPayrollRunQueryKey, getListPayrollRunsQueryKey, useGetPayrollRun } from '@/api/generated/bemaqui'
 import { ApiError } from '@/api/http'
 import { RecordHistory } from '@/components/history/RecordHistory'
 import { NextSteps } from '@/components/ui/next-steps'
@@ -13,6 +14,8 @@ import { Dica } from '@/help/Dica'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { ChargesTab } from './ChargesTab'
+import { ClosedBand, CloseRunDialog, ReopenRunDialog } from './ClosingDialogs'
+import { PaymentsTab } from './PaymentsTab'
 import { PAYROLL_DICAS, periodLabel, STATUS_LABELS, STATUS_TONES, typeLabel } from './payroll'
 import { PayslipsTab } from './PayslipsTab'
 import { ReviewTab } from './ReviewTab'
@@ -38,6 +41,9 @@ export function PayrollRunPage() {
   const query = useGetPayrollRun(id)
   const canSensitive = useCan('hr.view_sensitive')
   const canEdit = useCan('hr.edit') && canSensitive
+  const canClose = useCan('hr.approve') && canSensitive
+  const client = useQueryClient()
+  const [closedSteps, setClosedSteps] = useState(false)
   const [, setTab] = useUrlTab('holerites')
   const [steps, setSteps] = useState(search.novo === '1')
   const [importing, setImporting] = useState(false)
@@ -49,6 +55,11 @@ export function PayrollRunPage() {
   }
 
   const run = query.data
+  const refresh = async () => {
+    await client.invalidateQueries({ queryKey: getGetPayrollRunQueryKey(id) })
+    await client.invalidateQueries({ queryKey: getListPayrollRunsQueryKey() })
+    await client.invalidateQueries({ predicate: (q) => String(q.queryKey[0] ?? '').includes(id) })
+  }
   const draft = run.status === 'Draft'
   const editable = draft && canEdit
   const protectedTab = <PayrollProtected />
@@ -63,7 +74,18 @@ export function PayrollRunPage() {
           <Link to="/app/rh/folha" className="ml-2 text-sm font-semibold text-primary">Voltar às folhas</Link>
         </div>
       </PageHeading>
-      {!draft ? <p role="status" className="mb-4 rounded-md border border-border bg-muted px-3 py-2 text-sm">A folha de {periodLabel(run.period)} está fechada. Os valores ficam só para consulta.</p> : null}
+      {canClose ? (
+        <div className="mb-4 flex flex-wrap gap-2">
+          {draft ? <CloseRunDialog run={run} onClosed={async () => { await refresh(); setClosedSteps(true); setTab('pagamentos') }} /> : null}
+          {run.status === 'Closed' ? <ReopenRunDialog run={run} onReopened={refresh} /> : null}
+        </div>
+      ) : null}
+      {!draft ? <ClosedBand run={run} /> : null}
+      {closedSteps ? (
+        <div className="mb-4">
+          <NextSteps onDismiss={() => setClosedSteps(false)} steps={[{ label: 'Ver os pagamentos', onSelect: () => { setTab('pagamentos'); setClosedSteps(false) } }]} />
+        </div>
+      ) : null}
       {steps && editable ? (
         <div className="mb-4">
           <NextSteps onDismiss={() => setSteps(false)} steps={[
@@ -76,6 +98,7 @@ export function PayrollRunPage() {
         { id: 'holerites', label: 'Holerites', content: canSensitive ? <PayslipsTab run={run} editable={editable} importing={importing} onImportingChange={setImporting} onReviewed={() => setTab('conferencia')} /> : protectedTab },
         { id: 'encargos', label: 'Encargos da empresa', content: canSensitive ? <ChargesTab run={run} editable={editable} /> : protectedTab },
         { id: 'conferencia', label: 'Conferência', content: canSensitive ? <ReviewTab run={run} /> : protectedTab },
+        { id: 'pagamentos', label: 'Pagamentos', content: canSensitive ? <PaymentsTab run={run} /> : protectedTab },
         { id: 'historico', label: 'Histórico de alterações', content: canSensitive ? <RecordHistory entity="PayrollRun" id={run.id} /> : protectedTab },
       ]} />
     </>

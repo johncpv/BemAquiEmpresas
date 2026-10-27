@@ -19,7 +19,7 @@ export const typeLabel = (type: string) => RUN_TYPES.find((t) => t.value === typ
 export const choosesEmployees = (type: string) => type === 'Vacation' || type === 'Termination'
 
 export const STATUS_LABELS: Record<string, string> = { Draft: 'Em lançamento', Closed: 'Fechada', Paid: 'Paga' }
-export const STATUS_TONES: Record<string, 'info' | 'ok' | 'neutral'> = { Draft: 'info', Closed: 'ok', Paid: 'neutral' }
+export const STATUS_TONES: Record<string, 'info' | 'ok' | 'neutral'> = { Draft: 'info', Closed: 'ok', Paid: 'ok' }
 
 export const KIND_LABELS: Record<PayrollKind, string> = { Earning: 'Provento', Deduction: 'Desconto', Information: 'Informativa' }
 
@@ -71,4 +71,8 @@ export const PAYROLL_DICAS = {
   informativa: 'Rubrica que aparece no holerite, mas não entra no líquido (ex.: o FGTS do mês, que a empresa deposita).',
   protegidos: 'Os valores da folha são dados pessoais protegidos pela LGPD. Só quem tem a permissão "Ver dados sensíveis" do RH consulta.',
   referencia: 'Quantidade que explica o valor: "30 dias", "10:00 h", "2 faltas". Até 20 caracteres.',
+  dataPagamento: 'Vencimento dos títulos de salário. Sugerida pelo tipo: Mensal no 5º dia útil do mês seguinte, adiantamento no dia 20, 13º em 30/11 e 20/12. Dia não útil antecipa.',
+  guia: 'A guia vai inteira para o grupo com a maior base do FGTS; a divisão exata fica com a contadora.',
+  prevista: 'Folha prevista: os próximos meses da folha (salários, guias, 13º e férias) entram no fluxo de caixa como estimativa, até a folha real fechar.',
+  quarentena: 'Conta trocada há pouco fica fora do pagamento automático até alguém do RH revisar com o funcionário.',
 }

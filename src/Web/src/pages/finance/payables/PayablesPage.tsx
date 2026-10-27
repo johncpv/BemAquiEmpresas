@@ -2,7 +2,8 @@ import { Link, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import type { ColumnDef } from '@tanstack/react-table'
 import { useListPayables } from '@/api/generated/bemaqui'
-import type { PayableDetail } from '@/api/generated/model'
+import type { PayableDetail, PayablePayrollGroup } from '@/api/generated/model'
+import { Dica } from '@/help/Dica'
 import { DataTable } from '@/components/data-table/DataTable'
 import { useTableFilters, useTableSearch } from '@/components/data-table/table-search'
 import { Money } from '@/components/ui/money'
@@ -15,6 +16,28 @@ import { FinanceTabs } from '../FinanceTabs'
 import { useCan } from '@/pages/use-can'
 import { today } from '../receivables/receivables'
 import { METHOD_LABELS, ORIGIN_LABELS, PAYABLE_SITUATIONS, payableSituation } from './payables'
+
+/**
+ * Salários agrupados por folha (RH-02c CA 7): sem aprovar nem pagar no Financeiro, a folha aparece numa linha "Folha {tipo} {mês}: {n}
+ * salários, total {valor}", sem nome nem valor por funcionário.
+ */
+function PayrollGroups({ groups }: { groups: PayablePayrollGroup[] }) {
+  if (groups.length === 0) return null
+  return (
+    <ul aria-label="Folhas a pagar" className="mb-3 divide-y divide-border rounded-md border border-border bg-card text-sm">
+      {groups.map((g) => (
+        <li key={g.label} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
+          <span className="inline-flex flex-wrap items-center gap-1.5">
+            <b>{g.label}:</b> {g.count === 1 ? '1 salário' : `${g.count} salários`}
+            {g.isEstimate ? <Tag>Estimado</Tag> : null}
+            <Dica nome="Folha agrupada" texto="Os salários de cada funcionário aparecem só para quem aprova ou paga no Financeiro." />
+          </span>
+          <span className="tabular-nums">{g.dueDate ? `vence ${formatDate(g.dueDate)} · ` : ''}total <Money value={g.total} /></span>
+        </li>
+      ))}
+    </ul>
+  )
+}
 
 /** Financeiro → A pagar (FIN-02): o que a empresa precisa pagar, por vencimento; só a OP aprovada paga. */
 export function PayablesPage() {
@@ -58,6 +81,7 @@ export function PayablesPage() {
           {selected.length > 0 ? <button type="button" onClick={createOrder} className="rounded-md bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground">Criar ordem de pagamento ({selected.length})</button> : null}
         </div>
       ) : null}
+      <PayrollGroups groups={query.data?.payrollGroups ?? []} />
       <DataTable
         label="Títulos a pagar"
         columns={columns}

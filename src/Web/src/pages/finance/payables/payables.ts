@@ -27,10 +27,10 @@ export const PAYABLE_SITUATIONS = [
   { value: 'cancelado', label: 'Cancelados' },
 ]
 
-export const METHOD_LABELS: Record<string, string> = { Pix: 'Pix', Boleto: 'Boleto', Ted: 'TED', Other: 'Outro' }
+export const METHOD_LABELS: Record<string, string> = { Pix: 'Pix', Boleto: 'Boleto', Ted: 'TED', Other: 'Outro', EmployeeAccount: 'Conta do funcionário' }
 
 export const ORIGIN_LABELS: Record<string, string | undefined> = {
-  Recurring: 'Recorrente', Installer: 'Instalação', Purchase: 'Compra', GoodsReceipt: 'Recebimento de compra', Payroll: 'Folha', Maintenance: 'Manutenção', Opening: 'Implantação',
+  Recurring: 'Recorrente', Installer: 'Instalação', Purchase: 'Compra', GoodsReceipt: 'Recebimento de compra', Payroll: 'Folha', PayrollForecast: 'Folha prevista', Maintenance: 'Manutenção', Opening: 'Implantação',
 }
 
 /** Link do documento de origem (CMP-04 CA 18): o título do recebimento aponta para o recebimento; o previsto, para o pedido. */

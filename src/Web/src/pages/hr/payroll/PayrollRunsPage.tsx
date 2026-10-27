@@ -1,13 +1,14 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
-import { createPayrollRun, getListPayrollRunsQueryKey, useListPayrollEligibleEmployees, useListPayrollRuns, useListPayrollRunTotalsSensitive } from '@/api/generated/bemaqui'
+import { createPayrollRun, getListPayrollRunsQueryKey, recalculatePayrollForecast, useListPayrollEligibleEmployees, useListPayrollRuns, useListPayrollRunTotalsSensitive } from '@/api/generated/bemaqui'
 import type { PayrollRunSummary, PayrollRunType } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { useIdempotencyKey } from '@/api/idempotency'
 import { Field, FormError } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { notifySuccess } from '@/components/ui/messages'
 import { Money } from '@/components/ui/money'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
@@ -27,6 +28,7 @@ export function PayrollRunsPage() {
   const query = useListPayrollRuns()
   const canSensitive = useCan('hr.view_sensitive')
   const canCreate = useCan('hr.create') && canSensitive
+  const canForecast = useCan('hr.edit')
   const totals = useListPayrollRunTotalsSensitive({ query: { enabled: canSensitive } })
   const [creating, setCreating] = useState(false)
   const net = new Map((totals.data ?? []).map((t) => [t.runId, t.net]))
@@ -37,7 +39,16 @@ export function PayrollRunsPage() {
       <PageHeading title="RH: Folha">
         <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
           <p className="inline-flex items-center text-muted-foreground">Folha lançada: os valores da contadora, conferidos antes de virar holerite e pagamento.<Dica nome="Folha lançada" texto={PAYROLL_DICAS.lancada} /></p>
-          {newButton}
+          <span className="flex flex-wrap gap-2">
+            {canForecast ? (
+              <ConfirmDialog verb="Recalcular previsão" done="Previsão recalculada" title="Recalcular a folha prevista?"
+                description="Refaz os próximos meses da folha no fluxo de caixa a partir da última folha Mensal fechada, com o 13º e as férias."
+                onConfirm={async () => { const r = await recalculatePayrollForecast(); notifySuccess(r.lines === 1 ? '1 linha prevista no fluxo de caixa' : `${r.lines} linhas previstas no fluxo de caixa`) }}
+                trigger={<button type="button" className="inline-flex min-h-11 items-center rounded-md border border-border px-3 py-2 text-sm font-semibold">Recalcular previsão</button>} />
+            ) : null}
+            {canForecast ? <Dica nome="Folha prevista" texto={PAYROLL_DICAS.prevista} /> : null}
+            {newButton}
+          </span>
         </div>
       </PageHeading>
       <HrTabs />

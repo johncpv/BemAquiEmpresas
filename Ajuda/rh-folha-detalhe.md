@@ -15,6 +15,7 @@ Lançar, para cada funcionário, os proventos e descontos que a contadora calcul
 - Os totais (proventos, descontos e líquido) mudam enquanto você digita. A rubrica **informativa** (como o FGTS) aparece no holerite, mas não entra no líquido.
 - **Copiar do mês anterior** traz as rubricas e os valores do holerite anterior do mesmo tipo como rascunho: confira e clique em **Salvar holerite**.
 - **Importar lançamentos** recebe o arquivo da contadora no layout padrão do sistema (abaixo). O sistema mostra a prévia antes de gravar.
+- Com tudo lançado e conferido, use **Fechar folha**: os títulos a pagar dos salários e das guias aparecem na aba **Pagamentos**. Folha fechada fica só para consulta: "Folha fechada em {data}. Para mudar, reabra a folha."
 
 ## Layout do arquivo (CSV v1)
 - Uma linha por lançamento: `matricula_ou_cpf;codigo_rubrica;referencia;valor`. A primeira linha pode ser esse cabeçalho.

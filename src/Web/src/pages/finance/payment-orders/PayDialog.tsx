@@ -8,6 +8,7 @@ import { DateInput, MoneyInput } from '@/components/form/inputs'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Money } from '@/components/ui/money'
 import { today, toNumber } from '../receivables/receivables'
+import { PayeeAccounts } from './PayeeAccounts'
 import { destination, itemTotal } from './payment-orders'
 
 interface Charges { interest: string | null; fine: string | null; discount: string | null }
@@ -54,8 +55,9 @@ export function PayDialog({ order, refresh, onPaid }: { order: PaymentOrderDetai
         onPaid(result)
       }}
       onReload={refresh}
-      recovery={{ verb: 'Reenviar para aprovação', done: 'Reenviada para aprovação', when: (code) => code === 'exceeds_approved', onSelect: async () => { await resubmitPaymentOrder(order.summary.id, { items, version: order.version }); await refresh() } }}
+      recovery={{ verb: 'Reenviar para aprovação', done: 'Reenviada para aprovação', when: (code) => code === 'exceeds_approved' || code === 'payee_account_changed', onSelect: async () => { await resubmitPaymentOrder(order.summary.id, { items, version: order.version }); await refresh() } }}
       trigger={<button type="button" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Pagar</button>}>
+      <PayeeAccounts order={order} onResubmit={() => void resubmitPaymentOrder(order.summary.id, { items, version: order.version }).then(async () => { setOpen(false); await refresh() })} />
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <label className="space-y-1 text-sm font-medium">Conta
           <select value={bankAccountId} onChange={(e) => setAccount(e.target.value)} className={inputClass}>{active.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}</select>
