@@ -95,12 +95,15 @@ public partial class PayrollClosingTests
     public async Task Fechamento_concorrente_grava_uma_vez_so_em_dois_tenants()
     {
         var owner = await ActorAsync(Group.OwnerSeedKey, totp: true);
+        var owner2 = await ActorAsync(Group.OwnerSeedKey, totp: true);
         var (run, _, _, _) = await ReadyRunAsync(owner, "2035-02");
         var version = await RunVersionAsync(owner.Client, run);
         var first = owner.Client.SendAsync(Post($"{Runs}/{run}/close", new { paymentDate = "2035-02-27", twoFactorCode = owner.Codes!.Next(), version }));
-        var second = owner.Client.SendAsync(Post($"{Runs}/{run}/close", new { paymentDate = "2035-02-27", twoFactorCode = owner.Codes!.Next(), version }));
+        // Outro membro do Proprietário ao mesmo tempo (cada um com o próprio 2FA): a disputa é na versão da folha e no índice único dos títulos.
+        var second = owner2.Client.SendAsync(Post($"{Runs}/{run}/close", new { paymentDate = "2035-02-27", twoFactorCode = owner2.Codes!.Next(), version }));
         var results = await Task.WhenAll(first, second);
         results.Count(r => r.StatusCode == HttpStatusCode.OK).Should().Be(1, string.Join(" | ", await Task.WhenAll(results.Select(r => r.Content.ReadAsStringAsync()))));
+        // O segundo recebe 409 (versão da folha ou índice único dos títulos) e não grava nada.
         results.Single(r => r.StatusCode != HttpStatusCode.OK).StatusCode.Should().Be(HttpStatusCode.Conflict);
         (await PayrollPayablesAsync(run)).Should().HaveCount(3);
         (await DbAsync(db => OutboxCountAsync(db, nameof(PayrollClosed), run))).Should().Be(1);

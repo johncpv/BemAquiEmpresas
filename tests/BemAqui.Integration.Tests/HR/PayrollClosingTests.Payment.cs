@@ -82,7 +82,7 @@ public partial class PayrollClosingTests
         var order = await JsonAsync(submitted);
         var orderId = order.GetProperty("summary").GetProperty("id").GetGuid();
         var snapshot = await DbAsync(db => db.PaymentOrderItems.Where(i => i.PayableId == salaryA.Id).Select(i => i.PayeeSnapshot).SingleAsync());
-        snapshot.Should().NotContain(AccountCanary).And.NotContain("0001").And.Contain("****-71").And.Contain("\"bankAccountVersion\":1");
+        snapshot.Should().NotContain(AccountCanary).And.Contain("\"agency\": null").And.Contain("****-71").And.Contain("\"bankAccountVersion\":1");
         order.GetProperty("items").EnumerateArray().Single(i => i.GetProperty("payableId").GetGuid() == salaryA.Id).GetProperty("warnings").EnumerateArray()
             .Select(w => w.GetString()).Should().Contain("Novo na folha.");
 
