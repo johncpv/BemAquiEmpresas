@@ -1,6 +1,7 @@
 ---
 titulo: Configurações — Cobrança
 rota: /app/configuracoes/cobranca
+aba: cobranca
 padrao: true
 modulo: settings
 ---

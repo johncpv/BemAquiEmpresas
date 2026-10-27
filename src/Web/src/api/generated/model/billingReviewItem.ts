@@ -14,4 +14,6 @@ export interface BillingReviewItem {
   reviewedByName: string | null;
   /** @nullable */
   reviewedAt: string | null;
+  /** @nullable */
+  parameterId?: string | null;
 }

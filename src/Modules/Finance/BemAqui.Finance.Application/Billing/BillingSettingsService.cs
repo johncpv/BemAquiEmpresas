@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 namespace BemAqui.Finance.Application;
 
 /// <summary>Um valor conferível de Configurações → Cobrança (ADR 0042): o selo "A confirmar com a contadora" e quem conferiu e quando.</summary>
-public sealed record BillingReviewItem(string Key, string Label, ParameterReviewState ReviewState, string? ReviewedByName, DateTimeOffset? ReviewedAt);
+public sealed record BillingReviewItem(string Key, string Label, ParameterReviewState ReviewState, string? ReviewedByName, DateTimeOffset? ReviewedAt, Guid? ParameterId = null);
 
 /// <summary>Configurações → Cobrança (BNK-01b CA 1 e 2): os valores, a conferência por chave e quantos faltam conferir.</summary>
 public sealed record BillingSettingsView(
@@ -83,7 +83,7 @@ public sealed class BillingSettingsService(IFinanceDb db, IPermissionChecker per
         {
             var p = stored.GetValueOrDefault(key);
             var name = p?.ReviewedBy is { } by ? await users.DisplayNameAsync(by, cancellationToken) : null;
-            reviews.Add(new BillingReviewItem(key, label, p?.ReviewState ?? ParameterReviewState.ToConfirm, name, p?.ReviewedAt));
+            reviews.Add(new BillingReviewItem(key, label, p?.ReviewState ?? ParameterReviewState.ToConfirm, name, p?.ReviewedAt, p?.Id));
         }
 
         var canEdit = await permissions.HasPermissionAsync("settings", "edit", cancellationToken);

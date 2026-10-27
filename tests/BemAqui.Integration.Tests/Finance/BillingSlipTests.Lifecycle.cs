@@ -293,6 +293,8 @@ public partial class BillingSlipTests
 
         // CA 23: o boleto tem histórico (pedido, emissão) na auditoria; o título também registra o vínculo.
         (await fixture.QueryAsync(db => db.AuditEntries.CountAsync(e => e.Entity == nameof(BillingSlip) && e.EntityId == slipId.ToString()))).Should().BeGreaterThanOrEqualTo(2);
-        (await fixture.QueryAsync(db => db.AuditEntries.AnyAsync(e => e.Entity == nameof(Receivable) && e.EntityId == s.ReceivableId.ToString() && e.Changes.Contains(slipId.ToString())))).Should().BeTrue();
+        var receivableId = s.ReceivableId.ToString();
+        var changes = await fixture.QueryAsync(db => db.AuditEntries.AsNoTracking().Where(e => e.Entity == nameof(Receivable) && e.EntityId == receivableId).Select(e => e.Changes).ToListAsync());
+        changes.Should().Contain(c => c.Contains(slipId.ToString(), StringComparison.Ordinal));
     }
 }

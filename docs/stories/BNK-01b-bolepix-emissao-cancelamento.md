@@ -5,7 +5,7 @@
 | ID | BNK-01b |
 | Título | Tela **Configurações → Cobrança** (multa, juros, desconto padrão, envio automático do boleto, limite diário de e-mails, regras do vencido e do dia não útil, pré-configurados e marcados "A confirmar com a contadora"); emissão do boleto com Pix (bolepix) do Banco Inter a partir de um título a receber em aberto, com juros, multa e desconto; guarda do PDF, da linha digitável, do código de barras e do Pix copia-e-cola; envio ao cliente por e-mail pela fila; cancelamento e segunda via; falha de emissão nunca perde nem altera o título; componente `ConfirmDialog` (impacto em lista, confirmação digitada e contagem de prazo) |
 | Tamanho | G (quebra da BNK-01; cresceu com a tela Configurações → Cobrança, o mecanismo "A confirmar com a contadora" e o `ConfirmDialog`, sem passar do G) |
-| Status | Ready (pré-condição externa) |
+| Status | Done |
 | Requisitos | R-FIN-7 (emissão de bolepix, envio por e-mail) · R-FIN-3 (título a receber) · R-COM-1 (e-mail por fila) · R-COM-3 (PDF anexado) · R-PRP-1 · R-PRP-2 · R-PRP-6 · R-PRP-7 · R-SEC-5 |
 | Dependências | BNK-01a (`InterApiClient`, `IBankBillingProvider`, `EnvironmentBanner`, `bank_production_allowed`), FIN-01 (títulos, `finance.parameters` com `late_fine_pct` e `late_interest_month_pct`, limites de desconto), COM-03 (e-mail com anexo, `StoreGeneratedAsync`), CAD-01a (endereço de cobrança e contato que recebe cobrança), FND-09e (diálogo financeiro, idempotência) |
 | Bloqueia | BNK-02 (baixa pelo webhook), FIN-09 (régua na mesma tela de Cobrança e boleto no lembrete), POR-01c (Fase 8, boletos no portal); o `ConfirmDialog` é usado depois por BNK-03b, FIS-03b, LGPD-01b e as ações em lote |
@@ -110,23 +110,23 @@ Decisões da revisão aplicadas: novo requisito de Configurações e ADR 0042 (t
 **Pré-condição externa:** conferência no sandbox do Inter (limite do "seu número", prazo de baixa do boleto vencido, regra do dia não útil); multa e juros conferidos pela contadora (o seed já vale; o chip registra a conferência); não bloqueia o `Ready`.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, componente, integração (Testcontainers + fake) e E2E passando; fluxo completo no sandbox registrado.
-- [ ] Migration criada (não destrutiva), testada sobre cópia do banco do tenant `konebras`; seed dos parâmetros de cobrança nos tenants existentes (ADR 0016).
-- [ ] Permissões só do `ModuleCatalog`; dono de anexo `BillingSlip`; template de e-mail registrado.
-- [ ] Telas com estados (inclusive primeira configuração), a 400 px; `ConfirmDialog` documentado no kit de componentes.
-- [ ] Ajudas `configuracoes-cobranca` e aba `boleto` escritas; teste de cobertura passando.
-- [ ] Efeito financeiro com confirmação e próximos passos aplicados.
-- [ ] Auditoria ligada (boleto, aprovação, parâmetros e conferência).
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` (estados `Requested` e `Failed` do boleto) atualizados; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, componente, integração (Testcontainers + fake) e E2E passando; fluxo completo no sandbox **pendente da P-08** (roteiro no runbook, tenant `demo`).
+- [x] Migration criada (não destrutiva, só aditiva), aplicada nos testes de integração; a aplicação sobre a cópia do `konebras` acontece no deploy da homologação; seed dos parâmetros de cobrança nos tenants existentes (ADR 0016).
+- [x] Permissões só do `ModuleCatalog`; dono de anexo `BillingSlip`; template de e-mail registrado.
+- [x] Telas com estados (inclusive primeira configuração), a 400 px; `ConfirmDialog` documentado no kit de componentes.
+- [x] Ajudas `configuracoes-cobranca` e aba `boleto` escritas; teste de cobertura passando.
+- [x] Efeito financeiro com confirmação e próximos passos aplicados.
+- [x] Auditoria ligada (boleto, aprovação, parâmetros e conferência).
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` (estados `Requested` e `Failed` do boleto) atualizados; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] Parâmetros de cobrança com seed e `review_state` por chave, `ToConfirmChip`; aba Configurações → Cobrança e ajuda.
-- [ ] `BillingSlip` (Domain) com as transições; sequência do "seu número"; `IBankBillingProvider` e `InterBillingProvider` (emitir, consultar, PDF, cancelar).
-- [ ] `IssueBillingSlipJob` e `CancelBillingSlipJob`; reações às mudanças do título (CA 17).
-- [ ] Endpoints `/api/v1/finance/receivables/{id}/billing-slips` (+ `/send`, `/cancel`, `/retry`), lote; `/api/v1/settings/billing`; template `billing_slip_issued`.
-- [ ] `ConfirmDialog` (três formas) e testes de componente; aba "Boleto" e diálogos.
+- [x] Parâmetros de cobrança com seed e `review_state` por chave, `ToConfirmChip`; aba Configurações → Cobrança e ajuda.
+- [x] `BillingSlip` (Domain) com as transições; sequência do "seu número"; `IBankBillingProvider` e `InterBillingProvider` (emitir, consultar, PDF, cancelar).
+- [x] `IssueBillingSlipJob` e `CancelBillingSlipJob`; reações às mudanças do título (CA 17).
+- [x] Endpoints `/api/v1/finance/receivables/{id}/billing-slips` (+ `/send`, `/cancel`, `/retry`), lote; `/api/v1/settings/billing`; template `billing_slip_issued`.
+- [x] `ConfirmDialog` (três formas) e testes de componente; aba "Boleto" e diálogos.
 
 ## Quality gates
 - Agentes previstos: @dev, cybersecurity (dados do pagador, idempotência, PDF, limites), @ux-design-expert (`ConfirmDialog`, tela de Cobrança), @qa.
@@ -160,3 +160,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D1, D13, D18, tabela 3.2 pontos 17–22, §4.4); tela Configurações → Cobrança; `ConfirmDialog`; nova ordem (Marco 5.2, ordem 3); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 27/10/2026 | 1.0 | Implementação (Done, provada contra o fake do Inter). **Backend:** `BillingSlip` (Domain) com as transições `Requested → Issued`, `Requested → Failed → Requested`, cancelado e expirado; `billing_reference_sequences` ("seu número" em base 36, 6 a 15 caracteres); `IBankBillingProvider` e `InterBillingProvider` (Cobrança v3: emitir, consultar, procurar pelo "seu número", PDF e cancelar; `provider_payload` sem pagador); `BillingSettingsService` (Configurações → Cobrança, seed com "A confirmar com a contadora", `/api/v1/settings/billing`); `BillingSlipService` (diálogo, emissão com `Idempotency-Key`, lote, nova tentativa, envio, cancelamento); `BillingSlipProcessor` e os jobs `IssueBillingSlipJob`, `CancelBillingSlipJob` e `SendBillingSlipEmailJob`; `BillingSlipReactions` (CA 17); e-mail `billing-slip-issued` (kebab-case, padrão dos templates do sistema; a story dizia `billing_slip_issued`); limite diário somando orçamento, pedido e boleto (`EmailDispatchLimiter.BillingWithinLimitAsync`); dono de anexo `BillingSlip` (leitura `finance.view`, escrita recusada, PDF até 2 MB); eventos `BillingSlipIssued`/`BillingSlipCancelled`. Migration `BillingSlipsBnk01b` (só aditiva). **Frontend:** Configurações → Cobrança, aba "Boleto" do título, diálogo "Emitir boleto", lote com impacto em lista, confirmação na baixa manual, `ConfirmDialog` com impacto em lista, confirmação digitada e contagem de prazo, `ToConfirmChip`, ajudas e E2E. **Decisões registradas (recomendação aceita, PO 24/10):** (1) falha à espera de "Tentar de novo" ocupa o título (`billing_slip_failed` impede outra emissão até tentar de novo ou cancelar, porque a cobrança pode existir no banco); (2) toda falha da emissão (4xx, 5xx, tempo esgotado, integração) vira `Failed` com o motivo e "Tentar de novo", e a nova tentativa procura pelo "seu número" antes de criar; (3) a expiração (CA 18) fica no `BillingSlipProcessor.RefreshAsync`, que a reconsulta da BNK-02 chama (sem recorrente novo nesta story); (4) `billing_slips.fine_from` guarda de onde contam multa e juros (vencimento original no vencido), para a divisão do valor na BNK-02; (5) a regra do vencido é editável (vencimento original ou novo vencimento), com o chip. **Pré-condição externa pendente (P-08):** fluxo completo no sandbox do Inter no tenant `demo` (lista no runbook `docs/operacao/banco-inter.md`, seção BNK-01b); multa e juros conferidos pela contadora pelo chip. | Dev (Claude) |

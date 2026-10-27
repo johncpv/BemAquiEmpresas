@@ -6,6 +6,7 @@ import { ApiError } from '@/api/http'
 import { Field, FormError, FormSection } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { PercentInput } from '@/components/form/inputs'
+import { RecordHistory } from '@/components/history/RecordHistory'
 import { notifySuccess } from '@/components/ui/messages'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { ToConfirmChip } from '@/components/ui/to-confirm-chip'
@@ -82,6 +83,14 @@ function BillingForm({ view }: { view: BillingSettingsView }) {
     <ToConfirmChip state={item.reviewState} reviewedByName={item.reviewedByName} reviewedAt={item.reviewedAt} canEdit={canEdit} field={label} onConfirm={() => confirm(item.key)} />
   ) : null
 
+  // CA 23: "Histórico de alterações" de cada valor conferível (antes e depois, quem e quando).
+  const history = (item: BillingReviewItem | undefined) => item?.parameterId ? (
+    <details className="text-sm">
+      <summary className="cursor-pointer text-xs font-semibold text-muted-foreground">Histórico de alterações</summary>
+      <div className="mt-2"><RecordHistory entity="FinanceParameter" id={item.parameterId} /></div>
+    </details>
+  ) : null
+
   return (
     <div className="space-y-4">
       {view.pendingCount > 0 ? (
@@ -95,10 +104,12 @@ function BillingForm({ view }: { view: BillingSettingsView }) {
             <div className="space-y-1">
               <Field label="Multa" dica={BILLING_DICAS.multa} error={field('finePct')} hint="De 0,00% a 2,00%.">{(p) => <PercentInput {...p} value={fine} onChange={setFine} />}</Field>
               {chip(review(FINE_KEY), 'Multa')}
+              {history(review(FINE_KEY))}
             </div>
             <div className="space-y-1">
               <Field label="Juros de mora (ao mês)" dica={BILLING_DICAS.juros} error={field('interestMonthPct')} hint="De 0,00% a 1,00% ao mês.">{(p) => <PercentInput {...p} value={interest} onChange={setInterest} />}</Field>
               {chip(review(INTEREST_KEY), 'Juros de mora')}
+              {history(review(INTEREST_KEY))}
             </div>
           </div>
         </FormSection>
@@ -124,6 +135,7 @@ function BillingForm({ view }: { view: BillingSettingsView }) {
               )}
             </Field>
             {chip(review(OVERDUE_KEY), 'Multa e juros do título vencido')}
+            {history(review(OVERDUE_KEY))}
           </div>
           <p className="text-sm"><b>Vencimento em dia não útil:</b> {view.nonBusinessDayRule}</p>
         </FormSection>

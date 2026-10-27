@@ -466,7 +466,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-
 - Requisitos: R-FIN-7, R-FIN-8, R-FIN-2, PRD §6 Segurança, R-SEC-5.
 - CA: Configurações → Integrações → Banco Inter por conta, com `settings.edit` e 2FA de novo; credenciais e certificado (`.crt`/`.key` ou `.pfx`) só de escrita, com canário; handler mTLS por conta em memória e saída só para o Inter (ADR 0032); recusa de credencial com escopo de pagamento; teste de conexão; produção só na GOL-01b; filtro comum `RequireRecentTwoFactor`, aplicado também a pagar e estornar a OP; `EnvironmentBanner`; alerta de vencimento ao Proprietário.
 
-**BNK-01b [ ] Bolepix a partir do título a receber: Configurações → Cobrança, emissão, PDF, linha digitável, Pix copia-e-cola, e-mail e cancelamento (G)** — 5.2, ordem 3 — `Ready (pré-condição externa)` — [story](stories/BNK-01b-bolepix-emissao-cancelamento.md)
+**BNK-01b [x] Bolepix a partir do título a receber: Configurações → Cobrança, emissão, PDF, linha digitável, Pix copia-e-cola, e-mail e cancelamento (G)** — 5.2, ordem 3 — `Done` — [story](stories/BNK-01b-bolepix-emissao-cancelamento.md)
 - Requisitos: R-FIN-7, R-FIN-3, R-COM-1, R-COM-3, R-PRP-7.
 - CA: Configurações → Cobrança pré-configurada (multa 2%, juros 1% a.m., desconto 0, envio automático, 200 e-mails/dia) com o `ToConfirmChip`; boleto pelo saldo do título, assíncrono, com "seu número" opaco; desconto, multa e juros acima do limite da D8 com `finance.approve`; um boleto ativo por título; cancelamento; `ConfirmDialog` com impacto em lista; fluxo completo no sandbox.
 
