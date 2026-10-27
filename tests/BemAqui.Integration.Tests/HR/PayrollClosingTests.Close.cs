@@ -139,6 +139,8 @@ public partial class PayrollClosingTests
     {
         var owner = await ActorAsync(Group.OwnerSeedKey);
         var supplier = await PartyAsync(owner.Client);
+        // O segundo terceiro é do próprio teste: rodando primeiro na classe, o tenant não tem outro.
+        var other = await PartyAsync(owner.Client);
         var account = await DbAsync(db => db.Accounts.Where(a => a.Code == "3.3").Select(a => a.Id).SingleAsync());
         var created = await owner.Client.SendAsync(Post("/api/v1/finance/payables", new
         {
@@ -171,7 +173,6 @@ public partial class PayrollClosingTests
             }
 
             // Código N-1: grava e troca só party_id; o favorecido acompanha.
-            var other = await db.Parties.Select(p => p.Id).FirstAsync(p => p != supplier);
             await db.Database.ExecuteSqlAsync($"UPDATE finance.payables SET party_id = {other} WHERE id = {id}");
             var after = await db.Payables.AsNoTracking().SingleAsync(p => p.Id == id);
             if (after.PayeeId != other)
