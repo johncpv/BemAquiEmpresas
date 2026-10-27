@@ -37,8 +37,9 @@ public partial class PaymentOrderTests
         problem.GetProperty("enrolled").GetBoolean().Should().BeFalse();
         problem.GetProperty("detail").GetString().Should().Be("Para continuar, ative a verificação em duas etapas.");
         var tooOld = await stale.SendAsync(Post($"{Base}/{orderId}/pay", Pay()));
-        Code(await JsonAsync(tooOld)).Should().Be("two_factor_required", "prova de 16 minutos já venceu (janela de 15)");
-        (await JsonAsync(tooOld)).GetProperty("detail").GetString().Should().Be("Para continuar, confirme o código da verificação em duas etapas.");
+        var stale16 = await JsonAsync(tooOld);
+        Code(stale16).Should().Be("two_factor_required", "prova de 16 minutos já venceu (janela de 15)");
+        stale16.GetProperty("detail").GetString().Should().Be("Para continuar, confirme o código da verificação em duas etapas.");
         (await WithDbAsync(db => db.FinancialTransactions.CountAsync(t => t.PayableId == payableId))).Should().Be(0);
         (await WithDbAsync(db => db.PaymentOrders.Where(o => o.Id == orderId).Select(o => o.Status).SingleAsync())).Should().Be(PaymentOrderStatus.Approved);
         (await WithDbAsync(db => db.IdempotencyRecords.CountAsync(r => r.Key == key))).Should().Be(0, "a recusa vem antes da chave de idempotência");

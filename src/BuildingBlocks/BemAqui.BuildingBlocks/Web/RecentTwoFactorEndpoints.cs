@@ -64,8 +64,9 @@ public static class RecentTwoFactorEndpoints
             return false;
         }
 
-        var at = DateTimeOffset.FromUnixTimeSeconds(seconds);
-        return at <= now + FutureSkew && now - at <= Window;
+        // A claim tem precisão de segundo: compara na mesma precisão, para a borda da janela (15 min exatos) valer.
+        var elapsed = now.ToUnixTimeSeconds() - seconds;
+        return elapsed >= -(long)FutureSkew.TotalSeconds && elapsed <= (long)Window.TotalSeconds;
     }
 
     /// <summary>Usuário com o 2FA ativo (o token traz <c>otp</c> no <c>amr</c> só quando o 2FA está ligado).</summary>

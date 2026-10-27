@@ -213,7 +213,7 @@ public partial class BankIntegrationTests
         await owner.PostAsync($"{Base}/{account}/test", null);
 
         var logs = fixture.RenderedLogs();
-        logs.Should().Contain("Inter token").And.Contain("Inter saldo");
+        logs.Should().Contain("Inter \"token\"").And.Contain("Inter \"saldo\"");
         logs.Should().NotContain(Canary).And.NotContain("tok-").And.NotContain("Bearer ").And.NotContain("PRIVATE KEY").And.NotContain("BEGIN CERTIFICATE")
             .And.NotContain("Maria da Silva").And.NotContain("52998224725").And.NotContain(certificate.Thumbprint);
     }
