@@ -26,5 +26,8 @@ public sealed class FinanceParametersSeeder : ITenantSeeder
 
         // FIN-08 (ADR 0042): contas do DRE e regra do sinal, pré-configuradas e "A confirmar com a contadora".
         await DreParametersService.SeedAsync(db, clock, cancellationToken);
+
+        // BNK-01b (ADR 0042): Configurações → Cobrança, com multa, juros e a regra do vencido "A confirmar com a contadora".
+        await BillingSettingsService.SeedAsync(db, clock, cancellationToken);
     }
 }

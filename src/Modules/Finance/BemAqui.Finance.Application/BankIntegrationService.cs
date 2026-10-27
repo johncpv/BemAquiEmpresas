@@ -157,7 +157,7 @@ public sealed partial class BankIntegrationService(
     private static Error NotFound() => Error.NotFound(Error.Codes.NotFound, NotFoundMessage);
 
     /// <summary>Abre a credencial gravada (decifrada só agora, para montar o handler, CA 5 e 9). Quem chama descarta.</summary>
-    internal InterCredentials Open(BankIntegration integration)
+    public InterCredentials Open(BankIntegration integration)
     {
         var scope = SecretScope.ForTenant(TenantId);
         var clientId = secrets.Unprotect(scope, SecretKind.InterCredentials, integration.Id, integration.ClientIdCipher!).Reveal();

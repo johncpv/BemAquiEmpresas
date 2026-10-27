@@ -64,6 +64,10 @@ public interface IFinanceDb
 
     DbSet<BankOfxContingency> BankOfxContingencies { get; }
 
+    DbSet<BillingSlip> BillingSlips { get; }
+
+    DbSet<BillingReferenceSequence> BillingReferenceSequences { get; }
+
     /// <summary>Para trocar a conta padrão em dois passos numa transação (o índice único parcial é checado a cada comando).</summary>
     DatabaseFacade Database { get; }
 

@@ -26,16 +26,16 @@ public sealed record DueDateInput(DateOnly DueDate, string Reason, uint Version)
 
 /// <summary>Baixa (CA 8 a 10, 13 a 15).</summary>
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record SettlementInput(Guid BankAccountId, DateOnly Date, decimal Principal, decimal Interest, decimal Fine, decimal Discount, string? BackdateReason, uint Version);
+public sealed record SettlementInput(Guid BankAccountId, DateOnly Date, decimal Principal, decimal Interest, decimal Fine, decimal Discount, string? BackdateReason, uint Version, bool CancelBillingSlip = false);
 
 /// <summary>Quitação do saldo com desconto, sem transação (CA 11).</summary>
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record WriteOffInput(DateOnly Date, string? BackdateReason, uint Version);
+public sealed record WriteOffInput(DateOnly Date, string? BackdateReason, uint Version, bool CancelBillingSlip = false);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record ReasonInput(string Reason, uint Version);
 
-public sealed record ReceivableListQuery(string? Q, string? Situation, Guid? PartyId, DateOnly? DueFrom, DateOnly? DueTo, Guid? ContractId = null);
+public sealed record ReceivableListQuery(string? Q, string? Situation, Guid? PartyId, DateOnly? DueFrom, DateOnly? DueTo, Guid? ContractId = null, bool WithBillingSlip = false);
 
 /// <summary>Título para a lista e o detalhe; <c>IsOverdue</c> e <c>IsDueToday</c> são calculados (CA 6 e 7).</summary>
 public sealed record ReceivableDetail(
@@ -68,7 +68,9 @@ public sealed record ReceivableDetail(
     uint Version,
     string? ProjectNumber = null,
     TriggerEvent? TriggerEvent = null,
-    Guid? ContractId = null);
+    Guid? ContractId = null,
+    Guid? BillingSlipId = null,
+    BillingSlipStatus? BillingSlipStatus = null);
 
 /// <summary>Totais do filtro inteiro (rodapé da lista).</summary>
 public sealed record ReceivableTotals(decimal Open, decimal Overdue);

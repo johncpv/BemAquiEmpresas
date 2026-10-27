@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="pt-BR">
+<body style="margin:0;padding:24px;background:#e9edf1;font-family:Arial,sans-serif;color:#14202b">
+  <table role="presentation" width="100%" style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:10px">
+    <tr><td style="padding:24px">
+      <h1 style="font-size:20px;margin:0 0 16px">Boleto do título {{ receivable_number }}</h1>
+      <p>{{ tenant_name }} enviou o boleto do título {{ receivable_number }}, no valor de {{ amount }}, com vencimento em {{ due_date }}.</p>
+      <p style="font-size:13px;color:#5a6774">Linha digitável</p>
+      <p style="font-family:monospace;font-size:15px;word-break:break-all">{{ digitable_line }}</p>
+      <p style="font-size:13px;color:#5a6774">O boleto está em PDF, anexo a este e-mail, com o QR Code do Pix para pagar na hora.</p>
+      <p style="font-size:13px;color:#5a6774">Para responder, use o próprio e-mail: a resposta vai para {{ sender_name }}.</p>
+    </td></tr>
+  </table>
+</body>
+</html>

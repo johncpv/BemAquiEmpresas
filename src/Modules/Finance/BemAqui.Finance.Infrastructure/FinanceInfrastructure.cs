@@ -120,6 +120,21 @@ public static class FinanceInfrastructure
             // O arquivo entra só pela importação (que lê, confere e grava junto com o lote); a rota genérica de anexos recusa.
             CanAttach: (_, _, _) => Task.FromResult<Error?>(Error.Conflict("attachment.owner_state", "O arquivo do extrato entra só por \"Importar extrato\".")),
             ExtraTypes: [AttachmentPolicy.Ofx]));
+
+        // Boleto com Pix (BNK-01b): Configurações → Cobrança, emissão, jobs, reações às mudanças do título e o PDF do banco (dono
+        // BillingSlip: leitura com finance.view, escrita só do sistema, PDF até 2 MB).
+        services.TryAddScoped<BillingSettingsService>();
+        services.TryAddScoped<IBillingSlipJobs, HangfireBillingSlipJobs>();
+        services.TryAddScoped<BillingSlipMailer>();
+        services.TryAddScoped<BillingSlipReactions>();
+        services.TryAddScoped<BillingSlipService>();
+        services.TryAddScoped<BillingSlipProcessor>();
+        services.TryAddScoped<IBankBillingProvider, Inter.InterBillingProvider>();
+        services.AddAuditableEntity<BillingSlip>("finance");
+        services.AddAttachmentOwner(BillingSlipService.AttachmentOwner, new AttachmentOwnerRules("finance", ["application/pdf"], BillingSlipService.MaxPdfBytes,
+            OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IFinanceDb>().BillingSlips.AnyAsync(s => s.Id == id, ct),
+            ReadAction: "view", WriteAction: "edit",
+            CanAttach: (_, _, _) => Task.FromResult<Error?>(Error.Conflict("attachment.owner_state", "O PDF do boleto é gerado pelo banco: não se envia arquivo aqui."))));
         // Painel do proprietário (DSH-01a, ADR 0028 §1): resumos com a mesma fonte dos relatórios e as metas de faturamento.
         services.TryAddScoped<FinanceSummariesContract>();
         services.TryAddScoped<IBankBalances>(sp => sp.GetRequiredService<FinanceSummariesContract>());

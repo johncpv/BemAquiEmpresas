@@ -49,6 +49,28 @@ public sealed class EmailDispatchLimiter(BemAquiDbContext db, TimeProvider clock
             ? Error.TooManyRequests(UserLimitCode, "Você atingiu o seu limite diário de envios. Tente amanhã ou baixe o PDF.")
             : null;
     }
+
+    /// <summary>Envio do boleto (BNK-01b CA 13): somado aos do orçamento e do pedido no limite diário de Configurações → Cobrança.</summary>
+    public const string BillingSlipTemplate = "billing-slip-issued";
+
+    public static IReadOnlyList<string> BillingTemplates { get; } = [QuoteTemplate, PurchaseOrderTemplate, BillingSlipTemplate];
+
+    /// <summary>
+    /// Trava o tenant (a mesma trava dos envios de documento) e diz se o envio do boleto cabe no limite do dia (<paramref name="limit"/>,
+    /// somando orçamentos, pedidos e boletos). Exige a transação do envio aberta. Fora do limite, o envio fica para o dia seguinte.
+    /// </summary>
+    public async Task<bool> BillingWithinLimitAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        if (db.Database.CurrentTransaction is null)
+        {
+            throw new InvalidOperationException("O limite diário de envios precisa da transação do envio aberta.");
+        }
+
+        await db.Database.SqlQuery<int>($"SELECT 1 AS \"Value\" FROM (SELECT pg_advisory_xact_lock(hashtextextended({LockKey}, 0))) AS l").ToListAsync(cancellationToken);
+        var since = BusinessTime.StartOfDayUtc(BusinessTime.Today(clock));
+        var templates = BillingTemplates.ToList();
+        return await db.EmailLogs.AsNoTracking().CountAsync(l => templates.Contains(l.Template) && l.CreatedAt >= since, cancellationToken) < limit;
+    }
 }
 
 /// <summary>Regras dos endereços e do texto de cabeçalho dos envios de documento (COM-03 CA 9 e 10, CMP-03b CA 6 e 7).</summary>

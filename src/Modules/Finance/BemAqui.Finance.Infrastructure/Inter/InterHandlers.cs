@@ -19,6 +19,9 @@ public static class InterEnvironments
 
     public const string TokenPath = "oauth/v2/token";
     public const string BalancePath = "banking/v2/saldo";
+
+    /// <summary>API de Cobrança v3 (bolepix, BNK-01b): emitir, consultar, PDF e cancelar (caminhos conferidos no sandbox).</summary>
+    public const string BillingPath = "cobranca/v3/cobrancas";
     public const string AccountHeader = "x-conta-corrente";
 
     /// <summary>Únicos hosts que o cliente do Inter alcança (handler de allowlist; a regra de saída do container fica no runbook).</summary>

@@ -12,7 +12,7 @@ namespace BemAqui.Finance.Application;
 /// Aditivo aprovado (COM-07 CA 4, 7): cria as parcelas dos marcos do acréscimo (como o contrato, já abertas se o gatilho
 /// chegou) ou reduz os títulos indicados, revalidando cada um; título que ganhou baixa não muda e o financeiro decide.
 /// </summary>
-public sealed class ContractAmendedConsumer(IFinanceDb db, ContractSignedConsumer parcels, IUserDirectory users, INotificationService notifications, TimeProvider clock)
+public sealed class ContractAmendedConsumer(IFinanceDb db, ContractSignedConsumer parcels, BillingSlipReactions billing, IUserDirectory users, INotificationService notifications, TimeProvider clock)
     : IIntegrationEventConsumer<ContractAmended>
 {
     public const string NotificationType = "finance.contract_amended";
@@ -48,6 +48,8 @@ public sealed class ContractAmendedConsumer(IFinanceDb db, ContractSignedConsume
                 continue;
             }
 
+            // BNK-01b CA 17: o boleto do valor antigo é cancelado no Inter.
+            await billing.RequestCancelAsync(receivable, reduction.NewAmount == 0 ? Domain.BillingSlipCancelReason.ReceivableCancelled : Domain.BillingSlipCancelReason.AmountChanged, cancellationToken);
             if (reduction.NewAmount == 0)
             {
                 receivable.Status = ReceivableStatus.Cancelled;
