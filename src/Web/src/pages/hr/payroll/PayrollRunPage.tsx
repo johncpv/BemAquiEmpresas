@@ -2,7 +2,7 @@ import { Link, useParams, useSearch } from '@tanstack/react-router'
 import { Lock } from 'lucide-react'
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { getGetPayrollRunQueryKey, getListPayrollRunsQueryKey, useGetPayrollRun } from '@/api/generated/bemaqui'
+import { getGetPayrollRunQueryKey, getListPayrollRunsQueryKey, useGetPayrollRun, useGetPayslipNoticesSensitive } from '@/api/generated/bemaqui'
 import { ApiError } from '@/api/http'
 import { RecordHistory } from '@/components/history/RecordHistory'
 import { NextSteps } from '@/components/ui/next-steps'
@@ -18,6 +18,7 @@ import { ClosedBand, CloseRunDialog, ReopenRunDialog } from './ClosingDialogs'
 import { PaymentsTab } from './PaymentsTab'
 import { PAYROLL_DICAS, periodLabel, STATUS_LABELS, STATUS_TONES, typeLabel } from './payroll'
 import { PayslipsTab } from './PayslipsTab'
+import { NotifyDialog } from './PayslipNotices'
 import { ReviewTab } from './ReviewTab'
 
 /** Bloco "Dados protegidos" (padrão 8 das Fases 4 a 8): sem hr.view_sensitive, nada de valor é pedido ao servidor. */
@@ -44,6 +45,10 @@ export function PayrollRunPage() {
   const canClose = useCan('hr.approve') && canSensitive
   const client = useQueryClient()
   const [closedSteps, setClosedSteps] = useState(false)
+  const [changedAfterNotice, setChangedAfterNotice] = useState(0)
+  const [notifying, setNotifying] = useState<'all' | 'changed' | null>(null)
+  const canNotify = useCan('hr.edit') && canSensitive
+  const notices = useGetPayslipNoticesSensitive(id, { query: { enabled: notifying !== null } })
   const [, setTab] = useUrlTab('holerites')
   const [steps, setSteps] = useState(search.novo === '1')
   const [importing, setImporting] = useState(false)
@@ -76,15 +81,25 @@ export function PayrollRunPage() {
       </PageHeading>
       {canClose ? (
         <div className="mb-4 flex flex-wrap gap-2">
-          {draft ? <CloseRunDialog run={run} onClosed={async () => { await refresh(); setClosedSteps(true); setTab('pagamentos') }} /> : null}
+          {draft ? <CloseRunDialog run={run} onClosed={async (result) => { setChangedAfterNotice(result.changedAfterNotice ?? 0); await refresh(); setClosedSteps(true); setTab('pagamentos') }} /> : null}
           {run.status === 'Closed' ? <ReopenRunDialog run={run} onReopened={refresh} /> : null}
         </div>
       ) : null}
       {!draft ? <ClosedBand run={run} /> : null}
       {closedSteps ? (
         <div className="mb-4">
-          <NextSteps onDismiss={() => setClosedSteps(false)} steps={[{ label: 'Ver os pagamentos', onSelect: () => { setTab('pagamentos'); setClosedSteps(false) } }]} />
+          <NextSteps onDismiss={() => setClosedSteps(false)} steps={[
+            { label: 'Ver os pagamentos', onSelect: () => { setTab('pagamentos'); setClosedSteps(false) } },
+            ...(canNotify ? [{
+              label: changedAfterNotice > 0 ? 'Avisar os funcionários dos holerites alterados' : 'Avisar funcionários',
+              onSelect: () => { setTab('holerites'); setNotifying(changedAfterNotice > 0 ? 'changed' : 'all') },
+            }] : []),
+          ]} />
         </div>
+      ) : null}
+      {notifying ? (
+        <NotifyDialog run={run} notices={notices.data} onlyChanged={notifying === 'changed'} open onOpenChange={(o) => { if (!o) setNotifying(null) }}
+          onDone={async () => { setClosedSteps(false); await refresh() }} />
       ) : null}
       {steps && editable ? (
         <div className="mb-4">
@@ -95,7 +110,7 @@ export function PayrollRunPage() {
         </div>
       ) : null}
       <UrlTabs label="Seções da folha" fallback="holerites" tabs={[
-        { id: 'holerites', label: 'Holerites', content: canSensitive ? <PayslipsTab run={run} editable={editable} importing={importing} onImportingChange={setImporting} onReviewed={() => setTab('conferencia')} /> : protectedTab },
+        { id: 'holerites', label: 'Holerites', content: canSensitive ? <PayslipsTab run={run} editable={editable} canNotify={canNotify} importing={importing} onImportingChange={setImporting} onReviewed={() => setTab('conferencia')} /> : protectedTab },
         { id: 'encargos', label: 'Encargos da empresa', content: canSensitive ? <ChargesTab run={run} editable={editable} /> : protectedTab },
         { id: 'conferencia', label: 'Conferência', content: canSensitive ? <ReviewTab run={run} /> : protectedTab },
         { id: 'pagamentos', label: 'Pagamentos', content: canSensitive ? <PaymentsTab run={run} /> : protectedTab },

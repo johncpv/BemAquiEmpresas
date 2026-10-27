@@ -33,7 +33,7 @@ public sealed record PayrollClosePreview(
 public sealed record PayrollCloseInput(DateOnly? PaymentDate, string? TwoFactorCode, uint Version);
 
 /// <summary>Folha fechada: o resumo, quantos títulos e a mensagem "Folha de {mês} fechada. {n} títulos a pagar gerados.".</summary>
-public sealed record PayrollCloseResult(PayrollRunSummary Run, int Payables, string Message);
+public sealed record PayrollCloseResult(PayrollRunSummary Run, int Payables, string Message, int ChangedAfterNotice = 0);
 
 /// <summary>Reabrir (CA 13): o motivo (de 5 a 200) e a versão.</summary>
 public sealed record PayrollReopenInput(string? Reason, uint Version);

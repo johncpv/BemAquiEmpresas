@@ -427,6 +427,8 @@ import type {
   ModuleRelease,
   ModuleSummary,
   MovementDetail,
+  MyEmployeeLink,
+  MyPayslip,
   MyPermissionsResponse,
   MyPin,
   NonConformityActionInput,
@@ -534,8 +536,12 @@ import type {
   PayrollRunCreateInput,
   PayrollRunSummary,
   PayrollRunTotals,
+  PayslipBatchResult,
   PayslipDetail,
   PayslipInput,
+  PayslipNotices,
+  PayslipNotifyInput,
+  PayslipNotifyResult,
   PayslipPrevious,
   PayslipRow,
   PendingFabricationPage,
@@ -19373,6 +19379,528 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getRecalculatePayrollForecastMutationOptions(options), queryClient);
     }
 
+export const getDownloadPayslipPdfUrl = (id: string,
+    payslipId: string,) => {
+
+
+
+
+  return `/api/v1/hr/payroll-runs/${id}/payslips/${payslipId}/pdf`
+}
+
+export const downloadPayslipPdf = async (id: string,
+    payslipId: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDownloadPayslipPdfUrl(id,payslipId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadPayslipPdfQueryKey = (id: string,
+    payslipId: string,) => {
+    return [
+    `/api/v1/hr/payroll-runs/${id}/payslips/${payslipId}/pdf`
+    ] as const;
+    }
+
+
+export const getDownloadPayslipPdfQueryOptions = <TData = Awaited<ReturnType<typeof downloadPayslipPdf>>, TError = unknown>(id: string,
+    payslipId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPayslipPdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadPayslipPdfQueryKey(id,payslipId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadPayslipPdf>>> = ({ signal }) => downloadPayslipPdf(id,payslipId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && payslipId !== null && payslipId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadPayslipPdf>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DownloadPayslipPdfQueryResult = NonNullable<Awaited<ReturnType<typeof downloadPayslipPdf>>>
+export type DownloadPayslipPdfQueryError = unknown
+
+
+export function useDownloadPayslipPdf<TData = Awaited<ReturnType<typeof downloadPayslipPdf>>, TError = unknown>(
+ id: string,
+    payslipId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPayslipPdf>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadPayslipPdf>>,
+          TError,
+          Awaited<ReturnType<typeof downloadPayslipPdf>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadPayslipPdf<TData = Awaited<ReturnType<typeof downloadPayslipPdf>>, TError = unknown>(
+ id: string,
+    payslipId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPayslipPdf>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadPayslipPdf>>,
+          TError,
+          Awaited<ReturnType<typeof downloadPayslipPdf>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadPayslipPdf<TData = Awaited<ReturnType<typeof downloadPayslipPdf>>, TError = unknown>(
+ id: string,
+    payslipId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPayslipPdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useDownloadPayslipPdf<TData = Awaited<ReturnType<typeof downloadPayslipPdf>>, TError = unknown>(
+ id: string,
+    payslipId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPayslipPdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDownloadPayslipPdfQueryOptions(id,payslipId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGeneratePayslipBatchUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/payroll-runs/${id}/pdfs`
+}
+
+export const generatePayslipBatch = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<PayslipBatchResult> => {
+
+  return apiFetch<PayslipBatchResult>(getGeneratePayslipBatchUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getGeneratePayslipBatchMutationKey = () => ['generatePayslipBatch'] as const;
+
+export const getGeneratePayslipBatchMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generatePayslipBatch>>, TError,GeneratePayslipBatchMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof generatePayslipBatch>>, TError,GeneratePayslipBatchMutationVariables, TContext> => {
+
+const mutationKey = getGeneratePayslipBatchMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generatePayslipBatch>>, GeneratePayslipBatchMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  generatePayslipBatch(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GeneratePayslipBatchMutationResult = NonNullable<Awaited<ReturnType<typeof generatePayslipBatch>>>
+
+    export type GeneratePayslipBatchMutationError = unknown
+    export type GeneratePayslipBatchMutationVariables = {id: string}
+
+    export const useGeneratePayslipBatch = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generatePayslipBatch>>, TError,GeneratePayslipBatchMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof generatePayslipBatch>>,
+        TError,
+        GeneratePayslipBatchMutationVariables,
+        TContext
+      > => {
+      return useMutation(getGeneratePayslipBatchMutationOptions(options), queryClient);
+    }
+
+export const getDownloadPayslipBatchUrl = (id: string,
+    attachmentId: string,) => {
+
+
+
+
+  return `/api/v1/hr/payroll-runs/${id}/pdfs/${attachmentId}`
+}
+
+export const downloadPayslipBatch = async (id: string,
+    attachmentId: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDownloadPayslipBatchUrl(id,attachmentId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadPayslipBatchQueryKey = (id: string,
+    attachmentId: string,) => {
+    return [
+    `/api/v1/hr/payroll-runs/${id}/pdfs/${attachmentId}`
+    ] as const;
+    }
+
+
+export const getDownloadPayslipBatchQueryOptions = <TData = Awaited<ReturnType<typeof downloadPayslipBatch>>, TError = unknown>(id: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPayslipBatch>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadPayslipBatchQueryKey(id,attachmentId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadPayslipBatch>>> = ({ signal }) => downloadPayslipBatch(id,attachmentId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && attachmentId !== null && attachmentId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadPayslipBatch>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DownloadPayslipBatchQueryResult = NonNullable<Awaited<ReturnType<typeof downloadPayslipBatch>>>
+export type DownloadPayslipBatchQueryError = unknown
+
+
+export function useDownloadPayslipBatch<TData = Awaited<ReturnType<typeof downloadPayslipBatch>>, TError = unknown>(
+ id: string,
+    attachmentId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPayslipBatch>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadPayslipBatch>>,
+          TError,
+          Awaited<ReturnType<typeof downloadPayslipBatch>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadPayslipBatch<TData = Awaited<ReturnType<typeof downloadPayslipBatch>>, TError = unknown>(
+ id: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPayslipBatch>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadPayslipBatch>>,
+          TError,
+          Awaited<ReturnType<typeof downloadPayslipBatch>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadPayslipBatch<TData = Awaited<ReturnType<typeof downloadPayslipBatch>>, TError = unknown>(
+ id: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPayslipBatch>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useDownloadPayslipBatch<TData = Awaited<ReturnType<typeof downloadPayslipBatch>>, TError = unknown>(
+ id: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPayslipBatch>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDownloadPayslipBatchQueryOptions(id,attachmentId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetPayslipNoticesSensitiveUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/payroll-runs/${id}/notices/sensitive`
+}
+
+export const getPayslipNoticesSensitive = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<PayslipNotices> => {
+
+  return apiFetch<PayslipNotices>(getGetPayslipNoticesSensitiveUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPayslipNoticesSensitiveQueryKey = (id: string,) => {
+    return [
+    `/api/v1/hr/payroll-runs/${id}/notices/sensitive`
+    ] as const;
+    }
+
+
+export const getGetPayslipNoticesSensitiveQueryOptions = <TData = Awaited<ReturnType<typeof getPayslipNoticesSensitive>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPayslipNoticesSensitive>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPayslipNoticesSensitiveQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPayslipNoticesSensitive>>> = ({ signal }) => getPayslipNoticesSensitive(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPayslipNoticesSensitive>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetPayslipNoticesSensitiveQueryResult = NonNullable<Awaited<ReturnType<typeof getPayslipNoticesSensitive>>>
+export type GetPayslipNoticesSensitiveQueryError = unknown
+
+
+export function useGetPayslipNoticesSensitive<TData = Awaited<ReturnType<typeof getPayslipNoticesSensitive>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPayslipNoticesSensitive>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPayslipNoticesSensitive>>,
+          TError,
+          Awaited<ReturnType<typeof getPayslipNoticesSensitive>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPayslipNoticesSensitive<TData = Awaited<ReturnType<typeof getPayslipNoticesSensitive>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPayslipNoticesSensitive>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPayslipNoticesSensitive>>,
+          TError,
+          Awaited<ReturnType<typeof getPayslipNoticesSensitive>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPayslipNoticesSensitive<TData = Awaited<ReturnType<typeof getPayslipNoticesSensitive>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPayslipNoticesSensitive>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetPayslipNoticesSensitive<TData = Awaited<ReturnType<typeof getPayslipNoticesSensitive>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPayslipNoticesSensitive>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetPayslipNoticesSensitiveQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getNotifyPayslipsUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/payroll-runs/${id}/notify`
+}
+
+export const notifyPayslips = async (id: string,
+    payslipNotifyInput: PayslipNotifyInput, options?: Parameters<typeof apiFetch>[1]): Promise<PayslipNotifyResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<PayslipNotifyResult>(getNotifyPayslipsUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(payslipNotifyInput)
+  }
+);}
+
+
+
+
+
+export const getNotifyPayslipsMutationKey = () => ['notifyPayslips'] as const;
+
+export const getNotifyPayslipsMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof notifyPayslips>>, TError,NotifyPayslipsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof notifyPayslips>>, TError,NotifyPayslipsMutationVariables, TContext> => {
+
+const mutationKey = getNotifyPayslipsMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof notifyPayslips>>, NotifyPayslipsMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  notifyPayslips(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type NotifyPayslipsMutationResult = NonNullable<Awaited<ReturnType<typeof notifyPayslips>>>
+    export type NotifyPayslipsMutationBody = PayslipNotifyInput
+    export type NotifyPayslipsMutationError = unknown
+    export type NotifyPayslipsMutationVariables = {id: string;data: PayslipNotifyInput}
+
+    export const useNotifyPayslips = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof notifyPayslips>>, TError,NotifyPayslipsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof notifyPayslips>>,
+        TError,
+        NotifyPayslipsMutationVariables,
+        TContext
+      > => {
+      return useMutation(getNotifyPayslipsMutationOptions(options), queryClient);
+    }
+
+export const getNotifyPayslipAgainUrl = (id: string,
+    payslipId: string,) => {
+
+
+
+
+  return `/api/v1/hr/payroll-runs/${id}/payslips/${payslipId}/notify`
+}
+
+export const notifyPayslipAgain = async (id: string,
+    payslipId: string, options?: Parameters<typeof apiFetch>[1]): Promise<PayslipNotifyResult> => {
+
+  return apiFetch<PayslipNotifyResult>(getNotifyPayslipAgainUrl(id,payslipId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getNotifyPayslipAgainMutationKey = () => ['notifyPayslipAgain'] as const;
+
+export const getNotifyPayslipAgainMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof notifyPayslipAgain>>, TError,NotifyPayslipAgainMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof notifyPayslipAgain>>, TError,NotifyPayslipAgainMutationVariables, TContext> => {
+
+const mutationKey = getNotifyPayslipAgainMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof notifyPayslipAgain>>, NotifyPayslipAgainMutationVariables> = (props) => {
+          const {id,payslipId} = props ?? {};
+
+          return  notifyPayslipAgain(id,payslipId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type NotifyPayslipAgainMutationResult = NonNullable<Awaited<ReturnType<typeof notifyPayslipAgain>>>
+
+    export type NotifyPayslipAgainMutationError = unknown
+    export type NotifyPayslipAgainMutationVariables = {id: string;payslipId: string}
+
+    export const useNotifyPayslipAgain = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof notifyPayslipAgain>>, TError,NotifyPayslipAgainMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof notifyPayslipAgain>>,
+        TError,
+        NotifyPayslipAgainMutationVariables,
+        TContext
+      > => {
+      return useMutation(getNotifyPayslipAgainMutationOptions(options), queryClient);
+    }
+
 export const getGetAccountantExportOverviewUrl = (params?: GetAccountantExportOverviewParams,) => {
   const normalizedParams = new URLSearchParams();
 
@@ -19565,6 +20093,291 @@ export function useDownloadAccountantExport<TData = Awaited<ReturnType<typeof do
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getDownloadAccountantExportQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetMyEmployeeLinkUrl = () => {
+
+
+
+
+  return `/api/v1/me/hr/link`
+}
+
+export const getMyEmployeeLink = async ( options?: Parameters<typeof apiFetch>[1]): Promise<MyEmployeeLink> => {
+
+  return apiFetch<MyEmployeeLink>(getGetMyEmployeeLinkUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMyEmployeeLinkQueryKey = () => {
+    return [
+    `/api/v1/me/hr/link`
+    ] as const;
+    }
+
+
+export const getGetMyEmployeeLinkQueryOptions = <TData = Awaited<ReturnType<typeof getMyEmployeeLink>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyEmployeeLink>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMyEmployeeLinkQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMyEmployeeLink>>> = ({ signal }) => getMyEmployeeLink({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMyEmployeeLink>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetMyEmployeeLinkQueryResult = NonNullable<Awaited<ReturnType<typeof getMyEmployeeLink>>>
+export type GetMyEmployeeLinkQueryError = unknown
+
+
+export function useGetMyEmployeeLink<TData = Awaited<ReturnType<typeof getMyEmployeeLink>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyEmployeeLink>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMyEmployeeLink>>,
+          TError,
+          Awaited<ReturnType<typeof getMyEmployeeLink>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMyEmployeeLink<TData = Awaited<ReturnType<typeof getMyEmployeeLink>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyEmployeeLink>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMyEmployeeLink>>,
+          TError,
+          Awaited<ReturnType<typeof getMyEmployeeLink>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMyEmployeeLink<TData = Awaited<ReturnType<typeof getMyEmployeeLink>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyEmployeeLink>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetMyEmployeeLink<TData = Awaited<ReturnType<typeof getMyEmployeeLink>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyEmployeeLink>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetMyEmployeeLinkQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListMyPayslipsUrl = () => {
+
+
+
+
+  return `/api/v1/me/hr/payslips`
+}
+
+export const listMyPayslips = async ( options?: Parameters<typeof apiFetch>[1]): Promise<MyPayslip[]> => {
+
+  return apiFetch<MyPayslip[]>(getListMyPayslipsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListMyPayslipsQueryKey = () => {
+    return [
+    `/api/v1/me/hr/payslips`
+    ] as const;
+    }
+
+
+export const getListMyPayslipsQueryOptions = <TData = Awaited<ReturnType<typeof listMyPayslips>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyPayslips>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListMyPayslipsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMyPayslips>>> = ({ signal }) => listMyPayslips({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listMyPayslips>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListMyPayslipsQueryResult = NonNullable<Awaited<ReturnType<typeof listMyPayslips>>>
+export type ListMyPayslipsQueryError = unknown
+
+
+export function useListMyPayslips<TData = Awaited<ReturnType<typeof listMyPayslips>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyPayslips>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listMyPayslips>>,
+          TError,
+          Awaited<ReturnType<typeof listMyPayslips>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListMyPayslips<TData = Awaited<ReturnType<typeof listMyPayslips>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyPayslips>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listMyPayslips>>,
+          TError,
+          Awaited<ReturnType<typeof listMyPayslips>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListMyPayslips<TData = Awaited<ReturnType<typeof listMyPayslips>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyPayslips>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListMyPayslips<TData = Awaited<ReturnType<typeof listMyPayslips>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyPayslips>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListMyPayslipsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getDownloadMyPayslipPdfUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/me/hr/payslips/${id}/pdf`
+}
+
+export const downloadMyPayslipPdf = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDownloadMyPayslipPdfUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadMyPayslipPdfQueryKey = (id: string,) => {
+    return [
+    `/api/v1/me/hr/payslips/${id}/pdf`
+    ] as const;
+    }
+
+
+export const getDownloadMyPayslipPdfQueryOptions = <TData = Awaited<ReturnType<typeof downloadMyPayslipPdf>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadMyPayslipPdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadMyPayslipPdfQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadMyPayslipPdf>>> = ({ signal }) => downloadMyPayslipPdf(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadMyPayslipPdf>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DownloadMyPayslipPdfQueryResult = NonNullable<Awaited<ReturnType<typeof downloadMyPayslipPdf>>>
+export type DownloadMyPayslipPdfQueryError = unknown
+
+
+export function useDownloadMyPayslipPdf<TData = Awaited<ReturnType<typeof downloadMyPayslipPdf>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadMyPayslipPdf>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadMyPayslipPdf>>,
+          TError,
+          Awaited<ReturnType<typeof downloadMyPayslipPdf>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadMyPayslipPdf<TData = Awaited<ReturnType<typeof downloadMyPayslipPdf>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadMyPayslipPdf>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadMyPayslipPdf>>,
+          TError,
+          Awaited<ReturnType<typeof downloadMyPayslipPdf>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadMyPayslipPdf<TData = Awaited<ReturnType<typeof downloadMyPayslipPdf>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadMyPayslipPdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useDownloadMyPayslipPdf<TData = Awaited<ReturnType<typeof downloadMyPayslipPdf>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadMyPayslipPdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDownloadMyPayslipPdfQueryOptions(id,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

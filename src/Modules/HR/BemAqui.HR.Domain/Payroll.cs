@@ -244,6 +244,23 @@ public sealed class Payslip : Entity, IAuditable, IConcurrencyVersioned
 
     public DateTimeOffset UpdatedAt { get; set; }
 
+    /// <summary>
+    /// PDF guardado (RH-02b CA 3): arquivo do sistema (<c>shared.attachments</c>, dono <c>Payslip</c>) gerado com a folha fechada; volta a
+    /// nulo quando a folha é reaberta ou o holerite muda, e o próximo download refaz.
+    /// </summary>
+    public Guid? PdfAttachmentId { get; set; }
+
+    /// <summary>Último aviso por e-mail enfileirado (RH-02b CA 7 a 9): a situação sai do <c>email_logs</c> por <see cref="NoticeEmailLogId"/>.</summary>
+    public DateTimeOffset? NotifiedAt { get; set; }
+
+    public Guid? NoticeEmailLogId { get; set; }
+
+    /// <summary>Primeira leitura pelo próprio funcionário em "Meus holerites" (CA 5): "Visto em {data}".</summary>
+    public DateTimeOffset? FirstViewedAt { get; set; }
+
+    /// <summary>O holerite mudou depois do aviso (CA 10): "Alterado depois do aviso", até o funcionário ser avisado de novo.</summary>
+    public bool ChangedAfterNotice { get; set; }
+
     public uint Version { get; set; }
 
     /// <summary>Totais pelas linhas (CA 6, ADR 0019 §9).</summary>

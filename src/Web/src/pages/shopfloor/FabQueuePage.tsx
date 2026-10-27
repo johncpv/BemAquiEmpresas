@@ -92,6 +92,8 @@ export function FabQueuePage() {
             <ul className="space-y-[12px]">{steps.map((s) => <li key={s.stepId}><QueueCard step={s} /></li>)}</ul>
           )}
         </section>
+        {/* RH-02b CA 6 (ADR 0035 §4): salário não aparece em aparelho compartilhado. */}
+        <p className="text-[16px] text-muted-foreground">Veja o seu holerite no celular ou no computador, com o seu login.</p>
       </div>
       <SearchSheet open={searching} onOpenChange={setSearching} />
     </>

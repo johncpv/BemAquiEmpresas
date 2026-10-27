@@ -544,7 +544,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-6--rh-e-patrimôn
 - Requisitos: R-RH-5 (parte), R-FIN-4, R-FIN-10, R-FIN-13, R-PRP-2, R-PRP-7, R-SEC-5.
 - CA: fechamento síncrono com 2FA de novo chama o `IPayables` na transação (ADR 0036): um título por funcionário (`payee_type = Employee`) e um por guia; conta lida só no "Pagar" da OP com `SensitiveRead`; quarentena fora do pagamento automático; quem fecha não paga; vencimento no 5º dia útil; folha prevista de 3 meses (`PayrollForecast`), substituída pela real.
 
-**RH-02b [ ] Folha lançada: holerite em PDF, "Meus holerites" e aviso ao funcionário (M)** — 6.2, ordem 4 — `Ready (pré-condição externa)` — [story](stories/RH-02b-holerite-pdf-envio.md)
+**RH-02b [x] Folha lançada: holerite em PDF, "Meus holerites" e aviso ao funcionário (M)** — 6.2, ordem 4 — `Done (pré-condição externa: usuários dos funcionários)` — [story](stories/RH-02b-holerite-pdf-envio.md)
 - Requisitos: R-RH-5 (parte), R-COM-1, R-COM-3, PRD §6 LGPD, R-SEC-5, R-PRP-2.
 - CA: holerite pelo `IPdfRenderer`, sem CPF completo (3+2) nem dados bancários; "Meus holerites" autenticado é o canal; "Avisar funcionários" por e-mail sem anexo, com "Visto em"; só com a folha fechada.
 

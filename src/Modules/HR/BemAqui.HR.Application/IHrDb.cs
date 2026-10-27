@@ -38,6 +38,9 @@ public interface IHrDb
     /// <summary>Transação do fechamento: a folha, os títulos do Finance (mesmo contexto) e a numeração gravam juntos ou nada grava.</summary>
     Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade Database { get; }
 
+    /// <summary>Para desistir do que ficou pendente depois de um conflito de versão (RH-02b: PDF gerado ao mesmo tempo).</summary>
+    ChangeTracker ChangeTracker { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 
     EntityEntry<TEntity> Entry<TEntity>(TEntity entity)

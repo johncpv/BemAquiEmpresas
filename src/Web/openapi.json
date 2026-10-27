@@ -6901,6 +6901,215 @@
         }
       }
     },
+    "/api/v1/hr/payroll-runs/{id}/payslips/{payslipId}/pdf": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "DownloadPayslipPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "payslipId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-runs/{id}/pdfs": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GeneratePayslipBatch",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayslipBatchResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-runs/{id}/pdfs/{attachmentId}": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "DownloadPayslipBatch",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "attachmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-runs/{id}/notices/sensitive": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetPayslipNoticesSensitive",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayslipNotices"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-runs/{id}/notify": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "NotifyPayslips",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayslipNotifyInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayslipNotifyResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-runs/{id}/payslips/{payslipId}/notify": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "NotifyPayslipAgain",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "payslipId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayslipNotifyResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/hr/accountant-exports": {
       "get": {
         "tags": [
@@ -6942,6 +7151,73 @@
             "in": "query",
             "schema": {
               "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/me/hr/link": {
+      "get": {
+        "tags": [
+          "Autoatendimento"
+        ],
+        "operationId": "GetMyEmployeeLink",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyEmployeeLink"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/hr/payslips": {
+      "get": {
+        "tags": [
+          "Autoatendimento"
+        ],
+        "operationId": "ListMyPayslips",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MyPayslip"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/hr/payslips/{id}/pdf": {
+      "get": {
+        "tags": [
+          "Autoatendimento"
+        ],
+        "operationId": "DownloadMyPayslipPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -47840,6 +48116,21 @@
           }
         }
       },
+      "MyEmployeeLink": {
+        "required": [
+          "name",
+          "situation"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "situation": {
+            "type": "string"
+          }
+        }
+      },
       "MyModule": {
         "required": [
           "code",
@@ -47880,6 +48171,48 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "MyPayslip": {
+        "required": [
+          "id",
+          "period",
+          "type",
+          "net",
+          "paymentDate",
+          "firstViewedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "period": {
+            "type": "string",
+            "format": "date"
+          },
+          "type": {
+            "$ref": "#/components/schemas/PayrollRunType"
+          },
+          "net": {
+            "type": "number",
+            "format": "double"
+          },
+          "paymentDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "firstViewedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           }
         }
       },
@@ -53439,6 +53772,11 @@
           },
           "message": {
             "type": "string"
+          },
+          "changedAfterNotice": {
+            "type": "integer",
+            "format": "int32",
+            "default": 0
           }
         }
       },
@@ -54307,6 +54645,38 @@
           "Termination"
         ]
       },
+      "PayslipBatchResult": {
+        "required": [
+          "queued",
+          "count",
+          "attachmentId",
+          "fileName",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "queued": {
+            "type": "boolean"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "attachmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
       "PayslipDetail": {
         "required": [
           "id",
@@ -54493,6 +54863,187 @@
           "amount": {
             "type": "number",
             "format": "double"
+          }
+        }
+      },
+      "PayslipNoticePerson": {
+        "required": [
+          "employeeId",
+          "name",
+          "registration",
+          "suggestedEmail"
+        ],
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "registration": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "suggestedEmail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PayslipNoticeRow": {
+        "required": [
+          "payslipId",
+          "employeeId",
+          "employeeName",
+          "registration",
+          "status",
+          "notifiedAt",
+          "sentAt",
+          "error",
+          "firstViewedAt",
+          "changedAfterNotice"
+        ],
+        "type": "object",
+        "properties": {
+          "payslipId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "employeeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "employeeName": {
+            "type": "string"
+          },
+          "registration": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/PayslipNoticeStatus"
+          },
+          "notifiedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "sentAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "firstViewedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "changedAfterNotice": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PayslipNotices": {
+        "required": [
+          "runClosed",
+          "pending",
+          "alreadyNotified",
+          "changed",
+          "withoutUser",
+          "terminated",
+          "rows"
+        ],
+        "type": "object",
+        "properties": {
+          "runClosed": {
+            "type": "boolean"
+          },
+          "pending": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "alreadyNotified": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "changed": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "withoutUser": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayslipNoticePerson"
+            }
+          },
+          "terminated": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayslipNoticePerson"
+            }
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayslipNoticeRow"
+            }
+          }
+        }
+      },
+      "PayslipNoticeStatus": {
+        "enum": [
+          "NotNotified",
+          "Queued",
+          "Sent",
+          "Failed",
+          "NoUser",
+          "Terminated"
+        ]
+      },
+      "PayslipNotifyInput": {
+        "required": [
+          "onlyChanged"
+        ],
+        "type": "object",
+        "properties": {
+          "onlyChanged": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PayslipNotifyResult": {
+        "required": [
+          "queued",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "queued": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
           }
         }
       },
@@ -72644,6 +73195,9 @@
     },
     {
       "name": "RH"
+    },
+    {
+      "name": "Autoatendimento"
     },
     {
       "name": "Or\u00E7amentos"

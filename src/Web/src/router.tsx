@@ -99,6 +99,7 @@ import { NewEmployeePage } from '@/pages/hr/NewEmployeePage'
 import { PositionsPage } from '@/pages/hr/PositionsPage'
 import { SchedulesPage } from '@/pages/hr/SchedulesPage'
 import { UnionsPage } from '@/pages/hr/UnionsPage'
+import { MyPayslipsPage } from '@/pages/hr/MyPayslipsPage'
 import { PayrollItemsPage } from '@/pages/hr/payroll/PayrollItemsPage'
 import { PayrollRunPage } from '@/pages/hr/payroll/PayrollRunPage'
 import { AccountantExportPage } from '@/pages/hr/accountant/AccountantExportPage'
@@ -187,6 +188,8 @@ const projectResultsRoute = createRoute({ getParentRoute: () => appRoute, path: 
 const projectResultRoute = createRoute({ getParentRoute: () => appRoute, path: 'painel/resultado-por-projeto/$id', component: () => <ModuleGate code="dashboard"><ProjectResultPage /></ModuleGate> })
 const accountRoute = createRoute({ getParentRoute: () => appRoute, path: 'conta', component: AccountPage })
 const accountSecurityRoute = createRoute({ getParentRoute: () => appRoute, path: 'conta/seguranca', component: AccountSecurityPage })
+// "Meus holerites" (RH-02b, ADR 0035): do funcionário, sem ação no grupo; a página confere o módulo liberado e o vínculo vem da API.
+const myPayslipsRoute = createRoute({ getParentRoute: () => appRoute, path: 'meus-holerites', component: MyPayslipsPage })
 // Telas reais de módulo: mesmas regras do menu (ModuleGate) e rota própria por aba (FND-09b CA 8).
 const gated = (code: string, Page: () => React.ReactNode) => () => <ModuleGate code={code}><Page /></ModuleGate>
 const accessRoute = createRoute({ getParentRoute: () => appRoute, path: 'acessos', beforeLoad: () => { throw redirect({ to: '/app/acessos/usuarios' }) } })
@@ -436,7 +439,7 @@ export const routeTree = rootRoute.addChildren([
   forgotRoute,
   resetRoute,
   inviteRoute,
-  appRoute.addChildren([appIndexRoute, dashboardRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute, projectResultsRoute, projectResultRoute,
+  appRoute.addChildren([appIndexRoute, dashboardRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute, projectResultsRoute, projectResultRoute, myPayslipsRoute,
     aiSettingsRoute, importRunsRoute, importRunRoute, integrationsRoute, integrationEventsRoute, interAccountsRoute, interAccountRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute, billingSettingsRoute,
     inventoryRootRoute, balancesRoute, movementsRoute, movementRoute, manualPostingsRoute, manualPostingRoute, shortagesRoute, requisitionsRoute, requisitionRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, bomsRoute, productionRootRoute, fabricationOrdersRoute, fabricationOrderRoute, kanbanRoute, openLaborRoute, operatorRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute, qualityRoute, qualityStepRoute, nonConformitiesRoute, nonConformityRoute, purchasingRootRoute, purchaseRequestsRoute, newPurchaseRequestRoute, purchaseRequestRoute, purchaseOrdersRoute, newPurchaseOrderRoute, purchaseOrderRoute, editPurchaseOrderRoute, shipmentsRoute, newShipmentRoute, shipmentRoute, traceabilityRoute, adjustmentsRoute, adjustmentRoute, goodsReceiptsRoute, goodsReceiptRoute, newGoodsReceiptRoute, rfqsRoute, newRfqRoute, rfqRoute, inventoryCountsRoute, inventoryCountRoute, capacityRoute, planningRoute, supervisorRoute,
     financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, payablesRoute, newPayableRoute, payableRoute, recurringRoute, approvalRulesRoute, openingRoute, cashFlowRoute, dreRoute, agingRoute, paymentOrdersRoute, newPaymentOrderRoute, paymentOrderRoute, statementRoute, quotesRoute, quoteFunnelRoute, quoteRoute, quoteCompareRoute, contractsRoute, contractRoute, amendmentRoute, projectsRoute, projectMarginsRoute, projectRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, kioskScreensRoute, kioskPreviewRoute, payrollRunsRoute, payrollRunRoute, payrollItemsRoute, fiscalIntegrationRoute, accountantExportRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
