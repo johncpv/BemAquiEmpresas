@@ -266,6 +266,26 @@ public sealed class PayrollClosingService(
     /// </summary>
     public async Task ReconcileAsync(CancellationToken cancellationToken = default)
     {
+        // Os consumidores rodam em paralelo: se outra conciliação gravou a mesma folha antes, recarrega e confere de novo.
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                await ReconcileOnceAsync(cancellationToken);
+                return;
+            }
+            catch (DbUpdateConcurrencyException ex) when (attempt < 3)
+            {
+                foreach (var entry in ex.Entries)
+                {
+                    await entry.ReloadAsync(cancellationToken);
+                }
+            }
+        }
+    }
+
+    private async Task ReconcileOnceAsync(CancellationToken cancellationToken)
+    {
         var candidates = await db.PayrollRuns.Where(r => r.Status == PayrollRunStatus.Closed || r.Status == PayrollRunStatus.Paid).ToListAsync(cancellationToken);
         foreach (var run in candidates)
         {
