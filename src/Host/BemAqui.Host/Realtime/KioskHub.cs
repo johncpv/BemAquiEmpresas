@@ -99,7 +99,8 @@ public sealed record KioskEndedMessage(string Reason, string CompanyName);
 /// </summary>
 public sealed class SignalRKioskRealtime(IHubContext<KioskHub> hub, KioskConnectionRegistry registry) : IKioskRealtime
 {
-    public static readonly TimeSpan CloseDelay = TimeSpan.FromMilliseconds(500);
+    // Com long polling, o aviso só chega na próxima busca da TV; 2 s dão folga para ele sair antes de a conexão fechar.
+    public static readonly TimeSpan CloseDelay = TimeSpan.FromSeconds(2);
 
     public Task ConfigChangedAsync(Guid tenantId, Guid kioskId, CancellationToken cancellationToken = default) =>
         hub.Clients.Group(KioskHub.ScreenGroup(tenantId, kioskId)).SendAsync(KioskHub.KioskConfigChanged, cancellationToken);
