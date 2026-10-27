@@ -63,6 +63,7 @@ public class SecretProtectorTests
     [InlineData(SecretKind.WebhookSecret, "webhook-secret")]
     [InlineData(SecretKind.InterCredentials, "inter-credentials")]
     [InlineData(SecretKind.InterCertificate, "inter-certificate")]
+    [InlineData(SecretKind.FiscalApiKey, "fiscal-api-key")]
     public void Proposito_de_cada_tipo_e_fixo(SecretKind kind, string expected)
     {
         var tenant = Guid.Parse("0199f1a2-0000-7000-8000-000000000001");

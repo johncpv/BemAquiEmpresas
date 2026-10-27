@@ -3,5 +3,11 @@
     <ProjectReference Include="..\..\..\BuildingBlocks\BemAqui.BuildingBlocks\BemAqui.BuildingBlocks.csproj" />
     <ProjectReference Include="..\BemAqui.Fiscal.Domain\BemAqui.Fiscal.Domain.csproj" />
     <ProjectReference Include="..\BemAqui.Fiscal.Contracts\BemAqui.Fiscal.Contracts.csproj" />
+    <ProjectReference Include="..\..\Platform\BemAqui.Platform.Contracts\BemAqui.Platform.Contracts.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="BemAqui.Fiscal.Infrastructure" />
+    <InternalsVisibleTo Include="BemAqui.Architecture.Tests" />
+    <InternalsVisibleTo Include="BemAqui.Integration.Tests" />
   </ItemGroup>
 </Project>

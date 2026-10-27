@@ -62,6 +62,12 @@ public sealed class Tenant : Entity, IAuditable
     /// </summary>
     public bool BankProductionAllowed { get; set; }
 
+    /// <summary>
+    /// Ambiente fiscal permitido (FIS-01 CA 9, ADR 0027 §6): <c>None</c> por padrão; o <c>demo</c> em homologação; produção só ligada
+    /// no checklist da GOL-01b (ADR 0034). A integração com o EmissorFiscal num ambiente acima deste é recusada.
+    /// </summary>
+    public BemAqui.Platform.Contracts.FiscalEnvironmentAllowance FiscalEnvironmentAllowed { get; set; } = BemAqui.Platform.Contracts.FiscalEnvironmentAllowance.None;
+
     public List<TenantDomain> Domains { get; } = [];
 
     /// <summary>Tenant novo, em Provisioning, com o id já definido (o id entra no propósito do segredo).</summary>

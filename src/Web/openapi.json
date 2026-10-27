@@ -26801,6 +26801,74 @@
         }
       }
     },
+    "/api/v1/fiscal/integration": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "GetFiscalIntegration",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FiscalIntegrationView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "SaveFiscalIntegration",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveFiscalIntegrationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FiscalIntegrationView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/integration/test": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "TestFiscalIntegration",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FiscalConnectionTest"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/settings/import-runs": {
       "get": {
         "tags": [
@@ -39775,6 +39843,189 @@
           },
           "reversed": {
             "type": "boolean"
+          }
+        }
+      },
+      "FiscalConnectionTest": {
+        "required": [
+          "ok",
+          "result",
+          "message",
+          "integration"
+        ],
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "result": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "integration": {
+            "$ref": "#/components/schemas/FiscalIntegrationView"
+          }
+        }
+      },
+      "FiscalIntegrationView": {
+        "required": [
+          "configured",
+          "allowed",
+          "allowedEnvironment",
+          "defaultBaseUrl",
+          "baseUrl",
+          "apiKeySetAt",
+          "webhookSecretSetAt",
+          "webhookPreviousValidUntil",
+          "webhookUrl",
+          "active",
+          "emitterTenantId",
+          "issuerDocument",
+          "issuerName",
+          "environment",
+          "scopes",
+          "certificateValidUntil",
+          "lastTestAt",
+          "lastTestResult",
+          "lastTestMessage",
+          "lastWebhookAt",
+          "pendingInvoices",
+          "oldestPendingSince",
+          "oldestPendingInvoiceId"
+        ],
+        "type": "object",
+        "properties": {
+          "configured": {
+            "type": "boolean"
+          },
+          "allowed": {
+            "type": "boolean"
+          },
+          "allowedEnvironment": {
+            "type": "string"
+          },
+          "defaultBaseUrl": {
+            "type": "string"
+          },
+          "baseUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "apiKeySetAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "webhookSecretSetAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "webhookPreviousValidUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "webhookUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "emitterTenantId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "issuerDocument": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "issuerName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "environment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "certificateValidUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "lastTestAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "lastTestResult": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lastTestMessage": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lastWebhookAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "pendingInvoices": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "oldestPendingSince": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "oldestPendingInvoiceId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         }
       },
@@ -64982,6 +65233,49 @@
         },
         "additionalProperties": false
       },
+      "SaveFiscalIntegrationRequest": {
+        "required": [
+          "baseUrl",
+          "apiKey",
+          "webhookSecret",
+          "code"
+        ],
+        "type": "object",
+        "properties": {
+          "baseUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "apiKey": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Secret"
+              }
+            ]
+          },
+          "webhookSecret": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Secret"
+              }
+            ]
+          },
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "SaveGroupRequest": {
         "required": [
           "name",
@@ -71350,6 +71644,9 @@
     },
     {
       "name": "Financeiro"
+    },
+    {
+      "name": "Fiscal"
     },
     {
       "name": "Painel do propriet\u00E1rio"

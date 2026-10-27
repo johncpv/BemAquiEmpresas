@@ -20,4 +20,6 @@ public enum SecretKind
 
     /// <summary>Certificado, chave privada e senha do <c>.pfx</c> do mTLS do Inter, por integração de conta (BNK-01a).</summary>
     InterCertificate,
+    /// <summary>Chave de API do EmissorFiscal por tenant, sem o escopo <c>admin</c> (FIS-01, ADR 0027 §2, ADR 0007 adendo de 21/10/2026).</summary>
+    FiscalApiKey,
 }

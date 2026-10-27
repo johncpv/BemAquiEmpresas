@@ -103,6 +103,12 @@ public static class AuthRateLimiting
                     QueueLimit = 0,
                 });
             });
+            // "Testar conexão" do Emissor Fiscal (FIS-01 CA 18): política nomeada, por usuário dentro do tenant; cada teste chama o Emissor.
+            var fiscal = configuration.GetSection(BemAqui.Fiscal.Application.FiscalIntegrationOptions.Section).Get<BemAqui.Fiscal.Application.FiscalIntegrationOptions>()
+                ?? new BemAqui.Fiscal.Application.FiscalIntegrationOptions();
+            o.AddPolicy(BemAqui.Fiscal.Application.FiscalIntegrationService.TestRateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
+                "fiscal-test|" + TenantKey(http) + "|" + (http.RequestServices.GetService<ICurrentUser>()?.UserId?.ToString() ?? http.Connection.RemoteIpAddress?.ToString() ?? "-"),
+                _ => new FixedWindowRateLimiterOptions { PermitLimit = Math.Max(1, fiscal.TestsPerMinute), Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
             o.OnRejected = async (context, cancellationToken) =>
             {
                 var retryAfter = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var wait) ? wait : TimeSpan.FromMinutes(1);

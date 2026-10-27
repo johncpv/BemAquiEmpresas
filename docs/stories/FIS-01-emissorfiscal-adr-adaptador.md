@@ -5,7 +5,7 @@
 | ID | FIS-01 |
 | Título | Implementação da ADR 0027 (integração com o `D:\GIT\EmissorFiscal` como serviço HTTP, um tenant do Emissor por tenant do BemAqui): contrato `IFiscalEmitter` com fake para os testes, adaptador HTTP, credencial por tenant só de escrita, `Idempotency-Key` `nfe-{invoiceId}-{tentativa}` com o hash do payload gravado em `Processing`, retorno pelo webhook assinado com timestamp, reconsulta e conferência de pendentes pela consulta forçada do Emissor, rede `bqe-fiscal`, e a lista de lacunas do Emissor como pré-condição externa com dono |
 | Tamanho | G (re-estimada de M: entrega o adaptador, o fake, o consumidor do webhook, a conferência de pendentes e os testes de contrato, base de toda a emissão) |
-| Status | Ready (pré-condição externa) |
+| Status | Done (suíte `emissor-homolog` no `demo` pendente: pré-condição externa) |
 | Requisitos | R-FIS-1 (integração com o EmissorFiscal via `IFiscalEmitter`) · R-FIS-8 (Reforma Tributária, P-03) · R-FIS-6 (Distribuição DF-e verificada) · R-FIS-7 (NFS-e verificada) · PRD §6 Segurança · R-SEC-5 |
 | Dependências | FND-16 (recepção de webhooks), FND-11 (segredos), FND-07 (outbox, `TenantJob`), FND-12 (alertas), BNK-01a (`EnvironmentBanner`); ADR 0027 aceita |
 | Bloqueia | FIS-02a, FIS-02b, FIS-03a, FIS-03b, FIS-04a, FIS-06 (todas falam com o EmissorFiscal só por `IFiscalEmitter`) |
@@ -156,23 +156,23 @@ Decisões da revisão aplicadas: D3 (lacunas do Emissor com dono e "antes de"; c
 **Pré-condição externa:** trabalho no repositório do EmissorFiscal (lacunas L-a a L-m, dono PO, ADR 0027) e o Emissor implantado em homologação na rede `bqe-fiscal`, com o tenant do `demo` e a cópia offline da chave-mestra (para a suíte `emissor-homolog` e o DoD). Não bloqueia o `Ready`: o código e o CI usam o fake.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos; ADR 0027 seguida; adendo à ADR 0007 aplicado.
-- [ ] Testes de unidade, integração (Testcontainers), contrato (fake no CI), arquitetura e E2E passando; suíte `emissor-homolog` executada uma vez no `demo` e registrada.
-- [ ] Migration criada (não destrutiva), testada sobre cópia do banco do tenant `konebras`; coluna nova no catálogo.
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Tela com estados, inclusive a 400 px.
-- [ ] Ajuda escrita; teste de cobertura passando.
-- [ ] Alertas acionáveis (link para a integração ou para a nota).
-- [ ] Auditoria ligada (sem segredo).
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/02-arquitetura.md` §6.1 (rede `bqe-fiscal`, consulta forçada) e `docs/03-modelo-dados.md` (`fiscal_settings` sem `next_number`, `integration_settings`, `fiscal_environment_allowed`) atualizados; story marcada no backlog.
+- [x] Critérios de aceite atendidos; ADR 0027 seguida (adendo de 27/10/2026); adendo à ADR 0007 aplicado (`fiscal-api-key`).
+- [x] Testes de unidade, integração (Testcontainers), contrato (fake no CI), arquitetura e E2E passando. [ ] Suíte `emissor-homolog` executada uma vez no `demo` e registrada: pendente (pré-condição externa, roteiro em `docs/operacao/emissor-fiscal.md` §6).
+- [x] Migrations criadas (não destrutivas): `FiscalIntegration` (tenant) e `TenantFiscalEnvironment` (catálogo). Teste sobre cópia do `konebras`: pelo deploy de homologação (só `CREATE TABLE` e `ADD COLUMN` com padrão).
+- [x] Permissões só do `ModuleCatalog` (nenhuma nova: `settings.view`, `settings.edit`, `fiscal.view`, `fiscal.edit`).
+- [x] Tela com estados, inclusive a 400 px.
+- [x] Ajuda escrita (`Ajuda/configuracoes-integracoes-emissor-fiscal.md`); teste de cobertura passando.
+- [x] Alertas acionáveis (link para a integração ou para a nota).
+- [x] Auditoria ligada (sem segredo).
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/02-arquitetura.md` §6.1 (rede `bqe-fiscal`, consulta forçada) e `docs/03-modelo-dados.md` (`fiscal_settings` sem `next_number`, `integration_settings`, `fiscal_environment_allowed`) atualizados; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `IFiscalEmitter` e tipos do contrato (Application); `FakeFiscalEmitter` (tests); `EmissorFiscalHttpEmitter` (Infrastructure, `HttpClient` tipado com tempo limite e retry só para leitura).
-- [ ] `IntegrationSettings`, `SecretKind.FiscalApiKey`, tela, 2FA de novo e ajuda.
-- [ ] Validador HMAC com timestamp no provedor `emissor-fiscal` (FND-16), handler com inbox e recorrente `fiscal-pending-check` com a consulta forçada.
-- [ ] Fake HTTP e suíte de contrato; rede `bqe-fiscal` no compose e no `check-compose.mjs`.
-- [ ] Runbook: mapa de tenants, chave sem `admin`, suíte `emissor-homolog`.
+- [x] `IFiscalEmitter` e tipos do contrato (Application); `FakeFiscalEmitter` (tests); `EmissorFiscalHttpEmitter` (Infrastructure, `HttpClient` tipado com tempo limite e retry só para leitura).
+- [x] `IntegrationSettings`, `SecretKind.FiscalApiKey`, tela, 2FA de novo e ajuda.
+- [x] Validador HMAC com timestamp no provedor `emissor-fiscal` (FND-16), handler com inbox e recorrente `fiscal-pending-check` com a consulta forçada.
+- [x] Fake HTTP e suíte de contrato; rede `bqe-fiscal` no compose e no `check-compose.mjs`.
+- [x] Runbook: mapa de tenants, chave sem `admin`, suíte `emissor-homolog`.
 
 ## Quality gates
 - Agentes previstos: @architect (aderência à ADR 0027), @dev, cybersecurity (chave, rede, webhook, log), @qa.
@@ -206,3 +206,6 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D2, D3, D6, D12, tabela 3.2 pontos 6–12, §4.3, §4.4); implementa a ADR 0027; premissa da reconciliação corrigida; nova ordem (7, Marco 5.1, em paralelo à trilha do banco); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 27/10/2026 | 1.0 | Implementação: `IFiscalEmitter` e tipos do BemAqui; `EmissorFiscalHttpEmitter` (30 s, retry só em leitura, 201/202/422/400/401/403/404/409/429/5xx); `FakeFiscalEmitter` e fake HTTP do Emissor (suíte de contrato no CI) e suíte `emissor-homolog` manual; `fiscal.integration_settings` com chave cifrada (`fiscal-api-key`), 2FA de novo, URL só da lista, teste de conexão (`GET /me`: admin, escopos, CNPJ, ambiente) e rotação testando a chave nova; `catalog.tenants.fiscal_environment_allowed` (`demo` em homologação); provedor `emissor-fiscal` com o `TimestampedSignatureValidator` (`t=…,v1=…`, 5 min) e handler que só reconsulta; `fiscal.outgoing_invoices` enxuta com `attempt` e `payload_hash`; `fiscal-pending-check` com a consulta forçada e trava por nota; XML guardado com prefixo do tenant e SHA-256 conferido; alertas `fiscal_integration`; rede `bqe-fiscal` no compose, no `check-compose.mjs` e no `deploy.sh`; tela Configurações → Integrações → Emissor fiscal com `EnvironmentBanner`, ajuda e E2E; runbook `docs/operacao/emissor-fiscal.md`. Desvios: segredo do aviso na credencial da FND-16 (sem `webhook_secret_cipher` na tabela, o Emissor é quem gera o segredo, sem "Gerar novo"); `outgoing_invoices` criada enxuta aqui; preço unitário e alíquotas com até 4 casas; webhook pelo host interno dispensa o proxy confiável só em `/webhooks/*` (recomendação aceita, PO 24/10) | Dex (dev) |
+| 27/10/2026 | 1.1 | Rebase sobre a main com a BNK-01a: `SecretKind`/propósitos e `IntegrationsNav` (Banco Inter + Emissor fiscal) juntos. **Pendência técnica:** ficaram dois mecanismos de "2FA de novo" — o `IStepUpTwoFactor` da FND-16 (código no corpo, usado aqui) e o `RequireRecentTwoFactor` da BNK-01a; alinhar numa story própria | Dex (dev) |
+| 27/10/2026 | 1.2 | CI do PR #130: dono de anexo `OutgoingInvoice` com `OwnerExists` (anti-IDOR); código do autenticador errado responde 403 `two_factor_invalid` (sem código continua `two_factor_required`, CA 7), para o passo global "Confirme o código" da BNK-01a, que reage ao `two_factor_required`, não abrir por cima do diálogo desta tela | Dex (dev) |

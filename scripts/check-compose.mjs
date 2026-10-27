@@ -53,6 +53,30 @@ for (const [name, s] of Object.entries(services)) {
   if ((s.ports ?? []).length > 0) problems.push(`${name}: o acesso externo é só pelo stack-nginx; remova ports:`)
 }
 
+// Rede dedicada com o EmissorFiscal (FIS-01 CA 17, ADR 0027 §4): externa (criada com --internal; o deploy.sh confere), só com a API do
+// BemAqui e, se estiver neste compose, a API do Emissor; nunca o banco, o web, o migrator ou o backup. A API do BemAqui alcança o Emissor
+// só por ela. Serviço do Emissor não publica porta nem liga o Swagger fora do desenvolvimento.
+const fiscalEntry = Object.entries(compose.networks ?? {}).find(([, n]) => n.name === 'bqe-fiscal')
+const fiscalNetwork = fiscalEntry?.[0]
+const isEmissor = (name) => /emissor/i.test(name)
+if (!fiscalEntry) problems.push('rede bqe-fiscal (EmissorFiscal) não declarada')
+else if (fiscalEntry[1].external !== true) problems.push('bqe-fiscal: precisa ser external (criada com "docker network create --internal bqe-fiscal")')
+for (const [name, s] of Object.entries(services)) {
+  const networks = Object.keys(s.networks ?? {})
+  const onFiscal = fiscalNetwork && networks.includes(fiscalNetwork)
+  const isApi = /^bqe-[a-z0-9]+-api$/.test(name)
+  if (onFiscal && !isApi && !isEmissor(name)) problems.push(`${name}: só a API do BemAqui e a do Emissor podem estar na bqe-fiscal`)
+  if (isApi && fiscalNetwork && !onFiscal) problems.push(`${name}: a API precisa da rede bqe-fiscal para falar com o Emissor`)
+  if (isEmissor(name)) {
+    if ((s.ports ?? []).length > 0) problems.push(`${name}: o Emissor não publica porta`)
+    if (stackNetwork && networks.includes(stackNetwork)) problems.push(`${name}: a API do Emissor não entra na stack_stack`)
+    const env = s.environment ?? {}
+    if (String(env.Swagger__Enabled ?? '').toLowerCase() === 'true') problems.push(`${name}: Swagger ligado fora do desenvolvimento`)
+    if (String(env.ASPNETCORE_ENVIRONMENT ?? 'Production') === 'Development') problems.push(`${name}: ASPNETCORE_ENVIRONMENT=Development liga o Swagger`)
+  }
+  if (isApi && String((s.environment ?? {}).ASPNETCORE_ENVIRONMENT ?? 'Production') === 'Development') problems.push(`${name}: ASPNETCORE_ENVIRONMENT=Development expõe o OpenAPI`)
+}
+
 if (!stackNetwork) problems.push('rede externa stack_stack não declarada')
 if (Object.keys(services).filter(isEdge).length !== 2) problems.push('esperado um serviço bqe-<ambiente>-api e um bqe-<ambiente>-web')
 

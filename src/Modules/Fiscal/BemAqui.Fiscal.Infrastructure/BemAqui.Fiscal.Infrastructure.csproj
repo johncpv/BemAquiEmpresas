@@ -3,4 +3,9 @@
     <ProjectReference Include="..\..\..\BuildingBlocks\BemAqui.BuildingBlocks\BemAqui.BuildingBlocks.csproj" />
     <ProjectReference Include="..\BemAqui.Fiscal.Application\BemAqui.Fiscal.Application.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- Suíte de contrato do adaptador contra o fake HTTP do Emissor (FIS-01 CA 15) e regras de mapeamento (CA 4). -->
+    <InternalsVisibleTo Include="BemAqui.Integration.Tests" />
+    <InternalsVisibleTo Include="BemAqui.Architecture.Tests" />
+  </ItemGroup>
 </Project>
