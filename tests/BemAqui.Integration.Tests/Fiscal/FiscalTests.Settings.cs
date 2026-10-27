@@ -83,6 +83,7 @@ public partial class FiscalTests(FiscalFixture fixture) : IClassFixture<FiscalFi
     [Fact]
     public async Task Tenant_sem_ambiente_fiscal_permitido_nao_salva_nem_testa()
     {
+        await fixture.RemoveIntegrationAsync(fixture.Tenancy.TenantB);
         var (_, owner, code) = await fixture.OwnerWithTotpAsync(fixture.Tenancy.TenantB, FiscalFixture.HostB);
 
         var view = await JsonAsync(await owner.GetAsync(Integration));

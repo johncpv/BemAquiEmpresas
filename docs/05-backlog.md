@@ -482,7 +482,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-
 - Requisitos: R-FIN-8, R-FIN-5, R-FIN-3, R-PRP-6, R-PRP-7.
 - CA: sugestão por valor, data (janela de 3 dias) e documento; uma linha por par e as seções "Sem par no banco" e "No sistema, não no banco"; quem confirma não é quem importou; lançamento sem OP com `finance.pay`, teto e 2FA de novo; fechamento por período com `finance.approve`.
 
-**FIS-01 [ ] Integração com o EmissorFiscal (ADR 0027) e adaptador `IFiscalEmitter` (G)** — 5.1, ordem 7 — re-estimada de M — `Ready (pré-condição externa)` — [story](stories/FIS-01-emissorfiscal-adr-adaptador.md)
+**FIS-01 [x] Integração com o EmissorFiscal (ADR 0027) e adaptador `IFiscalEmitter` (G)** — 5.1, ordem 7 — re-estimada de M — `Done` (suíte `emissor-homolog` no `demo`: pré-condição externa) — [story](stories/FIS-01-emissorfiscal-adr-adaptador.md)
 - Requisitos: R-FIS-1, R-FIS-8, R-FIS-6, R-FIS-7, PRD §6 Segurança, R-SEC-5.
 - CA: ADR 0027 aceita; `IFiscalEmitter` sem DTO do EmissorFiscal e fake para os testes; `nfe-{invoiceId}-{tentativa}` com o hash do payload; chave por tenant sem escopo `admin`; webhook HMAC que só dispara reconsulta; job de pendentes; rede `bqe-fiscal`; lacunas do Emissor (P-27) como pré-condição externa.
 

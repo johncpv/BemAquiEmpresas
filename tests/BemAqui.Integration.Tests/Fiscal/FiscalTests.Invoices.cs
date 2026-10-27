@@ -19,6 +19,12 @@ namespace BemAqui.Integration.Tests.Fiscal;
 /// </summary>
 public partial class FiscalTests
 {
+    /// <summary>Linha da auditoria em que a situação virou Authorized (o diff guarda o valor do enum).</summary>
+    private static bool BecameAuthorized(string changes) =>
+        System.Text.Json.JsonDocument.Parse(changes).RootElement.EnumerateObject()
+            .Any(p => p.Name.Equals("status", StringComparison.OrdinalIgnoreCase) && p.Value.ValueKind == System.Text.Json.JsonValueKind.Object
+                && p.Value.TryGetProperty("new", out var v) && (v.ValueKind == System.Text.Json.JsonValueKind.Number ? v.GetInt32() == (int)OutgoingInvoiceStatus.Authorized : v.GetString() == nameof(OutgoingInvoiceStatus.Authorized)));
+
     private async Task<(Guid Invoice, string Key, NfeDocument Doc)> PendingAsync(FakeIssue issue = FakeIssue.Delay)
     {
         var tenant = fixture.Tenancy.TenantA;
@@ -262,7 +268,7 @@ public partial class FiscalTests
         (await fixture.InvoiceOfAsync(tenant, id)).Status.Should().Be(OutgoingInvoiceStatus.Authorized);
         (await fixture.QueryAsync(tenant, db => db.Attachments.CountAsync(a => a.OwnerId == id && a.OwnerType == OutgoingInvoiceReconciler.AttachmentOwner))).Should().Be(1);
         var audits = await fixture.QueryAsync(tenant, db => db.AuditEntries.AsNoTracking().Where(a => a.Entity == nameof(OutgoingInvoice) && a.EntityId == id.ToString()).Select(a => a.Changes).ToListAsync());
-        audits.Count(c => c.Contains("\"Authorized\"", StringComparison.Ordinal)).Should().Be(1, "a transição para Authorized acontece uma vez");
+        audits.Count(BecameAuthorized).Should().Be(1, "a transição para Authorized acontece uma vez");
     }
 
     [Fact]
