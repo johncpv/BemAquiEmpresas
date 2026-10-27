@@ -28,6 +28,10 @@ Tela do chão de fábrica, no tablet ou no celular, para ver as etapas prontas e
 - "Nada pronto para apontar agora": nenhuma etapa está pronta. Fale com o supervisor se estiver esperando uma etapa.
 - "Seu usuário não está ligado a um funcionário ativo": o supervisor ou o RH precisa ligar o seu usuário ao seu cadastro de funcionário. Funcionário afastado ou desligado não aponta.
 
+## Meu ponto
+- Toque em **Meu ponto** na fila para registrar a entrada, o intervalo e a saída com a hora do servidor. Entrou por PIN? Marcar encerra a sua sessão no tablet, e ele volta à lista de nomes para o próximo colega.
+- Controle interno de jornada; não substitui o registro legal de ponto (REP-P, Portaria 671).
+
 ## Holerite
 - O holerite não abre no tablet, porque é um aparelho compartilhado. Veja o seu holerite no celular ou no computador, com o seu login, em **Meus holerites**.
 

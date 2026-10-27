@@ -6,6 +6,7 @@ const TABS = [
   { to: '/app/rh/cargos', label: 'Cargos' },
   { to: '/app/rh/jornadas', label: 'Jornadas' },
   { to: '/app/rh/sindicatos', label: 'Sindicatos' },
+  { to: '/app/rh/ponto/marcacoes', label: 'Ponto' },
   { to: '/app/rh/folha', label: 'Folha' },
   { to: '/app/rh/rubricas', label: 'Rubricas' },
 ] as const

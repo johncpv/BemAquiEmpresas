@@ -1,12 +1,12 @@
 import { Link } from '@tanstack/react-router'
-import { FileText, Lock } from 'lucide-react'
+import { Clock, FileText, Lock } from 'lucide-react'
 import type { KeyboardEvent } from 'react'
 import { useGetMyEmployeeLink } from '@/api/generated/bemaqui'
 import type { NavArea } from '@/navigation/modules'
 
 /** Lista de módulos da área (CA 2, 5): setas movem, Enter abre; Esc fecha pelo Radix e o foco volta para a área. */
 export function AreaMenu({ area, onNavigate }: { area: NavArea; onNavigate: () => void }) {
-  // Pessoas (RH-02b): "Meus holerites" para quem está ligado a funcionário ativo ou afastado (ADR 0035).
+  // Pessoas (RH-02b, RH-01a): "Meu ponto" e "Meus holerites" para quem está ligado a funcionário ativo ou afastado (ADR 0035).
   const employee = useGetMyEmployeeLink({ query: { retry: false, staleTime: 300_000, enabled: area.id === 'people' } })
   const move = (event: KeyboardEvent<HTMLUListElement>) => {
     if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return
@@ -43,6 +43,14 @@ export function AreaMenu({ area, onNavigate }: { area: NavArea; onNavigate: () =
               </Link>
             </li>
           ))}
+          {area.id === 'people' && employee.isSuccess ? (
+            <li>
+              <Link to="/app/meu-ponto" onClick={onNavigate} className="flex items-center gap-3 rounded-md px-2 py-2 text-sm font-medium text-foreground hover:bg-muted focus-visible:bg-muted">
+                <Clock aria-hidden="true" className="size-[18px] text-muted-foreground" />
+                <span className="flex-1">Meu ponto</span>
+              </Link>
+            </li>
+          ) : null}
           {area.id === 'people' && employee.isSuccess ? (
             <li>
               <Link to="/app/meus-holerites" onClick={onNavigate} className="flex items-center gap-3 rounded-md px-2 py-2 text-sm font-medium text-foreground hover:bg-muted focus-visible:bg-muted">

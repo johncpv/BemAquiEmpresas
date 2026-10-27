@@ -93,7 +93,7 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
     { slug: 'implantacao', label: 'Implantação financeira', group: SETUP },
   ] },
   fiscal: { slug: 'fiscal', icon: Receipt },
-  hr: { slug: 'rh', icon: Users, tabs: [{ slug: 'funcionarios', label: 'Funcionários' }, { slug: 'cargos', label: 'Cargos' }, { slug: 'jornadas', label: 'Jornadas' }, { slug: 'sindicatos', label: 'Sindicatos' }] },
+  hr: { slug: 'rh', icon: Users, tabs: [{ slug: 'funcionarios', label: 'Funcionários' }, { slug: 'cargos', label: 'Cargos' }, { slug: 'jornadas', label: 'Jornadas' }, { slug: 'sindicatos', label: 'Sindicatos' }, { slug: 'ponto', label: 'Ponto' }] },
   kiosk: { slug: 'painel-tv', icon: MonitorPlay },
   shopfloor: { slug: 'operador', icon: HardHat, href: '/fab' },
   identity: { slug: 'acessos', icon: ShieldCheck, tabs: [{ slug: 'usuarios', label: 'Usuários' }, { slug: 'grupos', label: 'Grupos' }] },

@@ -100,6 +100,9 @@ import { PositionsPage } from '@/pages/hr/PositionsPage'
 import { SchedulesPage } from '@/pages/hr/SchedulesPage'
 import { UnionsPage } from '@/pages/hr/UnionsPage'
 import { MyPayslipsPage } from '@/pages/hr/MyPayslipsPage'
+import { FabTimeClockPage } from '@/pages/hr/timeclock/FabTimeClockPage'
+import { MyTimeClockPage } from '@/pages/hr/timeclock/MyTimeClockPage'
+import { TimeEntriesPage } from '@/pages/hr/timeclock/TimeEntriesPage'
 import { PayrollItemsPage } from '@/pages/hr/payroll/PayrollItemsPage'
 import { PayrollRunPage } from '@/pages/hr/payroll/PayrollRunPage'
 import { AccountantExportPage } from '@/pages/hr/accountant/AccountantExportPage'
@@ -190,6 +193,8 @@ const accountRoute = createRoute({ getParentRoute: () => appRoute, path: 'conta'
 const accountSecurityRoute = createRoute({ getParentRoute: () => appRoute, path: 'conta/seguranca', component: AccountSecurityPage })
 // "Meus holerites" (RH-02b, ADR 0035): do funcionário, sem ação no grupo; a página confere o módulo liberado e o vínculo vem da API.
 const myPayslipsRoute = createRoute({ getParentRoute: () => appRoute, path: 'meus-holerites', component: MyPayslipsPage })
+// "Meu ponto" (RH-01a, ADR 0035): do funcionário, sem ação no grupo; o mesmo painel do /fab/ponto, mais "Minhas marcações".
+const myTimeClockRoute = createRoute({ getParentRoute: () => appRoute, path: 'meu-ponto', component: MyTimeClockPage })
 // Telas reais de módulo: mesmas regras do menu (ModuleGate) e rota própria por aba (FND-09b CA 8).
 const gated = (code: string, Page: () => React.ReactNode) => () => <ModuleGate code={code}><Page /></ModuleGate>
 const accessRoute = createRoute({ getParentRoute: () => appRoute, path: 'acessos', beforeLoad: () => { throw redirect({ to: '/app/acessos/usuarios' }) } })
@@ -317,6 +322,9 @@ const employeeRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/fu
 const positionsRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/cargos', component: gated('hr', PositionsPage) })
 const schedulesRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/jornadas', component: gated('hr', SchedulesPage) })
 const unionsRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/sindicatos', component: gated('hr', UnionsPage) })
+// Ponto (RH-01a): marcações por dia, com o período, o funcionário e o centro na URL (?de, ?ate, ?funcionario, ?centro).
+const hrTimeRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/ponto', beforeLoad: () => { throw redirect({ to: '/app/rh/ponto/marcacoes' }) } })
+const timeEntriesRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/ponto/marcacoes', component: gated('hr', TimeEntriesPage), validateSearch: (s: Record<string, unknown>): { de?: string; ate?: string; funcionario?: string; centro?: string } => ({ de: text(s.de), ate: text(s.ate), funcionario: text(s.funcionario), centro: text(s.centro) }) })
 // Folha lançada e rubricas (RH-02a).
 const payrollRunsRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/folha', component: gated('hr', PayrollRunsPage) })
 const payrollRunRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/folha/$id', component: gated('hr', PayrollRunPage) })
@@ -415,6 +423,8 @@ const fabStepRoute = createRoute({ getParentRoute: () => fabRoute, path: 'etapa/
 // Qualidade no tablet (PRD-05): fila e inspeção com production.approve_quality (o layout confere o módulo production).
 const fabQualityRoute = createRoute({ getParentRoute: () => fabRoute, path: 'qualidade', component: FabQualityQueuePage })
 const fabQualityStepRoute = createRoute({ getParentRoute: () => fabRoute, path: 'qualidade/$stepId', component: FabQualityStepPage })
+// "Meu ponto" no tablet (RH-01a): o layout confere só o módulo hr liberado (autoatendimento, ADR 0035).
+const fabTimeClockRoute = createRoute({ getParentRoute: () => fabRoute, path: 'ponto', component: FabTimeClockPage })
 // Contagem do inventário no celular (EST-05 CA 4): tela dedicada com o kit chão de fábrica, sem o dock, com a sessão do backoffice.
 const countingRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -439,15 +449,15 @@ export const routeTree = rootRoute.addChildren([
   forgotRoute,
   resetRoute,
   inviteRoute,
-  appRoute.addChildren([appIndexRoute, dashboardRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute, projectResultsRoute, projectResultRoute, myPayslipsRoute,
+  appRoute.addChildren([appIndexRoute, dashboardRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute, projectResultsRoute, projectResultRoute, myPayslipsRoute, myTimeClockRoute,
     aiSettingsRoute, importRunsRoute, importRunRoute, integrationsRoute, integrationEventsRoute, interAccountsRoute, interAccountRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute, billingSettingsRoute,
     inventoryRootRoute, balancesRoute, movementsRoute, movementRoute, manualPostingsRoute, manualPostingRoute, shortagesRoute, requisitionsRoute, requisitionRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, bomsRoute, productionRootRoute, fabricationOrdersRoute, fabricationOrderRoute, kanbanRoute, openLaborRoute, operatorRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute, qualityRoute, qualityStepRoute, nonConformitiesRoute, nonConformityRoute, purchasingRootRoute, purchaseRequestsRoute, newPurchaseRequestRoute, purchaseRequestRoute, purchaseOrdersRoute, newPurchaseOrderRoute, purchaseOrderRoute, editPurchaseOrderRoute, shipmentsRoute, newShipmentRoute, shipmentRoute, traceabilityRoute, adjustmentsRoute, adjustmentRoute, goodsReceiptsRoute, goodsReceiptRoute, newGoodsReceiptRoute, rfqsRoute, newRfqRoute, rfqRoute, inventoryCountsRoute, inventoryCountRoute, capacityRoute, planningRoute, supervisorRoute,
-    financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, payablesRoute, newPayableRoute, payableRoute, recurringRoute, approvalRulesRoute, openingRoute, cashFlowRoute, dreRoute, agingRoute, paymentOrdersRoute, newPaymentOrderRoute, paymentOrderRoute, statementRoute, quotesRoute, quoteFunnelRoute, quoteRoute, quoteCompareRoute, contractsRoute, contractRoute, amendmentRoute, projectsRoute, projectMarginsRoute, projectRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, kioskScreensRoute, kioskPreviewRoute, payrollRunsRoute, payrollRunRoute, payrollItemsRoute, fiscalIntegrationRoute, accountantExportRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
+    financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, payablesRoute, newPayableRoute, payableRoute, recurringRoute, approvalRulesRoute, openingRoute, cashFlowRoute, dreRoute, agingRoute, paymentOrdersRoute, newPaymentOrderRoute, paymentOrderRoute, statementRoute, quotesRoute, quoteFunnelRoute, quoteRoute, quoteCompareRoute, contractsRoute, contractRoute, amendmentRoute, projectsRoute, projectMarginsRoute, projectRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, hrTimeRoute, timeEntriesRoute, kioskScreensRoute, kioskPreviewRoute, payrollRunsRoute, payrollRunRoute, payrollItemsRoute, fiscalIntegrationRoute, accountantExportRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
   platformLoginRoute,
   platformPasswordRoute,
   platformRoute.addChildren([platformIndexRoute, tenantsRoute, tenantRoute]),
   fabEntryRoute,
-  fabRoute.addChildren([fabQueueRoute, fabStepRoute, fabQualityRoute, fabQualityStepRoute]),
+  fabRoute.addChildren([fabQueueRoute, fabStepRoute, fabQualityRoute, fabQualityStepRoute, fabTimeClockRoute]),
   countingRoute.addChildren([countingIndexRoute]),
   tvRoute.addChildren([tvIndexRoute, tvLegacyRoute]),
   galleryRoute,

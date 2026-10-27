@@ -22,10 +22,10 @@ const searchPayees = async (term: string): Promise<ComboOption[]> =>
 
 type Value = { value: string; party: ComboOption | null; code: string }
 
-const CODE_KINDS = new Set(['Account', 'CostCenter', 'ExportLayout'])
+const CODE_KINDS = new Set(['Account', 'CostCenter', 'ExportLayout', 'Geolocation'])
 
 /** Opções do parâmetro escolhido por código: contas, centros de custo ou os layouts do pacote para a contadora (RH-03). */
-const codeOptions = (view: HrParametersView, kind: string) => (kind === 'Account' ? view.accounts : kind === 'CostCenter' ? view.costCenters : view.exportLayouts) ?? []
+const codeOptions = (view: HrParametersView, kind: string) => (kind === 'Account' ? view.accounts : kind === 'CostCenter' ? view.costCenters : kind === 'Geolocation' ? view.geolocationModes : view.exportLayouts) ?? []
 
 /** 1130 → "30/11" e de volta (dia e mês do ano, RH-02c). */
 const monthDayText = (v: number) => `${String(v % 100).padStart(2, '0')}/${String(Math.floor(v / 100)).padStart(2, '0')}`
@@ -106,7 +106,7 @@ function HrForm({ view, canEdit }: { view: HrParametersView; canEdit: boolean })
                 ) : CODE_KINDS.has(item.kind) ? (
                   <select id={id} disabled={!canEdit} value={draft[item.key].code} onChange={(e) => setDraft((d) => ({ ...d, [item.key]: { ...d[item.key], code: e.target.value } }))}
                     aria-invalid={fieldError ? true : undefined} className={inputClass + ' max-w-md'}>
-                    {codeOptions(view, item.kind).map((o) => <option key={o.code} value={o.code}>{item.kind === 'ExportLayout' ? o.name : `${o.code} ${o.name}`}</option>)}
+                    {codeOptions(view, item.kind).map((o) => <option key={o.code} value={o.code}>{item.kind === 'ExportLayout' || item.kind === 'Geolocation' ? o.name : `${o.code} ${o.name}`}</option>)}
                     {draft[item.key].code && !codeOptions(view, item.kind).some((o) => o.code === draft[item.key].code) ? <option value={draft[item.key].code}>{draft[item.key].code} (não encontrado)</option> : null}
                   </select>
                 ) : item.kind === 'MonthDay' ? (
