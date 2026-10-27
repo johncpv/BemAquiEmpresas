@@ -548,7 +548,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-6--rh-e-patrimôn
 - Requisitos: R-RH-5 (parte), R-COM-1, R-COM-3, PRD §6 LGPD, R-SEC-5, R-PRP-2.
 - CA: holerite pelo `IPdfRenderer`, sem CPF completo (3+2) nem dados bancários; "Meus holerites" autenticado é o canal; "Avisar funcionários" por e-mail sem anexo, com "Visto em"; só com a folha fechada.
 
-**RH-03 [ ] Exportação do RH para a contadora (layout padrão) (M)** — 6.2, ordem 5 — `Ready (pré-condição externa)` — [story](stories/RH-03-exportacao-contadora.md)
+**RH-03 [x] Exportação do RH para a contadora (layout padrão) (M)** — 6.2, ordem 5 — `Done (pré-condição externa: contadora)` — [story](stories/RH-03-exportacao-contadora.md)
 - Requisitos: R-RH-8, P-06, PRD §6 LGPD, R-SEC-5, R-PRP-3.
 - CA: pacote CSV no layout padrão `v1` documentado; minimização; baixado com `hr.view_sensitive`, sem guardar o arquivo; `SensitiveRead`; teste golden do layout.
 
