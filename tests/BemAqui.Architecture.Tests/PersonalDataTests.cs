@@ -61,7 +61,8 @@ public class PersonalDataTests
             "PaymentDate", "ClosedPayables", "PaidAt", "ReopenReason", "ReopenedAt", "ReopenedBy"],
         // RH-02c: na previsão, só o valor é dado da folha.
         ["PayrollForecast"] = ["Id", "Period", "Kind", "EmployeeId", "ChargeKind", "DueDate", "SourceRunId", "CreatedAt", "UpdatedAt", "CancelledAt", "CancelReason", "Key"],
-        ["Payslip"] = ["Id", "PayrollRunId", "EmployeeId", "CreatedAt", "UpdatedAt", "Version"],
+        // RH-02b: o PDF guardado (id do anexo), o aviso (quando, id do e-mail), a primeira leitura e a marca "alterado" não são dado pessoal.
+        ["Payslip"] = ["Id", "PayrollRunId", "EmployeeId", "CreatedAt", "UpdatedAt", "Version", "PdfAttachmentId", "NotifiedAt", "NoticeEmailLogId", "FirstViewedAt", "ChangedAfterNotice"],
         ["PayslipLine"] = ["Id", "PayslipId", "PayrollItemId", "Code", "Description", "Type", "Sort"],
         ["PayrollRunCharge"] = ["Id", "PayrollRunId", "Kind", "Description", "DueDate", "PayeePartyId", "CreatedAt", "Version"],
         ["HrParameter"] = ["Id", "Key", "Value", "Text", "ConfirmedAt", "ConfirmedBy", "UpdatedAt"],
@@ -98,6 +99,16 @@ public class PersonalDataTests
             type.GetProperties().Select(p => p.Name).Where(n => dto != "PayrollItemDetail" || !n.EndsWith("Base", StringComparison.Ordinal))
                 .Should().NotIntersectWith(values, dto + " sai com hr.view e não pode ter valor da folha (CA 12)");
         }
+
+        // RH-02b CA 1, 8 e 12: o aviso, o lote e o argumento do job não levam valor; o funcionário no PDF não tem CPF completo, endereço,
+        // dados bancários nem dependentes.
+        foreach (var dto in new[] { "PayslipNoticeRow", "PayslipNotices", "PayslipNoticePerson", "PayslipNotifyResult", "PayslipBatchResult", "PayslipBatchArgs", "MyEmployeeLink" })
+        {
+            application.GetTypes().Single(t => t.Name == dto).GetProperties().Select(p => p.Name).Should().NotIntersectWith(values, dto + " não leva valor do holerite");
+        }
+
+        application.GetTypes().Single(t => t.Name == "PayslipPdfEmployee").GetProperties().Select(p => p.Name).Should()
+            .NotContain(["Cpf", "Address", "Street", "BankAccount", "PixKey", "Dependents", "Email", "Phone", "BirthDate"], "o PDF só leva o CPF mascarado 3+2 (CA 1)");
     }
 
     [Fact]

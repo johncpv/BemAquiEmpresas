@@ -5655,6 +5655,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<bool>("ChangedAfterNotice")
+                        .HasColumnType("boolean")
+                        .HasColumnName("changed_after_notice");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -5678,6 +5682,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("fgts_base");
 
+                    b.Property<DateTimeOffset?>("FirstViewedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("first_viewed_at");
+
                     b.Property<decimal>("Gross")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
@@ -5698,9 +5706,21 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("net");
 
+                    b.Property<Guid?>("NoticeEmailLogId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("notice_email_log_id");
+
+                    b.Property<DateTimeOffset?>("NotifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("notified_at");
+
                     b.Property<Guid>("PayrollRunId")
                         .HasColumnType("uuid")
                         .HasColumnName("payroll_run_id");
+
+                    b.Property<Guid?>("PdfAttachmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("pdf_attachment_id");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")

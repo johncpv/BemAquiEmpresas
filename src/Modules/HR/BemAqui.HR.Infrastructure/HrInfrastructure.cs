@@ -2,6 +2,7 @@ using BemAqui.BuildingBlocks.Attachments;
 using BemAqui.BuildingBlocks.Persistence.Auditing;
 using BemAqui.BuildingBlocks.Tenancy;
 using BemAqui.HR.Application;
+using BemAqui.HR.Application.Documents;
 using BemAqui.HR.Contracts;
 using BemAqui.HR.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -108,6 +109,18 @@ public static class HrInfrastructure
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IAccountantExportSection, AccountantMovementsSection>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IAccountantExportSection, AccountantPayrollSection>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IAccountantExportSection, AccountantTimeclockPendingSection>());
+
+        // Holerite em PDF, "Meus holerites" e aviso (RH-02b). Os PDFs guardados (dono Payslip) e o ZIP de "Baixar todos" (dono
+        // PayslipBatch, a folha) são arquivos do sistema: ler com hr.view_sensitive, cada download grava SensitiveRead (AuditReads) e o
+        // usuário não anexa nada a eles (CanAttach recusa; só o StoreGeneratedAsync grava).
+        services.TryAddScoped<PayslipDocumentService>();
+        services.TryAddScoped<PayslipNoticeService>();
+        services.AddAttachmentOwner(PayslipDocumentRules.OwnerType, new AttachmentOwnerRules("hr", ["application/pdf"],
+            OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IHrDb>().Payslips.AnyAsync(p => p.Id == id, ct),
+            ReadAction: PositionService.SensitiveAction, WriteAction: PositionService.SensitiveAction, CanAttach: SystemOnly, AuditReads: true));
+        services.AddAttachmentOwner(PayslipDocumentRules.BatchOwnerType, new AttachmentOwnerRules("hr", ["application/zip"],
+            OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IHrDb>().PayrollRuns.AnyAsync(r => r.Id == id, ct),
+            ReadAction: PositionService.SensitiveAction, WriteAction: PositionService.SensitiveAction, CanAttach: SystemOnly, AuditReads: true));
         services.AddAuditableEntity<EmployeeDependent>("hr", PositionService.SensitiveAction);
         services.AddAuditableEntity<Employee>("hr", PositionService.SensitiveAction);
         services.AddAuditableEntity<EmployeeHistoryEntry>("hr", PositionService.SensitiveAction);
@@ -116,4 +129,7 @@ public static class HrInfrastructure
         services.AddAuditableEntity<LaborUnion>("hr", PositionService.SensitiveAction);
         return services;
     }
+
+    private static Task<BemAqui.SharedKernel.Error?> SystemOnly(IServiceProvider services, Guid ownerId, CancellationToken cancellationToken) =>
+        Task.FromResult<BemAqui.SharedKernel.Error?>(BemAqui.SharedKernel.Error.Validation("attachment.system_only", "Este documento é gerado pelo sistema e não aceita anexos."));
 }

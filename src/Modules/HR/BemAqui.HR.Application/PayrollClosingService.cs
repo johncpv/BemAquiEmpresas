@@ -26,6 +26,7 @@ public sealed class PayrollClosingService(
     PayrollCostTargets targets,
     PayrollForecastService forecast,
     PayrollService runs,
+    Documents.PayslipDocumentService documents,
     IEventPublisher events,
     INotificationService notifications,
     IUserDirectory users,
@@ -151,6 +152,8 @@ public sealed class PayrollClosingService(
         db.Entry(run).Property(r => r.Version).OriginalValue = input.Version;
 
         // A previsão do mês e do tipo é substituída pela folha real, e a dos meses seguintes é refeita (CA 15), na mesma transação.
+        // RH-02b CA 10: holerite já avisado que mudou depois do aviso ganha "Alterado depois do aviso".
+        var changedAfterNotice = await documents.MarkChangedAfterNoticeAsync(run.Id, cancellationToken);
         var refreshed = await forecast.RefreshAsync(cancellationToken);
         if (refreshed.IsFailure)
         {
@@ -170,7 +173,7 @@ public sealed class PayrollClosingService(
 
         await transaction.CommitAsync(cancellationToken);
         var summary = (await runs.GetAsync(run.Id, cancellationToken)).Value;
-        return new PayrollCloseResult(summary, created, PayrollClosingRules.ClosedMessage(run.Period, created));
+        return new PayrollCloseResult(summary, created, PayrollClosingRules.ClosedMessage(run.Period, created), changedAfterNotice);
     }
 
     /// <summary>
@@ -236,6 +239,8 @@ public sealed class PayrollClosingService(
         run.ReopenReason = reason;
         run.ReopenedAt = clock.GetUtcNow();
         run.ReopenedBy = currentUser.UserId;
+        // RH-02b CA 10: os PDFs guardados deixam de valer; fechada de novo, o próximo download refaz.
+        await documents.InvalidateAsync(run.Id, cancellationToken);
         db.Entry(run).Property(r => r.Version).OriginalValue = input.Version;
         var refreshed = await forecast.RefreshAsync(cancellationToken);
         if (refreshed.IsFailure)

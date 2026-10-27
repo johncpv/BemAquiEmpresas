@@ -95,6 +95,39 @@ public class EndpointAuthorizationTests(TenancyFixture tenancy) : IClassFixture<
         ["/hubs/ping/negotiate"] = "negociação do hub acima",
     };
 
+    /// <summary>
+    /// Autoatendimento do funcionário (ADR 0035 §1, D19): rotas de <c>/api/v1/me/hr/*</c> sem <c>perm:</c>, liberadas pela camada 1
+    /// (<c>RequireModule("hr")</c>) e pelo filtro de vínculo com funcionário ativo (<c>RequireActiveEmployeeLink</c>). Rota nova entra aqui
+    /// com o motivo; sem as duas marcas, reprova.
+    /// </summary>
+    private static readonly Dictionary<string, string> SelfService = new(StringComparer.Ordinal)
+    {
+        ["/api/v1/me/hr/link"] = "vínculo da própria pessoa com o funcionário (menu de \"Meus holerites\"), sem dado sensível (RH-02b)",
+        ["/api/v1/me/hr/payslips"] = "os próprios holerites das folhas fechadas (RH-02b CA 5)",
+        ["/api/v1/me/hr/payslips/{id:guid}/pdf"] = "o PDF do próprio holerite; o de outro funcionário responde 404 (RH-02b CA 5)",
+    };
+
+    private static bool IsSelfService(RouteEndpoint e) =>
+        e.Metadata.GetMetadata<SelfServiceMetadata>() is { ModuleCode: "hr" }
+        && e.Metadata.GetMetadata<BemAqui.HR.Endpoints.ActiveEmployeeLinkAttribute>() is not null
+        && e.Metadata.GetMetadata<RequiresModuleMetadata>()?.ModuleCode == "hr"
+        && e.RoutePattern.RawText!.StartsWith("/api/v1/me/hr/", StringComparison.Ordinal)
+        && SelfService.ContainsKey(Key(e));
+
+    [Fact]
+    public void Rotas_de_autoatendimento_so_com_a_marca_o_filtro_de_vinculo_e_na_lista()
+    {
+        var endpoints = Endpoints();
+        var me = endpoints.Where(e => e.RoutePattern.RawText!.StartsWith("/api/v1/me/hr", StringComparison.Ordinal)).ToList();
+
+        me.Should().NotBeEmpty();
+        me.Should().OnlyContain(e => IsSelfService(e) && !HasPermission(e), "rota /api/v1/me/hr/* só pelo módulo e pelo vínculo, sem ação no grupo (ADR 0035)");
+        endpoints.Where(e => e.Metadata.GetMetadata<SelfServiceMetadata>() != null).Should()
+            .OnlyContain(e => e.RoutePattern.RawText!.StartsWith("/api/v1/me/", StringComparison.Ordinal), "a marca de autoatendimento só vale em /api/v1/me/*");
+        me.Should().OnlyContain(e => e.Metadata.GetMetadata<PinSessionAllowedAttribute>() == null, "holerite exige login completo: fora da sessão por PIN (ADR 0035 §4)");
+        SelfService.Keys.Except(me.Select(Key)).Should().BeEmpty("rota removida sai da lista");
+    }
+
     private static string Key(RouteEndpoint endpoint)
     {
         var raw = endpoint.RoutePattern.RawText ?? string.Empty;
@@ -160,7 +193,7 @@ public class EndpointAuthorizationTests(TenancyFixture tenancy) : IClassFixture<
                     problems.Add("anônima fora da lista: " + key + " (" + endpoint.DisplayName + ")");
                 }
             }
-            else if (!HasPermission(endpoint) && !HasHubAccess(endpoint) && !IsKiosk(endpoint) && !IsPlatform(endpoint) && !AuthenticatedOnly.ContainsKey(key))
+            else if (!HasPermission(endpoint) && !HasHubAccess(endpoint) && !IsKiosk(endpoint) && !IsPlatform(endpoint) && !IsSelfService(endpoint) && !AuthenticatedOnly.ContainsKey(key))
             {
                 problems.Add("só autenticado, sem RequirePermission: " + key + " (" + endpoint.DisplayName + ")");
             }
