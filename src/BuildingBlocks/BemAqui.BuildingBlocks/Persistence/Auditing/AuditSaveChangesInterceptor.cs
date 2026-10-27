@@ -62,6 +62,12 @@ public sealed class AuditSaveChangesInterceptor(ICurrentUser currentUser, TimePr
                 : entry.State == EntityState.Added ? AuditActions.Created
                 : AuditActions.Updated;
 
+            // Criação em massa já registrada no documento que a trouxe (BNK-03a: o lote do extrato); só as mudanças entram.
+            if (action == AuditActions.Created && entry.Entity is IAuditUpdatesOnly)
+            {
+                continue;
+            }
+
             var changes = Diff(entry, action);
             if (action == AuditActions.Updated && changes.Count == 0)
             {

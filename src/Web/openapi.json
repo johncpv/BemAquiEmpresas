@@ -25863,6 +25863,323 @@
         }
       }
     },
+    "/api/v1/finance/bank-accounts/{id}/statement-lines": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetBankStatementLines",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankStatementView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bank-accounts/{id}/statement-lines/batches": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ListBankStatementBatches",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BankStatementBatchView"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bank-accounts/{id}/statement-lines/import-ofx": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ImportBankStatementOfx",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/StatementOfxForm"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankStatementImportResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bank-accounts/{id}/statement-lines/fetch": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "FetchBankStatement",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankStatementImportResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bank-accounts/{id}/statement-lines/ofx-contingency": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GrantOfxContingency",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OfxContingencyInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OfxContingencyView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bank-accounts/{id}/statement-lines/{lineId}/ignore": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "IgnoreBankStatementLine",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "lineId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IgnoreStatementLineInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankStatementLineView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bank-accounts/{id}/statement-lines/batches/{batchId}/undo": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "UndoBankStatementBatch",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "batchId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UndoStatementBatchInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankStatementBatchView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/settings/integrations/inter": {
       "get": {
         "tags": [
@@ -29378,6 +29695,37 @@
           "Cash"
         ]
       },
+      "BankBalanceDay": {
+        "required": [
+          "date",
+          "bankBalance",
+          "systemBalance",
+          "difference",
+          "source"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "bankBalance": {
+            "type": "number",
+            "format": "double"
+          },
+          "systemBalance": {
+            "type": "number",
+            "format": "double"
+          },
+          "difference": {
+            "type": "number",
+            "format": "double"
+          },
+          "source": {
+            "type": "string"
+          }
+        }
+      },
       "BankCertificateView": {
         "required": [
           "notAfter",
@@ -29884,6 +30232,388 @@
             ]
           },
           "certificateNotAfter": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "BankStatementBatchView": {
+        "required": [
+          "id",
+          "source",
+          "trigger",
+          "periodFrom",
+          "periodTo",
+          "fileName",
+          "fileSha256",
+          "attachmentId",
+          "bankVerified",
+          "newCount",
+          "duplicateCount",
+          "rejectedCount",
+          "notes",
+          "importedAt",
+          "importedByName",
+          "undoneAt",
+          "undoneByName",
+          "undoReason",
+          "reconciledCount",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "source": {
+            "type": "string"
+          },
+          "trigger": {
+            "type": "string"
+          },
+          "periodFrom": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "periodTo": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "fileName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "fileSha256": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "attachmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "bankVerified": {
+            "type": "boolean"
+          },
+          "newCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "duplicateCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "rejectedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "importedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "importedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "undoneAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "undoneByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "undoReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reconciledCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "BankStatementImportResult": {
+        "required": [
+          "batchId",
+          "newCount",
+          "duplicateCount",
+          "rejectedCount",
+          "notes",
+          "periodFrom",
+          "periodTo",
+          "pendingCount",
+          "bankVerified"
+        ],
+        "type": "object",
+        "properties": {
+          "batchId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "newCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "duplicateCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "rejectedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "notes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "periodFrom": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "periodTo": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "pendingCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bankVerified": {
+            "type": "boolean"
+          }
+        }
+      },
+      "BankStatementLineView": {
+        "required": [
+          "id",
+          "date",
+          "description",
+          "kind",
+          "counterpartyName",
+          "counterpartyDocument",
+          "counterpartyMasked",
+          "amount",
+          "source",
+          "bankVerified",
+          "status",
+          "ignoreReason",
+          "batchId",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "description": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "counterpartyName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "counterpartyDocument": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "counterpartyMasked": {
+            "type": "boolean"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "source": {
+            "type": "string"
+          },
+          "bankVerified": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string"
+          },
+          "ignoreReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "batchId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "BankStatementView": {
+        "required": [
+          "accountId",
+          "accountName",
+          "provider",
+          "apiConnected",
+          "environment",
+          "ofxAllowed",
+          "contingency",
+          "from",
+          "to",
+          "latest",
+          "balances",
+          "lines",
+          "total",
+          "pendingCount",
+          "counterpartyMasked",
+          "batches",
+          "lastFetchAt",
+          "nextFetchAt"
+        ],
+        "type": "object",
+        "properties": {
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "accountName": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "apiConnected": {
+            "type": "boolean"
+          },
+          "environment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ofxAllowed": {
+            "type": "boolean"
+          },
+          "contingency": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/OfxContingencyView"
+              }
+            ]
+          },
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "latest": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/BankBalanceDay"
+              }
+            ]
+          },
+          "balances": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BankBalanceDay"
+            }
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BankStatementLineView"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pendingCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "counterpartyMasked": {
+            "type": "boolean"
+          },
+          "batches": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BankStatementBatchView"
+            }
+          },
+          "lastFetchAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "nextFetchAt": {
             "type": [
               "null",
               "string"
@@ -39941,6 +40671,22 @@
         "type": "string",
         "format": "binary"
       },
+      "IgnoreStatementLineInput": {
+        "required": [
+          "reason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
       "ImportPendingItem": {
         "required": [
           "id",
@@ -45632,6 +46378,50 @@
           },
           "customized": {
             "type": "boolean"
+          }
+        }
+      },
+      "OfxContingencyInput": {
+        "required": [
+          "reason",
+          "validUntil"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "validUntil": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "OfxContingencyView": {
+        "required": [
+          "validUntil",
+          "grantedByName",
+          "grantedAt",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "validUntil": {
+            "type": "string",
+            "format": "date"
+          },
+          "grantedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "grantedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reason": {
+            "type": "string"
           }
         }
       },
@@ -65535,6 +66325,21 @@
           }
         }
       },
+      "StatementOfxForm": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/IFormFile"
+              }
+            ]
+          }
+        }
+      },
       "StatementPage": {
         "required": [
           "items",
@@ -68380,6 +69185,22 @@
           "KeepSystem",
           null
         ]
+      },
+      "UndoStatementBatchInput": {
+        "required": [
+          "reason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
       },
       "UnionDetail": {
         "required": [

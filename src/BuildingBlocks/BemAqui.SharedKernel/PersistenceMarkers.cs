@@ -3,6 +3,12 @@ namespace BemAqui.SharedKernel;
 /// <summary>Toda alteração da entidade é gravada em <c>audit.audit_log</c> na mesma transação (diff antes/depois).</summary>
 public interface IAuditable;
 
+/// <summary>
+/// Auditável só nas mudanças (BNK-03a): a criação em massa (ex.: as linhas do extrato do banco) já fica registrada no documento que
+/// a trouxe (o lote), então o <c>Created</c> não gera linha na auditoria; as alterações seguintes, sim.
+/// </summary>
+public interface IAuditUpdatesOnly : IAuditable;
+
 /// <summary>Cadastro com exclusão lógica: excluir marca <see cref="IsDeleted"/> e as consultas padrão o ignoram.</summary>
 public interface ISoftDeletable
 {

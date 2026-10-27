@@ -71,6 +71,10 @@ import type {
   BankIntegrationDetail,
   BankIntegrationForm,
   BankIntegrationList,
+  BankStatementBatchView,
+  BankStatementImportResult,
+  BankStatementLineView,
+  BankStatementView,
   BankTransferDetail,
   BomComparison,
   BomCopyInput,
@@ -186,6 +190,7 @@ import type {
   GanttProjectsView,
   GetAgingParams,
   GetAuditHistoryParams,
+  GetBankStatementLinesParams,
   GetBankStatementParams,
   GetCashFlowDayParams,
   GetCashFlowParams,
@@ -254,6 +259,7 @@ import type {
   HrParametersInput,
   HrParametersView,
   HttpValidationProblemDetails,
+  IgnoreStatementLineInput,
   ImportPayrollEntriesBody,
   ImportRunDetail,
   InstallationAcceptInput,
@@ -414,6 +420,8 @@ import type {
   NotificationPage,
   NumberFormatInput,
   NumberFormatRow,
+  OfxContingencyInput,
+  OfxContingencyView,
   OpenInventoryCountInput,
   OpenLaborList,
   OpeningBalanceInput,
@@ -715,6 +723,7 @@ import type {
   SimulateApprovalParams,
   SplitPreviewInput,
   SplitPreviewRequest,
+  StatementOfxForm,
   StatementResult,
   StepUpRequest,
   StepUpResponse,
@@ -749,6 +758,7 @@ import type {
   TransferInput,
   TwoFactorActivatedResponse,
   TwoFactorStatus,
+  UndoStatementBatchInput,
   UnionDetail,
   UnionInput,
   UnitDetail,
@@ -64785,6 +64795,605 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getReversePaymentOrderMutationOptions(options), queryClient);
+    }
+
+export const getGetBankStatementLinesUrl = (id: string,
+    params?: GetBankStatementLinesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/finance/bank-accounts/${id}/statement-lines?${stringifiedParams}` : `/api/v1/finance/bank-accounts/${id}/statement-lines`
+}
+
+export const getBankStatementLines = async (id: string,
+    params?: GetBankStatementLinesParams, options?: Parameters<typeof apiFetch>[1]): Promise<BankStatementView> => {
+
+  return apiFetch<BankStatementView>(getGetBankStatementLinesUrl(id,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBankStatementLinesQueryKey = (id: string,
+    params?: GetBankStatementLinesParams,) => {
+    return [
+    `/api/v1/finance/bank-accounts/${id}/statement-lines`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetBankStatementLinesQueryOptions = <TData = Awaited<ReturnType<typeof getBankStatementLines>>, TError = unknown>(id: string,
+    params?: GetBankStatementLinesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBankStatementLines>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBankStatementLinesQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBankStatementLines>>> = ({ signal }) => getBankStatementLines(id,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBankStatementLines>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetBankStatementLinesQueryResult = NonNullable<Awaited<ReturnType<typeof getBankStatementLines>>>
+export type GetBankStatementLinesQueryError = unknown
+
+
+export function useGetBankStatementLines<TData = Awaited<ReturnType<typeof getBankStatementLines>>, TError = unknown>(
+ id: string,
+    params: undefined |  GetBankStatementLinesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBankStatementLines>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBankStatementLines>>,
+          TError,
+          Awaited<ReturnType<typeof getBankStatementLines>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetBankStatementLines<TData = Awaited<ReturnType<typeof getBankStatementLines>>, TError = unknown>(
+ id: string,
+    params?: GetBankStatementLinesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBankStatementLines>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBankStatementLines>>,
+          TError,
+          Awaited<ReturnType<typeof getBankStatementLines>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetBankStatementLines<TData = Awaited<ReturnType<typeof getBankStatementLines>>, TError = unknown>(
+ id: string,
+    params?: GetBankStatementLinesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBankStatementLines>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetBankStatementLines<TData = Awaited<ReturnType<typeof getBankStatementLines>>, TError = unknown>(
+ id: string,
+    params?: GetBankStatementLinesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBankStatementLines>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetBankStatementLinesQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListBankStatementBatchesUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/finance/bank-accounts/${id}/statement-lines/batches`
+}
+
+export const listBankStatementBatches = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<BankStatementBatchView[]> => {
+
+  return apiFetch<BankStatementBatchView[]>(getListBankStatementBatchesUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListBankStatementBatchesQueryKey = (id: string,) => {
+    return [
+    `/api/v1/finance/bank-accounts/${id}/statement-lines/batches`
+    ] as const;
+    }
+
+
+export const getListBankStatementBatchesQueryOptions = <TData = Awaited<ReturnType<typeof listBankStatementBatches>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBankStatementBatches>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListBankStatementBatchesQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listBankStatementBatches>>> = ({ signal }) => listBankStatementBatches(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listBankStatementBatches>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListBankStatementBatchesQueryResult = NonNullable<Awaited<ReturnType<typeof listBankStatementBatches>>>
+export type ListBankStatementBatchesQueryError = unknown
+
+
+export function useListBankStatementBatches<TData = Awaited<ReturnType<typeof listBankStatementBatches>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBankStatementBatches>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listBankStatementBatches>>,
+          TError,
+          Awaited<ReturnType<typeof listBankStatementBatches>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListBankStatementBatches<TData = Awaited<ReturnType<typeof listBankStatementBatches>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBankStatementBatches>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listBankStatementBatches>>,
+          TError,
+          Awaited<ReturnType<typeof listBankStatementBatches>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListBankStatementBatches<TData = Awaited<ReturnType<typeof listBankStatementBatches>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBankStatementBatches>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListBankStatementBatches<TData = Awaited<ReturnType<typeof listBankStatementBatches>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBankStatementBatches>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListBankStatementBatchesQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getImportBankStatementOfxUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/finance/bank-accounts/${id}/statement-lines/import-ofx`
+}
+
+export const importBankStatementOfx = async (id: string,
+    statementOfxForm: StatementOfxForm, options?: Parameters<typeof apiFetch>[1]): Promise<BankStatementImportResult> => {
+    const formData = new FormData();
+if(statementOfxForm.file !== undefined && statementOfxForm.file !== null) {
+ formData.append(`file`, statementOfxForm.file);
+ }
+
+  return apiFetch<BankStatementImportResult>(getImportBankStatementOfxUrl(id),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getImportBankStatementOfxMutationKey = () => ['importBankStatementOfx'] as const;
+
+export const getImportBankStatementOfxMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importBankStatementOfx>>, TError,ImportBankStatementOfxMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof importBankStatementOfx>>, TError,ImportBankStatementOfxMutationVariables, TContext> => {
+
+const mutationKey = getImportBankStatementOfxMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof importBankStatementOfx>>, ImportBankStatementOfxMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  importBankStatementOfx(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ImportBankStatementOfxMutationResult = NonNullable<Awaited<ReturnType<typeof importBankStatementOfx>>>
+    export type ImportBankStatementOfxMutationBody = StatementOfxForm
+    export type ImportBankStatementOfxMutationError = unknown
+    export type ImportBankStatementOfxMutationVariables = {id: string;data: StatementOfxForm}
+
+    export const useImportBankStatementOfx = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importBankStatementOfx>>, TError,ImportBankStatementOfxMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof importBankStatementOfx>>,
+        TError,
+        ImportBankStatementOfxMutationVariables,
+        TContext
+      > => {
+      return useMutation(getImportBankStatementOfxMutationOptions(options), queryClient);
+    }
+
+export const getFetchBankStatementUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/finance/bank-accounts/${id}/statement-lines/fetch`
+}
+
+export const fetchBankStatement = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<BankStatementImportResult> => {
+
+  return apiFetch<BankStatementImportResult>(getFetchBankStatementUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getFetchBankStatementMutationKey = () => ['fetchBankStatement'] as const;
+
+export const getFetchBankStatementMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof fetchBankStatement>>, TError,FetchBankStatementMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof fetchBankStatement>>, TError,FetchBankStatementMutationVariables, TContext> => {
+
+const mutationKey = getFetchBankStatementMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof fetchBankStatement>>, FetchBankStatementMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  fetchBankStatement(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type FetchBankStatementMutationResult = NonNullable<Awaited<ReturnType<typeof fetchBankStatement>>>
+
+    export type FetchBankStatementMutationError = unknown
+    export type FetchBankStatementMutationVariables = {id: string}
+
+    export const useFetchBankStatement = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof fetchBankStatement>>, TError,FetchBankStatementMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof fetchBankStatement>>,
+        TError,
+        FetchBankStatementMutationVariables,
+        TContext
+      > => {
+      return useMutation(getFetchBankStatementMutationOptions(options), queryClient);
+    }
+
+export const getGrantOfxContingencyUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/finance/bank-accounts/${id}/statement-lines/ofx-contingency`
+}
+
+export const grantOfxContingency = async (id: string,
+    ofxContingencyInput: OfxContingencyInput, options?: Parameters<typeof apiFetch>[1]): Promise<OfxContingencyView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<OfxContingencyView>(getGrantOfxContingencyUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(ofxContingencyInput)
+  }
+);}
+
+
+
+
+
+export const getGrantOfxContingencyMutationKey = () => ['grantOfxContingency'] as const;
+
+export const getGrantOfxContingencyMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof grantOfxContingency>>, TError,GrantOfxContingencyMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof grantOfxContingency>>, TError,GrantOfxContingencyMutationVariables, TContext> => {
+
+const mutationKey = getGrantOfxContingencyMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof grantOfxContingency>>, GrantOfxContingencyMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  grantOfxContingency(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GrantOfxContingencyMutationResult = NonNullable<Awaited<ReturnType<typeof grantOfxContingency>>>
+    export type GrantOfxContingencyMutationBody = OfxContingencyInput
+    export type GrantOfxContingencyMutationError = unknown
+    export type GrantOfxContingencyMutationVariables = {id: string;data: OfxContingencyInput}
+
+    export const useGrantOfxContingency = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof grantOfxContingency>>, TError,GrantOfxContingencyMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof grantOfxContingency>>,
+        TError,
+        GrantOfxContingencyMutationVariables,
+        TContext
+      > => {
+      return useMutation(getGrantOfxContingencyMutationOptions(options), queryClient);
+    }
+
+export const getIgnoreBankStatementLineUrl = (id: string,
+    lineId: string,) => {
+
+
+
+
+  return `/api/v1/finance/bank-accounts/${id}/statement-lines/${lineId}/ignore`
+}
+
+export const ignoreBankStatementLine = async (id: string,
+    lineId: string,
+    ignoreStatementLineInput: IgnoreStatementLineInput, options?: Parameters<typeof apiFetch>[1]): Promise<BankStatementLineView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<BankStatementLineView>(getIgnoreBankStatementLineUrl(id,lineId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(ignoreStatementLineInput)
+  }
+);}
+
+
+
+
+
+export const getIgnoreBankStatementLineMutationKey = () => ['ignoreBankStatementLine'] as const;
+
+export const getIgnoreBankStatementLineMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ignoreBankStatementLine>>, TError,IgnoreBankStatementLineMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof ignoreBankStatementLine>>, TError,IgnoreBankStatementLineMutationVariables, TContext> => {
+
+const mutationKey = getIgnoreBankStatementLineMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof ignoreBankStatementLine>>, IgnoreBankStatementLineMutationVariables> = (props) => {
+          const {id,lineId,data} = props ?? {};
+
+          return  ignoreBankStatementLine(id,lineId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type IgnoreBankStatementLineMutationResult = NonNullable<Awaited<ReturnType<typeof ignoreBankStatementLine>>>
+    export type IgnoreBankStatementLineMutationBody = IgnoreStatementLineInput
+    export type IgnoreBankStatementLineMutationError = unknown
+    export type IgnoreBankStatementLineMutationVariables = {id: string;lineId: string;data: IgnoreStatementLineInput}
+
+    export const useIgnoreBankStatementLine = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ignoreBankStatementLine>>, TError,IgnoreBankStatementLineMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof ignoreBankStatementLine>>,
+        TError,
+        IgnoreBankStatementLineMutationVariables,
+        TContext
+      > => {
+      return useMutation(getIgnoreBankStatementLineMutationOptions(options), queryClient);
+    }
+
+export const getUndoBankStatementBatchUrl = (id: string,
+    batchId: string,) => {
+
+
+
+
+  return `/api/v1/finance/bank-accounts/${id}/statement-lines/batches/${batchId}/undo`
+}
+
+export const undoBankStatementBatch = async (id: string,
+    batchId: string,
+    undoStatementBatchInput: UndoStatementBatchInput, options?: Parameters<typeof apiFetch>[1]): Promise<BankStatementBatchView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<BankStatementBatchView>(getUndoBankStatementBatchUrl(id,batchId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(undoStatementBatchInput)
+  }
+);}
+
+
+
+
+
+export const getUndoBankStatementBatchMutationKey = () => ['undoBankStatementBatch'] as const;
+
+export const getUndoBankStatementBatchMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof undoBankStatementBatch>>, TError,UndoBankStatementBatchMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof undoBankStatementBatch>>, TError,UndoBankStatementBatchMutationVariables, TContext> => {
+
+const mutationKey = getUndoBankStatementBatchMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof undoBankStatementBatch>>, UndoBankStatementBatchMutationVariables> = (props) => {
+          const {id,batchId,data} = props ?? {};
+
+          return  undoBankStatementBatch(id,batchId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UndoBankStatementBatchMutationResult = NonNullable<Awaited<ReturnType<typeof undoBankStatementBatch>>>
+    export type UndoBankStatementBatchMutationBody = UndoStatementBatchInput
+    export type UndoBankStatementBatchMutationError = unknown
+    export type UndoBankStatementBatchMutationVariables = {id: string;batchId: string;data: UndoStatementBatchInput}
+
+    export const useUndoBankStatementBatch = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof undoBankStatementBatch>>, TError,UndoBankStatementBatchMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof undoBankStatementBatch>>,
+        TError,
+        UndoBankStatementBatchMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUndoBankStatementBatchMutationOptions(options), queryClient);
     }
 
 export const getListBankIntegrationsUrl = () => {

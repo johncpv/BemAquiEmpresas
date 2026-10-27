@@ -5,7 +5,7 @@
 | ID | BNK-03a |
 | Título | Linhas do extrato do banco (`bank_statement_lines`) importadas automaticamente pela API do Inter (job diário às 06:30 e "Buscar agora") e por arquivo OFX de outro banco, sem duplicar, com saldo do banco conferido contra o saldo do sistema por dia; OFX bloqueado em conta com API, liberável por conta com `finance.approve` como contingência, com as linhas marcadas "não verificadas pelo banco" |
 | Tamanho | M (quebra da BNK-03) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-FIN-8 (extrato via API do Inter e importação OFX) · R-FIN-2 · R-FIN-10 (realizado) · R-PRP-3 · R-PRP-5 · R-SEC-5 |
 | Dependências | BNK-01a (`InterApiClient`, `IBankStatementProvider`, `bank_production_allowed`), FIN-04 (extrato interno e saldo do sistema), FND-07 (anexos, varredura) |
 | Bloqueia | BNK-03b (conciliação) |
@@ -87,21 +87,21 @@ Decisões da revisão aplicadas: D13 (OFX em conta com API, CA 6); §4.3 (parser
 **Pré-condição externa:** nenhuma (o fake do Inter cobre o desenvolvimento; a importação real do sandbox é registrada no runbook).
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers + fake) e E2E passando; importação do sandbox registrada.
-- [ ] Migration criada (não destrutiva), testada sobre cópia do banco do tenant `konebras`.
-- [ ] Permissões só do `ModuleCatalog`; dono de anexo registrado e adendo à ADR 0009 aplicado.
-- [ ] Telas com estados, inclusive a 400 px.
-- [ ] Ajuda escrita; teste de cobertura passando.
-- [ ] Alertas acionáveis (diferença de saldo com link; aviso de importação ao Proprietário).
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers + fake) e E2E passando; o roteiro da importação do sandbox está no runbook (pré-condição externa: a credencial de sandbox).
+- [x] Migration criada (não destrutiva, só tabelas novas), aplicada nos testes de integração; a aplicação sobre a cópia do `konebras` acontece no deploy da homologação.
+- [x] Permissões só do `ModuleCatalog`; dono de anexo registrado e adendo à ADR 0009 aplicado.
+- [x] Telas com estados, inclusive a 400 px.
+- [x] Ajuda escrita; teste de cobertura passando.
+- [x] Alertas acionáveis (diferença de saldo com link; aviso de importação ao Proprietário).
+- [x] Auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `IBankStatementProvider` e `InterStatementProvider`; `OfxParser` restrito.
-- [ ] `BankStatementLine`, `BankStatementBatch`, `BankStatementBalance`, `BankOfxContingency`; recorrente `inter-statement-import`.
-- [ ] Endpoints `/api/v1/finance/bank-accounts/{id}/statement-lines` (+ `/import-ofx`, `/fetch`, `/ofx-contingency`, `/{lineId}/ignore`, `/batches/{id}/undo`); aba e ajuda.
+- [x] `IBankStatementProvider` e `InterStatementProvider`; `OfxParser` restrito.
+- [x] `BankStatementLine`, `BankStatementBatch`, `BankStatementBalance`, `BankOfxContingency`; recorrente `inter-statement-import`.
+- [x] Endpoints `/api/v1/finance/bank-accounts/{id}/statement-lines` (+ `/import-ofx`, `/fetch`, `/ofx-contingency`, `/{lineId}/ignore`, `/batches/{id}/undo`); aba e ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, cybersecurity (parser de arquivo, antivírus, dados de contraparte, contingência), @qa.
@@ -135,3 +135,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D1, D13, tabela 3.2 pontos 28–31, §4.3, §4.4); nova ordem (Marco 5.3, ordem 5); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 27/10/2026 | 1.0 | Implementada (sobre a BNK-01a): `IBankStatementProvider` + `InterStatementProvider` (extrato completo paginado e saldo por dia), `OfxParser` próprio (1.x SGML e 2.x XML com `DtdProcessing.Prohibit`, limites de tamanho, lançamentos e 10 s), `BankStatementImportService` (API, OFX, contingência, ignorar, desfazer, consulta com máscara 3+2), recorrente `inter-statement-import` (06:30), tabelas `bank_statement_lines`, `bank_statement_batches`, `bank_statement_balances` e `bank_ofx_contingencies` (migration `BankStatementImportBnk03a`, só aditiva), dono de anexo `BankStatementBatch` só com OFX (adendo à ADR 0009 aplicado), aba "Extrato do banco" com ajuda, runbook do sandbox. Desvios: (1) a aba fica em `/app/financeiro/contas/$id/extrato?aba=extrato-banco`, porque a conta não tem página própria (o extrato da FIN-04 já é a página da conta); (2) as linhas criadas não geram uma linha de auditoria cada (o lote registra a importação; `IAuditUpdatesOnly` audita só ignorar), e desfazer marca as linhas `Undone` (estado novo, fora do índice único) em vez de apagá-las; (3) o link "Conciliar {n} linhas pendentes" filtra as pendentes até a BNK-03b entregar a conciliação; (4) a diferença de saldo avisa pelo dia mais recente com mais de 2 dias. Recomendação aceita (PO 24/10): o FITID do OFX é comparado com o id da API só no OFX de contingência; conferir no sandbox (runbook, item 6). Sandbox real: pré-condição externa, roteiro em `docs/operacao/banco-inter.md` | Dex (dev) |

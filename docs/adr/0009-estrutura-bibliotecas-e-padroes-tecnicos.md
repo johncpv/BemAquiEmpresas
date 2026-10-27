@@ -79,3 +79,13 @@
 - **Webhooks (ADR 0031):** **`POST /webhooks/{provider}/{tenantKey}`**, fora de `/api/v1`, anônima de usuário, com validador de origem obrigatório por provedor; fora do middleware de tenant por host.
 - **Portal do cliente (ADR 0040)**, só no host do portal: `POST /api/v1/portal/auth/login`, `POST /api/v1/portal/auth/refresh` e `POST /api/v1/portal/auth/logout` (com `Origin` do host do portal e `X-CSRF: 1`, como o backoffice), `POST /api/v1/portal/auth/2fa` (segundo passo do login), `GET` e `POST /api/v1/portal/invites/{token}` (validar e aceitar o convite), `POST /api/v1/portal/auth/password-reset` e `POST /api/v1/portal/auth/password-reset/confirm`, e o `GET /api/v1/public/tenant-context` no host do portal. Resposta uniforme e rate limit por política nomeada em todas.
 - **Teste de arquitetura das rotas (D19):** reprova todo endpoint que não tenha `RequirePermission`/`RequireModule` (ou `RequireSelfService`, ADR 0035, ou o esquema `Kiosk`, ADR 0030) e que **não esteja na lista versionada de rotas anônimas** (arquivo no projeto de testes de arquitetura, com o método, o caminho e a ADR que a autoriza). Entrar na lista exige ADR; a lista nasce com as rotas deste adendo, as do adendo do PIN e as anteriores (login, refresh, logout, convite, recuperação de senha, `tenant-context`, `tenant-logo`, `/health/live|ready`).
+
+## Adendo 21/10/2026 (revisão pré-Fases 4 a 8, ponto 29; aplicado na BNK-03a em 27/10/2026): OFX só no dono `BankStatementBatch`
+- O OFX (`.ofx`, `application/x-ofx`) **não entra na allowlist geral**. É um tipo extra declarado só pelo dono `BankStatementBatch`
+  (`AttachmentOwnerRules.ExtraTypes`), com magic bytes próprios: cabeçalho `OFXHEADER:` (1.x SGML) ou XML com `<?OFX`/`<OFX>` (2.x), texto sem
+  página HTML. Até 5 MB.
+- O arquivo é lido pelo sistema, então a triagem (`AttachmentService.ScreenAsync`: permissão de gravar do dono, limite de envios, tamanho, tipo
+  e **antivírus**) vem **antes** do parser; com o antivírus indisponível, recusa (falha fechada). Depois da leitura, o arquivo bruto vira anexo do
+  lote (`StoreScreenedAsync`), na mesma transação. A rota genérica de anexos recusa o dono (o arquivo entra só por "Importar extrato").
+- Parser próprio e restrito: 2.x com `DtdProcessing.Prohibit` e sem resolver; qualquer `<!DOCTYPE`/`<!ENTITY` recusa; limite de lançamentos e de
+  tempo (10 s).

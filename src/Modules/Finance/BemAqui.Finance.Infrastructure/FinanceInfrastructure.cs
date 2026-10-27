@@ -107,6 +107,19 @@ public static class FinanceInfrastructure
         services.TryAddScoped<BankIntegrationService>();
         services.TryAddScoped<InterCertificateExpiryNotifier>();
         services.AddAuditableEntity<BankIntegration>("settings");
+        // Extrato do banco (BNK-03a): API do Inter e OFX (dono de anexo só com o OFX, ADR 0009 adendo), lote, linha, contingência e o job diário.
+        services.AddOptions<BemAqui.Finance.Application.Statements.BankStatementOptions>().BindConfiguration(BemAqui.Finance.Application.Statements.BankStatementOptions.Section);
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.Finance.Application.Statements.IBankStatementProvider, Inter.InterStatementProvider>());
+        services.TryAddScoped<BemAqui.Finance.Application.Statements.BankStatementImportService>();
+        services.AddAuditableEntity<BankStatementBatch>("finance");
+        services.AddAuditableEntity<BankStatementLine>("finance");
+        services.AddAuditableEntity<BankOfxContingency>("finance");
+        services.AddAttachmentOwner(BemAqui.Finance.Application.Statements.BankStatementImportService.AttachmentOwner, new AttachmentOwnerRules("finance", [AttachmentPolicy.Ofx.ContentType], 5 * 1024 * 1024,
+            OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IFinanceDb>().BankStatementBatches.AnyAsync(b => b.Id == id, ct),
+            ReadAction: "view", WriteAction: "edit",
+            // O arquivo entra só pela importação (que lê, confere e grava junto com o lote); a rota genérica de anexos recusa.
+            CanAttach: (_, _, _) => Task.FromResult<Error?>(Error.Conflict("attachment.owner_state", "O arquivo do extrato entra só por \"Importar extrato\".")),
+            ExtraTypes: [AttachmentPolicy.Ofx]));
         // Painel do proprietário (DSH-01a, ADR 0028 §1): resumos com a mesma fonte dos relatórios e as metas de faturamento.
         services.TryAddScoped<FinanceSummariesContract>();
         services.TryAddScoped<IBankBalances>(sp => sp.GetRequiredService<FinanceSummariesContract>());

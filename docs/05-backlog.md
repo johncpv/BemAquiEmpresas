@@ -474,7 +474,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-
 - Requisitos: R-FIN-7, R-FIN-3, R-FIN-2, R-TER-4.
 - CA: webhook com token na URL que só dispara reconsulta por mTLS; baixa uma vez só; pagamento com diferença vai para conferência humana; estorno de baixa e do pagamento da OP com `finance.approve` (P-20); conferência diária; resumo por hora acima de 5 avisos.
 
-**BNK-03a [ ] Extrato do banco: importação pela API do Inter e por arquivo OFX (M)** — 5.3, ordem 5 — `Ready` — [story](stories/BNK-03a-extrato-api-ofx.md)
+**BNK-03a [x] Extrato do banco: importação pela API do Inter e por arquivo OFX (M)** — 5.3, ordem 5 — `Done` — [story](stories/BNK-03a-extrato-api-ofx.md)
 - Requisitos: R-FIN-8, R-FIN-2, R-FIN-10.
 - CA: importação às 06:30 e "Buscar agora" sem duplicar; OFX bloqueado em conta com API (contingência por conta com `finance.approve`), parser sem DTD, hash e FITID únicos, linhas "não verificadas pelo banco"; contraparte mascarada para `finance.view`; aviso ao Proprietário a cada importação.
 

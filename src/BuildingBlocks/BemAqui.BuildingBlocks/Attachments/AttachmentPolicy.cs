@@ -28,11 +28,21 @@ public static class AttachmentPolicy
         new("DXF", "application/dxf", [".dxf"], b => IsText(b) && (TrimText(b).StartsWith('0') || TrimText(b).StartsWith("999", StringComparison.Ordinal))),
     ];
 
+    /// <summary>
+    /// Extrato bancário OFX (ADR 0009 adendo de 21/10/2026, BNK-03a): fora da lista geral; só o dono que o declara em
+    /// <see cref="AttachmentOwnerRules.ExtraTypes"/> (<c>BankStatementBatch</c>) aceita. Conteúdo: cabeçalho OFX 1.x
+    /// (<c>OFXHEADER:</c>) ou XML com a instrução ou a raiz <c>OFX</c> (2.x), sem página HTML.
+    /// </summary>
+    public static readonly AllowedFileType Ofx = new("OFX", "application/x-ofx", [".ofx"], IsOfx);
+
     /// <summary>Tipo aceito para o nome e o início do conteúdo, ou null se recusado.</summary>
-    public static AllowedFileType? Match(string fileName, ReadOnlySpan<byte> head)
+    public static AllowedFileType? Match(string fileName, ReadOnlySpan<byte> head) => Match(fileName, head, null);
+
+    /// <summary>Como <see cref="Match(string, ReadOnlySpan{byte})"/>, mais os tipos só do dono (<paramref name="extraTypes"/>).</summary>
+    public static AllowedFileType? Match(string fileName, ReadOnlySpan<byte> head, IReadOnlyCollection<AllowedFileType>? extraTypes)
     {
         var extension = Path.GetExtension(fileName).ToLowerInvariant();
-        foreach (var type in Types)
+        foreach (var type in extraTypes is null ? Types : Types.Concat(extraTypes))
         {
             if (type.Extensions.Contains(extension) && type.MatchesContent(head))
             {
@@ -41,6 +51,23 @@ public static class AttachmentPolicy
         }
 
         return null;
+    }
+
+    public static bool IsOfx(ReadOnlySpan<byte> head)
+    {
+        if (!IsText(head) || LooksLikeMarkupPage(head))
+        {
+            return false;
+        }
+
+        var text = Encoding.Latin1.GetString(head).TrimStart('ï', '»', '¿', '﻿', ' ', '\t', '\r', '\n');
+        if (text.StartsWith("OFXHEADER:", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return text.StartsWith("<?xml", StringComparison.OrdinalIgnoreCase)
+            && (text.Contains("<?OFX", StringComparison.OrdinalIgnoreCase) || text.Contains("<OFX>", StringComparison.OrdinalIgnoreCase));
     }
 
     private static bool StartsWith(ReadOnlySpan<byte> data, ReadOnlySpan<byte> prefix) => data.StartsWith(prefix);

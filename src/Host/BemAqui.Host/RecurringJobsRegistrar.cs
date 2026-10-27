@@ -20,6 +20,9 @@ internal sealed class RecurringJobsRegistrar(IRecurringJobManager recurring, ICo
         // Vencimento do certificado do Inter (BNK-01a CA 15): 08:00 de São Paulo, um job por tenant.
         recurring.AddOrUpdate<BemAqui.Finance.Application.InterCertificateExpiryRecurringJob>(BemAqui.Finance.Application.InterCertificateExpiryRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             BemAqui.Finance.Application.InterCertificateExpiryRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
+        // Extrato do banco pela API do Inter (BNK-03a CA 1): 06:30 de São Paulo, um job por tenant com o finance liberado.
+        recurring.AddOrUpdate<BemAqui.Finance.Application.Statements.InterStatementImportRecurringJob>(BemAqui.Finance.Application.Statements.InterStatementImportRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
+            BemAqui.Finance.Application.Statements.InterStatementImportRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         recurring.AddOrUpdate<BemAqui.Finance.Application.OverdueReceivablesRecurringJob>(BemAqui.Finance.Application.OverdueReceivablesRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             BemAqui.Finance.Application.OverdueReceivablesRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         recurring.AddOrUpdate<BemAqui.Commercial.Application.ExpireQuotesRecurringJob>(BemAqui.Commercial.Application.ExpireQuotesRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
