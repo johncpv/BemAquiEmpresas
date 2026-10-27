@@ -23625,6 +23625,13 @@
             }
           },
           {
+            "name": "withBillingSlip",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
             "name": "page",
             "in": "query",
             "schema": {
@@ -24100,6 +24107,350 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ReceivableDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/receivables/billing-slips/batch-preview": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "PreviewBillingSlipBatch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BillingBatchPreviewInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingBatchPreview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/receivables/billing-slips/batch": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "IssueBillingSlipBatch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BillingBatchInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingBatchResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/receivables/{id}/billing-slips": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ListBillingSlips",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BillingSlipView"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "IssueBillingSlip",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BillingSlipInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingSlipResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/receivables/{id}/billing-slips/draft": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetBillingSlipDraft",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingSlipDraft"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/receivables/{id}/billing-slips/{slipId}": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetBillingSlip",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "slipId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingSlipView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/receivables/{id}/billing-slips/{slipId}/send": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "SendBillingSlip",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "slipId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BillingSlipSendInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingSlipResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/receivables/{id}/billing-slips/{slipId}/retry": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "RetryBillingSlip",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "slipId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingSlipResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/receivables/{id}/billing-slips/{slipId}/cancel": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "CancelBillingSlip",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "slipId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BillingSlipCancelInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingSlipResult"
                 }
               }
             }
@@ -26365,6 +26716,84 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BankConnectionTest"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/billing": {
+      "get": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "GetBillingSettings",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingSettingsView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "UpdateBillingSettings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BillingSettingsInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingSettingsView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/billing/confirm": {
+      "post": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "ConfirmBillingSetting",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BillingSettingConfirmInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingSettingsView"
                 }
               }
             }
@@ -30690,6 +31119,950 @@
               "null",
               "string"
             ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "BillingAccountOption": {
+        "required": [
+          "id",
+          "name",
+          "sandbox",
+          "isDefault"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "sandbox": {
+            "type": "boolean"
+          },
+          "isDefault": {
+            "type": "boolean"
+          }
+        }
+      },
+      "BillingBatchEntry": {
+        "required": [
+          "receivableId",
+          "clientRequestId"
+        ],
+        "type": "object",
+        "properties": {
+          "receivableId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "clientRequestId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BillingBatchInput": {
+        "required": [
+          "items",
+          "sendEmail"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BillingBatchEntry"
+            }
+          },
+          "sendEmail": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BillingBatchItem": {
+        "required": [
+          "receivableId",
+          "number",
+          "partyName",
+          "amount",
+          "dueDate",
+          "email"
+        ],
+        "type": "object",
+        "properties": {
+          "receivableId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "BillingBatchPreview": {
+        "required": [
+          "eligible",
+          "refused",
+          "total",
+          "bankAccountId",
+          "sandbox"
+        ],
+        "type": "object",
+        "properties": {
+          "eligible": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BillingBatchItem"
+            }
+          },
+          "refused": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BillingBatchRefusal"
+            }
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "bankAccountId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "sandbox": {
+            "type": "boolean"
+          }
+        }
+      },
+      "BillingBatchPreviewInput": {
+        "required": [
+          "receivableIds"
+        ],
+        "type": "object",
+        "properties": {
+          "receivableIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "BillingBatchRefusal": {
+        "required": [
+          "receivableId",
+          "number",
+          "partyName",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "receivableId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "BillingBatchResult": {
+        "required": [
+          "requested",
+          "slipIds",
+          "refused",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "requested": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "slipIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "refused": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BillingBatchRefusal"
+            }
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "BillingPrecondition": {
+        "required": [
+          "code",
+          "text",
+          "fixLabel",
+          "fixLink",
+          "blocking"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "fixLabel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "fixLink": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "blocking": {
+            "type": "boolean"
+          }
+        }
+      },
+      "BillingReviewItem": {
+        "required": [
+          "key",
+          "label",
+          "reviewState",
+          "reviewedByName",
+          "reviewedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "reviewState": {
+            "$ref": "#/components/schemas/ParameterReviewState"
+          },
+          "reviewedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reviewedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "parameterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "BillingSettingConfirmInput": {
+        "required": [
+          "key"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BillingSettingsInput": {
+        "required": [
+          "finePct",
+          "interestMonthPct",
+          "defaultDiscountPct",
+          "autoEmail",
+          "dailyEmailLimit",
+          "overdueFineFrom"
+        ],
+        "type": "object",
+        "properties": {
+          "finePct": {
+            "type": "number",
+            "format": "double"
+          },
+          "interestMonthPct": {
+            "type": "number",
+            "format": "double"
+          },
+          "defaultDiscountPct": {
+            "type": "number",
+            "format": "double"
+          },
+          "autoEmail": {
+            "type": "boolean"
+          },
+          "dailyEmailLimit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "overdueFineFrom": {
+            "$ref": "#/components/schemas/OverdueFineFrom"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BillingSettingsView": {
+        "required": [
+          "finePct",
+          "interestMonthPct",
+          "defaultDiscountPct",
+          "autoEmail",
+          "dailyEmailLimit",
+          "overdueFineFrom",
+          "nonBusinessDayRule",
+          "reviews",
+          "pendingCount",
+          "canEdit"
+        ],
+        "type": "object",
+        "properties": {
+          "finePct": {
+            "type": "number",
+            "format": "double"
+          },
+          "interestMonthPct": {
+            "type": "number",
+            "format": "double"
+          },
+          "defaultDiscountPct": {
+            "type": "number",
+            "format": "double"
+          },
+          "autoEmail": {
+            "type": "boolean"
+          },
+          "dailyEmailLimit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "overdueFineFrom": {
+            "$ref": "#/components/schemas/OverdueFineFrom"
+          },
+          "nonBusinessDayRule": {
+            "type": "string"
+          },
+          "reviews": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BillingReviewItem"
+            }
+          },
+          "pendingCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "canEdit": {
+            "type": "boolean"
+          }
+        }
+      },
+      "BillingSlipCancelInput": {
+        "required": [
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "$ref": "#/components/schemas/BillingSlipCancelReason"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BillingSlipCancelReason": {
+        "enum": [
+          "PaidOtherMeans",
+          "CustomerRequest",
+          "IssueError",
+          "Replacement",
+          "ReceivableCancelled",
+          "AmountChanged",
+          "DueDateChanged",
+          "SettledOtherMeans",
+          null
+        ]
+      },
+      "BillingSlipDraft": {
+        "required": [
+          "receivableId",
+          "receivableNumber",
+          "partyId",
+          "partyName",
+          "amount",
+          "receivableDueDate",
+          "isOverdue",
+          "suggestedDueDate",
+          "finePct",
+          "interestMonthPct",
+          "discountAmount",
+          "discountUntil",
+          "autoEmail",
+          "email",
+          "overdueFineFrom",
+          "nonBusinessDayRule",
+          "discountLimitPct",
+          "discountLimitAmount",
+          "canApprove",
+          "accounts",
+          "preconditions",
+          "currentSlipId",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "receivableId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "receivableNumber": {
+            "type": "string"
+          },
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "receivableDueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "isOverdue": {
+            "type": "boolean"
+          },
+          "suggestedDueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "finePct": {
+            "type": "number",
+            "format": "double"
+          },
+          "interestMonthPct": {
+            "type": "number",
+            "format": "double"
+          },
+          "discountAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "discountUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "autoEmail": {
+            "type": "boolean"
+          },
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "overdueFineFrom": {
+            "$ref": "#/components/schemas/OverdueFineFrom"
+          },
+          "nonBusinessDayRule": {
+            "type": "string"
+          },
+          "discountLimitPct": {
+            "type": "number",
+            "format": "double"
+          },
+          "discountLimitAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "canApprove": {
+            "type": "boolean"
+          },
+          "accounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BillingAccountOption"
+            }
+          },
+          "preconditions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BillingPrecondition"
+            }
+          },
+          "currentSlipId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "BillingSlipEmailView": {
+        "required": [
+          "id",
+          "to",
+          "status",
+          "createdAt",
+          "sentAt",
+          "error"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "to": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/EmailStatus"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sentAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "BillingSlipInput": {
+        "required": [
+          "bankAccountId",
+          "dueDate",
+          "finePct",
+          "interestMonthPct",
+          "discountAmount",
+          "discountUntil",
+          "message",
+          "sendEmail",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "bankAccountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "finePct": {
+            "type": "number",
+            "format": "double"
+          },
+          "interestMonthPct": {
+            "type": "number",
+            "format": "double"
+          },
+          "discountAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "discountUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "message": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "sendEmail": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BillingSlipResult": {
+        "required": [
+          "slip",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "slip": {
+            "$ref": "#/components/schemas/BillingSlipView"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "BillingSlipSendInput": {
+        "required": [
+          "to",
+          "cc"
+        ],
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cc": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "BillingSlipStatus": {
+        "enum": [
+          "Requested",
+          "Issued",
+          "Failed",
+          "Paid",
+          "Cancelled",
+          "Expired",
+          null
+        ]
+      },
+      "BillingSlipView": {
+        "required": [
+          "id",
+          "receivableId",
+          "bankAccountId",
+          "bankAccountName",
+          "sandbox",
+          "status",
+          "ourReference",
+          "ourNumber",
+          "amount",
+          "dueDate",
+          "receivableDueDate",
+          "fineFrom",
+          "finePct",
+          "interestMonthPct",
+          "discountAmount",
+          "discountUntil",
+          "message",
+          "barcode",
+          "digitableLine",
+          "pixCopyPaste",
+          "qrCode",
+          "pdfAttachmentId",
+          "failureReason",
+          "failureAction",
+          "cancelReason",
+          "cancelReasonText",
+          "cancelPending",
+          "cancelFailureReason",
+          "cancelledAt",
+          "expiredAt",
+          "paidAt",
+          "requestedAt",
+          "requestedByName",
+          "issuedAt",
+          "approvedByName",
+          "sendOnIssue",
+          "scheduledEmailAt",
+          "lastEmailAt",
+          "emails",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "receivableId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "bankAccountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "bankAccountName": {
+            "type": "string"
+          },
+          "sandbox": {
+            "type": "boolean"
+          },
+          "status": {
+            "$ref": "#/components/schemas/BillingSlipStatus"
+          },
+          "ourReference": {
+            "type": "string"
+          },
+          "ourNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "receivableDueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "fineFrom": {
+            "type": "string",
+            "format": "date"
+          },
+          "finePct": {
+            "type": "number",
+            "format": "double"
+          },
+          "interestMonthPct": {
+            "type": "number",
+            "format": "double"
+          },
+          "discountAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "discountUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "message": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "barcode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "digitableLine": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pixCopyPaste": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "qrCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pdfAttachmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "failureReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "failureAction": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cancelReason": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/BillingSlipCancelReason"
+              }
+            ]
+          },
+          "cancelReasonText": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cancelPending": {
+            "type": "boolean"
+          },
+          "cancelFailureReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cancelledAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "expiredAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "paidAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "requestedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "requestedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "issuedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "approvedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "sendOnIssue": {
+            "type": "boolean"
+          },
+          "scheduledEmailAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "lastEmailAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "emails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BillingSlipEmailView"
+            }
           },
           "version": {
             "type": "integer",
@@ -35987,6 +37360,9 @@
             "format": "int32"
           }
         }
+      },
+      "EmailStatus": {
+        "type": "integer"
       },
       "EmployeeAdditionalInput": {
         "required": [
@@ -48022,6 +49398,12 @@
           }
         }
       },
+      "OverdueFineFrom": {
+        "enum": [
+          "OriginalDueDate",
+          "SlipDueDate"
+        ]
+      },
       "OverdueLargestItem": {
         "required": [
           "receivableId",
@@ -59976,6 +61358,23 @@
               "string"
             ],
             "format": "uuid"
+          },
+          "billingSlipId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "billingSlipStatus": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/BillingSlipStatus"
+              }
+            ]
           }
         }
       },
@@ -64091,6 +65490,10 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          },
+          "cancelBillingSlip": {
+            "type": "boolean",
+            "default": false
           }
         },
         "additionalProperties": false
@@ -69868,6 +71271,10 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          },
+          "cancelBillingSlip": {
+            "type": "boolean",
+            "default": false
           }
         },
         "additionalProperties": false
