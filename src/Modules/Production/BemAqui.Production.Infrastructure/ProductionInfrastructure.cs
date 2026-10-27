@@ -114,6 +114,10 @@ public static class ProductionInfrastructure
         // PLN-04: ocupação da fábrica por semana e centro (lê o plano gravado e a capacidade agora); IFactoryLoad para os painéis (DSH-01b, DSH-03).
         services.TryAddScoped<FactoryLoadService>();
         services.TryAddScoped<IFactoryLoad>(sp => sp.GetRequiredService<FactoryLoadService>());
+        // DSH-03: contratos de leitura do painel do supervisor (quadro compacto, qualidade e NC, indicadores), compostos pelo módulo Dashboard.
+        services.TryAddScoped<IProductionBoard, ProductionBoardContract>();
+        services.TryAddScoped<IQualityOverview, QualityOverviewContract>();
+        services.TryAddScoped<IProductionIndicators, ProductionIndicatorsContract>();
 
         // PLN-03: cronograma por projeto e por centro (lê o plano gravado, a fila e a capacidade agora).
         services.TryAddScoped<GanttService>();

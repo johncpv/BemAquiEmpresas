@@ -9,19 +9,23 @@ namespace BemAqui.Production.Domain;
 /// </summary>
 public static class BusinessDays
 {
-    public static int Count(IReadOnlyCollection<Weekday> workingDays, IReadOnlyDictionary<DateOnly, decimal> exceptions, DateOnly from, DateOnly to)
+    public static int Count(IReadOnlyCollection<Weekday> workingDays, IReadOnlyDictionary<DateOnly, decimal> exceptions, DateOnly from, DateOnly to) =>
+        Dates(workingDays, exceptions, from, to).Count;
+
+    /// <summary>Os dias úteis de <paramref name="from"/> a <paramref name="to"/>, inclusive, em ordem (DSH-03 CA 5).</summary>
+    public static IReadOnlyList<DateOnly> Dates(IReadOnlyCollection<Weekday> workingDays, IReadOnlyDictionary<DateOnly, decimal> exceptions, DateOnly from, DateOnly to)
     {
         ArgumentNullException.ThrowIfNull(workingDays);
         ArgumentNullException.ThrowIfNull(exceptions);
-        var count = 0;
+        var dates = new List<DateOnly>();
         for (var date = from; date <= to; date = date.AddDays(1))
         {
             if (workingDays.Contains((Weekday)date.DayOfWeek) && (!exceptions.TryGetValue(date, out var hours) || hours > 0))
             {
-                count++;
+                dates.Add(date);
             }
         }
 
-        return count;
+        return dates;
     }
 }

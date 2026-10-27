@@ -208,6 +208,11 @@ import type {
   GetShipmentFormParams,
   GetShipmentHistoryParams,
   GetStockAdjustmentHistoryParams,
+  GetSupervisorBoardParams,
+  GetSupervisorCapacityParams,
+  GetSupervisorIndicatorsParams,
+  GetSupervisorQualityParams,
+  GetSupervisorShortagesParams,
   GoodsReceiptDefaults,
   GoodsReceiptDetail,
   GoodsReceiptInput,
@@ -664,6 +669,12 @@ import type {
   SuggestAccountParams,
   SuggestCostCenterParams,
   SuggestedWorkCenter,
+  SupervisorBoardBlock,
+  SupervisorCapacityBlock,
+  SupervisorIndicatorsBlock,
+  SupervisorOverview,
+  SupervisorQualityBlock,
+  SupervisorShortagesBlock,
   SupplierCodeDetail,
   SupplierCodeInput,
   SupplierOption,
@@ -61155,6 +61166,679 @@ export function useGetDashboardDecisions<TData = Awaited<ReturnType<typeof getDa
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetDashboardDecisionsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetSupervisorOverviewUrl = () => {
+
+
+
+
+  return `/api/v1/dashboard/supervisor`
+}
+
+export const getSupervisorOverview = async ( options?: Parameters<typeof apiFetch>[1]): Promise<SupervisorOverview> => {
+
+  return apiFetch<SupervisorOverview>(getGetSupervisorOverviewUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSupervisorOverviewQueryKey = () => {
+    return [
+    `/api/v1/dashboard/supervisor`
+    ] as const;
+    }
+
+
+export const getGetSupervisorOverviewQueryOptions = <TData = Awaited<ReturnType<typeof getSupervisorOverview>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupervisorOverview>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSupervisorOverviewQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSupervisorOverview>>> = ({ signal }) => getSupervisorOverview({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSupervisorOverview>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetSupervisorOverviewQueryResult = NonNullable<Awaited<ReturnType<typeof getSupervisorOverview>>>
+export type GetSupervisorOverviewQueryError = unknown
+
+
+export function useGetSupervisorOverview<TData = Awaited<ReturnType<typeof getSupervisorOverview>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupervisorOverview>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSupervisorOverview>>,
+          TError,
+          Awaited<ReturnType<typeof getSupervisorOverview>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSupervisorOverview<TData = Awaited<ReturnType<typeof getSupervisorOverview>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupervisorOverview>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSupervisorOverview>>,
+          TError,
+          Awaited<ReturnType<typeof getSupervisorOverview>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSupervisorOverview<TData = Awaited<ReturnType<typeof getSupervisorOverview>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupervisorOverview>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetSupervisorOverview<TData = Awaited<ReturnType<typeof getSupervisorOverview>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupervisorOverview>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSupervisorOverviewQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetSupervisorBoardUrl = (params?: GetSupervisorBoardParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/dashboard/supervisor/board?${stringifiedParams}` : `/api/v1/dashboard/supervisor/board`
+}
+
+export const getSupervisorBoard = async (params?: GetSupervisorBoardParams, options?: Parameters<typeof apiFetch>[1]): Promise<SupervisorBoardBlock> => {
+
+  return apiFetch<SupervisorBoardBlock>(getGetSupervisorBoardUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSupervisorBoardQueryKey = (params?: GetSupervisorBoardParams,) => {
+    return [
+    `/api/v1/dashboard/supervisor/board`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetSupervisorBoardQueryOptions = <TData = Awaited<ReturnType<typeof getSupervisorBoard>>, TError = unknown>(params?: GetSupervisorBoardParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupervisorBoard>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSupervisorBoardQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSupervisorBoard>>> = ({ signal }) => getSupervisorBoard(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSupervisorBoard>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetSupervisorBoardQueryResult = NonNullable<Awaited<ReturnType<typeof getSupervisorBoard>>>
+export type GetSupervisorBoardQueryError = unknown
+
+
+export function useGetSupervisorBoard<TData = Awaited<ReturnType<typeof getSupervisorBoard>>, TError = unknown>(
+ params: undefined |  GetSupervisorBoardParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupervisorBoard>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSupervisorBoard>>,
+          TError,
+          Awaited<ReturnType<typeof getSupervisorBoard>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSupervisorBoard<TData = Awaited<ReturnType<typeof getSupervisorBoard>>, TError = unknown>(
+ params?: GetSupervisorBoardParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupervisorBoard>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSupervisorBoard>>,
+          TError,
+          Awaited<ReturnType<typeof getSupervisorBoard>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSupervisorBoard<TData = Awaited<ReturnType<typeof getSupervisorBoard>>, TError = unknown>(
+ params?: GetSupervisorBoardParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupervisorBoard>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetSupervisorBoard<TData = Awaited<ReturnType<typeof getSupervisorBoard>>, TError = unknown>(
+ params?: GetSupervisorBoardParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupervisorBoard>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSupervisorBoardQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetSupervisorCapacityUrl = (params?: GetSupervisorCapacityParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/dashboard/supervisor/capacity?${stringifiedParams}` : `/api/v1/dashboard/supervisor/capacity`
+}
+
+export const getSupervisorCapacity = async (params?: GetSupervisorCapacityParams, options?: Parameters<typeof apiFetch>[1]): Promise<SupervisorCapacityBlock> => {
+
+  return apiFetch<SupervisorCapacityBlock>(getGetSupervisorCapacityUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSupervisorCapacityQueryKey = (params?: GetSupervisorCapacityParams,) => {
+    return [
+    `/api/v1/dashboard/supervisor/capacity`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetSupervisorCapacityQueryOptions = <TData = Awaited<ReturnType<typeof getSupervisorCapacity>>, TError = unknown>(params?: GetSupervisorCapacityParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupervisorCapacity>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSupervisorCapacityQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSupervisorCapacity>>> = ({ signal }) => getSupervisorCapacity(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSupervisorCapacity>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetSupervisorCapacityQueryResult = NonNullable<Awaited<ReturnType<typeof getSupervisorCapacity>>>
+export type GetSupervisorCapacityQueryError = unknown
+
+
+export function useGetSupervisorCapacity<TData = Awaited<ReturnType<typeof getSupervisorCapacity>>, TError = unknown>(
+ params: undefined |  GetSupervisorCapacityParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupervisorCapacity>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSupervisorCapacity>>,
+          TError,
+          Awaited<ReturnType<typeof getSupervisorCapacity>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSupervisorCapacity<TData = Awaited<ReturnType<typeof getSupervisorCapacity>>, TError = unknown>(
+ params?: GetSupervisorCapacityParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupervisorCapacity>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSupervisorCapacity>>,
+          TError,
+          Awaited<ReturnType<typeof getSupervisorCapacity>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSupervisorCapacity<TData = Awaited<ReturnType<typeof getSupervisorCapacity>>, TError = unknown>(
+ params?: GetSupervisorCapacityParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupervisorCapacity>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetSupervisorCapacity<TData = Awaited<ReturnType<typeof getSupervisorCapacity>>, TError = unknown>(
+ params?: GetSupervisorCapacityParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupervisorCapacity>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSupervisorCapacityQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetSupervisorQualityUrl = (params?: GetSupervisorQualityParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/dashboard/supervisor/quality?${stringifiedParams}` : `/api/v1/dashboard/supervisor/quality`
+}
+
+export const getSupervisorQuality = async (params?: GetSupervisorQualityParams, options?: Parameters<typeof apiFetch>[1]): Promise<SupervisorQualityBlock> => {
+
+  return apiFetch<SupervisorQualityBlock>(getGetSupervisorQualityUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSupervisorQualityQueryKey = (params?: GetSupervisorQualityParams,) => {
+    return [
+    `/api/v1/dashboard/supervisor/quality`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetSupervisorQualityQueryOptions = <TData = Awaited<ReturnType<typeof getSupervisorQuality>>, TError = unknown>(params?: GetSupervisorQualityParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupervisorQuality>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSupervisorQualityQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSupervisorQuality>>> = ({ signal }) => getSupervisorQuality(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSupervisorQuality>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetSupervisorQualityQueryResult = NonNullable<Awaited<ReturnType<typeof getSupervisorQuality>>>
+export type GetSupervisorQualityQueryError = unknown
+
+
+export function useGetSupervisorQuality<TData = Awaited<ReturnType<typeof getSupervisorQuality>>, TError = unknown>(
+ params: undefined |  GetSupervisorQualityParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupervisorQuality>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSupervisorQuality>>,
+          TError,
+          Awaited<ReturnType<typeof getSupervisorQuality>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSupervisorQuality<TData = Awaited<ReturnType<typeof getSupervisorQuality>>, TError = unknown>(
+ params?: GetSupervisorQualityParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupervisorQuality>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSupervisorQuality>>,
+          TError,
+          Awaited<ReturnType<typeof getSupervisorQuality>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSupervisorQuality<TData = Awaited<ReturnType<typeof getSupervisorQuality>>, TError = unknown>(
+ params?: GetSupervisorQualityParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupervisorQuality>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetSupervisorQuality<TData = Awaited<ReturnType<typeof getSupervisorQuality>>, TError = unknown>(
+ params?: GetSupervisorQualityParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupervisorQuality>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSupervisorQualityQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetSupervisorIndicatorsUrl = (params?: GetSupervisorIndicatorsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/dashboard/supervisor/indicators?${stringifiedParams}` : `/api/v1/dashboard/supervisor/indicators`
+}
+
+export const getSupervisorIndicators = async (params?: GetSupervisorIndicatorsParams, options?: Parameters<typeof apiFetch>[1]): Promise<SupervisorIndicatorsBlock> => {
+
+  return apiFetch<SupervisorIndicatorsBlock>(getGetSupervisorIndicatorsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSupervisorIndicatorsQueryKey = (params?: GetSupervisorIndicatorsParams,) => {
+    return [
+    `/api/v1/dashboard/supervisor/indicators`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetSupervisorIndicatorsQueryOptions = <TData = Awaited<ReturnType<typeof getSupervisorIndicators>>, TError = unknown>(params?: GetSupervisorIndicatorsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupervisorIndicators>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSupervisorIndicatorsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSupervisorIndicators>>> = ({ signal }) => getSupervisorIndicators(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSupervisorIndicators>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetSupervisorIndicatorsQueryResult = NonNullable<Awaited<ReturnType<typeof getSupervisorIndicators>>>
+export type GetSupervisorIndicatorsQueryError = unknown
+
+
+export function useGetSupervisorIndicators<TData = Awaited<ReturnType<typeof getSupervisorIndicators>>, TError = unknown>(
+ params: undefined |  GetSupervisorIndicatorsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupervisorIndicators>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSupervisorIndicators>>,
+          TError,
+          Awaited<ReturnType<typeof getSupervisorIndicators>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSupervisorIndicators<TData = Awaited<ReturnType<typeof getSupervisorIndicators>>, TError = unknown>(
+ params?: GetSupervisorIndicatorsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupervisorIndicators>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSupervisorIndicators>>,
+          TError,
+          Awaited<ReturnType<typeof getSupervisorIndicators>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSupervisorIndicators<TData = Awaited<ReturnType<typeof getSupervisorIndicators>>, TError = unknown>(
+ params?: GetSupervisorIndicatorsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupervisorIndicators>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetSupervisorIndicators<TData = Awaited<ReturnType<typeof getSupervisorIndicators>>, TError = unknown>(
+ params?: GetSupervisorIndicatorsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupervisorIndicators>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSupervisorIndicatorsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getRefreshSupervisorPanelUrl = () => {
+
+
+
+
+  return `/api/v1/dashboard/supervisor/refresh`
+}
+
+export const refreshSupervisorPanel = async ( options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getRefreshSupervisorPanelUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getRefreshSupervisorPanelMutationKey = () => ['refreshSupervisorPanel'] as const;
+
+export const getRefreshSupervisorPanelMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof refreshSupervisorPanel>>, TError,void, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof refreshSupervisorPanel>>, TError,void, TContext> => {
+
+const mutationKey = getRefreshSupervisorPanelMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof refreshSupervisorPanel>>, void> = () => {
+
+
+          return  refreshSupervisorPanel(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RefreshSupervisorPanelMutationResult = NonNullable<Awaited<ReturnType<typeof refreshSupervisorPanel>>>
+
+    export type RefreshSupervisorPanelMutationError = ProblemDetails
+
+
+    export const useRefreshSupervisorPanel = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof refreshSupervisorPanel>>, TError,void, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof refreshSupervisorPanel>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getRefreshSupervisorPanelMutationOptions(options), queryClient);
+    }
+
+export const getGetSupervisorShortagesUrl = (params?: GetSupervisorShortagesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/dashboard/supervisor/shortages?${stringifiedParams}` : `/api/v1/dashboard/supervisor/shortages`
+}
+
+export const getSupervisorShortages = async (params?: GetSupervisorShortagesParams, options?: Parameters<typeof apiFetch>[1]): Promise<SupervisorShortagesBlock> => {
+
+  return apiFetch<SupervisorShortagesBlock>(getGetSupervisorShortagesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSupervisorShortagesQueryKey = (params?: GetSupervisorShortagesParams,) => {
+    return [
+    `/api/v1/dashboard/supervisor/shortages`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetSupervisorShortagesQueryOptions = <TData = Awaited<ReturnType<typeof getSupervisorShortages>>, TError = unknown>(params?: GetSupervisorShortagesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupervisorShortages>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSupervisorShortagesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSupervisorShortages>>> = ({ signal }) => getSupervisorShortages(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSupervisorShortages>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetSupervisorShortagesQueryResult = NonNullable<Awaited<ReturnType<typeof getSupervisorShortages>>>
+export type GetSupervisorShortagesQueryError = unknown
+
+
+export function useGetSupervisorShortages<TData = Awaited<ReturnType<typeof getSupervisorShortages>>, TError = unknown>(
+ params: undefined |  GetSupervisorShortagesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupervisorShortages>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSupervisorShortages>>,
+          TError,
+          Awaited<ReturnType<typeof getSupervisorShortages>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSupervisorShortages<TData = Awaited<ReturnType<typeof getSupervisorShortages>>, TError = unknown>(
+ params?: GetSupervisorShortagesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupervisorShortages>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSupervisorShortages>>,
+          TError,
+          Awaited<ReturnType<typeof getSupervisorShortages>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSupervisorShortages<TData = Awaited<ReturnType<typeof getSupervisorShortages>>, TError = unknown>(
+ params?: GetSupervisorShortagesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupervisorShortages>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetSupervisorShortages<TData = Awaited<ReturnType<typeof getSupervisorShortages>>, TError = unknown>(
+ params?: GetSupervisorShortagesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupervisorShortages>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSupervisorShortagesQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

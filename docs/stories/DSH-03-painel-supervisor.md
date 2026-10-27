@@ -5,7 +5,7 @@
 | ID | DSH-03 |
 | Título | Uma tela do supervisor de produção com o Kanban compacto (atrasadas e em risco), a capacidade das próximas semanas por centro, a qualidade a decidir e as não conformidades abertas, as faltas de material que bloqueiam os próximos 5 dias úteis com a situação da compra, e os indicadores de horas paradas e de NC por etapa, cada bloco com a ação que resolve; composição pelo módulo `Dashboard` (ADR 0028) |
 | Tamanho | M |
-| Status | Ready |
+| Status | Done |
 | Requisitos | PRD §5.14 (Painel do supervisor: Kanban + capacidade + não conformidades abertas + faltas de material) · R-PRD-2 · R-PRD-6 · R-PLN-6 · R-EST-4 · R-CMP-1 · R-PRP-4 · R-PRP-5 · PRD §6 |
 | Dependências | PRD-02 (quadro e `ProductionHub`), PLN-04 (`IFactoryLoad`), PLN-01b (risco), PRD-05 (qualidade com `production.approve_quality` e NC), EST-02 (faltas, `IStockReservations`), CMP-01 (solicitação a partir da falta), PRD-03a/PRD-04 (pausas), DSH-01a (módulo `Dashboard`, `DashboardCard` e `IBusinessCalendar`) |
 | Bloqueia | — |
@@ -75,19 +75,19 @@ Decisões da revisão aplicadas: §4.1 (qualidade com `production.approve_qualit
 **Pré-condição externa:** nenhuma.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers), arquitetura, desempenho e E2E passando.
-- [ ] Nenhuma migration.
-- [ ] Permissões só do `ModuleCatalog`; blocos pela permissão e pelo módulo do dono.
-- [ ] Tela com estados por bloco e 400 px.
-- [ ] Ajuda escrita; teste de cobertura passando.
-- [ ] Ações acionáveis em cada bloco.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] Story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers), arquitetura, desempenho e E2E passando.
+- [x] Nenhuma migration.
+- [x] Permissões só do `ModuleCatalog`; blocos pela permissão e pelo módulo do dono.
+- [x] Tela com estados por bloco e 400 px.
+- [x] Ajuda escrita; teste de cobertura passando.
+- [x] Ações acionáveis em cada bloco.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] Story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `IProductionIndicators` (Production); endpoints `/api/v1/dashboard/supervisor/*` por bloco no módulo `Dashboard`, com `RequireModule("production")`.
-- [ ] Página com os blocos em `DashboardCard` e o Quadro compacto; ajuda.
+- [x] `IProductionIndicators` (Production); endpoints `/api/v1/dashboard/supervisor/*` por bloco no módulo `Dashboard`, com `RequireModule("production")`.
+- [x] Página com os blocos em `DashboardCard` e o Quadro compacto; ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, design (composição de blocos), @qa.
@@ -121,3 +121,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D9, tabela 3.1 pontos 51–53, §4.1, §4.3, §4.4 padrão 2; ADR 0028); ordem mantida (Marco 4.4, ordem 13) | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 26/10/2026 | 1.0 | Implementada (`Done`), sobre a `feat/pln-03-v2` (main + lote 5). **Backend:** contratos de leitura no Production (`IProductionBoard`: o quadro do Kanban resumido por coluna com atrasadas e em risco e a linha de cada OS; `IQualityOverview`: a fila da PRD-05 com a segregação do item 76 e a "Autoinspeção" e as NC não encerradas; `IProductionIndicators`: horas paradas por motivo e taxa de NC por etapa, regra pura `ProductionIndicatorRules`), `IBusinessCalendar.WorkingDatesAsync` e `IPurchaseOrders.ForRequestLinesAsync` (situação da compra só leitura). No módulo `Dashboard`, `SupervisorService` e `SupervisorShortages` (regras puras em `SupervisorBlocks`) e o grupo `/api/v1/dashboard/supervisor` com `RequireModule("production")` + `production.view` (sem `dashboard`): `GET /` (linhas, blocos visíveis e o que o usuário pode), `/board`, `/capacity`, `/quality`, `/indicators`, `POST /refresh` (política `dashboard-refresh`) e o subgrupo `/shortages` com `RequireModule("inventory")` + `inventory.view`; `?line=` em todos. Capacidade e indicadores no `DashboardCache` (linha na chave); quadro, qualidade e faltas sem cache. Nenhuma permissão nova, nenhuma migration, nenhum evento novo. **Front:** `/app/producao/supervisor` (`?linha=`), blocos no `DashboardCard` (ganhou `originLabel`, "Abrir"), Quadro pelo `ProductionHub`, Qualidade e Faltas a cada 60 s e no foco, "Atualizar" com o aviso do 429, 400 px na ordem Qualidade → Faltas → Quadro → Capacidade → Indicadores; aba "Painel do supervisor" (primeira para `production.approve` ou `production.approve_quality`, `Tab.firstFor`); ajuda `producao-supervisor.md`. **Testes:** `SupervisorRulesTests` 19/19, `SupervisorPanelTests` 9/9 (blocos com dataset fixo, segregação e Autoinspeção, faltas e compra, indicadores, três camadas e metadados, Atualizar, desempenho com 300 OS, 200 faltas e 100 NC abaixo de 1,5 s por bloco), `CompositionRulesTests` 6/6 (blocos e contratos sem custo), `DashboardTests` 9/9, `EndpointAuthorizationTests` 3/3, Vitest 376/376, lint e build ok, E2E `supervisor.spec` 9 passados (desktop e 400 px) e os das telas tocadas passando. **Desvios (recomendações aceitas, PO 24/10):** (1) CA 5: a BOM não liga item a etapa, então "a etapa que consome o item" é a próxima etapa não concluída da OS (o início previsto da OS no plano); "necessária em" é essa data; o corte conta os dias úteis depois de hoje até o início, inclusive (hoje ou já passou = "Bloqueia hoje"), lendo 31 dias do calendário. (2) CA 4: "Aprovar" e "Reprovar" abrem a inspeção da PRD-05 (`QualityInspection`) num painel lateral, porque a decisão exige o checklist marcado; ao fechar, a fila e o quadro recarregam. (3) Linha: a do centro da etapa atual da OS (Kanban); na qualidade, na NC e nos indicadores, a do centro da etapa (de qualidade ou apontada). (4) CA 6: horas paradas contam Material, Máquina e Outro (intervalo e fim de turno não são parada), só a parte da pausa dentro dos 30 dias, a aberta até agora; drill-down das horas na aba Apontamentos das 5 OS que mais pararam e da taxa de NC na lista de NC (`?filtro=todas`, sem filtro por etapa). (5) CA 8: listas limitadas (30 faltas, 20 NC, 50 cartões) com o total; nomes só da página. (6) A situação da compra com link só para quem tem `purchasing.view`. | Dex (dev) |

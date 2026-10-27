@@ -10,6 +10,9 @@ namespace BemAqui.Integration.Tests.HR;
 
 public partial class HrTests
 {
+    // Tira Guids e instantes antes de procurar um valor no JSON: "3300" casaria com um pedaço de Guid.
+    private static string NoIds(string json) => System.Text.RegularExpressions.Regex.Replace(json, @"[0-9a-f]{8}-[0-9a-f-]{27}|\d{4}-\d{2}-\d{2}T[0-9:.+Z-]+", "#");
+
     [Fact]
     public async Task Cargo_com_faixa_calcula_27_reais_por_hora_e_o_salario_nao_sai_na_lista()
     {
@@ -23,7 +26,7 @@ public partial class HrTests
         (await JsonAsync(salary)).GetProperty("hourlyCost").GetDecimal().Should().Be(27m, "3.300 × 1,80 ÷ 220 (CA 3)");
 
         var raw = await hr.GetStringAsync($"/api/v1/hr/positions/{id}") + await hr.GetStringAsync("/api/v1/hr/positions?sort=salaryMin");
-        raw.Should().NotContainEquivalentOf("salary").And.NotContain("3300").And.NotContain("3600", "a lista e o detalhe não trazem salário (CA 10 e 12)");
+        NoIds(raw).Should().NotContainEquivalentOf("salary").And.NotContain("3300").And.NotContain("3600", "a lista e o detalhe não trazem salário (CA 10 e 12)");
 
         var sensitive = await hr.GetAsync($"/api/v1/hr/positions/{id}/sensitive");
         sensitive.Headers.CacheControl!.NoStore.Should().BeTrue();
@@ -61,6 +64,6 @@ public partial class HrTests
 
         (await editor.GetAsync($"/api/v1/audit/JobPosition/{id}")).StatusCode.Should().Be(HttpStatusCode.Forbidden, "histórico do HR só com hr.view_sensitive (CA 13)");
         var history = await hr.GetStringAsync($"/api/v1/audit/JobPosition/{id}");
-        history.Should().Contain("***").And.NotContain("2500", "salário mascarado no histórico");
+        NoIds(history).Should().Contain("***").And.NotContain("2500", "salário mascarado no histórico");
     }
 }

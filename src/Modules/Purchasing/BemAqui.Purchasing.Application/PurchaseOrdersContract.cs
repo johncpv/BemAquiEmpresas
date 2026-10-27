@@ -14,6 +14,25 @@ public sealed class PurchaseOrdersContract(IPurchasingDb db) : IPurchaseOrders, 
         await db.PurchaseOrders.AsNoTracking().Where(o => o.Id == id)
             .Select(o => new PurchaseOrderInfo(o.Id, o.Number, o.Status, o.PartyId, o.ProjectId, o.Total, o.ExpectedDate)).FirstOrDefaultAsync(cancellationToken);
 
+    public async Task<IReadOnlyList<PurchaseOrderForRequestLine>> ForRequestLinesAsync(IReadOnlyCollection<Guid> requestLineIds, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(requestLineIds);
+        if (requestLineIds.Count == 0)
+        {
+            return [];
+        }
+
+        // Pelos itens das linhas de SC (consulta simples) e o vínculo no array da linha do pedido conferido no processo.
+        var items = await db.PurchaseRequestLines.AsNoTracking().Where(l => requestLineIds.Contains(l.Id)).Select(l => l.ItemId).Distinct().ToListAsync(cancellationToken);
+        var lines = await (from l in db.PurchaseOrderLines.AsNoTracking()
+                           join o in db.PurchaseOrders.AsNoTracking() on l.OrderId equals o.Id
+                           where items.Contains(l.ItemId) && o.Status != PurchaseOrderStatus.Cancelled
+                           select new { l.RequestLineIds, o.Id, o.Number, o.Status, o.ExpectedDate }).ToListAsync(cancellationToken);
+        var wanted = requestLineIds.ToHashSet();
+        return lines.SelectMany(l => l.RequestLineIds.Where(wanted.Contains).Select(r => new PurchaseOrderForRequestLine(r, l.Id, l.Number, l.Status, l.ExpectedDate)))
+            .Distinct().OrderBy(p => p.ExpectedDate).ThenBy(p => p.Number, StringComparer.Ordinal).ToList();
+    }
+
     public async Task<IReadOnlyDictionary<Guid, decimal>> OpenQuantityByItemAsync(
         IReadOnlyCollection<Guid> itemIds, PurchaseOrderDestination destination, CancellationToken cancellationToken = default)
     {

@@ -21,5 +21,5 @@ public sealed class DashboardModule : IModule
         services.Configure<RateLimiterOptions>(o => o.AddPolicy<string, DashboardRefreshPolicy>(DashboardRefreshPolicy.Name));
     }
 
-    public void MapEndpoints(IEndpointRouteBuilder endpoints) => endpoints.MapDashboardEndpoints();
+    public void MapEndpoints(IEndpointRouteBuilder endpoints) => endpoints.MapDashboardEndpoints().MapSupervisorEndpoints();
 }

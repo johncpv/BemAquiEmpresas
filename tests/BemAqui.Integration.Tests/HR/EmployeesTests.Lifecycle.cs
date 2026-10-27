@@ -32,10 +32,10 @@ public partial class EmployeesTests
         full[1].GetProperty("oldValue").GetString().Should().Be("3300.00");
         full[1].GetProperty("newValue").GetString().Should().Be("3500.00");
         var limited = NoIds(await viewer.GetStringAsync($"/api/v1/hr/employees/{id}/timeline"));
-        limited.Should().Contain("Promoção").And.NotContain("3500", "reajuste só com hr.view_sensitive (CA 16)");
+        NoIds(limited).Should().Contain("Promoção").And.NotContain("3500", "reajuste só com hr.view_sensitive (CA 16)");
 
         (await viewer.GetAsync($"/api/v1/audit/Employee/{id}")).StatusCode.Should().Be(HttpStatusCode.Forbidden, "histórico do HR só com hr.view_sensitive");
         var history = NoIds(await owner.GetStringAsync($"/api/v1/audit/Employee/{id}"));
-        history.Should().Contain("***").And.NotContain("3500", "dado pessoal mascarado no histórico (CA 18)");
+        NoIds(history).Should().Contain("***").And.NotContain("3500", "dado pessoal mascarado no histórico (CA 18)");
     }
 }

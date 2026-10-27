@@ -436,7 +436,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-4--planejamento-p
 - Requisitos: PRD §5.14 (Painel de produção), R-PRD-2, R-PLN-4, PRD §6.
 - CA: quadro por etapa e fila com previsão × prometido, com 32/28/48 px, até 3 cartões por coluna; operador pelo primeiro nome e inicial; cliente nunca aparece, só o nome curto do projeto; as 3 visões, pulando "Atrasos" vazia; atualização em menos de 2 s após o apontamento.
 
-**DSH-03 [ ] Painel do supervisor (M)** — 4.4, ordem 13 — `Ready` — [story](stories/DSH-03-painel-supervisor.md)
+**DSH-03 [x] Painel do supervisor (M)** — 4.4, ordem 13 — `Done` — [story](stories/DSH-03-painel-supervisor.md)
 - Requisitos: PRD §5.14 (Painel do supervisor), R-PRD-2, R-PRD-6, R-PLN-6, R-EST-4, R-CMP-1, R-PRP-4, R-PRP-5, PRD §6.
 - CA: blocos Quadro, Capacidade, Qualidade (`production.approve_quality`), Faltas nos próximos 5 dias úteis (situação da compra só leitura, "Gerar solicitação" com `purchasing.create`) e Indicadores (horas paradas e taxa de NC); composição no `Dashboard`; menos de 1,5 s.
 

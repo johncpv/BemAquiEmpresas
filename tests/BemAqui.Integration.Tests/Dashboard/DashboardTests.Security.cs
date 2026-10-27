@@ -126,7 +126,9 @@ public partial class DashboardTests
 
         // Cada endpoint declara o módulo do painel e dashboard.view; os cards, também o RequireModule e a permissão do dono.
         var endpoints = tenancy.Factory.Services.GetRequiredService<EndpointDataSource>().Endpoints.OfType<RouteEndpoint>()
-            .Where(e => e.RoutePattern.RawText?.StartsWith("/api/v1/dashboard", StringComparison.Ordinal) == true).ToList();
+            .Where(e => e.RoutePattern.RawText?.StartsWith("/api/v1/dashboard", StringComparison.Ordinal) == true)
+            // O painel do supervisor (DSH-03) é tela da Fábrica: exige production, não dashboard (SupervisorPanelTests).
+            .Where(e => e.RoutePattern.RawText?.StartsWith("/api/v1/dashboard/supervisor", StringComparison.Ordinal) != true).ToList();
         endpoints.Should().HaveCountGreaterThanOrEqualTo(8);
         foreach (var endpoint in endpoints)
         {

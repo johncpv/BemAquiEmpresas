@@ -16,6 +16,9 @@ public static class DashboardServices
         services.TryAddScoped<ICashForecastSource, CashForecastSource>(); // FIN-07: ICashForecast
         services.TryAddScoped<IRevenueSource, RevenueSource>(); // FIN-08: IRevenueSummary
         services.TryAddScoped<IDecisionAgenda, DecisionAgenda>(); // DSH-04: IAgendaService (nível 1)
+        // DSH-03: painel do supervisor (blocos pelos contratos do Production, do Inventory e do Purchasing).
+        services.TryAddScoped<SupervisorService>();
+        services.TryAddScoped<SupervisorShortages>();
         return services;
     }
 }

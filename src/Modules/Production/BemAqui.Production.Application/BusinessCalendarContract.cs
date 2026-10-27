@@ -12,11 +12,14 @@ public sealed class BusinessCalendarContract(IProductionDb db) : IBusinessCalend
 {
     public const int MaxDays = 3 * 366;
 
-    public async Task<int> WorkingDaysAsync(DateOnly from, DateOnly to, CancellationToken cancellationToken = default)
+    public async Task<int> WorkingDaysAsync(DateOnly from, DateOnly to, CancellationToken cancellationToken = default) =>
+        (await WorkingDatesAsync(from, to, cancellationToken)).Count;
+
+    public async Task<IReadOnlyList<DateOnly>> WorkingDatesAsync(DateOnly from, DateOnly to, CancellationToken cancellationToken = default)
     {
         if (to < from)
         {
-            return 0;
+            return [];
         }
 
         ArgumentOutOfRangeException.ThrowIfGreaterThan(to.DayNumber - from.DayNumber, MaxDays, nameof(to));
@@ -25,6 +28,6 @@ public sealed class BusinessCalendarContract(IProductionDb db) : IBusinessCalend
             ? new Dictionary<DateOnly, decimal>()
             : await db.CalendarExceptions.AsNoTracking().Where(e => e.CalendarId == calendar.Id && e.Date >= from && e.Date <= to)
                 .ToDictionaryAsync(e => e.Date, e => e.HoursAvailable, cancellationToken);
-        return BusinessDays.Count(calendar?.WorkingDays ?? [.. CalendarService.DefaultWorkingDays], exceptions, from, to);
+        return BusinessDays.Dates(calendar?.WorkingDays ?? [.. CalendarService.DefaultWorkingDays], exceptions, from, to);
     }
 }

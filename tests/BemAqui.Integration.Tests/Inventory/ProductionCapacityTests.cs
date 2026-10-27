@@ -467,5 +467,8 @@ public class ProductionCapacityTests(TenancyFixture tenancy) : IClassFixture<Ten
             Task.FromResult<IReadOnlyList<PurchaseCommitment>>([]);
 
         public Task<LastPurchaseInfo?> LastPurchaseAsync(Guid itemId, CancellationToken cancellationToken = default) => Task.FromResult<LastPurchaseInfo?>(null);
+
+        public Task<IReadOnlyList<PurchaseOrderForRequestLine>> ForRequestLinesAsync(IReadOnlyCollection<Guid> requestLineIds, CancellationToken cancellationToken = default) =>
+            Task.FromResult<IReadOnlyList<PurchaseOrderForRequestLine>>([]);
     }
 }

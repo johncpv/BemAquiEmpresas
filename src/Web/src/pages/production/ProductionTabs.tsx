@@ -1,4 +1,7 @@
 import { Link } from '@tanstack/react-router'
+import { useCan } from '@/pages/use-can'
+
+const SUPERVISOR = { to: '/app/producao/supervisor', label: 'Painel do supervisor' } as const
 
 const TABS = [
   { to: '/app/producao/os', label: 'OS de fabricação' },
@@ -14,11 +17,17 @@ const TABS = [
   { to: '/app/producao/modelo-instalacao', label: 'Modelo da OS de instalação' },
 ] as const
 
-/** Abas da Produção (CAD-03): cada aba é uma rota própria (FND-09b CA 8). */
+/**
+ * Abas da Produção (CAD-03): cada aba é uma rota própria (FND-09b CA 8). O Painel do supervisor (DSH-03) é a primeira para quem aprova
+ * na produção ou decide a qualidade; para os demais, a última.
+ */
 export function ProductionTabs() {
+  const approves = useCan('production.approve')
+  const decidesQuality = useCan('production.approve_quality')
+  const tabs = approves || decidesQuality ? [SUPERVISOR, ...TABS] : [...TABS, SUPERVISOR]
   return (
     <nav aria-label="Produção" className="mb-5 flex gap-1 overflow-x-auto border-b border-border">
-      {TABS.map((t) => (
+      {tabs.map((t) => (
         <Link key={t.to} to={t.to} activeProps={{ 'aria-current': 'page' }} className="-mb-px whitespace-nowrap border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-muted-foreground aria-[current=page]:border-primary aria-[current=page]:text-foreground">
           {t.label}
         </Link>

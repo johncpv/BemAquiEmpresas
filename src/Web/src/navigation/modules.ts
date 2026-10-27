@@ -31,6 +31,8 @@ export interface Tab {
   action?: string
   /** A aba só aparece com uma destas permissões (ex.: Integrações em Configurações, FND-16 CA 16: sem ver o módulo dono, a aba some). */
   requiresAny?: readonly string[]
+  /** Ações do módulo que trazem a aba para a primeira posição (o Painel do supervisor com production.approve ou approve_quality, DSH-03). */
+  firstFor?: readonly string[]
 }
 
 /** Parte de tela de cada módulo do ModuleCatalog: rota, ícone e sub-telas (abas na topbar, CA 8). */
@@ -56,7 +58,7 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
   projects: { slug: 'projetos', aliases: ['contratos'], icon: FolderKanban, tabs: [{ slug: 'margens', label: 'Orçado × realizado', action: 'view_cost' }] },
   parties: { slug: 'cadastros', icon: Contact, tabs: [{ slug: 'terceiros', label: 'Terceiros' }] },
   engineering: { slug: 'engenharia', icon: DraftingCompass, tabs: [{ slug: 'roteiros', label: 'Roteiros' }, { slug: 'boms', label: 'BOMs' }] },
-  production: { slug: 'producao', icon: Factory, tabs: [{ slug: 'os', label: 'OS de fabricação' }, { slug: 'kanban', label: 'Kanban' }, { slug: 'planejamento', label: 'Planejamento' }, { slug: 'apontamentos-abertos', label: 'Apontamentos abertos' }, { slug: 'expedicao', label: 'Expedição' }, { slug: 'instalacoes', label: 'Instalações' }, { slug: 'centros-de-trabalho', label: 'Centros de trabalho' }, { slug: 'calendario', label: 'Calendário' }, { slug: 'modelo-instalacao', label: 'Modelo da OS de instalação' }] },
+  production: { slug: 'producao', icon: Factory, tabs: [{ slug: 'os', label: 'OS de fabricação' }, { slug: 'kanban', label: 'Kanban' }, { slug: 'planejamento', label: 'Planejamento' }, { slug: 'apontamentos-abertos', label: 'Apontamentos abertos' }, { slug: 'expedicao', label: 'Expedição' }, { slug: 'instalacoes', label: 'Instalações' }, { slug: 'centros-de-trabalho', label: 'Centros de trabalho' }, { slug: 'calendario', label: 'Calendário' }, { slug: 'modelo-instalacao', label: 'Modelo da OS de instalação' }, { slug: 'supervisor', label: 'Painel do supervisor', firstFor: ['approve', 'approve_quality'] }] },
   inventory: { slug: 'estoque', icon: Boxes, tabs: [
     { slug: 'saldos', label: 'Saldos', group: STOCK_OPERATION },
     { slug: 'movimentos', label: 'Movimentos', group: STOCK_OPERATION },
@@ -141,9 +143,11 @@ const grants = (modules: readonly PermissionModule[], permission: string) => {
 
 const toNav = (m: PermissionModule, modules: readonly PermissionModule[]): NavModule | null => {
   const ui = MODULE_UI[m.code]
-  const tabs = (ui?.tabs ?? []).filter(
+  const allowed = (ui?.tabs ?? []).filter(
     (t) => (!t.action || m.actions.includes(t.action)) && (!t.requiresAny || t.requiresAny.some((p) => grants(modules, p))),
   )
+  const first = (t: Tab) => !!t.firstFor?.some((a) => m.actions.includes(a))
+  const tabs = [...allowed.filter(first), ...allowed.filter((t) => !first(t))]
   return ui ? { ...m, slug: ui.slug, aliases: ui.aliases ?? [], path: ui.href ?? `/app/${ui.slug}`, icon: ui.icon, tabs, locked: !m.released } : null
 }
 

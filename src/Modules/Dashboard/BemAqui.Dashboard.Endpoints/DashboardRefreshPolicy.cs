@@ -30,7 +30,9 @@ public sealed class DashboardRefreshPolicy : IRateLimiterPolicy<string>
         ArgumentNullException.ThrowIfNull(httpContext);
         var tenant = httpContext.RequestServices.GetService<ITenantContext>()?.Tenant?.Id.ToString() ?? "-";
         var user = httpContext.User.FindFirst("sub")?.Value ?? "-";
-        return RateLimitPartition.GetFixedWindowLimiter("dashboard-refresh|" + tenant + "|" + user, _ => new FixedWindowRateLimiterOptions
+        // Uma janela por rota: o "Atualizar" do painel do dono não gasta a vez do painel do supervisor.
+        var route = httpContext.Request.Path.Value ?? "-";
+        return RateLimitPartition.GetFixedWindowLimiter("dashboard-refresh|" + tenant + "|" + user + "|" + route, _ => new FixedWindowRateLimiterOptions
         {
             PermitLimit = 1,
             Window = Window,

@@ -24363,6 +24363,194 @@
           }
         }
       }
+    },
+    "/api/v1/dashboard/supervisor": {
+      "get": {
+        "tags": [
+          "Painel do supervisor"
+        ],
+        "operationId": "GetSupervisorOverview",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupervisorOverview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/supervisor/board": {
+      "get": {
+        "tags": [
+          "Painel do supervisor"
+        ],
+        "operationId": "GetSupervisorBoard",
+        "parameters": [
+          {
+            "name": "line",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupervisorBoardBlock"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/supervisor/capacity": {
+      "get": {
+        "tags": [
+          "Painel do supervisor"
+        ],
+        "operationId": "GetSupervisorCapacity",
+        "parameters": [
+          {
+            "name": "line",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupervisorCapacityBlock"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/supervisor/quality": {
+      "get": {
+        "tags": [
+          "Painel do supervisor"
+        ],
+        "operationId": "GetSupervisorQuality",
+        "parameters": [
+          {
+            "name": "line",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupervisorQualityBlock"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/supervisor/indicators": {
+      "get": {
+        "tags": [
+          "Painel do supervisor"
+        ],
+        "operationId": "GetSupervisorIndicators",
+        "parameters": [
+          {
+            "name": "line",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupervisorIndicatorsBlock"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/supervisor/refresh": {
+      "post": {
+        "tags": [
+          "Painel do supervisor"
+        ],
+        "operationId": "RefreshSupervisorPanel",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/supervisor/shortages": {
+      "get": {
+        "tags": [
+          "Painel do supervisor"
+        ],
+        "operationId": "GetSupervisorShortages",
+        "parameters": [
+          {
+            "name": "line",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupervisorShortagesBlock"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -40773,6 +40961,13 @@
           }
         }
       },
+      "NonConformityState": {
+        "enum": [
+          "Open",
+          "InAction",
+          "Closed"
+        ]
+      },
       "NonConformityStatus": {
         "enum": [
           "Open",
@@ -50269,6 +50464,14 @@
             "format": "date-time"
           }
         }
+      },
+      "PurchaseSituation": {
+        "enum": [
+          "None",
+          "Requested",
+          "Quoting",
+          "Ordered"
+        ]
       },
       "PurchaseSupplierOption": {
         "required": [
@@ -60264,6 +60467,13 @@
           "Out"
         ]
       },
+      "StoppageReason": {
+        "enum": [
+          "Material",
+          "Machine",
+          "Other"
+        ]
+      },
       "SuggestedWorkCenter": {
         "required": [
           "stepName",
@@ -60277,6 +60487,761 @@
           "workCenterId": {
             "type": "string",
             "format": "uuid"
+          }
+        }
+      },
+      "SupervisorBoardBlock": {
+        "required": [
+          "openCount",
+          "lateCount",
+          "atRiskCount",
+          "columns",
+          "cards",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "openCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lateCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "atRiskCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "columns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SupervisorBoardColumnItem"
+            }
+          },
+          "cards": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SupervisorBoardCardItem"
+            }
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "SupervisorBoardCardItem": {
+        "required": [
+          "orderId",
+          "number",
+          "productName",
+          "projectId",
+          "projectNumber",
+          "partyName",
+          "columnKey",
+          "stepCode",
+          "stepName",
+          "codes",
+          "stepNames",
+          "currentStepIndex",
+          "promisedDate",
+          "risk",
+          "delayDays"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "productName": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": "string"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "columnKey": {
+            "type": "string"
+          },
+          "stepCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "stepName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "codes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "stepNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "currentStepIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "promisedDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "risk": {
+            "$ref": "#/components/schemas/DeliveryRisk"
+          },
+          "delayDays": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "SupervisorBoardColumnItem": {
+        "required": [
+          "key",
+          "code",
+          "name",
+          "count",
+          "remainingHours",
+          "lateCount",
+          "atRiskCount"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "remainingHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "lateCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "atRiskCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SupervisorCapacityBlock": {
+        "required": [
+          "today",
+          "planComputedAt",
+          "weeks",
+          "centers",
+          "factory",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "today": {
+            "type": "string",
+            "format": "date"
+          },
+          "planComputedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "weeks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SupervisorCapacityWeekItem"
+            }
+          },
+          "centers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SupervisorCapacityRowItem"
+            }
+          },
+          "factory": {
+            "$ref": "#/components/schemas/SupervisorCapacityRowItem"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "SupervisorCapacityCellItem": {
+        "required": [
+          "weekStart",
+          "committedHours",
+          "capacityHours",
+          "percent",
+          "band"
+        ],
+        "type": "object",
+        "properties": {
+          "weekStart": {
+            "type": "string",
+            "format": "date"
+          },
+          "committedHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "capacityHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "percent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "band": {
+            "$ref": "#/components/schemas/FactoryLoadBand"
+          }
+        }
+      },
+      "SupervisorCapacityRowItem": {
+        "required": [
+          "workCenterId",
+          "name",
+          "line",
+          "cells",
+          "busyUntil"
+        ],
+        "type": "object",
+        "properties": {
+          "workCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "line": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cells": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SupervisorCapacityCellItem"
+            }
+          },
+          "busyUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          }
+        }
+      },
+      "SupervisorCapacityWeekItem": {
+        "required": [
+          "start",
+          "end",
+          "isoWeek"
+        ],
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "string",
+            "format": "date"
+          },
+          "end": {
+            "type": "string",
+            "format": "date"
+          },
+          "isoWeek": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SupervisorIndicatorsBlock": {
+        "required": [
+          "from",
+          "to",
+          "stoppedHours",
+          "stoppages",
+          "qualityRates",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "stoppedHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "stoppages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SupervisorStoppageItem"
+            }
+          },
+          "qualityRates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SupervisorQualityRateItem"
+            }
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "SupervisorNonConformityItem": {
+        "required": [
+          "id",
+          "number",
+          "orderId",
+          "orderNumber",
+          "stepCode",
+          "stepName",
+          "responsibleName",
+          "status",
+          "ageDays"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "stepCode": {
+            "type": "string"
+          },
+          "stepName": {
+            "type": "string"
+          },
+          "responsibleName": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/NonConformityState"
+          },
+          "ageDays": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SupervisorOverview": {
+        "required": [
+          "today",
+          "lines",
+          "blocks",
+          "canDecideQuality",
+          "canCreatePurchaseRequest",
+          "canViewPurchasing"
+        ],
+        "type": "object",
+        "properties": {
+          "today": {
+            "type": "string",
+            "format": "date"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "blocks": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "canDecideQuality": {
+            "type": "boolean"
+          },
+          "canCreatePurchaseRequest": {
+            "type": "boolean"
+          },
+          "canViewPurchasing": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SupervisorQualityBlock": {
+        "required": [
+          "canDecide",
+          "pendingCount",
+          "steps",
+          "openNonConformities",
+          "nonConformities",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "canDecide": {
+            "type": "boolean"
+          },
+          "pendingCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SupervisorQualityStepItem"
+            }
+          },
+          "openNonConformities": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nonConformities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SupervisorNonConformityItem"
+            }
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "SupervisorQualityRateItem": {
+        "required": [
+          "stepCode",
+          "stepName",
+          "decisions",
+          "rejections",
+          "ratePercent"
+        ],
+        "type": "object",
+        "properties": {
+          "stepCode": {
+            "type": "string"
+          },
+          "stepName": {
+            "type": "string"
+          },
+          "decisions": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "rejections": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ratePercent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "SupervisorQualityStepItem": {
+        "required": [
+          "stepId",
+          "orderId",
+          "orderNumber",
+          "stepCode",
+          "stepName",
+          "productName",
+          "projectNumber",
+          "promisedDate",
+          "attempt",
+          "waitingSince",
+          "selfInspection",
+          "openNonConformities"
+        ],
+        "type": "object",
+        "properties": {
+          "stepId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "stepCode": {
+            "type": "string"
+          },
+          "stepName": {
+            "type": "string"
+          },
+          "productName": {
+            "type": "string"
+          },
+          "projectNumber": {
+            "type": "string"
+          },
+          "promisedDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "attempt": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "waitingSince": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "selfInspection": {
+            "type": "boolean"
+          },
+          "openNonConformities": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SupervisorShortageItem": {
+        "required": [
+          "orderId",
+          "orderNumber",
+          "projectId",
+          "projectNumber",
+          "itemId",
+          "itemCode",
+          "itemName",
+          "unit",
+          "shortQty",
+          "neededOn",
+          "blocks",
+          "blocksInDays",
+          "purchase",
+          "purchaseLabel",
+          "purchaseRequestId",
+          "purchaseOrderId"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": "string"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "shortQty": {
+            "type": "number",
+            "format": "double"
+          },
+          "neededOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "blocks": {
+            "type": "boolean"
+          },
+          "blocksInDays": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "purchase": {
+            "$ref": "#/components/schemas/PurchaseSituation"
+          },
+          "purchaseLabel": {
+            "type": "string"
+          },
+          "purchaseRequestId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "purchaseOrderId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "SupervisorShortagesBlock": {
+        "required": [
+          "total",
+          "blocking",
+          "items",
+          "canCreateRequest",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "blocking": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SupervisorShortageItem"
+            }
+          },
+          "canCreateRequest": {
+            "type": "boolean"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "SupervisorStoppageItem": {
+        "required": [
+          "reason",
+          "label",
+          "hours",
+          "pauses",
+          "orders"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "$ref": "#/components/schemas/StoppageReason"
+          },
+          "label": {
+            "type": "string"
+          },
+          "hours": {
+            "type": "number",
+            "format": "double"
+          },
+          "pauses": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "orders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SupervisorStoppageOrderItem"
+            }
+          }
+        }
+      },
+      "SupervisorStoppageOrderItem": {
+        "required": [
+          "orderId",
+          "orderNumber",
+          "hours"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "hours": {
+            "type": "number",
+            "format": "double"
           }
         }
       },
@@ -61963,6 +62928,9 @@
     },
     {
       "name": "Painel do propriet\u00E1rio"
+    },
+    {
+      "name": "Painel do supervisor"
     }
   ]
 }
