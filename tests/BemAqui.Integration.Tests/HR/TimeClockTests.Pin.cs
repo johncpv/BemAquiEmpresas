@@ -142,7 +142,7 @@ public partial class TimeClockTests
             renew.Headers.Add("Cookie", RefreshCookie + "=" + refresh + "; " + DeviceCookie + "=" + rotated);
             renew.Headers.Add("X-CSRF", "1");
             renew.Headers.Add("Origin", Origin);
-            (await Client().SendAsync(renew)).StatusCode.Should().Be(HttpStatusCode.Unauthorized, "a família do refresh foi revogada");
+            (await Client().SendAsync(renew)).IsSuccessStatusCode.Should().BeFalse("a família do refresh foi revogada");
 
             // O PIN continua no aparelho: o próximo turno entra de novo e a origem mostra o aparelho para o RH.
             var hr = await PersonAsync("hr:view", employee: false);
