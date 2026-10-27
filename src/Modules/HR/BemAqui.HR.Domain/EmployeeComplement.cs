@@ -118,7 +118,8 @@ public static class DependentRules
 /// </summary>
 public static class EmployeeBankRules
 {
-    /// <summary>Quarentena da conta trocada (ADR 0036, decisão do PO D14): 30 dias corridos a partir da troca.</summary>
+    /// <summary>Quarentena padrão da conta trocada (ADR 0036, decisão do PO D14): 30 dias corridos a partir da troca; o tenant muda em
+    /// <c>hr.bank_account_quarantine_days</c> (RH-02a).</summary>
     public const int QuarantineDays = 30;
 
     public const int MismatchReasonMin = 10;
@@ -183,7 +184,7 @@ public static class EmployeeBankRules
     public static bool MismatchConfirmed(bool checkedWithEmployee, string? reason) =>
         checkedWithEmployee && reason?.Trim().Length is >= MismatchReasonMin and <= MismatchReasonMax;
 
-    public static DateTimeOffset QuarantineEnd(DateTimeOffset changedAt) => changedAt.AddDays(QuarantineDays);
+    public static DateTimeOffset QuarantineEnd(DateTimeOffset changedAt, int days = QuarantineDays) => changedAt.AddDays(days);
 
     /// <summary>Em quarentena: trocada (não a primeira), dentro do prazo e sem revisão (CA 7 e 8).</summary>
     public static bool InQuarantine(DateTimeOffset? until, DateTimeOffset? reviewedAt, DateTimeOffset now) => until is { } u && reviewedAt is null && now < u;

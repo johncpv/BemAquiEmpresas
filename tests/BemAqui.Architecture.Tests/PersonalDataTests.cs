@@ -53,7 +53,46 @@ public class PersonalDataTests
         // CAD-04c1b: o vínculo da mudança com o afastamento, o que mudou e a marca do cancelamento não são dado pessoal; o tipo
         // anterior é.
         ["EmployeeHistoryEntry"] = ["Id", "EmployeeId", "Kind", "EffectiveDate", "UserId", "CreatedAt", "StartPublishedAt", "EndPublishedAt", "LeaveId", "LeaveChange", "CancelledAt"],
+        // RH-02a: a rubrica, a folha (competência, tipo, situação, quem fechou) e o parâmetro não são dado pessoal; no holerite, na linha e
+        // na guia, todo valor, base, referência e o FGTS do mês são [PersonalData] (CA 13); só as chaves, a rubrica e as datas ficam fora.
+        ["PayrollItem"] = ["Id", "Code", "Name", "Kind", "InssBase", "FgtsBase", "IrrfBase", "IsActive", "SeedKey", "ConfirmedAt", "ConfirmedBy", "CreatedAt", "Version", "IsDeleted", "DeletedAt"],
+        ["PayrollRun"] = ["Id", "Period", "Type", "Mode", "Status", "Number", "CreatedAt", "CreatedBy", "ClosedAt", "ClosedBy", "Version"],
+        ["Payslip"] = ["Id", "PayrollRunId", "EmployeeId", "CreatedAt", "UpdatedAt", "Version"],
+        ["PayslipLine"] = ["Id", "PayslipId", "PayrollItemId", "Code", "Description", "Type", "Sort"],
+        ["PayrollRunCharge"] = ["Id", "PayrollRunId", "Kind", "Description", "DueDate", "PayeePartyId", "CreatedAt", "Version"],
+        ["HrParameter"] = ["Id", "Key", "Value", "Text", "ConfirmedAt", "ConfirmedBy", "UpdatedAt"],
     };
+
+    /// <summary>
+    /// RH-02a CA 12 e 13: valores de linha, bases, líquido e FGTS do mês são <c>[PersonalData]</c>, e os DTOs de resumo e de lista da folha
+    /// (que saem com <c>hr.view</c>) não têm nenhuma propriedade de valor.
+    /// </summary>
+    [Fact]
+    public void Folha_com_valores_marcados_e_resumo_sem_valor()
+    {
+        foreach (var (type, props) in new (Type, string[])[]
+        {
+            (typeof(BemAqui.HR.Domain.Payslip), ["Gross", "Deductions", "Net", "InssBase", "FgtsBase", "IrrfBase", "FgtsAmount"]),
+            (typeof(BemAqui.HR.Domain.PayslipLine), ["Amount", "Reference"]),
+            (typeof(BemAqui.HR.Domain.PayrollRunCharge), ["Amount"]),
+        })
+        {
+            foreach (var name in props)
+            {
+                type.GetProperty(name)!.GetCustomAttribute<PersonalDataAttribute>().Should().NotBeNull($"{type.Name}.{name} é dado da folha (CA 13)");
+            }
+        }
+
+        var values = new[] { typeof(BemAqui.HR.Domain.Payslip), typeof(BemAqui.HR.Domain.PayslipLine), typeof(BemAqui.HR.Domain.PayrollRunCharge) }
+            .SelectMany(t => t.GetProperties().Where(p => p.GetCustomAttribute<PersonalDataAttribute>() is not null).Select(p => p.Name)).Append("Total").ToHashSet(StringComparer.Ordinal);
+        var application = Solution.Assemblies.Single(a => a.GetName().Name == "BemAqui.HR.Application");
+        foreach (var dto in new[] { "PayrollRunSummary", "PayrollEligibleEmployee", "PayrollItemDetail" })
+        {
+            var type = application.GetTypes().Single(t => t.Name == dto);
+            type.GetProperties().Select(p => p.Name).Where(n => dto != "PayrollItemDetail" || !n.EndsWith("Base", StringComparison.Ordinal))
+                .Should().NotIntersectWith(values, dto + " sai com hr.view e não pode ter valor da folha (CA 12)");
+        }
+    }
 
     [Fact]
     public void Entidades_auditaveis_do_HR_so_tem_dado_pessoal_marcado_e_listas_sem_salario()

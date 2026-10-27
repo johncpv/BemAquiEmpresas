@@ -117,7 +117,7 @@ public sealed partial class EmployeeComplementService
         e.BankReviewedBy = null;
         e.BankSelfReviewed = false;
         e.BankReviewNote = null;
-        e.BankQuarantineUntil = first ? null : EmployeeBankRules.QuarantineEnd(now);
+        e.BankQuarantineUntil = first ? null : EmployeeBankRules.QuarantineEnd(now, await parameters.QuarantineDaysAsync(cancellationToken));
         if (!first)
         {
             await WarnChangeAsync(e, me, mismatches.Count > 0, now, cancellationToken);

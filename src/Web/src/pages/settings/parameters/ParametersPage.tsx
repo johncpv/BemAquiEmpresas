@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useSearch } from '@tanstack/react-router'
 import { getGetTenantParametersQueryKey, saveEmailDispatchLimit, savePayrollCharges, savePricingMode, useGetPositionsSummary, useGetTenantParameters } from '@/api/generated/bemaqui'
 import { PricingMode, type TenantParametersDto } from '@/api/generated/model'
 import { RecordHistory } from '@/components/history/RecordHistory'
@@ -15,6 +16,7 @@ import { SettingsTabs } from '../SettingsTabs'
 import { CommercialPricingSection } from './CommercialPricingSection'
 import { DreParametersSection } from './DreParametersSection'
 import { FinanceLimitsSection } from './FinanceLimitsSection'
+import { HrParametersSection } from './HrParametersSection'
 import { ProductionParametersSection } from './ProductionParametersSection'
 import { PurchasingParametersSection } from './PurchasingParametersSection'
 import { RevenueTargetsSection } from './RevenueTargetsSection'
@@ -30,6 +32,14 @@ const MODES = [
 export function ParametersPage() {
   const query = useGetTenantParameters()
   const canEdit = useCanSettings('edit')
+  const search = useSearch({ strict: false }) as Record<string, unknown>
+  const loaded = !!query.data
+  // ?secao=rh (RH-02a CA 3): abre já na seção do módulo dono.
+  useEffect(() => {
+    if (!loaded || typeof search.secao !== 'string') return
+    const t = setTimeout(() => document.getElementById('secao-' + String(search.secao))?.scrollIntoView({ block: 'start' }), 300)
+    return () => clearTimeout(t)
+  }, [loaded, search.secao])
   return (
     <>
       <PageHeading title="Configurações: Parâmetros" />
@@ -44,6 +54,7 @@ export function ParametersPage() {
           <RevenueTargetsSection canEdit={canEdit} />
           <ProductionParametersSection canEdit={canEdit} />
           <PurchasingParametersSection canEdit={canEdit} />
+          <HrParametersSection canEdit={canEdit} />
           <EmailDispatchSection key={`e${query.data.emailDispatchMaxPerUserDay}`} params={query.data} canEdit={canEdit} />
         </div>
       )}

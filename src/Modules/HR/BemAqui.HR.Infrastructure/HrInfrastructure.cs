@@ -34,6 +34,24 @@ public sealed class WorkScheduleSeeder : ITenantSeeder
     }
 }
 
+/// <summary>
+/// Folha lançada (RH-02a CA 1 e 3): a lista padrão de rubricas e os parâmetros do RH, "A confirmar com a contadora", também nos tenants
+/// existentes no próximo deploy; idempotente, sem recriar o que o tenant excluiu nem sobrescrever o que mudou.
+/// </summary>
+public sealed class PayrollSeeder : ITenantSeeder
+{
+    public int Order => 41;
+
+    public async Task SeedAsync(IServiceProvider tenantScope, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(tenantScope);
+        var db = tenantScope.GetRequiredService<IHrDb>();
+        var clock = tenantScope.GetRequiredService<TimeProvider>();
+        await PayrollItemService.SeedAsync(db, clock, cancellationToken);
+        await HrParametersService.SeedAsync(db, clock, cancellationToken);
+    }
+}
+
 public static class HrInfrastructure
 {
     /// <summary>
@@ -66,6 +84,18 @@ public static class HrInfrastructure
         services.AddAttachmentOwner(EmployeeComplementService.DocumentOwner, new AttachmentOwnerRules("hr", ["application/pdf", "image/png", "image/jpeg"], 10 * 1024 * 1024,
             OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IHrDb>().Employees.AnyAsync(e => e.Id == id, ct),
             ReadAction: PositionService.SensitiveAction, WriteAction: PositionService.SensitiveAction, AuditReads: true));
+        // Folha lançada (RH-02a): rubricas, folha, holerites, guias e os parâmetros do RH (Configurações → Parâmetros → RH). O
+        // histórico da folha e dos holerites só abre com hr.view_sensitive; o das rubricas, com hr.view; o dos parâmetros, com settings.
+        services.TryAddScoped<HrParametersService>();
+        services.TryAddScoped<PayrollItemService>();
+        services.TryAddScoped<PayrollService>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<ITenantSeeder, PayrollSeeder>());
+        services.AddAuditableEntity<PayrollItem>("hr");
+        services.AddAuditableEntity<PayrollRun>("hr", PositionService.SensitiveAction);
+        services.AddAuditableEntity<Payslip>("hr", PositionService.SensitiveAction);
+        services.AddAuditableEntity<PayslipLine>("hr", PositionService.SensitiveAction);
+        services.AddAuditableEntity<PayrollRunCharge>("hr", PositionService.SensitiveAction);
+        services.AddAuditableEntity<HrParameter>("settings");
         services.AddAuditableEntity<EmployeeDependent>("hr", PositionService.SensitiveAction);
         services.AddAuditableEntity<Employee>("hr", PositionService.SensitiveAction);
         services.AddAuditableEntity<EmployeeHistoryEntry>("hr", PositionService.SensitiveAction);

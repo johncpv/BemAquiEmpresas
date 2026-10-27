@@ -28,7 +28,9 @@ export function NewPartyPage() {
   const navigate = useNavigate()
   const search = useSearch({ strict: false }) as Record<string, unknown>
   const origin = ROLE_OPTIONS.find((o) => o.value === search.papel)?.value
-  const form = useZodForm(newPartySchema, { defaultValues: emptyParty(origin) })
+  // ?nome= (RH-02a "Cadastrar órgão"): a razão social vem sugerida pela tela de origem.
+  const suggested = typeof search.nome === 'string' ? search.nome.slice(0, 150) : ''
+  const form = useZodForm(newPartySchema, { defaultValues: { ...emptyParty(origin), legalName: suggested } })
   const [kindTouched, setKindTouched] = useState(false)
   const [existing, setExisting] = useState<ExistingParty | null>(null)
   const [busy, setBusy] = useState(false)
