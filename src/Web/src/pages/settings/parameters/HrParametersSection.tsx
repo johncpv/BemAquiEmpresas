@@ -22,7 +22,10 @@ const searchPayees = async (term: string): Promise<ComboOption[]> =>
 
 type Value = { value: string; party: ComboOption | null; code: string }
 
-const CODE_KINDS = new Set(['Account', 'CostCenter'])
+const CODE_KINDS = new Set(['Account', 'CostCenter', 'ExportLayout'])
+
+/** Opções do parâmetro escolhido por código: contas, centros de custo ou os layouts do pacote para a contadora (RH-03). */
+const codeOptions = (view: HrParametersView, kind: string) => (kind === 'Account' ? view.accounts : kind === 'CostCenter' ? view.costCenters : view.exportLayouts) ?? []
 
 /** 1130 → "30/11" e de volta (dia e mês do ano, RH-02c). */
 const monthDayText = (v: number) => `${String(v % 100).padStart(2, '0')}/${String(Math.floor(v / 100)).padStart(2, '0')}`
@@ -77,7 +80,7 @@ function HrForm({ view, canEdit }: { view: HrParametersView; canEdit: boolean })
 
   return (
     <section id="secao-rh" aria-label="RH">
-      <FormSection title="RH: folha" description={`Alerta da conferência, vencimento e órgão de cada guia, a quarentena da conta trocada, o pagamento dos salários, a folha prevista e a conta e o centro de custo dos títulos da folha. Contribuição sindical e "Outros" têm o vencimento informado na folha; o dia não útil antecipa pelo calendário padrão. ${view.pendingCount > 0 ? `${view.pendingCount} ${view.pendingCount === 1 ? 'valor a confirmar' : 'valores a confirmar'} com a contadora.` : 'Tudo conferido com a contadora.'}`}>
+      <FormSection title="RH: folha" description={`Alerta da conferência, vencimento e órgão de cada guia, a quarentena da conta trocada, o pagamento dos salários, a folha prevista, a conta e o centro de custo dos títulos da folha e o layout do pacote para a contadora. Contribuição sindical e "Outros" têm o vencimento informado na folha; o dia não útil antecipa pelo calendário padrão. ${view.pendingCount > 0 ? `${view.pendingCount} ${view.pendingCount === 1 ? 'valor a confirmar' : 'valores a confirmar'} com a contadora.` : 'Tudo conferido com a contadora.'}`}>
         <div className="space-y-3 sm:col-span-2">
           <FormError message={error && Object.keys(error.fields).length === 0 ? error.message : undefined} />
           {view.items.map((item) => {
@@ -103,8 +106,8 @@ function HrForm({ view, canEdit }: { view: HrParametersView; canEdit: boolean })
                 ) : CODE_KINDS.has(item.kind) ? (
                   <select id={id} disabled={!canEdit} value={draft[item.key].code} onChange={(e) => setDraft((d) => ({ ...d, [item.key]: { ...d[item.key], code: e.target.value } }))}
                     aria-invalid={fieldError ? true : undefined} className={inputClass + ' max-w-md'}>
-                    {((item.kind === 'Account' ? view.accounts : view.costCenters) ?? []).map((o) => <option key={o.code} value={o.code}>{o.code} {o.name}</option>)}
-                    {draft[item.key].code && !((item.kind === 'Account' ? view.accounts : view.costCenters) ?? []).some((o) => o.code === draft[item.key].code) ? <option value={draft[item.key].code}>{draft[item.key].code} (não encontrado)</option> : null}
+                    {codeOptions(view, item.kind).map((o) => <option key={o.code} value={o.code}>{item.kind === 'ExportLayout' ? o.name : `${o.code} ${o.name}`}</option>)}
+                    {draft[item.key].code && !codeOptions(view, item.kind).some((o) => o.code === draft[item.key].code) ? <option value={draft[item.key].code}>{draft[item.key].code} (não encontrado)</option> : null}
                   </select>
                 ) : item.kind === 'MonthDay' ? (
                   <span className="flex items-center gap-2">

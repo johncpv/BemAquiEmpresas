@@ -6901,6 +6901,57 @@
         }
       }
     },
+    "/api/v1/hr/accountant-exports": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetAccountantExportOverview",
+        "parameters": [
+          {
+            "name": "period",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountantExportOverview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/accountant-exports/package": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "DownloadAccountantExport",
+        "parameters": [
+          {
+            "name": "period",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/quotes": {
       "get": {
         "tags": [
@@ -27963,6 +28014,154 @@
           }
         }
       },
+      "AccountantDraftRun": {
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "$ref": "#/components/schemas/PayrollRunType"
+          }
+        }
+      },
+      "AccountantExportOverview": {
+        "required": [
+          "period",
+          "suggestedPeriod",
+          "layout",
+          "layoutName",
+          "layoutConfirmed",
+          "sections",
+          "notIncluded",
+          "draftRuns",
+          "previous",
+          "history"
+        ],
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": "string",
+            "format": "date"
+          },
+          "suggestedPeriod": {
+            "type": "string",
+            "format": "date"
+          },
+          "layout": {
+            "type": "string"
+          },
+          "layoutName": {
+            "type": "string"
+          },
+          "layoutConfirmed": {
+            "type": "boolean"
+          },
+          "sections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AccountantSectionPreview"
+            }
+          },
+          "notIncluded": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "draftRuns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AccountantDraftRun"
+            }
+          },
+          "previous": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AccountantExportRecord"
+              }
+            ]
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AccountantExportRecord"
+            }
+          }
+        }
+      },
+      "AccountantExportRecord": {
+        "required": [
+          "id",
+          "at",
+          "userName",
+          "period",
+          "layout"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "userName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "period": {
+            "type": "string",
+            "format": "date"
+          },
+          "layout": {
+            "type": "string"
+          }
+        }
+      },
+      "AccountantSectionPreview": {
+        "required": [
+          "key",
+          "fileName",
+          "included",
+          "summary",
+          "rows"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "fileName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "included": {
+            "type": "boolean"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "rows": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "AccountBalance": {
         "required": [
           "id",
@@ -42451,7 +42650,8 @@
           "MonthDay",
           "Months",
           "Account",
-          "CostCenter"
+          "CostCenter",
+          "ExportLayout"
         ]
       },
       "HrParametersInput": {
@@ -42495,6 +42695,15 @@
             }
           },
           "costCenters": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/HrCodeOption"
+            }
+          },
+          "exportLayouts": {
             "type": [
               "null",
               "array"
