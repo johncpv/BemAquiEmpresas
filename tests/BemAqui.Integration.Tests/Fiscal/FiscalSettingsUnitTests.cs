@@ -49,7 +49,7 @@ public class FiscalSettingsUnitTests
         (s.IcmsInternalRate, s.IcmsInterstateSouthSoutheastRate, s.IcmsInterstateOtherRate, s.IcmsImportedRate, s.PisRate, s.CofinsRate).Should().Be((18m, 12m, 7m, 4m, 0.65m, 3m));
         s.CostTaxes.Should().BeEquivalentTo(["ICMS", "PIS", "COFINS", "ISS", "IBS_CBS"], "IPI fora do custo (ponto 41)");
         (s.NfseServiceItem, s.NfseMunicipalCode, s.NfseIssRate, s.NfseIssLocation, s.NfseIssWithheld, s.NfseFederalWithholding).Should().Be(("7.02", (string?)null, 5m, IssLocation.WorkSite, false, false));
-        (s.IbsCbsCst, s.IbsCbsClassification, s.CbsRate, s.IbsRate).Should().Be(("000", "000001", 0.9m, 0.1m));
+        (s.IbsCbsCst, s.IbsCbsClassification, s.CbsRate, s.IbsRate, s.IbsCityRate).Should().Be(("000", "000001", 0.9m, 0.1m, 0m));
         (s.CancellationWindowHours, s.FreightMode, s.VolumeSpecies, s.IncludeDuplicates).Should().Be((24, 0, "VOLUME", false));
     }
 

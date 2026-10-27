@@ -126,7 +126,11 @@ public sealed class FiscalSettings : Entity, IAuditable, IConcurrencyVersioned
 
     public decimal CbsRate { get; set; } = 0.9m;
 
+    /// <summary>IBS estadual (UF).</summary>
     public decimal IbsRate { get; set; } = 0.1m;
+
+    /// <summary>IBS municipal (dado do Emissor em 27/10: 0% em 2026).</summary>
+    public decimal IbsCityRate { get; set; }
 
     // Prazos
     public int CancellationWindowHours { get; set; } = 24;

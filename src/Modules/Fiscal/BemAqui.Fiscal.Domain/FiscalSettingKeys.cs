@@ -94,7 +94,8 @@ public static class FiscalSettingKeys
         new("ibsCbsCst", "ibs-cbs", "CST do IBS/CBS", FiscalCriticality.All, s => s.IbsCbsCst),
         new("ibsCbsClassification", "ibs-cbs", "Classificação tributária (cClassTrib)", FiscalCriticality.All, s => s.IbsCbsClassification),
         new("cbsRate", "ibs-cbs", "Alíquota da CBS", FiscalCriticality.All, s => Dec(s.CbsRate)),
-        new("ibsRate", "ibs-cbs", "Alíquota do IBS", FiscalCriticality.All, s => Dec(s.IbsRate)),
+        new("ibsRate", "ibs-cbs", "Alíquota do IBS estadual", FiscalCriticality.All, s => Dec(s.IbsRate)),
+        new("ibsCityRate", "ibs-cbs", "Alíquota do IBS municipal", FiscalCriticality.All, s => Dec(s.IbsCityRate)),
         new("freightMode", "transporte", "Modalidade do frete", FiscalCriticality.Nfe, s => Int(s.FreightMode)),
         new("volumeSpecies", "transporte", "Espécie dos volumes", FiscalCriticality.Nfe, s => s.VolumeSpecies),
         new("includeDuplicates", "transporte", "Duplicatas na NF-e", FiscalCriticality.Nfe, s => Bool(s.IncludeDuplicates)),
@@ -215,6 +216,7 @@ public static partial class FiscalSettingsRules
         Rate(errors, "nfseIssRate", s.NfseIssRate);
         Rate(errors, "cbsRate", s.CbsRate);
         Rate(errors, "ibsRate", s.IbsRate);
+        Rate(errors, "ibsCityRate", s.IbsCityRate);
 
         if (s.CostTaxes.Any(t => !CostTaxOptions.Contains(t, StringComparer.Ordinal)) || s.CostTaxes.Distinct(StringComparer.Ordinal).Count() != s.CostTaxes.Length)
         {

@@ -83,7 +83,7 @@ function FiscalIntegration() {
 
 function NextStepsAfterTest({ onDismiss }: { onDismiss: () => void }) {
   const navigate = useNavigate()
-  return <NextSteps onDismiss={onDismiss} steps={[{ label: 'Configurar o fiscal da empresa', onSelect: () => void navigate({ to: '/app/$module', params: { module: 'fiscal' } }) }]} />
+  return <NextSteps onDismiss={onDismiss} steps={[{ label: 'Configurar o fiscal da empresa', onSelect: () => void navigate({ to: '/app/configuracoes/fiscal' }) }]} />
 }
 
 function Row({ label, children, dica }: { label: string; children: ReactNode; dica?: string }) {

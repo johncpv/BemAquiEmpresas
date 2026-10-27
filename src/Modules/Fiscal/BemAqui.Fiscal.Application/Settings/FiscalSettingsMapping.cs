@@ -15,7 +15,7 @@ public static class FiscalSettingsMapping
             s.MixedSale, s.CstIcms, s.CstPisCofins, s.CstIpi,
             s.IcmsInternalRate, s.IcmsInterstateSouthSoutheastRate, s.IcmsInterstateOtherRate, s.IcmsImportedRate, s.PisRate, s.CofinsRate, s.IpiFromNcm,
             s.CostTaxes, s.NfseServiceItem, s.NfseMunicipalCode, s.NfseCtn, s.NfseNbs, s.NfseIssRate, s.NfseIssLocation, s.NfseIssWithheld, s.NfseFederalWithholding,
-            s.IbsCbsCst, s.IbsCbsClassification, s.CbsRate, s.IbsRate, s.CancellationWindowHours, s.FreightMode, s.VolumeSpecies, s.IncludeDuplicates);
+            s.IbsCbsCst, s.IbsCbsClassification, s.CbsRate, s.IbsRate, s.IbsCityRate, s.CancellationWindowHours, s.FreightMode, s.VolumeSpecies, s.IncludeDuplicates);
     }
 
     /// <summary>Aplica os valores (o ambiente fica de fora: a troca tem regra própria, CA 8).</summary>
@@ -58,6 +58,7 @@ public static class FiscalSettingsMapping
         s.IbsCbsClassification = Text(v.IbsCbsClassification);
         s.CbsRate = v.CbsRate;
         s.IbsRate = v.IbsRate;
+        s.IbsCityRate = v.IbsCityRate;
         s.CancellationWindowHours = v.CancellationWindowHours;
         s.FreightMode = v.FreightMode;
         s.VolumeSpecies = Text(v.VolumeSpecies).ToUpperInvariant();

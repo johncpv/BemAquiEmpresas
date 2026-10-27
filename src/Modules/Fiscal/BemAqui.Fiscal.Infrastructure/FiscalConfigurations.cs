@@ -89,7 +89,7 @@ internal sealed class FiscalSettingsConfiguration : IEntityTypeConfiguration<Fis
         b.Property(e => e.CstIpi).HasMaxLength(2);
         foreach (var rate in new[] { nameof(FiscalSettings.IcmsInternalRate), nameof(FiscalSettings.IcmsInterstateSouthSoutheastRate), nameof(FiscalSettings.IcmsInterstateOtherRate),
                      nameof(FiscalSettings.IcmsImportedRate), nameof(FiscalSettings.PisRate), nameof(FiscalSettings.CofinsRate), nameof(FiscalSettings.NfseIssRate),
-                     nameof(FiscalSettings.CbsRate), nameof(FiscalSettings.IbsRate) })
+                     nameof(FiscalSettings.CbsRate), nameof(FiscalSettings.IbsRate), nameof(FiscalSettings.IbsCityRate) })
         {
             b.Property<decimal>(rate).HasPrecision(7, 4);
         }
