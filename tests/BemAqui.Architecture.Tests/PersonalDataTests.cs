@@ -66,6 +66,10 @@ public class PersonalDataTests
         ["PayslipLine"] = ["Id", "PayslipId", "PayrollItemId", "Code", "Description", "Type", "Sort"],
         ["PayrollRunCharge"] = ["Id", "PayrollRunId", "Kind", "Description", "DueDate", "PayeePartyId", "CreatedAt", "Version"],
         ["HrParameter"] = ["Id", "Key", "Value", "Text", "ConfirmedAt", "ConfirmedBy", "UpdatedAt"],
+        // RH-01a: a marcação (quem, quando, tipo, origem, aparelho e se tem localização) é dado de jornada, não sensível; a latitude, a
+        // longitude e a precisão são [PersonalData] (LGPD: localização). A ciência da geolocalização não tem dado pessoal.
+        ["TimeEntry"] = ["Id", "EmployeeId", "At", "Day", "Type", "Source", "Status", "RecordedByUserId", "DeviceId", "Location", "CreatedAt"],
+        ["TimeClockGeoConsent"] = ["Id", "EmployeeId", "UserId", "AcceptedAt", "TextVersion"],
     };
 
     /// <summary>

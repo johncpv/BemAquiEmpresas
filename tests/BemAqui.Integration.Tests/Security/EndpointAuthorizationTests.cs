@@ -105,6 +105,9 @@ public class EndpointAuthorizationTests(TenancyFixture tenancy) : IClassFixture<
         ["/api/v1/me/hr/link"] = "vínculo da própria pessoa com o funcionário (menu de \"Meus holerites\"), sem dado sensível (RH-02b)",
         ["/api/v1/me/hr/payslips"] = "os próprios holerites das folhas fechadas (RH-02b CA 5)",
         ["/api/v1/me/hr/payslips/{id:guid}/pdf"] = "o PDF do próprio holerite; o de outro funcionário responde 404 (RH-02b CA 5)",
+        ["/api/v1/me/hr/time-entries"] = "Meu ponto: marcar (POST, hora do servidor) e Minhas marcações dos últimos 60 dias (GET), só do funcionário da sessão (RH-01a CA 3 e 13)",
+        ["/api/v1/me/hr/time-entries/today"] = "Meu ponto: hoje, a jornada e a próxima marcação sugerida (RH-01a CA 2)",
+        ["/api/v1/me/hr/time-entries/geo-consent"] = "ciência do aviso da geolocalização do próprio funcionário (RH-01a CA 10)",
     };
 
     private static bool IsSelfService(RouteEndpoint e) =>
@@ -124,7 +127,9 @@ public class EndpointAuthorizationTests(TenancyFixture tenancy) : IClassFixture<
         me.Should().OnlyContain(e => IsSelfService(e) && !HasPermission(e), "rota /api/v1/me/hr/* só pelo módulo e pelo vínculo, sem ação no grupo (ADR 0035)");
         endpoints.Where(e => e.Metadata.GetMetadata<SelfServiceMetadata>() != null).Should()
             .OnlyContain(e => e.RoutePattern.RawText!.StartsWith("/api/v1/me/", StringComparison.Ordinal), "a marca de autoatendimento só vale em /api/v1/me/*");
-        me.Should().OnlyContain(e => e.Metadata.GetMetadata<PinSessionAllowedAttribute>() == null, "holerite exige login completo: fora da sessão por PIN (ADR 0035 §4)");
+        // ADR 0035 §4 e §5: holerite, "Minhas marcações" e o resto exigem login completo; só ver hoje e marcar o ponto entram na sessão por PIN.
+        me.Where(e => e.Metadata.GetMetadata<PinSessionAllowedAttribute>() != null).Select(e => e.Metadata.GetMetadata<Microsoft.AspNetCore.Routing.IEndpointNameMetadata>()?.EndpointName).Should()
+            .BeEquivalentTo(["GetMyTimeClock", "RecordMyTimeEntry"], "só o ponto no tablet (adendo de 21/10/2026 à ADR 0026)");
         SelfService.Keys.Except(me.Select(Key)).Should().BeEmpty("rota removida sai da lista");
     }
 
