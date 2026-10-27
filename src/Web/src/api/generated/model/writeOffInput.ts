@@ -10,4 +10,5 @@ export interface WriteOffInput {
   /** @nullable */
   backdateReason: string | null;
   version: number;
+  cancelBillingSlip?: boolean;
 }

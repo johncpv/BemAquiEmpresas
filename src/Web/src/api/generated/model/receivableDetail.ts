@@ -4,6 +4,7 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { BillingSlipStatus } from './billingSlipStatus';
 import type { DocumentOrigin } from './documentOrigin';
 import type { ReceivableStatus } from './receivableStatus';
 import type { TriggerEvent } from './triggerEvent';
@@ -49,4 +50,7 @@ export interface ReceivableDetail {
   triggerEvent?: null | TriggerEvent;
   /** @nullable */
   contractId?: string | null;
+  /** @nullable */
+  billingSlipId?: string | null;
+  billingSlipStatus?: null | BillingSlipStatus;
 }

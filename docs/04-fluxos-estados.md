@@ -197,6 +197,13 @@ Regra dura: **nenhum pagamento é baixado sem OP aprovada**. Exceção: tarifas,
 
 ### Boleto (Inter)
 `Requested → Issued → Paid (webhook com reconsulta por mTLS, ou conferência diária) | PaidPendingReview (pagamento com diferença: conferência humana) | Cancelled | Expired` (BNK-01b, BNK-02, ADR 0032). O webhook nunca baixa pelo corpo; estorno de baixa feita pelo banco e estorno de pagamento da OP exigem `finance.approve` (D6, P-20). Multa, juros e desconto vêm de Configurações → Cobrança; acima do limite da D8, `finance.approve`.
+```
+(Emitir boleto, Idempotency-Key) → Requested ──(IssueBillingSlipJob: cria no Inter, consulta, guarda o PDF)──> Issued
+   Requested ──(recusa, 5xx, tempo esgotado, integração inválida)──> Failed ──(Tentar de novo: mesmo "seu número", procura antes de criar)──> Requested
+   Requested | Issued | Failed ──(Cancelar boleto ou mudança do título: CancelBillingSlipJob, confirmação do Inter)──> Cancelled
+   Issued ──(reconsulta vê EXPIRADO)──> Expired        Issued ──(BNK-02)──> Paid | PaidPendingReview
+```
+- **BNK-01b:** o boleto nunca muda o título (valor, situação, vencimento); `receivables.billing_slip_id` aponta o boleto em andamento (pedido, emitido ou com falha) e volta a nulo no cancelamento e na expiração (o título pode receber outro). Um boleto ativo por título (índice único parcial e a gravação condicional pelo `xmin` do título). Cancelamento automático (job) quando o título é cancelado, tem o valor ou o vencimento alterado ou recebe baixa manual (a baixa pede a confirmação "Este título tem boleto no Inter. Cancelar o boleto e registrar a baixa?"). Eventos `BillingSlipIssued` e `BillingSlipCancelled` (sem dado pessoal). E-mail `billing-slip-issued` pela fila, com o PDF, no limite diário de Configurações → Cobrança (acima, amanhã às 08:00).
 
 ### Evento de webhook recebido (FND-16, ADR 0031)
 ```

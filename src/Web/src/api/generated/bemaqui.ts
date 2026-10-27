@@ -76,6 +76,19 @@ import type {
   BankStatementLineView,
   BankStatementView,
   BankTransferDetail,
+  BillingBatchInput,
+  BillingBatchPreview,
+  BillingBatchPreviewInput,
+  BillingBatchResult,
+  BillingSettingConfirmInput,
+  BillingSettingsInput,
+  BillingSettingsView,
+  BillingSlipCancelInput,
+  BillingSlipDraft,
+  BillingSlipInput,
+  BillingSlipResult,
+  BillingSlipSendInput,
+  BillingSlipView,
   BomComparison,
   BomCopyInput,
   BomCopySource,
@@ -60358,6 +60371,786 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getCancelReceivableMutationOptions(options), queryClient);
     }
 
+export const getPreviewBillingSlipBatchUrl = () => {
+
+
+
+
+  return `/api/v1/finance/receivables/billing-slips/batch-preview`
+}
+
+export const previewBillingSlipBatch = async (billingBatchPreviewInput: BillingBatchPreviewInput, options?: Parameters<typeof apiFetch>[1]): Promise<BillingBatchPreview> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<BillingBatchPreview>(getPreviewBillingSlipBatchUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(billingBatchPreviewInput)
+  }
+);}
+
+
+
+
+
+export const getPreviewBillingSlipBatchMutationKey = () => ['previewBillingSlipBatch'] as const;
+
+export const getPreviewBillingSlipBatchMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewBillingSlipBatch>>, TError,PreviewBillingSlipBatchMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof previewBillingSlipBatch>>, TError,PreviewBillingSlipBatchMutationVariables, TContext> => {
+
+const mutationKey = getPreviewBillingSlipBatchMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof previewBillingSlipBatch>>, PreviewBillingSlipBatchMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  previewBillingSlipBatch(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PreviewBillingSlipBatchMutationResult = NonNullable<Awaited<ReturnType<typeof previewBillingSlipBatch>>>
+    export type PreviewBillingSlipBatchMutationBody = BillingBatchPreviewInput
+    export type PreviewBillingSlipBatchMutationError = unknown
+    export type PreviewBillingSlipBatchMutationVariables = {data: BillingBatchPreviewInput}
+
+    export const usePreviewBillingSlipBatch = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewBillingSlipBatch>>, TError,PreviewBillingSlipBatchMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof previewBillingSlipBatch>>,
+        TError,
+        PreviewBillingSlipBatchMutationVariables,
+        TContext
+      > => {
+      return useMutation(getPreviewBillingSlipBatchMutationOptions(options), queryClient);
+    }
+
+export const getIssueBillingSlipBatchUrl = () => {
+
+
+
+
+  return `/api/v1/finance/receivables/billing-slips/batch`
+}
+
+export const issueBillingSlipBatch = async (billingBatchInput: BillingBatchInput, options?: Parameters<typeof apiFetch>[1]): Promise<BillingBatchResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<BillingBatchResult>(getIssueBillingSlipBatchUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(billingBatchInput)
+  }
+);}
+
+
+
+
+
+export const getIssueBillingSlipBatchMutationKey = () => ['issueBillingSlipBatch'] as const;
+
+export const getIssueBillingSlipBatchMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof issueBillingSlipBatch>>, TError,IssueBillingSlipBatchMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof issueBillingSlipBatch>>, TError,IssueBillingSlipBatchMutationVariables, TContext> => {
+
+const mutationKey = getIssueBillingSlipBatchMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof issueBillingSlipBatch>>, IssueBillingSlipBatchMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  issueBillingSlipBatch(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type IssueBillingSlipBatchMutationResult = NonNullable<Awaited<ReturnType<typeof issueBillingSlipBatch>>>
+    export type IssueBillingSlipBatchMutationBody = BillingBatchInput
+    export type IssueBillingSlipBatchMutationError = unknown
+    export type IssueBillingSlipBatchMutationVariables = {data: BillingBatchInput}
+
+    export const useIssueBillingSlipBatch = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof issueBillingSlipBatch>>, TError,IssueBillingSlipBatchMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof issueBillingSlipBatch>>,
+        TError,
+        IssueBillingSlipBatchMutationVariables,
+        TContext
+      > => {
+      return useMutation(getIssueBillingSlipBatchMutationOptions(options), queryClient);
+    }
+
+export const getListBillingSlipsUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/finance/receivables/${id}/billing-slips`
+}
+
+export const listBillingSlips = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<BillingSlipView[]> => {
+
+  return apiFetch<BillingSlipView[]>(getListBillingSlipsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListBillingSlipsQueryKey = (id: string,) => {
+    return [
+    `/api/v1/finance/receivables/${id}/billing-slips`
+    ] as const;
+    }
+
+
+export const getListBillingSlipsQueryOptions = <TData = Awaited<ReturnType<typeof listBillingSlips>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBillingSlips>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListBillingSlipsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listBillingSlips>>> = ({ signal }) => listBillingSlips(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listBillingSlips>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListBillingSlipsQueryResult = NonNullable<Awaited<ReturnType<typeof listBillingSlips>>>
+export type ListBillingSlipsQueryError = unknown
+
+
+export function useListBillingSlips<TData = Awaited<ReturnType<typeof listBillingSlips>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBillingSlips>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listBillingSlips>>,
+          TError,
+          Awaited<ReturnType<typeof listBillingSlips>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListBillingSlips<TData = Awaited<ReturnType<typeof listBillingSlips>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBillingSlips>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listBillingSlips>>,
+          TError,
+          Awaited<ReturnType<typeof listBillingSlips>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListBillingSlips<TData = Awaited<ReturnType<typeof listBillingSlips>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBillingSlips>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListBillingSlips<TData = Awaited<ReturnType<typeof listBillingSlips>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBillingSlips>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListBillingSlipsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getIssueBillingSlipUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/finance/receivables/${id}/billing-slips`
+}
+
+export const issueBillingSlip = async (id: string,
+    billingSlipInput: BillingSlipInput, options?: Parameters<typeof apiFetch>[1]): Promise<BillingSlipResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<BillingSlipResult>(getIssueBillingSlipUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(billingSlipInput)
+  }
+);}
+
+
+
+
+
+export const getIssueBillingSlipMutationKey = () => ['issueBillingSlip'] as const;
+
+export const getIssueBillingSlipMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof issueBillingSlip>>, TError,IssueBillingSlipMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof issueBillingSlip>>, TError,IssueBillingSlipMutationVariables, TContext> => {
+
+const mutationKey = getIssueBillingSlipMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof issueBillingSlip>>, IssueBillingSlipMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  issueBillingSlip(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type IssueBillingSlipMutationResult = NonNullable<Awaited<ReturnType<typeof issueBillingSlip>>>
+    export type IssueBillingSlipMutationBody = BillingSlipInput
+    export type IssueBillingSlipMutationError = unknown
+    export type IssueBillingSlipMutationVariables = {id: string;data: BillingSlipInput}
+
+    export const useIssueBillingSlip = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof issueBillingSlip>>, TError,IssueBillingSlipMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof issueBillingSlip>>,
+        TError,
+        IssueBillingSlipMutationVariables,
+        TContext
+      > => {
+      return useMutation(getIssueBillingSlipMutationOptions(options), queryClient);
+    }
+
+export const getGetBillingSlipDraftUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/finance/receivables/${id}/billing-slips/draft`
+}
+
+export const getBillingSlipDraft = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<BillingSlipDraft> => {
+
+  return apiFetch<BillingSlipDraft>(getGetBillingSlipDraftUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBillingSlipDraftQueryKey = (id: string,) => {
+    return [
+    `/api/v1/finance/receivables/${id}/billing-slips/draft`
+    ] as const;
+    }
+
+
+export const getGetBillingSlipDraftQueryOptions = <TData = Awaited<ReturnType<typeof getBillingSlipDraft>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBillingSlipDraft>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBillingSlipDraftQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBillingSlipDraft>>> = ({ signal }) => getBillingSlipDraft(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBillingSlipDraft>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetBillingSlipDraftQueryResult = NonNullable<Awaited<ReturnType<typeof getBillingSlipDraft>>>
+export type GetBillingSlipDraftQueryError = unknown
+
+
+export function useGetBillingSlipDraft<TData = Awaited<ReturnType<typeof getBillingSlipDraft>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBillingSlipDraft>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBillingSlipDraft>>,
+          TError,
+          Awaited<ReturnType<typeof getBillingSlipDraft>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetBillingSlipDraft<TData = Awaited<ReturnType<typeof getBillingSlipDraft>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBillingSlipDraft>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBillingSlipDraft>>,
+          TError,
+          Awaited<ReturnType<typeof getBillingSlipDraft>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetBillingSlipDraft<TData = Awaited<ReturnType<typeof getBillingSlipDraft>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBillingSlipDraft>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetBillingSlipDraft<TData = Awaited<ReturnType<typeof getBillingSlipDraft>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBillingSlipDraft>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetBillingSlipDraftQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetBillingSlipUrl = (id: string,
+    slipId: string,) => {
+
+
+
+
+  return `/api/v1/finance/receivables/${id}/billing-slips/${slipId}`
+}
+
+export const getBillingSlip = async (id: string,
+    slipId: string, options?: Parameters<typeof apiFetch>[1]): Promise<BillingSlipView> => {
+
+  return apiFetch<BillingSlipView>(getGetBillingSlipUrl(id,slipId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBillingSlipQueryKey = (id: string,
+    slipId: string,) => {
+    return [
+    `/api/v1/finance/receivables/${id}/billing-slips/${slipId}`
+    ] as const;
+    }
+
+
+export const getGetBillingSlipQueryOptions = <TData = Awaited<ReturnType<typeof getBillingSlip>>, TError = unknown>(id: string,
+    slipId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBillingSlip>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBillingSlipQueryKey(id,slipId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBillingSlip>>> = ({ signal }) => getBillingSlip(id,slipId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && slipId !== null && slipId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBillingSlip>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetBillingSlipQueryResult = NonNullable<Awaited<ReturnType<typeof getBillingSlip>>>
+export type GetBillingSlipQueryError = unknown
+
+
+export function useGetBillingSlip<TData = Awaited<ReturnType<typeof getBillingSlip>>, TError = unknown>(
+ id: string,
+    slipId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBillingSlip>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBillingSlip>>,
+          TError,
+          Awaited<ReturnType<typeof getBillingSlip>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetBillingSlip<TData = Awaited<ReturnType<typeof getBillingSlip>>, TError = unknown>(
+ id: string,
+    slipId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBillingSlip>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBillingSlip>>,
+          TError,
+          Awaited<ReturnType<typeof getBillingSlip>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetBillingSlip<TData = Awaited<ReturnType<typeof getBillingSlip>>, TError = unknown>(
+ id: string,
+    slipId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBillingSlip>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetBillingSlip<TData = Awaited<ReturnType<typeof getBillingSlip>>, TError = unknown>(
+ id: string,
+    slipId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBillingSlip>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetBillingSlipQueryOptions(id,slipId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSendBillingSlipUrl = (id: string,
+    slipId: string,) => {
+
+
+
+
+  return `/api/v1/finance/receivables/${id}/billing-slips/${slipId}/send`
+}
+
+export const sendBillingSlip = async (id: string,
+    slipId: string,
+    billingSlipSendInput: BillingSlipSendInput, options?: Parameters<typeof apiFetch>[1]): Promise<BillingSlipResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<BillingSlipResult>(getSendBillingSlipUrl(id,slipId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(billingSlipSendInput)
+  }
+);}
+
+
+
+
+
+export const getSendBillingSlipMutationKey = () => ['sendBillingSlip'] as const;
+
+export const getSendBillingSlipMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendBillingSlip>>, TError,SendBillingSlipMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sendBillingSlip>>, TError,SendBillingSlipMutationVariables, TContext> => {
+
+const mutationKey = getSendBillingSlipMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sendBillingSlip>>, SendBillingSlipMutationVariables> = (props) => {
+          const {id,slipId,data} = props ?? {};
+
+          return  sendBillingSlip(id,slipId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SendBillingSlipMutationResult = NonNullable<Awaited<ReturnType<typeof sendBillingSlip>>>
+    export type SendBillingSlipMutationBody = BillingSlipSendInput
+    export type SendBillingSlipMutationError = unknown
+    export type SendBillingSlipMutationVariables = {id: string;slipId: string;data: BillingSlipSendInput}
+
+    export const useSendBillingSlip = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendBillingSlip>>, TError,SendBillingSlipMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof sendBillingSlip>>,
+        TError,
+        SendBillingSlipMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSendBillingSlipMutationOptions(options), queryClient);
+    }
+
+export const getRetryBillingSlipUrl = (id: string,
+    slipId: string,) => {
+
+
+
+
+  return `/api/v1/finance/receivables/${id}/billing-slips/${slipId}/retry`
+}
+
+export const retryBillingSlip = async (id: string,
+    slipId: string, options?: Parameters<typeof apiFetch>[1]): Promise<BillingSlipResult> => {
+
+  return apiFetch<BillingSlipResult>(getRetryBillingSlipUrl(id,slipId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getRetryBillingSlipMutationKey = () => ['retryBillingSlip'] as const;
+
+export const getRetryBillingSlipMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof retryBillingSlip>>, TError,RetryBillingSlipMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof retryBillingSlip>>, TError,RetryBillingSlipMutationVariables, TContext> => {
+
+const mutationKey = getRetryBillingSlipMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof retryBillingSlip>>, RetryBillingSlipMutationVariables> = (props) => {
+          const {id,slipId} = props ?? {};
+
+          return  retryBillingSlip(id,slipId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RetryBillingSlipMutationResult = NonNullable<Awaited<ReturnType<typeof retryBillingSlip>>>
+
+    export type RetryBillingSlipMutationError = unknown
+    export type RetryBillingSlipMutationVariables = {id: string;slipId: string}
+
+    export const useRetryBillingSlip = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof retryBillingSlip>>, TError,RetryBillingSlipMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof retryBillingSlip>>,
+        TError,
+        RetryBillingSlipMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRetryBillingSlipMutationOptions(options), queryClient);
+    }
+
+export const getCancelBillingSlipUrl = (id: string,
+    slipId: string,) => {
+
+
+
+
+  return `/api/v1/finance/receivables/${id}/billing-slips/${slipId}/cancel`
+}
+
+export const cancelBillingSlip = async (id: string,
+    slipId: string,
+    billingSlipCancelInput: BillingSlipCancelInput, options?: Parameters<typeof apiFetch>[1]): Promise<BillingSlipResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<BillingSlipResult>(getCancelBillingSlipUrl(id,slipId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(billingSlipCancelInput)
+  }
+);}
+
+
+
+
+
+export const getCancelBillingSlipMutationKey = () => ['cancelBillingSlip'] as const;
+
+export const getCancelBillingSlipMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelBillingSlip>>, TError,CancelBillingSlipMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelBillingSlip>>, TError,CancelBillingSlipMutationVariables, TContext> => {
+
+const mutationKey = getCancelBillingSlipMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelBillingSlip>>, CancelBillingSlipMutationVariables> = (props) => {
+          const {id,slipId,data} = props ?? {};
+
+          return  cancelBillingSlip(id,slipId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelBillingSlipMutationResult = NonNullable<Awaited<ReturnType<typeof cancelBillingSlip>>>
+    export type CancelBillingSlipMutationBody = BillingSlipCancelInput
+    export type CancelBillingSlipMutationError = unknown
+    export type CancelBillingSlipMutationVariables = {id: string;slipId: string;data: BillingSlipCancelInput}
+
+    export const useCancelBillingSlip = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelBillingSlip>>, TError,CancelBillingSlipMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof cancelBillingSlip>>,
+        TError,
+        CancelBillingSlipMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCancelBillingSlipMutationOptions(options), queryClient);
+    }
+
 export const getGetFinanceLimitsUrl = () => {
 
 
@@ -65929,6 +66722,265 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getTestBankIntegrationMutationOptions(options), queryClient);
+    }
+
+export const getGetBillingSettingsUrl = () => {
+
+
+
+
+  return `/api/v1/settings/billing`
+}
+
+export const getBillingSettings = async ( options?: Parameters<typeof apiFetch>[1]): Promise<BillingSettingsView> => {
+
+  return apiFetch<BillingSettingsView>(getGetBillingSettingsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBillingSettingsQueryKey = () => {
+    return [
+    `/api/v1/settings/billing`
+    ] as const;
+    }
+
+
+export const getGetBillingSettingsQueryOptions = <TData = Awaited<ReturnType<typeof getBillingSettings>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBillingSettings>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBillingSettingsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBillingSettings>>> = ({ signal }) => getBillingSettings({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBillingSettings>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetBillingSettingsQueryResult = NonNullable<Awaited<ReturnType<typeof getBillingSettings>>>
+export type GetBillingSettingsQueryError = unknown
+
+
+export function useGetBillingSettings<TData = Awaited<ReturnType<typeof getBillingSettings>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBillingSettings>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBillingSettings>>,
+          TError,
+          Awaited<ReturnType<typeof getBillingSettings>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetBillingSettings<TData = Awaited<ReturnType<typeof getBillingSettings>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBillingSettings>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBillingSettings>>,
+          TError,
+          Awaited<ReturnType<typeof getBillingSettings>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetBillingSettings<TData = Awaited<ReturnType<typeof getBillingSettings>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBillingSettings>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetBillingSettings<TData = Awaited<ReturnType<typeof getBillingSettings>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBillingSettings>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetBillingSettingsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateBillingSettingsUrl = () => {
+
+
+
+
+  return `/api/v1/settings/billing`
+}
+
+export const updateBillingSettings = async (billingSettingsInput: BillingSettingsInput, options?: Parameters<typeof apiFetch>[1]): Promise<BillingSettingsView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<BillingSettingsView>(getUpdateBillingSettingsUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(billingSettingsInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateBillingSettingsMutationKey = () => ['updateBillingSettings'] as const;
+
+export const getUpdateBillingSettingsMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateBillingSettings>>, TError,UpdateBillingSettingsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateBillingSettings>>, TError,UpdateBillingSettingsMutationVariables, TContext> => {
+
+const mutationKey = getUpdateBillingSettingsMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateBillingSettings>>, UpdateBillingSettingsMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateBillingSettings(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateBillingSettingsMutationResult = NonNullable<Awaited<ReturnType<typeof updateBillingSettings>>>
+    export type UpdateBillingSettingsMutationBody = BillingSettingsInput
+    export type UpdateBillingSettingsMutationError = unknown
+    export type UpdateBillingSettingsMutationVariables = {data: BillingSettingsInput}
+
+    export const useUpdateBillingSettings = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateBillingSettings>>, TError,UpdateBillingSettingsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateBillingSettings>>,
+        TError,
+        UpdateBillingSettingsMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateBillingSettingsMutationOptions(options), queryClient);
+    }
+
+export const getConfirmBillingSettingUrl = () => {
+
+
+
+
+  return `/api/v1/settings/billing/confirm`
+}
+
+export const confirmBillingSetting = async (billingSettingConfirmInput: BillingSettingConfirmInput, options?: Parameters<typeof apiFetch>[1]): Promise<BillingSettingsView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<BillingSettingsView>(getConfirmBillingSettingUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(billingSettingConfirmInput)
+  }
+);}
+
+
+
+
+
+export const getConfirmBillingSettingMutationKey = () => ['confirmBillingSetting'] as const;
+
+export const getConfirmBillingSettingMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmBillingSetting>>, TError,ConfirmBillingSettingMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof confirmBillingSetting>>, TError,ConfirmBillingSettingMutationVariables, TContext> => {
+
+const mutationKey = getConfirmBillingSettingMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof confirmBillingSetting>>, ConfirmBillingSettingMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  confirmBillingSetting(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConfirmBillingSettingMutationResult = NonNullable<Awaited<ReturnType<typeof confirmBillingSetting>>>
+    export type ConfirmBillingSettingMutationBody = BillingSettingConfirmInput
+    export type ConfirmBillingSettingMutationError = unknown
+    export type ConfirmBillingSettingMutationVariables = {data: BillingSettingConfirmInput}
+
+    export const useConfirmBillingSetting = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmBillingSetting>>, TError,ConfirmBillingSettingMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof confirmBillingSetting>>,
+        TError,
+        ConfirmBillingSettingMutationVariables,
+        TContext
+      > => {
+      return useMutation(getConfirmBillingSettingMutationOptions(options), queryClient);
     }
 
 export const getListImportRunsUrl = (params?: ListImportRunsParams,) => {

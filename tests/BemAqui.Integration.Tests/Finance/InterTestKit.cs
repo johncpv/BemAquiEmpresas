@@ -76,6 +76,9 @@ public sealed class FakeInter : IInterHandlerFactory
 
     public ConcurrentQueue<FakeInterCall> Calls { get; } = new();
 
+    /// <summary>API de Cobrança simulada (BNK-01b): emitir, consultar, procurar pelo "seu número", PDF e cancelar.</summary>
+    public FakeInterBilling Billing { get; } = new();
+
     public ConcurrentQueue<string> CreatedFor { get; } = new();
 
     public int Disposed => _disposed;
@@ -174,7 +177,13 @@ public sealed class FakeInter : IInterHandlerFactory
                 return Json(owner.BalanceStatus, $"{{\"disponivel\":{value.ToString(System.Globalization.CultureInfo.InvariantCulture)},\"bloqueadoCheque\":0,\"limite\":5000}}");
             }
 
-            var response = Json(owner.BalanceStatus, "{\"disponivel\":1500.25,\"pagador\":{\"nome\":\"Maria da Silva\",\"cpf\":\"52998224725\"}}");
+
+            if (request.RequestUri.AbsolutePath.StartsWith("/" + InterEnvironments.BillingPath, StringComparison.Ordinal))
+            {
+                return await fake.Billing.HandleAsync(request, cancellationToken);
+            }
+
+            var response = Json(owner.BalanceStatus,"{\"disponivel\":1500.25,\"pagador\":{\"nome\":\"Maria da Silva\",\"cpf\":\"52998224725\"}}");
             response.Headers.Add("x-correlation-id", "corr-" + Guid.NewGuid().ToString("N")[..8]);
             return response;
         }
