@@ -78,7 +78,7 @@ export function QuotePage() {
           <span className="flex flex-wrap gap-2">
             {simulable ? (
               <span className="inline-flex items-center">
-                <button type="button" onClick={() => setSimulating(true)} className="inline-flex min-h-11 items-center gap-1.5 rounded-md border border-border px-3 py-2 text-sm font-semibold"><CalendarClock aria-hidden="true" className="size-4" />Simular prazo</button>
+                <button type="button" onClick={() => setSimulating(true)} className="inline-flex min-h-[44px] items-center gap-1.5 rounded-md border border-border px-3 py-2 text-sm font-semibold"><CalendarClock aria-hidden="true" className="size-4" />Simular prazo</button>
                 <Dica nome="Simular prazo" texto={SIMULATION_DICAS.simular} />
               </span>
             ) : null}

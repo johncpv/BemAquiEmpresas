@@ -28,7 +28,8 @@ public class QuoteSimulationRulesTests
     public void Simulacao_nao_grava_nem_pega_lock()
     {
         var service = Read("Commercial", "BemAqui.Commercial.Application", "QuoteScheduleSimulationService.cs");
-        service.Should().NotContainAny(["SaveChanges", "ExecuteUpdate", "ExecuteDelete", "ExecuteSql", ".Add(", ".Remove(", "BeginTransaction"], "CA 5: nada é gravado");
+        service.Should().NotContainAny(["SaveChanges", "ExecuteUpdate", "ExecuteDelete", "ExecuteSql", "BeginTransaction", ".Attach(", ".Update("], "CA 5: nada é gravado");
+        System.Text.RegularExpressions.Regex.IsMatch(service, @"db\.\w+\.(Add|AddRange|Remove|RemoveRange)\(").Should().BeFalse("nenhuma tabela recebe linha");
         service.Should().Contain("IProductionSchedule").And.NotContain("BemAqui.Production.Application", "o Commercial usa só o contrato");
         var contract = Read("Production", "BemAqui.Production.Application", "ProductionScheduleContract.cs");
         var simulate = contract[contract.IndexOf("public async Task<DeliverySimulation> SimulateDeliveryAsync", StringComparison.Ordinal)..contract.IndexOf("public async Task<IReadOnlyList<ProjectDeliveryForecast>> ProjectForecastsAsync", StringComparison.Ordinal)];

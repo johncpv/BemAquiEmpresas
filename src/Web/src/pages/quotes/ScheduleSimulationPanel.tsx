@@ -16,7 +16,7 @@ import { SIMULATION_DICAS, SIMULATION_TEXT, lateLine, noForecastText, positionTe
 
 type Mode = 'end' | 'at'
 
-const button = 'inline-flex min-h-11 items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-semibold'
+const button = 'inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-semibold'
 
 /**
  * "Simular prazo" do orçamento (PLN-05): painel (tela cheia a 400 px) com a posição na fila, o resultado só com datas e "Usar este prazo"
@@ -68,7 +68,7 @@ export function ScheduleSimulationPanel({ quote, open, onOpenChange, onUseDays }
   const queueSize = result?.simulated ? result.queueSize : 0
   const chosen = mode === 'end' ? null : validPosition(position, queueSize)
   const days = result?.simulated ? result.deliveryDays : null
-  const useDays = async () => {
+  const applyDays = async () => {
     if (days === null || days === undefined) return
     if (quote.status === 'Draft') {
       onUseDays(days)
@@ -77,6 +77,7 @@ export function ScheduleSimulationPanel({ quote, open, onOpenChange, onUseDays }
     }
     try {
       const created = await newQuoteRevision(quote.id, { version: quote.version })
+      close(false)
       await navigate({ to: '/app/orcamentos/$id', params: { id: created.id }, search: { prazo: days } } as never)
     } catch (error) {
       notifyError(error instanceof ApiError ? error.message : 'Não foi possível criar a nova revisão.')
@@ -84,7 +85,7 @@ export function ScheduleSimulationPanel({ quote, open, onOpenChange, onUseDays }
   }
 
   const footer = result?.simulated && days !== null && days !== undefined && canEdit && quote.isCurrent ? (
-    <button type="button" onClick={() => void useDays()} className={`${button} bg-primary text-primary-foreground`}>
+    <button type="button" onClick={() => void applyDays()} className={`${button} bg-primary text-primary-foreground`}>
       {quote.status === 'Draft' ? 'Usar este prazo' : 'Criar nova revisão com este prazo'}
     </button>
   ) : undefined
@@ -95,9 +96,9 @@ export function ScheduleSimulationPanel({ quote, open, onOpenChange, onUseDays }
         {result?.simulated || mutation.isPending ? (
           <fieldset className="space-y-2" disabled={mutation.isPending}>
             <legend className="flex items-center text-sm font-semibold">Posição na fila<Dica nome="Na posição" texto={SIMULATION_DICAS.posicao} /></legend>
-            <label className="flex min-h-11 items-center gap-2 text-sm"><input type="radio" name="posicao" checked={mode === 'end'} onChange={() => setMode('end')} />No fim da fila</label>
+            <label className="flex min-h-[44px] items-center gap-2 text-sm"><input type="radio" name="posicao" checked={mode === 'end'} onChange={() => setMode('end')} />No fim da fila</label>
             <div className="flex flex-wrap items-center gap-2">
-              <label className="flex min-h-11 items-center gap-2 text-sm"><input type="radio" name="posicao" checked={mode === 'at'} onChange={() => setMode('at')} />Na posição</label>
+              <label className="flex min-h-[44px] items-center gap-2 text-sm"><input type="radio" name="posicao" checked={mode === 'at'} onChange={() => setMode('at')} />Na posição</label>
               <input aria-label="Posição na fila" inputMode="numeric" maxLength={4} value={position} disabled={mode !== 'at'}
                 onChange={(e) => setPosition(e.target.value.replace(/\D/g, ''))} className={`${inputClass} w-20 tabular-nums`} />
               {result?.simulated ? <span className="text-xs text-muted-foreground tabular-nums">de 1 a {queueSize + 1}</span> : null}
