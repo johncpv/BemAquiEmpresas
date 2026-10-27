@@ -4476,6 +4476,56 @@ namespace BemAqui.Host.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("BemAqui.Fiscal.Domain.CertificateUpload", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("At")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("at");
+
+                    b.Property<string>("Document")
+                        .HasMaxLength(14)
+                        .HasColumnType("character varying(14)")
+                        .HasColumnName("document");
+
+                    b.Property<DateTimeOffset?>("NotAfter")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("not_after");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("source");
+
+                    b.Property<string>("Subject")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("subject");
+
+                    b.Property<string>("Thumbprint")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("thumbprint");
+
+                    b.Property<Guid?>("UploadedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("uploaded_by");
+
+                    b.HasKey("Id")
+                        .HasName("pk_certificate_uploads");
+
+                    b.HasIndex("At")
+                        .HasDatabaseName("ix_certificate_uploads_at");
+
+                    b.ToTable("certificate_uploads", "fiscal");
+                });
+
             modelBuilder.Entity("BemAqui.Fiscal.Domain.FiscalIntegrationSettings", b =>
                 {
                     b.Property<Guid>("Id")
@@ -4576,6 +4626,289 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("integration_settings", "fiscal", t =>
                         {
                             t.HasCheckConstraint("ck_integration_settings_slot", "slot = 1");
+                        });
+                });
+
+            modelBuilder.Entity("BemAqui.Fiscal.Domain.FiscalSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("CancellationWindowHours")
+                        .HasColumnType("integer")
+                        .HasColumnName("cancellation_window_hours");
+
+                    b.Property<decimal>("CbsRate")
+                        .HasPrecision(7, 4)
+                        .HasColumnType("numeric(7,4)")
+                        .HasColumnName("cbs_rate");
+
+                    b.Property<DateTimeOffset?>("CertificateChangedOutsideAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("certificate_changed_outside_at");
+
+                    b.Property<string>("CertificateDocument")
+                        .HasMaxLength(14)
+                        .HasColumnType("character varying(14)")
+                        .HasColumnName("certificate_document");
+
+                    b.Property<DateTimeOffset?>("CertificateNotAfter")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("certificate_not_after");
+
+                    b.Property<string>("CertificateSubject")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("certificate_subject");
+
+                    b.Property<string>("CertificateThumbprint")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("certificate_thumbprint");
+
+                    b.Property<DateTimeOffset?>("CertificateUploadedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("certificate_uploaded_at");
+
+                    b.Property<Guid?>("CertificateUploadedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("certificate_uploaded_by");
+
+                    b.Property<string>("CfopResaleInState")
+                        .IsRequired()
+                        .HasMaxLength(4)
+                        .HasColumnType("character varying(4)")
+                        .HasColumnName("cfop_resale_in_state");
+
+                    b.Property<string>("CfopResaleInterstate")
+                        .IsRequired()
+                        .HasMaxLength(4)
+                        .HasColumnType("character varying(4)")
+                        .HasColumnName("cfop_resale_interstate");
+
+                    b.Property<string>("CfopSaleInStateContributor")
+                        .IsRequired()
+                        .HasMaxLength(4)
+                        .HasColumnType("character varying(4)")
+                        .HasColumnName("cfop_sale_in_state_contributor");
+
+                    b.Property<string>("CfopSaleInStateFinal")
+                        .IsRequired()
+                        .HasMaxLength(4)
+                        .HasColumnType("character varying(4)")
+                        .HasColumnName("cfop_sale_in_state_final");
+
+                    b.Property<string>("CfopSaleInterstateContributor")
+                        .IsRequired()
+                        .HasMaxLength(4)
+                        .HasColumnType("character varying(4)")
+                        .HasColumnName("cfop_sale_interstate_contributor");
+
+                    b.Property<string>("CfopSaleInterstateFinal")
+                        .IsRequired()
+                        .HasMaxLength(4)
+                        .HasColumnType("character varying(4)")
+                        .HasColumnName("cfop_sale_interstate_final");
+
+                    b.Property<string>("CnaeMain")
+                        .IsRequired()
+                        .HasMaxLength(7)
+                        .HasColumnType("character varying(7)")
+                        .HasColumnName("cnae_main");
+
+                    b.PrimitiveCollection<string[]>("CnaeSecondary")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("cnae_secondary");
+
+                    b.Property<decimal>("CofinsRate")
+                        .HasPrecision(7, 4)
+                        .HasColumnType("numeric(7,4)")
+                        .HasColumnName("cofins_rate");
+
+                    b.PrimitiveCollection<string[]>("CostTaxes")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("cost_taxes");
+
+                    b.Property<int>("Crt")
+                        .HasColumnType("integer")
+                        .HasColumnName("crt");
+
+                    b.Property<string>("CstIcms")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("cst_icms");
+
+                    b.Property<string>("CstIpi")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)")
+                        .HasColumnName("cst_ipi");
+
+                    b.Property<string>("CstPisCofins")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)")
+                        .HasColumnName("cst_pis_cofins");
+
+                    b.Property<string>("Environment")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("environment");
+
+                    b.Property<int>("FreightMode")
+                        .HasColumnType("integer")
+                        .HasColumnName("freight_mode");
+
+                    b.Property<string>("IbsCbsClassification")
+                        .IsRequired()
+                        .HasMaxLength(6)
+                        .HasColumnType("character varying(6)")
+                        .HasColumnName("ibs_cbs_classification");
+
+                    b.Property<string>("IbsCbsCst")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("ibs_cbs_cst");
+
+                    b.Property<decimal>("IbsRate")
+                        .HasPrecision(7, 4)
+                        .HasColumnType("numeric(7,4)")
+                        .HasColumnName("ibs_rate");
+
+                    b.Property<decimal>("IcmsImportedRate")
+                        .HasPrecision(7, 4)
+                        .HasColumnType("numeric(7,4)")
+                        .HasColumnName("icms_imported_rate");
+
+                    b.Property<decimal>("IcmsInternalRate")
+                        .HasPrecision(7, 4)
+                        .HasColumnType("numeric(7,4)")
+                        .HasColumnName("icms_internal_rate");
+
+                    b.Property<decimal>("IcmsInterstateOtherRate")
+                        .HasPrecision(7, 4)
+                        .HasColumnType("numeric(7,4)")
+                        .HasColumnName("icms_interstate_other_rate");
+
+                    b.Property<decimal>("IcmsInterstateSouthSoutheastRate")
+                        .HasPrecision(7, 4)
+                        .HasColumnType("numeric(7,4)")
+                        .HasColumnName("icms_interstate_south_southeast_rate");
+
+                    b.Property<bool>("IncludeDuplicates")
+                        .HasColumnType("boolean")
+                        .HasColumnName("include_duplicates");
+
+                    b.Property<bool>("IpiFromNcm")
+                        .HasColumnType("boolean")
+                        .HasColumnName("ipi_from_ncm");
+
+                    b.Property<string>("MixedSale")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("mixed_sale");
+
+                    b.Property<int?>("NfeSeries")
+                        .HasColumnType("integer")
+                        .HasColumnName("nfe_series");
+
+                    b.Property<string>("NfseCtn")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("nfse_ctn");
+
+                    b.Property<bool>("NfseFederalWithholding")
+                        .HasColumnType("boolean")
+                        .HasColumnName("nfse_federal_withholding");
+
+                    b.Property<string>("NfseIssLocation")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("nfse_iss_location");
+
+                    b.Property<decimal>("NfseIssRate")
+                        .HasPrecision(7, 4)
+                        .HasColumnType("numeric(7,4)")
+                        .HasColumnName("nfse_iss_rate");
+
+                    b.Property<bool>("NfseIssWithheld")
+                        .HasColumnType("boolean")
+                        .HasColumnName("nfse_iss_withheld");
+
+                    b.Property<string>("NfseMunicipalCode")
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)")
+                        .HasColumnName("nfse_municipal_code");
+
+                    b.Property<string>("NfseNbs")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("nfse_nbs");
+
+                    b.Property<string>("NfseServiceItem")
+                        .IsRequired()
+                        .HasMaxLength(5)
+                        .HasColumnType("character varying(5)")
+                        .HasColumnName("nfse_service_item");
+
+                    b.Property<decimal>("PisRate")
+                        .HasPrecision(7, 4)
+                        .HasColumnType("numeric(7,4)")
+                        .HasColumnName("pis_rate");
+
+                    b.Property<string>("Regime")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("regime");
+
+                    b.Property<int>("Slot")
+                        .HasColumnType("integer")
+                        .HasColumnName("slot");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<string>("VolumeSpecies")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("volume_species");
+
+                    b.HasKey("Id")
+                        .HasName("pk_fiscal_settings");
+
+                    b.HasIndex("Slot")
+                        .IsUnique()
+                        .HasDatabaseName("ux_fiscal_settings_slot");
+
+                    b.ToTable("fiscal_settings", "fiscal", t =>
+                        {
+                            t.HasCheckConstraint("ck_fiscal_settings_cancellation_window", "cancellation_window_hours BETWEEN 1 AND 168");
+
+                            t.HasCheckConstraint("ck_fiscal_settings_nfe_series", "nfe_series IS NULL OR nfe_series BETWEEN 1 AND 999");
+
+                            t.HasCheckConstraint("ck_fiscal_settings_slot", "slot = 1");
                         });
                 });
 
@@ -4698,6 +5031,46 @@ namespace BemAqui.Host.Persistence.Migrations
                             t.HasCheckConstraint("ck_outgoing_invoices_attempt", "attempt >= 1");
 
                             t.HasCheckConstraint("ck_outgoing_invoices_payload_hash", "payload_hash IS NULL OR length(payload_hash) = 64");
+                        });
+                });
+
+            modelBuilder.Entity("BemAqui.Fiscal.Domain.SettingConfirmation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("ConfirmedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("confirmed_at");
+
+                    b.Property<Guid?>("ConfirmedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("confirmed_by");
+
+                    b.Property<string>("SettingKey")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("setting_key");
+
+                    b.Property<string>("ValueHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("value_hash");
+
+                    b.HasKey("Id")
+                        .HasName("pk_setting_confirmations");
+
+                    b.HasIndex("SettingKey")
+                        .IsUnique()
+                        .HasDatabaseName("ux_setting_confirmations_key");
+
+                    b.ToTable("setting_confirmations", "fiscal", t =>
+                        {
+                            t.HasCheckConstraint("ck_setting_confirmations_hash", "length(value_hash) = 64");
                         });
                 });
 

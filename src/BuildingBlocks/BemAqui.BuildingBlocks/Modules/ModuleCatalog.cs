@@ -89,7 +89,11 @@ public static partial class ModuleCatalog
         new("assets", "Patrimônio", ModuleAreas.Factory, 6, 90, "Bens, QR code e manutenção.", Crud, []),
         new("finance", "Caixa e pagamentos", ModuleAreas.Financial, 2, 100, "Contas a receber e a pagar, ordens de pagamento e fluxo de caixa.", CrudApprove,
             [new("pay", "Pagar", "Dar baixa de pagamento: registra a saída de caixa de uma ordem aprovada.")], "ordem de pagamento, dentro da alçada"),
-        new("fiscal", "Fiscal", ModuleAreas.Financial, 5, 110, "Notas fiscais de saída e de entrada.", [StandardActions.View, StandardActions.Create, StandardActions.Edit], []),
+        // FIS-02a (D12, ADR 0003 e 0008 adendos de 21/10/2026): fiscal.approve cancela ou inutiliza nota e ativa regra fiscal, reservada ao
+        // Proprietário (só um membro dele concede; quem a tem precisa de 2FA); fiscal.import_incoming importa a nota de entrada (FIS-04a).
+        new("fiscal", "Fiscal", ModuleAreas.Financial, 5, 110, "Notas fiscais de saída e de entrada.", [StandardActions.View, StandardActions.Create, StandardActions.Edit, StandardActions.Approve],
+            [new("import_incoming", "Importar nota de entrada", "Importar nota fiscal de entrada: ler o XML ou o PDF da nota do fornecedor e dar entrada no recebimento.")],
+            "cancelar ou inutilizar nota fiscal e ativar regra fiscal"),
         // CAD-04c1b (PO 22/10/2026, ADR 0003 adendo de 21/10/2026): o dado de saúde sai da hr.view_sensitive para a ação própria;
         // uma não implica a outra. A RH-01b usa a mesma ação para o atestado.
         new("hr", "RH", ModuleAreas.People, 6, 120, "Funcionários, cargos, ponto e folha.", CrudApprove,

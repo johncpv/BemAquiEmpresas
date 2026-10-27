@@ -68,7 +68,16 @@ public sealed class FakeFiscalEmitter
 
     public EmitterAccount DefaultAccount() => new(Guid.Parse("8a1c0000-0000-7000-8000-000000000001"), "BemAqui Empresas — tenant de teste", TenantId, Scopes, false, 120,
         [new EmitterIssuer(IssuerDocument, "WSP Equipamentos por Elevação LTDA", "SP", "3508504", Environment, true,
-            new EmitterCertificate(true, "AB12CD", "WSP EQUIPAMENTOS", DateTimeOffset.UtcNow.AddYears(-1), DateTimeOffset.UtcNow.AddDays(140), 140, false))]);
+            Certificate ?? new EmitterCertificate(true, "AB12CD", "WSP EQUIPAMENTOS", DateTimeOffset.UtcNow.AddYears(-1), DateTimeOffset.UtcNow.AddDays(140), 140, false))]);
+
+    /// <summary>Certificado no cofre do fake (FIS-02a): o enviado por último ou o trocado "fora do BemAqui" pelo teste; nulo, o padrão.</summary>
+    public EmitterCertificate? Certificate { get; set; }
+
+    /// <summary>Quantos bytes chegaram no último envio e para qual emitente (nunca o arquivo nem a senha).</summary>
+    public (int Bytes, string Issuer)? LastUpload { get; set; }
+
+    /// <summary>Recusa o próximo envio como o Emissor faria (CNPJ do certificado diferente do emitente, lacuna L-h).</summary>
+    public bool RejectCertificate { get; set; }
 
     public IFiscalEmitter For(string apiKey) => new Bound(this, apiKey);
 
@@ -263,8 +272,27 @@ public sealed class FakeFiscalEmitter
             return Task.FromResult(Result<EmitterAccount>.Success(fake.Accounts.TryGetValue(apiKey, out var account) ? account : fake.DefaultAccount()));
         }
 
-        public Task<Result<CertificateUploadResult>> UploadCertificateAsync(string issuerDocument, ReadOnlyMemory<byte> pfx, Secret password, CancellationToken cancellationToken = default) =>
-            Task.FromResult(Result<CertificateUploadResult>.Success(new CertificateUploadResult(Guid.CreateVersion7(), "AB12CD", DateTimeOffset.UtcNow.AddYears(1))));
+        public Task<Result<CertificateUploadResult>> UploadCertificateAsync(string issuerDocument, ReadOnlyMemory<byte> pfx, Secret password, CancellationToken cancellationToken = default)
+        {
+            Track("certificado");
+            if (fake.Unavailable<CertificateUploadResult>() is { } down)
+            {
+                return Task.FromResult(down);
+            }
+
+            if (fake.RejectCertificate)
+            {
+                return Task.FromResult<Result<CertificateUploadResult>>(Error.Validation(FiscalErrorCodes.Validation, "O CNPJ do certificado não é o do emitente."));
+            }
+
+            using var certificate = System.Security.Cryptography.X509Certificates.X509CertificateLoader.LoadPkcs12(pfx.Span, password.Reveal(),
+                System.Security.Cryptography.X509Certificates.X509KeyStorageFlags.EphemeralKeySet);
+            var notAfter = new DateTimeOffset(certificate.NotAfter.ToUniversalTime(), TimeSpan.Zero);
+            fake.LastUpload = (pfx.Length, issuerDocument);
+            fake.Certificate = new EmitterCertificate(true, certificate.Thumbprint, certificate.GetNameInfo(System.Security.Cryptography.X509Certificates.X509NameType.SimpleName, false),
+                certificate.NotBefore, notAfter, (int)(notAfter - DateTimeOffset.UtcNow).TotalDays, false);
+            return Task.FromResult(Result<CertificateUploadResult>.Success(new CertificateUploadResult(Guid.CreateVersion7(), certificate.Thumbprint, notAfter)));
+        }
 
         public Task<Result<NfseDocument>> IssueNfseAsync(NfseIssueRequest request, string idempotencyKey, CancellationToken cancellationToken = default) =>
             Task.FromResult<Result<NfseDocument>>(Error.Unavailable(FiscalErrorCodes.Unavailable, "NFS-e entra na FIS-06."));

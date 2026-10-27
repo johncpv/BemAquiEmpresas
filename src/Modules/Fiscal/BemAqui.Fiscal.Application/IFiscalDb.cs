@@ -12,6 +12,12 @@ public interface IFiscalDb
 
     DbSet<OutgoingInvoice> OutgoingInvoices { get; }
 
+    DbSet<FiscalSettings> FiscalSettings { get; }
+
+    DbSet<SettingConfirmation> SettingConfirmations { get; }
+
+    DbSet<CertificateUpload> CertificateUploads { get; }
+
     ChangeTracker ChangeTracker { get; }
 
     /// <summary>Trava da nota na conferência de pendentes (<c>FOR UPDATE SKIP LOCKED</c>, CA 14).</summary>

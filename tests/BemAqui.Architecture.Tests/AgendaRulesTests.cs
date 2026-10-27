@@ -76,6 +76,7 @@ public class AgendaRulesTests
             "production.quality_pending", "production.orders_late", "production.non_conformities_mine",
             "purchasing.orders_awaiting", "purchasing.shortages_without_request",
             "hr.positions_without_cost",
+            "fiscal.certificate_expiring",
         ]);
 
     /// <summary>CA 15 (ADR 0026): a sessão de PIN do /fab não chama a pauta.</summary>

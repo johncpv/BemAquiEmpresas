@@ -4,6 +4,7 @@
     <ProjectReference Include="..\BemAqui.Fiscal.Domain\BemAqui.Fiscal.Domain.csproj" />
     <ProjectReference Include="..\BemAqui.Fiscal.Contracts\BemAqui.Fiscal.Contracts.csproj" />
     <ProjectReference Include="..\..\Platform\BemAqui.Platform.Contracts\BemAqui.Platform.Contracts.csproj" />
+    <ProjectReference Include="..\..\Identity\BemAqui.Identity.Contracts\BemAqui.Identity.Contracts.csproj" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="BemAqui.Fiscal.Infrastructure" />
