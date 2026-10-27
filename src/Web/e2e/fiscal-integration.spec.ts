@@ -32,7 +32,7 @@ function fiscalApi(initial: View, testResult: (v: View) => { ok: boolean; result
     'PUT /api/v1/fiscal/integration': (r) => {
       const body = r.request().postDataJSON() as { code?: string; apiKey?: string | null }
       calls.push({ method: 'PUT', body })
-      if (body.code !== '123456') return json(r, { status: 403, code: 'two_factor_required', title: 'Acesso negado', detail: 'Confirme com o código do aplicativo autenticador para salvar a integração fiscal.' }, 403)
+      if (body.code !== '123456') return json(r, { status: 403, code: body.code ? 'two_factor_invalid' : 'two_factor_required', title: 'Acesso negado', detail: 'Confirme com o código do aplicativo autenticador para salvar a integração fiscal.' }, 403)
       view = saved()
       return json(r, view)
     },

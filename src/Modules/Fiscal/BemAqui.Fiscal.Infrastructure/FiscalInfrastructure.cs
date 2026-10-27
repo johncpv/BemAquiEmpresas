@@ -8,6 +8,7 @@ using BemAqui.Fiscal.Application.Invoices;
 using BemAqui.Fiscal.Domain;
 using BemAqui.Fiscal.Infrastructure.Emissor;
 using BemAqui.SharedKernel;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -42,6 +43,7 @@ public static class FiscalInfrastructure
         services.AddAuditableEntity<FiscalIntegrationSettings>("settings");
         services.AddAuditableEntity<OutgoingInvoice>("fiscal");
         services.AddAttachmentOwner(OutgoingInvoiceReconciler.AttachmentOwner, new AttachmentOwnerRules("fiscal", ["application/xml"], 5 * 1024 * 1024,
+            OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IFiscalDb>().OutgoingInvoices.AnyAsync(i => i.Id == id, ct),
             CanAttach: (_, _, _) => Task.FromResult<Error?>(Error.Forbidden(Error.Codes.Forbidden, "O XML da nota é guardado pelo sistema."))));
         return services;
     }

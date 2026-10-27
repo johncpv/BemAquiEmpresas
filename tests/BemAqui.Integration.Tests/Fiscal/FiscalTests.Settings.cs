@@ -38,6 +38,10 @@ public partial class FiscalTests(FiscalFixture fixture) : IClassFixture<FiscalFi
         noCode.StatusCode.Should().Be(HttpStatusCode.Forbidden);
         (await JsonAsync(noCode)).GetProperty("code").GetString().Should().Be("two_factor_required");
         (await fixture.FiscalAsync(fixture.Tenancy.TenantA, db => db.FiscalIntegrationSettings.AnyAsync())).Should().BeFalse("sem o código nada é gravado");
+        var wrong = await owner.PutAsJsonAsync(Integration, Body("000000"));
+        wrong.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        (await JsonAsync(wrong)).GetProperty("code").GetString().Should().Be(FiscalIntegrationService.TwoFactorInvalid, "código errado não abre o passo global do 2FA por cima do diálogo");
+        (await fixture.FiscalAsync(fixture.Tenancy.TenantA, db => db.FiscalIntegrationSettings.AnyAsync())).Should().BeFalse();
 
         var saved = await owner.PutAsJsonAsync(Integration, Body(await code()));
         saved.StatusCode.Should().Be(HttpStatusCode.OK, await saved.Content.ReadAsStringAsync());

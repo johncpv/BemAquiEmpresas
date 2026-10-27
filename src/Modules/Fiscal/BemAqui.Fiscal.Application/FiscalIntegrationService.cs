@@ -71,6 +71,7 @@ public sealed class FiscalIntegrationService(
     TimeProvider clock)
 {
     public const string TestRateLimitPolicy = "fiscal-integration";
+    public const string TwoFactorInvalid = "two_factor_invalid";
     public const string StepUpMessage = "Confirme com o código do aplicativo autenticador para salvar a integração fiscal.";
     public const string RotatedNotification = "fiscal.integration_rotated";
     public const string KeyRejectedMessage = "O Emissor Fiscal recusou a chave. Confira a chave e o endereço.";
@@ -139,7 +140,9 @@ public sealed class FiscalIntegrationService(
 
         if (currentUser.UserId is not { } userId || !await stepUp.VerifyAsync(userId, request.Code, cancellationToken))
         {
-            return Error.Forbidden("two_factor_required", StepUpMessage);
+            // Sem código: two_factor_required (CA 7). Código errado ou já usado: two_factor_invalid, para o passo global "Confirme o código"
+            // da BNK-01a (que reage ao two_factor_required) não abrir por cima do diálogo desta tela, que já pede o código.
+            return Error.Forbidden(string.IsNullOrWhiteSpace(request.Code) ? "two_factor_required" : TwoFactorInvalid, StepUpMessage);
         }
 
         var now = clock.GetUtcNow();
