@@ -9,12 +9,18 @@ public sealed partial class AttachmentService
     /// Arquivo gerado pelo sistema (ADR 0019 §7, COM-03 CA 3): interno, sem rota; grava com <c>Origin = System</c> na unidade de
     /// trabalho do chamador (o chamador salva) e passa pela varredura como qualquer anexo.
     /// </summary>
-    public async Task<Attachment> StoreGeneratedAsync(string ownerType, Guid ownerId, string fileName, string contentType, byte[] content, CancellationToken cancellationToken = default)
+    public Task<Attachment> StoreGeneratedAsync(string ownerType, Guid ownerId, string fileName, string contentType, byte[] content, CancellationToken cancellationToken = default) =>
+        StoreGeneratedAsync(ownerType, ownerId, fileName, contentType, content, null, cancellationToken);
+
+    /// <summary>
+    /// Igual ao anterior, com o arquivo debaixo do prefixo <paramref name="storagePrefix"/> no storage (ex.: o id do tenant, FIS-01 CA 13).
+    /// </summary>
+    public async Task<Attachment> StoreGeneratedAsync(string ownerType, Guid ownerId, string fileName, string contentType, byte[] content, string? storagePrefix, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(content);
         using var buffer = new MemoryStream(content, writable: false);
         var sha256 = Convert.ToHexStringLower(SHA256.HashData(content));
-        var path = await storage.SaveAsync(buffer, cancellationToken);
+        var path = storagePrefix is null ? await storage.SaveAsync(buffer, cancellationToken) : await storage.SaveAsync(buffer, storagePrefix, cancellationToken);
         buffer.Position = 0;
         var scan = await scanner.ScanAsync(buffer, cancellationToken);
         var attachment = new Attachment

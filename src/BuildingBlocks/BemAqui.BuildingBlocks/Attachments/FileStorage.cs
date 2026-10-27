@@ -6,6 +6,12 @@ public interface IFileStorage
     /// <summary>Grava e devolve o caminho relativo gerado (nunca derivado do nome enviado pelo usuário).</summary>
     Task<string> SaveAsync(Stream content, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Grava debaixo de um prefixo (ex.: o id do tenant, revisão pré-Fases 4 a 8 §4.3), que só aceita letras minúsculas e dígitos. Os
+    /// arquivos de guarda legal (o XML da NF-e, FIS-01 CA 13) usam o prefixo do tenant.
+    /// </summary>
+    Task<string> SaveAsync(Stream content, string prefix, CancellationToken cancellationToken = default);
+
     Task<Stream> OpenReadAsync(string path, CancellationToken cancellationToken = default);
 
     Task DeleteAsync(string path, CancellationToken cancellationToken = default);
@@ -24,11 +30,29 @@ public sealed class LocalFileStorage(Microsoft.Extensions.Options.IOptions<FileS
 {
     private string Root => Path.GetFullPath(options.Value.Root);
 
-    public async Task<string> SaveAsync(Stream content, CancellationToken cancellationToken = default)
+    public Task<string> SaveAsync(Stream content, CancellationToken cancellationToken = default) => SaveUnderAsync(content, null, cancellationToken);
+
+    public Task<string> SaveAsync(Stream content, string prefix, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(prefix);
+        if (prefix.Length > 64 || !prefix.All(c => char.IsAsciiDigit(c) || char.IsAsciiLetterLower(c)))
+        {
+            throw new ArgumentException("Prefixo de armazenamento inválido.", nameof(prefix));
+        }
+
+        return SaveUnderAsync(content, prefix, cancellationToken);
+    }
+
+    private async Task<string> SaveUnderAsync(Stream content, string? prefix, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(content);
         var now = clock.GetUtcNow();
         var relative = Path.Combine(now.Year.ToString("0000", System.Globalization.CultureInfo.InvariantCulture), now.Month.ToString("00", System.Globalization.CultureInfo.InvariantCulture), Guid.CreateVersion7().ToString("N"));
+        if (prefix is not null)
+        {
+            relative = Path.Combine(prefix, relative);
+        }
+
         var full = Resolve(relative);
         Directory.CreateDirectory(Path.GetDirectoryName(full)!);
         await using var file = new FileStream(full, FileMode.CreateNew, FileAccess.Write, FileShare.None, 81920, useAsync: true);

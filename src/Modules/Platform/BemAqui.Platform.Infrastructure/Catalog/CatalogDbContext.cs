@@ -64,6 +64,7 @@ public sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options)
             b.Property(e => e.SchemaVersion).HasMaxLength(150);
             b.Property(e => e.WebhookKey).HasMaxLength(32);
             b.HasIndex(e => e.WebhookKey).IsUnique();
+            b.Property(e => e.FiscalEnvironmentAllowed).HasConversion<string>().HasMaxLength(16);
             b.HasOne<Plan>().WithMany().HasForeignKey(e => e.PlanId).OnDelete(DeleteBehavior.Restrict);
             b.HasMany(e => e.Domains).WithOne().HasForeignKey(d => d.TenantId).OnDelete(DeleteBehavior.Cascade);
         });

@@ -5,4 +5,7 @@ public interface ITenantProfile
 {
     /// <summary>CNPJ normalizado (sem pontuação) ou null se o tenant não tem documento.</summary>
     Task<string?> DocumentAsync(Guid tenantId, CancellationToken cancellationToken = default);
+
+    /// <summary>Ambiente fiscal permitido ao tenant (FIS-01 CA 9), lido do catálogo a cada chamada (sem cache: a GOL-01b vale na hora).</summary>
+    Task<FiscalEnvironmentAllowance> FiscalEnvironmentAllowedAsync(Guid tenantId, CancellationToken cancellationToken = default);
 }

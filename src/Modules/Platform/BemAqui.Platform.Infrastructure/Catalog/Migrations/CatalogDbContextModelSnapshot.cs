@@ -462,6 +462,12 @@ namespace BemAqui.Platform.Infrastructure.Catalog.Migrations
                         .HasColumnType("character varying(18)")
                         .HasColumnName("document");
 
+                    b.Property<string>("FiscalEnvironmentAllowed")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("fiscal_environment_allowed");
+
                     b.Property<string>("Key")
                         .IsRequired()
                         .HasMaxLength(63)

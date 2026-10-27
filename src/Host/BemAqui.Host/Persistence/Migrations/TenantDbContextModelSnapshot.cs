@@ -4456,6 +4456,231 @@ namespace BemAqui.Host.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("BemAqui.Fiscal.Domain.FiscalIntegrationSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean")
+                        .HasColumnName("active");
+
+                    b.Property<string>("ApiKeyCipher")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("api_key_cipher");
+
+                    b.Property<DateTimeOffset?>("ApiKeySetAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("api_key_set_at");
+
+                    b.Property<string>("BaseUrl")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("base_url");
+
+                    b.Property<DateTimeOffset?>("CertificateValidUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("certificate_valid_until");
+
+                    b.Property<Guid?>("EmitterClientId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("emitter_client_id");
+
+                    b.Property<Guid?>("EmitterTenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("emitter_tenant_id");
+
+                    b.Property<string>("Environment")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("environment");
+
+                    b.Property<string>("IssuerDocument")
+                        .HasMaxLength(14)
+                        .HasColumnType("character varying(14)")
+                        .HasColumnName("issuer_document");
+
+                    b.Property<string>("IssuerName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("issuer_name");
+
+                    b.Property<DateTimeOffset?>("LastTestAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_test_at");
+
+                    b.Property<string>("LastTestMessage")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("last_test_message");
+
+                    b.Property<string>("LastTestResult")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("last_test_result");
+
+                    b.Property<string>("Scopes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("scopes");
+
+                    b.Property<int>("Slot")
+                        .HasColumnType("integer")
+                        .HasColumnName("slot");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_integration_settings");
+
+                    b.HasIndex("Slot")
+                        .IsUnique()
+                        .HasDatabaseName("ux_integration_settings_slot");
+
+                    b.ToTable("integration_settings", "fiscal", t =>
+                        {
+                            t.HasCheckConstraint("ck_integration_settings_slot", "slot = 1");
+                        });
+                });
+
+            modelBuilder.Entity("BemAqui.Fiscal.Domain.OutgoingInvoice", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AccessKey")
+                        .HasMaxLength(44)
+                        .HasColumnType("character varying(44)")
+                        .HasColumnName("access_key");
+
+                    b.Property<int>("Attempt")
+                        .HasColumnType("integer")
+                        .HasColumnName("attempt");
+
+                    b.Property<DateTimeOffset?>("AuthorizedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("authorized_at");
+
+                    b.Property<DateTimeOffset?>("ContingencySince")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("contingency_since");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("EmitterDocumentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("emitter_document_id");
+
+                    b.Property<DateTimeOffset?>("LastCheckedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_checked_at");
+
+                    b.Property<long?>("Number")
+                        .HasColumnType("bigint")
+                        .HasColumnName("number");
+
+                    b.Property<string>("PayloadHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("payload_hash");
+
+                    b.Property<DateTimeOffset?>("ProcessingSince")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("processing_since");
+
+                    b.Property<string>("Protocol")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("protocol");
+
+                    b.Property<int?>("RejectionCode")
+                        .HasColumnType("integer")
+                        .HasColumnName("rejection_code");
+
+                    b.Property<string>("RejectionReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("rejection_reason");
+
+                    b.Property<int?>("Series")
+                        .HasColumnType("integer")
+                        .HasColumnName("series");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)")
+                        .HasColumnName("status");
+
+                    b.Property<string>("SuggestedAction")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("suggested_action");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("total_amount");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<Guid?>("XmlAttachmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("xml_attachment_id");
+
+                    b.Property<string>("XmlSha256")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("xml_sha256");
+
+                    b.HasKey("Id")
+                        .HasName("pk_outgoing_invoices");
+
+                    b.HasIndex("AccessKey")
+                        .IsUnique()
+                        .HasDatabaseName("ux_outgoing_invoices_access_key")
+                        .HasFilter("access_key IS NOT NULL");
+
+                    b.HasIndex("EmitterDocumentId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_outgoing_invoices_emitter_document_id")
+                        .HasFilter("emitter_document_id IS NOT NULL");
+
+                    b.HasIndex("Status", "ProcessingSince")
+                        .HasDatabaseName("ix_outgoing_invoices_status_processing_since");
+
+                    b.ToTable("outgoing_invoices", "fiscal", t =>
+                        {
+                            t.HasCheckConstraint("ck_outgoing_invoices_attempt", "attempt >= 1");
+
+                            t.HasCheckConstraint("ck_outgoing_invoices_payload_hash", "payload_hash IS NULL OR length(payload_hash) = 64");
+                        });
+                });
+
             modelBuilder.Entity("BemAqui.HR.Domain.Employee", b =>
                 {
                     b.Property<Guid>("Id")

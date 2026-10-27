@@ -72,6 +72,7 @@ public sealed class SecretProtector(IDataProtectionProvider provider) : ISecretP
         SecretKind.WebhookSecret => "webhook-secret",
         SecretKind.InterCredentials => "inter-credentials",
         SecretKind.InterCertificate => "inter-certificate",
+        SecretKind.FiscalApiKey => "fiscal-api-key",
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Tipo de segredo sem propósito definido."),
     };
 

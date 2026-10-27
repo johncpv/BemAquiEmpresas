@@ -11,4 +11,8 @@ internal sealed class CatalogTenantProfile(CatalogDbContext db) : ITenantProfile
         var document = await db.Tenants.AsNoTracking().Where(t => t.Id == tenantId).Select(t => t.Document).FirstOrDefaultAsync(cancellationToken);
         return string.IsNullOrWhiteSpace(document) ? null : BrazilianDocuments.Normalize(document);
     }
+
+    public async Task<FiscalEnvironmentAllowance> FiscalEnvironmentAllowedAsync(Guid tenantId, CancellationToken cancellationToken = default) =>
+        await db.Tenants.AsNoTracking().Where(t => t.Id == tenantId).Select(t => (FiscalEnvironmentAllowance?)t.FiscalEnvironmentAllowed).FirstOrDefaultAsync(cancellationToken)
+            ?? FiscalEnvironmentAllowance.None;
 }
