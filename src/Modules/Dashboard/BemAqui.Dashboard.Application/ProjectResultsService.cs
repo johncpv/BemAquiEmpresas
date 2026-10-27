@@ -153,7 +153,7 @@ public sealed class ProjectResultsService(
         return new ProjectResultCell(type.ToString(), ProjectResultRules.CostLabel(type), MonthOrNull(month), costEntries.Sum(e => e.Amount), costEntries);
     }
 
-    /// <summary>A receita num escopo próprio do mesmo tenant (outro DbContext e outra conexão), para rodar junto com os custos.</summary>
+    /// <summary>A receita num escopo próprio do mesmo tenant (outra conexão, resolvendo o IRevenueSummary nele), para rodar junto com os custos.</summary>
     private async Task<IReadOnlyList<ProjectMonthlyRevenue>> SeparateRevenueAsync(List<Guid> ids, DateOnly from, DateOnly to, CancellationToken ct)
     {
         await using var scope = await scopes.CreateScopeAsync(tenant.Tenant!, ct);
