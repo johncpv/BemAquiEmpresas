@@ -1,7 +1,7 @@
 import * as Menu from '@radix-ui/react-dropdown-menu'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
-import { logout, useGetCurrentSession } from '@/api/generated/bemaqui'
+import { logout, useGetCurrentSession, useGetMyEmployeeLink } from '@/api/generated/bemaqui'
 import { setAccessToken } from '@/api/session'
 import { isThemePreference, THEMES } from '@/theme/theme'
 import { useTheme } from '@/theme/theme-context'
@@ -10,6 +10,8 @@ import { useTheme } from '@/theme/theme-context'
 export function UserMenu({ showTheme }: { showTheme: boolean }) {
   const { theme, setTheme } = useTheme()
   const me = useGetCurrentSession()
+  // "Meus holerites" (RH-02b) só para quem está ligado a funcionário ativo ou afastado, com o RH liberado (ADR 0035).
+  const employee = useGetMyEmployeeLink({ query: { retry: false, staleTime: 300_000 } })
   const navigate = useNavigate()
   const client = useQueryClient()
   const name = me.data?.name || me.data?.email || 'Usuário'
@@ -35,6 +37,7 @@ export function UserMenu({ showTheme }: { showTheme: boolean }) {
           <Menu.Separator className="my-1 h-px bg-border" />
           <Menu.Item className={itemClass} onSelect={() => void navigate({ to: '/app/conta' })}>Meu perfil</Menu.Item>
           <Menu.Item className={itemClass} onSelect={() => void navigate({ to: '/app/conta/seguranca' })}>Verificação em duas etapas</Menu.Item>
+          {employee.isSuccess ? <Menu.Item className={itemClass} onSelect={() => void navigate({ to: '/app/meus-holerites' })}>Meus holerites</Menu.Item> : null}
           {showTheme ? (
             <>
               <Menu.Separator className="my-1 h-px bg-border" />

@@ -10,4 +10,5 @@ export interface PayrollCloseResult {
   run: PayrollRunSummary;
   payables: number;
   message: string;
+  changedAfterNotice?: number;
 }

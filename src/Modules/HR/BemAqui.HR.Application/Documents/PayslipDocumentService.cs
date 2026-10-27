@@ -44,7 +44,7 @@ public sealed class PayslipDocumentService(
     public async Task<Result<PayslipFile>> PdfAsync(Guid runId, Guid payslipId, CancellationToken cancellationToken = default)
     {
         var run = await db.PayrollRuns.AsNoTracking().FirstOrDefaultAsync(r => r.Id == runId, cancellationToken);
-        var slip = run is null ? null : await SlipsQuery(runId).FirstOrDefaultAsync(s => s.Payslip.Id == payslipId, cancellationToken);
+        var slip = run is null ? null : await SlipsQuery(p => p.PayrollRunId == runId && p.Id == payslipId).FirstOrDefaultAsync(cancellationToken);
         if (run is null || slip is null)
         {
             return PayslipNotFound();
@@ -82,7 +82,7 @@ public sealed class PayslipDocumentService(
     /// </summary>
     public async Task<Result<PayslipFile>> MinePdfAsync(Guid employeeId, Guid payslipId, CancellationToken cancellationToken = default)
     {
-        var slip = await SlipsQuery(null).FirstOrDefaultAsync(s => s.Payslip.Id == payslipId && s.Payslip.EmployeeId == employeeId, cancellationToken);
+        var slip = await SlipsQuery(p => p.Id == payslipId && p.EmployeeId == employeeId).FirstOrDefaultAsync(cancellationToken);
         var run = slip is null ? null : await db.PayrollRuns.AsNoTracking().FirstOrDefaultAsync(r => r.Id == slip.Payslip.PayrollRunId, cancellationToken);
         if (slip is null || run is null || run.Status == PayrollRunStatus.Draft)
         {
@@ -209,7 +209,7 @@ public sealed class PayslipDocumentService(
 
     private async Task<Result<Guid>> BuildBatchAsync(PayrollRun run, CancellationToken ct)
     {
-        var slips = await SlipsQuery(run.Id).OrderBy(s => s.Name).ToListAsync(ct);
+        var slips = (await SlipsQuery(p => p.PayrollRunId == run.Id).ToListAsync(ct)).OrderBy(s => s.Name, StringComparer.CurrentCulture).ToList();
         var info = await CompanyAsync(ct);
         using var buffer = new MemoryStream();
         using (var zip = new ZipArchive(buffer, ZipArchiveMode.Create, leaveOpen: true))
@@ -309,11 +309,10 @@ public sealed class PayslipDocumentService(
         }
     }
 
-    private IQueryable<Slip> SlipsQuery(Guid? runId) =>
-        from p in db.Payslips.AsNoTracking()
+    private IQueryable<Slip> SlipsQuery(System.Linq.Expressions.Expression<Func<Payslip, bool>> filter) =>
+        from p in db.Payslips.AsNoTracking().Where(filter)
         join e in db.Employees.IgnoreQueryFilters().AsNoTracking() on p.EmployeeId equals e.Id
         join pos in db.JobPositions.IgnoreQueryFilters().AsNoTracking() on e.PositionId equals pos.Id
-        where runId == null || p.PayrollRunId == runId
         select new Slip(p, e.Name, e.Registration, e.Cpf, e.AdmissionDate, pos.Name, pos.Cbo);
 
     private async Task<PayslipPdfCompany> CompanyAsync(CancellationToken ct)

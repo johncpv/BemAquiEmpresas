@@ -41,8 +41,9 @@ public static class ActiveEmployeeLink
             var http = context.HttpContext;
             if (http.Request.Query.Keys.Any(k => string.Equals(k, "employeeId", StringComparison.OrdinalIgnoreCase)))
             {
-                return Error.Validation(Error.Codes.Validation, "O funcionário vem do seu login: não informe employeeId.",
-                    new Dictionary<string, string[]> { ["employeeId"] = ["O funcionário vem do seu login: não informe employeeId."] }).ToProblem();
+                // ADR 0035 §1: 400, como o UnmappedMemberHandling.Disallow do corpo.
+                return Results.Problem(detail: "O funcionário vem do seu login: não informe employeeId.", statusCode: StatusCodes.Status400BadRequest, title: "Requisição inválida",
+                    extensions: new Dictionary<string, object?> { ["code"] = "employee_from_session" });
             }
 
             var services = http.RequestServices;

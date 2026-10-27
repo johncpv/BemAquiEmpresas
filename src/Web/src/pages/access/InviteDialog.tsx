@@ -1,11 +1,12 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import { useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { inviteUser, useListGroups } from '@/api/generated/bemaqui'
 import { ApiError } from '@/api/http'
 import { Field, FormError } from '@/components/form/form'
 import { applyServerErrors, inputClass, useZodForm } from '@/components/form/form-utils'
 import { z } from '@/lib/zod'
+import { clearInviteSuggestion, peekInviteSuggestion } from '@/pages/hr/payroll/payslip-notices'
 
 const LAST_GROUPS = 'bq-convite-grupos'
 const schema = z.object({ name: z.string().min(2, 'Informe o nome.'), email: z.email('Informe um e-mail válido.') })
@@ -24,13 +25,16 @@ const readLast = (): string[] => {
  * o existente; depois de enviar, o próprio diálogo confirma e oferece convidar outra pessoa (propositivo, ADR 0021).
  */
 export function InviteDialog({ onInvited }: { onInvited: () => Promise<void> }) {
-  const [open, setOpen] = useState(false)
+  // "Convidar usuário" do aviso de holerite (RH-02b CA 7): abre já com o nome e o e-mail pessoal sugeridos.
+  const [suggestion] = useState(peekInviteSuggestion)
+  const [open, setOpen] = useState(() => suggestion !== null)
+  useEffect(() => clearInviteSuggestion(), [])
   const groups = useListGroups({ query: { enabled: open } })
   const [selected, setSelected] = useState<Set<string>>(() => new Set(readLast()))
   const [existing, setExisting] = useState<string | null>(null)
   const [sent, setSent] = useState<string | null>(null)
   const navigate = useNavigate()
-  const form = useZodForm(schema, { defaultValues: { name: '', email: '' } })
+  const form = useZodForm(schema, { defaultValues: suggestion ?? { name: '', email: '' } })
 
   const submit = form.handleSubmit(async (values) => {
     setExisting(null)
@@ -52,7 +56,7 @@ export function InviteDialog({ onInvited }: { onInvited: () => Promise<void> }) 
   })
 
   return (
-    <Dialog.Root open={open} onOpenChange={(o) => { setOpen(o); if (!o) setSent(null) }}>
+    <Dialog.Root open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setSent(null); clearInviteSuggestion() } }}>
       <Dialog.Trigger className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Convidar usuário</Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-foreground/30" />

@@ -5,7 +5,7 @@
 | ID | RH-02b |
 | Título | Holerite em PDF no layout padrão (empresa, funcionário com CPF mascarado 3+2, competência, proventos, descontos, bases de INSS, FGTS e IRRF, FGTS do mês e líquido) pelo `IPdfRenderer`; download individual e em lote pelo RH; **"Meus holerites"** autenticado como o canal do funcionário (`/api/v1/me/hr/*`, ADR 0035); e-mail só de aviso, sem anexo nem valor, depois da folha fechada; situação do aviso e da primeira leitura por holerite |
 | Tamanho | M (quebra da RH-02) |
-| Status | Ready (pré-condição externa) |
+| Status | Done (pré-condição externa: usuários dos funcionários) |
 | Requisitos | R-RH-5 (parte: gerar holerite PDF, enviar por e-mail) · R-COM-1 · R-COM-3 · PRD §6 LGPD · R-SEC-5 · R-PRP-2 |
 | Dependências | RH-02a (folha, holerites, linhas), RH-02c (holerite só com a folha fechada), CAD-04b (`IUserEmployeeLink`, vínculo usuário ↔ funcionário), COM-03 (`IPdfRenderer`, `StoreGeneratedAsync`, ADR 0019 §7 e 0022), CAD-06 (perfil e logo da empresa), FND-08 (e-mail) |
 | Bloqueia | RH-01a (reusa o autoatendimento `/api/v1/me/hr/*` criado aqui), FLH-02a (o holerite calculado usa o mesmo layout) |
@@ -87,19 +87,19 @@ Decisões da revisão aplicadas: §4.3 (jobs com `tenantId`, CA 2, 8); §4.4 pad
 **Pré-condição externa:** a Konebras cria um usuário (e-mail de apelido no domínio da empresa, quando o funcionário não tiver e-mail próprio) para cada funcionário que vai usar "Meus holerites"; sem usuário, o funcionário aparece como "Sem usuário" no aviso e o RH entrega o PDF; não bloqueia o `Ready`.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers), arquitetura, imagem Alpine e E2E passando.
-- [ ] Migration criada (não destrutiva).
-- [ ] Permissões só do `ModuleCatalog`; dono `Payslip` com `OwnerExists`; template registrado; filtro de autoatendimento e lista versionada (ADR 0035).
-- [ ] Estados de geração, aviso e "Meus holerites"; ajuda escrita e atualizada; teste de cobertura passando.
-- [ ] Auditoria ligada, com `SensitiveRead`.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers), arquitetura, imagem Alpine e E2E passando.
+- [x] Migration criada (não destrutiva).
+- [x] Permissões só do `ModuleCatalog`; dono `Payslip` com `OwnerExists`; template registrado; filtro de autoatendimento e lista versionada (ADR 0035).
+- [x] Estados de geração, aviso e "Meus holerites"; ajuda escrita e atualizada; teste de cobertura passando.
+- [x] Auditoria ligada, com `SensitiveRead`.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `PayslipPdfDocument`; jobs de ZIP e de aviso.
-- [ ] Filtro `RequireActiveEmployeeLink` e a lista versionada de autoatendimento (ADR 0035).
-- [ ] Endpoints `/payroll-runs/{id}/payslips/{payslipId}/pdf`, `/payroll-runs/{id}/pdfs`, `/payroll-runs/{id}/notify`, `/payslips/{id}/notify`, `/api/v1/me/hr/payslips` (+ `/{id}/pdf`); tela "Meus holerites" e ajuda.
+- [x] `PayslipPdfDocument`; jobs de ZIP e de aviso.
+- [x] Filtro `RequireActiveEmployeeLink` e a lista versionada de autoatendimento (ADR 0035).
+- [x] Endpoints `/payroll-runs/{id}/payslips/{payslipId}/pdf`, `/payroll-runs/{id}/pdfs`, `/payroll-runs/{id}/notify`, `/payslips/{id}/notify`, `/api/v1/me/hr/payslips` (+ `/{id}/pdf`); tela "Meus holerites" e ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, @architect (autoatendimento, ADR 0035), cybersecurity (sigilo do PDF, autoatendimento, e-mail), @qa.
@@ -133,3 +133,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D15, D19, tabela 3.3 pontos 20–22, ADR 0035, §4.3, §4.4 padrão 8); nova ordem (Marco 6.2, ordem 4, antes da RH-01a); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 27/10/2026 | 1.0 | Implementada (@dev). Backend: `PayslipPdfDocument` (QuestPDF pelo `IPdfRenderer`, Archivo, pt-BR tabular; empresa com logo `Clean`, funcionário com CPF 3+2, cargo, CBO e admissão, proventos/descontos, totais, líquido em destaque, bases INSS/FGTS/IRRF e FGTS do mês; marca d'água "RASCUNHO — folha não fechada" no rascunho; o modelo nem tem CPF completo, endereço, banco ou dependentes); `PayslipDocumentService` (rascunho gerado na hora sem guardar; folha `Closed`/`Paid` guarda no primeiro download pelo `StoreGeneratedAsync`, dono `Payslip`, e reaproveita; limite de 300 linhas com 422 `payslip_pdf_too_many_lines`; `SensitiveRead` em todo download; "Baixar todos" com ZIP na hora até 20 e o `PayslipBatchJob` acima, só `tenantId` e ids, ZIP no dono `PayslipBatch` e aviso no sino com `?lote=`); `PayslipNoticeService` (só com a folha fechada, 409; um `payslip-available` por holerite para o e-mail do usuário ligado e ativo, sem cópia nem anexo, modelo só com nome, mês, empresa e link; `Idempotency-Key`; avisar a folha de novo só pega quem não foi avisado, 422 `payslip_notice_none`; "Avisar de novo" por holerite; situação pelo `email_logs`; os sem usuário com o e-mail pessoal sugerido e os desligados); filtro `RequireActiveEmployeeLink` do HR (funcionário pela sessão via `IUserEmployeeLink`, situação pelo `IEmployees`, afastado entra em "Meus holerites", 403 `employee_not_active`, `employeeId` na query 400) com a marca `RequireSelfService("hr")` (BuildingBlocks) e as rotas `/api/v1/me/hr/link`, `/payslips` e `/payslips/{id}/pdf` (camada 1 no grupo, `no-store`, fora do `[PinSessionAllowed]`); reabrir a folha anula o PDF guardado e fechar de novo marca "Alterado depois do aviso" (`updated_at > notified_at`), devolvido em `PayrollCloseResult.ChangedAfterNotice`. Template `payslip-available`. Migration `PayslipDocumentsRh02b` (só colunas novas em `hr.payslips`: `pdf_attachment_id`, `notified_at`, `notice_email_log_id`, `first_viewed_at`, `changed_after_notice`). Testes: `PayslipDocumentRulesTests` (máscara, nome do arquivo, situação, texto do PDF, marca d'água, só Archivo, 50 holerites < 30 s na Alpine), `PayslipDocumentTests` (7 cenários de integração: PDF, limite, ZIP e job, "Meus holerites" com IDOR/no-store/"Visto em"/vínculo/desligado/afastado/módulo, aviso e canário, alterado depois do aviso com o fechamento real), lista versionada de autoatendimento no `EndpointAuthorizationTests` e DTOs sem valor no `PersonalDataTests`. Front: aba Holerites com "Baixar", "Baixar todos os holerites", "Avisar funcionários" (diálogo com sem usuário → "Convidar usuário" pré-preenchido pela sessão do navegador, nunca pela URL, e desligados → "Baixar holerite"), situação do aviso, "Visto em", "Alterado depois do aviso" e "Avisar de novo"; `NextSteps` do fechamento com "Avisar funcionários"/"Avisar os funcionários dos holerites alterados"; tela `/app/meus-holerites` (cartões, botão de 56 px, vazio, sem vínculo, erro, `<Dica>`); entrada no menu do usuário e na área Pessoas; aviso no `/fab`; ajudas `meus-holerites` (nova), `rh-folha-detalhe` e `fab`. Desvios e decisões (recomendação aceita, PO 24/10): (1) "Avisar de novo" fica em `POST /payroll-runs/{id}/payslips/{payslipId}/notify` (no lugar de `/payslips/{id}/notify`), para o IDOR pela folha da rota como no resto do RH; (2) o aviso em lote não ganhou `TenantJob` próprio: o comando só grava `email_logs` + `EmailQueued` na transação, e cada envio já é o `SendEmailJob` com `tenantId` e o id do log; (3) a auditoria do aviso fica no holerite (`notified_at`, `notice_email_log_id`), sem o destinatário (nem mascarado), e o `email_logs.to` continua `[PersonalData]`; (4) o PDF da folha fechada é guardado no primeiro download (não no fechamento), para não alongar a transação do fechamento; (5) "Meus holerites" na área Pessoas só aparece quando a área existe para o usuário (com o RH habilitado em algum grupo); no menu do usuário aparece sempre que houver vínculo; (6) nenhuma regra desta story depende da contadora. | @dev |
