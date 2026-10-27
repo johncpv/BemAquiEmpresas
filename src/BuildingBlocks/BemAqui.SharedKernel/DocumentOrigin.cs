@@ -35,4 +35,7 @@ public enum DocumentOrigin
 
     /// <summary>Recebimento de compra (CMP-04, ADR 0024 §3): os títulos em aberto do próprio recebimento, um por parcela da condição do pedido.</summary>
     GoodsReceipt,
+
+    /// <summary>Folha prevista (RH-02c CA 14, ADR 0036 §4): títulos <c>Planned</c> estimados que o RH mantém para os próximos meses.</summary>
+    PayrollForecast,
 }

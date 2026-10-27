@@ -37,7 +37,13 @@ public interface IChartOfAccounts
     Task<IReadOnlyList<AccountOption>> PostableAsync(AccountType? type = null, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<AccountOption>> FindAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default);
+
+    /// <summary>Centros de custo ativos (RH-02c CA 4: o centro dos títulos da folha vem dos parâmetros do RH, pelo código).</summary>
+    Task<IReadOnlyList<CostCenterOption>> CostCentersAsync(CancellationToken cancellationToken = default);
 }
+
+/// <summary>Centro de custo para seleção.</summary>
+public sealed record CostCenterOption(Guid Id, string Code, string Name, bool IsActive);
 
 /// <summary>Quem lança em contas (FIN-01, FIN-02, recorrentes, CA 15): com lançamento, a conta não é excluída nem vira agrupadora.</summary>
 public interface IAccountUsageProvider

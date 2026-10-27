@@ -38,6 +38,9 @@ public sealed class PaymentOrder : Entity, IAuditable, IConcurrencyVersioned
 
     public Guid? BankAccountId { get; set; }
 
+    /// <summary>Paga por quem fechou a folha, na exceção do Proprietário único (RH-02c CA 11): a marca "autopagamento".</summary>
+    public bool SelfPaid { get; set; }
+
     public DateTimeOffset? ReversedAt { get; set; }
 
     public Guid? ReversedBy { get; set; }

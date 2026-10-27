@@ -62,12 +62,12 @@ public sealed partial class ProjectService
 
         var toReceive = await receivables.ByProjectAsync(id, cancellationToken);
         var toPay = await payables.ByProjectAsync(id, cancellationToken);
-        var names = (await parties.FindManyAsync(toPay.Select(p => p.PartyId).Distinct().ToList(), cancellationToken)).ToDictionary(p => p.Id, p => p.TradeName ?? p.LegalName);
+        var names = (await parties.FindManyAsync(toPay.Select(p => p.PartyId).OfType<Guid>().Distinct().ToList(), cancellationToken)).ToDictionary(p => p.Id, p => p.TradeName ?? p.LegalName);
         var activeReceivables = toReceive.Where(r => r.Status != ReceivableStatus.Cancelled).ToList();
         var activePayables = toPay.Where(p => p.Status != PayableStatus.Cancelled).ToList();
         return new ProjectFinancial(
             toReceive.Select(r => new ProjectReceivableView(r.Id, r.Number, r.Description ?? string.Empty, r.Status, r.DueDate, r.Amount, r.Balance)).ToList(),
-            toPay.Select(p => new ProjectPayableView(p.Id, p.Number, names.GetValueOrDefault(p.PartyId, string.Empty), p.Origin, p.CostType, p.DueDate, p.Amount, p.Balance, p.Status)).ToList(),
+            toPay.Select(p => new ProjectPayableView(p.Id, p.Number, names.GetValueOrDefault(p.PartyId ?? Guid.Empty, string.Empty), p.Origin, p.CostType, p.DueDate, p.Amount, p.Balance, p.Status)).ToList(),
             activeReceivables.Sum(r => r.Amount - r.Balance), activeReceivables.Sum(r => r.Balance), activePayables.Sum(p => p.Amount - p.Balance), activePayables.Sum(p => p.Balance));
     }
 

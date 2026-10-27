@@ -3526,17 +3526,27 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("paid_amount");
 
-                    b.Property<Guid>("PartyId")
+                    b.Property<Guid?>("PartyId")
                         .HasColumnType("uuid")
                         .HasColumnName("party_id");
+
+                    b.Property<Guid>("PayeeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("payee_id");
+
+                    b.Property<string>("PayeeType")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("payee_type");
 
                     b.Property<string>("PaymentDetails")
                         .HasColumnType("jsonb")
                         .HasColumnName("payment_details");
 
                     b.Property<string>("PaymentMethod")
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
                         .HasColumnName("payment_method");
 
                     b.Property<DateTimeOffset?>("PaymentMethodChangedAt")
@@ -3608,6 +3618,9 @@ namespace BemAqui.Host.Persistence.Migrations
 
                     NpgsqlIndexBuilderExtensions.IncludeProperties(b.HasIndex("IssueDate", "AccountId"), new[] { "Amount" });
 
+                    b.HasIndex("PayeeType", "PayeeId")
+                        .HasDatabaseName("ix_payables_payee_type_payee_id");
+
                     b.HasIndex("RecurringExpenseId", "Competence")
                         .IsUnique()
                         .HasDatabaseName("ix_payables_recurring_competence")
@@ -3622,7 +3635,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDatabaseName("ux_payables_origin_installment")
                         .HasFilter("origin_id IS NOT NULL AND status <> 'Cancelled'");
 
-                    b.ToTable("payables", "finance");
+                    b.ToTable("payables", "finance", t =>
+                        {
+                            t.HasCheckConstraint("ck_payables_payee", "(payee_type = 'Party' AND party_id IS NOT NULL AND payee_id = party_id) OR (payee_type = 'Employee' AND party_id IS NULL AND payee_id IS NOT NULL)");
+                        });
                 });
 
             modelBuilder.Entity("BemAqui.Finance.Domain.PayableSettlement", b =>
@@ -3785,6 +3801,10 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<bool>("SelfApproved")
                         .HasColumnType("boolean")
                         .HasColumnName("self_approved");
+
+                    b.Property<bool>("SelfPaid")
+                        .HasColumnType("boolean")
+                        .HasColumnName("self_paid");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -5319,6 +5339,72 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("unions", "hr");
                 });
 
+            modelBuilder.Entity("BemAqui.HR.Domain.PayrollForecast", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<string>("CancelReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("cancel_reason");
+
+                    b.Property<DateTimeOffset?>("CancelledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("cancelled_at");
+
+                    b.Property<string>("ChargeKind")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("charge_kind");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateOnly>("DueDate")
+                        .HasColumnType("date")
+                        .HasColumnName("due_date");
+
+                    b.Property<Guid?>("EmployeeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("employee_id");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("kind");
+
+                    b.Property<DateOnly>("Period")
+                        .HasColumnType("date")
+                        .HasColumnName("period");
+
+                    b.Property<Guid?>("SourceRunId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_run_id");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_payroll_forecasts");
+
+                    b.HasIndex("Period", "Kind")
+                        .HasDatabaseName("ix_payroll_forecasts_period_kind")
+                        .HasFilter("cancelled_at IS NULL");
+
+                    b.ToTable("payroll_forecasts", "hr");
+                });
+
             modelBuilder.Entity("BemAqui.HR.Domain.PayrollItem", b =>
                 {
                     b.Property<Guid>("Id")
@@ -5422,6 +5508,20 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("closed_by");
 
+                    b.Property<decimal?>("ClosedCharges")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("closed_charges");
+
+                    b.Property<decimal?>("ClosedNet")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("closed_net");
+
+                    b.Property<int?>("ClosedPayables")
+                        .HasColumnType("integer")
+                        .HasColumnName("closed_payables");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -5440,9 +5540,30 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("number");
 
+                    b.Property<DateTimeOffset?>("PaidAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("paid_at");
+
+                    b.Property<DateOnly?>("PaymentDate")
+                        .HasColumnType("date")
+                        .HasColumnName("payment_date");
+
                     b.Property<DateOnly>("Period")
                         .HasColumnType("date")
                         .HasColumnName("period");
+
+                    b.Property<string>("ReopenReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("reopen_reason");
+
+                    b.Property<DateTimeOffset?>("ReopenedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reopened_at");
+
+                    b.Property<Guid?>("ReopenedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reopened_by");
 
                     b.Property<string>("Status")
                         .IsRequired()

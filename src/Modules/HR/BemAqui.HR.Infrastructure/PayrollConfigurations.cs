@@ -30,6 +30,24 @@ internal sealed class PayrollRunConfiguration : IEntityTypeConfiguration<Payroll
         b.Property(e => e.Mode).HasConversion<string>().HasMaxLength(20);
         b.Property(e => e.Status).HasConversion<string>().HasMaxLength(20);
         b.HasIndex(e => new { e.Period, e.Type }).IsUnique().HasDatabaseName(PayrollService.RunIndex);
+        b.Property(e => e.ClosedNet).HasPrecision(18, 2);
+        b.Property(e => e.ClosedCharges).HasPrecision(18, 2);
+        b.Property(e => e.ReopenReason).HasMaxLength(200);
+    }
+}
+
+/// <summary>Folha prevista (RH-02c CA 14): uma linha por mês, tipo e funcionário ou guia; cancelada, nunca apagada.</summary>
+internal sealed class PayrollForecastConfiguration : IEntityTypeConfiguration<PayrollForecast>
+{
+    public void Configure(EntityTypeBuilder<PayrollForecast> b)
+    {
+        b.ToTable("payroll_forecasts", HrSchema.Name);
+        b.Property(e => e.Kind).HasConversion<string>().HasMaxLength(20);
+        b.Property(e => e.ChargeKind).HasConversion<string>().HasMaxLength(20);
+        b.Property(e => e.Amount).HasPrecision(18, 2);
+        b.Property(e => e.CancelReason).HasMaxLength(200);
+        b.Ignore(e => e.Key);
+        b.HasIndex(e => new { e.Period, e.Kind }).HasFilter("cancelled_at IS NULL");
     }
 }
 

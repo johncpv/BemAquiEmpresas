@@ -16,20 +16,32 @@ public sealed record PaymentOrderSummary(
 public sealed record PaymentOrderPage(IReadOnlyList<PaymentOrderSummary> Items, int Page, int PageSize, int Total);
 
 /// <summary>Retrato do envio (CA 4): fornecedor, valores e para onde vai o dinheiro, congelados na OP.</summary>
+/// <remarks>
+/// Salário (RH-02c CA 8): o favorecido <c>Employee</c> com o id, a matrícula e o nome, a versão da conta e o final mascarado; nunca
+/// agência, conta, titular ou chave em claro (lidos só no "Pagar", pelo <c>IEmployeeBankAccounts</c>).
+/// </remarks>
 public sealed record PayeeSnapshot(
-    Guid PartyId, string PartyName, string? PartyDocument, DateTimeOffset? PartyCreatedAt, string PayableNumber, string Description, decimal NetAmount, decimal Retentions,
-    decimal Amount, decimal ExpectedCharges, decimal ApprovedTotal, DateOnly? DueDate, PaymentDetailsInput Details, DateTimeOffset? PaymentMethodChangedAt);
+    Guid? PartyId, string PartyName, string? PartyDocument, DateTimeOffset? PartyCreatedAt, string PayableNumber, string Description, decimal NetAmount, decimal Retentions,
+    decimal Amount, decimal ExpectedCharges, decimal ApprovedTotal, DateOnly? DueDate, PaymentDetailsInput Details, DateTimeOffset? PaymentMethodChangedAt,
+    PayeeType PayeeType = PayeeType.Party, Guid? EmployeeId = null, string? Registration = null, int? BankAccountVersion = null, string? AccountTail = null,
+    bool NewOnPayroll = false, DateTimeOffset? AccountReviewedAt = null);
+
+/// <summary>Para onde vai o salário (RH-02c CA 10): lido do RH só no "Pagar", nunca gravado no Finance.</summary>
+public sealed record PayeeAccountView(
+    Guid ItemId, string PayableNumber, string EmployeeName, string? Registration, string? BankCode, string? BankName, string? Agency, string? Account, string? AccountType,
+    string? HolderName, string? HolderCpf, string? PixKeyType, string? PixKey);
 
 /// <summary>Item visto na OP: o retrato mascarado e os avisos âmbar (CA 6).</summary>
 public sealed record PaymentOrderItemView(
     Guid Id, Guid PayableId, string PayableNumber, string Description, string PartyName, decimal NetAmount, decimal Retentions, decimal Amount, decimal ExpectedCharges,
-    decimal ApprovedTotal, DateOnly? DueDate, PaymentDetailsInput Payment, IReadOnlyList<string> Warnings, decimal PaidTotal, decimal? InstallationBudget = null);
+    decimal ApprovedTotal, DateOnly? DueDate, PaymentDetailsInput Payment, IReadOnlyList<string> Warnings, decimal PaidTotal, decimal? InstallationBudget = null,
+    PayeeType PayeeType = PayeeType.Party);
 
 public sealed record PaymentOrderDecisionView(PaymentOrderDecisionKind Kind, PaymentOrderDecision Decision, string? Comment, string? DecidedByName, DateTimeOffset DecidedAt, bool SelfApproved);
 
 public sealed record PaymentOrderDetail(
     PaymentOrderSummary Summary, IReadOnlyList<PaymentOrderItemView> Items, IReadOnlyList<PaymentOrderDecisionView> Decisions, bool IsRequester, bool CanDecide,
-    string? CancelReason, string? ReversalReason, DateOnly? PaidOn, Guid? BankAccountId, uint Version, IReadOnlyList<ApprovalLevelView>? Levels = null);
+    string? CancelReason, string? ReversalReason, DateOnly? PaidOn, Guid? BankAccountId, uint Version, IReadOnlyList<ApprovalLevelView>? Levels = null, bool SelfPaid = false);
 
 public sealed record DecisionInput(string? Comment, uint Version);
 

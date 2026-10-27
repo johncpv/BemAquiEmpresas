@@ -35,7 +35,22 @@ internal static partial class HrEndpoints
     {
         parameters.MapGet(string.Empty, async (HrParametersService service, CancellationToken ct) => Results.Ok(await service.GetAsync(ct)))
             .RequirePermission("hr.view").WithName("GetHrParameters").Produces<HrParametersView>();
-        parameters.MapPut(string.Empty, async (HrParametersInput input, HrParametersService service, CancellationToken ct) => (await service.UpdateAsync(input, ct)).ToHttpResult())
+        parameters.MapPut(string.Empty, async (HrParametersInput input, HrParametersService service, PayrollClosingService closing, CancellationToken ct) =>
+            {
+                var before = await service.ForecastMonthsAsync(ct);
+                var saved = await service.UpdateAsync(input, ct);
+                // Mudou os meses da folha prevista (RH-02c CA 14): a previsão é refeita.
+                if (saved.IsSuccess && await service.ForecastMonthsAsync(ct) != before)
+                {
+                    var refreshed = await closing.RecalculateForecastAsync(ct);
+                    if (refreshed.IsFailure)
+                    {
+                        return refreshed.Error!.ToProblem();
+                    }
+                }
+
+                return saved.ToHttpResult();
+            })
             .RequirePermission("hr.view").WithName("UpdateHrParameters").Produces<HrParametersView>();
         parameters.MapPost("/confirm", async (HrParameterConfirmInput input, HrParametersService service, CancellationToken ct) => (await service.ConfirmAsync(input.Key, ct)).ToHttpResult())
             .RequirePermission("hr.view").WithName("ConfirmHrParameter").Produces<HrParametersView>();
@@ -89,6 +104,19 @@ internal static partial class HrEndpoints
 
         runs.MapGet("/{id:guid}/review/sensitive", async (Guid id, PayrollService service, CancellationToken ct) => (await service.ReviewAsync(id, ct)).ToHttpResult())
             .RequirePermission("hr.view_sensitive").WithName("GetPayrollReviewSensitive").Produces<PayrollReview>();
+
+        // RH-02c: fechar e reabrir com hr.approve (hr.view_sensitive conferido no serviço), fechar com 2FA de novo e Idempotency-Key; a
+        // prévia e a aba Pagamentos têm valores e saem só por /sensitive; "Recalcular previsão" com hr.edit.
+        runs.MapGet("/{id:guid}/close/sensitive", async (Guid id, PayrollClosingService service, CancellationToken ct) => (await service.PreviewAsync(id, ct)).ToHttpResult())
+            .RequirePermission("hr.view_sensitive").WithName("GetPayrollClosePreviewSensitive").Produces<PayrollClosePreview>();
+        runs.MapPost("/{id:guid}/close", async (Guid id, PayrollCloseInput input, PayrollClosingService service, CancellationToken ct) => (await service.CloseAsync(id, input, ct)).ToHttpResult())
+            .RequirePermission("hr.approve").RequireIdempotencyKey().WithName("ClosePayrollRun").Produces<PayrollCloseResult>();
+        runs.MapPost("/{id:guid}/reopen", async (Guid id, PayrollReopenInput input, PayrollClosingService service, CancellationToken ct) => (await service.ReopenAsync(id, input, ct)).ToHttpResult())
+            .RequirePermission("hr.approve").WithName("ReopenPayrollRun").Produces<PayrollRunSummary>();
+        runs.MapGet("/{id:guid}/payments/sensitive", async (Guid id, PayrollClosingService service, CancellationToken ct) => (await service.PaymentsAsync(id, ct)).ToHttpResult())
+            .RequirePermission("hr.view_sensitive").WithName("GetPayrollPaymentsSensitive").Produces<PayrollPayments>();
+        runs.MapPost("/forecast/recalculate", async (PayrollClosingService service, CancellationToken ct) => (await service.RecalculateForecastAsync(ct)).ToHttpResult())
+            .RequirePermission("hr.edit").WithName("RecalculatePayrollForecast").Produces<PayrollForecastResult>();
     }
 
     /// <summary>

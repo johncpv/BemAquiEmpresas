@@ -28,10 +28,10 @@ public sealed class ApprovalResolver(IFinanceDb db, IUserDirectory users, IFinan
     {
         ArgumentNullException.ThrowIfNull(payables);
         var since = clock.GetUtcNow().AddDays(-30);
-        var suppliers = payables.Select(p => p.PartyId).Distinct().ToList();
+        var suppliers = payables.Select(p => p.PayeeId).Distinct().ToList();
         var recent = await db.PaymentOrderItems.AsNoTracking()
             .Join(db.PaymentOrders, i => i.PaymentOrderId, o => o.Id, (i, o) => new { i.PayableId, i.ApprovedTotal, o.Id, o.Status, o.SubmittedAt })
-            .Join(db.Payables, x => x.PayableId, p => p.Id, (x, p) => new { x.Id, x.Status, x.SubmittedAt, x.ApprovedTotal, p.PartyId })
+            .Join(db.Payables, x => x.PayableId, p => p.Id, (x, p) => new { x.Id, x.Status, x.SubmittedAt, x.ApprovedTotal, PartyId = p.PayeeId })
             .Where(x => suppliers.Contains(x.PartyId) && x.SubmittedAt >= since && x.Status != PaymentOrderStatus.Rejected && x.Status != PaymentOrderStatus.Cancelled && x.Id != excludeOrderId)
             .ToListAsync(ct);
         var bySupplier = suppliers.Select(s => (Party: s, Sum: recent.Where(r => r.PartyId == s).Sum(r => r.ApprovedTotal) + total, Orders: recent.Where(r => r.PartyId == s).Select(r => r.Id).Distinct().Count() + 1)).ToList();

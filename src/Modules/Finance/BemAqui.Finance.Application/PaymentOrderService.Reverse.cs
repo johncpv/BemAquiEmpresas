@@ -56,6 +56,7 @@ public sealed partial class PaymentOrderService
         order.ReversedAt = clock.GetUtcNow();
         order.ReversedBy = currentUser.UserId;
         order.ReversalReason = reason;
+        events.Publish(new PaymentOrderReversed(order.Id));
         await NotifyOwnersAsync($"Pagamento da {order.Number} estornado por {await WhoAsync(cancellationToken)}: {Cut(reason, 100)}", order, cancellationToken);
         return await SaveDecisionAsync(order, cancellationToken);
     }
@@ -81,7 +82,17 @@ public sealed partial class PaymentOrderService
         db.Entry(order).Property(o => o.Version).OriginalValue = input.Version;
         var items = await db.PaymentOrderItems.Where(i => i.PaymentOrderId == order.Id).ToListAsync(cancellationToken);
         var payables = await PayablesOfAsync(order, cancellationToken);
-        var partyMap = (await parties.FindManyAsync(payables.Select(p => p.PartyId).Distinct().ToList(), cancellationToken)).ToDictionary(p => p.Id);
+        var partyMap = (await parties.FindManyAsync(payables.Select(p => p.PartyId).OfType<Guid>().Distinct().ToList(), cancellationToken)).ToDictionary(p => p.Id);
+        // O reenvio refaz o retrato (RH-02c CA 10): a conta de salário trocada entra com a versão nova, e a em quarentena não entra.
+        var accounts = await EmployeeAccountsAsync(payables, cancellationToken);
+        for (var i = 0; i < items.Count; i++)
+        {
+            if (EmployeeItemError(i, payables.Single(p => p.Id == items[i].PayableId), accounts) is { } employeeError)
+            {
+                return employeeError;
+            }
+        }
+
         foreach (var item in items)
         {
             if (input.Items.FirstOrDefault(l => l.ItemId == item.Id) is { } line)
@@ -96,7 +107,7 @@ public sealed partial class PaymentOrderService
             }
 
             var payable = payables.Single(p => p.Id == item.PayableId);
-            item.PayeeSnapshot = Serialize(SnapshotOf(payable, partyMap.GetValueOrDefault(payable.PartyId), item));
+            item.PayeeSnapshot = Serialize(SnapshotOf(payable, partyMap, accounts, item));
             payable.Status = PayableStatus.AwaitingApproval;
         }
 

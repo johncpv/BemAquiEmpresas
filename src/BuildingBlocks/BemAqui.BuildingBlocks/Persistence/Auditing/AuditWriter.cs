@@ -12,6 +12,11 @@ public interface IAuditWriter
     Task RecordReadAsync(string entity, string entityId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Leitura sensível com a referência de quem pediu (RH-02c CA 10: a conta de salário lida no "Pagar" leva o número da OP), sem o dado lido.
+    /// </summary>
+    Task RecordReadAsync(string entity, string entityId, string reference, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Download de anexo de dono com dado pessoal (<c>AttachmentOwnerRules.AuditReads</c>, CAD-04c2 CA 12): <c>SensitiveRead</c> do dono
     /// (tipo e id), com o id do anexo baixado, quem, quando e o IP; sem o nome nem o conteúdo do arquivo.
     /// </summary>
@@ -35,6 +40,13 @@ public sealed class AuditWriter(BemAquiDbContext db, ICurrentUser currentUser, T
     public async Task RecordReadAsync(string entity, string entityId, CancellationToken cancellationToken = default)
     {
         db.AuditEntries.Add(new AuditEntry { Entity = entity, EntityId = entityId, Action = AuditActions.SensitiveRead, UserId = currentUser.UserId, At = clock.GetUtcNow(), Ip = currentUser.IpAddress, Changes = "{}" });
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task RecordReadAsync(string entity, string entityId, string reference, CancellationToken cancellationToken = default)
+    {
+        var changes = System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, object> { ["reference"] = new { old = (string?)null, @new = reference } });
+        db.AuditEntries.Add(new AuditEntry { Entity = entity, EntityId = entityId, Action = AuditActions.SensitiveRead, UserId = currentUser.UserId, At = clock.GetUtcNow(), Ip = currentUser.IpAddress, Changes = changes });
         await db.SaveChangesAsync(cancellationToken);
     }
 

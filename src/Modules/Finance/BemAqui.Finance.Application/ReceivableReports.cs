@@ -23,7 +23,7 @@ public sealed class ReceivableReports(IFinanceDb db, IParties parties, IFinanceP
         var cancelledPayables = await db.Payables.AsNoTracking()
             .Where(p => p.Status == PayableStatus.Cancelled && p.CancelledAt >= start && p.CancelledAt < end)
             .OrderBy(p => p.CancelledAt).ToListAsync(cancellationToken);
-        var ids = discounts.Select(d => d.PartyId).Concat(cancelled.Select(c => c.PartyId)).Concat(cancelledPayables.Select(p => p.PartyId)).Distinct().ToList();
+        var ids = discounts.Select(d => d.PartyId).Concat(cancelled.Select(c => c.PartyId)).Concat(cancelledPayables.Select(p => p.PartyId).OfType<Guid>()).Distinct().ToList();
         var names = (await parties.FindManyAsync(ids, cancellationToken)).ToDictionary(p => p.Id, p => p.TradeName ?? p.LegalName);
         var discountLines = discounts.Select(d =>
         {
@@ -32,7 +32,7 @@ public sealed class ReceivableReports(IFinanceDb db, IParties parties, IFinanceP
                 pct > limits.DiscountApprovalPct || d.s.Discount > limits.DiscountApprovalAmount);
         }).ToList();
         var cancelLines = cancelled.Select(r => new CancellationLine(r.Id, r.Number, names.GetValueOrDefault(r.PartyId, string.Empty), r.Amount - r.PaidAmount, r.CancelReason ?? string.Empty, r.CancelledBy, r.CancelledAt!.Value))
-            .Concat(cancelledPayables.Select(p => new CancellationLine(p.Id, p.Number, names.GetValueOrDefault(p.PartyId, string.Empty), p.NetAmount - p.PaidAmount, p.CancelReason ?? string.Empty, p.CancelledBy, p.CancelledAt!.Value, true)))
+            .Concat(cancelledPayables.Select(p => new CancellationLine(p.Id, p.Number, (p.PartyId is { } pid ? names.GetValueOrDefault(pid, string.Empty) : "Folha de pagamento"), p.NetAmount - p.PaidAmount, p.CancelReason ?? string.Empty, p.CancelledBy, p.CancelledAt!.Value, true)))
             .OrderBy(c => c.At).ToList();
         return new DiscountsAndCancellations(from, to, discountLines, cancelLines, discountLines.Sum(d => d.Discount), cancelLines.Sum(c => c.Balance));
     }

@@ -56,7 +56,11 @@ public class PersonalDataTests
         // RH-02a: a rubrica, a folha (competência, tipo, situação, quem fechou) e o parâmetro não são dado pessoal; no holerite, na linha e
         // na guia, todo valor, base, referência e o FGTS do mês são [PersonalData] (CA 13); só as chaves, a rubrica e as datas ficam fora.
         ["PayrollItem"] = ["Id", "Code", "Name", "Kind", "InssBase", "FgtsBase", "IrrfBase", "IsActive", "SeedKey", "ConfirmedAt", "ConfirmedBy", "CreatedAt", "Version", "IsDeleted", "DeletedAt"],
-        ["PayrollRun"] = ["Id", "Period", "Type", "Mode", "Status", "Number", "CreatedAt", "CreatedBy", "ClosedAt", "ClosedBy", "Version"],
+        // RH-02c: a data de pagamento, quantos títulos, o pago e a reabertura não são dado pessoal; os totais congelados são (ClosedNet, ClosedCharges).
+        ["PayrollRun"] = ["Id", "Period", "Type", "Mode", "Status", "Number", "CreatedAt", "CreatedBy", "ClosedAt", "ClosedBy", "Version",
+            "PaymentDate", "ClosedPayables", "PaidAt", "ReopenReason", "ReopenedAt", "ReopenedBy"],
+        // RH-02c: na previsão, só o valor é dado da folha.
+        ["PayrollForecast"] = ["Id", "Period", "Kind", "EmployeeId", "ChargeKind", "DueDate", "SourceRunId", "CreatedAt", "UpdatedAt", "CancelledAt", "CancelReason", "Key"],
         ["Payslip"] = ["Id", "PayrollRunId", "EmployeeId", "CreatedAt", "UpdatedAt", "Version"],
         ["PayslipLine"] = ["Id", "PayslipId", "PayrollItemId", "Code", "Description", "Type", "Sort"],
         ["PayrollRunCharge"] = ["Id", "PayrollRunId", "Kind", "Description", "DueDate", "PayeePartyId", "CreatedAt", "Version"],
@@ -75,6 +79,8 @@ public class PersonalDataTests
             (typeof(BemAqui.HR.Domain.Payslip), ["Gross", "Deductions", "Net", "InssBase", "FgtsBase", "IrrfBase", "FgtsAmount"]),
             (typeof(BemAqui.HR.Domain.PayslipLine), ["Amount", "Reference"]),
             (typeof(BemAqui.HR.Domain.PayrollRunCharge), ["Amount"]),
+            (typeof(BemAqui.HR.Domain.PayrollRun), ["ClosedNet", "ClosedCharges"]),
+            (typeof(BemAqui.HR.Domain.PayrollForecast), ["Amount"]),
         })
         {
             foreach (var name in props)
@@ -157,6 +163,23 @@ public class PersonalDataTests
         rules.ContentTypes.Should().BeEquivalentTo(["application/pdf", "image/png", "image/jpeg"]);
         rules.OwnerExists.Should().NotBeNull();
         rules.AuditReads.Should().BeTrue("cada download de documento do funcionário é leitura sensível (CA 12)");
+    }
+
+    /// <summary>
+    /// RH-02c CA 2, 7 e 8: o resumo da conta de salário para o Finance não leva dado bancário em claro; os eventos da folha só levam id e
+    /// competência; o retrato da OP não tem campo de agência, conta inteira, titular ou chave do funcionário.
+    /// </summary>
+    [Fact]
+    public void Folha_no_financeiro_sem_dado_bancario_nem_valor_nos_contratos()
+    {
+        var contracts = Solution.Assemblies.Single(a => a.GetName().Name == "BemAqui.HR.Contracts");
+        contracts.GetTypes().Single(t => t.Name == "EmployeeBankAccountSummary").GetProperties().Select(p => p.Name)
+            .Should().NotIntersectWith(["BankCode", "Agency", "Account", "HolderName", "HolderCpf", "PixKey", "Cpf", "BaseSalary"]);
+        contracts.GetTypes().Single(t => t.Name == "PayrollClosed").GetProperties().Select(p => p.Name).Should().BeEquivalentTo(["PayrollRunId", "Period"]);
+        contracts.GetTypes().Single(t => t.Name == "PayrollReopened").GetProperties().Select(p => p.Name).Should().BeEquivalentTo(["PayrollRunId"]);
+        var finance = Solution.Assemblies.Single(a => a.GetName().Name == "BemAqui.Finance.Application");
+        finance.GetTypes().Single(t => t.Name == "PayeeSnapshot").GetProperties().Select(p => p.Name)
+            .Should().NotIntersectWith(["Agency", "HolderCpf", "PixKey", "BaseSalary", "Cpf"]);
     }
 
     private sealed class Leaky : IAuditable

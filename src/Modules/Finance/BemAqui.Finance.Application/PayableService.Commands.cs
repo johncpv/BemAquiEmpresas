@@ -102,12 +102,13 @@ public sealed partial class PayableService
             return InOrder(payable);
         }
 
-        if (!EditableOrigins.Contains(payable.Origin) && input.Amount != payable.Amount)
+        if ((!EditableOrigins.Contains(payable.Origin) && input.Amount != payable.Amount) || payable.PartyId is null)
         {
+            // Salário (favorecido funcionário, RH-02c): ajusta-se na folha, nunca à mão no Financeiro.
             return OriginProtected(payable);
         }
 
-        if ((await ValidateAsync(payable.PartyId, input.Description, input.AccountId, input.CostCenterId, input.Amount, retentions, cancellationToken)
+        if ((await ValidateAsync(payable.PartyId.Value, input.Description, input.AccountId, input.CostCenterId, input.Amount, retentions, cancellationToken)
             ?? (input.ProjectId == payable.ProjectId && input.CostType == payable.CostType ? null : await ProjectErrorAsync(input.ProjectId, input.CostType, cancellationToken))) is { } invalid)
         {
             return invalid;
@@ -160,6 +161,12 @@ public sealed partial class PayableService
         if (payable.Status is PayableStatus.Cancelled or PayableStatus.Paid)
         {
             return Error.Conflict("payable_closed", "Título pago ou cancelado não muda.");
+        }
+
+        if (payable.IsEmployeePayee || input.PaymentDetails?.Kind == PaymentMethodKind.EmployeeAccount)
+        {
+            // A conta do funcionário fica no RH e só sai no "Pagar" da OP (ADR 0036 §3).
+            return Error.Conflict("payable_origin", "A conta de salário fica no RH: o título paga na conta do funcionário.");
         }
 
         var (details, bad) = DetailsOf(input.PaymentDetails);
@@ -369,6 +376,7 @@ public sealed partial class PayableService
         DocumentOrigin.Purchase => "pedido de compra",
         DocumentOrigin.GoodsReceipt => "recebimento de compra",
         DocumentOrigin.Payroll => "folha",
+        DocumentOrigin.PayrollForecast => "folha prevista",
         DocumentOrigin.Maintenance => "manutenção",
         DocumentOrigin.Recurring => "despesa recorrente",
         _ => "outro módulo",

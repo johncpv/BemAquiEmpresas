@@ -96,7 +96,7 @@ public static partial class ModuleCatalog
             [
                 new("view_sensitive", "Ver dados sensíveis", "Ver salário, documentos e dados pessoais protegidos pela LGPD."),
                 new("view_health", "Ver dados de saúde", "Ver atestados e dados de saúde: o tipo Doença ou Acidente de trabalho dos afastamentos, com o motivo, e o atestado médico."),
-            ], "ajustes de ponto"),
+            ], "ajustes de ponto, revisão da conta de salário e fechamento da folha"),
         // PNL-01a (D11, ADR 0003 adendo de 21/10/2026, ADR 0030 §4): kiosk.delete revoga a tela; criar e editar exigem também production.view.
         new("kiosk", "Painel da TV", ModuleAreas.Dedicated, 4, 130,
             "Painéis de fábrica na TV, sem login. Criar = gerar o link de uma tela (exige ver a produção). Excluir = revogar uma tela: desliga a TV na hora.",

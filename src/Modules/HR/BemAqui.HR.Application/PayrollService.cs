@@ -349,7 +349,7 @@ public sealed partial class PayrollService(
         }
 
         return runs.Select(r => new PayrollRunSummary(r.Id, r.Period, r.Type, r.Mode, r.Status, counts.GetValueOrDefault(r.Id), r.CreatedAt, r.ClosedAt,
-            r.ClosedBy is { } by ? names.GetValueOrDefault(by) : null, r.Version)).ToList();
+            r.ClosedBy is { } by ? names.GetValueOrDefault(by) : null, r.Version, r.PaymentDate, r.PaidAt, r.ReopenReason, r.ClosedPayables)).ToList();
     }
 
     /// <summary>A folha da rota, para os comandos: existe (404) e está em <c>Draft</c> (409 "A folha de {mês} está fechada.").</summary>

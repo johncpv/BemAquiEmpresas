@@ -134,7 +134,77 @@ public sealed class PayrollRun : Entity, IAuditable, IConcurrencyVersioned
 
     public Guid? ClosedBy { get; set; }
 
+    /// <summary>Data de pagamento da folha (RH-02c CA 1): o vencimento dos títulos de salário.</summary>
+    public DateOnly? PaymentDate { get; set; }
+
+    /// <summary>Totais congelados no fechamento (RH-02c CA 2): o líquido dos salários e o total das guias. Dado da folha, mascarado na auditoria.</summary>
+    [PersonalData]
+    public decimal? ClosedNet { get; set; }
+
+    [PersonalData]
+    public decimal? ClosedCharges { get; set; }
+
+    /// <summary>Quantos títulos o fechamento gerou (salários e guias).</summary>
+    public int? ClosedPayables { get; set; }
+
+    /// <summary>Todos os títulos pagos (RH-02c CA 12).</summary>
+    public DateTimeOffset? PaidAt { get; set; }
+
+    /// <summary>Motivo da última reabertura (RH-02c CA 13).</summary>
+    public string? ReopenReason { get; set; }
+
+    public DateTimeOffset? ReopenedAt { get; set; }
+
+    public Guid? ReopenedBy { get; set; }
+
     public uint Version { get; set; }
+}
+
+/// <summary>O que a linha da folha prevista representa (RH-02c CA 14).</summary>
+[JsonConverter(typeof(JsonStringEnumConverter<PayrollForecastKind>))]
+public enum PayrollForecastKind
+{
+    Salary,
+    Charge,
+    Thirteenth1,
+    Thirteenth2,
+    Vacation,
+}
+
+/// <summary>
+/// Linha da folha prevista (<c>hr.payroll_forecasts</c>, RH-02c CA 14 e 15, ADR 0036 §4): um título <c>Planned</c> estimado no Finance
+/// (origem <c>PayrollForecast</c>, <c>origin_id</c> = esta linha) por funcionário e mês, por guia e mês, pelo 13º e pelas férias em rascunho.
+/// A linha é cancelada (e o título com ela) quando sai da janela ou a folha real do mês e do tipo fecha; nunca é apagada.
+/// </summary>
+[DocumentName("A previsão da folha")]
+public sealed class PayrollForecast : Entity, IAuditable
+{
+    public DateOnly Period { get; init; }
+
+    public PayrollForecastKind Kind { get; init; }
+
+    public Guid? EmployeeId { get; init; }
+
+    public PayrollChargeKind? ChargeKind { get; init; }
+
+    [PersonalData]
+    public decimal Amount { get; set; }
+
+    public DateOnly DueDate { get; set; }
+
+    /// <summary>Folha de onde saiu o valor (a última Mensal fechada, ou a de Férias em rascunho).</summary>
+    public Guid? SourceRunId { get; set; }
+
+    public DateTimeOffset CreatedAt { get; init; }
+
+    public DateTimeOffset UpdatedAt { get; set; }
+
+    public DateTimeOffset? CancelledAt { get; set; }
+
+    public string? CancelReason { get; set; }
+
+    /// <summary>Chave da linha: mês, tipo e o funcionário ou a guia.</summary>
+    public string Key => PayrollForecastRules.Key(Period, Kind, EmployeeId, ChargeKind);
 }
 
 /// <summary>

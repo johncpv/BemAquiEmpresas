@@ -11,7 +11,9 @@ namespace BemAqui.Finance.Application;
 /// títulos em aberto (pelo saldo, no vencimento original; vencidos entram hoje) e pelas recorrentes ainda sem título.
 /// Só leitura, consultas do EF com parâmetros e agregação no banco.
 /// </summary>
-public sealed partial class CashFlowService(IFinanceDb db, IParties parties, ICustomerPaymentStats paymentStats, IFinanceParameters parameters, TimeProvider clock)
+public sealed partial class CashFlowService(
+    IFinanceDb db, IParties parties, ICustomerPaymentStats paymentStats, IFinanceParameters parameters, BemAqui.BuildingBlocks.Authorization.IPermissionChecker permissions,
+    IEnumerable<BemAqui.HR.Contracts.IEmployees> employees, TimeProvider clock)
 {
     public const int MaxDays = 365;
 

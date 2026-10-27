@@ -21,7 +21,8 @@ namespace BemAqui.Finance.Application;
 public sealed partial class PaymentOrderService(
     IFinanceDb db, IParties parties, IUserDirectory users, IPermissionChecker permissions, ICurrentUser currentUser, INumberSequence numbers,
     INotificationService notifications, IEventPublisher events, IFinanceParameters parameters, BemAqui.Commercial.Contracts.IProjects projects, ApprovalResolver resolver,
-    ApprovalRuleService ruleNames, BemAqui.BuildingBlocks.Email.IEmailSender email, BemAqui.BuildingBlocks.Email.TenantLinks links, TimeProvider clock)
+    ApprovalRuleService ruleNames, BemAqui.BuildingBlocks.Email.IEmailSender email, BemAqui.BuildingBlocks.Email.TenantLinks links,
+    IEnumerable<BemAqui.HR.Contracts.IEmployeeBankAccounts> employeeAccounts, TimeProvider clock)
 {
     public const string DocType = "OP";
     public const string NotificationType = "finance.payment_order";
@@ -91,7 +92,7 @@ public sealed partial class PaymentOrderService(
         return new PaymentOrderDetail(
             Summary(order, items.Count, names), views,
             decisions.Select(d => new PaymentOrderDecisionView(d.Kind, d.Decision, d.Comment, d.DecidedBy is { } u ? names.GetValueOrDefault(u) : null, d.DecidedAt, d.SelfApproved)).ToList(),
-            isRequester, canDecide, order.CancelReason, order.ReversalReason, order.PaidOn, order.BankAccountId, order.Version, await LevelViewsAsync(order.Id, ct));
+            isRequester, canDecide, order.CancelReason, order.ReversalReason, order.PaidOn, order.BankAccountId, order.Version, await LevelViewsAsync(order.Id, ct), order.SelfPaid);
     }
 
     /// <summary>
@@ -123,6 +124,13 @@ public sealed partial class PaymentOrderService(
         var s = Snapshot(item);
         var view = PaymentDetails.View(s.Details, s.PartyDocument, s.NetAmount, s.DueDate, Today);
         var warnings = new List<string>();
+        if (s.PayeeType == PayeeType.Employee)
+        {
+            warnings.AddRange(EmployeeWarnings(s));
+            return new PaymentOrderItemView(item.Id, item.PayableId, s.PayableNumber, s.Description, "Funcionário " + s.PartyName, s.NetAmount, s.Retentions, item.Amount, item.ExpectedCharges,
+                item.ApprovedTotal, s.DueDate, view.Details, warnings, paid, null, PayeeType.Employee);
+        }
+
         if (view.HolderWarning is not null)
         {
             warnings.Add("O titular não é o fornecedor.");

@@ -153,13 +153,13 @@ public sealed class FinanceAgendaSource(IFinanceDb db, PaymentOrderService order
         var top = await due.OrderBy(p => p.DueDate).ThenByDescending(p => p.Amount).Take(AgendaLimits.EntriesPerCategory)
             .Select(p => new { p.Id, p.Number, p.PartyId, p.DueDate, Balance = p.Amount - p.RetentionIss - p.RetentionInss - p.RetentionIr - p.RetentionPcc - p.PaidAmount })
             .ToListAsync(ct);
-        var names = await NamesAsync(top.Select(p => p.PartyId), ct);
+        var names = await NamesAsync(top.Select(p => p.PartyId).OfType<Guid>(), ct);
         return new AgendaItem(
             PayablesDueSoon,
             AgendaText.Count(count, "título a pagar vence em breve sem OP", "títulos a pagar vencem em breve sem OP"),
             AgendaText.Sentence(AgendaText.Total(total), AgendaText.Due("o primeiro", first, today)),
             "/app/financeiro/pagar?situacao=aberto", first, total, AgendaTier.DueSoon, count, "Gerar OP",
-            [.. top.Select(p => new AgendaEntry(p.Number, names.GetValueOrDefault(p.PartyId), $"{OrdersLink}/nova?titulos={p.Id}", p.DueDate, p.Balance))]);
+            [.. top.Select(p => new AgendaEntry(p.Number, (p.PartyId is { } pid ? names.GetValueOrDefault(pid) : "Folha de pagamento"), $"{OrdersLink}/nova?titulos={p.Id}", p.DueDate, p.Balance))]);
     }
 
     private async Task<Dictionary<Guid, string>> NamesAsync(IEnumerable<Guid> ids, CancellationToken ct)

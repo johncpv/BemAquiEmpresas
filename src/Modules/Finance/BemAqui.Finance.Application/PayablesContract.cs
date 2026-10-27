@@ -13,7 +13,7 @@ namespace BemAqui.Finance.Application;
 /// Despesas a classificar"); nos métodos por parcela, conta e natureza vêm do chamador. O índice único parcial
 /// <c>(origin, origin_id, installment) WHERE status &lt;&gt; 'Cancelled'</c> segura a idempotência em paralelo.
 /// </summary>
-public sealed class PayablesContract(IFinanceDb db, IChartOfAccounts chart, INumberSequence numbers, ICurrentUser currentUser, TimeProvider clock) : IPayables
+public sealed class PayablesContract(IFinanceDb db, IChartOfAccounts chart, INumberSequence numbers, ICurrentUser currentUser, IEnumerable<BemAqui.HR.Contracts.IEmployees> employees, TimeProvider clock) : IPayables
 {
     public const string PaidCode = "payable_paid";
     public const int MaxInstallments = 60;
@@ -47,7 +47,7 @@ public sealed class PayablesContract(IFinanceDb db, IChartOfAccounts chart, INum
             return AccountMissing();
         }
 
-        var payable = await NewAsync(origin, originId, 1, partyId, projectId, account.Id,
+        var payable = await NewAsync(origin, originId, 1, Payee.Party(partyId), null, projectId, account.Id,
             projectId is null ? null : origin == DocumentOrigin.Installer ? CostType.Installation : CostType.Other, amount, dueDate, planned && estimatedDueDate, description,
             planned ? PayableStatus.Planned : PayableStatus.Open, cancellationToken);
         return Ref(payable);
@@ -166,9 +166,10 @@ public sealed class PayablesContract(IFinanceDb db, IChartOfAccounts chart, INum
             if (planned.FirstOrDefault(p => p.Installment == installment.Number) is { } same)
             {
                 // A parcela que já existe é atualizada no lugar: nunca há dois títulos ativos na mesma parcela (índice único parcial).
-                same.PartyId = plan.PartyId;
+                SetPayee(same, plan.EffectivePayee);
                 same.ProjectId = plan.ProjectId;
                 same.AccountId = plan.AccountId;
+                same.CostCenterId = plan.CostCenterId;
                 same.CostType = CostOf(plan);
                 same.Amount = installment.Amount;
                 same.DueDate = installment.EstimatedDueDate;
@@ -212,7 +213,7 @@ public sealed class PayablesContract(IFinanceDb db, IChartOfAccounts chart, INum
     {
         ArgumentNullException.ThrowIfNull(plan);
         var asPlanned = new PlannedPayables(plan.PartyId, plan.ProjectId, plan.AccountId, plan.CostType,
-            (plan.Installments ?? []).Select(i => new PlannedInstallment(i.Number, i.Amount, i.DueDate, i.Description)).ToList());
+            (plan.Installments ?? []).Select(i => new PlannedInstallment(i.Number, i.Amount, i.DueDate, i.Description)).ToList()) { Payee = plan.Payee, CostCenterId = plan.CostCenterId };
         if (await PlanErrorAsync(asPlanned, cancellationToken) is { } invalid)
         {
             return invalid;
@@ -223,7 +224,7 @@ public sealed class PayablesContract(IFinanceDb db, IChartOfAccounts chart, INum
         foreach (var installment in plan.Installments!)
         {
             var existing = current.FirstOrDefault(p => p.Installment == installment.Number);
-            result.Add(Ref(existing ?? await NewAsync(origin, originId, installment.Number, plan.PartyId, plan.ProjectId, plan.AccountId, CostOf(asPlanned), installment.Amount,
+            result.Add(Ref(existing ?? await NewAsync(origin, originId, installment.Number, plan.EffectivePayee, plan.CostCenterId, plan.ProjectId, plan.AccountId, CostOf(asPlanned), installment.Amount,
                 installment.DueDate, false, Description(new PlannedInstallment(installment.Number, installment.Amount, installment.DueDate, installment.Description)), PayableStatus.Open,
                 cancellationToken)));
         }
@@ -240,6 +241,24 @@ public sealed class PayablesContract(IFinanceDb db, IChartOfAccounts chart, INum
             .Join(db.PaymentOrders.AsNoTracking(), i => i.PaymentOrderId, o => o.Id, (i, o) => new { i.PayableId, o.Id, o.Status })
             .Where(x => x.Status == PaymentOrderStatus.Pending || x.Status == PaymentOrderStatus.Approved).ToListAsync(cancellationToken);
         return payables.Select(p => Ref(p) with { PaymentOrderId = orders.FirstOrDefault(o => o.PayableId == p.Id)?.Id }).ToList();
+    }
+
+    public async Task<IReadOnlyList<PayableOriginStatus>> StatusByOriginAsync(DocumentOrigin origin, IReadOnlyCollection<Guid> originIds, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(originIds);
+        if (originIds.Count == 0)
+        {
+            return [];
+        }
+
+        var ids = originIds.Distinct().ToList();
+        var payables = await db.Payables.AsNoTracking().Where(p => p.Origin == origin && p.OriginId != null && ids.Contains(p.OriginId.Value) && p.Status != PayableStatus.Cancelled)
+            .OrderBy(p => p.Number).ToListAsync(cancellationToken);
+        var inOrder = payables.Where(p => p.InPaymentOrder).Select(p => p.Id).ToList();
+        var orders = inOrder.Count == 0 ? [] : await db.PaymentOrderItems.AsNoTracking().Where(i => inOrder.Contains(i.PayableId))
+            .Join(db.PaymentOrders.AsNoTracking(), i => i.PaymentOrderId, o => o.Id, (i, o) => new { i.PayableId, o.Id, o.Status })
+            .Where(x => x.Status == PaymentOrderStatus.Pending || x.Status == PaymentOrderStatus.Approved).ToListAsync(cancellationToken);
+        return payables.Select(p => new PayableOriginStatus(p.OriginId!.Value, p.Id, p.Number, p.Status, p.NetAmount, p.DueDate, orders.FirstOrDefault(o => o.PayableId == p.Id)?.Id)).ToList();
     }
 
     public async Task<IReadOnlyList<ProjectPayable>> ByProjectAsync(Guid projectId, CancellationToken cancellationToken = default) =>
@@ -270,8 +289,51 @@ public sealed class PayablesContract(IFinanceDb db, IChartOfAccounts chart, INum
             return ReceivableService.Invalid("installments", "Cada parcela precisa da descrição do título.");
         }
 
+        var payee = plan.EffectivePayee;
+        if (payee.Id == Guid.Empty)
+        {
+            return ReceivableService.Invalid("payee", "Informe o favorecido do título.");
+        }
+
+        // Funcionário como favorecido (RH-02c CA 6): validado pelo IEmployees, sem nenhum dado sensível.
+        if (payee.Type == PayeeType.Employee && !await EmployeeExistsAsync(payee.Id, ct))
+        {
+            return ReceivableService.Invalid("payee", "Funcionário favorecido não encontrado.");
+        }
+
+        if (plan.CostCenterId is { } center && !await db.CostCenters.AnyAsync(c => c.Id == center && c.IsActive, ct))
+        {
+            return ReceivableService.Invalid("costCenterId", "Escolha um centro de custo ativo.");
+        }
+
         var found = await chart.FindAsync([plan.AccountId], ct);
         return found.Count > 0 && found[0] is { AcceptsEntries: true, IsActive: true } ? null : AccountMissing();
+    }
+
+    private async Task<bool> EmployeeExistsAsync(Guid employeeId, CancellationToken ct)
+    {
+        foreach (var source in employees)
+        {
+            if ((await source.FindAsync([employeeId], ct)).Count > 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>Favorecido no título: terceiro (party_id = payee_id) ou funcionário (party_id nulo, forma "conta do funcionário").</summary>
+    private static void SetPayee(Payable payable, Payee payee)
+    {
+        payable.PayeeType = payee.Type;
+        payable.PayeeId = payee.Id;
+        payable.PartyId = payee.Type == PayeeType.Party ? payee.Id : null;
+        if (payee.Type == PayeeType.Employee)
+        {
+            payable.PaymentMethod = PaymentMethodKind.EmployeeAccount;
+            payable.PaymentDetails = PaymentDetails.Serialize(new PaymentDetailsInput(PaymentMethodKind.EmployeeAccount));
+        }
     }
 
     /// <summary>Título da origem numa OP não finalizada ou já com pagamento: nada muda (409 com o link para a OP).</summary>
@@ -298,19 +360,20 @@ public sealed class PayablesContract(IFinanceDb db, IChartOfAccounts chart, INum
     }
 
     private Task<Payable> NewPlannedAsync(DocumentOrigin origin, Guid originId, PlannedPayables plan, PlannedInstallment installment, CancellationToken ct) =>
-        NewAsync(origin, originId, installment.Number, plan.PartyId, plan.ProjectId, plan.AccountId, CostOf(plan), installment.Amount, installment.EstimatedDueDate, true,
+        NewAsync(origin, originId, installment.Number, plan.EffectivePayee, plan.CostCenterId, plan.ProjectId, plan.AccountId, CostOf(plan), installment.Amount, installment.EstimatedDueDate, true,
             Description(installment), PayableStatus.Planned, ct);
 
     private async Task<Payable> NewAsync(
-        DocumentOrigin origin, Guid originId, short installment, Guid partyId, Guid? projectId, Guid accountId, CostType? costType, decimal amount, DateOnly? dueDate, bool estimate,
+        DocumentOrigin origin, Guid originId, short installment, Payee payee, Guid? costCenterId, Guid? projectId, Guid accountId, CostType? costType, decimal amount, DateOnly? dueDate, bool estimate,
         string description, PayableStatus status, CancellationToken ct)
     {
         var payable = new Payable
         {
-            Number = await numbers.NextAsync(PayableService.DocType, ct), PartyId = partyId, Description = description.Trim(), AccountId = accountId, ProjectId = projectId,
+            Number = await numbers.NextAsync(PayableService.DocType, ct), Description = description.Trim(), AccountId = accountId, CostCenterId = costCenterId, ProjectId = projectId,
             CostType = costType, Amount = amount, IssueDate = BemAqui.BuildingBlocks.Time.BusinessTime.Today(clock), DueDate = dueDate, IsEstimate = estimate, Status = status,
             Origin = origin, OriginId = originId, Installment = installment, CreatedAt = clock.GetUtcNow(), CreatedBy = currentUser.UserId,
         };
+        SetPayee(payable, payee);
         db.Payables.Add(payable);
         return payable;
     }
