@@ -5,6 +5,8 @@ const TABS = [
   { to: '/app/rh/cargos', label: 'Cargos' },
   { to: '/app/rh/jornadas', label: 'Jornadas' },
   { to: '/app/rh/sindicatos', label: 'Sindicatos' },
+  { to: '/app/rh/folha', label: 'Folha' },
+  { to: '/app/rh/rubricas', label: 'Rubricas' },
 ] as const
 
 /** Abas do RH (CAD-04a): cada aba é uma rota própria (FND-09b CA 8). */

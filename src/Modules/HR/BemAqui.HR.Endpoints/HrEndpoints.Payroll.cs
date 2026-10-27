@@ -30,15 +30,15 @@ internal static partial class HrEndpoints
             .RequirePermission("hr.edit").WithName("DeletePayrollItem");
     }
 
-    /// <summary>Parâmetros do RH (CA 3, ADR 0016 M6): ler com <c>hr.view</c>; editar e "Marcar como conferido" com <c>settings.edit</c>.</summary>
+    /// <summary>Parâmetros do RH (CA 3, ADR 0016 M6): ler com <c>hr.view</c>; editar e "Marcar como conferido" com <c>settings.edit</c>, conferido no serviço (a rota fica no grupo do RH com <c>hr.view</c>, como Compras e o DRE).</summary>
     private static void MapHrParameters(RouteGroupBuilder parameters)
     {
         parameters.MapGet(string.Empty, async (HrParametersService service, CancellationToken ct) => Results.Ok(await service.GetAsync(ct)))
             .RequirePermission("hr.view").WithName("GetHrParameters").Produces<HrParametersView>();
         parameters.MapPut(string.Empty, async (HrParametersInput input, HrParametersService service, CancellationToken ct) => (await service.UpdateAsync(input, ct)).ToHttpResult())
-            .RequirePermission("settings.edit").WithName("UpdateHrParameters").Produces<HrParametersView>();
+            .RequirePermission("hr.view").WithName("UpdateHrParameters").Produces<HrParametersView>();
         parameters.MapPost("/confirm", async (HrParameterConfirmInput input, HrParametersService service, CancellationToken ct) => (await service.ConfirmAsync(input.Key, ct)).ToHttpResult())
-            .RequirePermission("settings.edit").WithName("ConfirmHrParameter").Produces<HrParametersView>();
+            .RequirePermission("hr.view").WithName("ConfirmHrParameter").Produces<HrParametersView>();
         parameters.MapGet("/payees", async (string? q, HrParametersService service, CancellationToken ct) => Results.Ok(await service.PayeesAsync(q, ct)))
             .RequirePermission("hr.view").WithName("SearchPayrollPayees").Produces<IReadOnlyList<PayrollPayeeOption>>();
     }

@@ -536,7 +536,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-6--rh-e-patrimôn
 - Requisitos: R-RH-1, PRD §6, R-SEC-5, R-SEC-10.
 - CA: dependentes, banco/Pix, adicionais, vale-transporte e documentos; trocar a conta de salário exige `hr.view_sensitive`, 2FA de novo e segunda confirmação quando titular ou Pix não batem com o CPF; aviso ao funcionário e ao Proprietário; quarentena de 30 dias com revisão por quem não fez a troca.
 
-**RH-02a [ ] Folha lançada: competência, rubricas, lançamento e importação dos valores da contadora (G)** — 6.2, ordem 2 — `Ready (pré-condição externa)` — [story](stories/RH-02a-folha-lancada-rubricas.md)
+**RH-02a [x] Folha lançada: competência, rubricas, lançamento e importação dos valores da contadora (G)** — 6.2, ordem 2 — `Done` (pré-condição externa: conferência da contadora) — [story](stories/RH-02a-folha-lancada-rubricas.md)
 - Requisitos: R-RH-5 (parte), R-RH-1, PRD §6 LGPD, R-SEC-5, R-SEC-10, R-PRP-1, R-PRP-3.
 - CA: rubricas pré-cadastradas "a confirmar"; folha por competência e pelos 6 tipos, sem duplicar; uma guia por linha com órgão e vencimento padrão; horas lançadas ou importadas (sem depender do ponto); importação no layout padrão; Configurações → Parâmetros → RH; alerta de variação do líquido de 10%; valores só com `hr.view_sensitive`; nenhum cálculo legal.
 

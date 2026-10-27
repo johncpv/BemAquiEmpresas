@@ -5,7 +5,7 @@
 | ID | RH-02a |
 | Título | Cadastro de rubricas (proventos, descontos e informativas) pré-cadastradas "A confirmar com a contadora", folha da competência no modo "lançada" (mensal, adiantamento, férias, 13º 1ª e 2ª parcela e rescisão), lançamento por funcionário com as horas do mês na referência, importação em CSV no layout padrão do sistema, bases de INSS, FGTS e IRRF, encargos da empresa por guia com órgão e vencimento padrão, conferência com o mês anterior; valores só com `hr.view_sensitive`; parâmetros do RH em Configurações → Parâmetros → RH |
 | Tamanho | G (quebra da RH-02 em 02a lançamento, 02b holerite e envio, 02c fechamento com CP e previsão de caixa) |
-| Status | Ready (pré-condição externa) |
+| Status | Done (pré-condição externa: conferência da contadora) |
 | Requisitos | R-RH-5 (parte: importar/lançar proventos e descontos vindos da contadora) · R-RH-1 · PRD §6 LGPD · R-SEC-5 · R-SEC-10 · R-PRP-1 · R-PRP-3 |
 | Dependências | CAD-04b (funcionários, salário), CAD-04c1 (afastamentos e situação), CAD-04c2 (adicionais, vale-transporte, dependentes, conta), FND-09e; Fase 0 (FND-07) |
 | Bloqueia | RH-02c, RH-02b, RH-03, RH-01c (horas do espelho fechado na folha), FLH-02a (reaproveita rubricas, folha e holerite) |
@@ -108,22 +108,22 @@ Decisões da revisão aplicadas: D14 e D15 (folha antes do ponto: a RH-02a não 
 **Pré-condição externa:** a contadora confere a lista de rubricas e os códigos, os vencimentos padrão das guias e, se existir, manda o arquivo de exportação do sistema dela; até lá valem os valores pré-configurados com o chip "A confirmar com a contadora" (não bloqueia o `Ready`).
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
-- [ ] Migration criada (não destrutiva); seed das rubricas e dos parâmetros idempotente.
-- [ ] Permissões só do `ModuleCatalog`; contrato `IBusinessCalendar` do Production (DSH-01a) reusado, com os métodos novos.
-- [ ] Telas com estados, inclusive "Dados protegidos" e a primeira configuração dos parâmetros.
-- [ ] Ajuda da lista, de cada aba, da seção de parâmetros e do layout do CSV; teste de cobertura passando.
-- [ ] Padrões propositivos aplicados.
-- [ ] Auditoria ligada, com `[PersonalData]` e `SensitiveRead`.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
+- [x] Migration criada (não destrutiva); seed das rubricas e dos parâmetros idempotente.
+- [x] Permissões só do `ModuleCatalog`; contrato `IBusinessCalendar` do Production (DSH-01a) reusado, com os métodos novos.
+- [x] Telas com estados, inclusive "Dados protegidos" e a primeira configuração dos parâmetros.
+- [x] Ajuda da lista, de cada aba, da seção de parâmetros e do layout do CSV; teste de cobertura passando.
+- [x] Padrões propositivos aplicados.
+- [x] Auditoria ligada, com `[PersonalData]` e `SensitiveRead`.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `PayrollItem`, `PayrollRun`, `Payslip`, `PayslipLine`, `PayrollRunCharge`, `HrParameters` (Domain).
-- [ ] Métodos que faltarem no `IBusinessCalendar` do Production (criado na DSH-01a; calendário padrão da CAD-03).
-- [ ] Leitor do CSV com prévia (sem gravar) e aplicação; proteção de entrada.
-- [ ] Endpoints `/api/v1/hr/payroll-items`, `/api/v1/hr/payroll-runs` (+ `/sensitive`, holerites, guias, importação, conferência), `/api/v1/hr/parameters`; telas e ajuda.
+- [x] `PayrollItem`, `PayrollRun`, `Payslip`, `PayslipLine`, `PayrollRunCharge`, `HrParameters` (Domain).
+- [x] Métodos que faltarem no `IBusinessCalendar` do Production (criado na DSH-01a; calendário padrão da CAD-03).
+- [x] Leitor do CSV com prévia (sem gravar) e aplicação; proteção de entrada.
+- [x] Endpoints `/api/v1/hr/payroll-items`, `/api/v1/hr/payroll-runs` (+ `/sensitive`, holerites, guias, importação, conferência), `/api/v1/hr/parameters`; telas e ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, @architect (métodos novos do `IBusinessCalendar` do Production), cybersecurity (corte de valores, CSV), @qa.
@@ -157,3 +157,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D14, D15, tabela 3.3 pontos 15–19, ADR 0042, §4.4 padrões 3 e 8); nova ordem (Marco 6.2, ordem 2, sem depender da RH-01c); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 27/10/2026 | 1.0 | Implementada (@dev). Backend: `PayrollItem`, `PayrollRun`, `Payslip`, `PayslipLine`, `PayrollRunCharge` e `HrParameter` (migration `PayrollEntered`, só `CreateTable` e índices), `PayrollItemService` (seed de 19 rubricas pela `seed_key`, "Marcar como conferido"), `HrParametersService` (`hr.parameters`), `PayrollService` (folha, holerites, guias, importação CSV v1 e conferência), `PayrollSeeder`, rotas `/api/v1/hr/payroll-items`, `/api/v1/hr/parameters` (+ `/payees`) e `/api/v1/hr/payroll-runs` (+ `/sensitive`, `/eligible`, holerites, anterior, guias, `import/preview`, `import`, `review/sensitive`); `IBusinessCalendar` ganhou `IsBusinessDayAsync`, `NthBusinessDayOfMonthAsync`, `PreviousBusinessDayAsync` e `ExceptionsAsync`; `IAuditWriter.RecordImportAsync` (ação `Imported`). Front: RH → Folha (lista, "Nova folha"), Folha com as abas Holerites (painel com `RowsEditor`, rodapé em `aria-live`, "Copiar do mês anterior", "Importar lançamentos" com prévia), Encargos da empresa, Conferência e Histórico, RH → Rubricas, seção RH em Configurações → Parâmetros (`?secao=rh`), `?nome=` no novo terceiro ("Cadastrar órgão"), ajudas e dicas. Desvios e decisões: (1) **recomendação aceita (PO 24/10)**: a quarentena da conta (CAD-04c2) passou a ler `hr.bank_account_quarantine_days` (padrão 30, de 1 a 90, sem chip: é decisão da empresa, não da contadora); a constante `EmployeeBankRules.QuarantineDays` ficou como padrão; (2) só os vencimentos do FGTS, do INSS e do IRRF levam o chip "A confirmar com a contadora" (alerta de 10%, órgãos e quarentena não dependem dela); contribuição sindical e "Outros" têm o vencimento informado na folha, como diz o CA 3; (3) as rotas de editar e conferir parâmetros ficam com `hr.view` e o `settings.edit` é conferido no serviço (o padrão de Compras e do DRE: o teste de três camadas do RH exige `perm:hr.*` em toda rota do grupo); (4) busca de órgão pela rota própria `/hr/parameters/payees` (`hr.view`, `IParties.SearchAsync`), para quem lança a folha não precisar da permissão de terceiros; (5) "Copiar do mês anterior" não grava: devolve o holerite anterior do mesmo tipo (rota `/previous/sensitive`, com `SensitiveRead`) e o front o põe como rascunho; (6) salário vigente na Mensal = o atual, ou o de antes do primeiro reajuste com vigência depois do fim da competência; (7) "Novos na folha" = sem holerite em folha de competência anterior (qualquer tipo); "Conta alterada" = `InQuarantine` do `IEmployees.BankAccountStatusAsync`; (8) o valor da guia também é `[PersonalData]` (numa empresa pequena revela a folha); (9) a prévia lista até 100 erros (o total em `errorCount`), em ordem de linha; erro de CPF nunca repete o CPF; código de rubrica no erro passa pelo `SafeCode`; (10) a importação substitui só as linhas (as bases e o FGTS do mês ficam como estão) e grava as linhas e o resumo `Imported` (formato, linhas e funcionários, sem valores) numa gravação só; (11) a tabela `hr.parameters` usa `confirmed_at`/`confirmed_by` (o 03 falava em `review_state`; a story pede as colunas de conferência); (12) excluir folha `Draft` criada por engano ficou fora (não está nos CAs). Verificações: `*PayrollRulesTests`, `*PayrollTests`, `*PersonalDataTests`, `*EndpointAuthorizationTests` 42/42; `*EmployeesTests`, `*HelpFilesTests`, `*SupervisorPanelTests`, `*HrTests` 45/46 (o `Tres_camadas_em_todo_endpoint_do_RH` pegou o ponto 3, corrigido) e depois `*HrTests`, `*PayrollTests`, `*OpenApiDocumentTests`, `*EndpointAuthorizationTests` 25/25; vitest 397/398 na suíte (o `tv.test.tsx` estourou o tempo com a máquina carregada) e 19/19 ao repetir TV, folha e ajuda; lint, tsc e build ok; E2E (folha, configurações, RH, terceiros e ajuda, desktop e 400 px) 37/38 e o `help.spec` repetido em série 2/2. | @dev |
