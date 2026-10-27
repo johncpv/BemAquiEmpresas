@@ -2871,6 +2871,262 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("bank_transfers", "finance");
                 });
 
+            modelBuilder.Entity("BemAqui.Finance.Domain.BillingReferenceSequence", b =>
+                {
+                    b.Property<Guid>("BankAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("bank_account_id");
+
+                    b.Property<long>("LastValue")
+                        .HasColumnType("bigint")
+                        .HasColumnName("last_value");
+
+                    b.HasKey("BankAccountId")
+                        .HasName("pk_billing_reference_sequences");
+
+                    b.ToTable("billing_reference_sequences", "finance");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.BillingSlip", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<Guid?>("ApprovedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("approved_by");
+
+                    b.Property<Guid>("BankAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("bank_account_id");
+
+                    b.Property<string>("Barcode")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("barcode");
+
+                    b.Property<string>("CancelFailureReason")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("cancel_failure_reason");
+
+                    b.Property<string>("CancelReason")
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)")
+                        .HasColumnName("cancel_reason");
+
+                    b.Property<DateTimeOffset?>("CancelRequestedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("cancel_requested_at");
+
+                    b.Property<Guid?>("CancelRequestedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cancel_requested_by");
+
+                    b.Property<DateTimeOffset?>("CancelledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("cancelled_at");
+
+                    b.Property<Guid?>("CancelledBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cancelled_by");
+
+                    b.Property<Guid?>("ClientRequestId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("client_request_id");
+
+                    b.Property<string>("DigitableLine")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("digitable_line");
+
+                    b.Property<decimal>("DiscountAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("discount_amount");
+
+                    b.Property<DateOnly?>("DiscountUntil")
+                        .HasColumnType("date")
+                        .HasColumnName("discount_until");
+
+                    b.Property<DateOnly>("DueDate")
+                        .HasColumnType("date")
+                        .HasColumnName("due_date");
+
+                    b.Property<DateTimeOffset?>("ExpiredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expired_at");
+
+                    b.Property<string>("FailureAction")
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)")
+                        .HasColumnName("failure_action");
+
+                    b.Property<string>("FailureReason")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("failure_reason");
+
+                    b.Property<DateOnly>("FineFrom")
+                        .HasColumnType("date")
+                        .HasColumnName("fine_from");
+
+                    b.Property<decimal>("FinePct")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasColumnName("fine_pct");
+
+                    b.Property<decimal>("InterestMonthPct")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasColumnName("interest_month_pct");
+
+                    b.Property<int>("IssueAttempts")
+                        .HasColumnType("integer")
+                        .HasColumnName("issue_attempts");
+
+                    b.Property<DateTimeOffset?>("IssuedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("issued_at");
+
+                    b.Property<DateTimeOffset?>("LastEmailAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_email_at");
+
+                    b.Property<string>("Message")
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)")
+                        .HasColumnName("message");
+
+                    b.Property<string>("OurNumber")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("our_number");
+
+                    b.Property<string>("OurReference")
+                        .IsRequired()
+                        .HasMaxLength(15)
+                        .HasColumnType("character varying(15)")
+                        .HasColumnName("our_reference");
+
+                    b.Property<decimal?>("PaidAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("paid_amount");
+
+                    b.Property<DateTimeOffset?>("PaidAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("paid_at");
+
+                    b.Property<Guid?>("PdfAttachmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("pdf_attachment_id");
+
+                    b.Property<string>("PixCopyPaste")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("pix_copy_paste");
+
+                    b.Property<int>("PollAttempts")
+                        .HasColumnType("integer")
+                        .HasColumnName("poll_attempts");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("provider");
+
+                    b.Property<string>("ProviderPayload")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("provider_payload");
+
+                    b.Property<string>("ProviderRequestId")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("provider_request_id");
+
+                    b.Property<string>("QrCode")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("qr_code");
+
+                    b.Property<DateOnly>("ReceivableDueDate")
+                        .HasColumnType("date")
+                        .HasColumnName("receivable_due_date");
+
+                    b.Property<Guid>("ReceivableId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("receivable_id");
+
+                    b.Property<DateTimeOffset>("RequestedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("requested_at");
+
+                    b.Property<Guid?>("RequestedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("requested_by");
+
+                    b.Property<DateTimeOffset?>("ScheduledEmailAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("scheduled_email_at");
+
+                    b.Property<string>("ScheduledEmailCc")
+                        .HasMaxLength(800)
+                        .HasColumnType("character varying(800)")
+                        .HasColumnName("scheduled_email_cc");
+
+                    b.Property<string>("ScheduledEmailTo")
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)")
+                        .HasColumnName("scheduled_email_to");
+
+                    b.Property<bool>("SendOnIssue")
+                        .HasColumnType("boolean")
+                        .HasColumnName("send_on_issue");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_billing_slips");
+
+                    b.HasIndex("ClientRequestId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_billing_slips_client_request")
+                        .HasFilter("client_request_id IS NOT NULL");
+
+                    b.HasIndex("ReceivableId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_billing_slips_receivable_active")
+                        .HasFilter("status IN ('Requested','Issued')");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_billing_slips_status");
+
+                    b.HasIndex("BankAccountId", "OurReference")
+                        .IsUnique()
+                        .HasDatabaseName("ux_billing_slips_account_reference");
+
+                    b.ToTable("billing_slips", "finance");
+                });
+
             modelBuilder.Entity("BemAqui.Finance.Domain.CostCenter", b =>
                 {
                     b.Property<Guid>("Id")
@@ -3819,6 +4075,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("amount");
 
+                    b.Property<Guid?>("BillingSlipId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("billing_slip_id");
+
                     b.Property<string>("CancelReason")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
@@ -3938,6 +4198,10 @@ namespace BemAqui.Host.Persistence.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_receivables");
+
+                    b.HasIndex("BillingSlipId")
+                        .HasDatabaseName("ix_receivables_billing_slip_id")
+                        .HasFilter("billing_slip_id IS NOT NULL");
 
                     b.HasIndex("ContractId")
                         .HasDatabaseName("ix_receivables_contract_id");
@@ -12095,6 +12359,33 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_bank_statement_lines_bank_statement_batches_batch_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.BillingReferenceSequence", b =>
+                {
+                    b.HasOne("BemAqui.Finance.Domain.BankAccount", null)
+                        .WithMany()
+                        .HasForeignKey("BankAccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_billing_reference_sequences_bank_accounts_bank_account_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.BillingSlip", b =>
+                {
+                    b.HasOne("BemAqui.Finance.Domain.BankAccount", null)
+                        .WithMany()
+                        .HasForeignKey("BankAccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_billing_slips_bank_accounts_bank_account_id");
+
+                    b.HasOne("BemAqui.Finance.Domain.Receivable", null)
+                        .WithMany()
+                        .HasForeignKey("ReceivableId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_billing_slips_receivables_receivable_id");
                 });
 
             modelBuilder.Entity("BemAqui.Finance.Domain.CostCenter", b =>
