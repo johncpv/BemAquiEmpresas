@@ -124,6 +124,8 @@ test.describe('Fila de prioridade (PLN-02)', () => {
     // Com a máquina carregada, a seta chegava antes de o dnd-kit pegar o item; espera o arraste começar.
     await expect(handle).toHaveAttribute('aria-pressed', 'true')
     await page.keyboard.press('ArrowUp')
+    // Solta só depois de o dnd-kit registrar a posição nova (o anúncio do onDragOver).
+    await expect(page.getByText('Projeto PRJ-2026-0002 sobre a posição 1')).toBeAttached()
     await page.keyboard.press('Space')
     await expect.poll(() => numbers(page)).toEqual(['PRJ-2026-0002', 'PRJ-2026-0001', 'PRJ-2026-0003'])
     await expect(page.getByText('Ordem alterada, ainda não salva.')).toBeVisible()
