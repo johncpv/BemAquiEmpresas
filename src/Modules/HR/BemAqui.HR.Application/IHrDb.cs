@@ -32,6 +32,12 @@ public interface IHrDb
 
     DbSet<HrParameter> HrParameters { get; }
 
+    // Fechamento e folha prevista (RH-02c).
+    DbSet<PayrollForecast> PayrollForecasts { get; }
+
+    /// <summary>Transação do fechamento: a folha, os títulos do Finance (mesmo contexto) e a numeração gravam juntos ou nada grava.</summary>
+    Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade Database { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 
     EntityEntry<TEntity> Entry<TEntity>(TEntity entity)

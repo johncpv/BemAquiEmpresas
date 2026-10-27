@@ -13,4 +13,5 @@ export const PaymentMethodKind = {
   Boleto: 'Boleto',
   Ted: 'Ted',
   Other: 'Other',
+  EmployeeAccount: 'EmployeeAccount',
 } as const;

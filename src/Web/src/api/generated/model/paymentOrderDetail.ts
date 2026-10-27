@@ -26,4 +26,5 @@ export interface PaymentOrderDetail {
   version: number;
   /** @nullable */
   levels?: ApprovalLevelView[] | null;
+  selfPaid?: boolean;
 }

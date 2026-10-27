@@ -31,7 +31,7 @@ public sealed partial class OpeningService(
         var receivables = await db.Receivables.AsNoTracking().Where(r => r.Origin == DocumentOrigin.Opening && r.Status != ReceivableStatus.Cancelled)
             .GroupBy(r => r.PartyId).Select(g => new { g.Key, Count = g.Count(), Total = g.Sum(r => r.Amount) }).ToListAsync(cancellationToken);
         var payables = await db.Payables.AsNoTracking().Where(p => p.Origin == DocumentOrigin.Opening && p.Status != PayableStatus.Cancelled)
-            .GroupBy(p => p.PartyId).Select(g => new { g.Key, Count = g.Count(), Total = g.Sum(p => p.Amount) }).ToListAsync(cancellationToken);
+            .GroupBy(p => p.PartyId!.Value).Select(g => new { g.Key, Count = g.Count(), Total = g.Sum(p => p.Amount) }).ToListAsync(cancellationToken);
         var names = (await parties.FindManyAsync(receivables.Select(r => r.Key).Concat(payables.Select(p => p.Key)).Distinct().ToList(), cancellationToken)).ToDictionary(p => p.Id, p => p.TradeName ?? p.LegalName);
         var lastMonth = new DateOnly(Today.Year, Today.Month, 1).AddDays(-1);
         return new OpeningStatus(

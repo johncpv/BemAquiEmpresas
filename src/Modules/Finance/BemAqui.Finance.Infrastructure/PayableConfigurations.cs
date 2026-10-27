@@ -1,4 +1,5 @@
 using BemAqui.Finance.Application;
+using BemAqui.Finance.Contracts;
 using BemAqui.Finance.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -7,6 +8,8 @@ namespace BemAqui.Finance.Infrastructure;
 
 internal sealed class PayableConfiguration : IEntityTypeConfiguration<Payable>
 {
+    public const string PayeeCheck = "ck_payables_payee";
+
     public void Configure(EntityTypeBuilder<Payable> b)
     {
         b.ToTable("payables", FinanceSchema.Name);
@@ -21,9 +24,16 @@ internal sealed class PayableConfiguration : IEntityTypeConfiguration<Payable>
         b.Property(e => e.Origin).HasConversion<string>().HasMaxLength(16);
         b.Property(e => e.CostType).HasConversion<string>().HasMaxLength(16);
         b.HasIndex(e => e.ProjectId);
-        b.Property(e => e.PaymentMethod).HasConversion<string>().HasMaxLength(10);
+        b.Property(e => e.PaymentMethod).HasConversion<string>().HasMaxLength(20);
         b.Property(e => e.PaymentDetails).HasColumnType("jsonb");
         b.Property(e => e.CancelReason).HasMaxLength(200);
+        // Favorecido tipado (RH-02c CA 6, ADR 0036 §1): migração de expansão; party_id passa a aceitar nulo só no título de funcionário.
+        b.Property(e => e.PayeeType).HasConversion<string>().HasMaxLength(10);
+        b.Property(e => e.PartyId).HasField("partyId");
+        b.Ignore(e => e.IsEmployeePayee);
+        b.HasIndex(e => new { e.PayeeType, e.PayeeId });
+        b.ToTable(t => t.HasCheckConstraint(PayeeCheck,
+            "(payee_type = 'Party' AND party_id IS NOT NULL AND payee_id = party_id) OR (payee_type = 'Employee' AND party_id IS NULL AND payee_id IS NOT NULL)"));
         b.Property(e => e.OpeningReference).HasMaxLength(40);
         b.Ignore(e => e.Retentions);
         b.Ignore(e => e.NetAmount);

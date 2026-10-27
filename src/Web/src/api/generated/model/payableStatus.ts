@@ -5,7 +5,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type PayableStatus = typeof PayableStatus[keyof typeof PayableStatus];
+export type PayableStatus = typeof PayableStatus[keyof typeof PayableStatus] | null;
 
 
 export const PayableStatus = {

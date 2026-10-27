@@ -128,6 +128,10 @@ public sealed class AccountService(IFinanceDb db, IEnumerable<IAccountUsageProvi
         return (await db.Accounts.IgnoreQueryFilters().AsNoTracking().Where(a => ids.Contains(a.Id)).ToListAsync(cancellationToken)).Select(ToOption).ToList();
     }
 
+    public async Task<IReadOnlyList<CostCenterOption>> CostCentersAsync(CancellationToken cancellationToken = default) =>
+        (await db.CostCenters.AsNoTracking().Where(c => c.IsActive).Select(c => new CostCenterOption(c.Id, c.Code, c.Name, c.IsActive)).ToListAsync(cancellationToken))
+            .OrderBy(c => TreeCode.SortKey(c.Code)).ToList();
+
     private async Task<Error?> ValidateAsync(Account? current, AccountInput input, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(input.Name) || input.Name.Trim().Length > 100)

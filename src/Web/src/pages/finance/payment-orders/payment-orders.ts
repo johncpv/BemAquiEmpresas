@@ -30,6 +30,7 @@ export const ORDER_DICAS = {
 export function destination(p: PaymentDetailsInput) {
   if (p.kind === 'Pix') return `Pix ${p.pixKey ?? ''} · ${p.holderName ?? ''}`
   if (p.kind === 'Boleto') return `Boleto ${p.barcode ?? ''}`
+  if (p.kind === 'EmployeeAccount') return `Conta do funcionário ${p.account ?? ''} (os dados aparecem só no "Pagar")`
   if (p.kind === 'Ted') return `TED banco ${p.bankCode ?? ''} ag. ${p.agency ?? ''} conta ${p.account ?? ''} · ${p.holderName ?? ''}`
   return p.description ?? 'Outra forma'
 }

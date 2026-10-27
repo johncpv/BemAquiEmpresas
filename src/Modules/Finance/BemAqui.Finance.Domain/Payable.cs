@@ -10,9 +10,33 @@ namespace BemAqui.Finance.Domain;
 [DocumentName("O título")]
 public sealed class Payable : Entity, IAuditable, IConcurrencyVersioned
 {
+    private Guid? partyId;
+
     public string Number { get; set; } = string.Empty;
 
-    public Guid PartyId { get; set; }
+    /// <summary>
+    /// Favorecido (RH-02c CA 6, ADR 0036 §1): <c>Party</c> (terceiro, <see cref="PartyId"/> = <see cref="PayeeId"/>) ou <c>Employee</c>
+    /// (funcionário no HR, <see cref="PartyId"/> nulo). O <c>CHECK</c> do banco garante a combinação.
+    /// </summary>
+    public PayeeType PayeeType { get; set; } = PayeeType.Party;
+
+    public Guid PayeeId { get; set; }
+
+    /// <summary>Terceiro do título; nulo no título de funcionário. No título de terceiro, gravar o terceiro grava também o favorecido.</summary>
+    public Guid? PartyId
+    {
+        get => partyId;
+        set
+        {
+            partyId = value;
+            if (PayeeType == PayeeType.Party && value is { } id)
+            {
+                PayeeId = id;
+            }
+        }
+    }
+
+    public bool IsEmployeePayee => PayeeType == PayeeType.Employee;
 
     public string Description { get; set; } = string.Empty;
 

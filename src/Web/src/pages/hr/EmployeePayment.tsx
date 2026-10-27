@@ -11,6 +11,7 @@ import { ToggleGroup } from '@/components/form/choice'
 import { Field, FormError, FormSection } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { CpfInput } from '@/components/form/inputs'
+import { TwoFactorCodeField } from '@/components/form/two-factor-code'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { DialogMessage } from '@/components/ui/dialog-message'
 import { notifySuccess } from '@/components/ui/messages'
@@ -121,13 +122,7 @@ function BankSection({ payment, employee, canEdit, onChange, onReview }: { payme
 }
 
 /** Mensagem do 2FA de novo recusado: o servidor diz o que fazer; sem 2FA ativo, o diálogo leva a "Ativar 2FA". */
-function CodeField({ code, onChange }: { code: string; onChange: (c: string) => void }) {
-  return (
-    <Field label="Código do aplicativo autenticador" required hint="Abra o aplicativo autenticador e digite os 6 dígitos.">
-      {(p) => <input {...p} value={code} inputMode="numeric" autoComplete="one-time-code" maxLength={6} onChange={(e) => onChange(onlyDigits(e.target.value))} className={inputClass + ' tabular-nums tracking-widest'} />}
-    </Field>
-  )
-}
+const CodeField = TwoFactorCodeField
 
 /**
  * Registrar ou trocar a conta (CA 4 e 5): formulário → segunda confirmação (quando a chave ou o titular não é o CPF do funcionário)

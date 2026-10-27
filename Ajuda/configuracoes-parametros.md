@@ -51,3 +51,5 @@ Guardar os números que o sistema usa para calcular custo e preço: o percentual
 **Por que existe limite de envios por e-mail?** Para proteger a reputação do e-mail da empresa: muitos envios num dia, por engano ou por uma conta invadida, fazem os provedores marcarem as mensagens como spam. O dia conta pelo horário de Brasília.
 
 **O que muda se eu baixar o limite de inadimplência do ajustado?** Mais clientes passam a entrar no ajustado só com a parte que provavelmente pagam, e o caixa ajustado fica mais conservador. Com 100,00%, ninguém é ponderado e o ajustado só desloca as datas.
+
+**O que são os parâmetros da folha no RH?** O dia útil de pagamento dos salários (5º), o dia do adiantamento (20), as datas do 13º (30/11 e 20/12), os meses da folha prevista (3) e a conta e o centro de custo dos títulos da folha: mão de obra direta (cargo com centro de trabalho, 2.2 e Produção) e pessoal administrativo (3.1 e Administrativo). Os legais ficam "A confirmar com a contadora" até alguém marcar como conferido.

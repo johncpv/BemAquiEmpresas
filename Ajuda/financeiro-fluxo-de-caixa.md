@@ -37,6 +37,8 @@ Ver quanto entra, quanto sai e qual será o saldo dia a dia, para antecipar falt
 
 **O que é "Estimado"?** Um título com data estimada, como o pagamento do instalador antes da OS terminar.
 
-**Onde estão a folha e as compras?** Entram quando os módulos de RH e Compras forem ativados.
+**Onde estão a folha e as compras?** A folha entra pelos títulos do fechamento e pela folha prevista; as compras, pelos títulos previstos dos pedidos aprovados.
 
 **O que é "A receber sem data"?** Parcelas que dependem de um marco, como a entrega. Elas entram no fluxo quando o marco acontecer, na base e no ajustado.
+
+**O que é "Folha prevista"?** Os próximos meses da folha (3, por padrão), com o 13º e as férias, como títulos "Estimado". Quando a folha real do mês fecha, a previsão daquele mês sai e entra a folha real, sem contar duas vezes. Quem não aprova nem paga no Financeiro vê só o total de cada folha, sem o salário de cada pessoa.

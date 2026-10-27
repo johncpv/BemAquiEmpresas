@@ -540,7 +540,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-6--rh-e-patrimôn
 - Requisitos: R-RH-5 (parte), R-RH-1, PRD §6 LGPD, R-SEC-5, R-SEC-10, R-PRP-1, R-PRP-3.
 - CA: rubricas pré-cadastradas "a confirmar"; folha por competência e pelos 6 tipos, sem duplicar; uma guia por linha com órgão e vencimento padrão; horas lançadas ou importadas (sem depender do ponto); importação no layout padrão; Configurações → Parâmetros → RH; alerta de variação do líquido de 10%; valores só com `hr.view_sensitive`; nenhum cálculo legal.
 
-**RH-02c [ ] Folha lançada: fechamento, títulos a pagar de salários e encargos e folha prevista no fluxo de caixa (G)** — 6.2, ordem 3 — re-estimada de M — `Ready (pré-condição externa)` — [story](stories/RH-02c-fechamento-folha-cp-caixa.md)
+**RH-02c [x] Folha lançada: fechamento, títulos a pagar de salários e encargos e folha prevista no fluxo de caixa (G)** — 6.2, ordem 3 — re-estimada de M — `Done (pré-condição externa: contadora)` — [story](stories/RH-02c-fechamento-folha-cp-caixa.md)
 - Requisitos: R-RH-5 (parte), R-FIN-4, R-FIN-10, R-FIN-13, R-PRP-2, R-PRP-7, R-SEC-5.
 - CA: fechamento síncrono com 2FA de novo chama o `IPayables` na transação (ADR 0036): um título por funcionário (`payee_type = Employee`) e um por guia; conta lida só no "Pagar" da OP com `SensitiveRead`; quarentena fora do pagamento automático; quem fecha não paga; vencimento no 5º dia útil; folha prevista de 3 meses (`PayrollForecast`), substituída pela real.
 

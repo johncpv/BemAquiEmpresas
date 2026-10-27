@@ -29,20 +29,21 @@ public sealed partial class PaymentOrderService
 
         var ids = input.Items.Select(i => i.PayableId).ToList();
         var payables = await db.Payables.Where(p => ids.Contains(p.Id)).ToDictionaryAsync(p => p.Id, cancellationToken);
-        var partyMap = (await parties.FindManyAsync(payables.Values.Select(p => p.PartyId).Distinct().ToList(), cancellationToken)).ToDictionary(p => p.Id);
+        var partyMap = (await parties.FindManyAsync(payables.Values.Select(p => p.PartyId).OfType<Guid>().Distinct().ToList(), cancellationToken)).ToDictionary(p => p.Id);
+        var accounts = await EmployeeAccountsAsync(payables.Values, cancellationToken);
         var order = new PaymentOrder { RequestedBy = currentUser.UserId, CreatedAt = clock.GetUtcNow(), SubmittedAt = clock.GetUtcNow() };
         var items = new List<PaymentOrderItem>();
         for (var i = 0; i < input.Items.Count; i++)
         {
             var line = input.Items[i];
             payables.TryGetValue(line.PayableId, out var payable);
-            if (ItemError(i, payable, line.Amount, line.ExpectedCharges) is { } error)
+            if ((ItemError(i, payable, line.Amount, line.ExpectedCharges) ?? EmployeeItemError(i, payable!, accounts)) is { } error)
             {
                 return error;
             }
 
             var item = new PaymentOrderItem { PaymentOrderId = order.Id, PayableId = payable!.Id, Amount = line.Amount, ExpectedCharges = line.ExpectedCharges, ApprovedTotal = line.Amount + line.ExpectedCharges };
-            item.PayeeSnapshot = Serialize(SnapshotOf(payable, partyMap.GetValueOrDefault(payable.PartyId), item));
+            item.PayeeSnapshot = Serialize(SnapshotOf(payable, partyMap, accounts, item));
             items.Add(item);
             payable.Status = PayableStatus.AwaitingApproval;
         }
@@ -75,6 +76,12 @@ public sealed partial class PaymentOrderService
             _ when charges < 0 => ReceivableService.Invalid($"items[{i}].expectedCharges", "Os acréscimos previstos não podem ser negativos."),
             _ => null,
         };
+
+    private static PayeeSnapshot SnapshotOf(
+        Payable payable, Dictionary<Guid, PartySummary> parties, Dictionary<Guid, BemAqui.HR.Contracts.EmployeeBankAccountSummary> accounts, PaymentOrderItem item) =>
+        payable.IsEmployeePayee
+            ? EmployeeSnapshot(payable, accounts[payable.PayeeId], item)
+            : SnapshotOf(payable, payable.PartyId is { } partyId ? parties.GetValueOrDefault(partyId) : null, item);
 
     private static PayeeSnapshot SnapshotOf(Payable payable, PartySummary? party, PaymentOrderItem item) => new(
         payable.PartyId, party is null ? string.Empty : party.TradeName ?? party.LegalName, party?.Document, party?.CreatedAt, payable.Number, payable.Description, payable.NetAmount,

@@ -39,7 +39,7 @@ public partial class OpeningTests
         var done = await owner.PostAsJsonAsync(Base + "/complete", complete);
         done.StatusCode.Should().Be(HttpStatusCode.OK, await done.Content.ReadAsStringAsync());
         (await JsonAsync(done)).GetProperty("completedAt").ValueKind.Should().Be(System.Text.Json.JsonValueKind.String);
-        var refused = await owner.SendAsync(Post(Base + "/payables", new { lines = new[] { Payable(paid[0].PartyId, 10m) } }));
+        var refused = await owner.SendAsync(Post(Base + "/payables", new { lines = new[] { Payable(paid[0].PartyId!.Value, 10m) } }));
         refused.StatusCode.Should().Be(HttpStatusCode.Conflict);
         (await refused.Content.ReadAsStringAsync()).Should().Contain("A implantação foi concluída em");
 

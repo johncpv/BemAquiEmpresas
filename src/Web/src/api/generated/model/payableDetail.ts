@@ -7,12 +7,14 @@
 import type { CostType } from './costType';
 import type { DocumentOrigin } from './documentOrigin';
 import type { PayableStatus } from './payableStatus';
+import type { PayeeType } from './payeeType';
 import type { PaymentMethodKind } from './paymentMethodKind';
 
 export interface PayableDetail {
   id: string;
   number: string;
-  partyId: string;
+  /** @nullable */
+  partyId: string | null;
   partyName: string;
   description: string;
   accountId: string;
@@ -56,4 +58,7 @@ export interface PayableDetail {
   /** @nullable */
   projectNumber?: string | null;
   costType?: null | CostType;
+  payeeType?: PayeeType;
+  /** @nullable */
+  payeeId?: string | null;
 }

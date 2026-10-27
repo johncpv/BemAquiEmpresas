@@ -348,6 +348,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<HrParameter> HrParameters => Set<HrParameter>();
 
+    public DbSet<PayrollForecast> PayrollForecasts => Set<PayrollForecast>();
+
     public DbSet<ImportRun> ImportRuns => Set<ImportRun>();
 
     public DbSet<ImportItem> ImportItems => Set<ImportItem>();

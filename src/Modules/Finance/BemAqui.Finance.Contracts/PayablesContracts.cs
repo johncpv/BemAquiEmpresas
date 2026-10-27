@@ -27,7 +27,29 @@ public enum PaymentMethodKind
     Boleto,
     Ted,
     Other,
+
+    /// <summary>Conta para pagamento do funcionário (RH-02c, ADR 0036 §3): os dados ficam no HR e só saem no "Pagar" da OP.</summary>
+    EmployeeAccount,
 }
+
+/// <summary>Favorecido do título (RH-02c CA 6, ADR 0036 §1): terceiro (<c>IParties</c>) ou funcionário (<c>IEmployees</c>).</summary>
+[JsonConverter(typeof(JsonStringEnumConverter<PayeeType>))]
+public enum PayeeType
+{
+    Party,
+    Employee,
+}
+
+/// <summary>Favorecido do título: o tipo e o id (o terceiro, ou o funcionário no HR).</summary>
+public sealed record Payee(PayeeType Type, Guid Id)
+{
+    public static Payee Party(Guid partyId) => new(PayeeType.Party, partyId);
+
+    public static Payee Employee(Guid employeeId) => new(PayeeType.Employee, employeeId);
+}
+
+/// <summary>Título de uma origem com a situação (RH-02c CA 12): o HR reconcilia a folha paga pela fonte.</summary>
+public sealed record PayableOriginStatus(Guid OriginId, Guid PayableId, string Number, PayableStatus Status, decimal Amount, DateOnly? DueDate, Guid? PaymentOrderId);
 
 [JsonConverter(typeof(JsonStringEnumConverter<PixKeyType>))]
 public enum PixKeyType
@@ -91,6 +113,12 @@ public interface IPayables
 
     /// <summary>Títulos a pagar com o projeto (COM-05 CA 6, 8): base do realizado por natureza.</summary>
     Task<IReadOnlyList<ProjectPayable>> ByProjectAsync(Guid projectId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Títulos não cancelados das origens (RH-02c CA 5 e 12), com a situação e a OP não finalizada em que estão: a folha confere se
+    /// tudo foi pago e mostra a aba Pagamentos. Sem nenhum dado do favorecido.
+    /// </summary>
+    Task<IReadOnlyList<PayableOriginStatus>> StatusByOriginAsync(DocumentOrigin origin, IReadOnlyCollection<Guid> originIds, CancellationToken cancellationToken = default);
 }
 
 /// <summary>Parcela prevista de uma origem (ADR 0024 §2): número da parcela (1, 2, …), valor, data estimada e a descrição do título.</summary>
@@ -100,7 +128,23 @@ public sealed record PlannedInstallment(short Number, decimal Amount, DateOnly E
 /// Títulos previstos de uma origem por parcela (ADR 0024 §2; CMP-03a CA 12, 15 e 19): fornecedor, projeto, conta do plano e natureza
 /// vêm do chamador (o pedido de compra usa os padrões de <c>purchasing.parameters</c>).
 /// </summary>
-public sealed record PlannedPayables(Guid PartyId, Guid? ProjectId, Guid AccountId, CostType? CostType, IReadOnlyList<PlannedInstallment> Installments);
+public sealed record PlannedPayables(Guid PartyId, Guid? ProjectId, Guid AccountId, CostType? CostType, IReadOnlyList<PlannedInstallment> Installments)
+{
+    /// <summary>Favorecido (RH-02c CA 6): nulo é o terceiro <see cref="PartyId"/> (a assinatura de antes).</summary>
+    public Payee? Payee { get; init; }
+
+    /// <summary>Centro de custo do título (RH-02c CA 4), validado no Finance.</summary>
+    public Guid? CostCenterId { get; init; }
+
+    public Payee EffectivePayee => Payee ?? Payee.Party(PartyId);
+
+    /// <summary>Títulos previstos de um favorecido (terceiro ou funcionário), sem projeto.</summary>
+    public static PlannedPayables For(Payee payee, Guid accountId, Guid? costCenterId, IReadOnlyList<PlannedInstallment> installments)
+    {
+        ArgumentNullException.ThrowIfNull(payee);
+        return new(payee.Type == PayeeType.Party ? payee.Id : Guid.Empty, null, accountId, null, installments) { Payee = payee, CostCenterId = costCenterId };
+    }
+}
 
 /// <summary>Parcela em aberto de uma origem (ADR 0024 §3): número da parcela, valor, vencimento e a descrição do título.</summary>
 public sealed record OpenInstallment(short Number, decimal Amount, DateOnly DueDate, string Description);
@@ -109,7 +153,23 @@ public sealed record OpenInstallment(short Number, decimal Amount, DateOnly DueD
 /// Títulos em aberto de uma origem por parcela (CMP-04 CA 8): fornecedor, projeto, conta do plano e natureza vêm do chamador (o recebimento
 /// usa os do pedido).
 /// </summary>
-public sealed record OpenPayables(Guid PartyId, Guid? ProjectId, Guid AccountId, CostType? CostType, IReadOnlyList<OpenInstallment> Installments);
+public sealed record OpenPayables(Guid PartyId, Guid? ProjectId, Guid AccountId, CostType? CostType, IReadOnlyList<OpenInstallment> Installments)
+{
+    /// <summary>Favorecido (RH-02c CA 6): nulo é o terceiro <see cref="PartyId"/> (a assinatura de antes).</summary>
+    public Payee? Payee { get; init; }
+
+    /// <summary>Centro de custo do título (RH-02c CA 4), validado no Finance.</summary>
+    public Guid? CostCenterId { get; init; }
+
+    public Payee EffectivePayee => Payee ?? Payee.Party(PartyId);
+
+    /// <summary>Títulos em aberto de um favorecido (terceiro ou funcionário), sem projeto.</summary>
+    public static OpenPayables For(Payee payee, Guid accountId, Guid? costCenterId, IReadOnlyList<OpenInstallment> installments)
+    {
+        ArgumentNullException.ThrowIfNull(payee);
+        return new(payee.Type == PayeeType.Party ? payee.Id : Guid.Empty, null, accountId, null, installments) { Payee = payee, CostCenterId = costCenterId };
+    }
+}
 
 /// <summary>Título a pagar do projeto (COM-05), sem dado de pagamento.</summary>
-public sealed record ProjectPayable(Guid Id, string Number, Guid PartyId, DocumentOrigin Origin, CostType? CostType, DateOnly? DueDate, decimal Amount, decimal Balance, PayableStatus Status, DateTimeOffset CreatedAt);
+public sealed record ProjectPayable(Guid Id, string Number, Guid? PartyId, DocumentOrigin Origin, CostType? CostType, DateOnly? DueDate, decimal Amount, decimal Balance, PayableStatus Status, DateTimeOffset CreatedAt);

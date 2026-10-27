@@ -78,13 +78,30 @@ public sealed partial class CashFlowService
             .Select(r => new { r.Id, r.Number, r.Description, r.PartyId, Balance = r.Amount - r.PaidAmount, r.DueDate }).ToListAsync(ct);
         var payables = await db.Payables.AsNoTracking()
             .Where(p => !ClosedPayable.Contains(p.Status) && p.DueDate != null && (p.DueDate == date || (isToday && p.DueDate < today)))
-            .Select(p => new { p.Id, p.Number, p.Description, p.PartyId, Balance = p.Amount - p.RetentionIss - p.RetentionInss - p.RetentionIr - p.RetentionPcc - p.PaidAmount, p.DueDate, p.IsEstimate })
+            .Select(p => new { p.Id, p.Number, p.Description, p.PartyId, p.PayeeType, p.PayeeId, Balance = p.Amount - p.RetentionIss - p.RetentionInss - p.RetentionIr - p.RetentionPcc - p.PaidAmount, p.DueDate, p.IsEstimate })
             .ToListAsync(ct);
         var recurring = (await OccurrencesAsync(today, date, ct)).Where(o => o.Due == date).ToList();
-        var partyIds = receivables.Select(r => r.PartyId).Concat(payables.Select(p => p.PartyId)).Concat(recurring.Select(o => o.Expense.PartyId)).Distinct().ToList();
+        var partyIds = receivables.Select(r => r.PartyId).Concat(payables.Select(p => p.PartyId).OfType<Guid>()).Concat(recurring.Select(o => o.Expense.PartyId)).Distinct().ToList();
         var names = (await parties.FindManyAsync(partyIds, ct)).ToDictionary(p => p.Id, p => p.TradeName ?? p.LegalName);
         items.AddRange(receivables.Select(r => new CashFlowItem("Receivable", r.Id, r.Number, r.Description, names.GetValueOrDefault(r.PartyId), r.Balance, r.DueDate, r.DueDate < today, false, "/app/financeiro/receber/" + r.Id)));
-        items.AddRange(payables.Select(p => new CashFlowItem("Payable", p.Id, p.Number, p.Description, names.GetValueOrDefault(p.PartyId), -p.Balance, p.DueDate, p.DueDate < today, p.IsEstimate, "/app/financeiro/pagar/" + p.Id)));
+        // Salários (RH-02c CA 7): por funcionário só para quem aprova ou paga; senão, uma linha por folha, sem nome nem valor individual.
+        var salaries = payables.Where(p => p.PayeeType == PayeeType.Employee).ToList();
+        if (await PayableService.CanSeeEmployeesAsync(permissions, ct))
+        {
+            foreach (var (id, name) in await PayableService.EmployeeNamesAsync(employees, salaries.Select(p => p.PayeeId), ct))
+            {
+                names[id] = name;
+            }
+
+            items.AddRange(salaries.Select(p => new CashFlowItem("Payable", p.Id, p.Number, p.Description, names.GetValueOrDefault(p.PayeeId), -p.Balance, p.DueDate, p.DueDate < today, p.IsEstimate, "/app/financeiro/pagar/" + p.Id)));
+        }
+        else
+        {
+            items.AddRange(salaries.GroupBy(p => PayableService.PayrollGroupLabel(p.Description)).Select(g => new CashFlowItem("Payroll", g.First().Id, null,
+                $"{g.Key}: {g.Count()} {(g.Count() == 1 ? "salário" : "salários")}", null, -g.Sum(p => p.Balance), g.Min(p => p.DueDate), g.Any(p => p.DueDate < today), g.Any(p => p.IsEstimate), null)));
+        }
+
+        items.AddRange(payables.Where(p => p.PayeeType != PayeeType.Employee).Select(p => new CashFlowItem("Payable", p.Id, p.Number, p.Description, p.PartyId is { } party ? names.GetValueOrDefault(party) : null, -p.Balance, p.DueDate, p.DueDate < today, p.IsEstimate, "/app/financeiro/pagar/" + p.Id)));
         items.AddRange(recurring.Select(o => new CashFlowItem("Recurring", o.Expense.Id, null, o.Expense.Description, names.GetValueOrDefault(o.Expense.PartyId), -o.Amount, o.Due, false, false, "/app/financeiro/recorrentes")));
     }
 }

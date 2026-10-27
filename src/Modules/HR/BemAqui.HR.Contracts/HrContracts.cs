@@ -82,6 +82,38 @@ public sealed record EmployeeBankAccountStatus(
     bool SelfReviewed,
     int Version);
 
+/// <summary>
+/// Conta de salário para o Finance (RH-02c CA 8 a 10, ADR 0036 §3): o resumo sem dado bancário em claro (para o retrato da OP e o
+/// diálogo de aprovação) e os dados para pagar, lidos só no "Pagar" da OP, com <c>finance.pay</c> no request e <c>SensitiveRead</c>.
+/// </summary>
+public interface IEmployeeBankAccounts
+{
+    /// <summary>Resumo de cada funcionário: matrícula, nome, a versão da conta, o final mascarado ("****-12") e as marcas de quarentena; sem conta, <c>Version</c> 0.</summary>
+    Task<IReadOnlyList<EmployeeBankAccountSummary>> SummaryAsync(IReadOnlyCollection<Guid> employeeIds, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Dados para o pagamento da OP <paramref name="paymentOrderId"/>: 403 sem <c>finance.pay</c>; 409 <c>payee_account_changed</c> se a
+    /// versão não é a <paramref name="expectedVersion"/> do retrato; 422 <c>payee_account_in_quarantine</c> com a conta em quarentena. Grava
+    /// <c>SensitiveRead</c> com o número da OP, sem o dado lido.
+    /// </summary>
+    Task<Result<EmployeeBankAccountForPayment>> GetForPaymentAsync(Guid employeeId, int expectedVersion, Guid paymentOrderId, string paymentOrderNumber, CancellationToken cancellationToken = default);
+}
+
+/// <summary>Conta de salário sem dado bancário em claro: <c>AccountTail</c> é o final mascarado da conta ou o tipo da chave Pix.</summary>
+public sealed record EmployeeBankAccountSummary(
+    Guid EmployeeId, string Name, string? Registration, int Version, string? AccountTail, bool NewOnPayroll, bool InQuarantine, DateTimeOffset? QuarantineUntil, DateTimeOffset? ReviewedAt);
+
+/// <summary>Para onde vai o salário (só no "Pagar"): banco, agência, conta, tipo, titular e a chave Pix.</summary>
+public sealed record EmployeeBankAccountForPayment(
+    Guid EmployeeId, string Name, string? Registration, int Version, string? BankCode, string? Agency, string? Account, string? AccountType, string? HolderName, string? HolderCpf,
+    string? PixKeyType, string? PixKey);
+
+/// <summary>Folha fechada (RH-02c CA 2): só para aviso e projeção, sem valor nem dado pessoal.</summary>
+public sealed record PayrollClosed(Guid PayrollRunId, DateOnly Period) : IIntegrationEvent;
+
+/// <summary>Folha reaberta (RH-02c CA 13): só para aviso.</summary>
+public sealed record PayrollReopened(Guid PayrollRunId) : IIntegrationEvent;
+
 /// <summary>Desligamento registrado (CA 17), sem consumidor nesta fase.</summary>
 public sealed record EmployeeTerminated(Guid EmployeeId, DateOnly TerminationDate) : IIntegrationEvent;
 

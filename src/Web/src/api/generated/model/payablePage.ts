@@ -5,9 +5,12 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { PagedListOfPayableDetail } from './pagedListOfPayableDetail';
+import type { PayablePayrollGroup } from './payablePayrollGroup';
 import type { PayableTotals } from './payableTotals';
 
 export interface PayablePage {
   page: PagedListOfPayableDetail;
   totals: PayableTotals;
+  /** @nullable */
+  payrollGroups?: PayablePayrollGroup[] | null;
 }

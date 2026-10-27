@@ -17,6 +17,24 @@ public enum HrParameterKind
     DayOfMonth,
     Days,
     Party,
+
+    /// <summary>O n-ésimo dia útil do mês seguinte (RH-02c).</summary>
+    BusinessDay,
+
+    /// <summary>Dia do mês da competência (adiantamento).</summary>
+    DayOfPeriod,
+
+    /// <summary>Dia e mês do ano ("30/11"), gravado como <c>MMDD</c> (1130).</summary>
+    MonthDay,
+
+    /// <summary>Número de meses.</summary>
+    Months,
+
+    /// <summary>Conta do plano de contas, pelo código ("2.2").</summary>
+    Account,
+
+    /// <summary>Centro de custo, pelo código ("3").</summary>
+    CostCenter,
 }
 
 /// <summary>
@@ -37,13 +55,18 @@ public sealed record HrParameterItem(
     bool Confirmed,
     string? ConfirmedByName,
     DateTimeOffset? ConfirmedAt,
-    Guid? ParameterId);
+    Guid? ParameterId,
+    string? Code = null,
+    string? CodeName = null);
 
-/// <summary>Os parâmetros e quantos valores legais estão "A confirmar com a contadora".</summary>
-public sealed record HrParametersView(IReadOnlyList<HrParameterItem> Items, int PendingCount);
+/// <summary>Opção de conta ou de centro de custo para os parâmetros da folha (RH-02c CA 4).</summary>
+public sealed record HrCodeOption(string Code, string Name);
 
-/// <summary>Uma troca: número em <c>Value</c> ou o órgão em <c>PartyId</c> (nulo limpa o órgão padrão).</summary>
-public sealed record HrParameterChange(string Key, decimal? Value, Guid? PartyId);
+/// <summary>Os parâmetros, quantos valores legais estão "A confirmar com a contadora" e as contas e os centros para escolher.</summary>
+public sealed record HrParametersView(IReadOnlyList<HrParameterItem> Items, int PendingCount, IReadOnlyList<HrCodeOption>? Accounts = null, IReadOnlyList<HrCodeOption>? CostCenters = null);
+
+/// <summary>Uma troca: número em <c>Value</c>, o órgão em <c>PartyId</c> (nulo limpa o órgão padrão) ou o código da conta ou do centro em <c>Code</c>.</summary>
+public sealed record HrParameterChange(string Key, decimal? Value, Guid? PartyId, string? Code = null);
 
 public sealed record HrParametersInput(IReadOnlyList<HrParameterChange> Changes);
 
@@ -62,10 +85,23 @@ public sealed record PayrollChargeDefault(PayrollChargeKind Kind, string Label, 
 /// (30 dias, CAD-04c2). Os vencimentos são legais: "A confirmar com a contadora" até "Marcar como conferido". Editar e conferir exigem
 /// <c>settings.edit</c>; toda mudança é auditada com antes e depois.
 /// </summary>
-public sealed class HrParametersService(IHrDb db, IParties parties, IBusinessCalendar calendar, IPermissionChecker permissions, ICurrentUser currentUser, IUserDirectory users, TimeProvider clock)
+public sealed class HrParametersService(
+    IHrDb db, IParties parties, IBusinessCalendar calendar, IPermissionChecker permissions, ICurrentUser currentUser, IUserDirectory users, BemAqui.Finance.Contracts.IChartOfAccounts chart,
+    TimeProvider clock)
 {
     public const string NetVariationAlertPct = "hr.payroll_net_variation_alert_pct";
     public const string BankAccountQuarantineDays = "hr.bank_account_quarantine_days";
+
+    // RH-02c: vencimentos dos salários, folha prevista e conta e centro de custo dos títulos da folha ("A confirmar com a contadora").
+    public const string SalaryDueBusinessDay = "hr.salary_due_business_day";
+    public const string AdvanceDueDay = "hr.advance_due_day";
+    public const string ThirteenthFirstDue = "hr.thirteenth_first_due";
+    public const string ThirteenthSecondDue = "hr.thirteenth_second_due";
+    public const string ForecastMonths = "hr.payroll_forecast_months";
+    public const string AccountDirect = "hr.payroll_account_direct";
+    public const string CostCenterDirect = "hr.payroll_cost_center_direct";
+    public const string AccountAdmin = "hr.payroll_account_admin";
+    public const string CostCenterAdmin = "hr.payroll_cost_center_admin";
 
     public const decimal DefaultAlertPct = 10m;
     public const int DefaultDueDay = 20;
@@ -78,7 +114,7 @@ public sealed class HrParametersService(IHrDb db, IParties parties, IBusinessCal
     public static string PayeeKey(PayrollChargeKind kind) => "hr.charge_payee." + kind.ToString().ToLowerInvariant();
 
     /// <summary>Definição de cada chave: rótulo, descrição, tipo, padrão, limites e se depende da contadora.</summary>
-    public sealed record Definition(string Key, string Label, string Description, HrParameterKind Kind, decimal? Default, decimal? Min, decimal? Max, bool Legal);
+    public sealed record Definition(string Key, string Label, string Description, HrParameterKind Kind, decimal? Default, decimal? Min, decimal? Max, bool Legal, string? DefaultCode = null);
 
     public static IReadOnlyList<Definition> Definitions { get; } =
     [
@@ -97,7 +133,53 @@ public sealed class HrParametersService(IHrDb db, IParties parties, IBusinessCal
         new(PayeeKey(PayrollChargeKind.Other), "Órgão das outras guias", "Terceiro padrão das guias \"Outros\". O vencimento é informado na folha.", HrParameterKind.Party, null, null, null, false),
         new(BankAccountQuarantineDays, "Quarentena da conta trocada", "Dias em que a conta para pagamento trocada fica fora do pagamento automático da folha, até a revisão expressa (CAD-04c2).",
             HrParameterKind.Days, EmployeeBankRules.QuarantineDays, 1m, 90m, false),
+        new(SalaryDueBusinessDay, "Pagamento dos salários", "Dia útil do mês seguinte à competência em que a folha Mensal é paga (o vencimento dos títulos de salário).",
+            HrParameterKind.BusinessDay, 5m, 1m, 20m, true),
+        new(AdvanceDueDay, "Pagamento do adiantamento", "Dia da própria competência em que o adiantamento é pago. Se cair em dia não útil, antecipa.",
+            HrParameterKind.DayOfPeriod, 20m, 1m, 31m, true),
+        new(ThirteenthFirstDue, "13º salário, 1ª parcela", "Data limite da 1ª parcela do 13º no ano da competência. Se cair em dia não útil, antecipa.",
+            HrParameterKind.MonthDay, 1130m, 101m, 1231m, true),
+        new(ThirteenthSecondDue, "13º salário, 2ª parcela", "Data limite da 2ª parcela do 13º no ano da competência. Se cair em dia não útil, antecipa.",
+            HrParameterKind.MonthDay, 1220m, 101m, 1231m, true),
+        new(ForecastMonths, "Meses da folha prevista", "Quantos meses depois da última folha Mensal fechada a folha prevista entra no fluxo de caixa, com o 13º e as férias.",
+            HrParameterKind.Months, PayrollForecastRules.DefaultMonths, 1m, PayrollForecastRules.MaxMonths, false),
+        new(AccountDirect, "Conta da mão de obra direta", "Conta dos salários de quem tem cargo com centro de trabalho (produção).", HrParameterKind.Account, null, null, null, true, "2.2"),
+        new(CostCenterDirect, "Centro de custo da mão de obra direta", "Centro de custo dos salários de quem tem cargo com centro de trabalho.", HrParameterKind.CostCenter, null, null, null, true, "3"),
+        new(AccountAdmin, "Conta do pessoal administrativo", "Conta dos salários dos demais cargos.", HrParameterKind.Account, null, null, null, true, "3.1"),
+        new(CostCenterAdmin, "Centro de custo do pessoal administrativo", "Centro de custo dos salários dos demais cargos.", HrParameterKind.CostCenter, null, null, null, true, "1"),
     ];
+
+    private static readonly HrParameterKind[] CodeKinds = [HrParameterKind.Account, HrParameterKind.CostCenter];
+
+    /// <summary>Vencimentos da folha (RH-02c CA 1); fora do intervalo, o padrão.</summary>
+    public async Task<PayrollDueParameters> DueParametersAsync(CancellationToken cancellationToken = default)
+    {
+        var stored = await db.HrParameters.AsNoTracking().ToDictionaryAsync(p => p.Key, p => p.Value, cancellationToken);
+        var d = PayrollDueParameters.Default;
+        int Number(string key, int fallback, int min, int max) => stored.GetValueOrDefault(key) is { } v && v >= min && v <= max && decimal.Truncate(v) == v ? (int)v : fallback;
+        var first = Number(ThirteenthFirstDue, 1130, 101, 1231);
+        var second = Number(ThirteenthSecondDue, 1220, 101, 1231);
+        return new PayrollDueParameters(Number(SalaryDueBusinessDay, d.SalaryBusinessDay, 1, 20), Number(AdvanceDueDay, d.AdvanceDay, 1, 31),
+            ValidMonthDay(first) ? first / 100 : 11, ValidMonthDay(first) ? first % 100 : 30, ValidMonthDay(second) ? second / 100 : 12, ValidMonthDay(second) ? second % 100 : 20);
+    }
+
+    /// <summary>Meses da folha prevista (CA 14): de 1 a 12, padrão 3.</summary>
+    public async Task<int> ForecastMonthsAsync(CancellationToken cancellationToken = default) =>
+        await NumberAsync(ForecastMonths, cancellationToken) is { } months and >= 1m and <= PayrollForecastRules.MaxMonths ? (int)months : PayrollForecastRules.DefaultMonths;
+
+    /// <summary>Código da conta e do centro de custo do grupo (CA 4), pelos parâmetros ou o padrão do seed.</summary>
+    public async Task<(string Account, string CostCenter)> CostCodesAsync(PayrollCostGroup group, CancellationToken cancellationToken = default)
+    {
+        var (accountKey, centerKey) = group == PayrollCostGroup.Direct ? (AccountDirect, CostCenterDirect) : (AccountAdmin, CostCenterAdmin);
+        var stored = await db.HrParameters.AsNoTracking().Where(p => p.Key == accountKey || p.Key == centerKey).ToDictionaryAsync(p => p.Key, p => p.Text, cancellationToken);
+        return (stored.GetValueOrDefault(accountKey) ?? Definitions.First(d => d.Key == accountKey).DefaultCode!, stored.GetValueOrDefault(centerKey) ?? Definitions.First(d => d.Key == centerKey).DefaultCode!);
+    }
+
+    private static bool ValidMonthDay(decimal value)
+    {
+        var v = (int)value;
+        return value == decimal.Truncate(value) && v / 100 is >= 1 and <= 12 && v % 100 >= 1 && v % 100 <= DateTime.DaysInMonth(2026, v / 100);
+    }
 
     /// <summary>Limite do alerta de variação do líquido em % (CA 11); fora do intervalo, o padrão.</summary>
     public async Task<decimal> NetVariationAlertPctAsync(CancellationToken cancellationToken = default) =>
@@ -144,15 +226,19 @@ public sealed class HrParametersService(IHrDb db, IParties parties, IBusinessCal
             reviewers[by] = await users.DisplayNameAsync(by, cancellationToken);
         }
 
+        var accounts = (await chart.PostableAsync(BemAqui.Finance.Contracts.AccountType.Expense, cancellationToken)).Select(a => new HrCodeOption(a.Code, a.Name)).ToList();
+        var centers = (await chart.CostCentersAsync(cancellationToken)).Select(c => new HrCodeOption(c.Code, c.Name)).ToList();
         var items = Definitions.Select(d =>
         {
             var p = stored.GetValueOrDefault(d.Key);
             Guid? party = d.Kind == HrParameterKind.Party && Guid.TryParse(p?.Text, out var id) ? id : null;
-            return new HrParameterItem(d.Key, d.Label, d.Description, d.Kind, d.Kind == HrParameterKind.Party ? null : p?.Value ?? d.Default, d.Min, d.Max, party,
+            var code = CodeKinds.Contains(d.Kind) ? p?.Text ?? d.DefaultCode : null;
+            var codeName = code is null ? null : (d.Kind == HrParameterKind.Account ? accounts : centers).FirstOrDefault(o => o.Code == code)?.Name;
+            return new HrParameterItem(d.Key, d.Label, d.Description, d.Kind, d.Kind == HrParameterKind.Party || CodeKinds.Contains(d.Kind) ? null : p?.Value ?? d.Default, d.Min, d.Max, party,
                 party is { } pid ? names.GetValueOrDefault(pid) : null, d.Legal, d.Legal && p?.ConfirmedAt is not null,
-                p?.ConfirmedBy is { } by ? reviewers.GetValueOrDefault(by) : null, d.Legal ? p?.ConfirmedAt : null, p?.Id);
+                p?.ConfirmedBy is { } by ? reviewers.GetValueOrDefault(by) : null, d.Legal ? p?.ConfirmedAt : null, p?.Id, code, codeName);
         }).ToList();
-        return new HrParametersView(items, items.Count(i => i.Legal && !i.Confirmed));
+        return new HrParametersView(items, items.Count(i => i.Legal && !i.Confirmed), accounts, centers);
     }
 
     /// <summary>Só o que veio muda; o valor legal trocado volta para "A confirmar com a contadora" (ADR 0042 §1).</summary>
@@ -180,13 +266,31 @@ public sealed class HrParametersService(IHrDb db, IParties parties, IBusinessCal
                     return PayrollRules.Field(change.Key, "Escolha um terceiro ativo como órgão da guia.");
                 }
             }
+            else if (definition.Kind == HrParameterKind.Account)
+            {
+                if ((await chart.PostableAsync(BemAqui.Finance.Contracts.AccountType.Expense, cancellationToken)).All(a => a.Code != change.Code))
+                {
+                    return PayrollRules.Field(change.Key, "Escolha uma conta de despesa analítica ativa.");
+                }
+            }
+            else if (definition.Kind == HrParameterKind.CostCenter)
+            {
+                if ((await chart.CostCentersAsync(cancellationToken)).All(c => c.Code != change.Code))
+                {
+                    return PayrollRules.Field(change.Key, "Escolha um centro de custo ativo.");
+                }
+            }
             else if (change.Value is not { } value || value < definition.Min || value > definition.Max
-                || (definition.Kind == HrParameterKind.Percent ? decimal.Round(value, 2) != value : decimal.Truncate(value) != value))
+                || (definition.Kind == HrParameterKind.Percent ? decimal.Round(value, 2) != value : decimal.Truncate(value) != value)
+                || (definition.Kind == HrParameterKind.MonthDay && !ValidMonthDay(value)))
             {
                 return PayrollRules.Field(change.Key, definition.Kind switch
                 {
                     HrParameterKind.Percent => "Informe um percentual de 0 a 100, com até 2 casas.",
-                    HrParameterKind.DayOfMonth => "Informe um dia de 1 a 31.",
+                    HrParameterKind.DayOfMonth or HrParameterKind.DayOfPeriod => "Informe um dia de 1 a 31.",
+                    HrParameterKind.BusinessDay => $"Informe um dia útil de {definition.Min:0} a {definition.Max:0}.",
+                    HrParameterKind.MonthDay => "Informe uma data válida no formato dia/mês (ex.: 30/11).",
+                    HrParameterKind.Months => $"Informe de {definition.Min:0} a {definition.Max:0} meses.",
                     _ => $"Informe de {definition.Min:0} a {definition.Max:0} dias.",
                 });
             }
@@ -197,8 +301,8 @@ public sealed class HrParametersService(IHrDb db, IParties parties, IBusinessCal
         foreach (var change in changes)
         {
             var definition = Definitions.First(d => d.Key == change.Key);
-            var text = definition.Kind == HrParameterKind.Party ? change.PartyId?.ToString() : null;
-            var value = definition.Kind == HrParameterKind.Party ? null : change.Value;
+            var text = definition.Kind == HrParameterKind.Party ? change.PartyId?.ToString() : CodeKinds.Contains(definition.Kind) ? change.Code : null;
+            var value = definition.Kind == HrParameterKind.Party || CodeKinds.Contains(definition.Kind) ? null : change.Value;
             if (!stored.TryGetValue(change.Key, out var p))
             {
                 db.HrParameters.Add(new HrParameter { Key = change.Key, Value = value, Text = text, UpdatedAt = now });
@@ -234,7 +338,7 @@ public sealed class HrParametersService(IHrDb db, IParties parties, IBusinessCal
         if (parameter is null)
         {
             // Tenant sem o seed ainda: grava o valor proposto e já conferido.
-            parameter = new HrParameter { Key = key, Value = definition.Default, UpdatedAt = clock.GetUtcNow() };
+            parameter = new HrParameter { Key = key, Value = definition.Default, Text = definition.DefaultCode, UpdatedAt = clock.GetUtcNow() };
             db.HrParameters.Add(parameter);
         }
 
@@ -260,9 +364,9 @@ public sealed class HrParametersService(IHrDb db, IParties parties, IBusinessCal
         ArgumentNullException.ThrowIfNull(db);
         ArgumentNullException.ThrowIfNull(clock);
         var existing = (await db.HrParameters.Select(p => p.Key).ToListAsync(cancellationToken)).ToHashSet(StringComparer.Ordinal);
-        foreach (var d in Definitions.Where(d => d.Default is not null && !existing.Contains(d.Key)))
+        foreach (var d in Definitions.Where(d => (d.Default is not null || d.DefaultCode is not null) && !existing.Contains(d.Key)))
         {
-            db.HrParameters.Add(new HrParameter { Key = d.Key, Value = d.Default, UpdatedAt = clock.GetUtcNow() });
+            db.HrParameters.Add(new HrParameter { Key = d.Key, Value = d.Default, Text = d.DefaultCode, UpdatedAt = clock.GetUtcNow() });
         }
 
         await db.SaveChangesAsync(cancellationToken);

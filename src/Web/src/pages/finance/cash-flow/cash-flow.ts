@@ -35,7 +35,7 @@ export const CASH_FLOW_DICAS = {
   menorSaldo: 'Menor saldo previsto: o dia, de hoje até o fim do horizonte, em que o saldo fica mais baixo.',
 }
 
-export const KIND_LABELS: Record<string, string> = { Transaction: 'Realizado', Receivable: 'A receber', Payable: 'A pagar', Recurring: 'Recorrente' }
+export const KIND_LABELS: Record<string, string> = { Transaction: 'Realizado', Receivable: 'A receber', Payable: 'A pagar', Recurring: 'Recorrente', Payroll: 'Folha' }
 
 const MONTHS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
 

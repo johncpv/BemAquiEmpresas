@@ -63,8 +63,21 @@ public sealed partial class PaymentOrderService
             planned.Add((item, line, total));
         }
 
+        // Salário (RH-02c CA 10 e 11): a conta ainda é a do retrato, e quem fechou a folha não paga.
+        if (await EmployeeAccountsChangedAsync(items, cancellationToken) is { } changed)
+        {
+            return changed;
+        }
+
         db.Entry(order).Property(o => o.Version).OriginalValue = input.Version;
         var payables = await PayablesOfAsync(order, cancellationToken);
+        var (closer, selfPaid) = await PayrollCloserRuleAsync(payables, cancellationToken);
+        if (closer is not null)
+        {
+            return closer;
+        }
+
+        order.SelfPaid = selfPaid;
         var suggestions = new List<RetentionSuggestion>();
         foreach (var (item, line, total) in planned)
         {
@@ -96,6 +109,11 @@ public sealed partial class PaymentOrderService
         order.PaidBy = currentUser.UserId;
         order.BankAccountId = input.BankAccountId;
         events.Publish(new PaymentOrderPaid(order.Id, input.Date));
+        if (selfPaid)
+        {
+            await NotifyOwnersAsync($"Autopagamento: {order.Number} com salários da folha que você fechou, pago por você (Proprietário único).", order, cancellationToken);
+        }
+
         if (backdated)
         {
             await NotifyOwnersAsync($"Pagamento da {order.Number} com data de {input.Date:dd/MM/yyyy}, lançado por {await WhoAsync(cancellationToken)}.", order, cancellationToken);

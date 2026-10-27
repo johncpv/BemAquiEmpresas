@@ -20,3 +20,7 @@ Garantir que nenhum dinheiro saia da empresa sem uma ordem aprovada. Toda saída
 **Quem paga?** O Financeiro, depois da aprovação, registrando a saída da conta.
 
 **Posso aprovar a ordem que eu pedi?** Não. A exceção é o Proprietário único, ou o parâmetro "Proprietário aprova a própria ordem" ligado.
+
+**Salários: conta lida no pagamento.** O título de salário paga na conta do funcionário, que fica no RH. A ordem guarda só o final da conta. No "Pagar", o bloco **Para onde vai o dinheiro** lê os dados na hora, só para quem paga. Se a conta mudou depois do envio, a ordem precisa de nova aprovação (**Reenviar para aprovação**). Conta em quarentena não entra na ordem.
+
+**Quem fechou a folha pode pagar os salários?** Não. A exceção é o Proprietário único, com a marca de autopagamento.

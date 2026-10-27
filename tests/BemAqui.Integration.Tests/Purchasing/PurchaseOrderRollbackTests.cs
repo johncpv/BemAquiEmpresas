@@ -76,5 +76,7 @@ public class PurchaseOrderRollbackTests(TenancyFixture tenancy) : PurchaseOrderT
             inner.ListByOriginAsync(origin, originId, cancellationToken);
 
         public Task<IReadOnlyList<ProjectPayable>> ByProjectAsync(Guid projectId, CancellationToken cancellationToken = default) => inner.ByProjectAsync(projectId, cancellationToken);
+
+        public Task<IReadOnlyList<PayableOriginStatus>> StatusByOriginAsync(DocumentOrigin origin, IReadOnlyCollection<Guid> originIds, CancellationToken cancellationToken = default) => inner.StatusByOriginAsync(origin, originIds, cancellationToken);
     }
 }

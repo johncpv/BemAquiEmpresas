@@ -96,6 +96,12 @@ public static class HrInfrastructure
         services.AddAuditableEntity<PayslipLine>("hr", PositionService.SensitiveAction);
         services.AddAuditableEntity<PayrollRunCharge>("hr", PositionService.SensitiveAction);
         services.AddAuditableEntity<HrParameter>("settings");
+        // Fechamento, folha prevista e a conta de salário para o Finance (RH-02c, ADR 0036): a conta em claro só sai no "Pagar" da OP.
+        services.TryAddScoped<PayrollCostTargets>();
+        services.TryAddScoped<PayrollForecastService>();
+        services.TryAddScoped<PayrollClosingService>();
+        services.TryAddScoped<IEmployeeBankAccounts, EmployeeBankAccountsContract>();
+        services.AddAuditableEntity<PayrollForecast>("hr", PositionService.SensitiveAction);
         services.AddAuditableEntity<EmployeeDependent>("hr", PositionService.SensitiveAction);
         services.AddAuditableEntity<Employee>("hr", PositionService.SensitiveAction);
         services.AddAuditableEntity<EmployeeHistoryEntry>("hr", PositionService.SensitiveAction);

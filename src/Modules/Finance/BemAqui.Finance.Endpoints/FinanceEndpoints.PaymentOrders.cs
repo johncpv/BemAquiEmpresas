@@ -28,7 +28,14 @@ internal static partial class FinanceEndpoints
             .RequirePermission("finance.edit").WithName("CancelPaymentOrder").Produces<PaymentOrderDetail>();
         orders.MapPost("/{id:guid}/resubmit", async (Guid id, ResubmitInput input, PaymentOrderService service, CancellationToken ct) => (await service.ResubmitAsync(id, input, ct)).ToHttpResult())
             .RequirePermission("finance.create").WithName("ResubmitPaymentOrder").Produces<PaymentOrderDetail>();
-        orders.MapPost("/{id:guid}/pay", async (Guid id, PayInput input, PaymentOrderService service, CancellationToken ct) => (await service.PayAsync(id, input, ct)).ToHttpResult())
+        // RH-02c CA 10: a conta de salário em claro só no "Pagar", lida do RH agora (SensitiveRead com a OP) e nunca cacheada.
+        orders.MapGet("/{id:guid}/payee-accounts", async (Guid id, HttpContext http, PaymentOrderService service, CancellationToken ct) =>
+            {
+                http.Response.Headers.CacheControl = "no-store";
+                return (await service.PayeeAccountsAsync(id, ct)).ToHttpResult();
+            })
+            .RequirePermission("finance.pay").WithName("GetPaymentOrderPayeeAccounts").Produces<IReadOnlyList<PayeeAccountView>>();
+        orders.MapPost("/{id:guid}/pay",async (Guid id, PayInput input, PaymentOrderService service, CancellationToken ct) => (await service.PayAsync(id, input, ct)).ToHttpResult())
             .RequirePermission("finance.pay").RequireRecentTwoFactor().RequireIdempotencyKey().WithName("PayPaymentOrder").Produces<PaymentResult>();
         // Pagar e estornar pedem o 2FA de novo (D6, P-19; BNK-01a CA 2): sem a prova recente, 403 two_factor_required e nada é gravado.
         orders.MapPost("/{id:guid}/reverse", async (Guid id, ReasonInput input, PaymentOrderService service, CancellationToken ct) => (await service.ReverseAsync(id, input, ct)).ToHttpResult())

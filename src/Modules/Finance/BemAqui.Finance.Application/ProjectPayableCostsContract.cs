@@ -98,7 +98,7 @@ public sealed class ProjectPayableCostsContract(IFinanceDb db) : IProjectPayable
             .Select(p => new { p.Id, p.Number, p.PartyId, p.Origin, p.OriginId, p.Status, p.IssueDate, p.DueDate, p.Amount, p.CostType })
             .ToListAsync(cancellationToken);
         return rows.Select(p => new ProjectPayableCostEntry(
-                p.Id, p.Number, p.PartyId, p.Origin, p.OriginId, p.Status, p.IssueDate, p.DueDate, p.Amount, p.CostType ?? CostType.Other, PayableCostRules.Bucket(p.Origin, p.CostType, p.Status)!.Value))
+                p.Id, p.Number, p.PartyId ?? Guid.Empty, p.Origin, p.OriginId, p.Status, p.IssueDate, p.DueDate, p.Amount, p.CostType ?? CostType.Other, PayableCostRules.Bucket(p.Origin, p.CostType, p.Status)!.Value))
             .ToList();
     }
 }

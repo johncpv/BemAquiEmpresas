@@ -77,6 +77,12 @@ public static class HostEvents
             .AddEvent<BemAqui.Finance.Contracts.PaymentOrderApproved>()
             .AddEvent<BemAqui.Finance.Contracts.PaymentOrderPaid>()
             .AddEvent<BemAqui.Finance.Contracts.PaymentOrderLevelReleased>()
+            // RH-02c (ADR 0036 §4): o fechamento cria os títulos na própria transação; os eventos da folha são só aviso e projeção, e a folha
+            // fica paga (ou volta a fechada no estorno) pela fonte, no consumidor da OP.
+            .AddEvent<BemAqui.HR.Contracts.PayrollClosed>()
+            .AddEvent<BemAqui.HR.Contracts.PayrollReopened>()
+            .AddHandler<BemAqui.Finance.Contracts.PaymentOrderPaid, BemAqui.HR.Application.PayrollPaymentConsumers>()
+            .AddHandler<BemAqui.Finance.Contracts.PaymentOrderReversed, BemAqui.HR.Application.PayrollPaymentConsumers>()
             // CMP-03a (ADR 0024 §1): eventos do pedido de compra só para aviso e projeção; os títulos previstos nascem na transação da aprovação.
             .AddEvent<BemAqui.Purchasing.Contracts.PurchaseOrderSubmitted>()
             .AddEvent<BemAqui.Purchasing.Contracts.PurchaseOrderLevelReleased>()

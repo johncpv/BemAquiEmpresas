@@ -6737,6 +6737,170 @@
         }
       }
     },
+    "/api/v1/hr/payroll-runs/{id}/close/sensitive": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetPayrollClosePreviewSensitive",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollClosePreview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-runs/{id}/close": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ClosePayrollRun",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayrollCloseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollCloseResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-runs/{id}/reopen": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ReopenPayrollRun",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayrollReopenInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollRunSummary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-runs/{id}/payments/sensitive": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetPayrollPaymentsSensitive",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollPayments"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-runs/forecast/recalculate": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "RecalculatePayrollForecast",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollForecastResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/quotes": {
       "get": {
         "tags": [
@@ -26132,6 +26296,40 @@
         }
       }
     },
+    "/api/v1/finance/payment-orders/{id}/payee-accounts": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetPaymentOrderPayeeAccounts",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PayeeAccountView"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/payment-orders/{id}/pay": {
       "post": {
         "tags": [
@@ -36752,7 +36950,8 @@
           "Purchase",
           "Payroll",
           "Maintenance",
-          "GoodsReceipt"
+          "GoodsReceipt",
+          "PayrollForecast"
         ]
       },
       "DreAccountOption": {
@@ -42077,6 +42276,21 @@
         },
         "additionalProperties": false
       },
+      "HrCodeOption": {
+        "required": [
+          "code",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
       "HrParameterChange": {
         "required": [
           "key",
@@ -42101,6 +42315,12 @@
               "string"
             ],
             "format": "uuid"
+          },
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -42205,6 +42425,18 @@
               "string"
             ],
             "format": "uuid"
+          },
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "codeName": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -42213,7 +42445,13 @@
           "Percent",
           "DayOfMonth",
           "Days",
-          "Party"
+          "Party",
+          "BusinessDay",
+          "DayOfPeriod",
+          "MonthDay",
+          "Months",
+          "Account",
+          "CostCenter"
         ]
       },
       "HrParametersInput": {
@@ -42246,6 +42484,24 @@
           "pendingCount": {
             "type": "integer",
             "format": "int32"
+          },
+          "accounts": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/HrCodeOption"
+            }
+          },
+          "costCenters": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/HrCodeOption"
+            }
           }
         }
       },
@@ -51201,7 +51457,10 @@
             "type": "string"
           },
           "partyId": {
-            "type": "string",
+            "type": [
+              "null",
+              "string"
+            ],
             "format": "uuid"
           },
           "partyName": {
@@ -51365,6 +51624,16 @@
                 "$ref": "#/components/schemas/CostType"
               }
             ]
+          },
+          "payeeType": {
+            "$ref": "#/components/schemas/PayeeType"
+          },
+          "payeeId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         }
       },
@@ -51571,6 +51840,48 @@
           },
           "totals": {
             "$ref": "#/components/schemas/PayableTotals"
+          },
+          "payrollGroups": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/PayablePayrollGroup"
+            }
+          }
+        }
+      },
+      "PayablePayrollGroup": {
+        "required": [
+          "label",
+          "count",
+          "total",
+          "dueDate",
+          "isEstimate"
+        ],
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "isEstimate": {
+            "type": "boolean"
           }
         }
       },
@@ -51659,7 +51970,8 @@
           "Approved",
           "PartiallyPaid",
           "Paid",
-          "Cancelled"
+          "Cancelled",
+          null
         ]
       },
       "PayableTotals": {
@@ -51755,6 +52067,103 @@
           }
         },
         "additionalProperties": false
+      },
+      "PayeeAccountView": {
+        "required": [
+          "itemId",
+          "payableNumber",
+          "employeeName",
+          "registration",
+          "bankCode",
+          "bankName",
+          "agency",
+          "account",
+          "accountType",
+          "holderName",
+          "holderCpf",
+          "pixKeyType",
+          "pixKey"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "payableNumber": {
+            "type": "string"
+          },
+          "employeeName": {
+            "type": "string"
+          },
+          "registration": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "bankCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "bankName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "agency": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "account": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "accountType": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "holderName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "holderCpf": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pixKeyType": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pixKey": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PayeeType": {
+        "enum": [
+          "Party",
+          "Employee"
+        ],
+        "default": "Party"
       },
       "PayInput": {
         "required": [
@@ -51950,6 +52359,7 @@
           "Boleto",
           "Ted",
           "Other",
+          "EmployeeAccount",
           null
         ]
       },
@@ -52071,6 +52481,10 @@
             "items": {
               "$ref": "#/components/schemas/ApprovalLevelView"
             }
+          },
+          "selfPaid": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -52200,6 +52614,9 @@
               "number"
             ],
             "format": "double"
+          },
+          "payeeType": {
+            "$ref": "#/components/schemas/PayeeType"
           }
         }
       },
@@ -52633,6 +53050,189 @@
           }
         }
       },
+      "PayrollCloseInput": {
+        "required": [
+          "paymentDate",
+          "twoFactorCode",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "paymentDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "twoFactorCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "PayrollCloseIssue": {
+        "required": [
+          "code",
+          "message",
+          "link"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "link": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PayrollClosePerson": {
+        "required": [
+          "employeeId",
+          "name",
+          "registration",
+          "quarantineUntil"
+        ],
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "registration": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "quarantineUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "PayrollClosePreview": {
+        "required": [
+          "runId",
+          "period",
+          "type",
+          "blockers",
+          "suggestedPaymentDate",
+          "paymentDateRequired",
+          "paymentDateConfirmed",
+          "newcomers",
+          "accountChanged",
+          "salaryCount",
+          "salaryTotal",
+          "chargeCount",
+          "chargeTotal",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "runId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "period": {
+            "type": "string",
+            "format": "date"
+          },
+          "type": {
+            "$ref": "#/components/schemas/PayrollRunType"
+          },
+          "blockers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollCloseIssue"
+            }
+          },
+          "suggestedPaymentDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "paymentDateRequired": {
+            "type": "boolean"
+          },
+          "paymentDateConfirmed": {
+            "type": "boolean"
+          },
+          "newcomers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollClosePerson"
+            }
+          },
+          "accountChanged": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollClosePerson"
+            }
+          },
+          "salaryCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "salaryTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "chargeCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "chargeTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "PayrollCloseResult": {
+        "required": [
+          "run",
+          "payables",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "run": {
+            "$ref": "#/components/schemas/PayrollRunSummary"
+          },
+          "payables": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
       "PayrollEligibleEmployee": {
         "required": [
           "id",
@@ -52661,6 +53261,39 @@
             "format": "date"
           },
           "terminationDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          }
+        }
+      },
+      "PayrollForecastResult": {
+        "required": [
+          "lines",
+          "months",
+          "from",
+          "to"
+        ],
+        "type": "object",
+        "properties": {
+          "lines": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "months": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "from": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "to": {
             "type": [
               "null",
               "string"
@@ -52928,6 +53561,161 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "PayrollPaymentRow": {
+        "required": [
+          "payableId",
+          "number",
+          "isSalary",
+          "originId",
+          "employeeId",
+          "payeeName",
+          "amount",
+          "dueDate",
+          "status",
+          "statusLabel",
+          "paymentOrderId",
+          "inQuarantine",
+          "quarantineUntil"
+        ],
+        "type": "object",
+        "properties": {
+          "payableId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "isSalary": {
+            "type": "boolean"
+          },
+          "originId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "employeeId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "payeeName": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "status": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PayableStatus"
+              }
+            ]
+          },
+          "statusLabel": {
+            "type": "string"
+          },
+          "paymentOrderId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "inQuarantine": {
+            "type": "boolean"
+          },
+          "quarantineUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "PayrollPayments": {
+        "required": [
+          "items",
+          "salaryTotal",
+          "chargeTotal",
+          "salaryPreselected",
+          "quarantined",
+          "chargePreselected",
+          "canSeeStatus"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollPaymentRow"
+            }
+          },
+          "salaryTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "chargeTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "salaryPreselected": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "quarantined": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollPaymentRow"
+            }
+          },
+          "chargePreselected": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "canSeeStatus": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PayrollReopenInput": {
+        "required": [
+          "reason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
           }
         }
       },
@@ -53243,6 +54031,33 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          },
+          "paymentDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "paidAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "reopenReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "payableCount": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
           }
         }
       },

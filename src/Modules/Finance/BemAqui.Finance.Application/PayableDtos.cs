@@ -33,7 +33,7 @@ public sealed record PayableListQuery(string? Q, string? Situation, Guid? PartyI
 public sealed record PayableDetail(
     Guid Id,
     string Number,
-    Guid PartyId,
+    Guid? PartyId,
     string PartyName,
     string Description,
     Guid AccountId,
@@ -65,13 +65,22 @@ public sealed record PayableDetail(
     uint Version,
     Guid? ProjectId = null,
     string? ProjectNumber = null,
-    CostType? CostType = null);
+    CostType? CostType = null,
+    PayeeType PayeeType = PayeeType.Party,
+    Guid? PayeeId = null);
 
 public sealed record FinanceProjectOption(Guid Id, string Number, string Name);
 
 public sealed record PayableTotals(decimal Open, decimal Overdue);
 
-public sealed record PayablePage(PagedList<PayableDetail> Page, PayableTotals Totals);
+/// <summary>
+/// Página de títulos. Sem <c>finance.approve</c> nem <c>finance.pay</c>, os salários (favorecido funcionário) saem só agrupados em
+/// <see cref="PayrollGroups"/> ("Folha {tipo} {mês}: {n} salários, total {valor}", RH-02c CA 7), sem nome nem valor por funcionário.
+/// </summary>
+public sealed record PayablePage(PagedList<PayableDetail> Page, PayableTotals Totals, IReadOnlyList<PayablePayrollGroup>? PayrollGroups = null);
+
+/// <summary>Salários agrupados por folha (RH-02c CA 7): rótulo, quantos, total e o menor vencimento.</summary>
+public sealed record PayablePayrollGroup(string Label, int Count, decimal Total, DateOnly? DueDate, bool IsEstimate);
 
 public sealed record PayablesCreated(IReadOnlyList<PayableDetail> Items, string? HolderWarning, string? BoletoWarning);
 
