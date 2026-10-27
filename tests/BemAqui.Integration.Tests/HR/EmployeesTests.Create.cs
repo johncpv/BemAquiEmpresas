@@ -24,7 +24,7 @@ public partial class EmployeesTests
         var ok = await owner.PostAsJsonAsync("/api/v1/hr/employees", NewEmployee(position, cpf));
         var id = await CreatedAsync(ok);
         var body = NoIds(await ok.Content.ReadAsStringAsync());
-        body.Should().NotContain(cpf).And.NotContain("3300", "a resposta da criação não devolve dado sensível");
+        NoIds(body).Should().NotContain(cpf).And.NotContain("3300", "a resposta da criação não devolve dado sensível");
         (await JsonAsync(await owner.GetAsync($"/api/v1/hr/employees/{id}"))).GetProperty("workScheduleId").ValueKind.Should().NotBe(System.Text.Json.JsonValueKind.Null, "a jornada vem do cargo (CA 3)");
 
         var duplicate = await owner.PostAsJsonAsync("/api/v1/hr/employees", NewEmployee(position, cpf));

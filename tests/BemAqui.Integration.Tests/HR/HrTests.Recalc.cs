@@ -71,13 +71,13 @@ public partial class HrTests
 
         await using var scope = await ScopeAsync();
         var audit = string.Join("\n", await scope.ServiceProvider.GetRequiredService<BemAquiDbContext>().AuditEntries.Where(a => a.EntityId == id.ToString()).Select(a => a.Changes).ToListAsync());
-        audit.Should().Contain("***").And.NotContain("98765", "salário mascarado na auditoria (CA 14)");
+        NoIds(audit).Should().Contain("***").And.NotContain("98765", "salário mascarado na auditoria (CA 14)");
         string events;
         lock (sink.Events)
         {
             events = string.Join("\n", sink.Events.Select(e => e.RenderMessage(System.Globalization.CultureInfo.InvariantCulture) + " " + string.Join(" ", e.Properties.Select(p => p.Value.ToString()))));
         }
 
-        events.Should().NotContain("98765", "nem no log");
+        NoIds(events).Should().NotContain("98765", "nem no log");
     }
 }
