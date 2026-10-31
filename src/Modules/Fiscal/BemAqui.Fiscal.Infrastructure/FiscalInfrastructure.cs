@@ -7,6 +7,7 @@ using BemAqui.Fiscal.Application.Certificates;
 using BemAqui.Fiscal.Application.Emitter;
 using BemAqui.Fiscal.Application.Invoices;
 using BemAqui.Fiscal.Application.Settings;
+using BemAqui.Fiscal.Application.TaxRules;
 using BemAqui.Fiscal.Domain;
 using BemAqui.Fiscal.Infrastructure.Emissor;
 using BemAqui.SharedKernel;
@@ -58,6 +59,13 @@ public static class FiscalInfrastructure
         services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Tenancy.ITenantSeeder, FiscalSettingsSeeder>());
         services.AddAuditableEntity<FiscalSettings>("settings");
         services.AddAuditableEntity<SettingConfirmation>("settings");
+
+        // FIS-02b: regras fiscais por operação, resolução, simulação e o aviso de revisão (o consumidor é registrado no HostEvents).
+        services.TryAddScoped<TaxRuleService>();
+        services.TryAddScoped<TaxRuleResolver>();
+        services.TryAddScoped<TaxSimulationService>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Tenancy.ITenantSeeder, TaxRuleSeeder>());
+        services.AddAuditableEntity<TaxRule>("fiscal");
         services.AddAttachmentOwner(OutgoingInvoiceReconciler.AttachmentOwner, new AttachmentOwnerRules("fiscal", ["application/xml"], 5 * 1024 * 1024,
             OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IFiscalDb>().OutgoingInvoices.AnyAsync(i => i.Id == id, ct),
             CanAttach: (_, _, _) => Task.FromResult<Error?>(Error.Forbidden(Error.Codes.Forbidden, "O XML da nota é guardado pelo sistema."))));

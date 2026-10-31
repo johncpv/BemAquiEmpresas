@@ -178,9 +178,35 @@ public sealed class FiscalSettingsService(
             return NotConfirmed(pending);
         }
 
-        IReadOnlyList<string> warnings = pending.Count == 0 ? [] : [$"{pending.Count} valores fiscais ainda a confirmar com a contadora. Em homologação, a nota sai mesmo assim."];
-        return new FiscalReadiness(settings.Environment, [.. pending.Select(p => p.Key)], warnings);
+        // FIS-02b CA 4: em produção a emissão usa só regra ativa e conferida; as ativas ainda a confirmar ficam listadas.
+        var service = document == FiscalDocumentType.Nfse;
+        var pendingRules = await db.TaxRules.AsNoTracking()
+            .Where(r => r.Status == TaxRuleStatus.Active && r.ConfirmedAt == null && (r.Operation == TaxOperation.ServiceProvision) == service)
+            .OrderBy(r => r.Name).Select(r => r.Name).ToListAsync(cancellationToken);
+        if (settings.Environment == FiscalEnvironment.Production && pendingRules.Count > 0)
+        {
+            return new Error(FiscalSettingsErrors.TaxRulesNotConfirmed,
+                "Confira com a contadora e marque como conferidas as regras fiscais: " + string.Join(", ", pendingRules) + ".", ErrorType.Conflict)
+            {
+                Data = new Dictionary<string, object?> { ["pendingRules"] = pendingRules, ["link"] = TaxRulesLink + "?filtro=a-confirmar" },
+            };
+        }
+
+        var warnings = new List<string>();
+        if (pending.Count > 0)
+        {
+            warnings.Add($"{pending.Count} valores fiscais ainda a confirmar com a contadora. Em homologação, a nota sai mesmo assim.");
+        }
+
+        if (pendingRules.Count > 0)
+        {
+            warnings.Add($"{pendingRules.Count} regras fiscais ativas ainda a confirmar com a contadora. Em homologação, a nota sai mesmo assim.");
+        }
+
+        return new FiscalReadiness(settings.Environment, [.. pending.Select(p => p.Key)], warnings, pendingRules);
     }
+
+    public const string TaxRulesLink = "/app/fiscal/regras";
 
     private static readonly string[] ConfirmBeforeProduction = ["Confira com a contadora antes de ligar a produção."];
 
@@ -289,8 +315,16 @@ public sealed class FiscalSettingsService(
             await db.SaveChangesAsync(cancellationToken);
         }
 
+        // FIS-02b CA 6: as regras que usam um valor que mudou (o aviso "A revisar" chega pelo FiscalSettingsChanged).
+        List<string> toReview = [];
+        if (changed.Count > 0)
+        {
+            var rules = await db.TaxRules.AsNoTracking().Where(r => r.Status != TaxRuleStatus.Inactive).ToListAsync(cancellationToken);
+            toReview = [.. rules.Where(r => TaxRuleRules.AffectedBy(r, changed, regimeChanged)).Select(r => r.Name).Distinct(StringComparer.Ordinal).Order(StringComparer.CurrentCulture)];
+        }
+
         var view = await GetAsync(cancellationToken);
-        return new FiscalSettingsSaved(view, changed, regimeChanged ? RegimeChangedNotice : null, []);
+        return new FiscalSettingsSaved(view, changed, regimeChanged ? RegimeChangedNotice : null, toReview);
     }
 
     /// <summary>"Marcar como conferido" de um campo ou da seção (CA 5): grava quem, quando e o hash do valor de agora (auditado).</summary>

@@ -152,6 +152,7 @@ import type {
   CustomerOption,
   CutoverInput,
   DashboardOverview,
+  DeactivateTaxRuleRequest,
   DecisionInput,
   DecisionsCard,
   DeleteQuoteParams,
@@ -417,6 +418,7 @@ import type {
   ListStockMovementsParams,
   ListStockShortagesParams,
   ListSupplierOptionsParams,
+  ListTaxRulesParams,
   ListTenantsParams,
   ListTimeAdjustmentsParams,
   ListTimeEntriesParams,
@@ -772,6 +774,7 @@ import type {
   ShopfloorQueueView,
   ShopfloorStepDetail,
   SimulateApprovalParams,
+  SimulateTaxRequest,
   SplitPreviewInput,
   SplitPreviewRequest,
   StatementOfxForm,
@@ -799,6 +802,10 @@ import type {
   SupplierCodeInput,
   SupplierOption,
   SuspendTenantRequest,
+  TaxRuleList,
+  TaxRuleValues,
+  TaxRuleView,
+  TaxSimulationView,
   TenantDetail,
   TenantParametersDto,
   TenantPublicContext,
@@ -71880,6 +71887,778 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getUploadFiscalCertificateMutationOptions(options), queryClient);
+    }
+
+export const getListTaxRulesUrl = (params?: ListTaxRulesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/fiscal/tax-rules?${stringifiedParams}` : `/api/v1/fiscal/tax-rules`
+}
+
+export const listTaxRules = async (params?: ListTaxRulesParams, options?: Parameters<typeof apiFetch>[1]): Promise<TaxRuleList> => {
+
+  return apiFetch<TaxRuleList>(getListTaxRulesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListTaxRulesQueryKey = (params?: ListTaxRulesParams,) => {
+    return [
+    `/api/v1/fiscal/tax-rules`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListTaxRulesQueryOptions = <TData = Awaited<ReturnType<typeof listTaxRules>>, TError = unknown>(params?: ListTaxRulesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTaxRules>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListTaxRulesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listTaxRules>>> = ({ signal }) => listTaxRules(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listTaxRules>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListTaxRulesQueryResult = NonNullable<Awaited<ReturnType<typeof listTaxRules>>>
+export type ListTaxRulesQueryError = unknown
+
+
+export function useListTaxRules<TData = Awaited<ReturnType<typeof listTaxRules>>, TError = unknown>(
+ params: undefined |  ListTaxRulesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTaxRules>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listTaxRules>>,
+          TError,
+          Awaited<ReturnType<typeof listTaxRules>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListTaxRules<TData = Awaited<ReturnType<typeof listTaxRules>>, TError = unknown>(
+ params?: ListTaxRulesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTaxRules>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listTaxRules>>,
+          TError,
+          Awaited<ReturnType<typeof listTaxRules>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListTaxRules<TData = Awaited<ReturnType<typeof listTaxRules>>, TError = unknown>(
+ params?: ListTaxRulesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTaxRules>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListTaxRules<TData = Awaited<ReturnType<typeof listTaxRules>>, TError = unknown>(
+ params?: ListTaxRulesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTaxRules>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListTaxRulesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateTaxRuleUrl = () => {
+
+
+
+
+  return `/api/v1/fiscal/tax-rules`
+}
+
+export const createTaxRule = async (taxRuleValues: TaxRuleValues, options?: Parameters<typeof apiFetch>[1]): Promise<TaxRuleView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<TaxRuleView>(getCreateTaxRuleUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(taxRuleValues)
+  }
+);}
+
+
+
+
+
+export const getCreateTaxRuleMutationKey = () => ['createTaxRule'] as const;
+
+export const getCreateTaxRuleMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTaxRule>>, TError,CreateTaxRuleMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createTaxRule>>, TError,CreateTaxRuleMutationVariables, TContext> => {
+
+const mutationKey = getCreateTaxRuleMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createTaxRule>>, CreateTaxRuleMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createTaxRule(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateTaxRuleMutationResult = NonNullable<Awaited<ReturnType<typeof createTaxRule>>>
+    export type CreateTaxRuleMutationBody = TaxRuleValues
+    export type CreateTaxRuleMutationError = unknown
+    export type CreateTaxRuleMutationVariables = {data: TaxRuleValues}
+
+    export const useCreateTaxRule = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTaxRule>>, TError,CreateTaxRuleMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createTaxRule>>,
+        TError,
+        CreateTaxRuleMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateTaxRuleMutationOptions(options), queryClient);
+    }
+
+export const getSimulateTaxesUrl = () => {
+
+
+
+
+  return `/api/v1/fiscal/tax-rules/simulate`
+}
+
+export const simulateTaxes = async (simulateTaxRequest: SimulateTaxRequest, options?: Parameters<typeof apiFetch>[1]): Promise<TaxSimulationView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<TaxSimulationView>(getSimulateTaxesUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(simulateTaxRequest)
+  }
+);}
+
+
+
+
+
+export const getSimulateTaxesMutationKey = () => ['simulateTaxes'] as const;
+
+export const getSimulateTaxesMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof simulateTaxes>>, TError,SimulateTaxesMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof simulateTaxes>>, TError,SimulateTaxesMutationVariables, TContext> => {
+
+const mutationKey = getSimulateTaxesMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof simulateTaxes>>, SimulateTaxesMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  simulateTaxes(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SimulateTaxesMutationResult = NonNullable<Awaited<ReturnType<typeof simulateTaxes>>>
+    export type SimulateTaxesMutationBody = SimulateTaxRequest
+    export type SimulateTaxesMutationError = unknown
+    export type SimulateTaxesMutationVariables = {data: SimulateTaxRequest}
+
+    export const useSimulateTaxes = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof simulateTaxes>>, TError,SimulateTaxesMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof simulateTaxes>>,
+        TError,
+        SimulateTaxesMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSimulateTaxesMutationOptions(options), queryClient);
+    }
+
+export const getGetTaxRuleUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/fiscal/tax-rules/${id}`
+}
+
+export const getTaxRule = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<TaxRuleView> => {
+
+  return apiFetch<TaxRuleView>(getGetTaxRuleUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTaxRuleQueryKey = (id: string,) => {
+    return [
+    `/api/v1/fiscal/tax-rules/${id}`
+    ] as const;
+    }
+
+
+export const getGetTaxRuleQueryOptions = <TData = Awaited<ReturnType<typeof getTaxRule>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTaxRule>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTaxRuleQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTaxRule>>> = ({ signal }) => getTaxRule(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTaxRule>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetTaxRuleQueryResult = NonNullable<Awaited<ReturnType<typeof getTaxRule>>>
+export type GetTaxRuleQueryError = unknown
+
+
+export function useGetTaxRule<TData = Awaited<ReturnType<typeof getTaxRule>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTaxRule>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTaxRule>>,
+          TError,
+          Awaited<ReturnType<typeof getTaxRule>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTaxRule<TData = Awaited<ReturnType<typeof getTaxRule>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTaxRule>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTaxRule>>,
+          TError,
+          Awaited<ReturnType<typeof getTaxRule>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTaxRule<TData = Awaited<ReturnType<typeof getTaxRule>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTaxRule>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetTaxRule<TData = Awaited<ReturnType<typeof getTaxRule>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTaxRule>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetTaxRuleQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateTaxRuleUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/fiscal/tax-rules/${id}`
+}
+
+export const updateTaxRule = async (id: string,
+    taxRuleValues: TaxRuleValues, options?: Parameters<typeof apiFetch>[1]): Promise<TaxRuleView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<TaxRuleView>(getUpdateTaxRuleUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(taxRuleValues)
+  }
+);}
+
+
+
+
+
+export const getUpdateTaxRuleMutationKey = () => ['updateTaxRule'] as const;
+
+export const getUpdateTaxRuleMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTaxRule>>, TError,UpdateTaxRuleMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateTaxRule>>, TError,UpdateTaxRuleMutationVariables, TContext> => {
+
+const mutationKey = getUpdateTaxRuleMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateTaxRule>>, UpdateTaxRuleMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateTaxRule(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateTaxRuleMutationResult = NonNullable<Awaited<ReturnType<typeof updateTaxRule>>>
+    export type UpdateTaxRuleMutationBody = TaxRuleValues
+    export type UpdateTaxRuleMutationError = unknown
+    export type UpdateTaxRuleMutationVariables = {id: string;data: TaxRuleValues}
+
+    export const useUpdateTaxRule = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTaxRule>>, TError,UpdateTaxRuleMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateTaxRule>>,
+        TError,
+        UpdateTaxRuleMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateTaxRuleMutationOptions(options), queryClient);
+    }
+
+export const getGetTaxRuleVersionUrl = (id: string,
+    versionId: string,) => {
+
+
+
+
+  return `/api/v1/fiscal/tax-rules/${id}/versions/${versionId}`
+}
+
+export const getTaxRuleVersion = async (id: string,
+    versionId: string, options?: Parameters<typeof apiFetch>[1]): Promise<TaxRuleView> => {
+
+  return apiFetch<TaxRuleView>(getGetTaxRuleVersionUrl(id,versionId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTaxRuleVersionQueryKey = (id: string,
+    versionId: string,) => {
+    return [
+    `/api/v1/fiscal/tax-rules/${id}/versions/${versionId}`
+    ] as const;
+    }
+
+
+export const getGetTaxRuleVersionQueryOptions = <TData = Awaited<ReturnType<typeof getTaxRuleVersion>>, TError = unknown>(id: string,
+    versionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTaxRuleVersion>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTaxRuleVersionQueryKey(id,versionId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTaxRuleVersion>>> = ({ signal }) => getTaxRuleVersion(id,versionId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && versionId !== null && versionId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTaxRuleVersion>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetTaxRuleVersionQueryResult = NonNullable<Awaited<ReturnType<typeof getTaxRuleVersion>>>
+export type GetTaxRuleVersionQueryError = unknown
+
+
+export function useGetTaxRuleVersion<TData = Awaited<ReturnType<typeof getTaxRuleVersion>>, TError = unknown>(
+ id: string,
+    versionId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTaxRuleVersion>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTaxRuleVersion>>,
+          TError,
+          Awaited<ReturnType<typeof getTaxRuleVersion>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTaxRuleVersion<TData = Awaited<ReturnType<typeof getTaxRuleVersion>>, TError = unknown>(
+ id: string,
+    versionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTaxRuleVersion>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTaxRuleVersion>>,
+          TError,
+          Awaited<ReturnType<typeof getTaxRuleVersion>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTaxRuleVersion<TData = Awaited<ReturnType<typeof getTaxRuleVersion>>, TError = unknown>(
+ id: string,
+    versionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTaxRuleVersion>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetTaxRuleVersion<TData = Awaited<ReturnType<typeof getTaxRuleVersion>>, TError = unknown>(
+ id: string,
+    versionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTaxRuleVersion>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetTaxRuleVersionQueryOptions(id,versionId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getActivateTaxRuleUrl = (id: string,
+    versionId: string,) => {
+
+
+
+
+  return `/api/v1/fiscal/tax-rules/${id}/versions/${versionId}/activate`
+}
+
+export const activateTaxRule = async (id: string,
+    versionId: string, options?: Parameters<typeof apiFetch>[1]): Promise<TaxRuleView> => {
+
+  return apiFetch<TaxRuleView>(getActivateTaxRuleUrl(id,versionId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getActivateTaxRuleMutationKey = () => ['activateTaxRule'] as const;
+
+export const getActivateTaxRuleMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activateTaxRule>>, TError,ActivateTaxRuleMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof activateTaxRule>>, TError,ActivateTaxRuleMutationVariables, TContext> => {
+
+const mutationKey = getActivateTaxRuleMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof activateTaxRule>>, ActivateTaxRuleMutationVariables> = (props) => {
+          const {id,versionId} = props ?? {};
+
+          return  activateTaxRule(id,versionId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ActivateTaxRuleMutationResult = NonNullable<Awaited<ReturnType<typeof activateTaxRule>>>
+
+    export type ActivateTaxRuleMutationError = unknown
+    export type ActivateTaxRuleMutationVariables = {id: string;versionId: string}
+
+    export const useActivateTaxRule = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activateTaxRule>>, TError,ActivateTaxRuleMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof activateTaxRule>>,
+        TError,
+        ActivateTaxRuleMutationVariables,
+        TContext
+      > => {
+      return useMutation(getActivateTaxRuleMutationOptions(options), queryClient);
+    }
+
+export const getDeactivateTaxRuleUrl = (id: string,
+    versionId: string,) => {
+
+
+
+
+  return `/api/v1/fiscal/tax-rules/${id}/versions/${versionId}/deactivate`
+}
+
+export const deactivateTaxRule = async (id: string,
+    versionId: string,
+    deactivateTaxRuleRequest: DeactivateTaxRuleRequest, options?: Parameters<typeof apiFetch>[1]): Promise<TaxRuleView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<TaxRuleView>(getDeactivateTaxRuleUrl(id,versionId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(deactivateTaxRuleRequest)
+  }
+);}
+
+
+
+
+
+export const getDeactivateTaxRuleMutationKey = () => ['deactivateTaxRule'] as const;
+
+export const getDeactivateTaxRuleMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivateTaxRule>>, TError,DeactivateTaxRuleMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deactivateTaxRule>>, TError,DeactivateTaxRuleMutationVariables, TContext> => {
+
+const mutationKey = getDeactivateTaxRuleMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deactivateTaxRule>>, DeactivateTaxRuleMutationVariables> = (props) => {
+          const {id,versionId,data} = props ?? {};
+
+          return  deactivateTaxRule(id,versionId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeactivateTaxRuleMutationResult = NonNullable<Awaited<ReturnType<typeof deactivateTaxRule>>>
+    export type DeactivateTaxRuleMutationBody = DeactivateTaxRuleRequest
+    export type DeactivateTaxRuleMutationError = unknown
+    export type DeactivateTaxRuleMutationVariables = {id: string;versionId: string;data: DeactivateTaxRuleRequest}
+
+    export const useDeactivateTaxRule = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivateTaxRule>>, TError,DeactivateTaxRuleMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deactivateTaxRule>>,
+        TError,
+        DeactivateTaxRuleMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeactivateTaxRuleMutationOptions(options), queryClient);
+    }
+
+export const getConfirmTaxRuleUrl = (id: string,
+    versionId: string,) => {
+
+
+
+
+  return `/api/v1/fiscal/tax-rules/${id}/versions/${versionId}/confirm`
+}
+
+export const confirmTaxRule = async (id: string,
+    versionId: string, options?: Parameters<typeof apiFetch>[1]): Promise<TaxRuleView> => {
+
+  return apiFetch<TaxRuleView>(getConfirmTaxRuleUrl(id,versionId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getConfirmTaxRuleMutationKey = () => ['confirmTaxRule'] as const;
+
+export const getConfirmTaxRuleMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmTaxRule>>, TError,ConfirmTaxRuleMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof confirmTaxRule>>, TError,ConfirmTaxRuleMutationVariables, TContext> => {
+
+const mutationKey = getConfirmTaxRuleMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof confirmTaxRule>>, ConfirmTaxRuleMutationVariables> = (props) => {
+          const {id,versionId} = props ?? {};
+
+          return  confirmTaxRule(id,versionId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConfirmTaxRuleMutationResult = NonNullable<Awaited<ReturnType<typeof confirmTaxRule>>>
+
+    export type ConfirmTaxRuleMutationError = unknown
+    export type ConfirmTaxRuleMutationVariables = {id: string;versionId: string}
+
+    export const useConfirmTaxRule = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmTaxRule>>, TError,ConfirmTaxRuleMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof confirmTaxRule>>,
+        TError,
+        ConfirmTaxRuleMutationVariables,
+        TContext
+      > => {
+      return useMutation(getConfirmTaxRuleMutationOptions(options), queryClient);
     }
 
 export const getListImportRunsUrl = (params?: ListImportRunsParams,) => {

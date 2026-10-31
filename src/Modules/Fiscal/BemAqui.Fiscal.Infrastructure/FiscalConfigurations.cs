@@ -119,6 +119,61 @@ internal sealed class SettingConfirmationConfiguration : IEntityTypeConfiguratio
     }
 }
 
+/// <summary>
+/// Regras fiscais (FIS-02b): uma linha por versão (<c>rule_id</c> + <c>rule_version</c> únicos); no máximo um rascunho e uma ativa por regra
+/// (índice parcial do rascunho; a ativa única pelo serviço); parâmetros de cada tributo e as condições em jsonb tipado (percentuais com até 4 casas, validados no domínio).
+/// </summary>
+internal sealed class TaxRuleConfiguration : IEntityTypeConfiguration<TaxRule>
+{
+    private static readonly System.Text.Json.JsonSerializerOptions Json = new(System.Text.Json.JsonSerializerDefaults.Web);
+
+    public void Configure(EntityTypeBuilder<TaxRule> b)
+    {
+        b.ToTable("tax_rules", FiscalSchema.Name, t =>
+        {
+            t.HasCheckConstraint("ck_tax_rules_version", "rule_version >= 1");
+            t.HasCheckConstraint("ck_tax_rules_validity", "valid_to IS NULL OR valid_to >= valid_from");
+        });
+        b.Property(e => e.Operation).HasConversion<string>().HasMaxLength(24);
+        b.Property(e => e.Status).HasConversion<string>().HasMaxLength(16);
+        b.Property(e => e.Name).HasMaxLength(TaxRule.NameMaxLength);
+        b.Property(e => e.NatureOfOperation).HasMaxLength(TaxRule.NatureMaxLength);
+        b.Property(e => e.CfopInternal).HasMaxLength(4);
+        b.Property(e => e.CfopInterstate).HasMaxLength(4);
+        b.Property(e => e.ComplementaryInfo).HasMaxLength(TaxRule.InfoMaxLength);
+        b.Property(e => e.SeedKey).HasMaxLength(40);
+        b.Property(e => e.DeactivationReason).HasMaxLength(TaxRule.ReasonMaxLength);
+        Jsonb(b.Property(e => e.Icms));
+        Jsonb(b.Property(e => e.IcmsSt));
+        Jsonb(b.Property(e => e.Fcp));
+        Jsonb(b.Property(e => e.Ipi));
+        Jsonb(b.Property(e => e.Pis));
+        Jsonb(b.Property(e => e.Cofins));
+        Jsonb(b.Property(e => e.Iss));
+        Jsonb(b.Property(e => e.IbsCbs));
+        Jsonb(b.Property(e => e.Difal));
+        b.Property(e => e.Conditions).HasColumnType("jsonb").HasConversion(
+            v => System.Text.Json.JsonSerializer.Serialize(v, Json),
+            s => System.Text.Json.JsonSerializer.Deserialize<TaxRuleConditions>(s, Json) ?? TaxRuleConditions.Any,
+            new Microsoft.EntityFrameworkCore.ChangeTracking.ValueComparer<TaxRuleConditions>(
+                (x, y) => System.Text.Json.JsonSerializer.Serialize(x, Json) == System.Text.Json.JsonSerializer.Serialize(y, Json),
+                v => System.Text.Json.JsonSerializer.Serialize(v, Json).GetHashCode(StringComparison.Ordinal),
+                v => System.Text.Json.JsonSerializer.Deserialize<TaxRuleConditions>(System.Text.Json.JsonSerializer.Serialize(v, Json), Json)!));
+        b.Ignore(e => e.IsConfirmed);
+        b.HasIndex(e => new { e.RuleId, e.RuleVersion }).IsUnique().HasDatabaseName("ux_tax_rules_rule_version");
+        // Um rascunho por regra; a ativa única é garantida no serviço (a troca de versão atualiza as duas linhas no mesmo SaveChanges).
+        b.HasIndex(e => e.RuleId, "ux_tax_rules_one_draft").IsUnique().HasFilter("status = 'Draft'").HasDatabaseName("ux_tax_rules_one_draft");
+        b.HasIndex(e => new { e.Status, e.Operation }).HasDatabaseName("ix_tax_rules_status_operation");
+    }
+
+    /// <summary>Parâmetro de um tributo em jsonb (null = o tributo não se aplica); records só com escalares, igualdade por valor.</summary>
+    private static void Jsonb<T>(PropertyBuilder<T?> property)
+        where T : class =>
+        property.HasColumnType("jsonb").HasConversion(
+            v => v == null ? null : System.Text.Json.JsonSerializer.Serialize(v, Json),
+            s => s == null ? null : System.Text.Json.JsonSerializer.Deserialize<T>(s, Json));
+}
+
 /// <summary>Histórico das trocas de certificado (FIS-02a CA 13): só metadados.</summary>
 internal sealed class CertificateUploadConfiguration : IEntityTypeConfiguration<CertificateUpload>
 {
