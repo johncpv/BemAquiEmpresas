@@ -221,7 +221,8 @@ public partial class BankIntegrationTests
     [Fact]
     public void Acoes_da_D6_que_existem_hoje_tem_o_2FA_de_novo()
     {
-        string[] d6 = ["PayPaymentOrder", "ReversePaymentOrder", "SaveBankIntegration", "RotateBankIntegration", "DisableBankIntegration"];
+        // BNK-02: ativar e trocar o aviso de pagamento e estornar a baixa do banco (CA 1, 3 e 14).
+        string[] d6 = ["PayPaymentOrder", "ReversePaymentOrder", "SaveBankIntegration", "RotateBankIntegration", "DisableBankIntegration", "ActivatePaymentNotice", "RotatePaymentNotice", "ReverseBankSettlement"];
         var endpoints = fixture.Factory.Services.GetRequiredService<EndpointDataSource>().Endpoints.OfType<RouteEndpoint>()
             .Where(e => e.Metadata.GetMetadata<Microsoft.AspNetCore.Routing.IEndpointNameMetadata>()?.EndpointName is { } name && d6.Contains(name)).ToList();
 

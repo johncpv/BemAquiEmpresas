@@ -21,6 +21,20 @@ public sealed class FakeCharge
     public int PendingPolls { get; set; }
 
     public string? CancelReason { get; set; }
+
+    /// <summary>BNK-02: valor recebido (<c>valorTotalRecebido</c>) e data da situação (<c>dataSituacao</c>) da reconsulta.</summary>
+    public decimal? PaidAmount { get; set; }
+
+    public string SituationDate { get; set; } = "2026-10-27";
+
+    /// <summary>Marca a cobrança como paga no banco (o que a reconsulta passa a dizer).</summary>
+    public FakeCharge Pay(decimal amount, DateOnly on)
+    {
+        Situation = "RECEBIDO";
+        PaidAmount = amount;
+        SituationDate = on.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+        return this;
+    }
 }
 
 /// <summary>
@@ -49,6 +63,23 @@ public sealed class FakeInterBilling
     /// <summary>Próximo cancelamento recusado com 400.</summary>
     public bool RejectCancel { get; set; }
 
+    /// <summary>BNK-02: URL do aviso cadastrada (<c>PUT cobrancas/webhook</c>) e quantas vezes.</summary>
+    public string? WebhookUrl { get; private set; }
+
+    public int WebhookRegistrations => _webhookCalls;
+
+    /// <summary>Próximo cadastro do aviso recusado com 400.</summary>
+    public bool RejectWebhook { get; set; }
+
+    /// <summary>Consultas (uma cobrança ou a lista) respondem 503 enquanto for verdadeiro (Inter fora do ar, CA 12).</summary>
+    public bool Unavailable { get; set; }
+
+    /// <summary>Consultas de uma cobrança feitas (reconsulta).</summary>
+    public int GetCalls => _getCalls;
+
+    private int _webhookCalls;
+    private int _getCalls;
+
     public int IssueCalls => _issueCalls;
 
     private int _issueCalls;
@@ -64,9 +95,36 @@ public sealed class FakeInterBilling
             return await IssueAsync(request, cancellationToken);
         }
 
+        if (segments is ["webhook"] && request.Method == HttpMethod.Put)
+        {
+            Interlocked.Increment(ref _webhookCalls);
+            if (RejectWebhook)
+            {
+                RejectWebhook = false;
+                return Json(HttpStatusCode.BadRequest, "{\"title\":\"webhookUrl inválida\",\"violacoes\":[{\"razao\":\"inválida\",\"propriedade\":\"webhookUrl\"}]}");
+            }
+
+            WebhookUrl = JsonNode.Parse(await request.Content!.ReadAsStringAsync(cancellationToken))!["webhookUrl"]!.GetValue<string>();
+            return new HttpResponseMessage(HttpStatusCode.NoContent);
+        }
+
+        if (Unavailable && request.Method == HttpMethod.Get)
+        {
+            return Json(HttpStatusCode.ServiceUnavailable, "{\"title\":\"indisponível\"}");
+        }
+
         if (request.Method == HttpMethod.Get && segments.Length == 0)
         {
             var query = System.Web.HttpUtility.ParseQueryString(request.RequestUri.Query);
+            if (query["seuNumero"] is null)
+            {
+                // BNK-02: cobranças pela data da situação no período (conferência diária), numa página.
+                var from = query["dataInicial"]!;
+                var to = query["dataFinal"]!;
+                var changed = Charges.Values.Where(c => string.CompareOrdinal(c.SituationDate, from) >= 0 && string.CompareOrdinal(c.SituationDate, to) <= 0).Select(View).ToArray();
+                return Json(HttpStatusCode.OK, new JsonObject { ["totalPaginas"] = 1, ["totalElementos"] = changed.Length, ["cobrancas"] = new JsonArray(changed) }.ToJsonString());
+            }
+
             var found = Charges.Values.Where(c => c.OurReference == query["seuNumero"]).Select(View).ToArray();
             return Json(HttpStatusCode.OK, new JsonObject { ["totalPaginas"] = 1, ["totalElementos"] = found.Length, ["cobrancas"] = new JsonArray(found) }.ToJsonString());
         }
@@ -78,6 +136,7 @@ public sealed class FakeInterBilling
 
         if (request.Method == HttpMethod.Get && segments.Length == 1)
         {
+            Interlocked.Increment(ref _getCalls);
             if (charge.PendingPolls > 0)
             {
                 charge.PendingPolls--;
@@ -156,11 +215,16 @@ public sealed class FakeInterBilling
         {
             ["cobranca"] = new JsonObject
             {
-                ["codigoSolicitacao"] = charge.Code, ["seuNumero"] = charge.OurReference, ["situacao"] = charge.Situation, ["dataSituacao"] = "2026-10-27",
+                ["codigoSolicitacao"] = charge.Code, ["seuNumero"] = charge.OurReference, ["situacao"] = charge.Situation, ["dataSituacao"] = charge.SituationDate,
                 ["dataEmissao"] = "2026-10-27", ["dataVencimento"] = charge.Body["dataVencimento"]!.GetValue<string>(), ["valorNominal"] = charge.Body["valorNominal"]!.GetValue<decimal>(),
                 ["pagador"] = charge.Body["pagador"]!.DeepClone(),
             },
         };
+        if (charge.PaidAmount is { } received)
+        {
+            view["cobranca"]!["valorTotalRecebido"] = received;
+        }
+
         if (ready)
         {
             view["boleto"] = new JsonObject { ["nossoNumero"] = "0001234567", ["codigoBarras"] = "07791000000000100001112345678901234567890123", ["linhaDigitavel"] = "07790001161234567890123456789012345678901234567" };

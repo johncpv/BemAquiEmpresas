@@ -100,6 +100,18 @@ public sealed class WebhookCredential : Entity, IAuditable
 
     public DateTimeOffset? RotatedAt { get; private set; }
 
+    /// <summary>
+    /// Nova credencial sem sobreposição: a anterior deixa de valer na hora (BNK-02: ativar o aviso de novo depois de desligar a integração;
+    /// o endereço antigo não pode continuar aceito).
+    /// </summary>
+    public void Replace(string? tokenHash, string? secretCipher, Guid? by, DateTimeOffset now)
+    {
+        Rotate(tokenHash, secretCipher, by, now);
+        PreviousTokenHash = null;
+        PreviousSecretCipher = null;
+        PreviousValidUntil = null;
+    }
+
     /// <summary>Troca a credencial: a atual vira a anterior, aceita por mais 24 h (CA 7).</summary>
     public void Rotate(string? tokenHash, string? secretCipher, Guid? by, DateTimeOffset now)
     {

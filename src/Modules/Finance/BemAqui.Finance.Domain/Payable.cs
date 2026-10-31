@@ -105,6 +105,12 @@ public sealed class Payable : Entity, IAuditable, IConcurrencyVersioned
 
     public Guid? CancelledBy { get; set; }
 
+    /// <summary>
+    /// Último estorno do pagamento pela OP (BNK-02 CA 15, P-20): o título volta a ficar disponível e, numa nova OP, aparece com a marca
+    /// "pago e estornado em {data}" para o aprovador decidir de novo.
+    /// </summary>
+    public DateTimeOffset? ReversedPaymentAt { get; set; }
+
     public DateTimeOffset CreatedAt { get; init; }
 
     public Guid? CreatedBy { get; init; }

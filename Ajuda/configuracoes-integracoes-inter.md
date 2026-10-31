@@ -13,6 +13,7 @@ Ligar cada conta do Banco Inter ao sistema, uma vez, para emitir boletos e ler o
 - Toque na conta para abrir o detalhe e **Configurar integração**.
 - Ainda não tem a conta aqui? Cadastre em Financeiro → **Contas e caixas**, com o banco **077 - Banco Inter**. Ela aparece nesta lista.
 - Conta com o certificado perto de vencer abre direto em **Trocar credenciais**.
+- O **Aviso de pagamento** (baixa automática do boleto pago) é ligado no detalhe de cada conta, depois de testar a conexão.
 
 ## Situações
 - **Não conectada**: a conta existe, mas a integração ainda não foi configurada (ou foi desligada).

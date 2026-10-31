@@ -13,7 +13,7 @@ public sealed class FinanceModule : IModule
 
     public Assembly? PersistenceAssembly => typeof(FinanceInfrastructure).Assembly;
 
-    public void AddServices(IServiceCollection services, IConfiguration configuration) => services.AddFinanceInfrastructure();
+    public void AddServices(IServiceCollection services, IConfiguration configuration) => services.AddFinanceInfrastructure(configuration);
 
-    public void MapEndpoints(IEndpointRouteBuilder endpoints) => endpoints.MapFinanceEndpoints().MapBankIntegrationEndpoints().MapBillingSettingsEndpoints();
+    public void MapEndpoints(IEndpointRouteBuilder endpoints) => endpoints.MapFinanceEndpoints().MapBankIntegrationEndpoints().MapPaymentNoticeEndpoints().MapBillingSettingsEndpoints();
 }

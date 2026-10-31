@@ -71,6 +71,9 @@ public interface IFinanceDb
     /// <summary>Para trocar a conta padrão em dois passos numa transação (o índice único parcial é checado a cada comando).</summary>
     DatabaseFacade Database { get; }
 
+    /// <summary>Para descartar o que ficou rastreado depois de uma gravação recusada (conferência diária do Inter, BNK-02).</summary>
+    ChangeTracker ChangeTracker { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 
     /// <summary>Para conferir a versão (xmin) que o cliente abriu (ADR 0019 §2).</summary>

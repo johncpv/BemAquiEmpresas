@@ -19,6 +19,15 @@ No Internet Banking do Inter, em **Soluções para sua empresa → Nova integra�
 - **Desligar integração**: apaga as credenciais e o certificado. Os boletos já emitidos continuam no banco e são conferidos pelo extrato ou pela baixa manual.
 - **Histórico de alterações**: quem mudou, quando e o quê (ambiente, conta corrente, "credenciais alteradas", certificado trocado), sem os valores.
 
+## Aviso de pagamento
+O Inter avisa o sistema quando o cliente paga o boleto ou o Pix do boleto, e o título baixa sozinho. O aviso só faz o sistema **reconsultar o boleto no banco**: o valor pago e a data vêm sempre da consulta, nunca do aviso.
+- **Ativar aviso de pagamento**: com a conexão testada, clique e confirme o código do aplicativo autenticador. O sistema cadastra no Inter o endereço do aviso e mostra "Aviso de pagamento ativo desde dd/mm/aaaa". O endereço completo aparece **uma única vez**, com **Copiar**, para o caso de precisar cadastrá-lo à mão no Internet Banking; depois, só a máscara.
+- **Trocar endereço do aviso**: gera um endereço novo e cadastra no Inter. O antigo continua aceito por 24 horas e depois é recusado. Os Proprietários são avisados.
+- **Modo do endereço**: onde vai a senha do endereço (no fim, depois de "?t=", ou no caminho). Depende do que o Inter aceita; os dois são seguros.
+- **Última entrega** e **Última conferência**: quando chegou o último aviso e quando rodou a conferência diária, com o resultado (consultados, baixados, a conferir).
+- **Sem o aviso**, os boletos pagos só baixam na conferência das 7h e das 13h, que consulta no Inter os boletos pagos, cancelados e expirados. Se a conferência falhar 3 vezes seguidas, os Proprietários e o Financeiro são avisados.
+- Pagamento com diferença (a menos, a mais ou de boleto já cancelado) **não baixa sozinho**: aparece em Financeiro → A receber → **Pagamentos a conferir**.
+
 ## Ambiente
 - **Sandbox**: ambiente de teste do Inter. A faixa "Ambiente de teste do banco" aparece no topo.
 - **Produção**: o Inter de verdade. Antes da virada do sistema, a credencial de produção pode ser salva e testada, mas boleto, aviso de pagamento e extrato ficam bloqueados ("A cobrança real será ligada na virada do sistema."). Depois da virada, ligar a produção pede a confirmação **Ligar a cobrança real**.
@@ -29,3 +38,5 @@ No Internet Banking do Inter, em **Soluções para sua empresa → Nova integra�
 **O certificado vai vencer. O que faço?** O Proprietário recebe o aviso 30, 15, 7 e 1 dia antes, com o link direto para **Trocar credenciais**. Gere o certificado novo no Inter e envie aqui.
 
 **"Faltam escopos na credencial"?** Libere os escopos que faltam na integração do Internet Banking do Inter e teste de novo.
+
+**O aviso chegou, mas o título não baixou?** Veja se o pagamento está em **Pagamentos a conferir** (valor diferente) ou se o boleto foi feito direto no Internet Banking (fora do sistema: ele aparece na conciliação do extrato). Os avisos recebidos ficam em Configurações → Integrações → **Eventos recebidos**.

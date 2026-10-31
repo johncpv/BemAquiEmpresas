@@ -171,3 +171,32 @@ story (Change Log):
 10. **Procura pelo "seu número":** confirme o filtro `seuNumero` na listagem e o intervalo de datas aceito.
 11. **Log sem pagador:** procure o nome e o CPF/CNPJ do cliente de teste no log da API: não podem aparecer (o log traz só operação,
     situação HTTP e correlação).
+
+# Aviso de pagamento e conferência diária (BNK-02)
+
+## O que a BNK-02 entregou
+- Provedor `inter` da FND-16 (`InterWebhook`): token de 256 bits na URL, só o SHA-256 guardado em `shared.webhook_tokens` com `scope_id` = id da integração (uma credencial por conta). URL: `https://{Webhooks:PublicBaseUrl}/webhooks/inter/{tenantKey}?t={token}` (modo `Query`, padrão) ou `/webhooks/inter/{tenantKey}/{token}` (modo `PathToken`).
+- Configurações → Integrações → Banco Inter → conta → seção **Aviso de pagamento**: "Ativar aviso de pagamento" e "Trocar endereço do aviso" (`settings.edit` + 2FA de novo). O sistema cadastra a URL no Inter (`PUT cobranca/v3/cobrancas/webhook`, corpo `{"webhookUrl": "…"}`) e só grava se o Inter aceitar. A URL completa aparece uma única vez. Na troca, o endereço antigo vale por 24 h.
+- O handler (`InterWebhookHandler`) lê do corpo só `codigoSolicitacao`, `seuNumero` e `nossoNumero` e **reconsulta a cobrança** (`GET cobranca/v3/cobrancas/{codigo}`) antes de qualquer efeito. Situação, valor pago (`valorTotalRecebido`) e data (`dataSituacao`) vêm da reconsulta.
+- Baixa automática pelo `ReceivableService.SettleFromBankAsync` (FIN-01) com o actor de sistema "Banco Inter (aviso de pagamento) · evento {id}" na auditoria; pagamento com diferença vai para `PaidPendingReview` com a entrada na conta (`financial_transactions.pending_review = true`) e aparece em Financeiro → A receber → **Pagamentos a conferir**.
+- Recorrente global **`inter-billing-reconcile`** às 07:00 e 13:00 de São Paulo: um job por tenant com `finance` liberado; cada integração ativa consulta `GET cobranca/v3/cobrancas?filtrarDataPor=SITUACAO` desde a última execução menos 2 dias (na primeira, 30 dias) e os boletos `Requested` há mais de 1 h. Relatório em `bank_integrations.last_reconcile_report`; 3 falhas seguidas → alerta `bank_integration` e aviso aos Proprietários e a quem tem `finance.edit`.
+- Estorno da baixa feita pelo banco (`POST …/settlements/{id}/reverse-bank`) e do pagamento da OP: `finance.approve` + 2FA de novo (P-20, D6).
+
+## Configuração
+| Chave | Padrão | Para que |
+|---|---|---|
+| `Inter__WebhookMode` | `Query` | `PathToken` se o sandbox mostrar que o Inter **não** aceita query string na URL do webhook. Trocar o modo exige "Trocar endereço do aviso" em cada conta (o endereço cadastrado muda de formato). |
+| `Inter__WebhookDeliveryIdHeader` | vazio | Nome do cabeçalho com o id da entrega, se o sandbox mostrar que o Inter manda um. Vazio: o `external_id` é a chave composta `cobranca:{codigoSolicitacao}:{situacao}:{dataHoraSituacao}` (lote: `lote:` + SHA-256), sempre junto com o SHA-256 do corpo. |
+
+## nginx
+- A location `/webhooks/` do host da plataforma fica **fora** da allowlist de IP do painel (mesma do EmissorFiscal, `docs/operacao/emissor-fiscal.md` §2). O `curl -X POST …/webhooks/inter/AAAAAAAAAAAAAAAAAAAAAA` de um IP fora da allowlist tem de dar **401**.
+- O `log_format bqe_masked` já grava `$uri` (sem a query): no modo `Query` o token nunca vai para o `access_log`. Para o modo `PathToken`, o vhost usa `$bqe_uri`, que troca o que vem depois de `/webhooks/{provedor}/` por `***` (`deploy/nginx/bemaqui-empresas-homolog.conf`). Na location `/webhooks/` (feita pelo PO na VPS, como no `emissor-fiscal.md` §2), pôr `error_log /var/log/nginx/error.log crit;`, para a URL não aparecer em erro de upstream no modo `PathToken`.
+
+## A conferir no sandbox (tenant `demo`, pré-condição externa da BNK-02)
+1. O Inter aceita query string (`?t=`) na `webhookUrl`? Se recusar, `Inter__WebhookMode=PathToken`, reiniciar a API e "Trocar endereço do aviso".
+2. O aviso traz um id de entrega próprio (cabeçalho)? Se trouxer, `Inter__WebhookDeliveryIdHeader` com o nome dele.
+3. Formato do corpo: lista de objetos com `codigoSolicitacao`, `seuNumero`, `situacao`, `dataHoraSituacao`, `valorTotalRecebido`, `origemRecebimento` (o código aceita também um objeto só). Se vier outro nome para o código da solicitação, ajustar `InterWebhook.TryRead`.
+4. Política de reenvio do Inter (quantas vezes e em quanto tempo): registrar aqui. A deduplicação pela chave composta e pelo hash cobre o reenvio idêntico.
+5. Caminho do cadastro do webhook (`PUT cobranca/v3/cobrancas/webhook`) e o escopo que ele pede (`boleto-cobranca.write` ou `webhook.write`).
+6. Na listagem por período, os nomes `filtrarDataPor=SITUACAO`, `paginacao.paginaAtual` e `paginacao.itensPorPagina`; e se `dataSituacao` é a data do crédito (base da baixa e da pontualidade).
+7. Pagamento simulado no sandbox chegando no webhook da homologação: título baixado, transação na conta, notificação no sino.

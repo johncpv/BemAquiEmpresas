@@ -129,7 +129,7 @@ public sealed partial class ReceivableService(
         var accountIds = items.Select(s => s.BankAccountId).OfType<Guid>().Distinct().ToList();
         var names = await db.BankAccounts.IgnoreQueryFilters().AsNoTracking().Where(a => accountIds.Contains(a.Id)).ToDictionaryAsync(a => a.Id, a => a.Name, cancellationToken);
         return items.Select(s => new SettlementView(s.Id, s.Kind, s.BankAccountId, s.BankAccountId is { } b ? names.GetValueOrDefault(b) : null, s.Date, s.Principal, s.Interest, s.Fine, s.Discount, s.Total,
-            s.BackdateReason, s.CreatedBy, s.CreatedAt, s.ReversedAt, s.ReversalReason)).ToList();
+            s.BackdateReason, s.CreatedBy, s.CreatedAt, s.ReversedAt, s.ReversalReason, s.Source, s.WebhookEventId)).ToList();
     }
 
     private async Task<List<ReceivableDetail>> DetailsAsync(IReadOnlyList<Receivable> receivables, CancellationToken ct)

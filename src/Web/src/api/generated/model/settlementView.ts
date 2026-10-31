@@ -5,6 +5,7 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { SettlementKind } from './settlementKind';
+import type { SettlementSource } from './settlementSource';
 
 export interface SettlementView {
   id: string;
@@ -28,4 +29,7 @@ export interface SettlementView {
   reversedAt: string | null;
   /** @nullable */
   reversalReason: string | null;
+  source?: SettlementSource;
+  /** @nullable */
+  webhookEventId?: string | null;
 }

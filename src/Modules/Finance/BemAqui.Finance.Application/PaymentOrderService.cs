@@ -89,6 +89,7 @@ public sealed partial class PaymentOrderService(
             && (await CurrentLevelAsync(order.Id, ct) is not { } level || (currentUser.UserId is { } me && (await resolver.EligibleAsync(level, order.RequestedBy, ct)).Contains(me)));
         var views = items.Select(i => ItemView(i, paid.GetValueOrDefault(i.PayableId))).ToList();
         views = await WithInstallationBudgetAsync(views, ct);
+        views = await WithReversedMarkAsync(order, views, ct);
         return new PaymentOrderDetail(
             Summary(order, items.Count, names), views,
             decisions.Select(d => new PaymentOrderDecisionView(d.Kind, d.Decision, d.Comment, d.DecidedBy is { } u ? names.GetValueOrDefault(u) : null, d.DecidedAt, d.SelfApproved)).ToList(),
@@ -118,6 +119,26 @@ public sealed partial class PaymentOrderService(
 
         return result;
     }
+
+    /// <summary>
+    /// Título que já foi pago e estornado (BNK-02 CA 15): na nova OP, a marca "Pago e estornado em {data}" para o aprovador decidir de
+    /// novo. A própria OP estornada não leva a marca.
+    /// </summary>
+    private async Task<List<PaymentOrderItemView>> WithReversedMarkAsync(PaymentOrder order, List<PaymentOrderItemView> views, CancellationToken ct)
+    {
+        if (order.Status == PaymentOrderStatus.Reversed || views.Count == 0)
+        {
+            return views;
+        }
+
+        var ids = views.Select(v => v.PayableId).ToList();
+        var reversed = await db.Payables.AsNoTracking().Where(p => ids.Contains(p.Id) && p.ReversedPaymentAt != null)
+            .ToDictionaryAsync(p => p.Id, p => p.ReversedPaymentAt!.Value, ct);
+        return views.Select(v => reversed.TryGetValue(v.PayableId, out var at) ? v with { Warnings = [.. v.Warnings, ReversedMark(at)] } : v).ToList();
+    }
+
+    public static string ReversedMark(DateTimeOffset at) =>
+        "Pago e estornado em " + BemAqui.BuildingBlocks.Time.BusinessTime.ToBusiness(at).ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture) + ".";
 
     private PaymentOrderItemView ItemView(PaymentOrderItem item, decimal paid)
     {
