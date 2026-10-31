@@ -1,3 +1,5 @@
+using System.Reflection;
+using BemAqui.Assets.Infrastructure;
 using BemAqui.BuildingBlocks.Modules;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
@@ -9,11 +11,9 @@ public sealed class AssetsModule : IModule
 {
     public string Code => "assets";
 
-    public void AddServices(IServiceCollection services, IConfiguration configuration)
-    {
-    }
+    public Assembly? PersistenceAssembly => typeof(AssetsInfrastructure).Assembly;
 
-    public void MapEndpoints(IEndpointRouteBuilder endpoints)
-    {
-    }
+    public void AddServices(IServiceCollection services, IConfiguration configuration) => services.AddAssetsInfrastructure();
+
+    public void MapEndpoints(IEndpointRouteBuilder endpoints) => endpoints.MapAssetsEndpoints();
 }
