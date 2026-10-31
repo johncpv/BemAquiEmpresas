@@ -486,7 +486,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-
 - Requisitos: R-FIS-1, R-FIS-8, R-FIS-6, R-FIS-7, PRD §6 Segurança, R-SEC-5.
 - CA: ADR 0027 aceita; `IFiscalEmitter` sem DTO do EmissorFiscal e fake para os testes; `nfe-{invoiceId}-{tentativa}` com o hash do payload; chave por tenant sem escopo `admin`; webhook HMAC que só dispara reconsulta; job de pendentes; rede `bqe-fiscal`; lacunas do Emissor (P-27) como pré-condição externa.
 
-**FIS-02a [ ] Configurações → Fiscal e Certificado digital: parâmetros pré-configurados "a confirmar", A1 direto ao Emissor, permissões do módulo `fiscal` (G)** — 5.4, ordem 8 — re-estimada de M — `Ready (pré-condição externa)` — [story](stories/FIS-02a-configuracao-fiscal-tenant.md)
+**FIS-02a [x] Configurações → Fiscal e Certificado digital: parâmetros pré-configurados "a confirmar", A1 direto ao Emissor, permissões do módulo `fiscal` (G)** — 5.4, ordem 8 — re-estimada de M — `Done` (validação real no `demo` e conteúdo da contadora: pré-condição externa) — [story](stories/FIS-02a-configuracao-fiscal-tenant.md)
 - Requisitos: R-FIS-2, R-COM-2, R-SEC-10.
 - CA: Configurações → Fiscal pré-configurada (Lucro Presumido, série exclusiva, CFOP/CST e alíquotas por cenário, tributos no custo, NFS-e, IBS/CBS, prazos) com "A confirmar com a contadora" e "Marcar como conferido"; Configurações → Fiscal → Certificado digital com o A1 direto ao cofre do EmissorFiscal, `settings.edit` e 2FA de novo; `fiscal.approve` (reservada) e `fiscal.import_incoming` no catálogo, seed `fiscal-permissions`; produção só com os campos críticos conferidos; alerta de vencimento 30/15/7/1 dias.
 
