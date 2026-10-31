@@ -43,6 +43,9 @@ public sealed class FiscalFixture : IAsyncLifetime
     public const string ApiKey = "ef_chave-canario-fiscal-0123456789";
     public const string WebhookSecret = "segredo-canario-webhook-0123456789";
 
+    /// <summary>Os testes do certificado somam mais de 5 envios no tenant A; o limite de verdade é conferido no tenant B com este valor.</summary>
+    public const int CertificateUploadsPerHour = 30;
+
     public TenancyFixture Tenancy { get; } = new();
 
     public WebApplicationFactory<Program> Factory { get; private set; } = null!;
@@ -62,6 +65,7 @@ public sealed class FiscalFixture : IAsyncLifetime
         {
             b.UseSetting("Webhooks:PerIpPerMinute", "100000");
             b.UseSetting("Fiscal:Emissor:TestsPerMinute", "5");
+            b.UseSetting("Fiscal:Emissor:CertificateUploadsPerHour", CertificateUploadsPerHour.ToString(System.Globalization.CultureInfo.InvariantCulture));
             b.ConfigureTestServices(s =>
             {
                 s.AddSingleton<ILogEventSink>(Logs);

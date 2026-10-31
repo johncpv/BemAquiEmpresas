@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
@@ -6,6 +7,7 @@ using System.Text.RegularExpressions;
 namespace BemAqui.Fiscal.Domain;
 
 /// <summary>Para qual documento o campo é crítico em produção (coluna "Crítico para produção" da FIS-02a).</summary>
+[JsonConverter(typeof(JsonStringEnumConverter<FiscalCriticality>))]
 public enum FiscalCriticality
 {
     /// <summary>Gerencial ou operacional: nunca bloqueia (ex.: tributos no custo do projeto, ambiente).</summary>
@@ -315,6 +317,7 @@ public static partial class FiscalSettingsRules
 }
 
 /// <summary>Selo de um valor (ADR 0042 §1): "A confirmar com a contadora" ou conferido.</summary>
+[JsonConverter(typeof(JsonStringEnumConverter<FiscalReviewState>))]
 public enum FiscalReviewState
 {
     ToConfirm,

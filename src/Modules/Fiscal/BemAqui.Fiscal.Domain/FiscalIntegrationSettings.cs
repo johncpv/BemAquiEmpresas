@@ -1,8 +1,10 @@
+using System.Text.Json.Serialization;
 using BemAqui.SharedKernel;
 
 namespace BemAqui.Fiscal.Domain;
 
 /// <summary>Ambiente da SEFAZ em que o emitente do EmissorFiscal está (lido do <c>GET /me</c>, FIS-01 CA 8 e 9).</summary>
+[JsonConverter(typeof(JsonStringEnumConverter<FiscalEnvironment>))]
 public enum FiscalEnvironment
 {
     Homologation,

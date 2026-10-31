@@ -139,7 +139,9 @@ test.describe('Configurações → Fiscal (FIS-02a)', () => {
     await dialog.getByRole('button', { name: 'Marcar seção como conferida' }).click()
     await expect(page.getByText('10 de 41 campos conferidos')).toBeVisible()
     await expect(cst.getByText(/Conferido por Ana Souza/).first()).toBeVisible()
-    expect((calls.find((c) => c.path === 'confirmations')?.body as { keys: string[] }).keys).toHaveLength(10)
+    const confirmed = calls.find((c) => c.path === 'confirmations')
+    expect(confirmed).toBeDefined()
+    expect((confirmed!.body as { keys: string[] }).keys).toHaveLength(10)
 
     await page.getByRole('button', { name: 'Desfazer conferência: PIS' }).click()
     await expect(page.getByText('9 de 41 campos conferidos')).toBeVisible()

@@ -129,6 +129,7 @@ import type {
   CompleteOrderInput,
   CompleteStepInput,
   CompleteStockOpeningInput,
+  ConfirmFiscalSettingsRequest,
   ConfirmTwoFactorRequest,
   ConfirmWithChallengeRequest,
   ContactInput,
@@ -199,8 +200,12 @@ import type {
   FinanceLimitsInput,
   FinanceProjectOption,
   FinanceSupplierOption,
+  FiscalCertificateForm,
+  FiscalCertificateView,
   FiscalConnectionTest,
   FiscalIntegrationView,
+  FiscalSettingsSaved,
+  FiscalSettingsView,
   ForgotPasswordRequest,
   FoundLineInput,
   GanttCentersView,
@@ -224,6 +229,7 @@ import type {
   GetFabricationOrderHistoryParams,
   GetFactoryLoadCellParams,
   GetFactoryLoadParams,
+  GetFiscalCertificateParams,
   GetGoodsReceiptHistoryParams,
   GetInstallationDefaultsParams,
   GetInventoryCountDivergencesParams,
@@ -719,6 +725,7 @@ import type {
   RoutingWorkCenterOption,
   SalaryChangeInput,
   SaveFiscalIntegrationRequest,
+  SaveFiscalSettingsRequest,
   SaveGroupRequest,
   SaveModuleReleaseRequest,
   ScheduleDetail,
@@ -69447,6 +69454,608 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getTestFiscalIntegrationMutationOptions(options), queryClient);
+    }
+
+export const getGetFiscalSettingsUrl = () => {
+
+
+
+
+  return `/api/v1/fiscal/settings`
+}
+
+export const getFiscalSettings = async ( options?: Parameters<typeof apiFetch>[1]): Promise<FiscalSettingsView> => {
+
+  return apiFetch<FiscalSettingsView>(getGetFiscalSettingsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetFiscalSettingsQueryKey = () => {
+    return [
+    `/api/v1/fiscal/settings`
+    ] as const;
+    }
+
+
+export const getGetFiscalSettingsQueryOptions = <TData = Awaited<ReturnType<typeof getFiscalSettings>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFiscalSettings>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetFiscalSettingsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFiscalSettings>>> = ({ signal }) => getFiscalSettings({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFiscalSettings>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetFiscalSettingsQueryResult = NonNullable<Awaited<ReturnType<typeof getFiscalSettings>>>
+export type GetFiscalSettingsQueryError = unknown
+
+
+export function useGetFiscalSettings<TData = Awaited<ReturnType<typeof getFiscalSettings>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFiscalSettings>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getFiscalSettings>>,
+          TError,
+          Awaited<ReturnType<typeof getFiscalSettings>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetFiscalSettings<TData = Awaited<ReturnType<typeof getFiscalSettings>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFiscalSettings>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getFiscalSettings>>,
+          TError,
+          Awaited<ReturnType<typeof getFiscalSettings>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetFiscalSettings<TData = Awaited<ReturnType<typeof getFiscalSettings>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFiscalSettings>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetFiscalSettings<TData = Awaited<ReturnType<typeof getFiscalSettings>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFiscalSettings>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetFiscalSettingsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSaveFiscalSettingsUrl = () => {
+
+
+
+
+  return `/api/v1/fiscal/settings`
+}
+
+export const saveFiscalSettings = async (saveFiscalSettingsRequest: SaveFiscalSettingsRequest, options?: Parameters<typeof apiFetch>[1]): Promise<FiscalSettingsSaved> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<FiscalSettingsSaved>(getSaveFiscalSettingsUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(saveFiscalSettingsRequest)
+  }
+);}
+
+
+
+
+
+export const getSaveFiscalSettingsMutationKey = () => ['saveFiscalSettings'] as const;
+
+export const getSaveFiscalSettingsMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveFiscalSettings>>, TError,SaveFiscalSettingsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveFiscalSettings>>, TError,SaveFiscalSettingsMutationVariables, TContext> => {
+
+const mutationKey = getSaveFiscalSettingsMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveFiscalSettings>>, SaveFiscalSettingsMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  saveFiscalSettings(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveFiscalSettingsMutationResult = NonNullable<Awaited<ReturnType<typeof saveFiscalSettings>>>
+    export type SaveFiscalSettingsMutationBody = SaveFiscalSettingsRequest
+    export type SaveFiscalSettingsMutationError = unknown
+    export type SaveFiscalSettingsMutationVariables = {data: SaveFiscalSettingsRequest}
+
+    export const useSaveFiscalSettings = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveFiscalSettings>>, TError,SaveFiscalSettingsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof saveFiscalSettings>>,
+        TError,
+        SaveFiscalSettingsMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSaveFiscalSettingsMutationOptions(options), queryClient);
+    }
+
+export const getConfirmFiscalSettingsUrl = () => {
+
+
+
+
+  return `/api/v1/fiscal/settings/confirmations`
+}
+
+export const confirmFiscalSettings = async (confirmFiscalSettingsRequest: ConfirmFiscalSettingsRequest, options?: Parameters<typeof apiFetch>[1]): Promise<FiscalSettingsView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<FiscalSettingsView>(getConfirmFiscalSettingsUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(confirmFiscalSettingsRequest)
+  }
+);}
+
+
+
+
+
+export const getConfirmFiscalSettingsMutationKey = () => ['confirmFiscalSettings'] as const;
+
+export const getConfirmFiscalSettingsMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmFiscalSettings>>, TError,ConfirmFiscalSettingsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof confirmFiscalSettings>>, TError,ConfirmFiscalSettingsMutationVariables, TContext> => {
+
+const mutationKey = getConfirmFiscalSettingsMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof confirmFiscalSettings>>, ConfirmFiscalSettingsMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  confirmFiscalSettings(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConfirmFiscalSettingsMutationResult = NonNullable<Awaited<ReturnType<typeof confirmFiscalSettings>>>
+    export type ConfirmFiscalSettingsMutationBody = ConfirmFiscalSettingsRequest
+    export type ConfirmFiscalSettingsMutationError = unknown
+    export type ConfirmFiscalSettingsMutationVariables = {data: ConfirmFiscalSettingsRequest}
+
+    export const useConfirmFiscalSettings = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmFiscalSettings>>, TError,ConfirmFiscalSettingsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof confirmFiscalSettings>>,
+        TError,
+        ConfirmFiscalSettingsMutationVariables,
+        TContext
+      > => {
+      return useMutation(getConfirmFiscalSettingsMutationOptions(options), queryClient);
+    }
+
+export const getUndoFiscalSettingConfirmationUrl = (key: string,) => {
+
+
+
+
+  return `/api/v1/fiscal/settings/confirmations/${key}`
+}
+
+export const undoFiscalSettingConfirmation = async (key: string, options?: Parameters<typeof apiFetch>[1]): Promise<FiscalSettingsView> => {
+
+  return apiFetch<FiscalSettingsView>(getUndoFiscalSettingConfirmationUrl(key),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getUndoFiscalSettingConfirmationMutationKey = () => ['undoFiscalSettingConfirmation'] as const;
+
+export const getUndoFiscalSettingConfirmationMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof undoFiscalSettingConfirmation>>, TError,UndoFiscalSettingConfirmationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof undoFiscalSettingConfirmation>>, TError,UndoFiscalSettingConfirmationMutationVariables, TContext> => {
+
+const mutationKey = getUndoFiscalSettingConfirmationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof undoFiscalSettingConfirmation>>, UndoFiscalSettingConfirmationMutationVariables> = (props) => {
+          const {key} = props ?? {};
+
+          return  undoFiscalSettingConfirmation(key,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UndoFiscalSettingConfirmationMutationResult = NonNullable<Awaited<ReturnType<typeof undoFiscalSettingConfirmation>>>
+
+    export type UndoFiscalSettingConfirmationMutationError = unknown
+    export type UndoFiscalSettingConfirmationMutationVariables = {key: string}
+
+    export const useUndoFiscalSettingConfirmation = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof undoFiscalSettingConfirmation>>, TError,UndoFiscalSettingConfirmationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof undoFiscalSettingConfirmation>>,
+        TError,
+        UndoFiscalSettingConfirmationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUndoFiscalSettingConfirmationMutationOptions(options), queryClient);
+    }
+
+export const getExportFiscalSettingsPdfUrl = () => {
+
+
+
+
+  return `/api/v1/fiscal/settings/export-pdf`
+}
+
+export const exportFiscalSettingsPdf = async ( options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getExportFiscalSettingsPdfUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getExportFiscalSettingsPdfQueryKey = () => {
+    return [
+    `/api/v1/fiscal/settings/export-pdf`
+    ] as const;
+    }
+
+
+export const getExportFiscalSettingsPdfQueryOptions = <TData = Awaited<ReturnType<typeof exportFiscalSettingsPdf>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportFiscalSettingsPdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getExportFiscalSettingsPdfQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportFiscalSettingsPdf>>> = ({ signal }) => exportFiscalSettingsPdf({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof exportFiscalSettingsPdf>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ExportFiscalSettingsPdfQueryResult = NonNullable<Awaited<ReturnType<typeof exportFiscalSettingsPdf>>>
+export type ExportFiscalSettingsPdfQueryError = unknown
+
+
+export function useExportFiscalSettingsPdf<TData = Awaited<ReturnType<typeof exportFiscalSettingsPdf>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportFiscalSettingsPdf>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof exportFiscalSettingsPdf>>,
+          TError,
+          Awaited<ReturnType<typeof exportFiscalSettingsPdf>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useExportFiscalSettingsPdf<TData = Awaited<ReturnType<typeof exportFiscalSettingsPdf>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportFiscalSettingsPdf>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof exportFiscalSettingsPdf>>,
+          TError,
+          Awaited<ReturnType<typeof exportFiscalSettingsPdf>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useExportFiscalSettingsPdf<TData = Awaited<ReturnType<typeof exportFiscalSettingsPdf>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportFiscalSettingsPdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useExportFiscalSettingsPdf<TData = Awaited<ReturnType<typeof exportFiscalSettingsPdf>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportFiscalSettingsPdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getExportFiscalSettingsPdfQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetFiscalCertificateUrl = (params?: GetFiscalCertificateParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/fiscal/settings/certificate?${stringifiedParams}` : `/api/v1/fiscal/settings/certificate`
+}
+
+export const getFiscalCertificate = async (params?: GetFiscalCertificateParams, options?: Parameters<typeof apiFetch>[1]): Promise<FiscalCertificateView> => {
+
+  return apiFetch<FiscalCertificateView>(getGetFiscalCertificateUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetFiscalCertificateQueryKey = (params?: GetFiscalCertificateParams,) => {
+    return [
+    `/api/v1/fiscal/settings/certificate`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetFiscalCertificateQueryOptions = <TData = Awaited<ReturnType<typeof getFiscalCertificate>>, TError = unknown>(params?: GetFiscalCertificateParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFiscalCertificate>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetFiscalCertificateQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFiscalCertificate>>> = ({ signal }) => getFiscalCertificate(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFiscalCertificate>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetFiscalCertificateQueryResult = NonNullable<Awaited<ReturnType<typeof getFiscalCertificate>>>
+export type GetFiscalCertificateQueryError = unknown
+
+
+export function useGetFiscalCertificate<TData = Awaited<ReturnType<typeof getFiscalCertificate>>, TError = unknown>(
+ params: undefined |  GetFiscalCertificateParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFiscalCertificate>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getFiscalCertificate>>,
+          TError,
+          Awaited<ReturnType<typeof getFiscalCertificate>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetFiscalCertificate<TData = Awaited<ReturnType<typeof getFiscalCertificate>>, TError = unknown>(
+ params?: GetFiscalCertificateParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFiscalCertificate>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getFiscalCertificate>>,
+          TError,
+          Awaited<ReturnType<typeof getFiscalCertificate>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetFiscalCertificate<TData = Awaited<ReturnType<typeof getFiscalCertificate>>, TError = unknown>(
+ params?: GetFiscalCertificateParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFiscalCertificate>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetFiscalCertificate<TData = Awaited<ReturnType<typeof getFiscalCertificate>>, TError = unknown>(
+ params?: GetFiscalCertificateParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFiscalCertificate>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetFiscalCertificateQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUploadFiscalCertificateUrl = () => {
+
+
+
+
+  return `/api/v1/fiscal/settings/certificate`
+}
+
+export const uploadFiscalCertificate = async (fiscalCertificateForm: FiscalCertificateForm, options?: Parameters<typeof apiFetch>[1]): Promise<FiscalCertificateView> => {
+    const formData = new FormData();
+if(fiscalCertificateForm.pfx !== undefined && fiscalCertificateForm.pfx !== null) {
+ formData.append(`pfx`, fiscalCertificateForm.pfx);
+ }
+if(fiscalCertificateForm.password !== undefined && fiscalCertificateForm.password !== null) {
+ formData.append(`password`, fiscalCertificateForm.password);
+ }
+if(fiscalCertificateForm.code !== undefined && fiscalCertificateForm.code !== null) {
+ formData.append(`code`, fiscalCertificateForm.code);
+ }
+
+  return apiFetch<FiscalCertificateView>(getUploadFiscalCertificateUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getUploadFiscalCertificateMutationKey = () => ['uploadFiscalCertificate'] as const;
+
+export const getUploadFiscalCertificateMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadFiscalCertificate>>, TError,UploadFiscalCertificateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof uploadFiscalCertificate>>, TError,UploadFiscalCertificateMutationVariables, TContext> => {
+
+const mutationKey = getUploadFiscalCertificateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof uploadFiscalCertificate>>, UploadFiscalCertificateMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  uploadFiscalCertificate(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UploadFiscalCertificateMutationResult = NonNullable<Awaited<ReturnType<typeof uploadFiscalCertificate>>>
+    export type UploadFiscalCertificateMutationBody = FiscalCertificateForm
+    export type UploadFiscalCertificateMutationError = unknown
+    export type UploadFiscalCertificateMutationVariables = {data: FiscalCertificateForm}
+
+    export const useUploadFiscalCertificate = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadFiscalCertificate>>, TError,UploadFiscalCertificateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof uploadFiscalCertificate>>,
+        TError,
+        UploadFiscalCertificateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUploadFiscalCertificateMutationOptions(options), queryClient);
     }
 
 export const getListImportRunsUrl = (params?: ListImportRunsParams,) => {
