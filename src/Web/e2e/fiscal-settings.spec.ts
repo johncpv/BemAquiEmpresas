@@ -115,7 +115,7 @@ test.describe('Configurações → Fiscal (FIS-02a)', () => {
     await expect(page.getByText('Valores sugeridos pelo sistema. Confira cada um com a contadora antes de emitir em produção.')).toBeVisible()
     await expect(page.getByText('0 de 41 campos conferidos')).toBeVisible()
     await expect(page.getByText('Ambiente de homologação da SEFAZ: as notas não têm valor fiscal.')).toBeVisible()
-    await expect(page.getByLabel('Regime tributário')).toHaveValue('LucroPresumido')
+    await expect(page.getByLabel('Regime tributário', { exact: true })).toHaveValue('LucroPresumido')
     await expect(page.getByLabel(/^Série exclusiva da NF-e/)).toHaveValue('2')
     await expect(page.getByLabel(/^CNAE principal/)).toHaveValue('4329-1/03')
     await expect(page.getByText('Konebras Elevadores Ltda')).toBeVisible()
@@ -185,7 +185,7 @@ test.describe('Configurações → Fiscal (FIS-02a)', () => {
     await dialog.getByRole('button', { name: 'Enviar certificado' }).click()
     await expect(page.getByRole('status').filter({ hasText: 'Certificado enviado' }).first()).toBeVisible()
     await expect(page.getByText('Válido', { exact: true })).toBeVisible()
-    await expect(page.getByText('27/10/2027')).toBeVisible()
+    await expect(page.getByText('27/10/2027', { exact: true })).toBeVisible()
     await expect(page.getByText('Histórico de trocas')).toBeVisible()
   })
 
