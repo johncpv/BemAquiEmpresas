@@ -25784,6 +25784,107 @@
         }
       }
     },
+    "/api/v1/finance/receivables/{id}/collection": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetReceivableCollection",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivableCollectionView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/receivables/{id}/collection-pause": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "PauseReceivableCollection",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CollectionPauseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivableCollectionView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ResumeReceivableCollection",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivableCollectionView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/receivables/{id}/billing-slips": {
       "get": {
         "tags": [
@@ -26061,6 +26162,107 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BillingSlipResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/parties/{id}/collection": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetPartyCollection",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartyCollectionView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/parties/{id}/collection-pause": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "PausePartyCollection",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CollectionPauseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartyCollectionView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ResumePartyCollection",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartyCollectionView"
                 }
               }
             }
@@ -29168,6 +29370,84 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BillingSettingsView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/billing/collection-rule": {
+      "get": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "GetCollectionRule",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollectionRuleView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "SaveCollectionRule",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CollectionRuleInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollectionRuleView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/billing/collection-rule/preview": {
+      "post": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "PreviewCollectionReminder",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CollectionPreviewInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollectionPreview"
                 }
               }
             }
@@ -39706,6 +39986,394 @@
           },
           "fromCache": {
             "type": "boolean"
+          }
+        }
+      },
+      "CollectionNext": {
+        "required": [
+          "date",
+          "step",
+          "stepLabel",
+          "blocked"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "step": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "stepLabel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "blocked": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "CollectionNoticeView": {
+        "required": [
+          "id",
+          "receivableId",
+          "receivableNumber",
+          "step",
+          "stepLabel",
+          "scheduledFor",
+          "status",
+          "reason",
+          "createdAt",
+          "sentAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "receivableId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "receivableNumber": {
+            "type": "string"
+          },
+          "step": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "stepLabel": {
+            "type": "string"
+          },
+          "scheduledFor": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "type": "string"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sentAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "CollectionPauseInput": {
+        "required": [
+          "reason",
+          "until"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "until": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CollectionPauseView": {
+        "required": [
+          "id",
+          "target",
+          "reason",
+          "from",
+          "until",
+          "createdByName",
+          "createdAt",
+          "resumedByName",
+          "resumedAt",
+          "active"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "target": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "until": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "createdByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "resumedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "resumedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CollectionPreview": {
+        "required": [
+          "subject",
+          "body",
+          "digitableLine",
+          "sampleNote"
+        ],
+        "type": "object",
+        "properties": {
+          "subject": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "digitableLine": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "sampleNote": {
+            "type": "string"
+          }
+        }
+      },
+      "CollectionPreviewInput": {
+        "required": [
+          "days",
+          "text"
+        ],
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "text": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "CollectionRuleInput": {
+        "required": [
+          "isActive",
+          "sendTime",
+          "steps",
+          "replyTo",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "isActive": {
+            "type": "boolean"
+          },
+          "sendTime": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "steps": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/CollectionStepInput"
+            }
+          },
+          "replyTo": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CollectionRuleView": {
+        "required": [
+          "id",
+          "isActive",
+          "sendTime",
+          "steps",
+          "replyTo",
+          "companyEmail",
+          "placeholders",
+          "maxSteps",
+          "nextRunCount",
+          "nextRunDate",
+          "canEdit",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "sendTime": {
+            "type": "string"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CollectionStepView"
+            }
+          },
+          "replyTo": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "companyEmail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "placeholders": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "maxSteps": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nextRunCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nextRunDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "canEdit": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "CollectionStepInput": {
+        "required": [
+          "days",
+          "text"
+        ],
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "text": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "CollectionStepView": {
+        "required": [
+          "days",
+          "label",
+          "text"
+        ],
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "label": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
           }
         }
       },
@@ -58634,6 +59302,51 @@
           }
         }
       },
+      "PartyCollectionView": {
+        "required": [
+          "ruleActive",
+          "sentThisMonth",
+          "notices",
+          "activePause",
+          "pauses",
+          "canEdit"
+        ],
+        "type": "object",
+        "properties": {
+          "ruleActive": {
+            "type": "boolean"
+          },
+          "sentThisMonth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "notices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CollectionNoticeView"
+            }
+          },
+          "activePause": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CollectionPauseView"
+              }
+            ]
+          },
+          "pauses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CollectionPauseView"
+            }
+          },
+          "canEdit": {
+            "type": "boolean"
+          }
+        }
+      },
       "PartyContactDto": {
         "required": [
           "id",
@@ -70411,6 +71124,61 @@
             "type": "string"
           },
           "isDefault": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ReceivableCollectionView": {
+        "required": [
+          "ruleActive",
+          "next",
+          "notices",
+          "activePause",
+          "partyPause",
+          "pauses",
+          "canEdit"
+        ],
+        "type": "object",
+        "properties": {
+          "ruleActive": {
+            "type": "boolean"
+          },
+          "next": {
+            "$ref": "#/components/schemas/CollectionNext"
+          },
+          "notices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CollectionNoticeView"
+            }
+          },
+          "activePause": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CollectionPauseView"
+              }
+            ]
+          },
+          "partyPause": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CollectionPauseView"
+              }
+            ]
+          },
+          "pauses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CollectionPauseView"
+            }
+          },
+          "canEdit": {
             "type": "boolean"
           }
         }

@@ -1,5 +1,7 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { useGetPartyFinanceSummary, useListProjects, useListQuotes } from '@/api/generated/bemaqui'
+import { getGetPartyCollectionQueryKey, pausePartyCollection, resumePartyCollection, useGetPartyCollection, useGetPartyFinanceSummary, useListProjects, useListQuotes } from '@/api/generated/bemaqui'
+import { NoticeList, PauseControls, PauseHistory } from '@/pages/finance/receivables/CollectionPanel'
 import { Money } from '@/components/ui/money'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Dica } from '@/help/Dica'
@@ -18,6 +20,8 @@ export function PartyBusinessTab({ partyId }: { partyId: string }) {
   const quotes = useListQuotes({ partyId, pageSize: 10 }, { query: { enabled: canQuotes } })
   const projects = useListProjects({ partyId, pageSize: 10 }, { query: { enabled: canProjects } })
   const summary = useGetPartyFinanceSummary(partyId, { query: { enabled: canFinance } })
+  const collection = useGetPartyCollection(partyId, { query: { enabled: canFinance } })
+  const client = useQueryClient()
   const s = summary.data
   const more = (to: string, label: string) => <Link to={to as never} className="text-xs font-semibold text-primary hover:underline">{label}</Link>
   return (
@@ -59,6 +63,23 @@ export function PartyBusinessTab({ partyId }: { partyId: string }) {
               <div><dt className="text-xs text-muted-foreground">Pago a ele em 12 meses</dt><dd><Money value={s.payables.paidLast12m} /></dd></div>
               <div><dt className="text-xs text-muted-foreground">Atraso médio da empresa</dt><dd className="tabular-nums">{days(s.paymentStats.tenantAvgDelayDays)}</dd></div>
             </dl>
+          ) : null}
+        </Block>
+      ) : null}
+      {canFinance ? (
+        <Block title="Lembretes de cobrança" query={collection} empty={false}>
+          {collection.data ? (
+            <div className="space-y-3">
+              <p>
+                <span className="text-xs text-muted-foreground">Lembretes enviados no mês</span> <b className="tabular-nums">{collection.data.sentThisMonth.toLocaleString('pt-BR')}</b>
+                {!collection.data.ruleActive ? <span className="ml-2 text-xs text-muted-foreground">A régua está desligada.</span> : null}
+              </p>
+              <PauseControls active={collection.data.activePause} canEdit={collection.data.canEdit} subject="deste cliente"
+                onPause={async (reason, until) => { client.setQueryData(getGetPartyCollectionQueryKey(partyId), await pausePartyCollection(partyId, { reason, until })) }}
+                onResume={async () => { client.setQueryData(getGetPartyCollectionQueryKey(partyId), await resumePartyCollection(partyId)) }} />
+              {collection.data.notices.length > 0 ? <NoticeList notices={collection.data.notices.slice(0, 10)} showNumber /> : <p className="text-muted-foreground">Nenhum lembrete enviado a este cliente.</p>}
+              <PauseHistory pauses={collection.data.pauses.filter((p) => !p.active)} />
+            </div>
           ) : null}
         </Block>
       ) : null}
