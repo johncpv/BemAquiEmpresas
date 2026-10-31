@@ -5,6 +5,7 @@ import { ApiError } from '@/api/http'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { useCan } from '@/pages/use-can'
 import { EmployeeTimeAdjustments } from './EmployeeTimeAdjustments'
+import { HourBankAgreement } from './HourBankAgreement'
 import { InternalControlBanner } from './TimeClockPanel'
 import { defaultRange, todayInSaoPaulo } from './time-clock'
 import { TimeEntriesByDay } from './TimeEntriesView'
@@ -31,6 +32,7 @@ export function EmployeeTimeEntries({ employee }: { employee: EmployeeDetail }) 
   return (
     <div className="max-w-3xl space-y-4">
       <InternalControlBanner />
+      <HourBankAgreement employee={employee} />
       <div className="flex flex-wrap items-end gap-3">
         <label className="flex flex-col text-xs font-semibold">De
           <input type="date" className={field} value={from} max={to} onChange={(e) => e.target.value && setFrom(e.target.value)} />

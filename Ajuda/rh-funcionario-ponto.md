@@ -17,6 +17,10 @@ Ver as marcações de ponto deste funcionário por dia e lançar os ajustes: a m
 - **Sem localização** marca a marcação feita com a localização ligada, mas sem a localização do aparelho.
 - A localização só aparece em **Ver localização**, para quem tem a permissão de dados sensíveis do RH. Cada leitura fica registrada.
 
+
+## Acordo de banco de horas e espelho
+- **Acordo de banco de horas** mostra se o funcionário tem acordo e desde quando (só para quem tem a permissão de dados sensíveis do RH). **Alterar acordo** (com a permissão de editar) marca "Tem acordo de banco de horas" com a data do acordo: o banco vale a partir dela, só em período em aberto. Sem acordo, extras e faltas saem como totais do período para a folha. Confira o modelo do acordo com o jurídico.
+- **Ver o espelho do mês** abre o espelho de ponto do funcionário (RH → Ponto → Espelho).
 ## Ajustes do ponto
 - **Lançar marcação**: informe a data, a hora, o tipo e a justificativa (10 a 200 caracteres, sem CID nem diagnóstico) e clique em **Lançar marcação**. A mensagem diz "Marcação enviada para aprovação": o lançamento do RH também passa por aprovação.
 - **Lançar o dia pela jornada**: escolha o dia (vem o último dia útil) e o diálogo já traz as quatro marcações da jornada do funcionário. Ajuste o que for diferente e escreva uma justificativa só; cada marcação vira um pedido.

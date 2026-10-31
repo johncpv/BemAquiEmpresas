@@ -5,7 +5,7 @@
 | ID | RH-01c |
 | Título | Espelho de ponto do período por funcionário (esperado pela jornada e pelo calendário, trabalhado, extras, faltas, atrasos, abonos e inconsistências), tolerância, banco de horas simples (só com acordo) e período de apuração como parâmetros pré-configurados "A confirmar com a contadora"; fechamento do período com os totais congelados, reabertura com motivo, "Li e confirmo" do funcionário, PDF do espelho; horas do espelho na folha lançada e o `ponto.csv` no pacote da contadora |
 | Tamanho | G (quebra da RH-01: cálculo diário, banco de horas, fechamento e PDF) |
-| Status | Ready (pré-condição externa) |
+| Status | Done (pré-condição externa: conferência da contadora e do jurídico) |
 | Requisitos | R-RH-4 (parte: espelho mensal, banco de horas simples, fechamento) · R-RH-5 (base de horas para a folha lançada) · R-RH-8 (D, ponto no pacote da contadora) · R-COM-3 · PRD §6 (Desempenho, LGPD) · R-SEC-5 · R-PRP-2 · R-PRP-3 · R-PRP-5 |
 | Dependências | RH-01a (marcações), RH-01b (ajustes, abonos e a lista única de ausências), CAD-04a (jornada), CAD-04c1 (afastamentos), CAD-03 (calendário padrão e feriados), COM-03 (`IPdfRenderer`, ADR 0022), RH-02a (`IBusinessCalendar`, parâmetros do RH, folha lançada), RH-03 (pacote da contadora) |
 | Bloqueia | LGPD-01a (exportação inclui espelhos), FLH-02b (horas extras e DSR do ponto) |
@@ -105,22 +105,22 @@ Decisões da revisão aplicadas: §4.2 (`IBusinessCalendar` no `Production.Contr
 **Pré-condição externa:** a contadora confere a tolerância, as regras do banco de horas e o período de apuração (valores pré-configurados em Configurações → Parâmetros → RH com o chip "A confirmar com a contadora"); o jurídico confere o modelo do acordo de banco de horas; não bloqueia o `Ready`.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade (tabela de casos), integração (Testcontainers), desempenho e E2E passando.
-- [ ] Migration criada (não destrutiva).
-- [ ] Permissões só do `ModuleCatalog`; `IBusinessCalendar` reusado do Production.
-- [ ] Telas com estados; ajuda escrita e atualizada; teste de cobertura passando.
-- [ ] Próximos passos aplicados.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade (tabela de casos), integração (Testcontainers), desempenho e E2E passando (E2E com a API simulada, pelo CI).
+- [x] Migration criada (não destrutiva): `TimesheetsRh01c`.
+- [x] Permissões só do `ModuleCatalog` (nenhuma ação nova); `IBusinessCalendar` reusado do Production.
+- [x] Telas com estados; ajuda escrita e atualizada; teste de cobertura passando.
+- [x] Próximos passos aplicados.
+- [x] Auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `TimesheetCalculator` (Domain, puro) e o dataset de referência (mês civil e corte).
-- [ ] Parâmetros no `HrParameters`; acordo de banco no funcionário; leitura dos afastamentos e da jornada no HR.
-- [ ] Fechamento, reabertura e "Li e confirmo"; `TimesheetPdfDocument`.
-- [ ] "Usar horas do espelho" no holerite; seção `ponto.csv` no `IAccountantExport`.
-- [ ] Endpoints `/api/v1/hr/timesheets` e `/api/v1/me/hr/timesheets`; telas e ajuda.
+- [x] `TimesheetCalculator` (Domain, puro) e o dataset de referência (mês civil e corte).
+- [x] Parâmetros no `HrParameters`; acordo de banco no funcionário; leitura dos afastamentos e da jornada no HR.
+- [x] Fechamento, reabertura e "Li e confirmo"; `TimesheetPdfDocument`.
+- [x] "Usar horas do espelho" no holerite; seção `ponto.csv` no `IAccountantExport`.
+- [x] Endpoints `/api/v1/hr/timesheets` e `/api/v1/me/hr/timesheets`; telas e ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, @architect (calendário e integração com a folha), @qa (tabela de casos).
@@ -154,3 +154,19 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D15, tabela 3.3 pontos 10–14, ADR 0035, ADR 0042, §4.2, §4.4 padrões 3 e 8); nova ordem (Marco 6.1, ordem 8; horas do espelho na folha e `ponto.csv` no pacote); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 31/10/2026 | 1.0 | Implementação (Done): `hr.timesheets` e `hr.timesheet_day_reviews`, `hr.employees.hour_bank_agreement_on` e `hr.payroll_items.timesheet_source` (migration `TimesheetsRh01c`, não destrutiva); `TimesheetCalculator` puro no Domain; `TimesheetService` (espelho, visão geral, fechamento com lock do período, reabertura em cascata, dia revisado, "Li e confirmo", acordo de banco, horas para o holerite), `TimesheetPdfService` (PDF e ZIP, `TimesheetBatchJob`), a trava real `TimesheetClosings`; parâmetros do ponto em Configurações → Parâmetros → RH; layout v2 do pacote com o `ponto.csv`; rotas `/api/v1/hr/timesheets`, `/api/v1/hr/employees/{id}/timesheets`, `/api/v1/hr/employees/{id}/hour-bank-agreement`, `/api/v1/hr/payroll-runs/{id}/payslips/{payslipId}/timesheet` e `/api/v1/me/hr/timesheets`; telas RH → Ponto → Espelho, espelho do funcionário, "Meu espelho", "Usar horas do espelho", "Origem no ponto" na rubrica e o acordo na aba Ponto; ajudas, testes e E2E | Dev (agente) |
+
+## Notas de implementação (31/10/2026)
+- **Cálculo (CA 4 a 7):** minutos inteiros e a marcação no minuto (os segundos são desprezados). O feriado ou a parada é a exceção do calendário padrão com zero hora disponível (`IBusinessCalendar.ExceptionsAsync`); a exceção com horas (dia especial) segue a jornada. O dia de hoje em diante fica "Ainda não chegou", fora dos totais, e o período só fecha depois do último dia. Recomendação aceita (PO 24/10).
+- **Tolerância (CA 5):** a diferença do dia (trabalhado + abonado − esperado) não conta quando fica dentro da tolerância do dia **e** a primeira entrada e a última saída ficam dentro da tolerância por marcação contra a jornada; fora disso, conta inteira. A jornada guarda só a duração do intervalo, então a tolerância por marcação vale para a entrada e a saída do dia. Recomendação aceita (PO 24/10).
+- **Falta x atraso (CA 3 e 10):** dia sem marcação e sem abono é falta (as horas e o dia); dia com marcação e trabalhado a menos é atraso (inclui a saída antecipada). O dia inconsistente conta só os pares fechados e a diferença entra como atraso até alguém resolver; marcado como revisado, deixa de bloquear o fechamento. Recomendação aceita (PO 24/10).
+- **Banco (CA 9 e 10):** com o banco ligado e a partir da data do acordo, a diferença do dia vai inteira para o banco (extras, faltas e atrasos desses dias ficam zerados, para a folha não pagar duas vezes), pela fórmula do CA 9 (trabalhado + abonado − esperado). O acumulado parte do saldo do último período fechado, por isso o período só fecha na ordem (o anterior fechado antes) e a reabertura reabre os seguintes. Recomendação aceita (PO 24/10).
+- **Motivo do afastamento (CA 7):** o tipo do afastamento e o motivo do abono só saem com `hr.view_health`, pela regra já decidida para os afastamentos (PO 22/10/2026, CAD-04c1b 1.1: mostrar os outros tipos deixaria inferir o de saúde), e não com `hr.view_sensitive` como o CA 7 sugeria; para os demais, "Afastado" e "Ausência justificada". Recomendação mais conservadora aceita (PO 24/10).
+- **Dias congelados:** o fechamento grava, além dos totais, os dias como estavam (`days_snapshot`, `[PersonalData]`), para o espelho fechado, o PDF e o drill-down baterem com os totais mesmo que a jornada ou os parâmetros mudem depois. A reabertura recalcula com os parâmetros de agora (CA 1).
+- **Concorrência (CA 14):** `pg_advisory_xact_lock` por período na transação do fechamento e da reabertura; quem chega depois vê o período já fechado e recebe 409 `concurrency_conflict`; o `xmin` do espelho reaberto e o índice único (funcionário, período) seguram o resto.
+- **Período fechado (CA 12):** a trava real (`TimesheetClosings`) substitui a da RH-01b; o dia num período fechado responde 409 `timesheet_period_closed` antes da recusa genérica "Data fora do período em aberto".
+- **Acordo de banco (CA 2):** a data do acordo é `[PersonalData]` (lida só com `hr.view_sensitive`, mascarada na auditoria) e não pode cair num período já fechado.
+- **PDF (CA 18):** até 20 espelhos o ZIP sai na hora; acima, pelo `TimesheetBatchJob` (só o `tenantId`, o período e quem pediu), com o aviso no sino, como os holerites (RH-02b). O ZIP é guardado com o dono `TimesheetBatch` e o id fixo do período. Recomendação aceita (PO 24/10).
+- **Pacote para a contadora (CA 17):** o layout padrão sobe para `v2` (o `v1` mais o `ponto.csv`); o `v1` continua disponível. Quem estava no `v1` sem conferir passa para o `v2` no seed; o `v1` já conferido com a contadora fica como está. O motivo de saúde do abono sai como "Ausência justificada".
+- **"Usar horas do espelho" (CA 16):** preenche a referência ("5:18 h") das rubricas com "Origem no ponto"; a linha que falta entra sem valor. A marca no seed vale uma vez para as rubricas já existentes (HE50, FALTAS, ATRASOS) e é editável na rubrica.
+- **Pendência externa:** a contadora confere a tolerância, as regras do banco de horas e o período de apuração (chip "A confirmar com a contadora" em Configurações → Parâmetros → RH) e as colunas do `ponto.csv` (layout v2); o jurídico confere o modelo do acordo de banco de horas.

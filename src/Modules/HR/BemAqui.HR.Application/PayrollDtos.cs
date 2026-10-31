@@ -20,7 +20,8 @@ public sealed record PayrollRunSummary(
     DateOnly? PaymentDate = null,
     DateTimeOffset? PaidAt = null,
     string? ReopenReason = null,
-    int? PayableCount = null);
+    int? PayableCount = null,
+    string? TimesheetNotice = null);
 
 /// <summary>Totais da folha (só com <c>hr.view_sensitive</c>, rota <c>/sensitive</c>): o líquido total na lista.</summary>
 public sealed record PayrollRunTotals(Guid RunId, decimal Gross, decimal Deductions, decimal Net);

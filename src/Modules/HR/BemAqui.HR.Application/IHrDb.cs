@@ -43,6 +43,11 @@ public interface IHrDb
     // Ajustes do ponto (RH-01b).
     DbSet<TimeAdjustment> TimeAdjustments { get; }
 
+    // Espelho, fechamento e dias revisados (RH-01c).
+    DbSet<Timesheet> Timesheets { get; }
+
+    DbSet<TimesheetDayReview> TimesheetDayReviews { get; }
+
     /// <summary>Transação do fechamento: a folha, os títulos do Finance (mesmo contexto) e a numeração gravam juntos ou nada grava.</summary>
     Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade Database { get; }
 
