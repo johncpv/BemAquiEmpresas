@@ -63,6 +63,30 @@ public interface IPurchaseOrders
     Task<IReadOnlyList<PurchaseOrderForRequestLine>> ForRequestLinesAsync(IReadOnlyCollection<Guid> requestLineIds, CancellationToken cancellationToken = default);
 }
 
+/// <summary>Linha do pedido para a conferência da nota de entrada (FIS-04a CA 10): quantidades na unidade de estoque e o preço unitário.</summary>
+public sealed record PurchaseOrderLineInfo(Guid LineId, int Sequence, Guid ItemId, decimal Quantity, decimal QuantityReceived, decimal UnitPrice)
+{
+    /// <summary>Saldo a receber (nunca negativo).</summary>
+    public decimal OpenQuantity => Math.Max(0m, Quantity - QuantityReceived);
+}
+
+/// <summary>Pedido com as linhas, o frete e o IPI (FIS-04a CA 9 e 10).</summary>
+public sealed record PurchaseOrderWithLines(
+    Guid Id, string Number, PurchaseOrderStatus Status, Guid PartyId, decimal Freight, decimal IpiAmount, decimal Total, DateOnly ExpectedDate, IReadOnlyList<PurchaseOrderLineInfo> Lines);
+
+/// <summary>
+/// Pedidos com as linhas para a nota de entrada (FIS-04a CA 9 e 10): só leitura, sem permissão própria (o Fiscal mostra os valores só a quem
+/// tem <c>purchasing.view</c>).
+/// </summary>
+public interface IPurchaseOrderLines
+{
+    /// <summary>Pedidos <c>Approved</c>, <c>Sent</c> e <c>PartiallyReceived</c> do fornecedor, do mais recente para o mais antigo.</summary>
+    Task<IReadOnlyList<PurchaseOrderWithLines>> OpenForPartyAsync(Guid partyId, CancellationToken cancellationToken = default);
+
+    /// <summary>Um pedido com as linhas, em qualquer situação; null se não existe.</summary>
+    Task<PurchaseOrderWithLines?> FindAsync(Guid orderId, CancellationToken cancellationToken = default);
+}
+
 /// <summary>Pedido que atende uma linha de SC: número, situação e data prevista de entrega (sem valor).</summary>
 public sealed record PurchaseOrderForRequestLine(Guid RequestLineId, Guid PurchaseOrderId, string Number, PurchaseOrderStatus Status, DateOnly ExpectedDate);
 

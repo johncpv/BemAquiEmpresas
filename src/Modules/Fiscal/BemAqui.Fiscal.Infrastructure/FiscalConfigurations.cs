@@ -187,3 +187,83 @@ internal sealed class CertificateUploadConfiguration : IEntityTypeConfiguration<
         b.HasIndex(e => e.At).HasDatabaseName("ix_certificate_uploads_at");
     }
 }
+
+/// <summary>Valor em jsonb com igualdade pelo JSON (records e listas de records, FIS-04a).</summary>
+internal static class FiscalJsonb
+{
+    private static readonly System.Text.Json.JsonSerializerOptions Json = new(System.Text.Json.JsonSerializerDefaults.Web);
+
+    public static PropertyBuilder<T> Jsonb<T>(this PropertyBuilder<T> property, T empty) =>
+        property.HasColumnType("jsonb").HasConversion(
+            v => System.Text.Json.JsonSerializer.Serialize(v, Json),
+            s => System.Text.Json.JsonSerializer.Deserialize<T>(s, Json) ?? empty,
+            new Microsoft.EntityFrameworkCore.ChangeTracking.ValueComparer<T>(
+                (x, y) => System.Text.Json.JsonSerializer.Serialize(x, Json) == System.Text.Json.JsonSerializer.Serialize(y, Json),
+                v => System.Text.Json.JsonSerializer.Serialize(v, Json).GetHashCode(StringComparison.Ordinal),
+                v => System.Text.Json.JsonSerializer.Deserialize<T>(System.Text.Json.JsonSerializer.Serialize(v, Json), Json)!));
+}
+
+/// <summary>
+/// NF-e de entrada (FIS-04a): chave única entre as não recusadas (índice parcial <c>ux_incoming_invoices_access_key</c>, CA 4); totais,
+/// duplicatas, endereço do emitente e divergências em jsonb; lista por situação e importação.
+/// </summary>
+internal sealed class IncomingInvoiceConfiguration : IEntityTypeConfiguration<IncomingInvoice>
+{
+    public void Configure(EntityTypeBuilder<IncomingInvoice> b)
+    {
+        b.ToTable("incoming_invoices", FiscalSchema.Name, t => t.HasCheckConstraint("ck_incoming_invoices_access_key", "length(access_key) = 44"));
+        b.Property(e => e.AccessKey).HasMaxLength(44);
+        b.Property(e => e.IssuerDocument).HasMaxLength(14);
+        b.Property(e => e.IssuerName).HasMaxLength(200);
+        b.Property(e => e.IssuerTradeName).HasMaxLength(200);
+        b.Property(e => e.IssuerStateRegistration).HasMaxLength(20);
+        b.Property(e => e.IssuerAddress).HasColumnType("jsonb").HasConversion(
+            v => v == null ? null : System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+            s => s == null ? null : System.Text.Json.JsonSerializer.Deserialize<IncomingIssuerAddress>(s, (System.Text.Json.JsonSerializerOptions?)null));
+        b.Property(e => e.Source).HasConversion<string>().HasMaxLength(8);
+        b.Property(e => e.Status).HasConversion<string>().HasMaxLength(16);
+        b.Property(e => e.Totals).Jsonb(new IncomingInvoiceTotals(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+        b.Property(e => e.Total).HasPrecision(18, 2);
+        b.Property(e => e.Duplicates).Jsonb<IReadOnlyList<IncomingDuplicate>>([]);
+        b.Property(e => e.Divergences).Jsonb<IReadOnlyList<IncomingDivergence>>([]);
+        b.Property(e => e.SignerDocument).HasMaxLength(14);
+        b.Property(e => e.Protocol).HasMaxLength(20);
+        b.Property(e => e.WithoutOrderReason).HasMaxLength(IncomingInvoice.ReasonMaxLength);
+        b.Property(e => e.RejectedReason).HasMaxLength(IncomingInvoice.ReasonMaxLength);
+        b.Ignore(e => e.IsEditable);
+        b.HasIndex(e => e.AccessKey).IsUnique().HasFilter("status <> 'Rejected'").HasDatabaseName(IncomingInvoiceConfiguration.AccessKeyIndex);
+        b.HasIndex(e => new { e.Status, e.ImportedAt }).HasDatabaseName("ix_incoming_invoices_status_imported_at");
+        b.HasIndex(e => e.PartyId).HasDatabaseName("ix_incoming_invoices_party_id");
+    }
+
+    public const string AccessKeyIndex = "ux_incoming_invoices_access_key";
+}
+
+/// <summary>Itens da NF-e de entrada (FIS-04a): quantidades com 4 casas, preço da nota com até 10, preço em unidade de estoque com 6.</summary>
+internal sealed class IncomingInvoiceItemConfiguration : IEntityTypeConfiguration<IncomingInvoiceItem>
+{
+    public void Configure(EntityTypeBuilder<IncomingInvoiceItem> b)
+    {
+        b.ToTable("incoming_invoice_items", FiscalSchema.Name);
+        b.HasOne<IncomingInvoice>().WithMany().HasForeignKey(e => e.InvoiceId).OnDelete(DeleteBehavior.Restrict);
+        b.Property(e => e.SupplierCode).HasMaxLength(60);
+        b.Property(e => e.Description).HasMaxLength(120);
+        b.Property(e => e.Ncm).HasMaxLength(8);
+        b.Property(e => e.Cfop).HasMaxLength(4);
+        b.Property(e => e.Unit).HasMaxLength(6);
+        b.Property(e => e.Quantity).HasPrecision(18, 4);
+        b.Property(e => e.UnitPrice).HasPrecision(24, 10);
+        b.Property(e => e.Amount).HasPrecision(18, 2);
+        b.Property(e => e.Discount).HasPrecision(18, 2);
+        b.Property(e => e.Taxes).Jsonb(new IncomingItemTaxes(null, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+        b.Property(e => e.LotNumber).HasMaxLength(20);
+        b.Property(e => e.OrderNumber).HasMaxLength(15);
+        b.Property(e => e.OrderItem).HasMaxLength(6);
+        b.Property(e => e.ConversionFactor).HasPrecision(18, 6);
+        b.Property(e => e.StockQuantity).HasPrecision(18, 4);
+        b.Property(e => e.StockUnitPrice).HasPrecision(18, 6);
+        b.Property(e => e.MappingSource).HasConversion<string>().HasMaxLength(16);
+        b.Ignore(e => e.IsResolved);
+        b.HasIndex(e => new { e.InvoiceId, e.Sequence }).IsUnique().HasDatabaseName("ux_incoming_invoice_items_invoice_sequence");
+    }
+}
