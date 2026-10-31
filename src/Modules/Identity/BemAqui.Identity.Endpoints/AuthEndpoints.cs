@@ -23,7 +23,7 @@ public sealed record PinSessionResponse(string AccessToken, DateTimeOffset Expir
 public static class AuthEndpoints
 {
     /// <summary>Prefixo __Host-: Secure, Path=/ e sem Domain, então nenhum subdomínio irmão consegue sobrescrever.</summary>
-    public const string RefreshCookie = "__Host-bq_rt";
+    public const string RefreshCookie = SessionCookie.Refresh;
     public const string CsrfHeader = "X-CSRF";
 
     public static IEndpointRouteBuilder MapAuthEndpoints(this IEndpointRouteBuilder api)

@@ -19,7 +19,7 @@ public partial class ShopfloorPinTests
     [
         "GetShopfloorQueue", "SearchShopfloorOrder", "GetShopfloorStep", "StartShopfloorStep", "PauseShopfloorStep", "ResumeShopfloorStep", "LeaveShopfloorStep",
         "FinishShopfloorStep", "GetShopfloorStepMaterial", "RequestShopfloorMaterial", "MarkShopfloorChecklist", "ListShopfloorAttachments", "DownloadShopfloorAttachment", "GetShopfloorDevice", "SetShopfloorDeviceTheme",
-        "DeleteMyShopfloorPin", "GetQualityQueue", "GetQualityStep", "MarkQualityChecklist", "StartQualityInspection", "ApproveQuality", "RejectQuality",
+        "DeleteMyShopfloorPin", "GetMyTimeClock", "RecordMyTimeEntry", "GetQualityQueue", "GetQualityStep", "MarkQualityChecklist", "StartQualityInspection", "ApproveQuality", "RejectQuality",
         "UploadNonConformityAttachment", "GetCurrentSession", "GetMyPermissions", "Logout", "ListHelp", "ListSeenHelp", "GetHelp", "MarkHelpSeen", "AskHelp",
     ];
 

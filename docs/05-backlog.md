@@ -552,7 +552,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-6--rh-e-patrimôn
 - Requisitos: R-RH-8, P-06, PRD §6 LGPD, R-SEC-5, R-PRP-3.
 - CA: pacote CSV no layout padrão `v1` documentado; minimização; baixado com `hr.view_sensitive`, sem guardar o arquivo; `SensitiveRead`; teste golden do layout.
 
-**RH-01a [ ] Ponto: marcação pelo app (Meu ponto), geolocalização opcional e consulta das marcações (M)** — 6.1, ordem 6 — `Ready (pré-condição externa)` — [story](stories/RH-01a-marcacao-ponto.md)
+**RH-01a [x] Ponto: marcação pelo app (Meu ponto), geolocalização opcional e consulta das marcações (M)** — 6.1, ordem 6 — `Done (pré-condição externa: usuários dos funcionários e tablets)` — [story](stories/RH-01a-marcacao-ponto.md)
 - Requisitos: R-RH-4 (parte), PRD §6 (LGPD, Usabilidade), R-SEC-5, R-PRP-1, R-PRP-2.
 - CA: "Meu ponto" no tablet e no celular em `/api/v1/me/hr/*` (ADR 0035), com a faixa "Controle interno de jornada" (não substitui o registro legal); marcar no tablet encerra a sessão por PIN; geolocalização desligada por padrão, com ciência registrada; intervalo mínimo de 1 min; sem marcação offline; marcação nunca editada nem apagada.
 

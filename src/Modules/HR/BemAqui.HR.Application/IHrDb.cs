@@ -35,6 +35,11 @@ public interface IHrDb
     // Fechamento e folha prevista (RH-02c).
     DbSet<PayrollForecast> PayrollForecasts { get; }
 
+    // Ponto (RH-01a): marcações e a ciência da geolocalização.
+    DbSet<TimeEntry> TimeEntries { get; }
+
+    DbSet<TimeClockGeoConsent> TimeClockGeoConsents { get; }
+
     /// <summary>Transação do fechamento: a folha, os títulos do Finance (mesmo contexto) e a numeração gravam juntos ou nada grava.</summary>
     Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade Database { get; }
 

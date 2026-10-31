@@ -7,7 +7,7 @@ namespace BemAqui.HR.Application;
 
 public sealed partial class EmployeeService
 {
-    /// <summary>Excluir (CA 18): só sem linha do tempo e sem usuário vinculado.</summary>
+    /// <summary>Excluir (CA 18): só sem linha do tempo, sem marcação de ponto (RH-01a) e sem usuário vinculado.</summary>
     public async Task<Result> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var employee = await db.Employees.FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
@@ -16,7 +16,7 @@ public sealed partial class EmployeeService
             return NotFound();
         }
 
-        if (await db.EmployeeHistory.AnyAsync(h => h.EmployeeId == id, cancellationToken) || await links.UserOfEmployeeAsync(id, cancellationToken) is not null)
+        if (await db.EmployeeHistory.AnyAsync(h => h.EmployeeId == id, cancellationToken) || await db.TimeEntries.AnyAsync(t => t.EmployeeId == id, cancellationToken) || await links.UserOfEmployeeAsync(id, cancellationToken) is not null)
         {
             return Error.Conflict("employee_has_history", "Funcionário com histórico não pode ser excluído. Registre o desligamento.");
         }

@@ -112,6 +112,30 @@ public sealed class ShopfloorRevocations(
         return pins.Count;
     }
 
+    /// <summary>
+    /// Fim da sessão por PIN do usuário no aparelho (RH-01a CA 7, adendo de 21/10/2026 à ADR 0026): revoga a família de refresh da sessão
+    /// por PIN viva e fecha as conexões de tempo real; o PIN continua no aparelho para a próxima entrada.
+    /// </summary>
+    public async Task<int> EndPinSessionAsync(Guid userId, Guid deviceId, string reason, CancellationToken cancellationToken = default)
+    {
+        var now = clock.GetUtcNow();
+        var sessions = await db.RefreshTokens.Where(t => t.UserId == userId && t.DeviceId == deviceId && t.SessionKind == SessionKind.Pin && t.RevokedAt == null).ToListAsync(cancellationToken);
+        if (sessions.Count == 0)
+        {
+            return 0;
+        }
+
+        foreach (var token in sessions)
+        {
+            token.Revoke(now);
+        }
+
+        Audit("Auth", userId.ToString(), "PinSessionEnded", userId, new { device = deviceId, reason, sessions = sessions.Count });
+        await db.SaveChangesAsync(cancellationToken);
+        CloseConnections([userId]);
+        return sessions.Count;
+    }
+
     public async Task NotifyOwnersAsync(string title, CancellationToken cancellationToken)
     {
         foreach (var owner in await users.OwnerIdsAsync(cancellationToken))

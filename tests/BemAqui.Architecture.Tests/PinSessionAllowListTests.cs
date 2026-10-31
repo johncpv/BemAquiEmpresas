@@ -40,6 +40,9 @@ public static partial class PinSessionAllowList
         ["ApproveQuality"] = "aprovar a qualidade (production.approve_quality, D6)",
         ["RejectQuality"] = "reprovar a qualidade e abrir a NC (production.approve_quality, D6)",
         ["UploadNonConformityAttachment"] = "foto da NC na reprovação",
+        // "Meu ponto" no tablet (RH-01a, adendo de 21/10/2026 à ADR 0026): só ver hoje e marcar; marcar encerra a sessão por PIN.
+        ["GetMyTimeClock"] = "Meu ponto: hoje e a próxima marcação sugerida, do funcionário da sessão",
+        ["RecordMyTimeEntry"] = "Meu ponto: marcar com a hora do servidor; encerra a sessão por PIN no servidor",
         // Sessão, permissões, saída e ajuda contextual.
         ["GetCurrentSession"] = "/api/v1/me",
         ["GetMyPermissions"] = "/api/v1/me/permissions (menu e <Can>)",

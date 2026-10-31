@@ -23,3 +23,16 @@ export function Can({ perm, children }: { perm: string; children: ReactNode }) {
   const module = all.find((m) => m.code === code)
   return module && !module.locked && module.actions.includes(action) ? <>{children}</> : null
 }
+
+/**
+ * Autoatendimento do funcionário (ADR 0035, "Meu ponto" e "Meus holerites"): só a camada 1 (módulo liberado no tenant), sem grupo; o
+ * vínculo com funcionário ativo vem da API (403 employee_not_active).
+ */
+export function ReleasedGate({ code, children }: { code: string; children: ReactNode }) {
+  const { all, status } = useNavigation()
+  if (status === 'loading') return null
+  const module = all.find((m) => m.code === code)
+  if (!module) return <NotFound />
+  if (module.locked) return <ModuleNotReleased module={module} />
+  return <>{children}</>
+}

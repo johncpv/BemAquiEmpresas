@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
-import { Search } from 'lucide-react'
+import { Clock, Search } from 'lucide-react'
+import { useNavigation } from '@/navigation/navigation-context'
 import { useEffect, useState } from 'react'
 import { getGetShopfloorDeviceQueryKey, searchShopfloorOrder, useGetQualityQueue, useGetShopfloorQueue } from '@/api/generated/bemaqui'
 import { CreatePinSheet, DeviceButton } from './DeviceSheet'
@@ -76,6 +77,7 @@ export function FabQueuePage() {
           </section>
         ) : <h1 className="sr-only">Fila de etapas</h1>}
         <CreatePinOffer />
+        <TimeClockEntry />
         <QualityEntry />
         <div className="flex flex-wrap items-center gap-[8px]">
           <FloorButton tone={onlyMine ? 'primary' : 'secondary'} aria-pressed={onlyMine} onClick={toggle}>Só meu centro</FloorButton>
@@ -120,6 +122,19 @@ function CreatePinOffer() {
       ) : null}
       {sheet}
     </>
+  )
+}
+
+/** "Meu ponto" no tablet (RH-01a): com o RH liberado no tenant; o vínculo com funcionário ativo é conferido pela API. */
+function TimeClockEntry() {
+  const { all } = useNavigation()
+  const hr = all.find((m) => m.code === 'hr')
+  if (!hr || hr.locked) return null
+  return (
+    <Link to="/fab/ponto" data-floor-target="" className="flex min-h-[56px] items-center justify-between gap-2 rounded-md border-2 border-primary bg-card px-4 text-[18px] font-semibold">
+      <span className="inline-flex items-center gap-2"><Clock aria-hidden="true" className="size-6" />Meu ponto</span>
+      <span className="text-muted-foreground">Entrada, intervalo e saída</span>
+    </Link>
   )
 }
 

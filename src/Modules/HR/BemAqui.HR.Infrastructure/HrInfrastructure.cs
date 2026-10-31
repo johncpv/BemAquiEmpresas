@@ -121,6 +121,11 @@ public static class HrInfrastructure
         services.AddAttachmentOwner(PayslipDocumentRules.BatchOwnerType, new AttachmentOwnerRules("hr", ["application/zip"],
             OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IHrDb>().PayrollRuns.AnyAsync(r => r.Id == id, ct),
             ReadAction: PositionService.SensitiveAction, WriteAction: PositionService.SensitiveAction, CanAttach: SystemOnly, AuditReads: true));
+        // Ponto (RH-01a, ADR 0035): "Meu ponto", a consulta do RH e a localização só com hr.view_sensitive. A marcação é dado pessoal do
+        // funcionário: o histórico abre com hr.view_sensitive e a localização sai mascarada ([PersonalData]).
+        services.TryAddScoped<BemAqui.HR.Application.TimeClock.TimeClockService>();
+        services.AddAuditableEntity<TimeEntry>("hr", PositionService.SensitiveAction);
+        services.AddAuditableEntity<TimeClockGeoConsent>("hr", PositionService.SensitiveAction);
         services.AddAuditableEntity<EmployeeDependent>("hr", PositionService.SensitiveAction);
         services.AddAuditableEntity<Employee>("hr", PositionService.SensitiveAction);
         services.AddAuditableEntity<EmployeeHistoryEntry>("hr", PositionService.SensitiveAction);

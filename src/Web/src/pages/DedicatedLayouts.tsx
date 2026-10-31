@@ -6,7 +6,8 @@ import { applyDeviceTheme, useFloorDevice } from '@/pages/shopfloor/floor-sessio
 import { IdleGuard } from '@/pages/shopfloor/FloorSession'
 import { OfflineGate } from '@/pages/shopfloor/OfflineGate'
 import { registerFloorServiceWorker } from '@/pwa/register'
-import { ModuleGate } from './ModuleGate'
+import { TIME_CLOCK_OFFLINE } from './hr/timeclock/time-clock'
+import { ModuleGate, ReleasedGate } from './ModuleGate'
 
 /**
  * App do operador (/fab, PRD-03a): layout próprio, sem dock nem topbar do backoffice, com o kit "chão de fábrica". As três
@@ -16,19 +17,28 @@ import { ModuleGate } from './ModuleGate'
  */
 export function ShopfloorLayout() {
   const quality = useRouterState({ select: (s) => s.location.pathname.startsWith('/fab/qualidade') })
+  // RH-01a: "Meu ponto" (/fab/ponto) é autoatendimento do RH (ADR 0035): basta o módulo hr liberado; o vínculo vem da API.
+  const timeClock = useRouterState({ select: (s) => s.location.pathname.startsWith('/fab/ponto') })
   const device = useFloorDevice()
   useEffect(() => applyDeviceTheme(device.data), [device.data])
   useEffect(() => registerFloorServiceWorker(), [])
   return (
     <FloorHelp>
       <main id="conteudo" className="min-h-dvh bg-background pb-8 text-[18px] text-foreground">
-        <ModuleGate code={quality ? 'production' : 'shopfloor'}>
-          <FloorMessages />
-          <Outlet />
-        </ModuleGate>
+        {timeClock ? (
+          <ReleasedGate code="hr">
+            <FloorMessages />
+            <Outlet />
+          </ReleasedGate>
+        ) : (
+          <ModuleGate code={quality ? 'production' : 'shopfloor'}>
+            <FloorMessages />
+            <Outlet />
+          </ModuleGate>
+        )}
       </main>
       <IdleGuard />
-      <OfflineGate />
+      <OfflineGate message={timeClock ? TIME_CLOCK_OFFLINE : undefined} />
     </FloorHelp>
   )
 }

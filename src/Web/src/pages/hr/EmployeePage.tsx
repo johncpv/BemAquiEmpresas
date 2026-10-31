@@ -27,6 +27,7 @@ import { EmployeeGeneral } from './EmployeeGeneral'
 import { EmployeePersonal } from './EmployeePersonal'
 import { EmployeeProtected } from './EmployeeProtected'
 import { EmployeeTimeline } from './EmployeeTimeline'
+import { EmployeeTimeEntries } from './timeclock/EmployeeTimeEntries'
 
 const button = 'rounded-md border border-border px-3 py-2 text-sm font-semibold'
 
@@ -120,6 +121,7 @@ export function EmployeePage() {
         { id: 'dependentes', label: 'Dependentes', content: <EmployeeDependents employee={employee} canEdit={canEdit} onFirstSaved={() => setSteps('dependent')} /> },
         { id: 'pagamento', label: 'Pagamento e adicionais', content: <EmployeePayment employee={employee} canEdit={canEdit} /> },
         { id: 'documentos', label: 'Documentos', content: <EmployeeDocuments employee={employee} canEdit={canEdit} /> },
+        { id: 'ponto', label: 'Ponto', content: <EmployeeTimeEntries employee={employee} /> },
         { id: 'historico', label: 'Histórico de alterações', content: canSensitive ? <RecordHistory entity="Employee" id={employee.id} /> : <EmployeeProtected /> },
       ]} />
     </>

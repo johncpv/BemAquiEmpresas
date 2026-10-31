@@ -37,6 +37,7 @@ export function UserMenu({ showTheme }: { showTheme: boolean }) {
           <Menu.Separator className="my-1 h-px bg-border" />
           <Menu.Item className={itemClass} onSelect={() => void navigate({ to: '/app/conta' })}>Meu perfil</Menu.Item>
           <Menu.Item className={itemClass} onSelect={() => void navigate({ to: '/app/conta/seguranca' })}>Verificação em duas etapas</Menu.Item>
+          {employee.isSuccess ? <Menu.Item className={itemClass} onSelect={() => void navigate({ to: '/app/meu-ponto' })}>Meu ponto</Menu.Item> : null}
           {employee.isSuccess ? <Menu.Item className={itemClass} onSelect={() => void navigate({ to: '/app/meus-holerites' })}>Meus holerites</Menu.Item> : null}
           {showTheme ? (
             <>

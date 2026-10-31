@@ -5,7 +5,7 @@
 | ID | RH-01a |
 | Título | "Meu ponto" como **controle interno de jornada** (não substitui o registro legal de ponto): o funcionário registra entrada, intervalo e saída pelo app (tablet da fábrica com PIN, celular ou computador), com a hora do servidor e comprovante na tela; geolocalização desligada por padrão, com ciência registrada; o RH consulta as marcações por funcionário e por dia, com a localização só com `hr.view_sensitive` |
 | Tamanho | M (quebra da RH-01 em 01a marcação, 01b lançamento manual e ajustes, 01c espelho, banco de horas e fechamento) |
-| Status | Ready (pré-condição externa) |
+| Status | Done (pré-condição externa: usuários dos funcionários e tablets) |
 | Requisitos | R-RH-4 (parte: marcação pelo PWA com geolocalização opcional) · PRD §6 (LGPD, Usabilidade) · R-SEC-5 · R-PRP-1 · R-PRP-2 |
 | Dependências | CAD-04a (jornada do funcionário), CAD-04b (funcionário e vínculo com o usuário, `IUserEmployeeLink`), CAD-04c1 (situação `OnLeave` no `IEmployees`), PRD-03a (superfície `/fab`), PRD-03b (aparelho registrado e sessão por PIN), RH-02b (autoatendimento `/api/v1/me/hr/*`, ADR 0035), RH-02a (`hr.parameters` e a seção RH de Configurações → Parâmetros), FND-09e; Fase 0 (FND-06c, FND-07, FND-14) |
 | Bloqueia | RH-01b, RH-01c, LGPD-01a (exportação inclui marcações), FLH-02b |
@@ -101,22 +101,22 @@ Decisões da revisão aplicadas: §4.2 (RH-01a: lista `[PinSessionAllowed]` e pe
 **Pré-condição externa:** a Konebras cria um usuário (e-mail de apelido quando preciso) para cada funcionário que vai marcar ponto e define os tablets registrados; não bloqueia o `Ready`.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
-- [ ] Migration criada (não destrutiva) para `hr.time_entries` e `hr.time_clock_geo_consents`.
-- [ ] Permissões só do `ModuleCatalog`; autoatendimento pela ADR 0035; `[PinSessionAllowed]` pelo adendo à ADR 0026.
-- [ ] Telas com estados de carregando, vazio, erro, sem vínculo e sem conexão, e a faixa de controle interno.
-- [ ] Ajuda de cada rota e da aba, com o aviso de controle interno; teste de cobertura passando.
-- [ ] Padrões e próximo passo propositivos aplicados.
-- [ ] Auditoria ligada, com `[PersonalData]` e `SensitiveRead`.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
+- [x] Migration criada (não destrutiva) para `hr.time_entries` e `hr.time_clock_geo_consents`.
+- [x] Permissões só do `ModuleCatalog`; autoatendimento pela ADR 0035; `[PinSessionAllowed]` pelo adendo à ADR 0026.
+- [x] Telas com estados de carregando, vazio, erro, sem vínculo e sem conexão, e a faixa de controle interno.
+- [x] Ajuda de cada rota e da aba, com o aviso de controle interno; teste de cobertura passando.
+- [x] Padrões e próximo passo propositivos aplicados.
+- [x] Auditoria ligada, com `[PersonalData]` e `SensitiveRead`.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `TimeEntry` (Domain) com a sequência sugerida; ciência da geolocalização; parâmetro no `HrParameters`.
-- [ ] Endpoints `/api/v1/me/hr/time-entries` (marcar, hoje, listar as minhas) e `/api/v1/hr/employees/{id}/time-entries` (+ `/sensitive`).
-- [ ] `[PinSessionAllowed]` nos dois endpoints do tablet e o fim da sessão por PIN depois da marcação (PRD-03b, adendo à ADR 0026).
-- [ ] Telas `/fab/ponto`, `/app/meu-ponto`, Marcações e aba Ponto; ajuda.
+- [x] `TimeEntry` (Domain) com a sequência sugerida; ciência da geolocalização; parâmetro no `HrParameters`.
+- [x] Endpoints `/api/v1/me/hr/time-entries` (marcar, hoje, listar as minhas) e `/api/v1/hr/employees/{id}/time-entries` (+ `/sensitive`).
+- [x] `[PinSessionAllowed]` nos dois endpoints do tablet e o fim da sessão por PIN depois da marcação (PRD-03b, adendo à ADR 0026).
+- [x] Telas `/fab/ponto`, `/app/meu-ponto`, Marcações e aba Ponto; ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, cybersecurity (autoatendimento, sessão por PIN, IDOR, geolocalização), design (tela do tablet a 56 px), @qa.
@@ -150,3 +150,15 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D15 com o ponto não oficial, tabela 3.3 pontos 1–5, ADR 0035, adendo à ADR 0026, §4.2, §4.4 padrão 8); nova ordem (Marco 6.1, ordem 6, depois da folha); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 27/10/2026 | 1.0 | Implementação (Done): `hr.time_entries` e `hr.time_clock_geo_consents` (migration `TimeClockRh01a`), parâmetro `hr.time_clock_geolocation` (Off/Ask) na seção RH de Parâmetros, "Meu ponto" (`/api/v1/me/hr/time-entries`: hoje, marcar, ciência, minhas), consulta do RH (`/api/v1/hr/time-entries`, `/api/v1/hr/employees/{id}/time-entries` e `/sensitive`), fim da sessão por PIN pelo contrato `IShopfloorDevices` do Identity, telas `/fab/ponto`, `/app/meu-ponto`, RH → Ponto → Marcações e aba Ponto, ajudas, testes e E2E | Dev (agente) |
+
+## Notas de implementação (27/10/2026)
+- **Rota do "hoje":** a story (`GET /api/v1/me/hr/time-entries/today`) e a ADR 0035/adendo da ADR 0026 (`GET /me/hr/time-clock`) divergiam; ficou o caminho da story, mais recente e com o CA. A lista `[PinSessionAllowed]` tem `GetMyTimeClock` e `RecordMyTimeEntry` (revisados no `PinSessionAllowListTests`); o teste de autoatendimento confere que só esses dois entram na sessão por PIN.
+- **Fim da sessão por PIN:** `IShopfloorDevices` (Identity.Contracts) resolve o aparelho do cookie, dá os nomes para a origem "PIN no {aparelho}" e revoga a família de refresh por PIN (usuário + aparelho) na mesma transação da marcação, com auditoria `PinSessionEnded`; a resposta apaga o cookie do refresh e o próximo request responde 401 `pin_session_ended`. O PIN continua no aparelho. Recomendação aceita (PO 24/10).
+- **Duplo toque:** além da janela de 1 min, uma trava por funcionário (`pg_advisory_xact_lock`) serializa as marcações: dois toques simultâneos com chaves diferentes gravam só um (teste). Recomendação aceita (PO 24/10).
+- **Localização:** gravada só com o parâmetro `Ask`, fora do aparelho registrado e com a ciência da versão atual (`2026-10-27`); senão é ignorada. Pedida e sem coordenada, `location = Missing` ("Sem localização"). No aviso, além de "Entendi e continuar", há "Marcar sem localização" para nunca bloquear a marcação. Recomendação aceita (PO 24/10).
+- **Afastado:** não marca (403 `employee_not_active`, CA 6), mas consulta "Minhas marcações" (60 dias).
+- **Exclusão do funcionário:** com marcação de ponto, cai na mesma recusa `employee_has_history`.
+- **Atalho do pedido de ajuste (CA 4):** a tela mostra "Esqueceu uma marcação? Peça o ajuste ao RH."; o link para o pedido entra com a RH-01b, que cria a tela.
+- **No `/fab/ponto`:** o layout confere só o módulo `hr` liberado (autoatendimento, `ReleasedGate`), e "Sem conexão" usa o texto do CA 8. A fila do operador ganhou a entrada "Meu ponto".
+- **Fora do escopo, sem mudança:** nada de REP-P/AFD (P-26).

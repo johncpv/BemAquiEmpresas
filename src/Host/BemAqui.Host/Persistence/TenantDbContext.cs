@@ -350,6 +350,10 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<PayrollForecast> PayrollForecasts => Set<PayrollForecast>();
 
+    public DbSet<TimeEntry> TimeEntries => Set<TimeEntry>();
+
+    public DbSet<TimeClockGeoConsent> TimeClockGeoConsents => Set<TimeClockGeoConsent>();
+
     public DbSet<ImportRun> ImportRuns => Set<ImportRun>();
 
     public DbSet<ImportItem> ImportItems => Set<ImportItem>();
