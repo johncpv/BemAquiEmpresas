@@ -67,7 +67,8 @@ public sealed record PayableDetail(
     string? ProjectNumber = null,
     CostType? CostType = null,
     PayeeType PayeeType = PayeeType.Party,
-    Guid? PayeeId = null);
+    Guid? PayeeId = null,
+    DateTimeOffset? ReversedPaymentAt = null);
 
 public sealed record FinanceProjectOption(Guid Id, string Number, string Name);
 

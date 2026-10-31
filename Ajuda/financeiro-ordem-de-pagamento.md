@@ -19,4 +19,6 @@ Ver os títulos da ordem, quanto vai ser pago e **para onde vai o dinheiro** (ch
 
 **Os dados podem mudar depois do envio?** Não. A ordem guarda o retrato do envio.
 
-**Como desfaço um pagamento?** Com **Estornar pagamento**, informando o motivo. Os títulos voltam para A pagar.
+**Como desfaço um pagamento?** Com **Estornar pagamento**, informando o motivo e confirmando o código do aplicativo autenticador. Só quem aprova em Caixa e pagamentos estorna. Os títulos voltam para A pagar.
+
+**O que é "Pago e estornado em …"?** O título já foi pago numa ordem anterior e o pagamento foi estornado. Confira com o fornecedor se o valor voltou antes de aprovar de novo.

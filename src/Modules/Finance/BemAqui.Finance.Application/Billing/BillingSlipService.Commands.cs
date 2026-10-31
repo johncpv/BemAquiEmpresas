@@ -138,11 +138,12 @@ public sealed partial class BillingSlipService
     private async Task<Error?> ExistingErrorAsync(Receivable receivable, CancellationToken ct)
     {
         var holding = await db.BillingSlips.AsNoTracking()
-            .Where(s => s.ReceivableId == receivable.Id && (s.Status == BillingSlipStatus.Requested || s.Status == BillingSlipStatus.Issued || s.Status == BillingSlipStatus.Failed))
+            .Where(s => s.ReceivableId == receivable.Id && (s.Status == BillingSlipStatus.Requested || s.Status == BillingSlipStatus.Issued || s.Status == BillingSlipStatus.Failed || s.Status == BillingSlipStatus.PaidPendingReview))
             .Select(s => (BillingSlipStatus?)s.Status).FirstOrDefaultAsync(ct);
         return holding switch
         {
             BillingSlipStatus.Failed => Error.Conflict(FailedCode, "A última emissão deste título falhou. Use Tentar de novo ou cancele o boleto."),
+            BillingSlipStatus.PaidPendingReview => Error.Conflict(ExistsCode, "Este título tem um pagamento do Inter aguardando conferência. Confira o pagamento antes de emitir outro boleto."),
             not null => Error.Conflict(ExistsCode, "Este título já tem um boleto em aberto. Cancele o atual para emitir outro."),
             _ => null,
         };

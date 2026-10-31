@@ -110,6 +110,14 @@ public enum SettlementKind
     DiscountWriteOff,
 }
 
+/// <summary>Origem da baixa (BNK-02): a do banco só se estorna com <c>finance.approve</c> e o 2FA de novo (CA 14, D6).</summary>
+[JsonConverter(typeof(JsonStringEnumConverter<SettlementSource>))]
+public enum SettlementSource
+{
+    Manual,
+    Bank,
+}
+
 /// <summary>
 /// Baixa de um título a receber (<c>finance.receivable_settlements</c>): imutável, exceto as colunas do estorno. O total que
 /// entra na conta é principal + juros + multa − desconto.
@@ -139,6 +147,15 @@ public sealed class ReceivableSettlement : Entity, IAuditable
     public SettlementKind Kind { get; init; }
 
     public string? BackdateReason { get; init; }
+
+    /// <summary>De onde veio a baixa: manual (FIN-01) ou do banco (aviso do Inter, conferência diária ou conferência do pagamento, BNK-02).</summary>
+    public SettlementSource Source { get; init; } = SettlementSource.Manual;
+
+    /// <summary>Boleto pago que gerou a baixa do banco.</summary>
+    public Guid? BillingSlipId { get; init; }
+
+    /// <summary>Evento do webhook de origem (histórico do título, BNK-02 CA 17); nulo na conferência diária.</summary>
+    public Guid? WebhookEventId { get; init; }
 
     public Guid? TransactionId { get; set; }
 
@@ -176,7 +193,17 @@ public sealed class FinancialTransaction : Entity, IAuditable
 
     public Guid? ReceivableId { get; init; }
 
-    public Guid? SettlementId { get; init; }
+    /// <summary>Baixa da transação; na entrada que aguardava conferência, ligada só quando alguém confere (BNK-02 CA 9).</summary>
+    public Guid? SettlementId { get; set; }
+
+    /// <summary>
+    /// Entrada do Inter aguardando conferência (BNK-02 CA 9): o dinheiro está na conta (o saldo bate com o banco), mas o título ainda
+    /// não foi baixado. A conferência liga a baixa e tira a marca; o valor nunca muda.
+    /// </summary>
+    public bool PendingReview { get; private set; }
+
+    /// <summary>Boleto pago de onde veio a entrada (BNK-02).</summary>
+    public Guid? BillingSlipId { get; init; }
 
     /// <summary>Título a pagar do pagamento da OP (FIN-03a).</summary>
     public Guid? PayableId { get; init; }
@@ -188,6 +215,23 @@ public sealed class FinancialTransaction : Entity, IAuditable
     public Guid? BankEntryId { get; init; }
 
     public Guid? ReversesTransactionId { get; init; }
+
+    /// <summary>Entrada recebida do banco aguardando conferência (CA 9).</summary>
+    public FinancialTransaction AwaitingReview()
+    {
+        PendingReview = true;
+        return this;
+    }
+
+    /// <summary>Conferida: a marca sai; com a baixa, a transação passa a ser dela.</summary>
+    public void Reviewed(Guid? settlementId)
+    {
+        PendingReview = false;
+        if (settlementId is { } id)
+        {
+            SettlementId = id;
+        }
+    }
 
     public DateTimeOffset CreatedAt { get; init; }
 

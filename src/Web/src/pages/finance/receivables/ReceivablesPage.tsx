@@ -2,7 +2,7 @@ import { Link } from '@tanstack/react-router'
 import { Receipt } from 'lucide-react'
 import { useState } from 'react'
 import type { ColumnDef } from '@tanstack/react-table'
-import { useListReceivables } from '@/api/generated/bemaqui'
+import { useListPaymentsToReview, useListReceivables } from '@/api/generated/bemaqui'
 import type { ReceivableDetail } from '@/api/generated/model'
 import { DataTable } from '@/components/data-table/DataTable'
 import { useTableFilters, useTableSearch } from '@/components/data-table/table-search'
@@ -18,6 +18,8 @@ import { useCan } from '@/pages/use-can'
 import { BatchBillingDialog } from './BatchBillingDialog'
 import { slipStatus } from './billing-slips'
 import { DeadLetterBanner } from './DeadLetterBanner'
+import { REVIEW_DICAS, REVIEW_FILTER } from './payment-review'
+import { PaymentReviewList } from './PaymentReviewList'
 import { awaits, RECEIVABLE_DICAS, situation, SITUATION_OPTIONS, today } from './receivables'
 
 const PERIODS = [
@@ -42,7 +44,10 @@ function period(value: string | undefined): { dueFrom?: string; dueTo?: string }
 /** Financeiro → A receber (FIN-01): o que os clientes devem, por vencimento; "Vencido" calculado; totais do filtro no rodapé. */
 export function ReceivablesPage() {
   const [search] = useTableSearch()
-  const { situacao, vencimento, cliente, contrato, boleto } = useTableFilters(['situacao', 'vencimento', 'cliente', 'contrato', 'boleto'])
+  const { situacao, vencimento, cliente, contrato, boleto, filtro, conferir } = useTableFilters(['situacao', 'vencimento', 'cliente', 'contrato', 'boleto', 'filtro', 'conferir'])
+  const reviewing = filtro === REVIEW_FILTER
+  const toReview = useListPaymentsToReview()
+  const reviewCount = toReview.data?.count ?? 0
   const query = useListReceivables({ q: search.q, situation: situacao || undefined, partyId: cliente || undefined, contractId: contrato || undefined, withBillingSlip: boleto === 'com' ? true : undefined, ...period(vencimento), page: search.page, pageSize: search.pageSize, sort: search.sort })
   const table = { ...query, data: query.data?.page }
   const totals = query.data?.totals
@@ -83,6 +88,17 @@ export function ReceivablesPage() {
       </PageHeading>
       <FinanceTabs />
       <DeadLetterBanner />
+      {reviewing || reviewCount > 0 ? (
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <Link to={'/app/financeiro/receber' as never} search={((prev: Record<string, unknown>) => ({ ...prev, filtro: reviewing ? undefined : REVIEW_FILTER, conferir: undefined, page: undefined })) as never}
+            aria-pressed={reviewing}
+            className={reviewing ? 'inline-flex min-h-11 items-center rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground' : 'inline-flex min-h-11 items-center rounded-md border border-warn bg-warn-soft px-3 text-sm font-semibold text-warn-ink'}>
+            Pagamentos a conferir{reviewCount > 0 ? ` (${reviewCount})` : ''}
+          </Link>
+          <Dica nome="Pagamentos a conferir" texto={REVIEW_DICAS.aguardando} />
+          {reviewing ? <Link to={'/app/financeiro/receber' as never} search={((prev: Record<string, unknown>) => ({ ...prev, filtro: undefined, conferir: undefined })) as never} className="text-sm font-semibold text-primary hover:underline">Ver todos os títulos</Link> : null}
+        </div>
+      ) : null}
       {contrato ? (
         <p role="note" className="mb-3 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
           Mostrando as parcelas de um contrato.<Dica nome="Previsto" texto={RECEIVABLE_DICAS.previsto} />
@@ -102,7 +118,7 @@ export function ReceivablesPage() {
         </div>
       ) : null}
       {batch ? <BatchBillingDialog ids={selected} open onOpenChange={(o) => !o && setBatch(false)} onDone={() => { setBatch(false); setSelected([]); void query.refetch() }} /> : null}
-      <DataTable
+      {reviewing ? <PaymentReviewList open={conferir} /> : <DataTable
         label="Títulos a receber"
         columns={columns}
         query={table}
@@ -118,7 +134,7 @@ export function ReceivablesPage() {
           description: 'Cada título tem cliente, conta de receita e vencimento. Dá para parcelar pela condição de pagamento.',
           action: <Can perm="finance.create"><Link to="/app/financeiro/receber/novo" className="text-sm font-semibold text-primary">Novo título a receber</Link></Can>,
         }}
-      />
+      />}
     </>
   )
 }

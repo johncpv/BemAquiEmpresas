@@ -111,6 +111,54 @@ public sealed class InterBillingProvider(IInterApiClient inter, BankIntegrationS
         return response.Value!.Status is >= 200 and < 300 ? BillingResult<bool>.Success(true) : BillingResult<bool>.Fail(Refusal(response.Value));
     }
 
+    /// <summary>Webhook da cobrança v3 (<c>PUT cobrancas/webhook</c>, escopo <c>boleto-cobranca.write</c>; conferido no sandbox, runbook).</summary>
+    public async Task<BillingResult<bool>> RegisterWebhookAsync(BankIntegration integration, string url, CancellationToken cancellationToken = default)
+    {
+        var body = new JsonObject { ["webhookUrl"] = url }.ToJsonString();
+        var response = await SendAsync(integration, new InterRequest("boleto.webhook", HttpMethod.Put, InterEnvironments.BillingPath + "/webhook",
+            () => new StringContent(body, Encoding.UTF8, "application/json")), cancellationToken);
+        if (!response.Ok)
+        {
+            return BillingResult<bool>.Fail(response.Failure!);
+        }
+
+        return response.Value!.Status is >= 200 and < 300 ? BillingResult<bool>.Success(true) : BillingResult<bool>.Fail(Refusal(response.Value));
+    }
+
+    /// <summary>Cobranças por data da situação no período, todas as páginas (até <see cref="MaxPages"/>).</summary>
+    public async Task<BillingResult<IReadOnlyList<BankSlip>>> ListChangedAsync(BankIntegration integration, DateOnly from, DateOnly to, CancellationToken cancellationToken = default)
+    {
+        var found = new List<BankSlip>();
+        for (var page = 0; page < MaxPages; page++)
+        {
+            var path = $"{InterEnvironments.BillingPath}?dataInicial={from.ToString("yyyy-MM-dd", Invariant)}&dataFinal={to.ToString("yyyy-MM-dd", Invariant)}&filtrarDataPor=SITUACAO"
+                + $"&paginacao.paginaAtual={page.ToString(Invariant)}&paginacao.itensPorPagina={PageSize.ToString(Invariant)}";
+            var response = await SendAsync(integration, new InterRequest("boleto.listar", HttpMethod.Get, path), cancellationToken);
+            if (!response.Ok)
+            {
+                return BillingResult<IReadOnlyList<BankSlip>>.Fail(response.Failure!);
+            }
+
+            if (response.Value!.Status is < 200 or >= 300 || Parse(response.Value.Body) is not { } node)
+            {
+                return BillingResult<IReadOnlyList<BankSlip>>.Fail(Refusal(response.Value));
+            }
+
+            found.AddRange((node["cobrancas"] as JsonArray ?? []).OfType<JsonNode>().Select(Slip).OfType<BankSlip>()
+                .Where(s => s.Situation is BankSlipSituation.Paid or BankSlipSituation.Cancelled or BankSlipSituation.Expired));
+            var pages = node["totalPaginas"] is JsonValue total && total.TryGetValue<int>(out var t) ? t : 1;
+            if (page + 1 >= pages)
+            {
+                break;
+            }
+        }
+
+        return BillingResult<IReadOnlyList<BankSlip>>.Success(found);
+    }
+
+    public const int PageSize = 1000;
+    public const int MaxPages = 50;
+
     private async Task<BillingResult<InterResponse>> SendAsync(BankIntegration integration, InterRequest request, CancellationToken ct)
     {
         using var credentials = integrations.Open(integration);

@@ -470,7 +470,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-
 - Requisitos: R-FIN-7, R-FIN-3, R-COM-1, R-COM-3, R-PRP-7.
 - CA: Configurações → Cobrança pré-configurada (multa 2%, juros 1% a.m., desconto 0, envio automático, 200 e-mails/dia) com o `ToConfirmChip`; boleto pelo saldo do título, assíncrono, com "seu número" opaco; desconto, multa e juros acima do limite da D8 com `finance.approve`; um boleto ativo por título; cancelamento; `ConfirmDialog` com impacto em lista; fluxo completo no sandbox.
 
-**BNK-02 [ ] Webhook de pagamento do Inter: reconsulta, baixa automática do título, transação e conferência diária (G)** — 5.2, ordem 4 — re-estimada de M — `Ready (pré-condição externa)` — [story](stories/BNK-02-webhook-pagamento-baixa.md)
+**BNK-02 [x] Webhook de pagamento do Inter: reconsulta, baixa automática do título, transação e conferência diária (G)** — 5.2, ordem 4 — re-estimada de M — `Done` (confirmações no sandbox do Inter: pré-condição externa) — [story](stories/BNK-02-webhook-pagamento-baixa.md)
 - Requisitos: R-FIN-7, R-FIN-3, R-FIN-2, R-TER-4.
 - CA: webhook com token na URL que só dispara reconsulta por mTLS; baixa uma vez só; pagamento com diferença vai para conferência humana; estorno de baixa e do pagamento da OP com `finance.approve` (P-20); conferência diária; resumo por hora acima de 5 avisos.
 
