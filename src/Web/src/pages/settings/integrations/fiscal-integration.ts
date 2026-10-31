@@ -20,6 +20,10 @@ export const HINTS = {
     'O escopo admin deixa a chave mexer em certificados, emitentes e chaves de qualquer empresa no Emissor Fiscal. O BemAqui não precisa disso: use uma chave só com emitir, eventos e consultar.',
   environment:
     'Homologação é o ambiente de teste da SEFAZ: a nota sai, mas não tem valor fiscal. Produção só liga na virada do sistema, depois da conferência com a contadora.',
+  baseUrl:
+    'O Emissor Fiscal é um serviço na internet, usado por várias empresas. O endereço é o mesmo para homologação e produção: quem decide o ambiente é o cadastro do emitente no Emissor. Por segurança, o endereço é definido pelo sistema e não pode ser trocado aqui.',
+  webhookUrl:
+    'Cole este endereço no painel do Emissor Fiscal, em Webhooks, Novo webhook. É por ele que o Emissor avisa quando a SEFAZ responde. O endereço é único desta empresa.',
   apiKey: 'A chave é guardada cifrada e nunca é mostrada de novo. Para trocar, cole a chave nova: ela é testada antes de substituir a atual.',
 } as const
 

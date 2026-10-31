@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 using BemAqui.BuildingBlocks.Observability;
@@ -47,10 +48,17 @@ public sealed class EmissorContractTests : IAsyncLifetime
 
     public async ValueTask DisposeAsync() => await _server.DisposeAsync();
 
-    private IFiscalEmitter Emitter(string key = FakeEmissorServer.ValidKey) =>
-        new EmissorFiscalEmitterFactory(new FakeEmissorHttpClients(_server), Options.Create(new FiscalIntegrationOptions()),
+    /// <summary>Nos testes de contrato o limite por segundo fica alto e a pausa do 429 curta; os testes do limite usam o padrão.</summary>
+    private static readonly FiscalIntegrationOptions Fast = new() { MaxRequestsPerSecond = 1000, MaxRateLimitPause = TimeSpan.FromMilliseconds(50) };
+
+    private static readonly Uri BaseUrl = new("https://api.fiscal.bemaquiapp.com.br/");
+
+    private IFiscalEmitter Emitter(string key = FakeEmissorServer.ValidKey) => Emitter(new EmissorFiscalRateGate(Options.Create(Fast), TimeProvider.System), Fast, key);
+
+    private IFiscalEmitter Emitter(EmissorFiscalRateGate gate, FiscalIntegrationOptions options, string key = FakeEmissorServer.ValidKey, Guid? tenantId = null) =>
+        new EmissorFiscalEmitterFactory(new FakeEmissorHttpClients(_server), Options.Create(options), gate,
                 new IntegrationHealthTracker(new CapturingAlertSink(), Options.Create(new AlertOptions())), TimeProvider.System, _logs)
-            .Create(new FiscalEmitterConnection(new Uri("http://emissor-fiscal:8080/"), new Secret(key), Guid.Parse("0199f1a2-0000-7000-8000-000000000001")));
+            .Create(new FiscalEmitterConnection(BaseUrl, new Secret(key), tenantId ?? Guid.Parse("0199f1a2-0000-7000-8000-000000000001")));
 
     private static NfeIssueRequest Request(string scenario) => FiscalSamples.Sample(scenario);
 
@@ -121,6 +129,62 @@ public sealed class EmissorContractTests : IAsyncLifetime
         var down = await Emitter().IssueNfeAsync(Request("QUEDA"), "nfe-q-1");
         down.Error!.Code.Should().Be(FiscalErrorCodes.Unavailable);
         _server.Requests.Count(r => r.Idempotency == "nfe-q-1").Should().Be(1, "escrita nunca tenta de novo: a dúvida fica com quem chamou, que reenvia a mesma chave");
+    }
+
+    [Fact]
+    public async Task Varios_tenants_ao_mesmo_tempo_nunca_passam_do_limite_por_segundo_do_processo()
+    {
+        // O Emissor aceita 10 por segundo por IP; o padrão daqui é 4 por processo (homologação e produção saem do mesmo IP da VPS).
+        var options = new FiscalIntegrationOptions();
+        options.MaxRequestsPerSecond.Should().BeLessThanOrEqualTo(5, "homologação e produção somadas ficam abaixo dos 10 por segundo do Emissor");
+        using var gate = new EmissorFiscalRateGate(Options.Create(options), TimeProvider.System);
+        var tenants = Enumerable.Range(1, 3).Select(i => Emitter(gate, options, tenantId: Guid.CreateVersion7())).ToList();
+
+        var calls = Enumerable.Range(0, 9).Select(i => tenants[i % 3].GetAccountAsync()).ToList();
+        var results = await Task.WhenAll(calls);
+
+        results.Should().OnlyContain(r => r.IsSuccess, "quem passa da vez espera na fila, não falha");
+        var arrivals = _server.Arrivals.Order().ToList();
+        arrivals.Should().HaveCount(9);
+        for (var i = 0; i + options.MaxRequestsPerSecond < arrivals.Count; i++)
+        {
+            // Em qualquer janela de 1 s chegam no máximo MaxRequestsPerSecond (folga de 150 ms para o relógio do timer).
+            Stopwatch.GetElapsedTime(arrivals[i], arrivals[i + options.MaxRequestsPerSecond]).Should().BeGreaterThan(TimeSpan.FromMilliseconds(850));
+        }
+    }
+
+    [Fact]
+    public async Task Depois_de_um_429_ninguem_do_processo_chama_ate_passar_o_Retry_After()
+    {
+        var options = new FiscalIntegrationOptions { MaxRequestsPerSecond = 1000, MaxRateLimitPause = TimeSpan.FromSeconds(1) };
+        using var gate = new EmissorFiscalRateGate(Options.Create(options), TimeProvider.System);
+
+        var limited = await Emitter(gate, options).IssueNfeAsync(Request("LIMITE"), "nfe-l-2");
+        limited.Error!.Code.Should().Be(FiscalErrorCodes.RateLimited);
+        limited.Error.Data!["retryAfterSeconds"].Should().Be(7, "quem chamou recebe o Retry-After do Emissor");
+        gate.PausedFor().Should().BeGreaterThan(TimeSpan.Zero);
+
+        var started = Stopwatch.GetTimestamp();
+        var other = await Emitter(gate, options, tenantId: Guid.CreateVersion7()).GetAccountAsync();
+
+        other.IsSuccess.Should().BeTrue();
+        Stopwatch.GetElapsedTime(started).Should().BeGreaterThan(TimeSpan.FromMilliseconds(850), "a pausa vale para todos os tenants (com o teto de MaxRateLimitPause)");
+        _server.Requests.Count(r => r.Idempotency == "nfe-l-2").Should().Be(1, "escrita com 429 nunca é repetida sozinha");
+    }
+
+    [Fact]
+    public async Task Fila_cheia_desiste_sem_chamar_o_Emissor()
+    {
+        var options = new FiscalIntegrationOptions { MaxRequestsPerSecond = 1, MaxQueuedRequests = 0 };
+        using var gate = new EmissorFiscalRateGate(Options.Create(options), TimeProvider.System);
+        var emitter = Emitter(gate, options);
+
+        var first = await emitter.GetAccountAsync();
+        var second = await emitter.GetAccountAsync();
+
+        first.IsSuccess.Should().BeTrue();
+        second.Error!.Code.Should().Be(FiscalErrorCodes.RateLimited);
+        _server.Requests.Count(r => r.Path == "/api/v1/me").Should().Be(1);
     }
 
     [Fact]
@@ -234,8 +298,10 @@ public sealed class EmissorHomologContractTests
 
     private static string? Key => Environment.GetEnvironmentVariable("EMISSOR_HOMOLOG_KEY");
 
+    private static readonly EmissorFiscalRateGate Gate = new(Options.Create(new FiscalIntegrationOptions()), TimeProvider.System);
+
     private static IFiscalEmitter Emitter() =>
-        new EmissorFiscalEmitterFactory(new RealHttpClients(), Options.Create(new FiscalIntegrationOptions()), new IntegrationHealthTracker(new CapturingAlertSink(), Options.Create(new AlertOptions())),
+        new EmissorFiscalEmitterFactory(new RealHttpClients(), Options.Create(new FiscalIntegrationOptions()), Gate, new IntegrationHealthTracker(new CapturingAlertSink(), Options.Create(new AlertOptions())),
             TimeProvider.System, new ListLogger<EmissorFiscalHttpEmitter>()).Create(new FiscalEmitterConnection(new Uri(Url!), new Secret(Key!), Guid.Empty));
 
     private sealed class RealHttpClients : IHttpClientFactory

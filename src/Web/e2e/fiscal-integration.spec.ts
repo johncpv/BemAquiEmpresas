@@ -7,15 +7,15 @@ const PATH = '/app/configuracoes/integracoes/emissor-fiscal'
 type View = Record<string, unknown>
 
 const empty = (over: View = {}): View => ({
-  configured: false, allowed: true, allowedEnvironment: 'Homologation', defaultBaseUrl: 'http://emissor-fiscal:8080', baseUrl: null, apiKeySetAt: null,
+  configured: false, allowed: true, allowedEnvironment: 'Homologation', defaultBaseUrl: 'https://api.fiscal.bemaquiapp.com.br', baseUrl: null, apiKeySetAt: null,
   webhookSecretSetAt: null, webhookPreviousValidUntil: null, webhookUrl: null, active: false, emitterTenantId: null, issuerDocument: null, issuerName: null,
   environment: null, scopes: [], certificateValidUntil: null, lastTestAt: null, lastTestResult: null, lastTestMessage: null, lastWebhookAt: null,
   pendingInvoices: 0, oldestPendingSince: null, oldestPendingInvoiceId: null, ...over,
 })
 
 const saved = (over: View = {}): View => empty({
-  configured: true, baseUrl: 'http://emissor-fiscal:8080/', apiKeySetAt: '2026-10-26T12:00:00Z', webhookSecretSetAt: '2026-10-26T12:00:00Z',
-  webhookUrl: 'http://bqe-homolog-api:8080/webhooks/emissor-fiscal/AbCdEfGhIjKlMnOpQrStUv', ...over,
+  configured: true, baseUrl: 'https://api.fiscal.bemaquiapp.com.br/', apiKeySetAt: '2026-10-26T12:00:00Z', webhookSecretSetAt: '2026-10-26T12:00:00Z',
+  webhookUrl: 'https://plataforma-homolog.bemaquiapp.com.br/webhooks/emissor-fiscal/AbCdEfGhIjKlMnOpQrStUv', ...over,
 })
 
 const tested = (over: View = {}): View => saved({
@@ -64,7 +64,8 @@ test.describe('Configurações → Integrações → Emissor fiscal (FIS-01)', (
 
     await page.getByRole('button', { name: 'Configurar' }).click()
     const form = page.getByRole('form', { name: 'Conexão com o Emissor Fiscal' })
-    await expect(form.getByLabel('Endereço interno do Emissor Fiscal')).toHaveValue('http://emissor-fiscal:8080')
+    await expect(form.getByText('https://api.fiscal.bemaquiapp.com.br')).toBeVisible()
+    await expect(form.getByRole('textbox', { name: /Endereço/ })).toHaveCount(0)
     await form.getByRole('button', { name: 'Salvar integração fiscal' }).click()
     await expect(form.getByText('Informe a chave de API do Emissor Fiscal.')).toBeVisible()
     await form.getByLabel(/^Chave de API/).fill('ef_chave-do-tenant-demo-0001')
@@ -78,9 +79,11 @@ test.describe('Configurações → Integrações → Emissor fiscal (FIS-01)', (
     await dialog.getByLabel('Código do autenticador').fill('123456')
     await dialog.getByRole('button', { name: 'Salvar integração fiscal' }).click()
     await expect(page.getByRole('status').filter({ hasText: 'Integração fiscal salva' }).first()).toBeVisible()
-    expect(calls.filter((c) => c.method === 'PUT').at(-1)?.body).toMatchObject({ baseUrl: 'http://emissor-fiscal:8080', apiKey: 'ef_chave-do-tenant-demo-0001', code: '123456' })
+    expect(calls.filter((c) => c.method === 'PUT').at(-1)?.body).toMatchObject({ baseUrl: null, apiKey: 'ef_chave-do-tenant-demo-0001', code: '123456' })
 
     await expect(page.getByText('Aguardando o teste')).toBeVisible()
+    await expect(page.getByText('https://plataforma-homolog.bemaquiapp.com.br/webhooks/emissor-fiscal/AbCdEfGhIjKlMnOpQrStUv')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Copiar o endereço do aviso' })).toBeVisible()
     await expect(page.getByText('Configurada em', { exact: false }).first()).toBeVisible()
     await expect(page.getByText('ef_chave-do-tenant-demo-0001')).toHaveCount(0)
     await page.getByRole('button', { name: 'Testar conexão' }).click()

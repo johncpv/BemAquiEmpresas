@@ -9,7 +9,9 @@ namespace BemAqui.Fiscal.Application.Invoices;
 /// <summary>
 /// Provedor <c>emissor-fiscal</c> da FND-16 (FIS-01 CA 11, ADR 0031): HMAC-SHA256 com timestamp no formato do Emissor
 /// (<c>X-BemAqui-Signature: t=…,v1=…</c>, janela de 5 min), id da entrega em <c>X-BemAqui-Delivery-Id</c>, tipo em <c>X-BemAqui-Event</c>,
-/// fila <c>fiscal</c> e aceito também no host interno da API (o Emissor chama pela rede <c>bqe-fiscal</c>).
+/// fila <c>fiscal</c>. O Emissor entrega só em HTTPS pública: o aviso chega pelo stack-nginx, no host da plataforma (ADR 0027, adendo de
+/// 27/10/2026; ADR 0031 §1), como qualquer outro provedor. Responde 2xx só depois de gravar o evento e a mensagem do outbox; a entrega
+/// repetida (mesmo <c>X-BemAqui-Delivery-Id</c>, ou mesmo corpo) responde 200 sem gravar de novo.
 /// </summary>
 public static class EmissorFiscalWebhook
 {
@@ -27,7 +29,6 @@ public static class EmissorFiscalWebhook
         Queue = JobQueues.Fiscal,
         DeliveryIdHeader = "X-BemAqui-Delivery-Id",
         EventTypeHeader = "X-BemAqui-Event",
-        AllowInternalHost = true,
     };
 }
 

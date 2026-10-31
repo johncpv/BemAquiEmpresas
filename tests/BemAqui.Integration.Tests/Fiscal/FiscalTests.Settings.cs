@@ -23,7 +23,7 @@ public partial class FiscalTests(FiscalFixture fixture) : IClassFixture<FiscalFi
 
     private static async Task<JsonElement> JsonAsync(HttpResponseMessage response) => JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement;
 
-    private static object Body(string? code, string? apiKey = FiscalFixture.ApiKey, string? secret = FiscalFixture.WebhookSecret, string baseUrl = "http://emissor-fiscal:8080") =>
+    private static object Body(string? code, string? apiKey = FiscalFixture.ApiKey, string? secret = FiscalFixture.WebhookSecret, string? baseUrl = null) =>
         new { baseUrl, apiKey, webhookSecret = secret, code };
 
     private Task<(Guid Id, HttpClient Client, Func<Task<string>> Code)> OwnerWithTotpAsync() => fixture.OwnerWithTotpAsync(fixture.Tenancy.TenantA, FiscalFixture.HostA);
@@ -53,7 +53,9 @@ public partial class FiscalTests(FiscalFixture fixture) : IClassFixture<FiscalFi
         json.GetProperty("active").GetBoolean().Should().BeFalse("só liga depois de um teste aprovado");
         json.GetProperty("apiKeySetAt").ValueKind.Should().Be(JsonValueKind.String);
         json.GetProperty("webhookSecretSetAt").ValueKind.Should().Be(JsonValueKind.String);
-        json.GetProperty("webhookUrl").GetString().Should().Contain("/webhooks/emissor-fiscal/");
+        json.GetProperty("webhookUrl").GetString().Should().StartWith("https://plataforma.bemaquiapp.com.br/webhooks/emissor-fiscal/", "o aviso chega pela URL pública, pelo stack-nginx");
+        json.GetProperty("defaultBaseUrl").GetString().Should().Be("https://api.fiscal.bemaquiapp.com.br");
+        json.GetProperty("baseUrl").GetString().Should().Be("https://api.fiscal.bemaquiapp.com.br/", "o endereço vem da configuração");
 
         var get = await (await owner.GetAsync(Integration)).Content.ReadAsStringAsync();
         get.Should().NotContain(FiscalFixture.ApiKey).And.NotContain(FiscalFixture.WebhookSecret);
@@ -74,7 +76,11 @@ public partial class FiscalTests(FiscalFixture fixture) : IClassFixture<FiscalFi
     [InlineData("http://localhost:8080")]
     [InlineData("http://bqe-homolog-postgres:5432")]
     [InlineData("http://10.0.0.5:8080")]
-    public async Task URL_fora_da_lista_do_ambiente_e_recusada(string url)
+    [InlineData("http://emissor-fiscal:8080")]
+    [InlineData("http://api.fiscal.bemaquiapp.com.br")]
+    [InlineData("https://api.fiscal.bemaquiapp.com.br:8443")]
+    [InlineData("https://outro-emissor.exemplo.com.br")]
+    public async Task URL_diferente_da_configuracao_e_recusada(string url)
     {
         var (_, owner, code) = await OwnerWithTotpAsync();
 
@@ -274,6 +280,32 @@ public partial class FiscalTests(FiscalFixture fixture) : IClassFixture<FiscalFi
         {
             await fixture.SetModuleAsync(tenant, "fiscal", released: true);
         }
+    }
+
+    [Fact]
+    public async Task Integracao_salva_com_o_endereco_interno_antigo_so_volta_a_emitir_depois_do_teste_na_API_publica()
+    {
+        var tenant = fixture.Tenancy.TenantA;
+        await fixture.ConfigureAsync(tenant);
+        await fixture.WithAsync<int, IFiscalDb>(tenant, async db =>
+        {
+            var settings = await db.FiscalIntegrationSettings.SingleAsync();
+            settings.BaseUrl = "http://emissor-fiscal:8080/"; // como a FIS-01 1.0 gravava (rede bqe-fiscal)
+            return await db.SaveChangesAsync();
+        });
+
+        var before = await fixture.WithAsync<Result<IFiscalEmitter>, FiscalEmitterAccess>(tenant, a => a.CurrentAsync());
+        before.Error!.Code.Should().Be(FiscalErrorCodes.Inactive, "nenhuma chamada sai para o endereço antigo nem para o novo sem um teste aprovado");
+
+        var (_, owner) = await fixture.ActorAsync(tenant, FiscalFixture.HostA, owner: true);
+        var tested = await owner.PostAsync(Integration + "/test", null);
+        tested.StatusCode.Should().Be(HttpStatusCode.OK, await tested.Content.ReadAsStringAsync());
+        (await JsonAsync(tested)).GetProperty("ok").GetBoolean().Should().BeTrue();
+
+        (await fixture.FiscalAsync(tenant, db => db.FiscalIntegrationSettings.Select(s => s.BaseUrl).SingleAsync())).Should().Be("https://api.fiscal.bemaquiapp.com.br/");
+        var after = await fixture.WithAsync<Result<IFiscalEmitter>, FiscalEmitterAccess>(tenant, a => a.CurrentAsync());
+        after.IsSuccess.Should().BeTrue(after.Error?.Message);
+        fixture.Emitters.BaseUrls.Should().Contain(new Uri("https://api.fiscal.bemaquiapp.com.br/"));
     }
 
     [Fact]

@@ -129,6 +129,15 @@ public class HttpHardeningTests(TenancyFixture tenancy) : IClassFixture<TenancyF
 
         (await client.GetAsync("/api/v1/public/tenant-context")).StatusCode.Should().Be(HttpStatusCode.NotFound);
         (await client.GetAsync("/health/live")).StatusCode.Should().Be(HttpStatusCode.OK, "o healthcheck do Docker continua respondendo");
+
+        // Sem exceção para webhook (ADR 0027, adendo de 27/10/2026): o EmissorFiscal também chega só pelo stack-nginx.
+        foreach (var host in new[] { "plataforma.bemaquiapp.com.br", "bqe-homolog-api" })
+        {
+            var direct = strict.CreateClient();
+            direct.DefaultRequestHeaders.Host = host;
+            using var content = new StringContent("{}", System.Text.Encoding.UTF8, "application/json");
+            (await direct.PostAsync("/webhooks/emissor-fiscal/AbCdEfGhIjKlMnOpQrStUv", content)).StatusCode.Should().Be(HttpStatusCode.NotFound, host);
+        }
     }
 
     [Fact]

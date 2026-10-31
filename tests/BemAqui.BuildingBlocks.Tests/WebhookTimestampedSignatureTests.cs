@@ -42,6 +42,24 @@ public class WebhookTimestampedSignatureTests
     }
 
     [Fact]
+    public void Vetor_calculado_fora_confere_com_o_contrato_do_Emissor()
+    {
+        // HMAC-SHA256 em hex minúsculo de "{t}.{corpo cru}" com o segredo do cadastro do webhook (UTF-8), calculado com o openssl:
+        // printf '1785758400.{"tipo":"nfe.autorizada"}' | openssl dgst -sha256 -hmac 'segredo-do-cadastro-do-webhook'
+        const string expected = "45006553d644f5868c16c68a42097e5d4a4ee7aced22712f3f441d74b405fb5d";
+        var body = Encoding.UTF8.GetBytes("{\"tipo\":\"nfe.autorizada\"}");
+        var keys = new WebhookKeys(Encoding.UTF8.GetBytes("segredo-do-cadastro-do-webhook"), null, null);
+        var at = DateTimeOffset.FromUnixTimeSeconds(1785758400).AddMinutes(4);
+
+        TimestampedSignatureValidator.Sign("1785758400", body, keys.Current!).Should().Be("t=1785758400,v1=" + expected);
+        Validator.Validate(Request("t=1785758400,v1=" + expected, "1785758400", body), keys, at).Should().Be(WebhookOriginMatch.Current);
+        Validator.Validate(Request("t=1785758400, v1=" + new string('0', 64) + ", v1=" + expected, "1785758400", body), keys, at)
+            .Should().Be(WebhookOriginMatch.Current, "confere contra cada v1, com espaço depois da vírgula");
+        Validator.Validate(Request("t=1785758400,v1=" + expected, "1785758400", body), keys, at.AddMinutes(2))
+            .Should().Be(WebhookOriginMatch.Invalid, "6 min depois do t");
+    }
+
+    [Fact]
     public void Timestamp_fora_da_janela_de_5_minutos_e_recusado_mesmo_com_assinatura_certa()
     {
         var old = Ts(Now.AddMinutes(-6));

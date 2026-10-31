@@ -27,11 +27,11 @@ import { IntegrationsNav } from './IntegrationsNav'
 const primary = 'min-h-[44px] rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60'
 const secondary = 'min-h-[44px] rounded-md border border-border bg-card px-3 py-2 text-sm font-semibold disabled:opacity-60'
 
-const schema = z.object({ baseUrl: z.string().trim().min(1, 'Informe o endereço interno do Emissor Fiscal.'), apiKey: z.string(), webhookSecret: z.string() })
+const schema = z.object({ apiKey: z.string(), webhookSecret: z.string() })
 type Values = z.input<typeof schema>
 
 /**
- * Configurações → Integrações → Emissor fiscal (FIS-01 CA 7 a 10 e 18): Conexão (URL, chave e segredo do aviso só de escrita), Emitente e
+ * Configurações → Integrações → Emissor fiscal (FIS-01 CA 7 a 10 e 18): Conexão (endereço fixo do sistema, chave e segredo do aviso só de escrita), Emitente e
  * ambiente (do último teste) e Situação. Salvar pede o código do autenticador (2FA de novo); "Testar conexão" confere escopos, CNPJ e
  * ambiente; aprovado, o próximo passo é configurar o fiscal da empresa. Sem settings.edit, só leitura.
  */
@@ -55,7 +55,7 @@ function FiscalIntegration() {
   return (
     <>
       <PageHeading title="Integrações: Emissor fiscal">
-        <p className="mt-2 text-muted-foreground">O BemAqui emite as notas pelo Emissor Fiscal, na rede interna. Aqui ficam o endereço, a chave e o segredo do aviso.</p>
+        <p className="mt-2 text-muted-foreground">O BemAqui emite as notas pelo Emissor Fiscal, pela internet em conexão segura. Aqui ficam a chave, o segredo e o endereço do aviso.</p>
       </PageHeading>
       <SettingsTabs />
       <IntegrationsNav />
@@ -122,14 +122,14 @@ function Summary({ view, canEdit, test, onEdit, onTested }: { view: FiscalIntegr
           <StatusChip tone={status.tone}>{status.label}</StatusChip>
         </div>
         <dl className="grid grid-cols-1 gap-x-4 gap-y-1 text-sm sm:grid-cols-[auto_1fr]">
-          <Row label="Endereço">{view.baseUrl}</Row>
+          <Row label="Endereço do Emissor" dica={HINTS.baseUrl}><code className="break-all text-xs">{view.defaultBaseUrl}</code></Row>
           <Row label="Chave de API">{view.apiKeySetAt ? <span className="tabular-nums">Configurada em {formatInstantDate(view.apiKeySetAt)}</span> : '—'}</Row>
           <Row label="Segredo do aviso" dica={HINTS.webhookSecret}>
             {view.webhookSecretSetAt ? <span className="tabular-nums">Configurado em {formatInstantDate(view.webhookSecretSetAt)}</span> : '—'}
             {view.webhookPreviousValidUntil ? <span className="block text-xs text-muted-foreground tabular-nums">O anterior vale até {formatDateTime(view.webhookPreviousValidUntil)}</span> : null}
           </Row>
           {view.webhookUrl ? (
-            <Row label="Endereço do aviso">
+            <Row label="Endereço do aviso" dica={HINTS.webhookUrl}>
               <span className="flex items-start gap-1">
                 <code className="min-w-0 break-all text-xs">{view.webhookUrl}</code>
                 <button type="button" aria-label="Copiar o endereço do aviso" onClick={() => { void navigator.clipboard?.writeText(view.webhookUrl!); notifySuccess('Copiado') }}
@@ -179,7 +179,7 @@ function Summary({ view, canEdit, test, onEdit, onTested }: { view: FiscalIntegr
 }
 
 function ConnectionForm({ view, onCancel, onSaved }: { view: FiscalIntegrationView; onCancel: () => void; onSaved: () => Promise<unknown> }) {
-  const form = useZodForm(schema, { defaultValues: { baseUrl: view.baseUrl?.replace(/\/$/, '') ?? view.defaultBaseUrl, apiKey: '', webhookSecret: '' } })
+  const form = useZodForm(schema, { defaultValues: { apiKey: '', webhookSecret: '' } })
   const [replaceKey, setReplaceKey] = useState(!view.configured)
   const [replaceSecret, setReplaceSecret] = useState(!view.configured)
   const [confirming, setConfirming] = useState(false)
@@ -201,7 +201,7 @@ function ConnectionForm({ view, onCancel, onSaved }: { view: FiscalIntegrationVi
 
     const v = form.getValues()
     await saveFiscalIntegration({
-      baseUrl: v.baseUrl.trim(),
+      baseUrl: null, // o endereço é o do sistema (configuração); a tela não troca
       apiKey: replaceKey ? v.apiKey.trim() : null,
       webhookSecret: replaceSecret ? v.webhookSecret.trim() : null,
       code: code.trim(),
@@ -212,9 +212,11 @@ function ConnectionForm({ view, onCancel, onSaved }: { view: FiscalIntegrationVi
   return (
     <form onSubmit={open} noValidate aria-label="Conexão com o Emissor Fiscal" className="space-y-4 rounded-md border border-border bg-card p-5">
       <FormError message={form.formState.errors.root?.server?.message} />
-      <Field label="Endereço interno do Emissor Fiscal" required error={form.formState.errors.baseUrl?.message} hint={`O serviço na rede dedicada, por exemplo ${view.defaultBaseUrl}.`}>
-        {(p) => <input {...p} {...form.register('baseUrl')} inputMode="url" autoComplete="off" spellCheck={false} className={inputClass} />}
-      </Field>
+      <div className="space-y-1 text-sm">
+        <p className="flex items-center font-medium">Endereço do Emissor Fiscal<Dica texto={HINTS.baseUrl} nome="Endereço do Emissor Fiscal" /></p>
+        <p><code className="break-all text-xs">{view.defaultBaseUrl}</code></p>
+        <p className="text-xs text-muted-foreground">Definido pelo sistema, o mesmo para homologação e produção.</p>
+      </div>
       {replaceKey ? (
         <Field label="Chave de API" required error={form.formState.errors.apiKey?.message} hint={HINTS.apiKey} dica={HINTS.admin}>
           {(p) => <input {...p} type="password" autoComplete="new-password" spellCheck={false} {...form.register('apiKey')} className={inputClass} />}

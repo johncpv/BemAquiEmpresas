@@ -12,7 +12,7 @@
 - **Continua valendo:** SEFAZ e Inter em produção **só na GOL-01b**. Até lá, homologação SEFAZ e sandbox do Inter no tenant `demo`; nada fiscal ou bancário real no `konebras` (ADRs 0027 e 0032). O rótulo "provisório" do faturamento por título continua até existirem notas reais.
 
 ### 2. Ambiente de produção novo
-- A produção nasce num **ambiente novo** (`/opt/projetos/bemaqui-empresas/`, nomes `bqe-prod-*`, endurecimento da ADR 0015, rede `bqe-fiscal` com o EmissorFiscal de produção):
+- A produção nasce num **ambiente novo** (`/opt/projetos/bemaqui-empresas/`, nomes `bqe-prod-*`, endurecimento da ADR 0015; o EmissorFiscal é o mesmo SaaS, pela API pública, ADR 0027 adendo de 27/10/2026):
   - **catálogo novo, só com o tenant `konebras`** (o `demo` e os outros tenants de teste ficam na homologação);
   - **key ring e certificado do Data Protection novos**; os segredos do tenant (conexão, SMTP, TOTP, chave de IA) são **recifrados** do key ring da homologação para o novo por ferramenta do runbook (a recifração da FND-10b), no ensaio e na virada; os segredos de sandbox (Inter, EmissorFiscal de homologação, webhooks) **não** são migrados, são trocados;
   - **conexão do tenant cifrada de novo**, com usuário e senha do PostgreSQL novos;

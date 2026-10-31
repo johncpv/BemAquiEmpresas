@@ -49,8 +49,7 @@ public sealed class PlatformHostOptions
 public sealed class TenantResolutionMiddleware(
     RequestDelegate next,
     ITenantResolver resolver,
-    Microsoft.Extensions.Options.IOptions<PlatformHostOptions> platform,
-    Microsoft.Extensions.Options.IOptions<BemAqui.BuildingBlocks.Webhooks.WebhookOptions> webhooks)
+    Microsoft.Extensions.Options.IOptions<PlatformHostOptions> platform)
 {
     private const string PublicContextPath = "/api/v1/public/tenant-context";
 
@@ -68,11 +67,10 @@ public sealed class TenantResolutionMiddleware(
         var host = TenantDomain.Normalize(context.Request.Host.Host);
 
         // Webhooks (FND-16 CA 1, ADR 0031 §1): fora do tenant por host e fora da allowlist de IP do painel; só no host da plataforma
-        // ou no host interno da API. O tenant vem do tenantKey no endpoint; em host de tenant a rota não existe.
+        // (o EmissorFiscal também, pela URL pública: ADR 0027, adendo de 27/10/2026). O tenant vem do tenantKey no endpoint; em host de tenant a rota não existe.
         if (context.Request.Path.StartsWithSegments(BemAqui.BuildingBlocks.Webhooks.WebhookEndpoints.PathPrefix, StringComparison.OrdinalIgnoreCase))
         {
-            if (string.Equals(host, TenantDomain.Normalize(platform.Value.Host), StringComparison.Ordinal)
-                || webhooks.Value.InternalHosts.Any(h => string.Equals(TenantDomain.Normalize(h), host, StringComparison.Ordinal)))
+            if (string.Equals(host, TenantDomain.Normalize(platform.Value.Host), StringComparison.Ordinal))
             {
                 await next(context);
                 return;

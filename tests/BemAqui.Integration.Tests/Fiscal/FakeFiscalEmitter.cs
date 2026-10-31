@@ -279,11 +279,15 @@ public sealed class FakeFiscalEmitterFactory : IFiscalEmitterFactory
 {
     public ConcurrentDictionary<Guid, FakeFiscalEmitter> ByTenant { get; } = new();
 
+    /// <summary>Endereços com que o adaptador foi criado (o da configuração, ADR 0027 adendo de 27/10/2026).</summary>
+    public ConcurrentQueue<Uri> BaseUrls { get; } = new();
+
     public FakeFiscalEmitter Of(Guid tenantId) => ByTenant.GetOrAdd(tenantId, _ => new FakeFiscalEmitter());
 
     public IFiscalEmitter Create(FiscalEmitterConnection connection)
     {
         ArgumentNullException.ThrowIfNull(connection);
+        BaseUrls.Enqueue(connection.BaseUrl);
         return Of(connection.TenantId).For(connection.ApiKey.Reveal());
     }
 }

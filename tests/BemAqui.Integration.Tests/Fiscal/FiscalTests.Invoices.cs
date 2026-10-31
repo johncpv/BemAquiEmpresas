@@ -203,8 +203,36 @@ public partial class FiscalTests
         (await fixture.PostWebhookAsync(tenant, body, "nfe.autorizada", secret: "segredo-errado-do-webhook-000000")).Response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
         (await fixture.PostWebhookAsync(tenant, body, "nfe.autorizada", at: DateTimeOffset.UtcNow.AddMinutes(-6))).Response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
         (await fixture.PostWebhookAsync(tenant, body, "nfe.autorizada", host: FiscalFixture.HostA)).Response.StatusCode.Should().Be(HttpStatusCode.NotFound, "no host do tenant a rota não existe");
+        (await fixture.PostWebhookAsync(tenant, body, "nfe.autorizada", host: "bqe-homolog-api")).Response.StatusCode.Should().Be(HttpStatusCode.NotFound, "sem rede privada: o host interno da API não recebe aviso");
+        (await fixture.PostWebhookAsync(tenant, body, "nfe.autorizada", at: DateTimeOffset.UtcNow.AddMinutes(6))).Response.StatusCode.Should().Be(HttpStatusCode.Unauthorized, "t no futuro também fica fora da janela");
 
         (await fixture.QueryAsync(tenant, db => db.WebhookEvents.CountAsync(e => e.Provider == EmissorFiscalWebhook.ProviderCode))).Should().Be(before);
+    }
+
+    [Fact]
+    public async Task Retentativa_com_o_mesmo_Delivery_Id_responde_2xx_sem_gravar_de_novo_e_dois_v1_na_rotacao_passam()
+    {
+        var tenant = fixture.Tenancy.TenantA;
+        var (_, _, doc) = await PendingAsync();
+        var body = fixture.Fake(tenant).WebhookBody(doc, "nfe.autorizada");
+        Task<int> CountAsync(string delivery) => fixture.QueryAsync(tenant, db => db.WebhookEvents.CountAsync(e => e.Provider == EmissorFiscalWebhook.ProviderCode && e.ExternalId == delivery));
+
+        var (first, delivery) = await fixture.PostWebhookAsync(tenant, body, "nfe.autorizada");
+        first.StatusCode.Should().Be(HttpStatusCode.Accepted, "2xx só depois de gravar o evento e a mensagem do outbox");
+        (await CountAsync(delivery)).Should().Be(1);
+
+        // O Emissor reentrega com t novo (o da tentativa) e o mesmo Delivery-Id: 2xx para ele parar, sem segundo evento.
+        var (again, _) = await fixture.PostWebhookAsync(tenant, body, "nfe.autorizada", at: DateTimeOffset.UtcNow.AddSeconds(30), delivery: delivery);
+        again.StatusCode.Should().Be(HttpStatusCode.OK);
+        (await CountAsync(delivery)).Should().Be(1);
+
+        // Na troca do segredo no Emissor vêm dois v1 por 24 h (o antigo e o novo); basta um conferir, em qualquer posição.
+        var other = fixture.Fake(tenant).WebhookBody(doc with { DocumentId = Guid.CreateVersion7() }, "nfe.autorizada");
+        string TwoSignatures(string b, long ts) =>
+            FakeEmissorServer.Sign("segredo-novo-que-o-bemaqui-ainda-nao-tem", b, ts) + "," + FakeEmissorServer.Sign(FiscalFixture.WebhookSecret, b, ts).Split(',')[1];
+        var (rotated, rotatedDelivery) = await fixture.PostWebhookAsync(tenant, other, "nfe.autorizada", signature: TwoSignatures);
+        rotated.StatusCode.Should().Be(HttpStatusCode.Accepted);
+        (await CountAsync(rotatedDelivery)).Should().Be(1);
     }
 
     [Fact]

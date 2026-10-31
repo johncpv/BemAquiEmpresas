@@ -951,7 +951,7 @@ As 2 stories tiveram **10/10 e `Ready (pré-condição externa)`**: a trilha ext
 
 ## Pré-condições do planejamento (fora das stories)
 1. **Trilha externa da D2**, aberta já, com dono e data para cada item: P-01, P-02 e P-03 com a contadora; certificado A1 e conta Inter com API (P-08) com a Konebras; EmissorFiscal implantado em homologação (`demo`).
-2. **Lacunas do EmissorFiscal** (D3, P-27), no repositório dele: reconciliação com a SEFAZ, DANFE em PDF, `transp`, IBS/CBS, escopo `nfe:eventos`, timestamp no HMAC, rede `bqe-fiscal` e as demais da ADR 0027; provider da NFS-e de Caçapava antes da FIS-06.
+2. **Lacunas do EmissorFiscal** (D3, P-27), no repositório dele: reconciliação com a SEFAZ, DANFE em PDF, `transp`, IBS/CBS, escopo `nfe:eventos`, timestamp no HMAC e as demais (a rede `bqe-fiscal` saiu no adendo de 27/10/2026 da ADR 0027: o Emissor é falado pela API pública) da ADR 0027; provider da NFS-e de Caçapava antes da FIS-06.
 3. **PR de reforço do código no ar (D19):** `KnownProxies` só com o IP do `stack-nginx`; apagar o modelo do e-mail de convite e de redefinição depois do envio; teste de arquitetura da lista versionada de rotas anônimas; idempotência com o usuário no escopo (D17 c da Fase 3) e expurgo de 30 dias da `idempotency_records`.
 4. **Protótipos antes dos marcos (D18):** nota de saída (rascunho, emissão, rejeitada) e conciliação antes do Marco 5.4; kit Portal antes da Fase 8.
 5. **Riscos de migração (§4.2):** `payables.party_id` anulável é expansão (código N-1 tolerante); conferir linhas em `kiosk_tokens` antes de trocar a rota da TV; `commercial.projects.priority` e `planned_*` das OS de fabricação só são apagados com ADR, na contração; expurgos e anonimização apagam dado de propósito (ADRs 0031 e 0037).

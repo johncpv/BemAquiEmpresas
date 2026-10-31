@@ -10,7 +10,7 @@ using Microsoft.Extensions.Options;
 namespace BemAqui.Fiscal.Application;
 
 /// <summary>
-/// O <see cref="IFiscalEmitter"/> do tenant do escopo (CA 2, 7 e 9): a integração salva, ativa (teste aprovado) e com o ambiente dentro
+/// O <see cref="IFiscalEmitter"/> do tenant do escopo (CA 2, 7 e 9): a integração salva, ativa (teste aprovado no endereço da configuração) e com o ambiente dentro
 /// do permitido no catálogo (<c>fiscal_environment_allowed</c>). A chave é decifrada aqui, no momento do uso, e só vive na memória.
 /// </summary>
 public sealed class FiscalEmitterAccess(IFiscalDb db, ISecretProtector secrets, ITenantContext tenant, ITenantProfile profile, IFiscalEmitterFactory factory, IOptions<FiscalIntegrationOptions> options)
@@ -39,10 +39,17 @@ public sealed class FiscalEmitterAccess(IFiscalDb db, ISecretProtector secrets, 
             return Error.Forbidden(FiscalErrorCodes.EnvironmentNotAllowed, EnvironmentMessage);
         }
 
-        var url = FiscalBaseUrl.Validate(settings.BaseUrl, options.Value);
+        // O endereço é sempre o da configuração (ADR 0027, adendo de 27/10/2026). Salvo com outro (o antigo da rede interna, ou a
+        // configuração mudou), a integração só volta a emitir depois de um "Testar conexão" aprovado no endereço novo.
+        var url = FiscalBaseUrl.Configured(options.Value);
         if (url.IsFailure)
         {
             return url.Error!;
+        }
+
+        if (requireActive && !SameUrl(settings.BaseUrl, url.Value))
+        {
+            return Error.Conflict(FiscalErrorCodes.Inactive, InactiveMessage);
         }
 
         return Result<IFiscalEmitter>.Success(Create(url.Value, Decrypt(settings.ApiKeyCipher)));
@@ -50,6 +57,10 @@ public sealed class FiscalEmitterAccess(IFiscalDb db, ISecretProtector secrets, 
 
     /// <summary>Emissor de uma chave ainda não salva (teste da chave nova antes da troca, CA 10).</summary>
     public IFiscalEmitter Create(Uri baseUrl, Secret apiKey) => factory.Create(new FiscalEmitterConnection(baseUrl, apiKey, TenantId()));
+
+    /// <summary>O endereço salvo é o da configuração?</summary>
+    public static bool SameUrl(string? saved, Uri configured) =>
+        Uri.TryCreate(saved, UriKind.Absolute, out var uri) && uri == configured;
 
     public Secret Decrypt(string cipher) => secrets.Unprotect(SecretScope.ForTenant(TenantId()), SecretKind.FiscalApiKey, cipher);
 
