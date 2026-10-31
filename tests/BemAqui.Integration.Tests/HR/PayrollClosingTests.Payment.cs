@@ -138,9 +138,9 @@ public partial class PayrollClosingTests
         (await JsonAsync(await owner.Client.GetAsync($"{Runs}/{run}"))).GetProperty("status").GetString().Should().Be("Paid");
         (await DbAsync(db => OutboxCountAsync(db, nameof(PaymentOrderPaid), secondId))).Should().Be(1);
 
-        // Estorno: PaymentOrderReversed e a folha volta a fechada.
+        // Estorno (com finance.approve, BNK-02 CA 15): PaymentOrderReversed e a folha volta a fechada.
         var current = await JsonAsync(await payer.Client.GetAsync($"{Orders}/{secondId}"));
-        var reversed = await payer.Client.PostAsJsonAsync($"{Orders}/{secondId}/reverse", new { reason = "Pagamento em duplicidade", version = current.GetProperty("version").GetUInt32() });
+        var reversed = await owner.Client.PostAsJsonAsync($"{Orders}/{secondId}/reverse", new { reason = "Pagamento em duplicidade", version = current.GetProperty("version").GetUInt32() });
         reversed.StatusCode.Should().Be(HttpStatusCode.OK, await reversed.Content.ReadAsStringAsync());
         (await DbAsync(db => OutboxCountAsync(db, nameof(PaymentOrderReversed), secondId))).Should().Be(1);
         await ReconcileAsync();
