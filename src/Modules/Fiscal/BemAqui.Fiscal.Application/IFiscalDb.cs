@@ -18,6 +18,9 @@ public interface IFiscalDb
 
     DbSet<CertificateUpload> CertificateUploads { get; }
 
+    /// <summary>Regras fiscais por operação, uma linha por versão (FIS-02b).</summary>
+    DbSet<TaxRule> TaxRules { get; }
+
     ChangeTracker ChangeTracker { get; }
 
     /// <summary>Trava da nota na conferência de pendentes (<c>FOR UPDATE SKIP LOCKED</c>, CA 14).</summary>

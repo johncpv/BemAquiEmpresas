@@ -113,6 +113,10 @@ public static class AuthRateLimiting
             o.AddPolicy(BemAqui.Fiscal.Application.Certificates.FiscalCertificateService.RateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
                 "fiscal-certificate|" + TenantKey(http),
                 _ => new FixedWindowRateLimiterOptions { PermitLimit = Math.Max(1, fiscal.CertificateUploadsPerHour), Window = TimeSpan.FromHours(1), QueueLimit = 0 }));
+            // "Simular" das regras fiscais (FIS-02b CA 10): 30 por minuto por usuário dentro do tenant; nada é gravado nem vai ao Emissor.
+            o.AddPolicy(BemAqui.Fiscal.Application.TaxRules.TaxSimulationService.RateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
+                "fiscal-simulate|" + TenantKey(http) + "|" + (http.RequestServices.GetService<ICurrentUser>()?.UserId?.ToString() ?? http.Connection.RemoteIpAddress?.ToString() ?? "-"),
+                _ => new FixedWindowRateLimiterOptions { PermitLimit = Math.Max(1, fiscal.SimulationsPerMinute), Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
             o.OnRejected = async (context, cancellationToken) =>
             {
                 var retryAfter = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var wait) ? wait : TimeSpan.FromMinutes(1);

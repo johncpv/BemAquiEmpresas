@@ -43,6 +43,7 @@ internal static class FiscalEndpoints
             .WithName("TestFiscalIntegration").Produces<FiscalConnectionTest>();
 
         api.MapFiscalSettingsEndpoints();
+        api.MapFiscalTaxRuleEndpoints();
         return api;
     }
 }

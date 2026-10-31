@@ -28549,6 +28549,333 @@
         }
       }
     },
+    "/api/v1/fiscal/tax-rules": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "ListTaxRules",
+        "parameters": [
+          {
+            "name": "filter",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaxRuleList"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "CreateTaxRule",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaxRuleValues"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaxRuleView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/tax-rules/simulate": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "SimulateTaxes",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimulateTaxRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaxSimulationView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/tax-rules/{id}": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "GetTaxRule",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaxRuleView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "UpdateTaxRule",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaxRuleValues"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaxRuleView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/tax-rules/{id}/versions/{versionId}": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "GetTaxRuleVersion",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "versionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaxRuleView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/tax-rules/{id}/versions/{versionId}/activate": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "ActivateTaxRule",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "versionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaxRuleView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/tax-rules/{id}/versions/{versionId}/deactivate": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "DeactivateTaxRule",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "versionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeactivateTaxRuleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaxRuleView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/tax-rules/{id}/versions/{versionId}/confirm": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "ConfirmTaxRule",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "versionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaxRuleView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/settings/import-runs": {
       "get": {
         "tags": [
@@ -38242,6 +38569,18 @@
           }
         }
       },
+      "DeactivateTaxRuleRequest": {
+        "required": [
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
       "DecisionInput": {
         "required": [
           "comment",
@@ -38476,6 +38815,18 @@
         "properties": {
           "theme": {
             "$ref": "#/components/schemas/DeviceTheme"
+          }
+        }
+      },
+      "DifalParameters": {
+        "required": [
+          "destinationInternalRate"
+        ],
+        "type": "object",
+        "properties": {
+          "destinationInternalRate": {
+            "type": "number",
+            "format": "double"
           }
         }
       },
@@ -41465,6 +41816,18 @@
           },
           "factory": {
             "$ref": "#/components/schemas/FactoryLoadRow"
+          }
+        }
+      },
+      "FcpParameters": {
+        "required": [
+          "rate"
+        ],
+        "type": "object",
+        "properties": {
+          "rate": {
+            "type": "number",
+            "format": "double"
           }
         }
       },
@@ -44941,6 +45304,104 @@
           }
         }
       },
+      "IbsCbsParameters": {
+        "required": [
+          "cst",
+          "classification",
+          "cbsRate",
+          "ibsStateRate",
+          "ibsCityRate"
+        ],
+        "type": "object",
+        "properties": {
+          "cst": {
+            "type": "string"
+          },
+          "classification": {
+            "type": "string"
+          },
+          "cbsRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "ibsStateRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "ibsCityRate": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "IcmsParameters": {
+        "required": [
+          "cst",
+          "baseModality",
+          "internalRate",
+          "interstateSouthSoutheastRate",
+          "interstateOtherRate",
+          "importedRate",
+          "baseReduction"
+        ],
+        "type": "object",
+        "properties": {
+          "cst": {
+            "type": "string"
+          },
+          "baseModality": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "internalRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "interstateSouthSoutheastRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "interstateOtherRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "importedRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "baseReduction": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "IcmsStParameters": {
+        "required": [
+          "baseModality",
+          "mva",
+          "internalRate",
+          "baseReduction"
+        ],
+        "type": "object",
+        "properties": {
+          "baseModality": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mva": {
+            "type": "number",
+            "format": "double"
+          },
+          "internalRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "baseReduction": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "IFormFile": {
         "type": "string",
         "format": "binary"
@@ -46597,11 +47058,59 @@
           }
         }
       },
+      "IpiParameters": {
+        "required": [
+          "cst",
+          "framework",
+          "fromNcm",
+          "rate"
+        ],
+        "type": "object",
+        "properties": {
+          "cst": {
+            "type": "string"
+          },
+          "framework": {
+            "type": "string"
+          },
+          "fromNcm": {
+            "type": "boolean"
+          },
+          "rate": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "IssLocation": {
         "enum": [
           "WorkSite",
           "Company"
         ]
+      },
+      "IssParameters": {
+        "required": [
+          "serviceItem",
+          "rate",
+          "location",
+          "withheld"
+        ],
+        "type": "object",
+        "properties": {
+          "serviceItem": {
+            "type": "string"
+          },
+          "rate": {
+            "type": "number",
+            "format": "double"
+          },
+          "location": {
+            "$ref": "#/components/schemas/IssLocation"
+          },
+          "withheld": {
+            "type": "boolean"
+          }
+        }
       },
       "ItemDetail": {
         "required": [
@@ -57474,6 +57983,22 @@
           }
         }
       },
+      "PisCofinsParameters": {
+        "required": [
+          "cst",
+          "rate"
+        ],
+        "type": "object",
+        "properties": {
+          "cst": {
+            "type": "string"
+          },
+          "rate": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "PixKeyType": {
         "enum": [
           "Cpf",
@@ -65507,6 +66032,13 @@
         },
         "additionalProperties": false
       },
+      "RecipientType": {
+        "enum": [
+          "Contributor",
+          "Exempt",
+          "NonContributor"
+        ]
+      },
       "RecountInput": {
         "required": [
           "lineIds",
@@ -71434,6 +71966,51 @@
           }
         }
       },
+      "SimulateTaxRequest": {
+        "required": [
+          "operation",
+          "recipientState",
+          "recipientType",
+          "finalConsumer",
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "operation": {
+            "$ref": "#/components/schemas/TaxOperation"
+          },
+          "recipientState": {
+            "type": "string"
+          },
+          "recipientType": {
+            "$ref": "#/components/schemas/RecipientType"
+          },
+          "finalConsumer": {
+            "type": "boolean"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaxItem"
+            }
+          },
+          "issueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "ruleVersionId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
       "SnapshotCost": {
         "required": [
           "costType",
@@ -73778,6 +74355,280 @@
           }
         }
       },
+      "TaxCalculation": {
+        "required": [
+          "items",
+          "products",
+          "discount",
+          "freight",
+          "otherExpenses",
+          "totals",
+          "invoiceTotal",
+          "projectCost",
+          "blocks"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaxItemResult"
+            }
+          },
+          "products": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double"
+          },
+          "freight": {
+            "type": "number",
+            "format": "double"
+          },
+          "otherExpenses": {
+            "type": "number",
+            "format": "double"
+          },
+          "totals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaxTotal"
+            }
+          },
+          "invoiceTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "projectCost": {
+            "type": "number",
+            "format": "double"
+          },
+          "blocks": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "TaxItem": {
+        "required": [
+          "description",
+          "ncm",
+          "origin",
+          "cest",
+          "quantity",
+          "unitPrice"
+        ],
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ncm": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "origin": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cest": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double",
+            "default": 0
+          },
+          "freight": {
+            "type": "number",
+            "format": "double",
+            "default": 0
+          },
+          "otherExpenses": {
+            "type": "number",
+            "format": "double",
+            "default": 0
+          },
+          "ipiRate": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "TaxItemResult": {
+        "required": [
+          "index",
+          "description",
+          "ncm",
+          "ruleId",
+          "ruleVersionId",
+          "ruleVersion",
+          "ruleName",
+          "cfop",
+          "quantity",
+          "unitPrice",
+          "grossAmount",
+          "discount",
+          "freight",
+          "otherExpenses",
+          "taxes",
+          "itemTotal",
+          "projectCost"
+        ],
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ncm": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ruleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ruleVersionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ruleVersion": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ruleName": {
+            "type": "string"
+          },
+          "cfop": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "grossAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double"
+          },
+          "freight": {
+            "type": "number",
+            "format": "double"
+          },
+          "otherExpenses": {
+            "type": "number",
+            "format": "double"
+          },
+          "taxes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaxLine"
+            }
+          },
+          "itemTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "projectCost": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "TaxLine": {
+        "required": [
+          "code",
+          "cst",
+          "base",
+          "rate",
+          "amount",
+          "inProjectCost",
+          "inInvoiceTotal"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "cst": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "base": {
+            "type": "number",
+            "format": "double"
+          },
+          "rate": {
+            "type": "number",
+            "format": "double"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "inProjectCost": {
+            "type": "boolean"
+          },
+          "inInvoiceTotal": {
+            "type": "boolean"
+          }
+        }
+      },
+      "TaxOperation": {
+        "enum": [
+          "OwnProductionSale",
+          "Resale",
+          "ServiceProvision",
+          "ShipmentToSite",
+          "ReturnFromSite",
+          "PurchaseReturn",
+          "OtherOutbound"
+        ]
+      },
       "TaxRegime": {
         "enum": [
           "NotInformed",
@@ -73787,6 +74638,568 @@
           "LucroReal",
           "Exempt"
         ]
+      },
+      "TaxRuleConditions": {
+        "required": [
+          "states",
+          "recipientTypes",
+          "ncmPrefixes"
+        ],
+        "type": "object",
+        "properties": {
+          "states": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "recipientTypes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecipientType"
+            }
+          },
+          "ncmPrefixes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "TaxRuleList": {
+        "required": [
+          "rules",
+          "toConfirm",
+          "toReview",
+          "active",
+          "seedDraftsOnly",
+          "canEdit",
+          "canApprove"
+        ],
+        "type": "object",
+        "properties": {
+          "rules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaxRuleSummary"
+            }
+          },
+          "toConfirm": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "toReview": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "active": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "seedDraftsOnly": {
+            "type": "boolean"
+          },
+          "canEdit": {
+            "type": "boolean"
+          },
+          "canApprove": {
+            "type": "boolean"
+          }
+        }
+      },
+      "TaxRuleStatus": {
+        "enum": [
+          "Draft",
+          "Active",
+          "Inactive"
+        ]
+      },
+      "TaxRuleSummary": {
+        "required": [
+          "ruleId",
+          "versionId",
+          "ruleVersion",
+          "operation",
+          "name",
+          "status",
+          "validFrom",
+          "validTo",
+          "cfopInternal",
+          "cfopInterstate",
+          "reviewState",
+          "needsReview",
+          "difal",
+          "activatedByName",
+          "activatedAt",
+          "isSeed",
+          "draftVersionId",
+          "draftVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "ruleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "versionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ruleVersion": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "operation": {
+            "$ref": "#/components/schemas/TaxOperation"
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TaxRuleStatus"
+          },
+          "validFrom": {
+            "type": "string",
+            "format": "date"
+          },
+          "validTo": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "cfopInternal": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cfopInterstate": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reviewState": {
+            "$ref": "#/components/schemas/FiscalReviewState"
+          },
+          "needsReview": {
+            "type": "boolean"
+          },
+          "difal": {
+            "type": "boolean"
+          },
+          "activatedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "activatedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "isSeed": {
+            "type": "boolean"
+          },
+          "draftVersionId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "draftVersion": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "TaxRuleValues": {
+        "required": [
+          "operation",
+          "name",
+          "natureOfOperation",
+          "validFrom",
+          "validTo",
+          "cfopInternal",
+          "cfopInterstate",
+          "icms",
+          "icmsSt",
+          "fcp",
+          "ipi",
+          "pis",
+          "cofins",
+          "iss",
+          "ibsCbs",
+          "difal",
+          "costTaxes",
+          "complementaryInfo",
+          "conditions"
+        ],
+        "type": "object",
+        "properties": {
+          "operation": {
+            "$ref": "#/components/schemas/TaxOperation"
+          },
+          "name": {
+            "type": "string"
+          },
+          "natureOfOperation": {
+            "type": "string"
+          },
+          "validFrom": {
+            "type": "string",
+            "format": "date"
+          },
+          "validTo": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "cfopInternal": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cfopInterstate": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "icms": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/IcmsParameters"
+              }
+            ]
+          },
+          "icmsSt": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/IcmsStParameters"
+              }
+            ]
+          },
+          "fcp": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/FcpParameters"
+              }
+            ]
+          },
+          "ipi": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/IpiParameters"
+              }
+            ]
+          },
+          "pis": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PisCofinsParameters"
+              }
+            ]
+          },
+          "cofins": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PisCofinsParameters"
+              }
+            ]
+          },
+          "iss": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/IssParameters"
+              }
+            ]
+          },
+          "ibsCbs": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/IbsCbsParameters"
+              }
+            ]
+          },
+          "difal": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/DifalParameters"
+              }
+            ]
+          },
+          "costTaxes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "complementaryInfo": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "conditions": {
+            "$ref": "#/components/schemas/TaxRuleConditions"
+          }
+        },
+        "additionalProperties": false
+      },
+      "TaxRuleVersionSummary": {
+        "required": [
+          "versionId",
+          "ruleVersion",
+          "status",
+          "reviewState",
+          "updatedAt",
+          "activatedByName",
+          "activatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "versionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ruleVersion": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TaxRuleStatus"
+          },
+          "reviewState": {
+            "$ref": "#/components/schemas/FiscalReviewState"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "activatedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "activatedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "TaxRuleView": {
+        "required": [
+          "ruleId",
+          "versionId",
+          "ruleVersion",
+          "status",
+          "values",
+          "crtScope",
+          "reviewState",
+          "confirmedByName",
+          "confirmedAt",
+          "activatedByName",
+          "activatedAt",
+          "selfActivated",
+          "deactivationReason",
+          "needsReview",
+          "isSeed",
+          "systemAuthored",
+          "versions",
+          "canEdit",
+          "canApprove",
+          "activateBlockedReason",
+          "icmsCsts"
+        ],
+        "type": "object",
+        "properties": {
+          "ruleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "versionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ruleVersion": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TaxRuleStatus"
+          },
+          "values": {
+            "$ref": "#/components/schemas/TaxRuleValues"
+          },
+          "crtScope": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reviewState": {
+            "$ref": "#/components/schemas/FiscalReviewState"
+          },
+          "confirmedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "confirmedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "activatedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "activatedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "selfActivated": {
+            "type": "boolean"
+          },
+          "deactivationReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "needsReview": {
+            "type": "boolean"
+          },
+          "isSeed": {
+            "type": "boolean"
+          },
+          "systemAuthored": {
+            "type": "boolean"
+          },
+          "versions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaxRuleVersionSummary"
+            }
+          },
+          "canEdit": {
+            "type": "boolean"
+          },
+          "canApprove": {
+            "type": "boolean"
+          },
+          "activateBlockedReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "icmsCsts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "TaxSimulationView": {
+        "required": [
+          "calculation",
+          "issuerState",
+          "crt",
+          "warnings"
+        ],
+        "type": "object",
+        "properties": {
+          "calculation": {
+            "$ref": "#/components/schemas/TaxCalculation"
+          },
+          "issuerState": {
+            "type": "string"
+          },
+          "crt": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "TaxTotal": {
+        "required": [
+          "code",
+          "base",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "base": {
+            "type": "number",
+            "format": "double"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
       },
       "TenantDetail": {
         "required": [

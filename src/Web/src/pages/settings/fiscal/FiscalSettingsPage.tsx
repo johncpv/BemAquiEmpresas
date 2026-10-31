@@ -62,6 +62,12 @@ export function FiscalSettingsPage() {
   )
 }
 
+/** Aviso do salvar: a troca de regime (FIS-02a CA 9) e as regras fiscais que usam um valor que mudou (FIS-02b CA 6). */
+const noticeOf = (saved: FiscalSettingsSaved) => {
+  const rules = saved.rulesToReview.length > 0 ? `Revise as regras fiscais que usam estes valores: ${saved.rulesToReview.join(', ')}.` : null
+  return [saved.notice, rules].filter(Boolean).join(' ') || null
+}
+
 type Pending = { kind: 'production' } | { kind: 'series'; message: string } | null
 
 function FiscalForm({ view }: { view: FiscalSettingsView }) {
@@ -86,7 +92,7 @@ function FiscalForm({ view }: { view: FiscalSettingsView }) {
   const send = async (extra: { code?: string; confirmSeriesChange?: boolean }) => {
     const saved: FiscalSettingsSaved = await saveFiscalSettings({ values: current(), code: extra.code ?? null, confirmSeriesChange: extra.confirmSeriesChange ?? false })
     store(saved.settings)
-    setNotice(saved.notice ?? null)
+    setNotice(noticeOf(saved))
     notifySuccess('Configuração fiscal salva')
   }
 
@@ -132,6 +138,7 @@ function FiscalForm({ view }: { view: FiscalSettingsView }) {
   const allConfirmed = view.confirmedCount === view.totalCount
   const steps = [
     ...(view.certificate.status === 'None' || view.certificate.status === 'Expired' ? [{ label: 'Enviar certificado', onSelect: () => void navigate({ to: '/app/configuracoes/fiscal/certificado' }) }] : []),
+    { label: 'Conferir as regras fiscais', onSelect: () => void navigate({ to: '/app/fiscal/regras' }) },
     { label: 'Baixar para a contadora', onSelect: () => void download() },
   ]
 
@@ -259,7 +266,7 @@ function FiscalForm({ view }: { view: FiscalSettingsView }) {
         size="lg"
         onConfirm={async () => {
           if (!/^\d{6}$/.test(code)) throw new DialogMessage('Digite os 6 números do aplicativo autenticador.')
-          await saveFiscalSettings({ values: current(), code, confirmSeriesChange: false }).then((saved) => { store(saved.settings); setNotice(saved.notice ?? null) })
+          await saveFiscalSettings({ values: current(), code, confirmSeriesChange: false }).then((saved) => { store(saved.settings); setNotice(noticeOf(saved)) })
         }}
         onFieldErrors={(e) => { fail(e); setPending(null); return true }}
       >
@@ -276,7 +283,7 @@ function FiscalForm({ view }: { view: FiscalSettingsView }) {
         onConfirm={async () => {
           const saved = await saveFiscalSettings({ values: current(), code: null, confirmSeriesChange: true })
           store(saved.settings)
-          setNotice(saved.notice ?? null)
+          setNotice(noticeOf(saved))
         }}
       />
     </div>

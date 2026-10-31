@@ -5079,6 +5079,210 @@ namespace BemAqui.Host.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("BemAqui.Fiscal.Domain.TaxRule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("ActivatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("activated_at");
+
+                    b.Property<Guid?>("ActivatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("activated_by");
+
+                    b.Property<string>("CfopInternal")
+                        .HasMaxLength(4)
+                        .HasColumnType("character varying(4)")
+                        .HasColumnName("cfop_internal");
+
+                    b.Property<string>("CfopInterstate")
+                        .HasMaxLength(4)
+                        .HasColumnType("character varying(4)")
+                        .HasColumnName("cfop_interstate");
+
+                    b.Property<string>("Cofins")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("cofins");
+
+                    b.Property<string>("ComplementaryInfo")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("complementary_info");
+
+                    b.Property<string>("Conditions")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("conditions");
+
+                    b.Property<DateTimeOffset?>("ConfirmedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("confirmed_at");
+
+                    b.Property<Guid?>("ConfirmedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("confirmed_by");
+
+                    b.PrimitiveCollection<string[]>("CostTaxes")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("cost_taxes");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<int>("CrtScope")
+                        .HasColumnType("integer")
+                        .HasColumnName("crt_scope");
+
+                    b.Property<DateTimeOffset?>("DeactivatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deactivated_at");
+
+                    b.Property<Guid?>("DeactivatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deactivated_by");
+
+                    b.Property<string>("DeactivationReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("deactivation_reason");
+
+                    b.Property<string>("Difal")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("difal");
+
+                    b.PrimitiveCollection<Guid[]>("Editors")
+                        .IsRequired()
+                        .HasColumnType("uuid[]")
+                        .HasColumnName("editors");
+
+                    b.Property<string>("Fcp")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("fcp");
+
+                    b.Property<string>("IbsCbs")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("ibs_cbs");
+
+                    b.Property<string>("Icms")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("icms");
+
+                    b.Property<string>("IcmsSt")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("icms_st");
+
+                    b.Property<string>("Ipi")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("ipi");
+
+                    b.Property<bool>("IsSeed")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_seed");
+
+                    b.Property<string>("Iss")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("iss");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("NatureOfOperation")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("nature_of_operation");
+
+                    b.Property<bool>("NeedsReview")
+                        .HasColumnType("boolean")
+                        .HasColumnName("needs_review");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)")
+                        .HasColumnName("operation");
+
+                    b.Property<string>("Pis")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("pis");
+
+                    b.Property<Guid>("RuleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("rule_id");
+
+                    b.Property<int>("RuleVersion")
+                        .HasColumnType("integer")
+                        .HasColumnName("rule_version");
+
+                    b.Property<string>("SeedKey")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("seed_key");
+
+                    b.Property<bool>("SelfActivated")
+                        .HasColumnType("boolean")
+                        .HasColumnName("self_activated");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.Property<DateOnly>("ValidFrom")
+                        .HasColumnType("date")
+                        .HasColumnName("valid_from");
+
+                    b.Property<DateOnly?>("ValidTo")
+                        .HasColumnType("date")
+                        .HasColumnName("valid_to");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tax_rules");
+
+                    b.HasIndex("RuleId", "RuleVersion")
+                        .IsUnique()
+                        .HasDatabaseName("ux_tax_rules_rule_version");
+
+                    b.HasIndex("Status", "Operation")
+                        .HasDatabaseName("ix_tax_rules_status_operation");
+
+                    b.HasIndex(new[] { "RuleId" }, "ux_tax_rules_one_draft")
+                        .IsUnique()
+                        .HasDatabaseName("ux_tax_rules_one_draft")
+                        .HasFilter("status = 'Draft'");
+
+                    b.ToTable("tax_rules", "fiscal", t =>
+                        {
+                            t.HasCheckConstraint("ck_tax_rules_validity", "valid_to IS NULL OR valid_to >= valid_from");
+
+                            t.HasCheckConstraint("ck_tax_rules_version", "rule_version >= 1");
+                        });
+                });
+
             modelBuilder.Entity("BemAqui.HR.Domain.Employee", b =>
                 {
                     b.Property<Guid>("Id")

@@ -95,7 +95,7 @@ public sealed record FiscalSettingsSaved(FiscalSettingsView Settings, IReadOnlyL
 /// Prontidão para emitir (CA 6, 7 e 14): em produção, a lista dos campos críticos não conferidos bloqueia; em homologação, só avisa
 /// (<see cref="PendingKeys"/>).
 /// </summary>
-public sealed record FiscalReadiness(FiscalEnvironment Environment, IReadOnlyList<string> PendingKeys, IReadOnlyList<string> Warnings);
+public sealed record FiscalReadiness(FiscalEnvironment Environment, IReadOnlyList<string> PendingKeys, IReadOnlyList<string> Warnings, IReadOnlyList<string> PendingRules);
 
 /// <summary>Códigos de erro de Configurações → Fiscal (contrato com o front e com a FIS-03a e a FIS-06).</summary>
 public static class FiscalSettingsErrors
@@ -104,6 +104,7 @@ public static class FiscalSettingsErrors
     public const string Incomplete = "fiscal_settings_incomplete";
     public const string CertificateExpired = "fiscal_certificate_expired";
     public const string SeriesInUse = "fiscal_series_in_use";
+    public const string TaxRulesNotConfirmed = "fiscal_tax_rules_not_confirmed";
     public const string TwoFactorRequired = "two_factor_required";
     public const string TwoFactorInvalid = "two_factor_invalid";
 }

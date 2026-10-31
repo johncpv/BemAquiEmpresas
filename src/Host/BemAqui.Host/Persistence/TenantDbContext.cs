@@ -330,6 +330,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BemAqui.Fiscal.Domain.CertificateUpload> CertificateUploads => Set<BemAqui.Fiscal.Domain.CertificateUpload>();
 
+    public DbSet<BemAqui.Fiscal.Domain.TaxRule> TaxRules => Set<BemAqui.Fiscal.Domain.TaxRule>();
+
     public DbSet<JobPosition> JobPositions => Set<JobPosition>();
 
     public DbSet<WorkSchedule> WorkSchedules => Set<WorkSchedule>();

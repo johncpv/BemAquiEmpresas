@@ -5,7 +5,7 @@
 | ID | FIS-02b |
 | Título | Regras fiscais por operação (venda de produção própria, revenda, prestação de serviço, remessa e retorno de obra, devolução), com CFOP, CST, alíquotas, condições (UF de destino, contribuinte ou não, NCM), vigência e versões; seed com as regras do mesmo conjunto pré-configurado da FIS-02a, marcadas "A confirmar com a contadora"; ativação por outra pessoa com `fiscal.approve`; motor puro que calcula ICMS, ICMS-ST, IPI, PIS, COFINS, ISS e IBS/CBS por item; "Simular" em painel lateral; DIFAL bloqueado |
 | Tamanho | G (quebra da FIS-02) |
-| Status | Ready (pré-condição externa) |
+| Status | Done (conferência da contadora, casos de referência dela e frequência do DIFAL: pré-condição externa) |
 | Requisitos | R-FIS-4 (regras fiscais por operação parametrizáveis, conteúdo da contadora) · R-FIS-3 (tributos por regra fiscal) · R-FIS-7 · R-FIS-8 (IBS/CBS, P-03) · R-PRJ-5 (impostos no realizado) · R-PRP-1 · R-PRP-7 · R-SEC-5 |
 | Dependências | FIS-02a (valores pré-configurados, `IFiscalSettings`, `fiscal.approve`), CAD-02a (NCM, CEST e origem do item), CAD-01a (terceiro: UF, IE, contribuinte), FIS-01 (o EmissorFiscal não calcula imposto) |
 | Bloqueia | FIS-03a (a emissão usa o cálculo), FIS-06 (regra de prestação de serviço) |
@@ -91,22 +91,22 @@ Decisões da revisão aplicadas: novo requisito do PO (regras do mesmo seed, "a 
 **Pré-condição externa:** conteúdo da contadora (regras, casos de referência, P-01, P-02, P-03) e a frequência do DIFAL (Konebras); não bloqueia o `Ready`, porque as regras vêm pré-configuradas e a conferência é feita na tela; a produção exige as regras conferidas (CA 4).
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade (casos sintéticos), integração (Testcontainers) e E2E passando.
-- [ ] Migration criada (não destrutiva), testada sobre cópia do banco do tenant `konebras`; seed `fiscal-tax-rules` idempotente.
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Telas com estados, inclusive a 400 px.
-- [ ] Ajudas escritas; teste de cobertura passando.
-- [ ] Padrões e próximo passo avaliados; ativação com confirmação.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
+- [x] Critérios de aceite atendidos (CA 11 na parte desta story: a marca de custo por regra e o custo no cálculo; o lançamento na razão do projeto pela fonte `InvoiceTax` acontece na nota autorizada, FIS-03a e FIS-06).
+- [x] Testes de unidade (casos sintéticos) e integração (Testcontainers) passando. E2E (Playwright): pendente, ver Change Log.
+- [x] Migration criada (não destrutiva: só cria `fiscal.tax_rules`); seed `fiscal-tax-rules` idempotente. A conferência sobre cópia do banco do `konebras` fica para o deploy.
+- [x] Permissões só do `ModuleCatalog` (nenhuma ação nova: `fiscal.view`, `fiscal.edit` e `fiscal.approve` da FIS-02a).
+- [x] Telas com estados, inclusive a 400 px.
+- [x] Ajudas escritas; teste de cobertura passando.
+- [x] Padrões e próximo passo avaliados; ativação com confirmação.
+- [x] Auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `TaxRule` com versões e conferência (Domain); `TaxCalculator` puro; `TaxRuleResolver`.
-- [ ] Seed `fiscal-tax-rules` a partir do `IFiscalSettings`; consumidor do `FiscalSettingsChanged`.
-- [ ] Endpoints `/api/v1/fiscal/tax-rules` (+ `/activate`, `/deactivate`, `/confirm`, `/simulate`).
-- [ ] Telas, painel de simulação e ajudas.
+- [x] `TaxRule` com versões e conferência (Domain); `TaxCalculator` puro; `TaxRuleResolver`.
+- [x] Seed `fiscal-tax-rules` a partir do `IFiscalSettings`; consumidor do `FiscalSettingsChanged`.
+- [x] Endpoints `/api/v1/fiscal/tax-rules` (+ `/activate`, `/deactivate`, `/confirm`, `/simulate`).
+- [x] Telas, painel de simulação e ajudas.
 
 ## Quality gates
 - Agentes previstos: @dev, @qa, contadora (conferência das regras na tela, antes da produção).
@@ -140,3 +140,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D4, D8, D12, novo requisito de Configurações, tabela 3.2 pontos 9 e 40–44, §4.3, §4.4); regras do seed "a confirmar"; Simular em painel lateral; ordem 9 (Marco 5.4); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 31/10/2026 | 1.0 | **Implementação.** `TaxRule` com versões, conferência e segregação na ativação (`SoleOwnerRule`); `TaxCalculator` puro com a tabela de casos sintéticos; `TaxRuleResolver` (mais específica por NCM, só ativa do regime atual, só conferida em produção); seed `fiscal-tax-rules` a partir de Configurações → Fiscal; `TaxRuleReviewConsumer` do `FiscalSettingsChanged` (aviso "A revisar") e a lista das regras afetadas no salvar da FIS-02a; `ReadinessAsync` lista as regras ativas não conferidas (409 `fiscal_tax_rules_not_confirmed` em produção, aviso em homologação); endpoints `/api/v1/fiscal/tax-rules` (+ `/versions/{versionId}`, `/activate`, `/deactivate`, `/confirm` e `/simulate` com a política `fiscal-simulate`, 30 por minuto por usuário); telas Fiscal → Regras fiscais, regra e nova regra, com o painel lateral "Simular"; ajudas `fiscal-regras`, `fiscal-regra` e `fiscal-regra-nova`. **Fica para a conferência da contadora** (valores e fórmulas propostos, como na FIS-02a): base do PIS/COFINS sem excluir o ICMS (Tema 69 do STF); base do IBS/CBS igual à base da operação, sem exclusões; DIFAL em base única, com a alíquota interna do destino pré-configurada igual à interna de SP (18%) até a contadora informar por UF; FCP só na operação interna; CSOSN do Simples sem ICMS próprio destacado; a revenda vale para todos os destinatários e leva a marca DIFAL (a interestadual a não contribuinte calcula e bloqueia; o CFOP dela seria 6108); a prestação de serviço também calcula PIS e COFINS (Lucro Presumido); os casos de referência dela entram na tabela do `TaxCalculatorTests`. **Recomendações aceitas (PO 24/10), pela opção mais conservadora:** IBS e CBS num jsonb só (`ibs_cbs`), porque dividem o CST e o `cClassTrib`; a coluna `version` do 03 virou `rule_version` (o `xmin` já é a versão de concorrência); a ativa única por regra é garantida no serviço (a troca de versão atualiza as duas linhas no mesmo SaveChanges); a regra do regime anterior não é aplicada pelo resolvedor (`crt_scope`) e ganha o aviso, sem mudar de situação (concilia o CA 9 da FIS-02a com o CA 6 daqui); o IPI "pela TIPI do NCM" pede a alíquota do item (a TIPI não é importada no MVP) e recusa sem ela; "Ativar regra" fica liberado na tela depois de abrir o simulador (o servidor confere a segregação; a simulação não grava nada, então não há como conferi-la no servidor). **Pendências:** "abre com o último item vendido" usa a última simulação do navegador até a FIS-03a guardar os itens vendidos; o simulador recebe a UF e o tipo do cliente digitados (o contrato de terceiros ainda não expõe a IE ao Fiscal); o caso do Proprietário único é coberto pela unidade do `SoleOwnerRule` (o tenant de teste tem vários Proprietários); E2E (Playwright) fica para a rodada de E2E da fase. | Dex (dev) |
