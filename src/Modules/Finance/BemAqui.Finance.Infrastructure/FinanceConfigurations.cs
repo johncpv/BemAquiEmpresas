@@ -54,7 +54,11 @@ internal sealed class BankIntegrationConfiguration : IEntityTypeConfiguration<Ba
         b.Property(e => e.AccountNumber).HasMaxLength(20);
         b.Property(e => e.GrantedScopes).HasMaxLength(500);
         b.Property(e => e.LastTestMessage).HasMaxLength(300);
+        b.Property(e => e.WebhookMode).HasMaxLength(12);
+        b.Property(e => e.LastReconcileReport).HasColumnType("jsonb");
+        b.Property(e => e.LastReconcileError).HasMaxLength(300);
         b.Ignore(e => e.IsActive);
+        b.Ignore(e => e.WebhookActive);
     }
 }
 

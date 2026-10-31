@@ -15,4 +15,5 @@ export const BillingSlipStatus = {
   Paid: 'Paid',
   Cancelled: 'Cancelled',
   Expired: 'Expired',
+  PaidPendingReview: 'PaidPendingReview',
 } as const;

@@ -1,6 +1,7 @@
 import type { PaymentOrderItemView } from '@/api/generated/model'
 import { Money } from '@/components/ui/money'
-import { destination } from './payment-orders'
+import { Dica } from '@/help/Dica'
+import { destination, REVERSED_HINT, REVERSED_MARK } from './payment-orders'
 
 /** Itens com para onde vai o dinheiro (retrato do envio, mascarado) e os avisos âmbar (CA 6 e 15). */
 export function OrderItemsList({ items, compact }: { items: PaymentOrderItemView[]; compact?: boolean }) {
@@ -19,7 +20,7 @@ export function OrderItemsList({ items, compact }: { items: PaymentOrderItemView
             </p>
           ) : null}
           {i.amount < i.netAmount ? <p className="text-xs">Pagamento parcial: <Money value={i.amount} /> de <Money value={i.netAmount} /></p> : null}
-          {i.warnings.map((w) => <p key={w} className="rounded border border-warn-soft bg-warn-soft px-2 py-1 text-xs text-warn-ink">{w}</p>)}
+          {i.warnings.map((w) => <p key={w} className="flex items-center rounded border border-warn-soft bg-warn-soft px-2 py-1 text-xs text-warn-ink">{w}{w.startsWith(REVERSED_MARK) ? <Dica nome="Pago e estornado" texto={REVERSED_HINT} /> : null}</p>)}
         </li>
       ))}
     </ul>

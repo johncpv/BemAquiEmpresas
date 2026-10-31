@@ -49,12 +49,25 @@ public partial class PaymentOrderTests
         paid.StatusCode.Should().Be(HttpStatusCode.OK, await paid.Content.ReadAsStringAsync());
 
         var current = await JsonAsync(await owner.GetAsync($"{Base}/{orderId}"));
-        var reverseRefused = await noProof.PostAsJsonAsync($"{Base}/{orderId}/reverse", new { reason = "Pix devolvido", version = Version(current) });
+        // BNK-02 CA 15 (P-20): estornar pede finance.approve; o Financeiro (finance.pay) recebe 403.
+        var withoutApprove = await finance.PostAsJsonAsync($"{Base}/{orderId}/reverse", new { reason = "Pix devolvido", version = Version(current) });
+        withoutApprove.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        Code(await JsonAsync(withoutApprove)).Should().Be("forbidden");
+        var (_, ownerNoProof) = await ActorAsync(Group.OwnerSeedKey, recentTwoFactor: false);
+        var reverseRefused = await ownerNoProof.PostAsJsonAsync($"{Base}/{orderId}/reverse", new { reason = "Pix devolvido", version = Version(current) });
         Code(await JsonAsync(reverseRefused)).Should().Be("two_factor_required");
         (await WithDbAsync(db => db.PaymentOrders.Where(o => o.Id == orderId).Select(o => o.Status).SingleAsync())).Should().Be(PaymentOrderStatus.Paid, "estorno recusado não grava");
         (await WithDbAsync(db => db.FinancialTransactions.CountAsync(t => t.PayableId == payableId))).Should().Be(1);
 
-        var reversed = await finance.PostAsJsonAsync($"{Base}/{orderId}/reverse", new { reason = "Pix devolvido", version = Version(current) });
+        var reversed = await owner.PostAsJsonAsync($"{Base}/{orderId}/reverse", new { reason = "Pix devolvido", version = Version(current) });
         reversed.StatusCode.Should().Be(HttpStatusCode.OK, await reversed.Content.ReadAsStringAsync());
+
+        // BNK-02 CA 15: o título volta a ficar disponível e, na nova OP, aparece "Pago e estornado em {data}" para o aprovador.
+        var again = await finance.SendAsync(Post(Base, Items((payableId, 950m))));
+        again.StatusCode.Should().Be(HttpStatusCode.Created, await again.Content.ReadAsStringAsync());
+        (await JsonAsync(again)).GetProperty("items")[0].GetProperty("warnings").EnumerateArray().Select(w => w.GetString())
+            .Should().Contain(w => w!.StartsWith("Pago e estornado em ", StringComparison.Ordinal));
+        (await JsonAsync(reversed)).GetProperty("items")[0].GetProperty("warnings").EnumerateArray().Select(w => w.GetString())
+            .Should().NotContain(w => w!.StartsWith("Pago e estornado", StringComparison.Ordinal), "a OP estornada não leva a marca");
     }
 }

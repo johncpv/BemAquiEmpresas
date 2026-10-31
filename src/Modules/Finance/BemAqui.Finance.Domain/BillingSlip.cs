@@ -6,7 +6,8 @@ namespace BemAqui.Finance.Domain;
 /// <summary>
 /// Situação do boleto (<c>04-fluxos-estados</c> §1 "Boleto (Inter)", BNK-01b): <c>Requested → Issued → Paid | Cancelled | Expired</c>, e
 /// <c>Requested → Failed → Requested</c> ("Tentar de novo"). <c>Requested</c> e <c>Issued</c> são os ativos (um por título, índice único
-/// parcial); <c>PaidPendingReview</c> é da BNK-02.
+/// parcial). BNK-02: pago no banco com diferença (ou boleto cancelado/expirado que aparece pago) vai a <c>PaidPendingReview</c> e só passa
+/// a <c>Paid</c> depois da conferência humana.
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter<BillingSlipStatus>))]
 public enum BillingSlipStatus
@@ -17,6 +18,9 @@ public enum BillingSlipStatus
     Paid,
     Cancelled,
     Expired,
+
+    /// <summary>Pago no banco, aguardando conferência (BNK-02 CA 9): a entrada está na conta, a baixa espera quem tem <c>finance.edit</c>.</summary>
+    PaidPendingReview,
 }
 
 /// <summary>
@@ -135,9 +139,33 @@ public sealed class BillingSlip : Entity, IAuditable, IConcurrencyVersioned
 
     public Guid? CancelledBy { get; private set; }
 
-    public DateTimeOffset? PaidAt { get; set; }
+    /// <summary>Quando o sistema soube do pagamento (aviso ou conferência diária, BNK-02).</summary>
+    public DateTimeOffset? PaidAt { get; private set; }
 
-    public decimal? PaidAmount { get; set; }
+    /// <summary>Valor pago, lido da reconsulta ao banco (nunca do corpo do aviso).</summary>
+    public decimal? PaidAmount { get; private set; }
+
+    /// <summary>Data do crédito informada pelo banco: data da baixa e base da pontualidade (FIN-06b).</summary>
+    public DateOnly? CreditDate { get; private set; }
+
+    /// <summary>Evento do webhook que levou ao pagamento (nulo quando veio da conferência diária).</summary>
+    public Guid? PaidEventId { get; private set; }
+
+    /// <summary>Baixa do título feita pelo pagamento (automática ou na conferência).</summary>
+    public Guid? SettlementId { get; private set; }
+
+    /// <summary>Entrada na conta aguardando conferência (<c>financial_transactions.pending_review</c>, CA 9).</summary>
+    public Guid? PendingTransactionId { get; private set; }
+
+    /// <summary>Por que a baixa não foi automática (PT-BR, sem dado do pagador).</summary>
+    public string? ReviewReason { get; private set; }
+
+    /// <summary>Decisão da conferência (<see cref="BankPaymentDecision"/>).</summary>
+    public string? ReviewDecision { get; private set; }
+
+    public DateTimeOffset? ReviewedAt { get; private set; }
+
+    public Guid? ReviewedBy { get; private set; }
 
     public DateTimeOffset? ExpiredAt { get; private set; }
 
@@ -174,7 +202,7 @@ public sealed class BillingSlip : Entity, IAuditable, IConcurrencyVersioned
     /// <summary>Ainda ocupa o título (ativo ou falha à espera de "Tentar de novo" ou do cancelamento).</summary>
     public bool HoldsReceivable => IsActive || Status == BillingSlipStatus.Failed;
 
-    public bool CancelPending => CancelRequestedAt is not null && Status is not (BillingSlipStatus.Cancelled or BillingSlipStatus.Expired or BillingSlipStatus.Paid);
+    public bool CancelPending => CancelRequestedAt is not null && Status is not (BillingSlipStatus.Cancelled or BillingSlipStatus.Expired or BillingSlipStatus.Paid or BillingSlipStatus.PaidPendingReview);
 
     /// <summary>Chegou ao banco (ou pode ter chegado): o cancelamento precisa ir ao Inter.</summary>
     public bool MayExistAtBank => ProviderRequestId is not null || IssueAttempts > 0;
@@ -283,6 +311,65 @@ public sealed class BillingSlip : Entity, IAuditable, IConcurrencyVersioned
         }
     }
 
+    /// <summary>
+    /// Pago no banco e baixado automaticamente (BNK-02 CA 7): só de <c>Requested</c> ou <c>Issued</c>. A transição usa o <c>xmin</c> do
+    /// boleto, e o segundo processamento (aviso repetido, conferência diária) acha o boleto já pago.
+    /// </summary>
+    public void MarkPaid(decimal paidAmount, DateOnly creditDate, Guid settlementId, Guid? eventId, string? payload, DateTimeOffset at)
+    {
+        if (Status is not (BillingSlipStatus.Requested or BillingSlipStatus.Issued))
+        {
+            throw new InvalidOperationException($"Boleto {Status}: esperado Requested ou Issued.");
+        }
+
+        RecordPayment(paidAmount, creditDate, eventId, payload, at);
+        SettlementId = settlementId;
+        Status = BillingSlipStatus.Paid;
+    }
+
+    /// <summary>
+    /// Pago com diferença, ou boleto cancelado/expirado que aparece pago (BNK-02 CA 9): a entrada já está na conta, a baixa espera a
+    /// conferência. Nunca de um boleto já pago.
+    /// </summary>
+    public void MarkPendingReview(decimal paidAmount, DateOnly creditDate, Guid? transactionId, string reason, Guid? eventId, string? payload, DateTimeOffset at)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(reason);
+        if (Status is BillingSlipStatus.Paid or BillingSlipStatus.PaidPendingReview)
+        {
+            throw new InvalidOperationException($"Boleto {Status}: o pagamento já foi registrado.");
+        }
+
+        RecordPayment(paidAmount, creditDate, eventId, payload, at);
+        PendingTransactionId = transactionId;
+        ReviewReason = Cut(reason, 300);
+        CancelRequestedAt = null;
+        Status = BillingSlipStatus.PaidPendingReview;
+    }
+
+    /// <summary>"Conferir pagamento" (CA 9): grava a decisão de quem conferiu; o boleto passa a <c>Paid</c>.</summary>
+    public void CompleteReview(string decision, Guid? settlementId, Guid? by, DateTimeOffset at)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(decision);
+        Require(BillingSlipStatus.PaidPendingReview);
+        ReviewDecision = decision;
+        ReviewedAt = at;
+        ReviewedBy = by;
+        SettlementId = settlementId;
+        Status = BillingSlipStatus.Paid;
+    }
+
+    private void RecordPayment(decimal paidAmount, DateOnly creditDate, Guid? eventId, string? payload, DateTimeOffset at)
+    {
+        PaidAmount = Math.Round(paidAmount, 2, MidpointRounding.AwayFromZero);
+        CreditDate = creditDate;
+        PaidAt = at;
+        PaidEventId = eventId;
+        if (payload is not null)
+        {
+            ProviderPayload = payload;
+        }
+    }
+
     /// <summary>Envio adiado pelo limite diário (CA 13).</summary>
     public void ScheduleEmail(DateTimeOffset at, string to, IReadOnlyList<string> cc)
     {
@@ -309,6 +396,22 @@ public sealed class BillingSlip : Entity, IAuditable, IConcurrencyVersioned
     }
 
     private static string? Cut(string? value, int max) => value is { Length: > 0 } v ? (v.Length > max ? v[..max] : v) : null;
+}
+
+/// <summary>Decisão do "Conferir pagamento" (BNK-02 CA 9).</summary>
+public static class BankPaymentDecision
+{
+    /// <summary>Pagou a menor: o que faltou vira desconto (acima do limite da FIN-01, só com <c>finance.approve</c>).</summary>
+    public const string Discount = "Discount";
+
+    /// <summary>Pagou a maior: o que passou vira juros.</summary>
+    public const string Interest = "Interest";
+
+    /// <summary>Pagou exatamente o saldo: baixa simples.</summary>
+    public const string Settle = "Settle";
+
+    /// <summary>Baixa só o que foi pago e o saldo continua em aberto; com o título fechado, só a entrada fica registrada.</summary>
+    public const string KeepOpen = "KeepOpen";
 }
 
 /// <summary>Dados do boleto confirmados pelo banco.</summary>

@@ -138,8 +138,17 @@ public sealed partial class ReceivableService
         return await ApplyAsync(receivable, settlement, null, cancellationToken);
     }
 
-    /// <summary>Estorno da baixa (CA 16): nada é apagado; a transação inversa sai na data do estorno; o Proprietário é avisado.</summary>
-    public async Task<Result<ReceivableDetail>> ReverseAsync(Guid id, Guid settlementId, ReasonInput input, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Estorno da baixa (CA 16): nada é apagado; a transação inversa sai na data do estorno; o Proprietário é avisado. A baixa feita pelo
+    /// banco (BNK-02 CA 14) só se estorna pela rota com <c>finance.approve</c> e o 2FA de novo (<paramref name="bankReversal"/>); pela rota
+    /// comum, 403 <c>bank_settlement_requires_approval</c>.
+    /// </summary>
+    public async Task<Result<ReceivableDetail>> ReverseAsync(Guid id, Guid settlementId, ReasonInput input, CancellationToken cancellationToken = default) =>
+        await ReverseAsync(id, settlementId, input, bankReversal: false, cancellationToken);
+
+    public const string BankSettlementRequiresApproval = "bank_settlement_requires_approval";
+
+    public async Task<Result<ReceivableDetail>> ReverseAsync(Guid id, Guid settlementId, ReasonInput input, bool bankReversal, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         var receivable = await db.Receivables.FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
@@ -152,6 +161,16 @@ public sealed partial class ReceivableService
         if (Stale(receivable, input.Version) is { } stale)
         {
             return stale;
+        }
+
+        if (settlement.Source == SettlementSource.Bank && !bankReversal)
+        {
+            return Error.Forbidden(BankSettlementRequiresApproval, "Este pagamento foi confirmado pelo Inter: o estorno pede quem aprova em Caixa e pagamentos e o código do 2FA.");
+        }
+
+        if (settlement.Source != SettlementSource.Bank && bankReversal)
+        {
+            return Error.Conflict("settlement_not_from_bank", "Esta baixa não veio do banco: use o estorno comum.");
         }
 
         if (settlement.ReversedAt is not null)
