@@ -76,7 +76,8 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
     { slug: 'garantia', label: 'Garantia padrão', group: STOCK_SETUP },
   ] },
   purchasing: { slug: 'compras', icon: ShoppingCart, tabs: [{ slug: 'solicitacoes', label: 'Solicitações' }, { slug: 'cotacoes', label: 'Cotações' }, { slug: 'pedidos', label: 'Pedidos' }, { slug: 'recebimentos', label: 'Recebimentos' }] },
-  assets: { slug: 'patrimonio', icon: Tag },
+  // PAT-01a: bens e locais do patrimônio (área Fábrica).
+  assets: { slug: 'patrimonio', icon: Tag, tabs: [{ slug: 'bens', label: 'Bens' }, { slug: 'locais', label: 'Locais' }] },
   finance: { slug: 'financeiro', icon: Wallet, tabs: [
     { slug: 'receber', label: 'A receber', group: CASH },
     { slug: 'pagar', label: 'A pagar', group: CASH },
@@ -85,6 +86,7 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
     { slug: 'inadimplencia', label: 'Inadimplência', group: CASH },
     { slug: 'ordens-de-pagamento', label: 'Ordens de pagamento', group: CASH },
     { slug: 'contas', label: 'Contas e caixas', group: CASH },
+    { slug: 'conciliacao', label: 'Conciliação', group: CASH },
     { slug: 'plano-de-contas', label: 'Plano de contas', group: SETUP },
     { slug: 'centros-de-custo', label: 'Centros de custo', group: SETUP },
     { slug: 'condicoes-de-pagamento', label: 'Condições de pagamento', group: SETUP },

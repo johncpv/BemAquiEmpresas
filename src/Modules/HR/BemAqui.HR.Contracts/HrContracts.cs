@@ -31,6 +31,16 @@ public interface IUnionUsageProvider
 }
 
 /// <summary>
+/// Quem guarda o id de um funcionário fora do RH (PAT-01a CA 14: o responsável pelo bem): em uso, o funcionário não é excluído, só
+/// desligado. Cada módulo implementa e registra no DI.
+/// </summary>
+public interface IEmployeeUsageProvider
+{
+    /// <summary>Descrição curta do uso ("bens do patrimônio") ou null se não usa.</summary>
+    Task<string?> UsageAsync(Guid employeeId, CancellationToken cancellationToken = default);
+}
+
+/// <summary>
 /// Situação do funcionário para os outros módulos (CAD-04c1 CA 3): <c>OnLeave</c> é calculado na leitura pelo afastamento
 /// vigente (hoje em São Paulo) e <c>Terminated</c> prevalece. Sem tipo, motivo nem datas do afastamento.
 /// </summary>

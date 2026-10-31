@@ -30,10 +30,11 @@ function LimitsForm({ limits, canEdit }: { limits: FinanceLimits; canEdit: boole
   const [notify, setNotify] = useState<string | null>(String(limits.transferNotifyAmount ?? 10000))
   const [tolerance, setTolerance] = useState<string | null>(String(limits.paymentTolerance ?? 0))
   const [threshold, setThreshold] = useState<string | null>(String(limits.adjustedDefaultThresholdPct ?? 20))
+  const [ofxCap, setOfxCap] = useState<string | null>(String(limits.ofxBankEntryCap ?? 500))
   const [error, setError] = useState<{ message: string; fields: Record<string, string[]> } | null>(null)
   const save = async () => {
     try {
-      const saved = await updateFinanceLimits({ discountApprovalPct: Number(pct ?? 0), discountApprovalAmount: Number(discount ?? 0), cancelApprovalAmount: Number(cancel ?? 0), backdateDays: Number(days || 0), ownerCanApproveOwn: ownApproval, paymentTolerance: Number(tolerance ?? 0), transferNotifyAmount: Number(notify ?? 0), adjustedDefaultThresholdPct: Number(threshold ?? 0) })
+      const saved = await updateFinanceLimits({ discountApprovalPct: Number(pct ?? 0), discountApprovalAmount: Number(discount ?? 0), cancelApprovalAmount: Number(cancel ?? 0), backdateDays: Number(days || 0), ownerCanApproveOwn: ownApproval, paymentTolerance: Number(tolerance ?? 0), transferNotifyAmount: Number(notify ?? 0), adjustedDefaultThresholdPct: Number(threshold ?? 0), ofxBankEntryCap: Number(ofxCap ?? 0) })
       client.setQueryData(getGetFinanceLimitsQueryKey(), saved)
       notifySuccess('Limites do financeiro salvos')
     } catch (e) {
@@ -57,6 +58,9 @@ function LimitsForm({ limits, canEdit }: { limits: FinanceLimits; canEdit: boole
           <Field label="Aviso de transferência acima de" error={field('transferNotifyAmount')} hint="Transferência maior que isso avisa o Proprietário.">{(p) => <MoneyInput {...p} value={notify} onChange={setNotify} />}</Field>
           <Field label="Limite de inadimplência para ponderar o ajustado" error={field('adjustedDefaultThresholdPct')} hint="No fluxo de caixa ajustado, cliente com inadimplência acima disso entra só com a parte que provavelmente paga (padrão 20,00%).">
             {(p) => <PercentInput {...p} value={threshold} onChange={setThreshold} />}
+          </Field>
+          <Field label="Lançamento sem OP a partir de OFX: acima de" error={field('ofxBankEntryCap')} hint="Na conciliação, lançar tarifa, IOF, juros ou rendimento a partir de uma linha de arquivo OFX acima disso só com quem aprova em Caixa e pagamentos (padrão R$ 500,00).">
+            {(p) => <MoneyInput {...p} value={ofxCap} onChange={setOfxCap} />}
           </Field>
         </div>
         <label className="flex items-start gap-2 text-sm">

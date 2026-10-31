@@ -96,6 +96,13 @@ public sealed class SeedPatchSeeder : ITenantSeeder
             ("finance", "fiscal", ["view", "create", "edit"]),
             ("warehouse", "fiscal", ["view", "import_incoming"]),
         ]),
+        // PAT-01a CA 1 (ADR 0038 §6, ADR 0003 adendo de 21/10/2026): a Supervisão de produção cadastra e edita os bens (inclui o valor de
+        // aquisição) e o Almoxarifado consulta; assets.delete fica só com o Proprietário (D10).
+        new("assets-permissions",
+        [
+            ("production_supervision", "assets", ["view", "create", "edit"]),
+            ("warehouse", "assets", ["view"]),
+        ]),
     ];
 
     public int Order => 25;

@@ -15,6 +15,7 @@ Ver, dentro do sistema, o extrato que o banco informou: as linhas do Inter chega
 - O resumo mostra quantas linhas são novas, quantas já estavam importadas e quantas foram recusadas, com o motivo.
 - A faixa **Saldo no banco · no sistema · diferença** compara o saldo que o banco informou no fim do dia com o saldo do sistema no mesmo dia.
 - Filtre por período (De e Até) e por situação: Pendente, Conciliada ou Ignorada.
+- **Conciliar** (com linhas pendentes) abre a Conciliação desta conta no mesmo período, com os pares já sugeridos.
 - **Ignorar linha** tira uma linha errada da conciliação, com motivo. Linha de saída só pode ser ignorada por quem aprova em Caixa e pagamentos.
 - **Desfazer importação** (em Importações) tira do extrato todas as linhas de um lote, com motivo, enquanto nenhuma estiver conciliada. Depois, o mesmo arquivo pode ser importado de novo.
 

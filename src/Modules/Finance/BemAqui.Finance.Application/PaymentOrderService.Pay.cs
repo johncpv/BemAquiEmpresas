@@ -135,9 +135,13 @@ public sealed partial class PaymentOrderService
             return ReceivableService.Invalid("date", "A data do pagamento não pode ser futura.");
         }
 
-        return input.Date < Today.AddDays(-limits.BackdateDays) && string.IsNullOrWhiteSpace(input.BackdateReason)
-            ? ReceivableService.Invalid("backdateReason", $"Pagamento com mais de {limits.BackdateDays} dias para trás: informe o motivo.")
-            : null;
+        if (input.Date < Today.AddDays(-limits.BackdateDays) && string.IsNullOrWhiteSpace(input.BackdateReason))
+        {
+            return ReceivableService.Invalid("backdateReason", $"Pagamento com mais de {limits.BackdateDays} dias para trás: informe o motivo.");
+        }
+
+        // BNK-03b CA 11: pagamento com data no período de conciliação fechado da conta.
+        return await period.CheckAsync(input.BankAccountId, input.Date, input.BackdateReason, "backdateReason", "pagar", ct);
     }
 
     private async Task<string> WhoAsync(CancellationToken ct) =>

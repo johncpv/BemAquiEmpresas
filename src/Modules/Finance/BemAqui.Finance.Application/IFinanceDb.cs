@@ -64,6 +64,14 @@ public interface IFinanceDb
 
     DbSet<BankOfxContingency> BankOfxContingencies { get; }
 
+    DbSet<BankReconciliation> BankReconciliations { get; }
+
+    DbSet<BankReconciliationLink> BankReconciliationLinks { get; }
+
+    DbSet<BankStatementRule> BankStatementRules { get; }
+
+    DbSet<BankReconciliationClosing> BankReconciliationClosings { get; }
+
     DbSet<BillingSlip> BillingSlips { get; }
 
     DbSet<BillingReferenceSequence> BillingReferenceSequences { get; }

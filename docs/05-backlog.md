@@ -478,7 +478,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-
 - Requisitos: R-FIN-8, R-FIN-2, R-FIN-10.
 - CA: importação às 06:30 e "Buscar agora" sem duplicar; OFX bloqueado em conta com API (contingência por conta com `finance.approve`), parser sem DTD, hash e FITID únicos, linhas "não verificadas pelo banco"; contraparte mascarada para `finance.view`; aviso ao Proprietário a cada importação.
 
-**BNK-03b [ ] Conciliação bancária: sugestão de par, conciliação manual, lançamento a partir do extrato e fechamento do período (G)** — 5.3, ordem 6 — `Ready (pré-condição externa)` — [story](stories/BNK-03b-conciliacao-bancaria.md)
+**BNK-03b [x] Conciliação bancária: sugestão de par, conciliação manual, lançamento a partir do extrato e fechamento do período (G)** — 5.3, ordem 6 — `Done` — [story](stories/BNK-03b-conciliacao-bancaria.md)
 - Requisitos: R-FIN-8, R-FIN-5, R-FIN-3, R-PRP-6, R-PRP-7.
 - CA: sugestão por valor, data (janela de 3 dias) e documento; uma linha por par e as seções "Sem par no banco" e "No sistema, não no banco"; quem confirma não é quem importou; lançamento sem OP com `finance.pay`, teto e 2FA de novo; fechamento por período com `finance.approve`.
 
@@ -573,7 +573,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-6--rh-e-patrimôn
 - Requisitos: PRD §6 LGPD, ADR 0018, R-SEC-5, R-PRP-7.
 - CA: tabela de retenção pré-configurada e editável; prévia por módulo; anonimização irreversível com confirmação digitada e 2FA de novo, uma transação por módulo, retomável; preserva documentos com movimento e a auditoria; canário em todas as tabelas.
 
-**PAT-01a [ ] Patrimônio: cadastro de bens (M)** — 6.4, ordem 11 — `Ready` — [story](stories/PAT-01a-cadastro-bens.md)
+**PAT-01a [x] Patrimônio: cadastro de bens (M)** — 6.4, ordem 11 — `Done` (NF de entrada pelo `IIncomingInvoices` sem notas até a FIS-04a; "Imprimir etiqueta" com a PAT-01b) — [story](stories/PAT-01a-cadastro-bens.md)
 - Requisitos: R-PAT-1, R-COM-3, R-COM-4, R-SEC-5, R-PRP-1, R-PRP-3.
 - CA: permissões do `assets` por seed patch; bem com etiqueta `PAT-00001`, responsável, centro e local em `assets.sites`; valor de aquisição com `assets.edit`; foto sem EXIF/GPS; lista com 5 mil bens em menos de 1 s; excluir × baixar.
 

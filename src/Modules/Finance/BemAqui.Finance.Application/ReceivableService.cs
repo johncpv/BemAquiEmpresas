@@ -33,6 +33,7 @@ public sealed partial class ReceivableService(
     IEnumerable<IContracts> contracts,
     IProjects projects,
     BillingSlipReactions billing,
+    Reconciliation.ReconciliationPeriodGuard period,
     TimeProvider clock)
 {
     public const string NumberIndex = "ix_receivables_number";
