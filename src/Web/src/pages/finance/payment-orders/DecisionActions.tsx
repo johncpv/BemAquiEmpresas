@@ -19,12 +19,11 @@ function Reason({ id, label, value, onChange }: { id: string; label: string; val
   )
 }
 
-/** Aprovar, reprovar, cancelar e estornar (CA 6 a 9, 20 e 21), conforme a situação e a permissão. */
+/** Aprovar, reprovar, cancelar e estornar (CA 6 a 9, 20 e 21), conforme a situação e a permissão; estornar pede finance.approve e o 2FA de novo (BNK-02 CA 15). */
 export function DecisionActions({ order, refresh, onApproved }: Props) {
   const { acao } = useSearch({ strict: false }) as { acao?: string }
   const navigate = useNavigate()
   const canApprove = useCan('finance.approve')
-  const canPay = useCan('finance.pay')
   const canEdit = useCan('finance.edit')
   const [comment, setComment] = useState('')
   const [reason, setReason] = useState('')
@@ -62,7 +61,7 @@ export function DecisionActions({ order, refresh, onApproved }: Props) {
           <Reason id="motivo-cancelar" label="Motivo" value={reason} onChange={setReason} />
         </ConfirmDialog>
       ) : null}
-      {status === 'Paid' && canPay ? (
+      {status === 'Paid' && canApprove ? (
         <ConfirmDialog destructive verb="Estornar pagamento" done="Pagamento estornado" title={`Estornar o pagamento da ${order.summary.number}?`}
           description="As baixas são estornadas, a saída volta para a conta e os títulos voltam para A pagar. O Proprietário é avisado."
           preconditions={[{ ok: reason.trim().length > 0, text: 'Motivo do estorno escrito.' }]}
