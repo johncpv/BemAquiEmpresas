@@ -172,7 +172,10 @@ public class KioskRulesTests
         var conf = KioskRules.Read("deploy", "nginx", "bemaqui-empresas-homolog.conf");
         var format = Regex.Match(conf, """log_format bqe_masked[^;]*;""").Value;
 
-        format.Should().NotBeEmpty().And.Contain("$uri");
+        format.Should().NotBeEmpty().And.Contain("$bqe_uri");
+        var uriMap = Regex.Match(conf, """map \$uri \$bqe_uri \{[^}]*\}""").Value;
+        uriMap.Should().Contain("/webhooks/", "o caminho do webhook (tenantKey e token no modo PathToken) sai mascarado, BNK-02 CA 2")
+            .And.Contain("default $uri;", "o resto do log usa o caminho sem a query");
         foreach (var leak in new[] { "$request_uri", "$args", "$query_string", "$request_body", "$http_cookie", "$cookie_", "$http_authorization", "$request " })
         {
             format.Should().NotContain(leak, "o token da TV fica no fragmento e no corpo; o cookie nunca vai para o log (CA 8)");

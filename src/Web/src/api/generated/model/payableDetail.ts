@@ -61,4 +61,6 @@ export interface PayableDetail {
   payeeType?: PayeeType;
   /** @nullable */
   payeeId?: string | null;
+  /** @nullable */
+  reversedPaymentAt?: string | null;
 }

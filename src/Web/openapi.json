@@ -24806,6 +24806,56 @@
         }
       }
     },
+    "/api/v1/finance/receivables/{id}/settlements/{settlementId}/reverse-bank": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ReverseBankSettlement",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "settlementId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivableDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/receivables/{id}/cancel": {
       "post": {
         "tags": [
@@ -27298,6 +27348,96 @@
         }
       }
     },
+    "/api/v1/finance/billing-slips/pending-review": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ListPaymentsToReview",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentReviewList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/billing-slips/{slipId}/review": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetPaymentReview",
+        "parameters": [
+          {
+            "name": "slipId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentReviewDraft"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ReviewPayment",
+        "parameters": [
+          {
+            "name": "slipId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentReviewInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentReviewResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/settings/integrations/inter": {
       "get": {
         "tags": [
@@ -27483,6 +27623,97 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BankConnectionTest"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/integrations/inter/{bankAccountId}/payment-notice": {
+      "get": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "GetPaymentNotice",
+        "parameters": [
+          {
+            "name": "bankAccountId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentNoticeView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "ActivatePaymentNotice",
+        "parameters": [
+          {
+            "name": "bankAccountId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentNoticeActivation"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/integrations/inter/{bankAccountId}/payment-notice/rotate": {
+      "post": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "RotatePaymentNotice",
+        "parameters": [
+          {
+            "name": "bankAccountId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentNoticeActivation"
                 }
               }
             }
@@ -32793,6 +33024,7 @@
           "Paid",
           "Cancelled",
           "Expired",
+          "PaidPendingReview",
           null
         ]
       },
@@ -52621,6 +52853,13 @@
               "string"
             ],
             "format": "uuid"
+          },
+          "reversedPaymentAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           }
         }
       },
@@ -53350,6 +53589,144 @@
           null
         ]
       },
+      "PaymentNoticeActivation": {
+        "required": [
+          "url",
+          "maskedUrl",
+          "mode",
+          "registeredAt",
+          "previousValidUntil",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "maskedUrl": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string"
+          },
+          "registeredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "previousValidUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "PaymentNoticeView": {
+        "required": [
+          "bankAccountId",
+          "active",
+          "mode",
+          "since",
+          "sinceByName",
+          "rotatedAt",
+          "previousValidUntil",
+          "maskedUrl",
+          "lastDeliveryAt",
+          "lastReconcileAt",
+          "lastReconcile",
+          "reconcileFailures",
+          "lastReconcileError",
+          "pendingReview"
+        ],
+        "type": "object",
+        "properties": {
+          "bankAccountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "mode": {
+            "type": "string"
+          },
+          "since": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "sinceByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "rotatedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "previousValidUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "maskedUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lastDeliveryAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "lastReconcileAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "lastReconcile": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ReconcileReport"
+              }
+            ]
+          },
+          "reconcileFailures": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lastReconcileError": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pendingReview": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "PaymentOrderDecision": {
         "type": "integer"
       },
@@ -53725,6 +54102,218 @@
             "items": {
               "$ref": "#/components/schemas/RetentionSuggestion"
             }
+          }
+        }
+      },
+      "PaymentReviewDraft": {
+        "required": [
+          "payment",
+          "options",
+          "suggestedDecision",
+          "canApprove",
+          "receivableOpen"
+        ],
+        "type": "object",
+        "properties": {
+          "payment": {
+            "$ref": "#/components/schemas/PaymentReviewRow"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PaymentReviewOption"
+            }
+          },
+          "suggestedDecision": {
+            "type": "string"
+          },
+          "canApprove": {
+            "type": "boolean"
+          },
+          "receivableOpen": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PaymentReviewInput": {
+        "required": [
+          "decision",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "decision": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PaymentReviewList": {
+        "required": [
+          "items",
+          "count"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PaymentReviewRow"
+            }
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PaymentReviewOption": {
+        "required": [
+          "decision",
+          "label",
+          "principal",
+          "interest",
+          "discount",
+          "balanceBefore",
+          "balanceAfter",
+          "requiresApproval",
+          "allowed"
+        ],
+        "type": "object",
+        "properties": {
+          "decision": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "principal": {
+            "type": "number",
+            "format": "double"
+          },
+          "interest": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double"
+          },
+          "balanceBefore": {
+            "type": "number",
+            "format": "double"
+          },
+          "balanceAfter": {
+            "type": "number",
+            "format": "double"
+          },
+          "requiresApproval": {
+            "type": "boolean"
+          },
+          "allowed": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PaymentReviewResult": {
+        "required": [
+          "slipId",
+          "receivableId",
+          "decision",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "slipId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "receivableId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "decision": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "PaymentReviewRow": {
+        "required": [
+          "slipId",
+          "receivableId",
+          "receivableNumber",
+          "partyName",
+          "slipAmount",
+          "paidAmount",
+          "creditDate",
+          "balance",
+          "difference",
+          "reason",
+          "paidAt",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "slipId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "receivableId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "receivableNumber": {
+            "type": "string"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "slipAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "paidAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "creditDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "balance": {
+            "type": "number",
+            "format": "double"
+          },
+          "difference": {
+            "type": "number",
+            "format": "double"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "paidAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
           }
         }
       },
@@ -63858,6 +64447,58 @@
         },
         "additionalProperties": false
       },
+      "ReconcileReport": {
+        "required": [
+          "from",
+          "to",
+          "consulted",
+          "settled",
+          "divergent",
+          "unknown",
+          "cancelled",
+          "expired",
+          "failed"
+        ],
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "consulted": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "settled": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "divergent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "unknown": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cancelled": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "expired": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "failed": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "RecountInput": {
         "required": [
           "lineIds",
@@ -67818,6 +68459,13 @@
           "DiscountWriteOff"
         ]
       },
+      "SettlementSource": {
+        "enum": [
+          "Manual",
+          "Bank"
+        ],
+        "default": "Manual"
+      },
       "SettlementView": {
         "required": [
           "id",
@@ -67911,6 +68559,16 @@
               "null",
               "string"
             ]
+          },
+          "source": {
+            "$ref": "#/components/schemas/SettlementSource"
+          },
+          "webhookEventId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         }
       },
