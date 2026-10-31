@@ -25,7 +25,8 @@ public sealed partial class EmployeeService(
     IEventPublisher events,
     IUserEmployeeLink links,
     ICurrentUser currentUser,
-    TimeProvider clock)
+    TimeProvider clock,
+    IEnumerable<BemAqui.HR.Contracts.IEmployeeUsageProvider> usages)
 {
     public const string CpfIndex = "ix_employees_cpf";
     public const string RegistrationIndex = "ix_employees_registration";

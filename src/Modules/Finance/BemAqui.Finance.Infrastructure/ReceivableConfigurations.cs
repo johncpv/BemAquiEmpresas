@@ -86,6 +86,7 @@ internal sealed class FinancialTransactionConfiguration : IEntityTypeConfigurati
         b.HasIndex(e => e.BankEntryId);
         b.HasIndex(e => e.ReceivableId);
         b.HasIndex(e => e.BillingSlipId);
+        b.HasIndex(e => e.StatementLineId);
     }
 }
 

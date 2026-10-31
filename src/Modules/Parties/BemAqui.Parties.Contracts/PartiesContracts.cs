@@ -60,6 +60,12 @@ public interface IParties
 
     Task<IReadOnlyList<PartySummary>> SearchAsync(string? term, PartyRoleKind? role, int limit = 20, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// O terceiro do documento (FIS-04a CA 6: o emitente da nota de entrada pelo CNPJ), ativo ou inativo; excluído não volta. Documento
+    /// inválido ou sem cadastro: null.
+    /// </summary>
+    Task<PartySummary?> FindByDocumentAsync(string document, CancellationToken cancellationToken = default);
+
     Task<bool> HasRoleAsync(Guid id, PartyRoleKind role, CancellationToken cancellationToken = default);
 
     Task<PartyAddressInfo?> DefaultAddressAsync(Guid id, AddressKind kind, CancellationToken cancellationToken = default);

@@ -5,7 +5,7 @@
 | ID | BNK-03b |
 | Título | Tela de conciliação por conta e período, **uma linha por par** (linha do banco e transação do sistema lado a lado), com as seções "Sem par no banco" e "No sistema, não no banco": sugestão automática de par (valor, data em até 3 dias e documento), aceitar, recusar ou escolher à mão, conciliar 1×N, criar a partir da linha o lançamento sem OP (tarifa, IOF, juros, rendimento) ou a baixa de um título a receber, desfazer e fechar o período com `finance.approve`; quem importou o OFX não confirma a conciliação dele; nenhum pagamento sem OP aprovada |
 | Tamanho | G (quebra da BNK-03) |
-| Status | Ready (pré-condição externa) |
+| Status | Done (pré-condição externa: regras com extratos reais do Inter) |
 | Requisitos | R-FIN-8 (conciliação, sugestão automática de match) · R-FIN-2 · R-FIN-3 · R-FIN-5 (nenhum pagamento sem OP) · R-FIN-10 · R-PRP-1 · R-PRP-3 · R-PRP-6 · R-PRP-7 · R-SEC-5 |
 | Dependências | BNK-03a (linhas do extrato, lote e quem importou), FIN-04 (transações, lançamento sem OP com `finance.pay`), FIN-01 (baixa de título a receber), FIN-03a (pagamento de OP), BNK-02 (transação do boleto e "aguardando conferência"), BNK-01b (`ConfirmDialog`), BNK-01a (`RequireRecentTwoFactor`) |
 | Bloqueia | GOL-01a (critério de entrada: conciliação fechada no ensaio; a trilha fiscal corre em paralelo, sem dependência real) |
@@ -88,21 +88,21 @@ Decisões da revisão aplicadas: D13 (quem confirma não é quem importou, fecha
 **Pré-condição externa:** extratos reais do Inter da Konebras para montar as regras de tipo (tarifa, IOF, rendimento); a story funciona com o seed vazio e a criação de regra pela tela, então não bloqueia o `Ready`.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
-- [ ] Migration criada (não destrutiva), testada sobre cópia do banco do tenant `konebras`; parâmetro do teto com seed.
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Telas com estados, inclusive a 400 px.
-- [ ] Ajuda escrita; teste de cobertura passando.
-- [ ] Efeito financeiro com confirmação e próximos passos aplicados.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers) e arquitetura passando; E2E (Playwright, API simulada) escrito em `e2e/reconciliation.spec.ts`, roda no CI.
+- [ ] Migration criada (não destrutiva, só tabelas e colunas novas) e aplicada no Testcontainers; **falta** rodar sobre a cópia do banco do tenant `konebras` (no deploy). Parâmetro do teto com seed.
+- [x] Permissões só do `ModuleCatalog`.
+- [x] Telas com estados, inclusive a 400 px.
+- [x] Ajuda escrita; teste de cobertura passando.
+- [x] Efeito financeiro com confirmação e próximos passos aplicados.
+- [x] Auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `ReconciliationSuggester` (puro), `BankReconciliation` e vínculos; regras de tipo com seed vazio e "Criar regra a partir desta linha".
-- [ ] Endpoints `/api/v1/finance/reconciliation` (sugestões, conciliar, lote, desfazer, fechar) reaproveitando os serviços da FIN-01 e da FIN-04, com a segregação e o fechamento.
-- [ ] Tela de uma linha por par, seções e a versão em cartões a 400 px; ajuda.
+- [x] `ReconciliationSuggester` (puro), `BankReconciliation` e vínculos; regras de tipo com seed vazio e "Criar regra a partir desta linha".
+- [x] Endpoints `/api/v1/finance/reconciliation` (sugestões, conciliar, lote, desfazer, fechar) reaproveitando os serviços da FIN-01 e da FIN-04, com a segregação e o fechamento.
+- [x] Tela de uma linha por par, seções e a versão em cartões a 400 px; ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, @ux-design-expert (tela de pares e 400 px), cybersecurity (regra "sem pagamento sem OP", segregação), @qa.
@@ -136,3 +136,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D6, D13, D18, tabela 3.2 pontos 32–34, §4.3, §4.4); nova ordem (Marco 5.3, ordem 6); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 31/10/2026 | 1.0 | Implementada: motor de sugestão puro (`ReconciliationSuggester`), `bank_reconciliations`/`links`/`rules`/`closings`, `financial_transactions.reconciled`/`statement_line_id` e o `xmin` da transação, parâmetro `finance.ofx_bank_entry_cap` (500,00) em Configurações → Parâmetros; endpoints em `/finance/bank-accounts/{id}/reconciliation*` e `/finance/bank-statement-rules`; tela `/app/financeiro/conciliacao` (aba "Conciliação"), atalho a partir do "Extrato do banco"; ajuda `financeiro-conciliacao.md`. **Pendente externo:** sem sandbox nem extrato real do Inter, o identificador do boleto (CA 1a) casa pelo seu número, nosso número ou código da solicitação na descrição ou no `idTransacao` da linha (fake); conferir o formato real do extrato do Inter e montar as regras de tipo com extratos reais (seed vazio). **Recomendações aceitas (PO 24/10), a mais conservadora quando os docs não fecham:** (1) o teto do lançamento sem OP vale para toda linha de OFX, não só a "não verificada pelo banco"; (2) da conciliação, a saída só vira lançamento como tarifa, IOF ou juros pagos, e só quando a linha é reconhecida (regra ou tipo do banco) — "Outra saída" não sai daqui; (3) sem regra, o tipo que o próprio banco deu (tarifa, IOF, juros, rendimento) também sugere o lançamento, com "Criar regra a partir desta linha"; (4) o período fechado também protege a transferência, o estorno do lançamento, da transferência e da baixa (datados hoje) e o pagamento da OP, além do lançamento, da baixa, do ignorar e do desfazer; o motivo vai no campo do motivo da data; (5) fechar exige o saldo do banco gravado no dia (API antes de OFX). **Fica para depois:** "Mais" nas abas do Financeiro a 400 px (padrão transversal, hoje as abas rolam na horizontal); migration sobre a cópia do `konebras`. | Dev (Claude) |

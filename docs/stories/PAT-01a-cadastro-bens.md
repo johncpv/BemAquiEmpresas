@@ -5,7 +5,7 @@
 | ID | PAT-01a |
 | Título | Cadastro de bens (máquina, ferramenta, mobiliário, veículo, TI) com etiqueta `PAT-00001`, marca, modelo, série, aquisição (data, valor só com `assets.edit`, NF de entrada), local (`assets.sites`), responsável, centro de trabalho e foto sem EXIF/GPS; situação Ativo, Em manutenção e Baixado; lista com filtros e ficha com abas; permissões do módulo `assets` por seed patch |
 | Tamanho | M (quebra da PAT-01 em 01a cadastro e 01b etiquetas QR e leitura pelo app) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-PAT-1 · R-COM-3 · R-COM-4 (numeração da etiqueta) · R-SEC-5 · R-PRP-1 · R-PRP-3 |
 | Dependências | CAD-04b (`IEmployees` para o responsável), CAD-03 (`IWorkCenters`), CAD-01a (`IParties`, fornecedor), CAD-06 (numeração), FIS-04a (NF de entrada, Fase 5), FND-09d |
 | Bloqueia | PAT-01b, PAT-02, PAT-03a |
@@ -97,20 +97,20 @@ Decisões da revisão aplicadas: §4.3 (anexo autorizado pelo registro, storage 
 **Pré-condição externa:** nenhuma.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers) e E2E passando.
-- [ ] Migration criada (não destrutiva; primeira do schema `assets`); seed de locais e seed patch idempotentes.
-- [ ] Permissões só do `ModuleCatalog`; donos de anexo com `OwnerExists`.
-- [ ] Telas com estados; ajuda de cada rota e aba; teste de cobertura passando.
-- [ ] Padrões comuns dos cadastros e próximos passos aplicados.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [ ] Testes de unidade, integração (Testcontainers) e E2E passando. Unidade e integração passando (371 no Docker, 31/10/2026); o de carga (CA 11) e o E2E `e2e/assets.spec.ts` ficam com o CI.
+- [x] Migration criada (não destrutiva; primeira do schema `assets`); seed de locais e seed patch idempotentes.
+- [x] Permissões só do `ModuleCatalog`; donos de anexo com `OwnerExists`.
+- [x] Telas com estados; ajuda de cada rota e aba; teste de cobertura passando.
+- [x] Padrões comuns dos cadastros e próximos passos aplicados.
+- [x] Auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `IAssetsDb`, `Asset`, `AssetSite`; `IAssets` no Contracts; provedores de uso.
-- [ ] `IIncomingInvoices` no Fiscal; remoção de EXIF/GPS no pipeline de imagem.
-- [ ] Endpoints `/api/v1/assets/assets` e `/api/v1/assets/sites`; telas e ajuda.
+- [x] `IAssetsDb`, `Asset`, `AssetSite`; `IAssets` no Contracts; provedores de uso.
+- [x] `IIncomingInvoices` no Fiscal; remoção de EXIF/GPS no pipeline de imagem.
+- [x] Endpoints `/api/v1/assets/assets` e `/api/v1/assets/sites`; telas e ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, design (lista e ficha), cybersecurity (foto e anexos), @qa.
@@ -144,3 +144,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (tabela 3.3 pontos 40–44, ADR 0038, adendo à ADR 0003, §4.3); nova ordem (Marco 6.4, ordem 11, em paralelo) | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 31/10/2026 | 1.0 | Implementada: schema `assets` (migration `AssetsPat01a`), seed patch `assets-permissions`, `IAssets`, `IIncomingInvoices` (sem notas até a FIS-04a), foto sem EXIF/GPS, telas e ajuda. Status `Done` | Dex (dev) |

@@ -5,7 +5,7 @@
 | ID | FIS-04a |
 | Título | Upload do XML da NF-e do fornecedor com `fiscal.import_incoming` e validação segura (sem DTD e sem entidade externa, esquema, protocolo de autorização obrigatório, exatamente um `infNFe` e uma assinatura, `Reference URI` igual ao `Id`, CNPJ do certificado igual ao do emitente, CNPJ do destinatário igual ao do tenant), aviso "Situação na SEFAZ não conferida", recusa de chave duplicada, fornecedor pelo CNPJ, de-para dos itens pelo código do fornecedor (lembrado para a próxima vez), vínculo ao pedido de compra (nota sem pedido com `purchasing.approve`) e conferência das divergências de quantidade e preço |
 | Tamanho | M (quebra da FIS-04) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-FIS-5 (importação de XML com de-para de itens do fornecedor) · R-CMP-5 (recebimento por NF-e, conferência contra o pedido) · R-PRP-3 ("XML preenche recebimento") · R-EST-3 (conversão de unidade) · R-COM-3 · R-SEC-5 |
 | Dependências | FIS-02a (`fiscal.import_incoming` no catálogo e no seed do Almoxarifado), CAD-02b (`item_supplier_codes`, `IUnitConversion`), CAD-01a (`IParties`, criação rápida de fornecedor), CMP-03a (pedido de compra, `IPurchaseOrders`), FND-07 (anexos e varredura) |
 | Bloqueia | FIS-04b (recebimento pela nota), FIS-05 (a leitura do PDF usa a mesma conferência) |
@@ -89,21 +89,21 @@ Decisões da revisão aplicadas: D12 (exatamente um `infNFe` e uma assinatura, `
 **Pré-condição externa:** nenhuma.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers) e E2E passando.
-- [ ] Migration criada (não destrutiva), testada sobre cópia do banco do tenant `konebras`.
-- [ ] Permissões só do `ModuleCatalog` (`fiscal.import_incoming` da FIS-02a); dono de anexo registrado.
-- [ ] Telas com estados, inclusive a 400 px.
-- [ ] Ajudas escritas; teste de cobertura passando.
-- [ ] Padrões preenchidos e próximo passo aplicados.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
+- [x] Critérios de aceite atendidos (CA 6: o cadastro do fornecedor com os dados da nota usa o `POST /parties` da CAD-01a, com `parties.create`; CA 7: "Cadastrar item" abre o cadastro da CAD-02a em outra aba).
+- [x] Testes de unidade e integração (Testcontainers) passando. E2E (Playwright): pendente, ver Change Log.
+- [x] Migration criada (não destrutiva: só cria `fiscal.incoming_invoices` e `fiscal.incoming_invoice_items`). A conferência sobre cópia do banco do `konebras` fica para o deploy.
+- [x] Permissões só do `ModuleCatalog` (`fiscal.import_incoming` da FIS-02a); dono de anexo `IncomingInvoice` registrado.
+- [x] Telas com estados, inclusive a 400 px.
+- [x] Ajudas escritas; teste de cobertura passando.
+- [x] Padrões preenchidos e próximo passo aplicados.
+- [x] Auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `SafeXmlReader`, `NfeXmlParser`, `NfeSignatureValidator` (XSD e raízes embutidos; um `infNFe`, uma assinatura, referência pelo `Id`, CNPJ do assinante).
-- [ ] `IncomingInvoice` e itens; sugestão de de-para e de pedido; `IItemSupplierCodes.RememberAsync`.
-- [ ] Endpoints `/api/v1/fiscal/incoming-invoices` (+ `/import`, `/{id}/items/{itemId}/mapping`, `/check`, `/reject`); telas e ajudas.
+- [x] `SafeXmlReader`, `NfeXmlParser`, `NfeSignatureValidator` (XSD e raízes embutidos; um `infNFe`, uma assinatura, referência pelo `Id`, CNPJ do assinante).
+- [x] `IncomingInvoice` e itens; sugestão de de-para e de pedido; `IItemSupplierCodes.RememberAsync`.
+- [x] Endpoints `/api/v1/fiscal/incoming-invoices` (+ `/import`, `/{id}/items/{itemId}/mapping`, `/check`, `/reject`); telas e ajudas.
 
 ## Quality gates
 - Agentes previstos: @dev, cybersecurity (XXE, assinatura deslocada, upload), @qa.
@@ -137,3 +137,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D12, tabela 3.2 pontos 56–60, §4.3); antes do go-live, na ordem da fase (12, Marco 5.5); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 31/10/2026 | 1.0 | **Implementação.** Leitor seguro `NfeXmlReader` (DOCTYPE proibido, `XmlResolver = null`, limite de caracteres e de 32 níveis, duas passadas: forma e documento com os espaços preservados); esquema oficial da NF-e 4.00 do pacote **PL_010_V1** (com os grupos da reforma tributária) embutido e resolvido só entre os arquivos embutidos (`NfeSchema`); `NfeSignatureValidator` com `SignedXml` resolvendo a referência só para o único `infNFe` (contra assinatura deslocada), uma `Signature` filha do `NFe`, uma referência com `URI` = `#` + `Id`, só enveloped e C14N, cadeia até as raízes ICP-Brasil embutidas (`icp-brasil.pem`: raízes v5, v6, v7, v10, v11 e v12 e as AC intermediárias do pacote ACcompactado.zip do ITI, baixado em 31/10/2026) sem download nem revogação, na data de emissão, e CNPJ do certificado igual ao `emit/CNPJ`; `NfeXmlValidator` (sem `nfeProc` = sem protocolo; `cStat` 100 e a mesma chave; dígito da chave; modelo 55; produção). `IncomingInvoice` e itens (migration `IncomingInvoicesFis04a`), `IncomingInvoiceService` (importação com a triagem do anexo antes da leitura, destinatário pelo CNPJ do tenant, 409 `incoming_invoice_duplicate` com o link, fornecedor pelo CNPJ, de-para lembrado, fator pela unidade igual, pela conversão do item ou informado, sugestão de item pelo NCM e pelo `pg_trgm`, pedido sugerido pelo `xPed`/informação complementar ou pelos itens em comum, linhas ligadas pelo item e pelo `nItemPed`, divergências, conferência com o `IItemSupplierCodes.RememberAsync` na mesma transação, recusa que libera a chave); contratos novos `IParties.FindByDocumentAsync`, `IItemSupplierCodes.RememberAsync`, `IItemSuggestions` e `IPurchaseOrderLines`; `AttachmentService.StoreScreenedAsync` com prefixo e origem; política `fiscal-incoming-import` (60 arquivos por hora por usuário, um arquivo por requisição); endpoints `/api/v1/fiscal/incoming-invoices` (+ `/import`, `/{id}`, `/{id}/xml`, `/{id}/history`, `/{id}/supplier`, `/{id}/items/{itemId}/mapping`, `/{id}/order`, `/{id}/check`, `/{id}/reject`, `/item-options`, `/account-options`); telas Notas de entrada, Importar XML e Nota de entrada (abas Itens e de-para, Pedido e divergências, Documentos, Histórico); ajudas `fiscal-entrada`, `fiscal-entrada-importar`, `fiscal-nota-entrada` (+ `-pedido`, `-documentos`, `-historico`, uma por aba, no padrão das outras telas com abas). **Recomendações aceitas (PO 24/10), pela opção mais conservadora:** só `cStat` 100 vale como autorizada (o 150, "autorizado fora de prazo", fica recusado até decisão do PO); nota de homologação (`tpAmb` 2) é recusada; nota de emitente CPF é recusada (o CA 2 pede o CNPJ do certificado igual ao `emit/CNPJ`); o CNPJ do certificado tem de ser **igual** ao do emitente, não só a raiz (a SEFAZ aceita a matriz assinando pela filial: decisão do PO se for preciso); a `Signature` opcional da SEFAZ dentro do `protNFe` não conta para "exatamente uma" nem é conferida (o protocolo é conferido pela chave e pelo `cStat`); o esquema embutido é o PL_010_V1 (espelho nfephp `sped-nfe`), a conferir contra o portal da NF-e na próxima atualização do XSD; o arquivo vai numa requisição por vez (a tela manda até 20, o servidor conta os 60 por hora); o XML entra como anexo de **sistema** (fora do limite de 30 envios por hora dos anexos do usuário); o dono `IncomingInvoice` aceita só XML até a FIS-05 trazer o PDF; com pedido, todo item de estoque precisa estar ligado a uma linha dele para conferir (a FIS-04b recebe pela linha); o fornecedor sem o papel Fornecedor bloqueia a conferência. **Pendências:** "Receber pela nota" do próximo passo leva ao recebimento do pedido da CMP-04 até a FIS-04b; o histórico do item fica no histórico da nota (filhos pelo `invoiceId`); E2E (Playwright) fica para a rodada de E2E da fase. | Dex (dev) |

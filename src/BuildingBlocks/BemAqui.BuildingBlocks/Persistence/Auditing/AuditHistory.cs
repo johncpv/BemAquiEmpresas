@@ -33,11 +33,43 @@ public sealed class AuditHistory(BemAquiDbContext db, AuditableEntityRegistry re
         }
 
         var owner = currentUser.UserId is { } me && (await effective.GetAsync(me, cancellationToken)).IsOwner;
-        return await db.AuditEntries.AsNoTracking()
+        var entries = await db.AuditEntries.AsNoTracking()
             .Where(a => a.Entity == entity && a.EntityId == entityId && (owner || a.Action != AuditActions.SensitiveRead))
             .OrderByDescending(a => a.At).ThenByDescending(a => a.Id)
             .Select(a => new AuditEntryDto(a.Id, a.Action, a.UserId, a.At, a.Changes, a.Origin))
             .ToPagedListAsync(page, cancellationToken);
+        var hidden = await HiddenFieldsAsync(entity, module, cancellationToken);
+        return hidden.Count == 0 ? entries : entries with { Items = entries.Items.Select(e => e with { Changes = Redact(e.Changes, hidden) }).ToList() };
+    }
+
+    /// <summary>Campos restritos da entidade (<see cref="AuditableEntityRegistry.RestrictedFieldsOf"/>) cuja ação o usuário não tem.</summary>
+    private async Task<IReadOnlyCollection<string>> HiddenFieldsAsync(string entity, string module, CancellationToken ct)
+    {
+        var hidden = new List<string>();
+        foreach (var (field, action) in registry.RestrictedFieldsOf(entity))
+        {
+            if (!await permissions.HasPermissionAsync(module, action, ct))
+            {
+                hidden.Add(field);
+            }
+        }
+
+        return hidden;
+    }
+
+    private static string Redact(string changes, IReadOnlyCollection<string> hidden)
+    {
+        if (System.Text.Json.Nodes.JsonNode.Parse(changes) is not System.Text.Json.Nodes.JsonObject root)
+        {
+            return changes;
+        }
+
+        foreach (var field in hidden)
+        {
+            root.Remove(field);
+        }
+
+        return root.ToJsonString();
     }
 
     /// <summary>
@@ -119,10 +151,12 @@ public sealed class AuditHistory(BemAquiDbContext db, AuditableEntityRegistry re
         var removed = JsonSerializer.Serialize(new Dictionary<string, Dictionary<string, string>> { [parentProperty] = new() { ["old"] = entityId } });
         var children = db.AuditEntries.Where(a => childEntities.Contains(a.Entity) && (EF.Functions.JsonContains(a.Changes, created) || EF.Functions.JsonContains(a.Changes, removed)))
             .Select(a => a.EntityId);
-        return await db.AuditEntries.AsNoTracking()
+        var entries = await db.AuditEntries.AsNoTracking()
             .Where(a => ((a.Entity == entity && a.EntityId == entityId) || (childEntities.Contains(a.Entity) && children.Contains(a.EntityId))) && (owner || a.Action != AuditActions.SensitiveRead))
             .OrderByDescending(a => a.At).ThenByDescending(a => a.Id)
             .Select(a => new RelatedAuditEntryDto(a.Id, a.Entity, a.EntityId, a.Action, a.UserId, a.At, a.Changes, a.Origin))
             .ToPagedListAsync(page, cancellationToken);
+        var hidden = await HiddenFieldsAsync(entity, module, cancellationToken);
+        return hidden.Count == 0 ? entries : entries with { Items = entries.Items.Select(e => e.Entity == entity ? e with { Changes = Redact(e.Changes, hidden) } : e).ToList() };
     }
 }

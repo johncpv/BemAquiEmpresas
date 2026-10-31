@@ -46,6 +46,12 @@ public sealed class FiscalFixture : IAsyncLifetime
     /// <summary>Os testes do certificado somam mais de 5 envios no tenant A; o limite de verdade é conferido no tenant B com este valor.</summary>
     public const int CertificateUploadsPerHour = 30;
 
+    /// <summary>Limite de importação de XML por usuário no teste (o de produção é 60 por hora, FIS-04a CA 1); cada teste usa usuários novos.</summary>
+    public const int IncomingImportsPerHour = 8;
+
+    /// <summary>Antivírus de teste (sem clamd): limpo por padrão.</summary>
+    public BemAqui.Integration.Tests.Attachments.FakeScanner Scanner { get; } = new();
+
     public TenancyFixture Tenancy { get; } = new();
 
     public WebApplicationFactory<Program> Factory { get; private set; } = null!;
@@ -65,6 +71,7 @@ public sealed class FiscalFixture : IAsyncLifetime
         {
             b.UseSetting("Webhooks:PerIpPerMinute", "100000");
             b.UseSetting("Fiscal:Emissor:TestsPerMinute", "5");
+            b.UseSetting("Fiscal:Emissor:IncomingImportsPerHour", IncomingImportsPerHour.ToString(System.Globalization.CultureInfo.InvariantCulture));
             b.UseSetting("Fiscal:Emissor:CertificateUploadsPerHour", CertificateUploadsPerHour.ToString(System.Globalization.CultureInfo.InvariantCulture));
             b.ConfigureTestServices(s =>
             {
@@ -75,6 +82,10 @@ public sealed class FiscalFixture : IAsyncLifetime
                 s.AddSingleton<IBackgroundJobClient>(Jobs);
                 s.RemoveAll<IFiscalEmitterFactory>();
                 s.AddSingleton<IFiscalEmitterFactory>(Emitters);
+                s.RemoveAll<BemAqui.BuildingBlocks.Attachments.IVirusScanner>();
+                s.AddSingleton<BemAqui.BuildingBlocks.Attachments.IVirusScanner>(Scanner);
+                s.RemoveAll<BemAqui.Fiscal.Application.Incoming.INfeTrustAnchors>();
+                s.AddSingleton(NfeSamples.Anchors);
             });
         });
         _ = Factory.Server;

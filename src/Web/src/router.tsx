@@ -27,6 +27,9 @@ import { PrivacyRequestPage } from '@/pages/settings/privacy/PrivacyRequestPage'
 import { PrivacyRequestsPage } from '@/pages/settings/privacy/PrivacyRequestsPage'
 import { TaxRulesPage } from '@/pages/fiscal/TaxRulesPage'
 import { NewTaxRulePage, TaxRulePage } from '@/pages/fiscal/TaxRulePage'
+import { ImportIncomingPage } from '@/pages/fiscal/incoming/ImportIncomingPage'
+import { IncomingInvoicePage } from '@/pages/fiscal/incoming/IncomingInvoicePage'
+import { IncomingInvoicesPage } from '@/pages/fiscal/incoming/IncomingInvoicesPage'
 import { ImportRunsPage } from '@/pages/settings/import/ImportRunsPage'
 import { ShopfloorLayout, TvLayout } from '@/pages/DedicatedLayouts'
 import { TvLegacyPage, TvPage } from '@/pages/tv/TvPage'
@@ -62,6 +65,7 @@ import { CashFlowPage } from '@/pages/finance/cash-flow/CashFlowPage'
 import { DrePage } from '@/pages/finance/dre/DrePage'
 import { AgingPage } from '@/pages/finance/aging/AgingPage'
 import { StatementPage } from '@/pages/finance/statement/StatementPage'
+import { ReconciliationPage } from '@/pages/finance/reconciliation/ReconciliationPage'
 import { ComparePage } from '@/pages/quotes/ComparePage'
 import { QuotePage } from '@/pages/quotes/QuotePage'
 import { ApprovalRulesPage } from '@/pages/finance/approvals/ApprovalRulesPage'
@@ -99,6 +103,10 @@ import { NewReceivablePage } from '@/pages/finance/receivables/NewReceivablePage
 import { ReceivablePage } from '@/pages/finance/receivables/ReceivablePage'
 import { ReceivablesPage } from '@/pages/finance/receivables/ReceivablesPage'
 import { CostCentersPage } from '@/pages/finance/CostCentersPage'
+import { AssetPage } from '@/pages/assets/AssetPage'
+import { AssetSitesPage } from '@/pages/assets/AssetSitesPage'
+import { AssetsPage } from '@/pages/assets/AssetsPage'
+import { NewAssetPage } from '@/pages/assets/NewAssetPage'
 import { EmployeePage } from '@/pages/hr/EmployeePage'
 import { EmployeesPage } from '@/pages/hr/EmployeesPage'
 import { NewEmployeePage } from '@/pages/hr/NewEmployeePage'
@@ -238,6 +246,10 @@ const fiscalRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'fis
 const taxRulesRoute = createRoute({ getParentRoute: () => appRoute, path: 'fiscal/regras', component: gated('fiscal', TaxRulesPage) })
 const newTaxRuleRoute = createRoute({ getParentRoute: () => appRoute, path: 'fiscal/regras/nova', component: gated('fiscal', NewTaxRulePage) })
 const taxRuleRoute = createRoute({ getParentRoute: () => appRoute, path: 'fiscal/regras/$id', component: gated('fiscal', TaxRulePage) })
+// Fiscal → Notas de entrada (FIS-04a): lista com o filtro de situação na URL, Importar XML e a nota com as abas na URL.
+const incomingInvoicesRoute = createRoute({ getParentRoute: () => appRoute, path: 'fiscal/entrada', component: gated('fiscal', IncomingInvoicesPage) })
+const importIncomingRoute = createRoute({ getParentRoute: () => appRoute, path: 'fiscal/entrada/importar', component: gated('fiscal', ImportIncomingPage) })
+const incomingInvoiceRoute = createRoute({ getParentRoute: () => appRoute, path: 'fiscal/entrada/$id', component: gated('fiscal', IncomingInvoicePage) })
 // Cadastros (CAD-01a): /app/cadastros leva à primeira aba do módulo.
 const partiesRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'cadastros', beforeLoad: () => { throw redirect({ to: '/app/cadastros/terceiros' }) } })
 const partiesRoute = createRoute({ getParentRoute: () => appRoute, path: 'cadastros/terceiros', component: gated('parties', PartiesPage) })
@@ -332,6 +344,12 @@ const financeRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'fi
 const bankAccountsRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/contas', component: gated('finance', BankAccountsPage), validateSearch: (s: Record<string, unknown>): { conta?: string } => ({ conta: text(s.conta) }) })
 const paymentTermsRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/condicoes-de-pagamento', component: gated('finance', PaymentTermsPage) })
 const newPaymentTermRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/condicoes-de-pagamento/nova', component: gated('finance', NewPaymentTermPage) })
+// Patrimônio (PAT-01a): bens (lista, novo com ?de= para duplicar, ficha com abas) e locais.
+const assetsRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'patrimonio', beforeLoad: () => { throw redirect({ to: '/app/patrimonio/bens' }) } })
+const assetsRoute = createRoute({ getParentRoute: () => appRoute, path: 'patrimonio/bens', component: gated('assets', AssetsPage) })
+const newAssetRoute = createRoute({ getParentRoute: () => appRoute, path: 'patrimonio/bens/novo', component: gated('assets', NewAssetPage), validateSearch: (s: Record<string, unknown>): { de?: string } => ({ de: text(s.de) }) })
+const assetRoute = createRoute({ getParentRoute: () => appRoute, path: 'patrimonio/bens/$id', component: gated('assets', AssetPage) })
+const assetSitesRoute = createRoute({ getParentRoute: () => appRoute, path: 'patrimonio/locais', component: gated('assets', AssetSitesPage) })
 // RH (CAD-04a e CAD-04b): funcionários, cargos, jornadas e sindicatos.
 const hrRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh', beforeLoad: () => { throw redirect({ to: '/app/rh/funcionarios' }) } })
 const employeesRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/funcionarios', component: gated('hr', EmployeesPage) })
@@ -380,6 +398,8 @@ const projectMarginsRoute = createRoute({ getParentRoute: () => appRoute, path: 
 const projectRoute = createRoute({ getParentRoute: () => appRoute, path: 'projetos/$id', component: gated('projects', ProjectPage) })
 // Extrato da conta (FIN-04).
 const statementRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/contas/$id/extrato', component: gated('finance', StatementPage) })
+// Conciliação bancária (BNK-03b): ?conta=, ?de= e ?ate=.
+const reconciliationRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/conciliacao', component: gated('finance', ReconciliationPage) })
 // Ordens de pagamento (FIN-03a).
 const paymentOrdersRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/ordens-de-pagamento', component: gated('finance', PaymentOrdersPage) })
 const newPaymentOrderRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/ordens-de-pagamento/nova', component: gated('finance', NewPaymentOrderPage) })
@@ -469,10 +489,10 @@ export const routeTree = rootRoute.addChildren([
   forgotRoute,
   resetRoute,
   inviteRoute,
-  appRoute.addChildren([appIndexRoute, dashboardRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute, projectResultsRoute, projectResultRoute, myPayslipsRoute, myTimeClockRoute,
+  appRoute.addChildren([appIndexRoute, assetsRootRoute, assetsRoute, newAssetRoute, assetRoute, assetSitesRoute, dashboardRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute, projectResultsRoute, projectResultRoute, myPayslipsRoute, myTimeClockRoute,
     aiSettingsRoute, importRunsRoute, importRunRoute, integrationsRoute, integrationEventsRoute, interAccountsRoute, interAccountRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute, billingSettingsRoute,
     inventoryRootRoute, balancesRoute, movementsRoute, movementRoute, manualPostingsRoute, manualPostingRoute, shortagesRoute, requisitionsRoute, requisitionRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, bomsRoute, productionRootRoute, fabricationOrdersRoute, fabricationOrderRoute, kanbanRoute, openLaborRoute, operatorRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute, qualityRoute, qualityStepRoute, nonConformitiesRoute, nonConformityRoute, purchasingRootRoute, purchaseRequestsRoute, newPurchaseRequestRoute, purchaseRequestRoute, purchaseOrdersRoute, newPurchaseOrderRoute, purchaseOrderRoute, editPurchaseOrderRoute, shipmentsRoute, newShipmentRoute, shipmentRoute, traceabilityRoute, adjustmentsRoute, adjustmentRoute, goodsReceiptsRoute, goodsReceiptRoute, newGoodsReceiptRoute, rfqsRoute, newRfqRoute, rfqRoute, inventoryCountsRoute, inventoryCountRoute, capacityRoute, planningRoute, supervisorRoute,
-    financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, payablesRoute, newPayableRoute, payableRoute, recurringRoute, approvalRulesRoute, openingRoute, cashFlowRoute, dreRoute, agingRoute, paymentOrdersRoute, newPaymentOrderRoute, paymentOrderRoute, statementRoute, quotesRoute, quoteFunnelRoute, quoteRoute, quoteCompareRoute, contractsRoute, contractRoute, amendmentRoute, projectsRoute, projectMarginsRoute, projectRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, hrTimeRoute, timeEntriesRoute, timeAdjustmentsRoute, kioskScreensRoute, kioskPreviewRoute, payrollRunsRoute, payrollRunRoute, payrollItemsRoute, fiscalIntegrationRoute, fiscalSettingsRoute, fiscalCertificateRoute, privacyRequestsRoute, privacyRequestRoute, fiscalRootRoute, taxRulesRoute, newTaxRuleRoute, taxRuleRoute, accountantExportRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
+    financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, payablesRoute, newPayableRoute, payableRoute, recurringRoute, approvalRulesRoute, openingRoute, cashFlowRoute, dreRoute, agingRoute, paymentOrdersRoute, newPaymentOrderRoute, paymentOrderRoute, statementRoute, reconciliationRoute, quotesRoute, quoteFunnelRoute, quoteRoute, quoteCompareRoute, contractsRoute, contractRoute, amendmentRoute, projectsRoute, projectMarginsRoute, projectRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, hrTimeRoute, timeEntriesRoute, timeAdjustmentsRoute, kioskScreensRoute, kioskPreviewRoute, payrollRunsRoute, payrollRunRoute, payrollItemsRoute, fiscalIntegrationRoute, fiscalSettingsRoute, fiscalCertificateRoute, privacyRequestsRoute, privacyRequestRoute, fiscalRootRoute, taxRulesRoute, newTaxRuleRoute, taxRuleRoute, incomingInvoicesRoute, importIncomingRoute, incomingInvoiceRoute, accountantExportRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
   platformLoginRoute,
   platformPasswordRoute,
   platformRoute.addChildren([platformIndexRoute, tenantsRoute, tenantRoute]),

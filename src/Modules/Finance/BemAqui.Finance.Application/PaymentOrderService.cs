@@ -22,7 +22,7 @@ public sealed partial class PaymentOrderService(
     IFinanceDb db, IParties parties, IUserDirectory users, IPermissionChecker permissions, ICurrentUser currentUser, INumberSequence numbers,
     INotificationService notifications, IEventPublisher events, IFinanceParameters parameters, BemAqui.Commercial.Contracts.IProjects projects, ApprovalResolver resolver,
     ApprovalRuleService ruleNames, BemAqui.BuildingBlocks.Email.IEmailSender email, BemAqui.BuildingBlocks.Email.TenantLinks links,
-    IEnumerable<BemAqui.HR.Contracts.IEmployeeBankAccounts> employeeAccounts, TimeProvider clock)
+    IEnumerable<BemAqui.HR.Contracts.IEmployeeBankAccounts> employeeAccounts, Reconciliation.ReconciliationPeriodGuard period, TimeProvider clock)
 {
     public const string DocType = "OP";
     public const string NotificationType = "finance.payment_order";

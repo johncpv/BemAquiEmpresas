@@ -173,6 +173,20 @@ public sealed class BankStatementLine : Entity, IAuditUpdatesOnly, IConcurrencyV
         IgnoredBy = by;
         IgnoredAt = at;
     }
+
+    /// <summary>Conciliada (BNK-03b CA 4): a primeira transação do vínculo fica em <see cref="MatchedTransactionId"/>.</summary>
+    public void Reconcile(Guid transactionId)
+    {
+        Status = StatementLineStatus.Reconciled;
+        MatchedTransactionId = transactionId;
+    }
+
+    /// <summary>Conciliação desfeita (CA 10): volta a pendente.</summary>
+    public void Unreconcile()
+    {
+        Status = StatementLineStatus.Pending;
+        MatchedTransactionId = null;
+    }
 }
 
 /// <summary>Saldo do banco num dia (<c>finance.bank_statement_balances</c>, BNK-03a CA 3): um por conta, dia e origem.</summary>

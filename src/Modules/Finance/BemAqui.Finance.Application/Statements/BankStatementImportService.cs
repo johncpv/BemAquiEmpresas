@@ -31,6 +31,7 @@ public sealed partial class BankStatementImportService(
     IUserDirectory users,
     INotificationService notifications,
     IOptions<BankStatementOptions> options,
+    Reconciliation.ReconciliationPeriodGuard period,
     TimeProvider clock,
     ILogger<BankStatementImportService> logger)
 {

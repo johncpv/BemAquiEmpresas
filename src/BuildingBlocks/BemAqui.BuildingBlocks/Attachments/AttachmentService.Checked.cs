@@ -81,6 +81,11 @@ public sealed partial class AttachmentService
             return refused;
         }
 
+        if (StripMetadata(rules, type, buffer) is { } unreadable)
+        {
+            return unreadable;
+        }
+
         buffer.Position = 0;
         var sha256 = Convert.ToHexStringLower(await System.Security.Cryptography.SHA256.HashDataAsync(buffer, cancellationToken));
         buffer.Position = 0;
@@ -104,6 +109,24 @@ public sealed partial class AttachmentService
         db.Attachments.Add(attachment);
         await db.SaveChangesAsync(cancellationToken);
         return ToDto(attachment);
+    }
+
+    /// <summary>
+    /// Anexo limpo mais recente de cada dono (sem os pendentes e os infectados), numa consulta só: a foto do bem na lista e na ficha
+    /// (PAT-01a CA 8), como o logo.
+    /// </summary>
+    public async Task<IReadOnlyDictionary<Guid, Guid>> LatestCleanAsync(string ownerType, IReadOnlyCollection<Guid> ownerIds, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(ownerIds);
+        if (ownerIds.Count == 0)
+        {
+            return new Dictionary<Guid, Guid>();
+        }
+
+        var ids = ownerIds.Distinct().ToList();
+        var rows = await db.Attachments.AsNoTracking().Where(a => a.OwnerType == ownerType && ids.Contains(a.OwnerId) && a.ScanStatus == ScanStatus.Clean)
+            .Select(a => new { a.OwnerId, a.Id, a.CreatedAt }).ToListAsync(cancellationToken);
+        return rows.GroupBy(r => r.OwnerId).ToDictionary(g => g.Key, g => g.OrderByDescending(r => r.CreatedAt).ThenByDescending(r => r.Id).First().Id);
     }
 
     /// <summary>Quais destes donos têm anexo (sem os infectados), numa consulta só, para a marca "Documento anexado" de uma lista.</summary>

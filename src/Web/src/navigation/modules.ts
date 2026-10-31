@@ -78,7 +78,8 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
     { slug: 'garantia', label: 'Garantia padrão', group: STOCK_SETUP },
   ] },
   purchasing: { slug: 'compras', icon: ShoppingCart, tabs: [{ slug: 'solicitacoes', label: 'Solicitações' }, { slug: 'cotacoes', label: 'Cotações' }, { slug: 'pedidos', label: 'Pedidos' }, { slug: 'recebimentos', label: 'Recebimentos' }] },
-  assets: { slug: 'patrimonio', icon: Tag },
+  // PAT-01a: bens e locais do patrimônio (área Fábrica).
+  assets: { slug: 'patrimonio', icon: Tag, tabs: [{ slug: 'bens', label: 'Bens' }, { slug: 'locais', label: 'Locais' }] },
   finance: { slug: 'financeiro', icon: Wallet, tabs: [
     { slug: 'receber', label: 'A receber', group: CASH },
     { slug: 'pagar', label: 'A pagar', group: CASH },
@@ -87,6 +88,7 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
     { slug: 'inadimplencia', label: 'Inadimplência', group: CASH },
     { slug: 'ordens-de-pagamento', label: 'Ordens de pagamento', group: CASH },
     { slug: 'contas', label: 'Contas e caixas', group: CASH },
+    { slug: 'conciliacao', label: 'Conciliação', group: CASH },
     { slug: 'plano-de-contas', label: 'Plano de contas', group: SETUP },
     { slug: 'centros-de-custo', label: 'Centros de custo', group: SETUP },
     { slug: 'condicoes-de-pagamento', label: 'Condições de pagamento', group: SETUP },
@@ -94,8 +96,8 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
     { slug: 'alcadas', label: 'Alçadas', group: SETUP },
     { slug: 'implantacao', label: 'Implantação financeira', group: SETUP },
   ] },
-  // FIS-02b: Regras fiscais no grupo "Configuração fiscal" (a NF-e de saída entra com a FIS-03a).
-  fiscal: { slug: 'fiscal', icon: Receipt, tabs: [{ slug: 'regras', label: 'Regras fiscais', group: 'Configuração fiscal' }] },
+  // FIS-02b: Regras fiscais no grupo "Configuração fiscal" (a NF-e de saída entra com a FIS-03a). FIS-04a: Notas de entrada.
+  fiscal: { slug: 'fiscal', icon: Receipt, tabs: [{ slug: 'entrada', label: 'Notas de entrada' }, { slug: 'regras', label: 'Regras fiscais', group: 'Configuração fiscal' }] },
   hr: { slug: 'rh', icon: Users, tabs: [{ slug: 'funcionarios', label: 'Funcionários' }, { slug: 'cargos', label: 'Cargos' }, { slug: 'jornadas', label: 'Jornadas' }, { slug: 'sindicatos', label: 'Sindicatos' }, { slug: 'ponto', label: 'Ponto' }] },
   kiosk: { slug: 'painel-tv', icon: MonitorPlay },
   shopfloor: { slug: 'operador', icon: HardHat, href: '/fab' },

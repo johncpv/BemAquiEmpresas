@@ -73,16 +73,23 @@ public sealed partial class AttachmentService
     /// Grava o arquivo triado (<see cref="ScreenAsync"/>) como anexo do dono, já limpo, na unidade de trabalho do chamador (o chamador
     /// salva). Sem rota: o dono que lê o arquivo é quem grava (ex.: o lote do extrato).
     /// </summary>
-    public async Task<Attachment> StoreScreenedAsync(string ownerType, Guid ownerId, ScreenedFile file, CancellationToken cancellationToken = default)
+    public Task<Attachment> StoreScreenedAsync(string ownerType, Guid ownerId, ScreenedFile file, CancellationToken cancellationToken = default) =>
+        StoreScreenedAsync(ownerType, ownerId, file, null, AttachmentOrigin.User, cancellationToken);
+
+    /// <summary>
+    /// Igual ao anterior, com o arquivo debaixo do prefixo <paramref name="storagePrefix"/> no storage (o id do tenant, revisão pré-Fases 4 a
+    /// 8 §4.3) e a origem dada (o XML da nota de entrada é guardado como arquivo de sistema, FIS-04a CA 5).
+    /// </summary>
+    public async Task<Attachment> StoreScreenedAsync(string ownerType, Guid ownerId, ScreenedFile file, string? storagePrefix, AttachmentOrigin origin, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(file);
         using var buffer = new MemoryStream(file.Content, writable: false);
-        var path = await storage.SaveAsync(buffer, cancellationToken);
+        var path = storagePrefix is null ? await storage.SaveAsync(buffer, cancellationToken) : await storage.SaveAsync(buffer, storagePrefix, cancellationToken);
         var now = clock.GetUtcNow();
         var attachment = new Attachment
         {
             OwnerType = ownerType, OwnerId = ownerId, FileName = file.FileName, ContentType = file.Type.ContentType, Size = file.Content.Length, Sha256 = file.Sha256,
-            StoragePath = path, ScanStatus = ScanStatus.Clean, ScannedAt = now, CreatedAt = now, UploadedBy = currentUser.UserId, Origin = AttachmentOrigin.User,
+            StoragePath = path, ScanStatus = ScanStatus.Clean, ScannedAt = now, CreatedAt = now, UploadedBy = currentUser.UserId, Origin = origin,
         };
         db.Attachments.Add(attachment);
         return attachment;
