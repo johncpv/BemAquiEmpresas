@@ -19,6 +19,8 @@ public static class PartiesInfrastructure
         services.TryAddScoped<CnpjLookupService>();
         services.TryAddScoped<ICnpjLookup, BrasilApiCnpjLookup>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.Finance.Contracts.IPaymentTermUsageProvider, PartyPaymentTermUsage>());
+        // LGPD-01a: titular terceiro PF e contato (identificação, seletor e exportação).
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Privacy.IPersonalDataProvider, PartiesPersonalDataProvider>());
         services.AddAuditableEntity<Party>("parties");
         services.AddAuditableEntity<PartyRole>("parties");
         services.AddAuditableEntity<PartyAddress>("parties");

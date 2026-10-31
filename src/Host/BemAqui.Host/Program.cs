@@ -7,6 +7,7 @@ using BemAqui.BuildingBlocks.Logging;
 using BemAqui.BuildingBlocks.Lookups;
 using BemAqui.BuildingBlocks.Messaging;
 using BemAqui.BuildingBlocks.Notifications;
+using BemAqui.BuildingBlocks.Privacy;
 using BemAqui.BuildingBlocks.Security;
 using BemAqui.BuildingBlocks.Web;
 using BemAqui.BuildingBlocks.Webhooks;
@@ -104,6 +105,7 @@ try
     builder.Services.AddTenantPersistence();
     builder.Services.AddSingleton<BemAqui.Platform.Application.Provisioning.ITenantDatabaseMigrator, TenantDatabaseMigrator>();
     builder.Services.AddBemAquiEmail(builder.Configuration);
+    builder.Services.AddBemAquiPrivacy(); // LGPD-01a: provedores de dado pessoal da base (e-mails e notificações)
     builder.Services.AddBemAquiLookups(builder.Configuration);
     builder.Services.AddBemAquiMessaging(builder.Configuration, HostEvents.Register);
     builder.Services.AddBemAquiAgenda(builder.Configuration); // Minha pauta (DSH-04): o agregador; as fontes vêm dos módulos

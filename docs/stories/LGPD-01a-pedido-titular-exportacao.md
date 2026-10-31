@@ -5,7 +5,7 @@
 | ID | LGPD-01a |
 | Título | Registro e acompanhamento do pedido do titular (confirmação, acesso, correção, anonimização, eliminação, portabilidade) pelo Proprietário em Configurações → Privacidade, com prazo de 15 dias corridos e identidade conferida antes de exportar; inventário de onde há dado pessoal, com provedor ou expurgo para cada lugar; exportação de todos os dados pessoais de um terceiro PF, contato, funcionário ou usuário do sistema em JSON e PDF, reunidos de cada módulo pelo `IPersonalDataProvider`; pedido e atendimento auditados |
 | Tamanho | M (quebra da LGPD-01 em 01a pedido e exportação, 01b anonimização) |
-| Status | Ready (pré-condição externa) |
+| Status | Done (pré-condição externa: o jurídico confere o prazo de 15 dias e o tratamento do dado de terceiros) |
 | Requisitos | PRD §6 LGPD ("exportação e anonimização sob pedido") · ADR 0018 (atendimento ao titular na Fase 6) · R-SEC-5 · R-COM-3 |
 | Dependências | CAD-01a (terceiro PF e contatos), CAD-04b, CAD-04c1 e CAD-04c2 (funcionário), RH-01c, RH-02b, RH-02c e RH-03 (ponto, folha e holerite, o último RH do marco), FND-16 (`webhook_events`), COM-03 (`IPdfRenderer`), FND-06c (Proprietário), FND-07 (auditoria e anexos) |
 | Bloqueia | LGPD-01b |
@@ -88,19 +88,19 @@ Decisões da revisão aplicadas: §4.2 (inventário do dado pessoal, `IPersonalD
 **Pré-condição externa:** o jurídico confere o prazo de 15 dias e o tratamento do dado de terceiros (valor pré-configurado e editável em Configurações → Privacidade); não bloqueia o `Ready`.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers), arquitetura e E2E passando.
-- [ ] Migration criada (não destrutiva).
-- [ ] `IPersonalDataProvider` implementado em todos os módulos com dado pessoal; expurgos do inventário registrados (ADR 0037).
-- [ ] Telas com estados; ajuda escrita; teste de cobertura passando.
-- [ ] Auditoria ligada, com `SensitiveRead`.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers) e arquitetura passando. E2E (`e2e/privacy.spec.ts`) escrito; pela regra de 31/10 roda no fechamento da feature e à noite, não por story.
+- [x] Migration criada (não destrutiva): `20261031191705_PrivacyRequestsLgpd01a`.
+- [x] `IPersonalDataProvider` implementado em todos os módulos com dado pessoal; expurgos do inventário registrados (ADR 0037).
+- [x] Telas com estados; ajuda escrita; teste de cobertura passando.
+- [x] Auditoria ligada, com `SensitiveRead`.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `PrivacyRequest` com a conferência de identidade; `IPersonalDataProvider` e os provedores por módulo; `IPersonalDataPurge`; `PersonalDataPdfDocument`.
-- [ ] `PersonalDataTests` em todos os módulos (entidades, outbox, jobs).
-- [ ] Jobs de aviso de prazo e de expurgo; endpoints `/api/v1/settings/privacy-requests`; tela e ajuda.
+- [x] `PrivacyRequest` com a conferência de identidade; `IPersonalDataProvider` e os provedores por módulo; `IPersonalDataPurge`; `PersonalDataPdfDocument`.
+- [x] `PersonalDataTests` em todos os módulos (entidades, outbox, jobs).
+- [x] Jobs de aviso de prazo e de expurgo; endpoints `/api/v1/settings/privacy-requests`; tela e ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, @architect (contrato entre módulos, inventário), cybersecurity (exportação, identidade, canário), @qa.
@@ -134,3 +134,12 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (tabela 3.3 pontos 31–35, ADR 0037, §4.2 inventário, §4.3, §4.4 padrão 8); nova ordem (Marco 6.3, ordem 9); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 31/10/2026 | 1.0 | Implementação (@dev): `settings.privacy_requests` (migration `PrivacyRequestsLgpd01a`, só cria a tabela), `PrivacyRequestService` (só o Proprietário, conferido no serviço), numeração `LGPD`, parâmetro `privacy.response_days` (seed 15), contrato `IPersonalDataProvider` no BuildingBlocks com provedores em Parties, HR, Identity, Commercial, Production, Finance, Purchasing, Fiscal (sem entidade até a FIS-03a) e na base (e-mails e notificações), `[PersonalDataCovers]`/`[PersonalDataPurge]`, `OutboxPurgeJob` (30 dias), `PrivacyExportJob` (ZIP com `dados.json`, `dados.pdf` pelo `IPdfRenderer` e `anexos/`), aviso do prazo (`privacy-due-notices`, 08:00) e expurgo das exportações (`privacy-export-purge`, 03:45), `PersonalDataInventoryTests`, tela Configurações → Privacidade e detalhe do pedido, ajuda e E2E | @dev |
+| 31/10/2026 | 1.0 | Recomendação aceita (PO 24/10): o histórico do pedido sai por rota própria do Proprietário (`/settings/privacy-requests/{id}/history`, com o IP, CA 12), e o pedido não entra no histórico genérico `/audit` (que não mostra IP e abriria o pedido a quem tem `settings.view`) | @dev |
+| 31/10/2026 | 1.0 | Recomendação aceita (PO 24/10): o ZIP da exportação é dono `PrivacyRequest` com `CheckedOnly` (novo em `AttachmentOwnerRules`): as rotas genéricas de anexos recusam até o Proprietário; o arquivo só sai pelo link de uso único (CA 10), e cada download grava um `SensitiveRead` com o número do pedido | @dev |
+| 31/10/2026 | 1.0 | Recomendação aceita (PO 24/10): dado sensível na exportação segue as ações de quem pediu, conferidas de novo no job: sem `hr.view_sensitive` (ex.: RH não liberado) saem só o cadastro básico, a linha do tempo sem valores e o ponto sem localização, com a observação no arquivo; tipo e motivo de afastamento e de abono de saúde, e o atestado, só com `hr.view_health`. Quem deixou o Proprietário antes do job: a exportação falha com o motivo | @dev |
+| 31/10/2026 | 1.0 | Recomendação aceita (PO 24/10): dado de outra pessoa sai mascarado em todo provedor, não só o CPF de dependentes: contatos de terceiro PF (primeiro nome e inicial, e-mail e telefone mascarados), cópias de e-mail, titular da conta de salário quando não é o funcionário, motorista do romaneio quando o titular é o cliente; o modelo (`model`) dos e-mails nunca sai | @dev |
+| 31/10/2026 | 1.0 | Recomendação aceita (PO 24/10): texto livre do RH que faltava passou a `[PersonalData]` (`payroll_runs.reopen_reason`, `payroll_forecasts.cancel_reason`); `idempotency_records.response` e `notifications.title` também, para entrar no inventário; o expurgo de 30 dias do outbox e da inbox (ADR 0037 §2) foi implementado (mensagem na fila de mortas fica) | @dev |
+| 31/10/2026 | 1.0 | Recomendação aceita (PO 24/10): "Titular não encontrado" exporta só pelo e-mail informado no contato (e-mails e envios a ele); o prazo de resposta é editável de 1 a 30 dias corridos | @dev |
+| 31/10/2026 | 1.0 | Pendente externo: o jurídico confere o prazo de 15 dias e o tratamento do dado de terceiros (valores pré-configurados e editáveis) | @dev |
+| 31/10/2026 | 1.0 | Pendente de outra story: espelho mensal e "Li e confirmo" (RH-01c, ainda `Ready`) entram no provedor do RH quando existirem (o arquivo traz a observação); notas fiscais do titular entram com o destinatário da FIS-03a; usuários do portal, na POR-01a (o `PersonalDataInventoryTests` obriga). Histórico de jobs do Hangfire: os argumentos levam só ids (teste), e os jobs concluídos expiram pelo storage do Hangfire (24 h); os que falharam ficam no catálogo sem dado pessoal | @dev |
