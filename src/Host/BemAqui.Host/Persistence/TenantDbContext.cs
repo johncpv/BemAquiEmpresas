@@ -340,6 +340,10 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BemAqui.Fiscal.Domain.TaxRule> TaxRules => Set<BemAqui.Fiscal.Domain.TaxRule>();
 
+    public DbSet<BemAqui.Fiscal.Domain.IncomingInvoice> IncomingInvoices => Set<BemAqui.Fiscal.Domain.IncomingInvoice>();
+
+    public DbSet<BemAqui.Fiscal.Domain.IncomingInvoiceItem> IncomingInvoiceItems => Set<BemAqui.Fiscal.Domain.IncomingInvoiceItem>();
+
     public DbSet<JobPosition> JobPositions => Set<JobPosition>();
 
     public DbSet<WorkSchedule> WorkSchedules => Set<WorkSchedule>();

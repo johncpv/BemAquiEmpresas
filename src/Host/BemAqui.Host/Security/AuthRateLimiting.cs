@@ -117,6 +117,10 @@ public static class AuthRateLimiting
             o.AddPolicy(BemAqui.Fiscal.Application.TaxRules.TaxSimulationService.RateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
                 "fiscal-simulate|" + TenantKey(http) + "|" + (http.RequestServices.GetService<ICurrentUser>()?.UserId?.ToString() ?? http.Connection.RemoteIpAddress?.ToString() ?? "-"),
                 _ => new FixedWindowRateLimiterOptions { PermitLimit = Math.Max(1, fiscal.SimulationsPerMinute), Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
+            // "Importar XML" da nota de entrada (FIS-04a CA 1): 60 arquivos por hora por usuário dentro do tenant (um arquivo por requisição).
+            o.AddPolicy(BemAqui.Fiscal.Application.Incoming.IncomingInvoiceService.RateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
+                "fiscal-incoming|" + TenantKey(http) + "|" + (http.RequestServices.GetService<ICurrentUser>()?.UserId?.ToString() ?? http.Connection.RemoteIpAddress?.ToString() ?? "-"),
+                _ => new FixedWindowRateLimiterOptions { PermitLimit = Math.Max(1, fiscal.IncomingImportsPerHour), Window = TimeSpan.FromHours(1), QueueLimit = 0 }));
             o.OnRejected = async (context, cancellationToken) =>
             {
                 var retryAfter = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var wait) ? wait : TimeSpan.FromMinutes(1);

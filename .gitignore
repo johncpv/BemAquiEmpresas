@@ -24,6 +24,8 @@ test-results/
 *.pfx
 *.p12
 *.pem
+# Cadeia pública da ICP-Brasil (só certificados de AC, sem chave): conferência da assinatura da NF-e de entrada.
+!src/Modules/Fiscal/BemAqui.Fiscal.Application/Incoming/Resources/icp-brasil.pem
 *.key
 secrets/
 
