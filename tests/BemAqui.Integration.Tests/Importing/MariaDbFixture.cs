@@ -14,7 +14,7 @@ public sealed class MariaDbFixture : IAsyncLifetime
 {
     public const string RoPassword = "senha-ro-de-teste";
 
-    private readonly MariaDbContainer _container = new MariaDbBuilder("mariadb:10.11").Build();
+    private readonly MariaDbContainer _container = new MariaDbBuilder("mariadb:10.11").WithTmpfsMount("/var/lib/mysql").Build();
 
     public string RootPassword => new MySqlConnectionStringBuilder(_container.GetConnectionString()).Password;
 

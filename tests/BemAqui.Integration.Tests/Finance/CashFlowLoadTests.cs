@@ -18,6 +18,7 @@ namespace BemAqui.Integration.Tests.Finance;
 /// FIN-05 CA 12, FIN-06a CA 5 e FIN-07 CA 16: 50 mil títulos de 2 mil clientes e 20 mil transações; fluxo de 90 dias com os dois
 /// cenários em menos de 2 s, sem N+1 na pontualidade, e aging em menos de 1 s.
 /// </summary>
+[Trait(LoadTest.Trait, LoadTest.Value)]
 public class CashFlowLoadTests(TenancyFixture tenancy) : IClassFixture<TenancyFixture>
 {
     private const string Host = "a.localhost";

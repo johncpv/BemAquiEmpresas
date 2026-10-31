@@ -41,7 +41,7 @@ internal static partial class CommercialEndpoints
         MapDocuments(quotes);
         MapContracts(api);
         MapLookups(quotes.MapGroup("/lookups"));
-        var commercial = api.MapGroup("/commercial").WithTags("Orçamentos");
+        var commercial = api.MapGroup("/commercial").WithTags("Orçamentos").RequireModule("settings");
         commercial.MapGet("/parameters", async (CommercialParametersService service, CancellationToken ct) => Results.Ok(await service.GetAsync(ct)))
             .RequirePermission("settings.view").WithName("GetCommercialParameters").Produces<CommercialParametersView>();
         commercial.MapPut("/parameters", async (CommercialParametersInput input, CommercialParametersService service, CancellationToken ct) => (await service.UpdateAsync(input, ct)).ToHttpResult())
