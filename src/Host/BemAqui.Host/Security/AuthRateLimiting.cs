@@ -112,7 +112,7 @@ public static class AuthRateLimiting
             // Envio do certificado A1 (FIS-02a CA 15): 5 por hora por tenant.
             o.AddPolicy(BemAqui.Fiscal.Application.Certificates.FiscalCertificateService.RateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
                 "fiscal-certificate|" + TenantKey(http),
-                _ => new FixedWindowRateLimiterOptions { PermitLimit = BemAqui.Fiscal.Application.Certificates.FiscalCertificateService.UploadsPerHour, Window = TimeSpan.FromHours(1), QueueLimit = 0 }));
+                _ => new FixedWindowRateLimiterOptions { PermitLimit = Math.Max(1, fiscal.CertificateUploadsPerHour), Window = TimeSpan.FromHours(1), QueueLimit = 0 }));
             o.OnRejected = async (context, cancellationToken) =>
             {
                 var retryAfter = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var wait) ? wait : TimeSpan.FromMinutes(1);

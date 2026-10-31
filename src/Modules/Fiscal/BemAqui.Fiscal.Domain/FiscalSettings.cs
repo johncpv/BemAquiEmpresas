@@ -1,8 +1,10 @@
+using System.Text.Json.Serialization;
 using BemAqui.SharedKernel;
 
 namespace BemAqui.Fiscal.Domain;
 
 /// <summary>Regime tributário da empresa (FIS-02a, P-01). O CRT da NF-e sai daqui (<see cref="FiscalSettings.CrtOf"/>).</summary>
+[JsonConverter(typeof(JsonStringEnumConverter<TaxRegime>))]
 public enum TaxRegime
 {
     SimplesNacional,
@@ -13,6 +15,7 @@ public enum TaxRegime
 }
 
 /// <summary>Onde o ISS da NFS-e é devido (LC 116): no município da obra (item 7.02) ou no da empresa (ex.: item 14.06).</summary>
+[JsonConverter(typeof(JsonStringEnumConverter<IssLocation>))]
 public enum IssLocation
 {
     WorkSite,
@@ -20,6 +23,7 @@ public enum IssLocation
 }
 
 /// <summary>Como sai a venda mista (D4): a NF-e do equipamento na expedição e a instalação em NFS-e no aceite técnico.</summary>
+[JsonConverter(typeof(JsonStringEnumConverter<MixedSaleMode>))]
 public enum MixedSaleMode
 {
     EquipmentNfeServiceNfse,

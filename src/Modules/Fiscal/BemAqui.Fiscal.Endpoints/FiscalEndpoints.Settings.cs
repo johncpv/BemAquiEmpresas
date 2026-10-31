@@ -65,7 +65,12 @@ internal static class FiscalSettingsEndpoints
                     return Error.Validation(Error.Codes.Validation, InvalidFile, new Dictionary<string, string[]> { ["pfx"] = [InvalidFile] }).ToProblem();
                 }
 
-                return (await service.UploadAsync(new UploadCertificateCommand(pfx, new Secret(form.Password ?? string.Empty), form.Code), ct)).ToHttpResult();
+                if (string.IsNullOrEmpty(form.Password))
+                {
+                    return Error.Validation(Error.Codes.Validation, MissingPassword, new Dictionary<string, string[]> { ["password"] = [MissingPassword] }).ToProblem();
+                }
+
+                return (await service.UploadAsync(new UploadCertificateCommand(pfx, new Secret(form.Password), form.Code), ct)).ToHttpResult();
             })
             .RequirePermission("settings.edit").RequireRateLimiting(FiscalCertificateService.RateLimitPolicy).DisableAntiforgery()
             .Accepts<FiscalCertificateForm>("multipart/form-data").WithName("UploadFiscalCertificate").Produces<FiscalCertificateView>();
@@ -73,6 +78,8 @@ internal static class FiscalSettingsEndpoints
     }
 
     private const string InvalidFile = "Escolha o arquivo .pfx ou .p12 do certificado A1 (até 50 KB).";
+
+    private const string MissingPassword = "Informe a senha do certificado.";
 
     /// <summary>O arquivo só em memória (CA 12): até 50 KB, extensão <c>.pfx</c> ou <c>.p12</c>.</summary>
     private static async Task<byte[]?> ReadAsync(IFormFile? file, CancellationToken ct)

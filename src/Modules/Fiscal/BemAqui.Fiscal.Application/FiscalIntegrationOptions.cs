@@ -37,6 +37,9 @@ public sealed class FiscalIntegrationOptions
 
     /// <summary>"Testar conexão" por minuto e usuário (política <c>fiscal-integration</c>, CA 18).</summary>
     public int TestsPerMinute { get; set; } = 5;
+
+    /// <summary>Envios do certificado A1 por hora e tenant (política <c>fiscal-certificate</c>, FIS-02a CA 15).</summary>
+    public int CertificateUploadsPerHour { get; set; } = Certificates.FiscalCertificateService.UploadsPerHour;
 }
 
 /// <summary>Conferência da URL base contra a lista do ambiente (CA 7).</summary>

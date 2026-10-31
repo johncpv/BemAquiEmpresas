@@ -241,10 +241,11 @@ public partial class FiscalTests
         read.CanEdit.Should().BeFalse();
         (await viewer.PostAsync(Certificate, CertificateForm(TestCertificates.Pfx(), code: "123456"))).StatusCode.Should().Be(HttpStatusCode.Forbidden);
 
-        // Tenant B (sem ambiente fiscal): o limite vale antes do serviço, 5 por hora.
+        // Tenant B (sem ambiente fiscal): o limite vale antes do serviço (5 por hora em produção, o valor da fixture aqui).
+        new FiscalIntegrationOptions().CertificateUploadsPerHour.Should().Be(5);
         var (_, owner) = await fixture.ActorAsync(fixture.Tenancy.TenantB, FiscalFixture.HostB, owner: true);
         var pfx = TestCertificates.Pfx();
-        for (var i = 0; i < FiscalCertificateService.UploadsPerHour; i++)
+        for (var i = 0; i < FiscalFixture.CertificateUploadsPerHour; i++)
         {
             (await owner.PostAsync(Certificate, CertificateForm(pfx))).StatusCode.Should().NotBe(HttpStatusCode.TooManyRequests);
         }

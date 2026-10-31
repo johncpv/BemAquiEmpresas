@@ -27394,6 +27394,184 @@
         }
       }
     },
+    "/api/v1/fiscal/settings": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "GetFiscalSettings",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FiscalSettingsView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "SaveFiscalSettings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveFiscalSettingsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FiscalSettingsSaved"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/settings/confirmations": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "ConfirmFiscalSettings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmFiscalSettingsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FiscalSettingsView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/settings/confirmations/{key}": {
+      "delete": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "UndoFiscalSettingConfirmation",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FiscalSettingsView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/settings/export-pdf": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "ExportFiscalSettingsPdf",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/settings/certificate": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "GetFiscalCertificate",
+        "parameters": [
+          {
+            "name": "refresh",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FiscalCertificateView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "UploadFiscalCertificate",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/FiscalCertificateForm"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FiscalCertificateView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/settings/import-runs": {
       "get": {
         "tags": [
@@ -35986,6 +36164,21 @@
           }
         }
       },
+      "ConfirmFiscalSettingsRequest": {
+        "required": [
+          "keys"
+        ],
+        "type": "object",
+        "properties": {
+          "keys": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
       "ConfirmTwoFactorRequest": {
         "required": [
           "code"
@@ -40520,6 +40713,253 @@
           }
         }
       },
+      "FiscalCertificateChange": {
+        "required": [
+          "at",
+          "source",
+          "subject",
+          "thumbprint",
+          "notAfter",
+          "byName"
+        ],
+        "type": "object",
+        "properties": {
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string"
+          },
+          "subject": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "thumbprint": {
+            "type": "string"
+          },
+          "notAfter": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "byName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "FiscalCertificateForm": {
+        "type": "object",
+        "properties": {
+          "pfx": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/IFormFile"
+              }
+            ]
+          },
+          "password": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "FiscalCertificateSummary": {
+        "required": [
+          "notAfter",
+          "daysLeft",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "notAfter": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "daysLeft": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "FiscalCertificateView": {
+        "required": [
+          "integrationReady",
+          "integrationMessage",
+          "status",
+          "subject",
+          "document",
+          "thumbprint",
+          "notAfter",
+          "daysLeft",
+          "uploadedAt",
+          "uploadedByName",
+          "changedOutsideAt",
+          "emitterCheckedAt",
+          "emitterUnavailable",
+          "canEdit",
+          "history"
+        ],
+        "type": "object",
+        "properties": {
+          "integrationReady": {
+            "type": "boolean"
+          },
+          "integrationMessage": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "type": "string"
+          },
+          "subject": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "document": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "thumbprint": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "notAfter": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "daysLeft": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "uploadedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "uploadedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "changedOutsideAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "emitterCheckedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "emitterUnavailable": {
+            "type": "boolean"
+          },
+          "canEdit": {
+            "type": "boolean"
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FiscalCertificateChange"
+            }
+          }
+        }
+      },
+      "FiscalCompanyView": {
+        "required": [
+          "legalName",
+          "document",
+          "stateRegistration",
+          "municipalRegistration",
+          "address",
+          "cityIbge"
+        ],
+        "type": "object",
+        "properties": {
+          "legalName": {
+            "type": "string"
+          },
+          "document": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "stateRegistration": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "municipalRegistration": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "address": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cityIbge": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "FiscalConnectionTest": {
         "required": [
           "ok",
@@ -40542,6 +40982,20 @@
             "$ref": "#/components/schemas/FiscalIntegrationView"
           }
         }
+      },
+      "FiscalCriticality": {
+        "enum": [
+          "None",
+          "All",
+          "Nfe",
+          "Nfse"
+        ]
+      },
+      "FiscalEnvironment": {
+        "enum": [
+          "Homologation",
+          "Production"
+        ]
       },
       "FiscalIntegrationView": {
         "required": [
@@ -40700,6 +41154,418 @@
               "string"
             ],
             "format": "uuid"
+          }
+        }
+      },
+      "FiscalPrecondition": {
+        "required": [
+          "key",
+          "message",
+          "link"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "link": {
+            "type": "string"
+          }
+        }
+      },
+      "FiscalReviewState": {
+        "enum": [
+          "ToConfirm",
+          "Confirmed"
+        ]
+      },
+      "FiscalSettingReview": {
+        "required": [
+          "key",
+          "section",
+          "label",
+          "critical",
+          "reviewState",
+          "reviewedByName",
+          "reviewedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "section": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "critical": {
+            "$ref": "#/components/schemas/FiscalCriticality"
+          },
+          "reviewState": {
+            "$ref": "#/components/schemas/FiscalReviewState"
+          },
+          "reviewedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reviewedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "FiscalSettingSectionView": {
+        "required": [
+          "code",
+          "title",
+          "total",
+          "pending",
+          "firstPendingKey"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pending": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "firstPendingKey": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "FiscalSettingsSaved": {
+        "required": [
+          "settings",
+          "changedKeys",
+          "notice",
+          "rulesToReview"
+        ],
+        "type": "object",
+        "properties": {
+          "settings": {
+            "$ref": "#/components/schemas/FiscalSettingsView"
+          },
+          "changedKeys": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "notice": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "rulesToReview": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "FiscalSettingsValues": {
+        "required": [
+          "regime",
+          "cnaeMain",
+          "cnaeSecondary",
+          "nfeSeries",
+          "environment",
+          "cfopSaleInStateContributor",
+          "cfopSaleInStateFinal",
+          "cfopSaleInterstateContributor",
+          "cfopSaleInterstateFinal",
+          "cfopResaleInState",
+          "cfopResaleInterstate",
+          "mixedSale",
+          "cstIcms",
+          "cstPisCofins",
+          "cstIpi",
+          "icmsInternalRate",
+          "icmsInterstateSouthSoutheastRate",
+          "icmsInterstateOtherRate",
+          "icmsImportedRate",
+          "pisRate",
+          "cofinsRate",
+          "ipiFromNcm",
+          "costTaxes",
+          "nfseServiceItem",
+          "nfseMunicipalCode",
+          "nfseCtn",
+          "nfseNbs",
+          "nfseIssRate",
+          "nfseIssLocation",
+          "nfseIssWithheld",
+          "nfseFederalWithholding",
+          "ibsCbsCst",
+          "ibsCbsClassification",
+          "cbsRate",
+          "ibsRate",
+          "ibsCityRate",
+          "cancellationWindowHours",
+          "freightMode",
+          "volumeSpecies",
+          "includeDuplicates"
+        ],
+        "type": "object",
+        "properties": {
+          "regime": {
+            "$ref": "#/components/schemas/TaxRegime"
+          },
+          "cnaeMain": {
+            "type": "string"
+          },
+          "cnaeSecondary": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "nfeSeries": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "environment": {
+            "$ref": "#/components/schemas/FiscalEnvironment"
+          },
+          "cfopSaleInStateContributor": {
+            "type": "string"
+          },
+          "cfopSaleInStateFinal": {
+            "type": "string"
+          },
+          "cfopSaleInterstateContributor": {
+            "type": "string"
+          },
+          "cfopSaleInterstateFinal": {
+            "type": "string"
+          },
+          "cfopResaleInState": {
+            "type": "string"
+          },
+          "cfopResaleInterstate": {
+            "type": "string"
+          },
+          "mixedSale": {
+            "$ref": "#/components/schemas/MixedSaleMode"
+          },
+          "cstIcms": {
+            "type": "string"
+          },
+          "cstPisCofins": {
+            "type": "string"
+          },
+          "cstIpi": {
+            "type": "string"
+          },
+          "icmsInternalRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "icmsInterstateSouthSoutheastRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "icmsInterstateOtherRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "icmsImportedRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "pisRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "cofinsRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "ipiFromNcm": {
+            "type": "boolean"
+          },
+          "costTaxes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "nfseServiceItem": {
+            "type": "string"
+          },
+          "nfseMunicipalCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "nfseCtn": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "nfseNbs": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "nfseIssRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "nfseIssLocation": {
+            "$ref": "#/components/schemas/IssLocation"
+          },
+          "nfseIssWithheld": {
+            "type": "boolean"
+          },
+          "nfseFederalWithholding": {
+            "type": "boolean"
+          },
+          "ibsCbsCst": {
+            "type": "string"
+          },
+          "ibsCbsClassification": {
+            "type": "string"
+          },
+          "cbsRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "ibsRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "ibsCityRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "cancellationWindowHours": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "freightMode": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "volumeSpecies": {
+            "type": "string"
+          },
+          "includeDuplicates": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "FiscalSettingsView": {
+        "required": [
+          "id",
+          "values",
+          "crt",
+          "reviews",
+          "sections",
+          "confirmedCount",
+          "totalCount",
+          "firstConfiguration",
+          "company",
+          "preconditions",
+          "certificate",
+          "allowedEnvironment",
+          "canEdit",
+          "pendingCriticalNfe"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "values": {
+            "$ref": "#/components/schemas/FiscalSettingsValues"
+          },
+          "crt": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reviews": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FiscalSettingReview"
+            }
+          },
+          "sections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FiscalSettingSectionView"
+            }
+          },
+          "confirmedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "firstConfiguration": {
+            "type": "boolean"
+          },
+          "company": {
+            "$ref": "#/components/schemas/FiscalCompanyView"
+          },
+          "preconditions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FiscalPrecondition"
+            }
+          },
+          "certificate": {
+            "$ref": "#/components/schemas/FiscalCertificateSummary"
+          },
+          "allowedEnvironment": {
+            "type": "string"
+          },
+          "canEdit": {
+            "type": "boolean"
+          },
+          "pendingCriticalNfe": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -44691,6 +45557,12 @@
           }
         }
       },
+      "IssLocation": {
+        "enum": [
+          "WorkSite",
+          "Company"
+        ]
+      },
       "ItemDetail": {
         "required": [
           "id",
@@ -47768,6 +48640,11 @@
             "type": "boolean"
           }
         }
+      },
+      "MixedSaleMode": {
+        "enum": [
+          "EquipmentNfeServiceNfse"
+        ]
       },
       "ModuleRelease": {
         "required": [
@@ -66850,6 +67727,28 @@
             ]
           }
         }
+      },
+      "SaveFiscalSettingsRequest": {
+        "required": [
+          "values"
+        ],
+        "type": "object",
+        "properties": {
+          "values": {
+            "$ref": "#/components/schemas/FiscalSettingsValues"
+          },
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "confirmSeriesChange": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "additionalProperties": false
       },
       "SaveGroupRequest": {
         "required": [
