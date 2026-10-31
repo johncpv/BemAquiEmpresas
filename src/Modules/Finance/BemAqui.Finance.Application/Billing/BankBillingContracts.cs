@@ -94,4 +94,13 @@ public interface IBankBillingProvider
     Task<BillingResult<byte[]>> PdfAsync(BankIntegration integration, string requestId, CancellationToken cancellationToken = default);
 
     Task<BillingResult<bool>> CancelAsync(BankIntegration integration, string requestId, BillingSlipCancelReason reason, CancellationToken cancellationToken = default);
+
+    /// <summary>Cadastra (ou troca) o endereço do aviso de pagamento da cobrança no banco (BNK-02 CA 1 e 3).</summary>
+    Task<BillingResult<bool>> RegisterWebhookAsync(BankIntegration integration, string url, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Cobranças que mudaram de situação no período (BNK-02 CA 11, conferência diária): pagas, canceladas e expiradas, inclusive as que não
+    /// foram emitidas pelo BemAqui (vão para a conciliação, CA 10).
+    /// </summary>
+    Task<BillingResult<IReadOnlyList<BankSlip>>> ListChangedAsync(BankIntegration integration, DateOnly from, DateOnly to, CancellationToken cancellationToken = default);
 }

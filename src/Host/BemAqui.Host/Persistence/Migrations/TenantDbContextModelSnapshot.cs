@@ -2435,6 +2435,19 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("character varying(500)")
                         .HasColumnName("granted_scopes");
 
+                    b.Property<DateTimeOffset?>("LastReconcileAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_reconcile_at");
+
+                    b.Property<string>("LastReconcileError")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("last_reconcile_error");
+
+                    b.Property<string>("LastReconcileReport")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("last_reconcile_report");
+
                     b.Property<DateTimeOffset?>("LastTestAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_test_at");
@@ -2459,6 +2472,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("provider");
 
+                    b.Property<int>("ReconcileFailures")
+                        .HasColumnType("integer")
+                        .HasColumnName("reconcile_failures");
+
                     b.Property<DateTimeOffset?>("RotatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("rotated_at");
@@ -2478,6 +2495,23 @@ namespace BemAqui.Host.Persistence.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
+
+                    b.Property<string>("WebhookMode")
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)")
+                        .HasColumnName("webhook_mode");
+
+                    b.Property<DateTimeOffset?>("WebhookRegisteredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("webhook_registered_at");
+
+                    b.Property<Guid?>("WebhookRegisteredBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("webhook_registered_by");
+
+                    b.Property<DateTimeOffset?>("WebhookRotatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("webhook_rotated_at");
 
                     b.HasKey("Id")
                         .HasName("pk_bank_integrations");
@@ -2942,6 +2976,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("client_request_id");
 
+                    b.Property<DateOnly?>("CreditDate")
+                        .HasColumnType("date")
+                        .HasColumnName("credit_date");
+
                     b.Property<string>("DigitableLine")
                         .HasMaxLength(60)
                         .HasColumnType("character varying(60)")
@@ -3025,9 +3063,17 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("paid_at");
 
+                    b.Property<Guid?>("PaidEventId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("paid_event_id");
+
                     b.Property<Guid?>("PdfAttachmentId")
                         .HasColumnType("uuid")
                         .HasColumnName("pdf_attachment_id");
+
+                    b.Property<Guid?>("PendingTransactionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("pending_transaction_id");
 
                     b.Property<string>("PixCopyPaste")
                         .HasMaxLength(500)
@@ -3074,6 +3120,24 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("requested_by");
 
+                    b.Property<string>("ReviewDecision")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("review_decision");
+
+                    b.Property<string>("ReviewReason")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("review_reason");
+
+                    b.Property<DateTimeOffset?>("ReviewedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reviewed_at");
+
+                    b.Property<Guid?>("ReviewedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reviewed_by");
+
                     b.Property<DateTimeOffset?>("ScheduledEmailAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("scheduled_email_at");
@@ -3092,10 +3156,14 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("send_on_issue");
 
+                    b.Property<Guid?>("SettlementId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("settlement_id");
+
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasMaxLength(16)
-                        .HasColumnType("character varying(16)")
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)")
                         .HasColumnName("status");
 
                     b.Property<uint>("Version")
@@ -3285,6 +3353,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("bank_entry_id");
 
+                    b.Property<Guid?>("BillingSlipId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("billing_slip_id");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -3306,6 +3378,10 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<Guid?>("PayableId")
                         .HasColumnType("uuid")
                         .HasColumnName("payable_id");
+
+                    b.Property<bool>("PendingReview")
+                        .HasColumnType("boolean")
+                        .HasColumnName("pending_review");
 
                     b.Property<Guid?>("ReceivableId")
                         .HasColumnType("uuid")
@@ -3334,6 +3410,9 @@ namespace BemAqui.Host.Persistence.Migrations
 
                     b.HasIndex("BankEntryId")
                         .HasDatabaseName("ix_financial_transactions_bank_entry_id");
+
+                    b.HasIndex("BillingSlipId")
+                        .HasDatabaseName("ix_financial_transactions_billing_slip_id");
 
                     b.HasIndex("PayableId")
                         .HasDatabaseName("ix_financial_transactions_payable_id");
@@ -3580,6 +3659,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("retention_pcc");
+
+                    b.Property<DateTimeOffset?>("ReversedPaymentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reversed_payment_at");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -4280,6 +4363,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("bank_account_id");
 
+                    b.Property<Guid?>("BillingSlipId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("billing_slip_id");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -4339,6 +4426,12 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("reversed_by");
 
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("source");
+
                     b.Property<decimal>("Total")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
@@ -4347,6 +4440,10 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<Guid?>("TransactionId")
                         .HasColumnType("uuid")
                         .HasColumnName("transaction_id");
+
+                    b.Property<Guid?>("WebhookEventId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("webhook_event_id");
 
                     b.HasKey("Id")
                         .HasName("pk_receivable_settlements");

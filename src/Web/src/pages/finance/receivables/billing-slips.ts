@@ -36,6 +36,7 @@ export function slipStatus(status: BillingSlipStatus, cancelPending = false): { 
     case 'Paid': return { label: 'Boleto pago', tone: 'ok' }
     case 'Cancelled': return { label: 'Boleto cancelado', tone: 'neutral' }
     case 'Expired': return { label: 'Boleto expirado', tone: 'warn' }
+    case 'PaidPendingReview': return { label: 'Aguardando conferência', tone: 'warn' }
     default: return { label: String(status ?? ''), tone: 'neutral' }
   }
 }

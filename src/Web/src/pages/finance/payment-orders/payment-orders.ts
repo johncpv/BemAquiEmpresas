@@ -39,3 +39,7 @@ export function destination(p: PaymentDetailsInput) {
 export function itemTotal(amount: number, interest: number, fine: number, discount: number) {
   return Math.round((amount + interest + fine - discount) * 100) / 100
 }
+
+/** Marca do título já pago e estornado numa OP anterior (BNK-02 CA 15): o aprovador decide de novo. */
+export const REVERSED_MARK = 'Pago e estornado em '
+export const REVERSED_HINT = 'Este título já foi pago numa ordem anterior e o pagamento foi estornado. Confira com o fornecedor se o valor voltou antes de aprovar de novo.'

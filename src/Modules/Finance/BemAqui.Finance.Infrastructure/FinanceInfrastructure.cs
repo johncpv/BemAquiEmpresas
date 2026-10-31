@@ -1,6 +1,7 @@
 using BemAqui.BuildingBlocks.Attachments;
 using BemAqui.BuildingBlocks.Persistence.Auditing;
 using BemAqui.BuildingBlocks.Tenancy;
+using BemAqui.BuildingBlocks.Webhooks;
 using BemAqui.Finance.Application;
 using BemAqui.Finance.Contracts;
 using BemAqui.Finance.Domain;
@@ -15,7 +16,7 @@ namespace BemAqui.Finance.Infrastructure;
 public static class FinanceInfrastructure
 {
     /// <summary>Contas, caixas e condições de pagamento (CAD-05b): serviços, contrato <see cref="IPaymentTerms"/>, seed e histórico.</summary>
-    public static IServiceCollection AddFinanceInfrastructure(this IServiceCollection services)
+    public static IServiceCollection AddFinanceInfrastructure(this IServiceCollection services, Microsoft.Extensions.Configuration.IConfiguration? configuration = null)
     {
         services.TryAddSingleton(TimeProvider.System);
         services.TryAddScoped<BankAccountService>();
@@ -133,6 +134,13 @@ public static class FinanceInfrastructure
         services.TryAddScoped<BillingSlipProcessor>();
         services.TryAddScoped<IBankBillingProvider, Inter.InterBillingProvider>();
         services.AddAuditableEntity<BillingSlip>("finance");
+        // Aviso de pagamento do Inter (BNK-02): provedor inter da FND-16 (modo do token e id da entrega pela configuração, CA 2 e 6), reconsulta e
+        // baixa pelo mesmo serviço, cadastro do aviso no banco e a conferência diária.
+        services.AddWebhookProvider(BemAqui.Finance.Application.InterWebhook.Provider(
+            BemAqui.Finance.Application.InterWebhook.ParseMode(configuration?["Inter:WebhookMode"]), configuration?["Inter:WebhookDeliveryIdHeader"]));
+        services.TryAddScoped<BankPaymentService>();
+        services.TryAddScoped<InterWebhookService>();
+        services.TryAddScoped<InterBillingReconciler>();
         services.AddAttachmentOwner(BillingSlipService.AttachmentOwner, new AttachmentOwnerRules("finance", ["application/pdf"], BillingSlipService.MaxPdfBytes,
             OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IFinanceDb>().BillingSlips.AnyAsync(s => s.Id == id, ct),
             ReadAction: "view", WriteAction: "edit",

@@ -63,6 +63,7 @@ internal sealed class ReceivableSettlementConfiguration : IEntityTypeConfigurati
 
         b.Property(e => e.Kind).HasConversion<string>().HasMaxLength(20);
         b.Property(e => e.BackdateReason).HasMaxLength(200);
+        b.Property(e => e.Source).HasConversion<string>().HasMaxLength(10);
         b.Property(e => e.ReversalReason).HasMaxLength(200);
         b.HasOne<Receivable>().WithMany().HasForeignKey(e => e.ReceivableId).OnDelete(DeleteBehavior.Restrict);
         b.HasIndex(e => e.ReceivableId);
@@ -84,6 +85,7 @@ internal sealed class FinancialTransactionConfiguration : IEntityTypeConfigurati
         b.HasIndex(e => e.TransferId);
         b.HasIndex(e => e.BankEntryId);
         b.HasIndex(e => e.ReceivableId);
+        b.HasIndex(e => e.BillingSlipId);
     }
 }
 

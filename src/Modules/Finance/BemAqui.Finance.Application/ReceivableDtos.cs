@@ -95,7 +95,9 @@ public sealed record SettlementView(
     Guid? CreatedBy,
     DateTimeOffset CreatedAt,
     DateTimeOffset? ReversedAt,
-    string? ReversalReason);
+    string? ReversalReason,
+    SettlementSource Source = SettlementSource.Manual,
+    Guid? WebhookEventId = null);
 
 public sealed record DiscountLine(Guid ReceivableId, string Number, string PartyName, DateOnly Date, decimal Discount, decimal BalanceBefore, decimal Pct, Guid? UserId, DateTimeOffset At, bool AboveLimit);
 

@@ -7,7 +7,10 @@ namespace BemAqui.Finance.Application;
 
 public sealed partial class PaymentOrderService
 {
-    /// <summary>Estorno (CA 21): baixas estornadas, transações inversas, títulos fora da OP e OP Reversed. Nada é apagado.</summary>
+    /// <summary>
+    /// Estorno (CA 21): baixas estornadas, transações inversas, títulos fora da OP e OP Reversed. Nada é apagado. Desde a BNK-02 (CA 15,
+    /// P-20) pede <c>finance.approve</c> e o 2FA de novo (no endpoint), e o título leva a marca "pago e estornado".
+    /// </summary>
     public async Task<Result<PaymentOrderDetail>> ReverseAsync(Guid id, ReasonInput input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -45,6 +48,7 @@ public sealed partial class PaymentOrderService
             s.ReversalTransactionId = reversal.Id;
             var payable = payables.Single(p => p.Id == s.PayableId);
             payable.PaidAmount -= s.Principal;
+            payable.ReversedPaymentAt = clock.GetUtcNow();
             if (!payable.InPaymentOrder)
             {
                 // O saldo pode estar noutra OP pendente: aí o título continua nela.
