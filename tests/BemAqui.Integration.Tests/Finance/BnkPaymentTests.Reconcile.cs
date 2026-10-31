@@ -127,7 +127,7 @@ public partial class BnkPaymentTests
         platform.DefaultRequestHeaders.Host = PlatformHost;
         var body = Body(charge, at: "caminho-" + Guid.NewGuid().ToString("N"));
         var path = new Uri(url).AbsolutePath;
-        (await platform.PostAsync(path, new StringContent(body, System.Text.Encoding.UTF8, new MediaTypeHeaderValue("application/json")))).StatusCode.Should().Be(HttpStatusCode.OK);
+        (await platform.PostAsync(path, new StringContent(body, System.Text.Encoding.UTF8, new MediaTypeHeaderValue("application/json")))).StatusCode.Should().Be(HttpStatusCode.Accepted);
         var misplaced = path[..path.LastIndexOf('/')] + "?t=" + token;
         (await platform.PostAsync(misplaced, new StringContent(body + " ", System.Text.Encoding.UTF8, new MediaTypeHeaderValue("application/json")))).StatusCode
             .Should().Be(HttpStatusCode.Unauthorized, "no modo PathToken o token na query é recusado");
