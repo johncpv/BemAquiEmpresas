@@ -5,6 +5,7 @@ import type { TimeEntryLocationRow, TimeEntryRow } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Dica } from '@/help/Dica'
+import { ADJUSTMENT_DICAS, SELF_APPROVED } from './time-adjustments'
 import { dayLabel, entryLabel, formatTime, groupByDay, locationText, sourceLabel, TIME_CLOCK_DICAS } from './time-clock'
 
 /** "Ver localização" (CA 11): só com hr.view_sensitive, pela rota /sensitive (a leitura fica registrada); mostra as coordenadas reduzidas. */
@@ -58,12 +59,19 @@ export function TimeEntriesByDay({ items, canSensitive, showEmployee }: { items:
           <p className="border-b border-border px-3 py-2 text-sm font-semibold">{dayLabel(g.day)}</p>
           <ul className="divide-y divide-border">
             {g.items.map((e) => (
-              <li key={e.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2 text-sm">
+              <li key={e.id} className={`flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2 text-sm${e.status === 'Voided' ? ' text-muted-foreground' : ''}`}>
                 {showEmployee ? <span className="min-w-0 flex-1 basis-40 font-semibold">{e.employeeName}</span> : null}
-                <span className="w-44 font-medium">{entryLabel(e.type)}</span>
-                <span className="w-12 tabular-nums">{formatTime(e.at)}</span>
+                <span className={`w-44 font-medium${e.status === 'Voided' ? ' line-through' : ''}`}>{entryLabel(e.type)}</span>
+                <span className={`w-12 tabular-nums${e.status === 'Voided' ? ' line-through' : ''}`}>{formatTime(e.at)}</span>
                 <span className="text-muted-foreground">{sourceLabel(e.source, e.deviceName)}</span>
-                {e.status === 'Voided' ? <StatusChip tone="neutral">Desconsiderada</StatusChip> : null}
+                {e.selfApproved ? <StatusChip tone="warn">{SELF_APPROVED}</StatusChip> : null}
+                {e.status === 'Voided' ? (
+                  <span className="inline-flex items-center">
+                    <StatusChip tone="neutral">Desconsiderada</StatusChip>
+                    <Dica nome="Desconsiderada" texto={ADJUSTMENT_DICAS.desconsiderar} />
+                  </span>
+                ) : null}
+                {e.voidedNote ? <span className="basis-full text-xs">{e.voidedNote}</span> : null}
                 {e.location === 'Missing' ? (
                   <span className="inline-flex items-center">
                     <StatusChip tone="neutral"><MapPinOff aria-hidden="true" className="size-3" />Sem localização</StatusChip>

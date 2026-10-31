@@ -103,6 +103,7 @@ import { MyPayslipsPage } from '@/pages/hr/MyPayslipsPage'
 import { FabTimeClockPage } from '@/pages/hr/timeclock/FabTimeClockPage'
 import { MyTimeClockPage } from '@/pages/hr/timeclock/MyTimeClockPage'
 import { TimeEntriesPage } from '@/pages/hr/timeclock/TimeEntriesPage'
+import { TimeAdjustmentsPage } from '@/pages/hr/timeclock/TimeAdjustmentsPage'
 import { PayrollItemsPage } from '@/pages/hr/payroll/PayrollItemsPage'
 import { PayrollRunPage } from '@/pages/hr/payroll/PayrollRunPage'
 import { AccountantExportPage } from '@/pages/hr/accountant/AccountantExportPage'
@@ -194,7 +195,7 @@ const accountSecurityRoute = createRoute({ getParentRoute: () => appRoute, path:
 // "Meus holerites" (RH-02b, ADR 0035): do funcionário, sem ação no grupo; a página confere o módulo liberado e o vínculo vem da API.
 const myPayslipsRoute = createRoute({ getParentRoute: () => appRoute, path: 'meus-holerites', component: MyPayslipsPage })
 // "Meu ponto" (RH-01a, ADR 0035): do funcionário, sem ação no grupo; o mesmo painel do /fab/ponto, mais "Minhas marcações".
-const myTimeClockRoute = createRoute({ getParentRoute: () => appRoute, path: 'meu-ponto', component: MyTimeClockPage })
+const myTimeClockRoute = createRoute({ getParentRoute: () => appRoute, path: 'meu-ponto', component: MyTimeClockPage, validateSearch: (s: Record<string, unknown>): { aba?: string } => ({ aba: text(s.aba) }) })
 // Telas reais de módulo: mesmas regras do menu (ModuleGate) e rota própria por aba (FND-09b CA 8).
 const gated = (code: string, Page: () => React.ReactNode) => () => <ModuleGate code={code}><Page /></ModuleGate>
 const accessRoute = createRoute({ getParentRoute: () => appRoute, path: 'acessos', beforeLoad: () => { throw redirect({ to: '/app/acessos/usuarios' }) } })
@@ -325,6 +326,8 @@ const unionsRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/sind
 // Ponto (RH-01a): marcações por dia, com o período, o funcionário e o centro na URL (?de, ?ate, ?funcionario, ?centro).
 const hrTimeRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/ponto', beforeLoad: () => { throw redirect({ to: '/app/rh/ponto/marcacoes' }) } })
 const timeEntriesRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/ponto/marcacoes', component: gated('hr', TimeEntriesPage), validateSearch: (s: Record<string, unknown>): { de?: string; ate?: string; funcionario?: string; centro?: string } => ({ de: text(s.de), ate: text(s.ate), funcionario: text(s.funcionario), centro: text(s.centro) }) })
+// RH → Ponto → Ajustes para aprovar (RH-01b): situação, funcionário e o pedido aberto no painel, na URL.
+const timeAdjustmentsRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/ponto/ajustes', component: gated('hr', TimeAdjustmentsPage), validateSearch: (s: Record<string, unknown>): { situacao?: string; funcionario?: string; pedido?: string } => ({ situacao: text(s.situacao), funcionario: text(s.funcionario), pedido: text(s.pedido) }) })
 // Folha lançada e rubricas (RH-02a).
 const payrollRunsRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/folha', component: gated('hr', PayrollRunsPage) })
 const payrollRunRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/folha/$id', component: gated('hr', PayrollRunPage) })
@@ -452,7 +455,7 @@ export const routeTree = rootRoute.addChildren([
   appRoute.addChildren([appIndexRoute, dashboardRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute, projectResultsRoute, projectResultRoute, myPayslipsRoute, myTimeClockRoute,
     aiSettingsRoute, importRunsRoute, importRunRoute, integrationsRoute, integrationEventsRoute, interAccountsRoute, interAccountRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute, billingSettingsRoute,
     inventoryRootRoute, balancesRoute, movementsRoute, movementRoute, manualPostingsRoute, manualPostingRoute, shortagesRoute, requisitionsRoute, requisitionRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, bomsRoute, productionRootRoute, fabricationOrdersRoute, fabricationOrderRoute, kanbanRoute, openLaborRoute, operatorRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute, qualityRoute, qualityStepRoute, nonConformitiesRoute, nonConformityRoute, purchasingRootRoute, purchaseRequestsRoute, newPurchaseRequestRoute, purchaseRequestRoute, purchaseOrdersRoute, newPurchaseOrderRoute, purchaseOrderRoute, editPurchaseOrderRoute, shipmentsRoute, newShipmentRoute, shipmentRoute, traceabilityRoute, adjustmentsRoute, adjustmentRoute, goodsReceiptsRoute, goodsReceiptRoute, newGoodsReceiptRoute, rfqsRoute, newRfqRoute, rfqRoute, inventoryCountsRoute, inventoryCountRoute, capacityRoute, planningRoute, supervisorRoute,
-    financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, payablesRoute, newPayableRoute, payableRoute, recurringRoute, approvalRulesRoute, openingRoute, cashFlowRoute, dreRoute, agingRoute, paymentOrdersRoute, newPaymentOrderRoute, paymentOrderRoute, statementRoute, quotesRoute, quoteFunnelRoute, quoteRoute, quoteCompareRoute, contractsRoute, contractRoute, amendmentRoute, projectsRoute, projectMarginsRoute, projectRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, hrTimeRoute, timeEntriesRoute, kioskScreensRoute, kioskPreviewRoute, payrollRunsRoute, payrollRunRoute, payrollItemsRoute, fiscalIntegrationRoute, accountantExportRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
+    financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, payablesRoute, newPayableRoute, payableRoute, recurringRoute, approvalRulesRoute, openingRoute, cashFlowRoute, dreRoute, agingRoute, paymentOrdersRoute, newPaymentOrderRoute, paymentOrderRoute, statementRoute, quotesRoute, quoteFunnelRoute, quoteRoute, quoteCompareRoute, contractsRoute, contractRoute, amendmentRoute, projectsRoute, projectMarginsRoute, projectRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, hrTimeRoute, timeEntriesRoute, timeAdjustmentsRoute, kioskScreensRoute, kioskPreviewRoute, payrollRunsRoute, payrollRunRoute, payrollItemsRoute, fiscalIntegrationRoute, accountantExportRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
   platformLoginRoute,
   platformPasswordRoute,
   platformRoute.addChildren([platformIndexRoute, tenantsRoute, tenantRoute]),

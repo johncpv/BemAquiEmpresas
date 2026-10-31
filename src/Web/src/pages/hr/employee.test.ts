@@ -36,9 +36,9 @@ describe('afastamento (CAD-04c1)', () => {
     const d = emptyLeaveDraft('2026-10-22')
     expect(d.startDate).toBe('2026-10-22')
     expect(leaveDraftError(d)).toBe('Escolha o tipo do afastamento.')
-    expect(leaveDraftError({ ...d, type: 'Illness' })).toBe('Informe o fim previsto do afastamento.')
-    expect(leaveDraftError({ ...d, type: 'Illness', expectedEndDate: '2026-10-21' })).toBe('O fim previsto precisa ser igual ou depois do início.')
-    expect(leaveDraftError({ ...d, type: 'Illness', expectedEndDate: '2026-10-22' })).toBeUndefined()
+    expect(leaveDraftError({ ...d, type: 'MedicalCertificate' })).toBe('Informe o fim previsto do afastamento.')
+    expect(leaveDraftError({ ...d, type: 'MedicalCertificate', expectedEndDate: '2026-10-21' })).toBe('O fim previsto precisa ser igual ou depois do início.')
+    expect(leaveDraftError({ ...d, type: 'MedicalCertificate', expectedEndDate: '2026-10-22' })).toBeUndefined()
     expect(leaveDraftError({ ...d, type: 'Other', expectedEndDate: '2026-10-30', reason: 'x'.repeat(201) })).toBe('O motivo aceita até 200 caracteres.')
   })
 
@@ -55,12 +55,12 @@ describe('afastamento (CAD-04c1)', () => {
 describe('editar, encerrar e cancelar afastamento (CAD-04c1b)', () => {
   const leave = { startDate: '2026-10-10', expectedEndDate: '2026-10-20' }
 
-  it('Doença e Acidente de trabalho só aparecem com hr.view_health', () => {
-    expect(isHealthLeave('Illness')).toBe(true)
+  it('Atestado médico e Acidente de trabalho só aparecem com hr.view_health (lista única, RH-01b)', () => {
+    expect(isHealthLeave('MedicalCertificate')).toBe(true)
     expect(isHealthLeave('WorkAccident')).toBe(true)
     expect(isHealthLeave('Maternity')).toBe(false)
-    expect(leaveTypeOptions(true).map((o) => o.label)).toEqual(['Doença', 'Acidente de trabalho', 'Maternidade', 'Paternidade', 'Serviço militar', 'Outros'])
-    expect(leaveTypeOptions(false).map((o) => o.label)).toEqual(['Maternidade', 'Paternidade', 'Serviço militar', 'Outros'])
+    expect(leaveTypeOptions(true).map((o) => o.label)).toEqual(['Atestado médico', 'Acidente de trabalho', 'Maternidade', 'Paternidade', 'Serviço militar', 'Falta justificada'])
+    expect(leaveTypeOptions(false).map((o) => o.label)).toEqual(['Maternidade', 'Paternidade', 'Serviço militar', 'Falta justificada'])
   })
 
   it('cada estado oferece só o que vale; o de saúde protegido não se edita sem a permissão', () => {

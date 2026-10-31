@@ -4,13 +4,14 @@ import type { EmployeeDetail } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { useCan } from '@/pages/use-can'
+import { EmployeeTimeAdjustments } from './EmployeeTimeAdjustments'
 import { InternalControlBanner } from './TimeClockPanel'
 import { defaultRange, todayInSaoPaulo } from './time-clock'
 import { TimeEntriesByDay } from './TimeEntriesView'
 
 const field = 'min-h-11 rounded-md border border-input bg-background px-2 text-sm'
 
-/** Aba "Ponto" do funcionário (/app/rh/funcionarios/$id?aba=ponto, RH-01a CA 12): as marcações por dia do período, com hr.view. */
+/** Aba "Ponto" do funcionário (/app/rh/funcionarios/$id?aba=ponto, RH-01a CA 12 e RH-01b): as marcações por dia do período, com hr.view, e os ajustes. */
 export function EmployeeTimeEntries({ employee }: { employee: EmployeeDetail }) {
   const initial = defaultRange(todayInSaoPaulo())
   const [from, setFrom] = useState(initial.from)
@@ -39,6 +40,7 @@ export function EmployeeTimeEntries({ employee }: { employee: EmployeeDetail }) 
         </label>
       </div>
       {content}
+      <EmployeeTimeAdjustments employee={employee} />
     </div>
   )
 }
