@@ -205,6 +205,7 @@ import type {
   FoundLineInput,
   GanttCentersView,
   GanttProjectsView,
+  GeoConsentResult,
   GetAccountantExportOverviewParams,
   GetAgingParams,
   GetAuditHistoryParams,
@@ -345,6 +346,8 @@ import type {
   ListCalendarExceptionsParams,
   ListContractsParams,
   ListDashboardProjectResultsParams,
+  ListEmployeeTimeEntriesParams,
+  ListEmployeeTimeEntryLocationsParams,
   ListEmployeesParams,
   ListFabricationOrdersParams,
   ListFabricationProductOptionsParams,
@@ -405,6 +408,7 @@ import type {
   ListStockShortagesParams,
   ListSupplierOptionsParams,
   ListTenantsParams,
+  ListTimeEntriesParams,
   ListUnitsParams,
   ListWebhookEventsParams,
   ListWorkCentersParams,
@@ -431,6 +435,8 @@ import type {
   MyPayslip,
   MyPermissionsResponse,
   MyPin,
+  MyTimeClock,
+  MyTimeEntry,
   NonConformityActionInput,
   NonConformityCloseInput,
   NonConformityCostInput,
@@ -784,6 +790,10 @@ import type {
   TenantParametersDto,
   TenantPublicContext,
   TerminationInput,
+  TimeEntryInput,
+  TimeEntryList,
+  TimeEntryLocationRow,
+  TimeEntryReceipt,
   TimelineEntry,
   TotpSetup,
   TraceSearchResult,
@@ -16637,6 +16647,226 @@ export function useDownloadEmployeeDocumentFile<TData = Awaited<ReturnType<typeo
 
 
 
+export const getListEmployeeTimeEntriesUrl = (id: string,
+    params?: ListEmployeeTimeEntriesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/hr/employees/${id}/time-entries?${stringifiedParams}` : `/api/v1/hr/employees/${id}/time-entries`
+}
+
+export const listEmployeeTimeEntries = async (id: string,
+    params?: ListEmployeeTimeEntriesParams, options?: Parameters<typeof apiFetch>[1]): Promise<TimeEntryList> => {
+
+  return apiFetch<TimeEntryList>(getListEmployeeTimeEntriesUrl(id,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListEmployeeTimeEntriesQueryKey = (id: string,
+    params?: ListEmployeeTimeEntriesParams,) => {
+    return [
+    `/api/v1/hr/employees/${id}/time-entries`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListEmployeeTimeEntriesQueryOptions = <TData = Awaited<ReturnType<typeof listEmployeeTimeEntries>>, TError = unknown>(id: string,
+    params?: ListEmployeeTimeEntriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployeeTimeEntries>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListEmployeeTimeEntriesQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listEmployeeTimeEntries>>> = ({ signal }) => listEmployeeTimeEntries(id,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listEmployeeTimeEntries>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListEmployeeTimeEntriesQueryResult = NonNullable<Awaited<ReturnType<typeof listEmployeeTimeEntries>>>
+export type ListEmployeeTimeEntriesQueryError = unknown
+
+
+export function useListEmployeeTimeEntries<TData = Awaited<ReturnType<typeof listEmployeeTimeEntries>>, TError = unknown>(
+ id: string,
+    params: undefined |  ListEmployeeTimeEntriesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployeeTimeEntries>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listEmployeeTimeEntries>>,
+          TError,
+          Awaited<ReturnType<typeof listEmployeeTimeEntries>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListEmployeeTimeEntries<TData = Awaited<ReturnType<typeof listEmployeeTimeEntries>>, TError = unknown>(
+ id: string,
+    params?: ListEmployeeTimeEntriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployeeTimeEntries>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listEmployeeTimeEntries>>,
+          TError,
+          Awaited<ReturnType<typeof listEmployeeTimeEntries>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListEmployeeTimeEntries<TData = Awaited<ReturnType<typeof listEmployeeTimeEntries>>, TError = unknown>(
+ id: string,
+    params?: ListEmployeeTimeEntriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployeeTimeEntries>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListEmployeeTimeEntries<TData = Awaited<ReturnType<typeof listEmployeeTimeEntries>>, TError = unknown>(
+ id: string,
+    params?: ListEmployeeTimeEntriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployeeTimeEntries>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListEmployeeTimeEntriesQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListEmployeeTimeEntryLocationsUrl = (id: string,
+    params?: ListEmployeeTimeEntryLocationsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/hr/employees/${id}/time-entries/sensitive?${stringifiedParams}` : `/api/v1/hr/employees/${id}/time-entries/sensitive`
+}
+
+export const listEmployeeTimeEntryLocations = async (id: string,
+    params?: ListEmployeeTimeEntryLocationsParams, options?: Parameters<typeof apiFetch>[1]): Promise<TimeEntryLocationRow[]> => {
+
+  return apiFetch<TimeEntryLocationRow[]>(getListEmployeeTimeEntryLocationsUrl(id,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListEmployeeTimeEntryLocationsQueryKey = (id: string,
+    params?: ListEmployeeTimeEntryLocationsParams,) => {
+    return [
+    `/api/v1/hr/employees/${id}/time-entries/sensitive`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListEmployeeTimeEntryLocationsQueryOptions = <TData = Awaited<ReturnType<typeof listEmployeeTimeEntryLocations>>, TError = unknown>(id: string,
+    params?: ListEmployeeTimeEntryLocationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployeeTimeEntryLocations>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListEmployeeTimeEntryLocationsQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listEmployeeTimeEntryLocations>>> = ({ signal }) => listEmployeeTimeEntryLocations(id,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listEmployeeTimeEntryLocations>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListEmployeeTimeEntryLocationsQueryResult = NonNullable<Awaited<ReturnType<typeof listEmployeeTimeEntryLocations>>>
+export type ListEmployeeTimeEntryLocationsQueryError = unknown
+
+
+export function useListEmployeeTimeEntryLocations<TData = Awaited<ReturnType<typeof listEmployeeTimeEntryLocations>>, TError = unknown>(
+ id: string,
+    params: undefined |  ListEmployeeTimeEntryLocationsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployeeTimeEntryLocations>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listEmployeeTimeEntryLocations>>,
+          TError,
+          Awaited<ReturnType<typeof listEmployeeTimeEntryLocations>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListEmployeeTimeEntryLocations<TData = Awaited<ReturnType<typeof listEmployeeTimeEntryLocations>>, TError = unknown>(
+ id: string,
+    params?: ListEmployeeTimeEntryLocationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployeeTimeEntryLocations>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listEmployeeTimeEntryLocations>>,
+          TError,
+          Awaited<ReturnType<typeof listEmployeeTimeEntryLocations>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListEmployeeTimeEntryLocations<TData = Awaited<ReturnType<typeof listEmployeeTimeEntryLocations>>, TError = unknown>(
+ id: string,
+    params?: ListEmployeeTimeEntryLocationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployeeTimeEntryLocations>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListEmployeeTimeEntryLocations<TData = Awaited<ReturnType<typeof listEmployeeTimeEntryLocations>>, TError = unknown>(
+ id: string,
+    params?: ListEmployeeTimeEntryLocationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployeeTimeEntryLocations>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListEmployeeTimeEntryLocationsQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getListPayrollItemsUrl = () => {
 
 
@@ -20105,6 +20335,108 @@ export function useDownloadAccountantExport<TData = Awaited<ReturnType<typeof do
 
 
 
+export const getListTimeEntriesUrl = (params?: ListTimeEntriesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/hr/time-entries?${stringifiedParams}` : `/api/v1/hr/time-entries`
+}
+
+export const listTimeEntries = async (params?: ListTimeEntriesParams, options?: Parameters<typeof apiFetch>[1]): Promise<TimeEntryList> => {
+
+  return apiFetch<TimeEntryList>(getListTimeEntriesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListTimeEntriesQueryKey = (params?: ListTimeEntriesParams,) => {
+    return [
+    `/api/v1/hr/time-entries`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListTimeEntriesQueryOptions = <TData = Awaited<ReturnType<typeof listTimeEntries>>, TError = unknown>(params?: ListTimeEntriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTimeEntries>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListTimeEntriesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listTimeEntries>>> = ({ signal }) => listTimeEntries(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listTimeEntries>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListTimeEntriesQueryResult = NonNullable<Awaited<ReturnType<typeof listTimeEntries>>>
+export type ListTimeEntriesQueryError = unknown
+
+
+export function useListTimeEntries<TData = Awaited<ReturnType<typeof listTimeEntries>>, TError = unknown>(
+ params: undefined |  ListTimeEntriesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTimeEntries>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listTimeEntries>>,
+          TError,
+          Awaited<ReturnType<typeof listTimeEntries>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListTimeEntries<TData = Awaited<ReturnType<typeof listTimeEntries>>, TError = unknown>(
+ params?: ListTimeEntriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTimeEntries>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listTimeEntries>>,
+          TError,
+          Awaited<ReturnType<typeof listTimeEntries>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListTimeEntries<TData = Awaited<ReturnType<typeof listTimeEntries>>, TError = unknown>(
+ params?: ListTimeEntriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTimeEntries>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListTimeEntries<TData = Awaited<ReturnType<typeof listTimeEntries>>, TError = unknown>(
+ params?: ListTimeEntriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTimeEntries>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListTimeEntriesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getGetMyEmployeeLinkUrl = () => {
 
 
@@ -20389,6 +20721,346 @@ export function useDownloadMyPayslipPdf<TData = Awaited<ReturnType<typeof downlo
 
 
 
+
+export const getGetMyTimeClockUrl = () => {
+
+
+
+
+  return `/api/v1/me/hr/time-entries/today`
+}
+
+export const getMyTimeClock = async ( options?: Parameters<typeof apiFetch>[1]): Promise<MyTimeClock> => {
+
+  return apiFetch<MyTimeClock>(getGetMyTimeClockUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMyTimeClockQueryKey = () => {
+    return [
+    `/api/v1/me/hr/time-entries/today`
+    ] as const;
+    }
+
+
+export const getGetMyTimeClockQueryOptions = <TData = Awaited<ReturnType<typeof getMyTimeClock>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyTimeClock>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMyTimeClockQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMyTimeClock>>> = ({ signal }) => getMyTimeClock({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMyTimeClock>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetMyTimeClockQueryResult = NonNullable<Awaited<ReturnType<typeof getMyTimeClock>>>
+export type GetMyTimeClockQueryError = unknown
+
+
+export function useGetMyTimeClock<TData = Awaited<ReturnType<typeof getMyTimeClock>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyTimeClock>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMyTimeClock>>,
+          TError,
+          Awaited<ReturnType<typeof getMyTimeClock>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMyTimeClock<TData = Awaited<ReturnType<typeof getMyTimeClock>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyTimeClock>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMyTimeClock>>,
+          TError,
+          Awaited<ReturnType<typeof getMyTimeClock>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMyTimeClock<TData = Awaited<ReturnType<typeof getMyTimeClock>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyTimeClock>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetMyTimeClock<TData = Awaited<ReturnType<typeof getMyTimeClock>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyTimeClock>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetMyTimeClockQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getRecordMyTimeEntryUrl = () => {
+
+
+
+
+  return `/api/v1/me/hr/time-entries`
+}
+
+export const recordMyTimeEntry = async (timeEntryInput: TimeEntryInput, options?: Parameters<typeof apiFetch>[1]): Promise<TimeEntryReceipt> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<TimeEntryReceipt>(getRecordMyTimeEntryUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(timeEntryInput)
+  }
+);}
+
+
+
+
+
+export const getRecordMyTimeEntryMutationKey = () => ['recordMyTimeEntry'] as const;
+
+export const getRecordMyTimeEntryMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordMyTimeEntry>>, TError,RecordMyTimeEntryMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof recordMyTimeEntry>>, TError,RecordMyTimeEntryMutationVariables, TContext> => {
+
+const mutationKey = getRecordMyTimeEntryMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof recordMyTimeEntry>>, RecordMyTimeEntryMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  recordMyTimeEntry(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RecordMyTimeEntryMutationResult = NonNullable<Awaited<ReturnType<typeof recordMyTimeEntry>>>
+    export type RecordMyTimeEntryMutationBody = TimeEntryInput
+    export type RecordMyTimeEntryMutationError = unknown
+    export type RecordMyTimeEntryMutationVariables = {data: TimeEntryInput}
+
+    export const useRecordMyTimeEntry = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordMyTimeEntry>>, TError,RecordMyTimeEntryMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof recordMyTimeEntry>>,
+        TError,
+        RecordMyTimeEntryMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRecordMyTimeEntryMutationOptions(options), queryClient);
+    }
+
+export const getListMyTimeEntriesUrl = () => {
+
+
+
+
+  return `/api/v1/me/hr/time-entries`
+}
+
+export const listMyTimeEntries = async ( options?: Parameters<typeof apiFetch>[1]): Promise<MyTimeEntry[]> => {
+
+  return apiFetch<MyTimeEntry[]>(getListMyTimeEntriesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListMyTimeEntriesQueryKey = () => {
+    return [
+    `/api/v1/me/hr/time-entries`
+    ] as const;
+    }
+
+
+export const getListMyTimeEntriesQueryOptions = <TData = Awaited<ReturnType<typeof listMyTimeEntries>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyTimeEntries>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListMyTimeEntriesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMyTimeEntries>>> = ({ signal }) => listMyTimeEntries({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listMyTimeEntries>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListMyTimeEntriesQueryResult = NonNullable<Awaited<ReturnType<typeof listMyTimeEntries>>>
+export type ListMyTimeEntriesQueryError = unknown
+
+
+export function useListMyTimeEntries<TData = Awaited<ReturnType<typeof listMyTimeEntries>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyTimeEntries>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listMyTimeEntries>>,
+          TError,
+          Awaited<ReturnType<typeof listMyTimeEntries>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListMyTimeEntries<TData = Awaited<ReturnType<typeof listMyTimeEntries>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyTimeEntries>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listMyTimeEntries>>,
+          TError,
+          Awaited<ReturnType<typeof listMyTimeEntries>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListMyTimeEntries<TData = Awaited<ReturnType<typeof listMyTimeEntries>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyTimeEntries>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListMyTimeEntries<TData = Awaited<ReturnType<typeof listMyTimeEntries>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyTimeEntries>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListMyTimeEntriesQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getAcceptMyGeoConsentUrl = () => {
+
+
+
+
+  return `/api/v1/me/hr/time-entries/geo-consent`
+}
+
+export const acceptMyGeoConsent = async ( options?: Parameters<typeof apiFetch>[1]): Promise<GeoConsentResult> => {
+
+  return apiFetch<GeoConsentResult>(getAcceptMyGeoConsentUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getAcceptMyGeoConsentMutationKey = () => ['acceptMyGeoConsent'] as const;
+
+export const getAcceptMyGeoConsentMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptMyGeoConsent>>, TError,void, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof acceptMyGeoConsent>>, TError,void, TContext> => {
+
+const mutationKey = getAcceptMyGeoConsentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof acceptMyGeoConsent>>, void> = () => {
+
+
+          return  acceptMyGeoConsent(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AcceptMyGeoConsentMutationResult = NonNullable<Awaited<ReturnType<typeof acceptMyGeoConsent>>>
+
+    export type AcceptMyGeoConsentMutationError = unknown
+
+
+    export const useAcceptMyGeoConsent = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptMyGeoConsent>>, TError,void, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof acceptMyGeoConsent>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getAcceptMyGeoConsentMutationOptions(options), queryClient);
+    }
 
 export const getListQuotesUrl = (params?: ListQuotesParams,) => {
   const normalizedParams = new URLSearchParams();

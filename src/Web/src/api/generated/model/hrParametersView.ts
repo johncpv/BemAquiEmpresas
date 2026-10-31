@@ -16,4 +16,6 @@ export interface HrParametersView {
   costCenters?: HrCodeOption[] | null;
   /** @nullable */
   exportLayouts?: HrCodeOption[] | null;
+  /** @nullable */
+  geolocationModes?: HrCodeOption[] | null;
 }

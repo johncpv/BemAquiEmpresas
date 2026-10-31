@@ -20,4 +20,5 @@ export const HrParameterKind = {
   Account: 'Account',
   CostCenter: 'CostCenter',
   ExportLayout: 'ExportLayout',
+  Geolocation: 'Geolocation',
 } as const;

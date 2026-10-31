@@ -5830,6 +5830,103 @@
         }
       }
     },
+    "/api/v1/hr/employees/{id}/time-entries": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ListEmployeeTimeEntries",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimeEntryList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/time-entries/sensitive": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ListEmployeeTimeEntryLocations",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TimeEntryLocationRow"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/hr/payroll-items": {
       "get": {
         "tags": [
@@ -7161,6 +7258,60 @@
         }
       }
     },
+    "/api/v1/hr/time-entries": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ListTimeEntries",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "employeeId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "workCenterId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimeEntryList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/me/hr/link": {
       "get": {
         "tags": [
@@ -7224,6 +7375,97 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/me/hr/time-entries/today": {
+      "get": {
+        "tags": [
+          "Autoatendimento"
+        ],
+        "operationId": "GetMyTimeClock",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyTimeClock"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/hr/time-entries": {
+      "post": {
+        "tags": [
+          "Autoatendimento"
+        ],
+        "operationId": "RecordMyTimeEntry",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimeEntryInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimeEntryReceipt"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Autoatendimento"
+        ],
+        "operationId": "ListMyTimeEntries",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MyTimeEntry"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/hr/time-entries/geo-consent": {
+      "post": {
+        "tags": [
+          "Autoatendimento"
+        ],
+        "operationId": "AcceptMyGeoConsent",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeoConsentResult"
+                }
+              }
+            }
           }
         }
       }
@@ -41527,6 +41769,22 @@
           "NoForecast"
         ]
       },
+      "GeoConsentResult": {
+        "required": [
+          "textVersion",
+          "acceptedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "textVersion": {
+            "type": "string"
+          },
+          "acceptedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "GoodsReceiptDefaultLine": {
         "required": [
           "poLineId",
@@ -42927,7 +43185,8 @@
           "Months",
           "Account",
           "CostCenter",
-          "ExportLayout"
+          "ExportLayout",
+          "Geolocation"
         ]
       },
       "HrParametersInput": {
@@ -42980,6 +43239,15 @@
             }
           },
           "exportLayouts": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/HrCodeOption"
+            }
+          },
+          "geolocationModes": {
             "type": [
               "null",
               "array"
@@ -48271,6 +48539,183 @@
               "string"
             ],
             "format": "date-time"
+          }
+        }
+      },
+      "MyTimeClock": {
+        "required": [
+          "banner",
+          "firstName",
+          "serverNow",
+          "today",
+          "schedule",
+          "entries",
+          "suggested",
+          "suggestedVerb",
+          "outOfSequence",
+          "hint",
+          "geolocation",
+          "geoConsentNeeded",
+          "geoConsentText",
+          "geoConsentVersion",
+          "registeredDevice"
+        ],
+        "type": "object",
+        "properties": {
+          "banner": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "serverNow": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "today": {
+            "type": "string",
+            "format": "date"
+          },
+          "schedule": {
+            "type": "string"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MyTimeEntryToday"
+            }
+          },
+          "suggested": {
+            "$ref": "#/components/schemas/TimeEntryType"
+          },
+          "suggestedVerb": {
+            "type": "string"
+          },
+          "outOfSequence": {
+            "type": "boolean"
+          },
+          "hint": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "geolocation": {
+            "$ref": "#/components/schemas/TimeClockGeolocation"
+          },
+          "geoConsentNeeded": {
+            "type": "boolean"
+          },
+          "geoConsentText": {
+            "type": "string"
+          },
+          "geoConsentVersion": {
+            "type": "string"
+          },
+          "registeredDevice": {
+            "type": "boolean"
+          }
+        }
+      },
+      "MyTimeEntry": {
+        "required": [
+          "id",
+          "at",
+          "day",
+          "type",
+          "source",
+          "deviceName",
+          "location",
+          "status",
+          "latitude",
+          "longitude",
+          "accuracyM"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "day": {
+            "type": "string",
+            "format": "date"
+          },
+          "type": {
+            "$ref": "#/components/schemas/TimeEntryType"
+          },
+          "source": {
+            "$ref": "#/components/schemas/TimeEntrySource"
+          },
+          "deviceName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "location": {
+            "$ref": "#/components/schemas/TimeEntryLocation"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TimeEntryStatus"
+          },
+          "latitude": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "longitude": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "accuracyM": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "MyTimeEntryToday": {
+        "required": [
+          "id",
+          "at",
+          "type",
+          "label",
+          "source",
+          "location"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "type": {
+            "$ref": "#/components/schemas/TimeEntryType"
+          },
+          "label": {
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/TimeEntrySource"
+          },
+          "location": {
+            "$ref": "#/components/schemas/TimeEntryLocation"
           }
         }
       },
@@ -71818,6 +72263,265 @@
           }
         },
         "additionalProperties": false
+      },
+      "TimeClockGeolocation": {
+        "enum": [
+          "Off",
+          "Ask"
+        ]
+      },
+      "TimeEntryInput": {
+        "required": [
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/TimeEntryType"
+          },
+          "latitude": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "longitude": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "accuracyM": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "TimeEntryList": {
+        "required": [
+          "from",
+          "to",
+          "items",
+          "truncated"
+        ],
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeEntryRow"
+            }
+          },
+          "truncated": {
+            "type": "boolean"
+          }
+        }
+      },
+      "TimeEntryLocation": {
+        "enum": [
+          "NotAsked",
+          "Captured",
+          "Missing"
+        ]
+      },
+      "TimeEntryLocationRow": {
+        "required": [
+          "id",
+          "at",
+          "type",
+          "location",
+          "latitude",
+          "longitude",
+          "accuracyM"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "type": {
+            "$ref": "#/components/schemas/TimeEntryType"
+          },
+          "location": {
+            "$ref": "#/components/schemas/TimeEntryLocation"
+          },
+          "latitude": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "longitude": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "accuracyM": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "TimeEntryReceipt": {
+        "required": [
+          "id",
+          "type",
+          "at",
+          "day",
+          "source",
+          "location",
+          "title",
+          "text",
+          "message",
+          "outOfSequence",
+          "hint",
+          "sessionEnded"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "$ref": "#/components/schemas/TimeEntryType"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "day": {
+            "type": "string",
+            "format": "date"
+          },
+          "source": {
+            "$ref": "#/components/schemas/TimeEntrySource"
+          },
+          "location": {
+            "$ref": "#/components/schemas/TimeEntryLocation"
+          },
+          "title": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "outOfSequence": {
+            "type": "boolean"
+          },
+          "hint": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "sessionEnded": {
+            "type": "boolean"
+          }
+        }
+      },
+      "TimeEntryRow": {
+        "required": [
+          "id",
+          "employeeId",
+          "employeeName",
+          "day",
+          "at",
+          "type",
+          "source",
+          "deviceName",
+          "location",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "employeeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "employeeName": {
+            "type": "string"
+          },
+          "day": {
+            "type": "string",
+            "format": "date"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "type": {
+            "$ref": "#/components/schemas/TimeEntryType"
+          },
+          "source": {
+            "$ref": "#/components/schemas/TimeEntrySource"
+          },
+          "deviceName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "location": {
+            "$ref": "#/components/schemas/TimeEntryLocation"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TimeEntryStatus"
+          }
+        }
+      },
+      "TimeEntrySource": {
+        "enum": [
+          "App",
+          "Pin",
+          "Manual"
+        ]
+      },
+      "TimeEntryStatus": {
+        "enum": [
+          "Valid",
+          "Voided"
+        ]
+      },
+      "TimeEntryType": {
+        "enum": [
+          "In",
+          "BreakStart",
+          "BreakEnd",
+          "Out"
+        ]
       },
       "TimelineEntry": {
         "required": [
