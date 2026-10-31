@@ -91,8 +91,9 @@ O protótipo aprovado é a referência de layout, hierarquia e comportamento. Ab
 2. Antes de codar: releia as regras do módulo no PRD e as entidades no modelo de dados.
 3. Escreva testes de regra de negócio (unidade) e de integração com Testcontainers para todo caso de uso que movimenta estoque, financeiro ou fiscal.
    - **Não repita teste de padrão.** As três camadas de acesso (por endpoint), as rotas anônimas, a cobertura de ajuda e a arquitetura já são verificadas por varredura (`EndpointAuthorizationTests`, teste de cobertura da ajuda, `Architecture.Tests`). Story nova não escreve `Tres_camadas_*`; teste de acesso só para regra própria do módulo (ação específica, seed patch, IDOR, dado mascarado).
-   - **Teste de carga** (milhares de linhas, tempo de resposta) leva `[Trait(LoadTest.Trait, LoadTest.Value)]`. O `scripts/test-docker.sh` pula esses testes (`BQ_CARGA=1` inclui); o CI roda todos.
+   - **Teste de carga** (milhares de linhas, tempo de resposta) leva `[Trait(LoadTest.Trait, LoadTest.Value)]`. O `scripts/test-docker.sh` pula esses testes (`BQ_CARGA=1` inclui); o CI do PR também pula, e a rodada completa roda.
    - No dia a dia, rode só as classes do módulo tocado (`--filter-class "*Fabrication*"`). A suíte inteira fica com o CI.
+   - **E2E (Playwright) é por feature, não por story.** A story prova os critérios de aceite com testes de unidade e integração e o front com Vitest; não escreve nem roda E2E. No fechamento de cada feature (marco do backlog), escreve-se um E2E por fluxo principal e dispara-se a rodada completa do CI (`workflow_dispatch`: E2E e carga), que precisa estar verde antes do deploy de homologação do marco. A mesma rodada completa roda toda noite na `main`.
 4. Critério de pronto: critérios de aceite atendidos, testes passando, migration criada, permissão registrada no seed, tela com estados de vazio/carregando/erro, ajuda da tela escrita ou atualizada, padrões e próximo passo propositivos avaliados, auditoria ligada.
 5. Marque a story como concluída no backlog e registre decisões em ADR.
 
