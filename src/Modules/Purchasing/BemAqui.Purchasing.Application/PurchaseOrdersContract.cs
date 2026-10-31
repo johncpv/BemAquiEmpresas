@@ -8,8 +8,30 @@ namespace BemAqui.Purchasing.Application;
 /// <see cref="IPurchaseOrders"/> (CMP-03a CA 24) e a porta do job do mínimo da CMP-01 (<see cref="IOpenPurchaseOrderQuantities"/>, destino
 /// "Estoque geral"). As linhas guardam a quantidade já na unidade de estoque (convertida pelo <c>IUnitConversion</c> na gravação).
 /// </summary>
-public sealed class PurchaseOrdersContract(IPurchasingDb db) : IPurchaseOrders, IOpenPurchaseOrderQuantities
+public sealed class PurchaseOrdersContract(IPurchasingDb db) : IPurchaseOrders, IOpenPurchaseOrderQuantities, IPurchaseOrderLines
 {
+    async Task<IReadOnlyList<PurchaseOrderWithLines>> IPurchaseOrderLines.OpenForPartyAsync(Guid partyId, CancellationToken cancellationToken)
+    {
+        var open = PurchaseOrderRules.OpenForReceipt.ToList();
+        var orders = await db.PurchaseOrders.AsNoTracking().Where(o => o.PartyId == partyId && open.Contains(o.Status))
+            .OrderByDescending(o => o.ApprovedAt).ThenByDescending(o => o.Number).Take(50).ToListAsync(cancellationToken);
+        return await WithLinesAsync(orders, cancellationToken);
+    }
+
+    async Task<PurchaseOrderWithLines?> IPurchaseOrderLines.FindAsync(Guid orderId, CancellationToken cancellationToken)
+    {
+        var order = await db.PurchaseOrders.AsNoTracking().FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken);
+        return order is null ? null : (await WithLinesAsync([order], cancellationToken))[0];
+    }
+
+    private async Task<IReadOnlyList<PurchaseOrderWithLines>> WithLinesAsync(IReadOnlyList<PurchaseOrder> orders, CancellationToken ct)
+    {
+        var ids = orders.Select(o => o.Id).ToList();
+        var lines = (await db.PurchaseOrderLines.AsNoTracking().Where(l => ids.Contains(l.OrderId)).OrderBy(l => l.Sequence).ToListAsync(ct)).ToLookup(l => l.OrderId);
+        return orders.Select(o => new PurchaseOrderWithLines(o.Id, o.Number, o.Status, o.PartyId, o.Freight, o.IpiAmount, o.Total, o.ExpectedDate,
+            lines[o.Id].Select(l => new PurchaseOrderLineInfo(l.Id, l.Sequence, l.ItemId, l.Quantity, l.QuantityReceived, l.UnitPrice)).ToList())).ToList();
+    }
+
     public async Task<PurchaseOrderInfo?> FindAsync(Guid id, CancellationToken cancellationToken = default) =>
         await db.PurchaseOrders.AsNoTracking().Where(o => o.Id == id)
             .Select(o => new PurchaseOrderInfo(o.Id, o.Number, o.Status, o.PartyId, o.ProjectId, o.Total, o.ExpectedDate)).FirstOrDefaultAsync(cancellationToken);

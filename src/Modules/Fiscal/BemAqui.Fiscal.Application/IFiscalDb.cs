@@ -30,6 +30,11 @@ public interface IFiscalDb
     /// <summary>Números gastos sem nota válida (rejeitada ou denegada, FIS-03a; a inutilização é da FIS-03b).</summary>
     DbSet<NumberGap> NumberGaps { get; }
 
+    /// <summary>NF-e de entrada e os itens (FIS-04a).</summary>
+    DbSet<IncomingInvoice> IncomingInvoices { get; }
+
+    DbSet<IncomingInvoiceItem> IncomingInvoiceItems { get; }
+
     ChangeTracker ChangeTracker { get; }
 
     /// <summary>Trava da nota na conferência de pendentes (<c>FOR UPDATE SKIP LOCKED</c>, CA 14).</summary>

@@ -75,6 +75,18 @@ public static class FiscalInfrastructure
         services.TryAddScoped<TaxSimulationService>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Tenancy.ITenantSeeder, TaxRuleSeeder>());
         services.AddAuditableEntity<TaxRule>("fiscal");
+        // FIS-04a: nota de entrada por XML. O dono IncomingInvoice aceita só XML (o PDF entra com a FIS-05), até 2 MB; lê com fiscal.view e grava
+        // com fiscal.import_incoming, só pela importação (a rota genérica de anexos é fechada) e debaixo do prefixo do tenant.
+        services.TryAddSingleton<BemAqui.Fiscal.Application.Incoming.INfeTrustAnchors, BemAqui.Fiscal.Application.Incoming.IcpBrasilTrustAnchors>();
+        services.TryAddScoped<BemAqui.Fiscal.Application.Incoming.IncomingInvoiceService>();
+        services.AddAuditableEntity<IncomingInvoice>("fiscal");
+        services.AddAuditableEntity<IncomingInvoiceItem>("fiscal");
+        services.AddAttachmentOwner(BemAqui.Fiscal.Application.Incoming.IncomingInvoiceService.AttachmentOwner, new AttachmentOwnerRules("fiscal", ["application/xml"],
+            BemAqui.Fiscal.Domain.IncomingInvoiceRules.MaxBytes,
+            OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IFiscalDb>().IncomingInvoices.AnyAsync(i => i.Id == id, ct),
+            ReadAction: "view", WriteAction: "import_incoming",
+            CanAttach: (_, _, _) => Task.FromResult<Error?>(Error.Forbidden(Error.Codes.Forbidden, "O XML da nota de entrada entra pela importação."))));
+
         // XML e DANFE (FIS-03a): só o sistema grava; leitura com fiscal.view pelos endpoints da nota (CA 18).
         services.AddAttachmentOwner(OutgoingInvoiceReconciler.AttachmentOwner, new AttachmentOwnerRules("fiscal", ["application/xml", "application/pdf"], 5 * 1024 * 1024,
             OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IFiscalDb>().OutgoingInvoices.AnyAsync(i => i.Id == id, ct),
