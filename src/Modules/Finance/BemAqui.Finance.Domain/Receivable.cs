@@ -177,10 +177,32 @@ public sealed class ReceivableSettlement : Entity, IAuditable
 
 /// <summary>
 /// Movimento numa conta bancária (<c>finance.financial_transactions</c>): valor com sinal (+ entrada), imutável; o estorno é
-/// outra transação, ligada à original. Saldo da conta = saldo inicial + Σ valores.
+/// outra transação, ligada à original. Saldo da conta = saldo inicial + Σ valores. A conciliação (BNK-03b) só marca
+/// <see cref="Reconciled"/> e <see cref="StatementLineId"/>, com o <c>xmin</c> barrando duas conciliações simultâneas.
 /// </summary>
-public sealed class FinancialTransaction : Entity, IAuditable
+[DocumentName("A transação")]
+public sealed class FinancialTransaction : Entity, IAuditable, IConcurrencyVersioned
 {
+    /// <summary>Conciliada com o extrato do banco (BNK-03b).</summary>
+    public bool Reconciled { get; private set; }
+
+    /// <summary>Linha do extrato casada (a primeira do vínculo).</summary>
+    public Guid? StatementLineId { get; private set; }
+
+    public uint Version { get; set; }
+
+    public void MarkReconciled(Guid statementLineId)
+    {
+        Reconciled = true;
+        StatementLineId = statementLineId;
+    }
+
+    public void Unreconcile()
+    {
+        Reconciled = false;
+        StatementLineId = null;
+    }
+
     public Guid BankAccountId { get; init; }
 
     public DateOnly Date { get; init; }

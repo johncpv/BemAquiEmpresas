@@ -14,4 +14,5 @@ export interface FinanceLimits {
   paymentTolerance?: number;
   transferNotifyAmount?: number;
   adjustedDefaultThresholdPct?: number;
+  ofxBankEntryCap?: number;
 }

@@ -478,7 +478,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-
 - Requisitos: R-FIN-8, R-FIN-2, R-FIN-10.
 - CA: importação às 06:30 e "Buscar agora" sem duplicar; OFX bloqueado em conta com API (contingência por conta com `finance.approve`), parser sem DTD, hash e FITID únicos, linhas "não verificadas pelo banco"; contraparte mascarada para `finance.view`; aviso ao Proprietário a cada importação.
 
-**BNK-03b [ ] Conciliação bancária: sugestão de par, conciliação manual, lançamento a partir do extrato e fechamento do período (G)** — 5.3, ordem 6 — `Ready (pré-condição externa)` — [story](stories/BNK-03b-conciliacao-bancaria.md)
+**BNK-03b [x] Conciliação bancária: sugestão de par, conciliação manual, lançamento a partir do extrato e fechamento do período (G)** — 5.3, ordem 6 — `Done` — [story](stories/BNK-03b-conciliacao-bancaria.md)
 - Requisitos: R-FIN-8, R-FIN-5, R-FIN-3, R-PRP-6, R-PRP-7.
 - CA: sugestão por valor, data (janela de 3 dias) e documento; uma linha por par e as seções "Sem par no banco" e "No sistema, não no banco"; quem confirma não é quem importou; lançamento sem OP com `finance.pay`, teto e 2FA de novo; fechamento por período com `finance.approve`.
 

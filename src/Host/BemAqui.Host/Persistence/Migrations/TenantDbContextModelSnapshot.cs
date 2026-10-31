@@ -2747,6 +2747,159 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("bank_ofx_contingencies", "finance");
                 });
 
+            modelBuilder.Entity("BemAqui.Finance.Domain.BankReconciliation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("BankAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("bank_account_id");
+
+                    b.Property<string>("ClosedPeriodReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("closed_period_reason");
+
+                    b.Property<string>("Confidence")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("confidence");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("reason");
+
+                    b.Property<string>("UndoReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("undo_reason");
+
+                    b.Property<DateTimeOffset?>("UndoneAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("undone_at");
+
+                    b.Property<Guid?>("UndoneBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("undone_by");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_bank_reconciliations");
+
+                    b.HasIndex("BankAccountId", "CreatedAt")
+                        .HasDatabaseName("ix_bank_reconciliations_bank_account_id_created_at");
+
+                    b.ToTable("bank_reconciliations", "finance");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.BankReconciliationClosing", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("BankAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("bank_account_id");
+
+                    b.Property<decimal>("BankBalance")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("bank_balance");
+
+                    b.Property<DateTimeOffset>("ClosedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("closed_at");
+
+                    b.Property<Guid?>("ClosedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("closed_by");
+
+                    b.Property<int>("LineCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("line_count");
+
+                    b.Property<decimal>("SystemBalance")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("system_balance");
+
+                    b.Property<DateOnly>("UntilDate")
+                        .HasColumnType("date")
+                        .HasColumnName("until_date");
+
+                    b.HasKey("Id")
+                        .HasName("pk_bank_reconciliation_closings");
+
+                    b.HasIndex("BankAccountId", "UntilDate")
+                        .HasDatabaseName("ix_bank_reconciliation_closings_bank_account_id_until_date");
+
+                    b.ToTable("bank_reconciliation_closings", "finance");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.BankReconciliationLink", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<Guid>("ReconciliationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reconciliation_id");
+
+                    b.Property<Guid>("StatementLineId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("statement_line_id");
+
+                    b.Property<Guid>("TransactionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("transaction_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_bank_reconciliation_links");
+
+                    b.HasIndex("ReconciliationId")
+                        .HasDatabaseName("ix_bank_reconciliation_links_reconciliation_id");
+
+                    b.HasIndex("StatementLineId")
+                        .HasDatabaseName("ix_bank_reconciliation_links_statement_line_id");
+
+                    b.HasIndex("TransactionId")
+                        .HasDatabaseName("ix_bank_reconciliation_links_transaction_id");
+
+                    b.ToTable("bank_reconciliation_links", "finance");
+                });
+
             modelBuilder.Entity("BemAqui.Finance.Domain.BankStatementBalance", b =>
                 {
                     b.Property<Guid>("Id")
@@ -3015,6 +3168,60 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasFilter("status <> 'Undone'");
 
                     b.ToTable("bank_statement_lines", "finance");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.BankStatementRule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("AccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("account_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("EntryKind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("entry_kind");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Keyword")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("keyword");
+
+                    b.Property<string>("LineKind")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("line_kind");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_bank_statement_rules");
+
+                    b.HasIndex("IsActive")
+                        .HasDatabaseName("ix_bank_statement_rules_is_active");
+
+                    b.ToTable("bank_statement_rules", "finance");
                 });
 
             modelBuilder.Entity("BemAqui.Finance.Domain.BankTransfer", b =>
@@ -3573,6 +3780,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("receivable_id");
 
+                    b.Property<bool>("Reconciled")
+                        .HasColumnType("boolean")
+                        .HasColumnName("reconciled");
+
                     b.Property<Guid?>("ReversesTransactionId")
                         .HasColumnType("uuid")
                         .HasColumnName("reverses_transaction_id");
@@ -3580,6 +3791,10 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<Guid?>("SettlementId")
                         .HasColumnType("uuid")
                         .HasColumnName("settlement_id");
+
+                    b.Property<Guid?>("StatementLineId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("statement_line_id");
 
                     b.Property<Guid?>("TransferId")
                         .HasColumnType("uuid")
@@ -3590,6 +3805,12 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasMaxLength(16)
                         .HasColumnType("character varying(16)")
                         .HasColumnName("type");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.HasKey("Id")
                         .HasName("pk_financial_transactions");
@@ -3605,6 +3826,9 @@ namespace BemAqui.Host.Persistence.Migrations
 
                     b.HasIndex("ReceivableId")
                         .HasDatabaseName("ix_financial_transactions_receivable_id");
+
+                    b.HasIndex("StatementLineId")
+                        .HasDatabaseName("ix_financial_transactions_statement_line_id");
 
                     b.HasIndex("TransferId")
                         .HasDatabaseName("ix_financial_transactions_transfer_id");
@@ -14148,6 +14372,50 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_bank_ofx_contingencies_bank_accounts_bank_account_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.BankReconciliation", b =>
+                {
+                    b.HasOne("BemAqui.Finance.Domain.BankAccount", null)
+                        .WithMany()
+                        .HasForeignKey("BankAccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_bank_reconciliations_bank_accounts_bank_account_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.BankReconciliationClosing", b =>
+                {
+                    b.HasOne("BemAqui.Finance.Domain.BankAccount", null)
+                        .WithMany()
+                        .HasForeignKey("BankAccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_bank_reconciliation_closings_bank_accounts_bank_account_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.BankReconciliationLink", b =>
+                {
+                    b.HasOne("BemAqui.Finance.Domain.BankReconciliation", null)
+                        .WithMany()
+                        .HasForeignKey("ReconciliationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_bank_reconciliation_links_bank_reconciliations_reconciliati");
+
+                    b.HasOne("BemAqui.Finance.Domain.BankStatementLine", null)
+                        .WithMany()
+                        .HasForeignKey("StatementLineId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_bank_reconciliation_links_bank_statement_lines_statement_li");
+
+                    b.HasOne("BemAqui.Finance.Domain.FinancialTransaction", null)
+                        .WithMany()
+                        .HasForeignKey("TransactionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_bank_reconciliation_links_financial_transactions_transactio");
                 });
 
             modelBuilder.Entity("BemAqui.Finance.Domain.BankStatementBalance", b =>
