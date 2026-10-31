@@ -490,7 +490,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-
 - Requisitos: R-FIS-2, R-COM-2, R-SEC-10.
 - CA: Configurações → Fiscal pré-configurada (Lucro Presumido, série exclusiva, CFOP/CST e alíquotas por cenário, tributos no custo, NFS-e, IBS/CBS, prazos) com "A confirmar com a contadora" e "Marcar como conferido"; Configurações → Fiscal → Certificado digital com o A1 direto ao cofre do EmissorFiscal, `settings.edit` e 2FA de novo; `fiscal.approve` (reservada) e `fiscal.import_incoming` no catálogo, seed `fiscal-permissions`; produção só com os campos críticos conferidos; alerta de vencimento 30/15/7/1 dias.
 
-**FIS-02b [ ] Regras fiscais por operação e cálculo dos tributos da nota (G)** — 5.4, ordem 9 — `Ready (pré-condição externa)` — [story](stories/FIS-02b-regras-fiscais-calculo.md)
+**FIS-02b [x] Regras fiscais por operação e cálculo dos tributos da nota (G)** — 5.4, ordem 9 — `Done` (conferência da contadora, casos de referência dela e frequência do DIFAL: pré-condição externa) — [story](stories/FIS-02b-regras-fiscais-calculo.md)
 - Requisitos: R-FIS-4, R-FIS-3, R-FIS-8, R-PRJ-5.
 - CA: regras por operação com versão e ativação por outra pessoa, nascidas do seed pré-configurado "a confirmar"; motor puro de ICMS, ST, IPI, PIS, COFINS e IBS/CBS batendo com os casos de referência; "Simular" em painel lateral; sem regra, sem nota; DIFAL bloqueado; tributos que entram no custo do projeto (ICMS, PIS, COFINS, ISS, IBS/CBS; IPI fora).
 

@@ -26,7 +26,9 @@ Tudo já vem **preenchido com os valores propostos** (por exemplo, Lucro Presumi
 ## Perguntas frequentes
 **Por que a série 2?** A série 1 costuma ser a do emissor atual. A série do sistema precisa ser exclusiva; confirme com a contadora qual foi reservada. Trocar a série depois de emitir pede confirmação e mostra a última nota da série atual.
 
-**E se eu mudar o regime?** O CRT muda junto. As regras fiscais do regime anterior ficam inativas e precisam de revisão; nenhuma nota já emitida muda.
+**E se eu mudar o regime?** O CRT muda junto. As regras fiscais do regime anterior deixam de valer para a nota e ganham o aviso **A revisar** em Fiscal → Regras fiscais; nenhuma nota já emitida muda.
+
+**E se eu mudar uma alíquota ou um CST?** As regras fiscais montadas com aquele valor **não mudam sozinhas**: depois de salvar, a tela lista as regras afetadas e elas aparecem no filtro **A revisar** de Fiscal → Regras fiscais.
 
 **O que é "Entra no custo do projeto"?** São os tributos que o sistema soma ao custo do projeto para mostrar a margem real (ICMS, PIS, COFINS, ISS e IBS/CBS; o IPI fica fora). Não muda a nota.
 

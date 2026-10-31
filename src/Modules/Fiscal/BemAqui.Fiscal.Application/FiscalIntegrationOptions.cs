@@ -49,6 +49,9 @@ public sealed class FiscalIntegrationOptions
 
     /// <summary>Envios do certificado A1 por hora e tenant (política <c>fiscal-certificate</c>, FIS-02a CA 15).</summary>
     public int CertificateUploadsPerHour { get; set; } = Certificates.FiscalCertificateService.UploadsPerHour;
+
+    /// <summary>"Simular" das regras fiscais por minuto e usuário (política <c>fiscal-simulate</c>, FIS-02b CA 10).</summary>
+    public int SimulationsPerMinute { get; set; } = 30;
 }
 
 /// <summary>Conferência do endereço do Emissor (CA 7): HTTPS, porta padrão e host da lista; o endereço vem só da configuração.</summary>
