@@ -55,10 +55,10 @@ test.describe('Conciliação bancária (BNK-03b)', () => {
     await expect.poll(() => posted.length).toBe(1)
     expect(posted[0].body).toMatchObject({ lines: [{ id: 'l1', version: 7 }], transactions: [{ id: 't1', version: 3 }], accepted: true })
 
-    await page.getByRole('region', { name: 'Sem par no banco' }).getByRole('button', { name: 'Lançar sem OP' }).click()
+    await page.getByRole('region', { name: 'Sem par no banco' }).getByRole('button', { name: 'Lançar sem OP', exact: true }).click()
     const dialog = page.getByRole('alertdialog')
     await expect(dialog.getByRole('combobox', { name: /Tipo/ })).toHaveValue('BankFee')
-    await dialog.getByRole('button', { name: 'Lançar sem OP' }).click()
+    await dialog.getByRole('button', { name: 'Lançar sem OP', exact: true }).click()
     await expect.poll(() => posted.length).toBe(2)
     expect(posted[1].url).toContain('/reconciliation/lines/l2/bank-entry')
     expect(posted[1].body).toMatchObject({ kind: 'BankFee', accountId: 'x5', lineVersion: 7 })

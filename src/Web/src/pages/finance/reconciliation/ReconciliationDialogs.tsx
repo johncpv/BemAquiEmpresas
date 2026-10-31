@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import {
   createBankEntryFromLine, createBankStatementRule, listReconciliationCandidates, listReconciliationPendingLines, reconcile, settleFromLine, undoReconciliation, useListAccounts,
   useListCostCenters,
@@ -123,6 +123,7 @@ export function LinesForTransactionDialog({ accountId, tx, onDone }: { accountId
  */
 export function LineEntryDialog({ accountId, item, cap, canApprove, onDone }: { accountId: string; item: ReconUnpairedLine; cap: number; canApprove: boolean; onDone: () => Promise<void> }) {
   const line = item.line
+  const kindId = useId()
   const chart = useListAccounts()
   const centers = useListCostCenters()
   const kinds = entryKindsFor(line.amount)
@@ -152,9 +153,10 @@ export function LineEntryDialog({ accountId, item, cap, canApprove, onDone }: { 
       }}
       trigger={<button type="button" disabled={line.blocked} title={line.blocked ? line.blockedReason ?? undefined : undefined} className={secondary}>Lançar sem OP</button>}>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        <label className="space-y-1 text-sm font-medium"><span className="inline-flex items-center">Tipo<Dica nome="Lançar sem OP" texto={ENTRY_HINT} /></span>
-          <select value={kind} onChange={(e) => { setKind(e.target.value as BankEntryKind); setPlan('') }} className={inputClass}>{kinds.map((k) => <option key={k.value} value={k.value}>{k.label}</option>)}</select>
-        </label>
+        {/* A Dica fica fora do <label>: botão dentro do rótulo rouba o nome e o clique do campo. */}
+        <div className="space-y-1 text-sm font-medium"><span className="inline-flex items-center"><label htmlFor={kindId}>Tipo</label><Dica nome="Lançar sem OP" texto={ENTRY_HINT} /></span>
+          <select id={kindId} value={kind} onChange={(e) => { setKind(e.target.value as BankEntryKind); setPlan('') }} className={inputClass}>{kinds.map((k) => <option key={k.value} value={k.value}>{k.label}</option>)}</select>
+        </div>
         <label className="space-y-1 text-sm font-medium">Valor (da linha)<MoneyInput value={String(Math.abs(line.amount))} onChange={() => undefined} disabled /></label>
         <label className="space-y-1 text-sm font-medium">Data (da linha)<input value={formatDate(line.date)} disabled className={inputClass} /></label>
         <label className="space-y-1 text-sm font-medium">Conta do plano

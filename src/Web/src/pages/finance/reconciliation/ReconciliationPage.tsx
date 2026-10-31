@@ -177,7 +177,7 @@ function CloseDialog({ view, onDone }: { view: ReconciliationView; onDone: (unti
         ], total: <>Diferença <Money value={preview.difference ?? 0} /></>,
       } : undefined}
       onConfirm={async () => { await closeReconciliation(view.accountId, { until }); await onDone(until) }}
-      trigger={<button type="button" className={primary}>Fechar conciliação até {fullDate(until).slice(0, 5)}<Dica nome="Fechar conciliação" texto={CLOSE_HINT} /></button>} />
+      trigger={<button type="button" className={primary}>Fechar conciliação até {fullDate(until).slice(0, 5)}</button>} />
   )
 }
 
@@ -287,6 +287,7 @@ export function ReconciliationPage() {
                   setNext([{ label: `Conciliar a partir de ${formatDate(p.from)}`, onSelect: () => set({ de: p.from, ate: p.to }) }])
                 }} />
               ) : null}
+              {canApprove && v.reconciledUntil ? <Dica nome="Fechar conciliação" texto={CLOSE_HINT} /> : null}
             </span>
           </div>
           {next.length ? <NextSteps onDismiss={() => setNext([])} steps={next} /> : null}
