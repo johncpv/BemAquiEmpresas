@@ -4908,6 +4908,11 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("include_duplicates");
 
+                    b.PrimitiveCollection<string[]>("InputTaxCredit")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("input_tax_credit");
+
                     b.Property<bool>("IpiFromNcm")
                         .HasColumnType("boolean")
                         .HasColumnName("ipi_from_ncm");
@@ -5061,6 +5066,16 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("imported_by");
 
+                    b.Property<decimal>("InputTaxCreditAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("input_tax_credit_amount");
+
+                    b.Property<string>("InputTaxCreditApplied")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("input_tax_credit_applied");
+
                     b.Property<DateTimeOffset>("IssuedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("issued_at");
@@ -5205,6 +5220,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ux_incoming_invoices_access_key")
                         .HasFilter("status <> 'Rejected'");
+
+                    b.HasIndex("GoodsReceiptId")
+                        .HasDatabaseName("ix_incoming_invoices_goods_receipt_id")
+                        .HasFilter("goods_receipt_id IS NOT NULL");
 
                     b.HasIndex("PartyId")
                         .HasDatabaseName("ix_incoming_invoices_party_id");
@@ -12473,6 +12492,11 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("incoming_invoice_id");
 
+                    b.Property<decimal>("Insurance")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("insurance");
+
                     b.Property<decimal>("IpiAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
@@ -12494,6 +12518,17 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
                         .HasColumnName("order_status_before");
+
+                    b.Property<string>("Origin")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)")
+                        .HasColumnName("origin");
+
+                    b.Property<decimal>("OtherExpenses")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("other_expenses");
 
                     b.Property<Guid>("PartyId")
                         .HasColumnType("uuid")
@@ -12543,6 +12578,11 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("subtotal");
 
+                    b.Property<decimal>("TaxCredit")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("tax_credit");
+
                     b.Property<uint>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
@@ -12551,6 +12591,11 @@ namespace BemAqui.Host.Persistence.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_goods_receipts");
+
+                    b.HasIndex("IncomingInvoiceId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_goods_receipts_incoming_invoice")
+                        .HasFilter("incoming_invoice_id IS NOT NULL AND status = 'Completed'");
 
                     b.HasIndex("Number")
                         .IsUnique()
@@ -12576,6 +12621,11 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("freight_share");
+
+                    b.Property<decimal>("InsuranceShare")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("insurance_share");
 
                     b.Property<decimal>("IpiShare")
                         .HasPrecision(18, 2)
@@ -12617,6 +12667,11 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("character varying(30)")
                         .HasColumnName("movement_number");
 
+                    b.Property<decimal>("OtherShare")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("other_share");
+
                     b.Property<Guid>("PoLineId")
                         .HasColumnType("uuid")
                         .HasColumnName("po_line_id");
@@ -12647,6 +12702,11 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
                         .HasColumnName("supplier_unit");
+
+                    b.Property<decimal>("TaxCreditShare")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("tax_credit_share");
 
                     b.Property<decimal>("UnitCost")
                         .HasPrecision(18, 6)

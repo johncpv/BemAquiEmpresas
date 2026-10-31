@@ -35,6 +35,6 @@ describe('Configurações → Fiscal (FIS-02a)', () => {
   it('cada campo da tela tem uma chave única', () => {
     const keys = Object.values(SECTION_FIELDS).flat().map((f) => f.key)
     expect(new Set(keys).size).toBe(keys.length)
-    expect(keys).toHaveLength(41)
+    expect(keys).toHaveLength(42) // FIS-04b: inputTaxCredit na seção Entrada
   })
 })

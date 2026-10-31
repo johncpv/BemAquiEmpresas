@@ -15,7 +15,7 @@ public static class FiscalSettingsMapping
             s.MixedSale, s.CstIcms, s.CstPisCofins, s.CstIpi,
             s.IcmsInternalRate, s.IcmsInterstateSouthSoutheastRate, s.IcmsInterstateOtherRate, s.IcmsImportedRate, s.PisRate, s.CofinsRate, s.IpiFromNcm,
             s.CostTaxes, s.NfseServiceItem, s.NfseMunicipalCode, s.NfseCtn, s.NfseNbs, s.NfseIssRate, s.NfseIssLocation, s.NfseIssWithheld, s.NfseFederalWithholding,
-            s.IbsCbsCst, s.IbsCbsClassification, s.CbsRate, s.IbsRate, s.IbsCityRate, s.CancellationWindowHours, s.FreightMode, s.VolumeSpecies, s.IncludeDuplicates);
+            s.IbsCbsCst, s.IbsCbsClassification, s.CbsRate, s.IbsRate, s.IbsCityRate, s.CancellationWindowHours, s.FreightMode, s.VolumeSpecies, s.IncludeDuplicates, s.InputTaxCredit);
     }
 
     /// <summary>Aplica os valores (o ambiente fica de fora: a troca tem regra própria, CA 8).</summary>
@@ -63,6 +63,10 @@ public static class FiscalSettingsMapping
         s.FreightMode = v.FreightMode;
         s.VolumeSpecies = Text(v.VolumeSpecies).ToUpperInvariant();
         s.IncludeDuplicates = v.IncludeDuplicates;
+        if (v.InputTaxCredit is { } credit)
+        {
+            s.InputTaxCredit = [.. credit.Select(t => Text(t).ToUpperInvariant())];
+        }
     }
 
     /// <summary>Valor como a contadora lê (PDF, CA 10).</summary>
@@ -82,6 +86,7 @@ public static class FiscalSettingsMapping
             "cfopSaleInterstateFinal" => s.CfopSaleInterstateFinal + " (DIFAL bloqueado: a emissão recusa)",
             "ipiFromNcm" => s.IpiFromNcm ? "Pela TIPI do NCM de cada item" : "Não usar a TIPI",
             "costTaxes" => s.CostTaxes.Length == 0 ? "Nenhum" : string.Join(", ", s.CostTaxes.Select(t => t == "IBS_CBS" ? "IBS/CBS" : t)),
+            "inputTaxCredit" => FiscalSettingsRules.InputTaxCreditDisplay(s.InputTaxCredit),
             "nfseMunicipalCode" or "nfseCtn" or "nfseNbs" => key.Canonical(s) is { Length: > 0 } code ? code : "A informar",
             "nfseIssLocation" => s.NfseIssLocation == IssLocation.WorkSite ? "Município da obra" : "Município da empresa",
             "nfseIssWithheld" => s.NfseIssWithheld ? "Sim" : "Não",

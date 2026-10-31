@@ -15,6 +15,12 @@ Liga cada item que o fornecedor faturou ao item do nosso estoque (o **de-para**)
 3. Quando a unidade do fornecedor é diferente da nossa (caixa e unidade, por exemplo), informe o **fator de conversão**: quanto 1 unidade do fornecedor vale na unidade de estoque.
 4. Vá para a aba **Pedido e divergências**.
 
+## Receber pela nota
+Depois de **Conferir nota**, quem registra recebimento em Compras clica em **Receber pela nota**: o recebimento do pedido abre preenchido com a quantidade, o lote, o frete, o seguro, as outras despesas e o IPI da nota, e os títulos a pagar nascem com as duplicatas. Recebida, a nota fica em modo leitura com o link do recebimento e dos títulos. Se o recebimento for estornado, a nota volta a **Conferida**.
+
+## Crédito de impostos
+O custo de entrada segue o parâmetro **Crédito de impostos na entrada** (Configurações → Fiscal, seção Entrada). O padrão é nenhum crédito: o ICMS, o IPI, o PIS e a COFINS da nota ficam no custo, até a contadora confirmar. A nota recebida mostra a regra usada.
+
 ## Perguntas frequentes
 **O item não existe no estoque.** Quem pode cadastrar itens clica em **Cadastrar item** e volta para ligar. Ou marque **Sem item de estoque**, se não for material de estoque.
 

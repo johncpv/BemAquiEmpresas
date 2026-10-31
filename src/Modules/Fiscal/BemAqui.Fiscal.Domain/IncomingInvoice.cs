@@ -142,6 +142,12 @@ public sealed class IncomingInvoice : Entity, IAuditable, IConcurrencyVersioned
     /// <summary>Recebimento gerado pela nota (FIS-04b).</summary>
     public Guid? GoodsReceiptId { get; private set; }
 
+    /// <summary>Regra "Crédito de impostos na entrada" usada no recebimento (FIS-04b CA 5 e 14), como o diálogo mostrou.</summary>
+    public string? InputTaxCreditApplied { get; private set; }
+
+    /// <summary>Tributo recuperável que saiu do custo de entrada e ficou guardado na nota como "crédito" (zero sem crédito).</summary>
+    public decimal InputTaxCreditAmount { get; private set; }
+
     public Guid? ImportedBy { get; init; }
 
     public DateTimeOffset ImportedAt { get; init; }
@@ -195,6 +201,28 @@ public sealed class IncomingInvoice : Entity, IAuditable, IConcurrencyVersioned
         RejectedReason = reason;
         UpdatedAt = now;
     }
+
+    /// <summary>"Receber pela nota" (FIS-04b CA 6): <c>Checked → Received</c> com o recebimento, a regra de crédito usada e o crédito.</summary>
+    public void MarkReceived(Guid goodsReceiptId, string creditRule, decimal creditAmount, DateTimeOffset now)
+    {
+        Status = IncomingInvoiceStatus.Received;
+        GoodsReceiptId = goodsReceiptId;
+        InputTaxCreditApplied = creditRule.Length > InputTaxCreditRuleMaxLength ? creditRule[..InputTaxCreditRuleMaxLength] : creditRule;
+        InputTaxCreditAmount = creditAmount;
+        UpdatedAt = now;
+    }
+
+    /// <summary>Estorno do recebimento (FIS-04b CA 11): volta a <c>Checked</c>, sem o recebimento; pode ser recebida de novo.</summary>
+    public void ReturnToChecked(DateTimeOffset now)
+    {
+        Status = IncomingInvoiceStatus.Checked;
+        GoodsReceiptId = null;
+        InputTaxCreditApplied = null;
+        InputTaxCreditAmount = 0m;
+        UpdatedAt = now;
+    }
+
+    public const int InputTaxCreditRuleMaxLength = 200;
 
     public void Touch(DateTimeOffset now) => UpdatedAt = now;
 }

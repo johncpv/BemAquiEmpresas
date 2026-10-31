@@ -70,6 +70,8 @@ public static class FiscalInfrastructure
         // com fiscal.import_incoming, só pela importação (a rota genérica de anexos é fechada) e debaixo do prefixo do tenant.
         services.TryAddSingleton<BemAqui.Fiscal.Application.Incoming.INfeTrustAnchors, BemAqui.Fiscal.Application.Incoming.IcpBrasilTrustAnchors>();
         services.TryAddScoped<BemAqui.Fiscal.Application.Incoming.IncomingInvoiceService>();
+        // FIS-04b: o recebimento pela nota (Purchasing) lê a nota conferida e faz as transições pelo contrato, na transação dele.
+        services.TryAddScoped<BemAqui.Fiscal.Contracts.IIncomingInvoices, BemAqui.Fiscal.Application.Incoming.IncomingInvoicesContract>();
         services.AddAuditableEntity<IncomingInvoice>("fiscal");
         services.AddAuditableEntity<IncomingInvoiceItem>("fiscal");
         services.AddAttachmentOwner(BemAqui.Fiscal.Application.Incoming.IncomingInvoiceService.AttachmentOwner, new AttachmentOwnerRules("fiscal", ["application/xml"],

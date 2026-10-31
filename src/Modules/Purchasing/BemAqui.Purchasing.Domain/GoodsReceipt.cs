@@ -20,7 +20,10 @@ public sealed class GoodsReceipt : Entity, IAuditable, IConcurrencyVersioned
     /// <summary>Projeto do pedido, só como referência (a entrada não vira custo do projeto, ADR 0025 §1).</summary>
     public Guid? ProjectId { get; init; }
 
-    /// <summary>Nota de entrada (FIS-05/FIS-06 reaproveitam este fluxo); null no recebimento manual.</summary>
+    /// <summary>Recebimento digitado contra o pedido (CMP-04) ou pela NF-e de entrada conferida (FIS-04b).</summary>
+    public GoodsReceiptOrigin Origin { get; init; } = GoodsReceiptOrigin.Manual;
+
+    /// <summary>Nota de entrada (FIS-04b; a FIS-05 reaproveita este fluxo); null no recebimento manual.</summary>
     public Guid? IncomingInvoiceId { get; init; }
 
     /// <summary>Data de recebimento (data de negócio, ≤ hoje): base do vencimento das parcelas.</summary>
@@ -35,7 +38,15 @@ public sealed class GoodsReceipt : Entity, IAuditable, IConcurrencyVersioned
 
     public decimal IpiAmount { get; init; }
 
-    /// <summary>Valor do recebimento (títulos): itens + frete + IPI deste recebimento, 2 casas.</summary>
+    /// <summary>Seguro e outras despesas da nota (FIS-04b, rateados como o frete); zero no recebimento manual.</summary>
+    public decimal Insurance { get; init; }
+
+    public decimal OtherExpenses { get; init; }
+
+    /// <summary>Tributo recuperável que saiu do custo de entrada (FIS-04b CA 5, parâmetro "Crédito de impostos na entrada"); zero sem crédito.</summary>
+    public decimal TaxCredit { get; init; }
+
+    /// <summary>Valor do recebimento (títulos): itens + frete + IPI (+ seguro e outras despesas da nota) deste recebimento, 2 casas.</summary>
     public decimal Amount { get; init; }
 
     /// <summary>Situação do pedido antes deste recebimento (o estorno do único recebimento volta a ela).</summary>
@@ -98,7 +109,15 @@ public sealed class GoodsReceiptLine : Entity, IAuditable
 
     public decimal IpiShare { get; init; }
 
-    /// <summary>Custo unitário de entrada (P-16): (valor + rateio do frete + rateio do IPI) ÷ quantidade, 6 casas.</summary>
+    /// <summary>Rateio do seguro e das outras despesas da nota (FIS-04b).</summary>
+    public decimal InsuranceShare { get; init; }
+
+    public decimal OtherShare { get; init; }
+
+    /// <summary>Crédito de impostos da linha que saiu do custo (FIS-04b CA 5).</summary>
+    public decimal TaxCreditShare { get; init; }
+
+    /// <summary>Custo unitário de entrada (P-16): (valor + rateios do frete, IPI, seguro e outras despesas − crédito) ÷ quantidade, 6 casas.</summary>
     public decimal UnitCost { get; init; }
 
     public Guid? MovementId { get; set; }

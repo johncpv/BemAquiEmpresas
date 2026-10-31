@@ -35,4 +35,7 @@ export interface GoodsReceiptLineView {
   movementNumber: string | null;
   /** @nullable */
   reversalMovementId: string | null;
+  insuranceShare?: number;
+  otherShare?: number;
+  taxCreditShare?: number;
 }
